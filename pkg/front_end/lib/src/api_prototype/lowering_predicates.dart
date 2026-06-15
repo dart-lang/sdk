@@ -339,7 +339,7 @@ Expression? getLateFieldInitializer(Member node) {
             return staticSet.value;
           }
         } else if (block.statements.isNotEmpty &&
-            block.statements.first is VariableDeclaration) {
+            block.statements.first is VariableStatement) {
           // We have
           //
           //    get field {
@@ -353,9 +353,9 @@ Expression? getLateFieldInitializer(Member node) {
           //    }
           //
           // in case `<init>` is the initializer.
-          VariableDeclaration variableDeclaration =
-              block.statements.first as VariableDeclaration;
-          return variableDeclaration.initializer;
+          VariableStatement variableStatement =
+              block.statements.first as VariableStatement;
+          return variableStatement.declaration.variable.initializer;
         }
       }
       return null;
@@ -532,7 +532,7 @@ Field? getLateFieldTarget(Member node) {
 /// where '#local' is the local variable holding that value.
 ///
 /// The default value of this variable is `null`.
-bool isLateLoweredLocal(VariableDeclaration node) {
+bool isLateLoweredLocal(Variable node) {
   return node.isLowered && isLateLoweredLocalName(node.name!);
 }
 
@@ -578,7 +578,7 @@ String extractLocalNameFromLateLoweredLocal(String name) {
 /// where '#local#isSet' is the local variable holding the marker.
 ///
 /// The default value of this variable is `false`.
-bool isLateLoweredIsSetLocal(VariableDeclaration node) {
+bool isLateLoweredIsSetLocal(Variable node) {
   return node.isLowered && isLateLoweredIsSetLocalName(node.name!);
 }
 
@@ -619,7 +619,7 @@ String extractLocalNameFromLateLoweredIsSet(String name) {
 ///    }
 ///
 /// where '#local#get' is the local function for reading the variable.
-bool isLateLoweredLocalGetter(VariableDeclaration node) {
+bool isLateLoweredLocalGetter(Variable node) {
   return node.isLowered && isLateLoweredLocalGetterName(node.name!);
 }
 
@@ -662,7 +662,7 @@ String extractLocalNameFromLateLoweredGetter(String name) {
 ///
 /// where '#local#set' is the local function for setting the value of the
 /// variable.
-bool isLateLoweredLocalSetter(VariableDeclaration node) {
+bool isLateLoweredLocalSetter(Variable node) {
   return node.isLowered && isLateLoweredLocalSetterName(node.name!);
 }
 
@@ -701,7 +701,7 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///     int Extension|method(int #this) => #this;
 ///
 /// where '#this' is the synthetic "extension this" parameter.
-bool isExtensionThis(VariableDeclaration node) {
+bool isExtensionThis(Variable node) {
   assert(
     node.isLowered ||
         node.cosmeticName == null ||
@@ -732,7 +732,7 @@ bool hasUnnamedExtensionNamePrefix(String? name) {
 // Coverage-ignore(suite): Not run.
 /// Return `true` if [node] is the synthetic parameter holding the `this` value
 /// in the encoding of extension type instance members and constructors.
-bool isExtensionTypeThis(VariableDeclaration node) {
+bool isExtensionTypeThis(Variable node) {
   return node.isLowered && isExtensionTypeThisName(node.name);
 }
 
@@ -762,7 +762,7 @@ String extractLocalNameForExtensionThis(String name) {
 ///
 /// Note that the name can be `null` in case of a synthetic variable created
 /// for instance for encoding of `?.`.
-String? extractLocalNameFromVariable(VariableDeclaration node) {
+String? extractLocalNameFromVariable(Variable node) {
   if (node.isLowered) {
     String? name = _extractLocalName(node.name!);
     if (name == null) {
@@ -814,7 +814,7 @@ const String joinedIntermediateInfix = "#case#";
 /// Returns `true` if [node] is a joined intermediate variable.
 ///
 /// See [isJoinedIntermediateName] for details.
-bool isJoinedIntermediateVariable(VariableDeclaration node) {
+bool isJoinedIntermediateVariable(Variable node) {
   return node.isLowered &&
       node.name != null &&
       isJoinedIntermediateName(node.name!);

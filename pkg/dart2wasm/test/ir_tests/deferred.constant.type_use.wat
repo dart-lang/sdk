@@ -8,5 +8,5 @@
     (set 3 (ref.func $print)))
   (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
-  (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $print (param $var0 (ref null $#Top)) <...>)
 )

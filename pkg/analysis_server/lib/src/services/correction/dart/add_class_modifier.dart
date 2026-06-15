@@ -18,21 +18,21 @@ class AddClassModifier extends ResolvedCorrectionProducer {
   @override
   final FixKind multiFixKind;
 
-  AddClassModifier.baseModifier({required CorrectionProducerContext context})
+  new baseModifier({required CorrectionProducerContext context})
     : this._(
         context: context,
         modifier: 'base',
         fixKind: DartFixKind.addClassModifierBase,
         multiFixKind: DartFixKind.addClassModifierBaseMulti,
       );
-  AddClassModifier.finalModifier({required CorrectionProducerContext context})
+  new finalModifier({required CorrectionProducerContext context})
     : this._(
         context: context,
         modifier: 'final',
         fixKind: DartFixKind.addClassModifierFinal,
         multiFixKind: DartFixKind.addClassModifierFinalMulti,
       );
-  AddClassModifier.sealedModifier({required CorrectionProducerContext context})
+  new sealedModifier({required CorrectionProducerContext context})
     : this._(
         context: context,
         modifier: 'sealed',
@@ -40,7 +40,7 @@ class AddClassModifier extends ResolvedCorrectionProducer {
         multiFixKind: DartFixKind.addClassModifierSealedMulti,
       );
 
-  AddClassModifier._({
+  new _({
     required super.context,
     required this.modifier,
     required this.fixKind,

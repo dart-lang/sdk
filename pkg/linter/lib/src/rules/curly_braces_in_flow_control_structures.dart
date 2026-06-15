@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'DO use curly braces for all flow control structures.';
 
 class CurlyBracesInFlowControlStructures extends AnalysisRule {
-  CurlyBracesInFlowControlStructures()
+  new()
     : super(
         name: LintNames.curly_braces_in_flow_control_structures,
         description: _desc,
@@ -43,7 +43,7 @@ class CurlyBracesInFlowControlStructures extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoStatement(DoStatement node) {

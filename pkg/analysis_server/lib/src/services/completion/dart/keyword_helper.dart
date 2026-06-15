@@ -26,7 +26,7 @@ class KeywordHelper {
   final CompletionState state;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  KeywordHelper({
+  new({
     required this.collector,
     required this.featureSet,
     required this.offset,
@@ -319,7 +319,8 @@ class KeywordHelper {
 
     /// Return `true` if `switch` should be suggested for the given [node].
     bool switchIsValid(AstNode? node) {
-      if (node is SimpleIdentifier && node.parent is DefaultFormalParameter) {
+      if (node is SimpleIdentifier &&
+          node.parent is FormalParameterDefaultClause) {
         return false;
       }
       if (node is CollectionElement && node is! Expression) {

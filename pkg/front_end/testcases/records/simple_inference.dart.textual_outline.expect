@@ -11,7 +11,11 @@ foo5((int, String?) r, (int, X) Function<X>() f) {}
 foo6((X, Y) Function<X, Y>(X x, Y y) f, int x, String y) {}
 
 foo7(
-    (X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f, int x, String y, bool? z) {}
+  (X, (Y, Z)) Function<X, Y, Z>(X x, Y y, Z z) f,
+  int x,
+  String y,
+  bool? z,
+) {}
 
 class A8<X extends (X, Y), Y extends num> {}
 

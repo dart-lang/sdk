@@ -8,7 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add test with conditional inside if-element.
     defineReflectiveTests(PreferIfElementsToConditionalExpressionsTest);
   });
 }
@@ -19,26 +18,44 @@ class PreferIfElementsToConditionalExpressionsTest extends LintRuleTest {
   String get lintRule =>
       LintNames.prefer_if_elements_to_conditional_expressions;
 
-  test_conditionalInList() async {
-    await assertDiagnostics(
-      r'''
-List<String> f(bool b) {
-  return ['a', b ? 'c' : 'd', 'e'];
+  test_conditionalInForElement() async {
+    await assertDiagnosticsFromMarkdown(r'''
+List<String> f(List<bool> blist) {
+  return ['a', for (var b in blist) [!b ? 'c' : 'd'!], 'e'];
 }
-''',
-      [lint(40, 13)],
-    );
+''');
+  }
+
+  test_conditionalInIfElement_condition() async {
+    await assertNoDiagnostics(r'''
+List<String> f(bool b, bool c) {
+  return ['a', if (c ? false : true) 'd', 'e'];
+}
+''');
+  }
+
+  test_conditionalInIfElement_then() async {
+    await assertDiagnosticsFromMarkdown(r'''
+List<String> f(bool b, bool c) {
+  return ['a', if (b) [!c ? 'd' : 'e'!], 'f'];
+}
+''');
+  }
+
+  test_conditionalInList() async {
+    await assertDiagnosticsFromMarkdown(r'''
+List<String> f(bool b) {
+  return ['a', [!b ? 'c' : 'd'!], 'e'];
+}
+''');
   }
 
   test_conditionalInList_parenthesized() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 List<String> f(bool b) {
-  return ['a', (b ? 'c' : 'd'), 'e'];
+  return ['a', [!(b ? 'c' : 'd')!], 'e'];
 }
-''',
-      [lint(40, 15)],
-    );
+''');
   }
 
   test_conditionalInMap() async {
@@ -50,24 +67,18 @@ Map<String, int> f(bool b) {
   }
 
   test_conditionalInSet() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Set<String> f(bool b) {
-  return {'a', b ? 'c' : 'd', 'e'};
+  return {'a', [!b ? 'c' : 'd'!], 'e'};
 }
-''',
-      [lint(39, 13)],
-    );
+''');
   }
 
   test_conditionalInSet_parenthesizedTwice() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Set<String> f(bool b) {
-  return {'a', ((b ? 'c' : 'd')), 'e'};
+  return {'a', [!((b ? 'c' : 'd'))!], 'e'};
 }
-''',
-      [lint(39, 17)],
-    );
+''');
   }
 }

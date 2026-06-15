@@ -51,10 +51,8 @@ class DummySnapshot : public AppSnapshot {
 
   ~DummySnapshot() {}
 
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
+  void SetBuffers(const uint8_t** snapshot_data_buffer,
+                  const uint8_t** snapshot_text_buffer) {
     UNREACHABLE();
   }
 
@@ -63,50 +61,28 @@ class DummySnapshot : public AppSnapshot {
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
-  MappedAppSnapshot(MappedMemory* vm_snapshot_data,
-                    MappedMemory* vm_snapshot_instructions,
-                    MappedMemory* isolate_snapshot_data,
-                    MappedMemory* isolate_snapshot_instructions)
+  MappedAppSnapshot(MappedMemory* snapshot_data, MappedMemory* snapshot_text)
       : AppSnapshot(DartUtils::kAppJITMagicNumber),
-        vm_data_mapping_(vm_snapshot_data),
-        vm_instructions_mapping_(vm_snapshot_instructions),
-        isolate_data_mapping_(isolate_snapshot_data),
-        isolate_instructions_mapping_(isolate_snapshot_instructions) {}
+        data_mapping_(snapshot_data),
+        text_mapping_(snapshot_text) {}
 
   ~MappedAppSnapshot() {
-    delete vm_data_mapping_;
-    delete vm_instructions_mapping_;
-    delete isolate_data_mapping_;
-    delete isolate_instructions_mapping_;
+    delete data_mapping_;
+    delete text_mapping_;
   }
 
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
-    if (vm_data_mapping_ != nullptr) {
-      *vm_data_buffer =
-          reinterpret_cast<const uint8_t*>(vm_data_mapping_->address());
+  void SetBuffers(const uint8_t** data_buffer, const uint8_t** text_buffer) {
+    if (data_mapping_ != nullptr) {
+      *data_buffer = reinterpret_cast<const uint8_t*>(data_mapping_->address());
     }
-    if (vm_instructions_mapping_ != nullptr) {
-      *vm_instructions_buffer =
-          reinterpret_cast<const uint8_t*>(vm_instructions_mapping_->address());
-    }
-    if (isolate_data_mapping_ != nullptr) {
-      *isolate_data_buffer =
-          reinterpret_cast<const uint8_t*>(isolate_data_mapping_->address());
-    }
-    if (isolate_instructions_mapping_ != nullptr) {
-      *isolate_instructions_buffer = reinterpret_cast<const uint8_t*>(
-          isolate_instructions_mapping_->address());
+    if (text_mapping_ != nullptr) {
+      *text_buffer = reinterpret_cast<const uint8_t*>(text_mapping_->address());
     }
   }
 
  private:
-  MappedMemory* vm_data_mapping_;
-  MappedMemory* vm_instructions_mapping_;
-  MappedMemory* isolate_data_mapping_;
-  MappedMemory* isolate_instructions_mapping_;
+  MappedMemory* data_mapping_;
+  MappedMemory* text_mapping_;
 };
 
 static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
@@ -150,8 +126,8 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
     }
   }
 
-  auto app_snapshot = new MappedAppSnapshot(
-      nullptr, nullptr, isolate_data_mapping, isolate_instr_mapping);
+  auto app_snapshot =
+      new MappedAppSnapshot(isolate_data_mapping, isolate_instr_mapping);
   return app_snapshot;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -180,35 +156,24 @@ class DylibAppSnapshot : public AppSnapshot {
  public:
   DylibAppSnapshot(DartUtils::MagicNumber magic_number,
                    void* library,
-                   const uint8_t* vm_snapshot_data,
-                   const uint8_t* vm_snapshot_instructions,
-                   const uint8_t* isolate_snapshot_data,
-                   const uint8_t* isolate_snapshot_instructions)
+                   const uint8_t* snapshot_data,
+                   const uint8_t* snapshot_text)
       : AppSnapshot(magic_number),
         library_(library),
-        vm_snapshot_data_(vm_snapshot_data),
-        vm_snapshot_instructions_(vm_snapshot_instructions),
-        isolate_snapshot_data_(isolate_snapshot_data),
-        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+        snapshot_data_(snapshot_data),
+        snapshot_text_(snapshot_text) {}
 
   ~DylibAppSnapshot() { Utils::UnloadDynamicLibrary(library_); }
 
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
-    *vm_data_buffer = vm_snapshot_data_;
-    *vm_instructions_buffer = vm_snapshot_instructions_;
-    *isolate_data_buffer = isolate_snapshot_data_;
-    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  void SetBuffers(const uint8_t** data_buffer, const uint8_t** text_buffer) {
+    *data_buffer = snapshot_data_;
+    *text_buffer = snapshot_text_;
   }
 
  private:
   void* library_;
-  const uint8_t* vm_snapshot_data_;
-  const uint8_t* vm_snapshot_instructions_;
-  const uint8_t* isolate_snapshot_data_;
-  const uint8_t* isolate_snapshot_instructions_;
+  const uint8_t* snapshot_data_;
+  const uint8_t* snapshot_text_;
 };
 
 static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
@@ -255,31 +220,20 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
     return nullptr;
   }
 
-  const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
-      Utils::ResolveSymbolInDynamicLibrary(library, kVmSnapshotDataCSymbol));
-
-  const uint8_t* vm_instructions_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kVmSnapshotInstructionsCSymbol));
-
-  const uint8_t* isolate_data_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotDataCSymbol));
-  if (isolate_data_buffer == nullptr) {
-    FATAL("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
+  const uint8_t* snapshot_data_buffer = reinterpret_cast<const uint8_t*>(
+      Utils::ResolveSymbolInDynamicLibrary(library, kSnapshotDataCSymbol));
+  if (snapshot_data_buffer == nullptr) {
+    FATAL("Failed to resolve symbol '%s'\n", kSnapshotDataCSymbol);
   }
 
-  const uint8_t* isolate_instructions_buffer =
-      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
-          library, kIsolateSnapshotInstructionsCSymbol));
-  if (isolate_instructions_buffer == nullptr) {
-    FATAL("Failed to resolve symbol '%s'\n",
-          kIsolateSnapshotInstructionsCSymbol);
+  const uint8_t* snapshot_text_buffer = reinterpret_cast<const uint8_t*>(
+      Utils::ResolveSymbolInDynamicLibrary(library, kSnapshotTextCSymbol));
+  if (snapshot_text_buffer == nullptr) {
+    FATAL("Failed to resolve symbol '%s'\n", kSnapshotTextCSymbol);
   }
 
-  return new DylibAppSnapshot(magic_number, library, vm_data_buffer,
-                              vm_instructions_buffer, isolate_data_buffer,
-                              isolate_instructions_buffer);
+  return new DylibAppSnapshot(magic_number, library, snapshot_data_buffer,
+                              snapshot_text_buffer);
 #endif  // defined(DART_INCLUDE_SIMULATOR)
 }
 
@@ -287,35 +241,24 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
 class ElfAppSnapshot : public AppSnapshot {
  public:
   ElfAppSnapshot(Dart_LoadedElf* elf,
-                 const uint8_t* vm_snapshot_data,
-                 const uint8_t* vm_snapshot_instructions,
-                 const uint8_t* isolate_snapshot_data,
-                 const uint8_t* isolate_snapshot_instructions)
+                 const uint8_t* snapshot_data,
+                 const uint8_t* snapshot_text)
       : AppSnapshot{DartUtils::kAotELFMagicNumber},
         elf_(elf),
-        vm_snapshot_data_(vm_snapshot_data),
-        vm_snapshot_instructions_(vm_snapshot_instructions),
-        isolate_snapshot_data_(isolate_snapshot_data),
-        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+        snapshot_data_(snapshot_data),
+        snapshot_text_(snapshot_text) {}
 
   virtual ~ElfAppSnapshot() { Dart_UnloadELF(elf_); }
 
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
-    *vm_data_buffer = vm_snapshot_data_;
-    *vm_instructions_buffer = vm_snapshot_instructions_;
-    *isolate_data_buffer = isolate_snapshot_data_;
-    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  void SetBuffers(const uint8_t** data_buffer, const uint8_t** text_buffer) {
+    *data_buffer = snapshot_data_;
+    *text_buffer = snapshot_text_;
   }
 
  private:
   Dart_LoadedElf* elf_;
-  const uint8_t* vm_snapshot_data_;
-  const uint8_t* vm_snapshot_instructions_;
-  const uint8_t* isolate_snapshot_data_;
-  const uint8_t* isolate_snapshot_instructions_;
+  const uint8_t* snapshot_data_;
+  const uint8_t* snapshot_text_;
 };
 
 static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
@@ -335,9 +278,8 @@ static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
     return nullptr;
   }
 #endif
-  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
-                *isolate_data_buffer = nullptr,
-                *isolate_instructions_buffer = nullptr;
+  const uint8_t* snapshot_data_buffer = nullptr;
+  const uint8_t* snapshot_text_buffer = nullptr;
   Dart_LoadedElf* handle = nullptr;
   const char* error = nullptr;
   if (force_load_from_memory) {
@@ -349,58 +291,43 @@ static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
     if (memory == nullptr) return nullptr;
     const uint8_t* address =
         reinterpret_cast<const uint8_t*>(memory->address());
-    handle =
-        Dart_LoadELF_Memory(address + file_offset, file->Length(), &error,
-                            &vm_data_buffer, &vm_instructions_buffer,
-                            &isolate_data_buffer, &isolate_instructions_buffer);
+    handle = Dart_LoadELF_Memory(address + file_offset, file->Length(), &error,
+                                 &snapshot_data_buffer, &snapshot_text_buffer);
     delete memory;
     file->Release();
   } else {
-    handle = Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
-                          &vm_instructions_buffer, &isolate_data_buffer,
-                          &isolate_instructions_buffer);
+    handle = Dart_LoadELF(script_name, file_offset, &error,
+                          &snapshot_data_buffer, &snapshot_text_buffer);
   }
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
     return nullptr;
   }
-  return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
-                            isolate_data_buffer, isolate_instructions_buffer);
+  return new ElfAppSnapshot(handle, snapshot_data_buffer, snapshot_text_buffer);
 }
 
 class MachODylibAppSnapshot : public AppSnapshot {
  public:
   MachODylibAppSnapshot(DartUtils::MagicNumber magic_number,
                         Dart_LoadedMachODylib* macho,
-                        const uint8_t* vm_snapshot_data,
-                        const uint8_t* vm_snapshot_instructions,
-                        const uint8_t* isolate_snapshot_data,
-                        const uint8_t* isolate_snapshot_instructions)
+                        const uint8_t* snapshot_data,
+                        const uint8_t* snapshot_text)
       : AppSnapshot{magic_number},
         macho_(macho),
-        vm_snapshot_data_(vm_snapshot_data),
-        vm_snapshot_instructions_(vm_snapshot_instructions),
-        isolate_snapshot_data_(isolate_snapshot_data),
-        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+        snapshot_data_(snapshot_data),
+        snapshot_text_(snapshot_text) {}
 
   virtual ~MachODylibAppSnapshot() { Dart_UnloadMachODylib(macho_); }
 
-  void SetBuffers(const uint8_t** vm_data_buffer,
-                  const uint8_t** vm_instructions_buffer,
-                  const uint8_t** isolate_data_buffer,
-                  const uint8_t** isolate_instructions_buffer) {
-    *vm_data_buffer = vm_snapshot_data_;
-    *vm_instructions_buffer = vm_snapshot_instructions_;
-    *isolate_data_buffer = isolate_snapshot_data_;
-    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  void SetBuffers(const uint8_t** data_buffer, const uint8_t** text_buffer) {
+    *data_buffer = snapshot_data_;
+    *text_buffer = snapshot_text_;
   }
 
  private:
   Dart_LoadedMachODylib* macho_;
-  const uint8_t* vm_snapshot_data_;
-  const uint8_t* vm_snapshot_instructions_;
-  const uint8_t* isolate_snapshot_data_;
-  const uint8_t* isolate_snapshot_instructions_;
+  const uint8_t* snapshot_data_;
+  const uint8_t* snapshot_text_;
 };
 
 static AppSnapshot* TryReadAppSnapshotMachODylib(
@@ -422,9 +349,8 @@ static AppSnapshot* TryReadAppSnapshotMachODylib(
     return nullptr;
   }
 #endif
-  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
-                *isolate_data_buffer = nullptr,
-                *isolate_instructions_buffer = nullptr;
+  const uint8_t* snapshot_data_buffer = nullptr;
+  const uint8_t* snapshot_text_buffer = nullptr;
   Dart_LoadedMachODylib* handle = nullptr;
   const char* error = nullptr;
   if (force_load_from_memory) {
@@ -439,25 +365,21 @@ static AppSnapshot* TryReadAppSnapshotMachODylib(
     }
     const uint8_t* address =
         reinterpret_cast<const uint8_t*>(memory->address());
-    handle = Dart_LoadMachODylib_Memory(
-        address + file_offset, file->Length(), &error, &vm_data_buffer,
-        &vm_instructions_buffer, &isolate_data_buffer,
-        &isolate_instructions_buffer);
+    handle = Dart_LoadMachODylib_Memory(address + file_offset, file->Length(),
+                                        &error, &snapshot_data_buffer,
+                                        &snapshot_text_buffer);
     delete memory;
     file->Release();
   } else {
-    handle =
-        Dart_LoadMachODylib(script_name, file_offset, &error, &vm_data_buffer,
-                            &vm_instructions_buffer, &isolate_data_buffer,
-                            &isolate_instructions_buffer);
+    handle = Dart_LoadMachODylib(script_name, file_offset, &error,
+                                 &snapshot_data_buffer, &snapshot_text_buffer);
   }
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
     return nullptr;
   }
-  return new MachODylibAppSnapshot(magic_number, handle, vm_data_buffer,
-                                   vm_instructions_buffer, isolate_data_buffer,
-                                   isolate_instructions_buffer);
+  return new MachODylibAppSnapshot(magic_number, handle, snapshot_data_buffer,
+                                   snapshot_text_buffer);
 }
 
 static AppSnapshot* TryReadAppSnapshotAt(const char* script_name,
@@ -606,10 +528,8 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
       // PE sections can be less than the page size, and TryReadAppSnapshotElf
       // won't work if the file offset isn't page-aligned.
       const char* error = nullptr;
-      const uint8_t* vm_data_buffer = nullptr;
-      const uint8_t* vm_instructions_buffer = nullptr;
-      const uint8_t* isolate_data_buffer = nullptr;
-      const uint8_t* isolate_instructions_buffer = nullptr;
+      const uint8_t* snapshot_data_buffer = nullptr;
+      const uint8_t* snapshot_text_buffer = nullptr;
 
       const intptr_t offset = section_header.file_offset;
       const intptr_t size = section_header.file_size;
@@ -622,26 +542,23 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
 
       if (magic_number == DartUtils::kAotELFMagicNumber) {
         Dart_LoadedElf* const handle =
-            Dart_LoadELF_Memory(snapshot.get(), size, &error, &vm_data_buffer,
-                                &vm_instructions_buffer, &isolate_data_buffer,
-                                &isolate_instructions_buffer);
+            Dart_LoadELF_Memory(snapshot.get(), size, &error,
+                                &snapshot_data_buffer, &snapshot_text_buffer);
 
         if (handle == nullptr) {
           Syslog::PrintErr("Loading failed: %s\n", error);
           return nullptr;
         }
 
-        return new ElfAppSnapshot(handle, vm_data_buffer,
-                                  vm_instructions_buffer, isolate_data_buffer,
-                                  isolate_instructions_buffer);
+        return new ElfAppSnapshot(handle, snapshot_data_buffer,
+                                  snapshot_text_buffer);
       }
 
       if (magic_number == DartUtils::kAotMachO32MagicNumber ||
           magic_number == DartUtils::kAotMachO64MagicNumber) {
         Dart_LoadedMachODylib* const handle = Dart_LoadMachODylib_Memory(
-            snapshot.get(), size, &error, &vm_data_buffer,
-            &vm_instructions_buffer, &isolate_data_buffer,
-            &isolate_instructions_buffer);
+            snapshot.get(), size, &error, &snapshot_data_buffer,
+            &snapshot_text_buffer);
 
         if (handle == nullptr) {
           Syslog::PrintErr("Loading failed: %s\n", error);
@@ -649,8 +566,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
         }
 
         return new MachODylibAppSnapshot(
-            magic_number, handle, vm_data_buffer, vm_instructions_buffer,
-            isolate_data_buffer, isolate_instructions_buffer);
+            magic_number, handle, snapshot_data_buffer, snapshot_text_buffer);
       }
 
       return nullptr;
@@ -981,32 +897,24 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
 }
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
+  uint8_t* snapshot_data_buffer = nullptr;
+  intptr_t snapshot_data_size = 0;
+  uint8_t* snapshot_text_buffer = nullptr;
+  intptr_t snapshot_text_size = 0;
 #if defined(TARGET_ARCH_IA32)
   // Snapshots with code are not supported on IA32.
-  uint8_t* isolate_buffer = nullptr;
-  intptr_t isolate_size = 0;
-
-  Dart_Handle result = Dart_CreateSnapshot(nullptr, nullptr, &isolate_buffer,
-                                           &isolate_size, /*is_core=*/false);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-
-  WriteAppSnapshot(snapshot_filename, isolate_buffer, isolate_size, nullptr, 0);
+  Dart_Handle result =
+      Dart_CreateSnapshot(&snapshot_data_buffer, &snapshot_data_size);
 #else
-  uint8_t* isolate_data_buffer = nullptr;
-  intptr_t isolate_data_size = 0;
-  uint8_t* isolate_instructions_buffer = nullptr;
-  intptr_t isolate_instructions_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
-      &isolate_data_buffer, &isolate_data_size, &isolate_instructions_buffer,
-      &isolate_instructions_size);
+      &snapshot_data_buffer, &snapshot_data_size, &snapshot_text_buffer,
+      &snapshot_text_size);
+#endif
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteAppSnapshot(snapshot_filename, isolate_data_buffer, isolate_data_size,
-                   isolate_instructions_buffer, isolate_instructions_size);
-#endif
+  WriteAppSnapshot(snapshot_filename, snapshot_data_buffer, snapshot_data_size,
+                   snapshot_text_buffer, snapshot_text_size);
 }
 
 static void StreamingWriteCallback(void* callback_data,

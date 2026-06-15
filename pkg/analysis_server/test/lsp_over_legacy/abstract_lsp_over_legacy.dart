@@ -30,7 +30,7 @@ class EventsCollector {
   final ContextResolutionTest test;
   List<Object> events = [];
 
-  EventsCollector(this.test) {
+  new(this.test) {
     test.notificationListener = (notification) {
       switch (notification.event) {
         case analysisNotificationErrors:
@@ -71,7 +71,7 @@ class EventsPrinter {
   final ResourceProvider resourceProvider;
   final TreeStringSink sink;
 
-  EventsPrinter({
+  new({
     required this.configuration,
     required this.resourceProvider,
     required this.sink,
@@ -122,6 +122,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         LspEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
         LspVerifyEditHelpersMixin,
+        LspNotificationsMixin,
         AnalyticsTestMixin {
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
@@ -130,7 +131,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
 
-  LspOverLegacyTest() {
+  new() {
     // Ensure the base fields for the tests are populated with the same default
     // client caapbilities that the server uses. This ensures if a test does not
     // explicitly set capabilities, they match on the client+server (so we can -
@@ -155,11 +156,14 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   AnalyticsManager get analyticsManager => server.analyticsManager;
 
+  bool get clientSupportsShowMessageNotification => false;
+
   @override
   LspClientCapabilities get editorClientCapabilities =>
       server.editorClientCapabilities;
 
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer =>
       _notificationsFromServer.stream;
 
@@ -319,7 +323,13 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       experimental: experimentalCapabilities,
     );
     var request = ServerSetClientCapabilitiesParams(
-      [],
+      [
+        // Use the LSP capabilities to determine if we show this for the legacy
+        // protocol so that shared tests only need to set one.
+        if (experimentalCapabilities['supportsWindowShowMessageRequest'] ==
+            true)
+          'showMessageRequest',
+      ],
       lspCapabilities: clientCapabilities,
     ).toRequest('${nextRequestId++}', clientUriConverter: server.uriConverter);
 

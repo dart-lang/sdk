@@ -2,31 +2,50 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReturnOfDoNotStoreInTestsTest);
     defineReflectiveTests(ReturnOfDoNotStoreTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ReturnOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
+class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
     writeTestPackageConfigWithMeta();
   }
 
+  test_constructor() async {
+    // TODO(srawlins): We should report `returnOfDoNotStore`.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotStore
+  A();
+
+  String getA() {
+    return A();
+//         ^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'A' can't be returned from the method 'getA' because it has a return type of 'String'.
+  }
+}
+''');
+  }
+
   test_noHintsInTestDir() async {
-    // Code that is in a test dir (the default for PubPackageResolutionTests)
-    // should not trigger the hint.
+    // Code that is in a test dir should not trigger the hint.
     // (See:https://github.com/dart-lang/sdk/issues/45594)
-    await assertNoErrorsInCode('''
+    var file = getFile('$testPackageRootPath/test/test.dart');
+
+    await resolveFileWithDiagnostics(file, r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -42,44 +61,9 @@ String g() {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
-  /// Override the default which is in .../test and should not trigger hints.
-  @override
-  String get testPackageRootPath => '$workspaceRootPath/test_project';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfigWithMeta();
-  }
-
-  test_constructor() async {
-    await assertErrorsInCode(
-      '''
-import 'package:meta/meta.dart';
-
-class A {
-  @doNotStore
-  A();
-
-  String getA() {
-    return A();
-  }
-}
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 95, 3),
-        // TODO(srawlins): We should report `returnOfDoNotStore`.
-      ],
-    );
-  }
 
   test_returnFromClosureInFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -87,16 +71,15 @@ String get _v => '';
 
 String f() {
   var v = () => _v;
+//              ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'f' is also annotated.
   return v();
 }
-''',
-      [error(diag.returnOfDoNotStore, 97, 2)],
-    );
+''');
   }
 
   test_returnFromFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -104,23 +87,21 @@ String get v => '';
 
 String getV() {
   return v;
+//       ^
+// [diag.returnOfDoNotStore] 'v' is annotated with 'doNotStore' and shouldn't be returned unless 'getV' is also annotated.
 }
 
 String getV2() => v;
+//                ^
+// [diag.returnOfDoNotStore] 'v' is annotated with 'doNotStore' and shouldn't be returned unless 'getV2' is also annotated.
 
 @doNotStore
 String getV3() => v;
-''',
-      [
-        error(diag.returnOfDoNotStore, 92, 1, messageContains: ['getV']),
-        error(diag.returnOfDoNotStore, 116, 1, messageContains: ['getV2']),
-      ],
-    );
+''');
   }
 
   test_returnFromGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -128,23 +109,21 @@ String get _v => '';
 
 String get v {
   return _v;
+//       ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'v' is also annotated.
 }
 
 String get v2 => _v;
+//               ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'v2' is also annotated.
 
 @doNotStore
 String get v3 => _v;
-''',
-      [
-        error(diag.returnOfDoNotStore, 92, 2, messageContains: ['v']),
-        error(diag.returnOfDoNotStore, 116, 2, messageContains: ['v2']),
-      ],
-    );
+''');
   }
 
   test_returnFromGetter_binaryExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -154,16 +133,15 @@ String? get _v => '';
 String? get _v2 => '';
 
 String? get v => _v ?? _v2;
-''',
-      [
-        error(diag.returnOfDoNotStore, 122, 2, messageContains: ['_v']),
-        error(diag.returnOfDoNotStore, 128, 3, messageContains: ['_v2']),
-      ],
-    );
+//               ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'v' is also annotated.
+//                     ^^^
+// [diag.returnOfDoNotStore] '_v2' is annotated with 'doNotStore' and shouldn't be returned unless 'v' is also annotated.
+''');
   }
 
   test_returnFromGetter_library() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 @doNotStore
 import 'package:meta/meta.dart';
 int get foo => 0;
@@ -172,8 +150,7 @@ int get bar => foo;
   }
 
   test_returnFromGetter_ternary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @doNotStore
@@ -185,17 +162,15 @@ String get _v2 => '';
 var b = true;
 
 String get v => b ? _v : _v2;
-''',
-      [
-        error(diag.returnOfDoNotStore, 138, 2),
-        error(diag.returnOfDoNotStore, 143, 3),
-      ],
-    );
+//                  ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'v' is also annotated.
+//                       ^^^
+// [diag.returnOfDoNotStore] '_v2' is annotated with 'doNotStore' and shouldn't be returned unless 'v' is also annotated.
+''');
   }
 
   test_returnFromMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -204,23 +179,22 @@ class A {
 
   String getV() {
     return _v;
+//         ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'getV' is also annotated.
   }
 
   String getV2() => _v;
+//                  ^^
+// [diag.returnOfDoNotStore] '_v' is annotated with 'doNotStore' and shouldn't be returned unless 'getV2' is also annotated.
 
   @doNotStore
   String getV3() => _v;
 }
-''',
-      [
-        error(diag.returnOfDoNotStore, 111, 2, messageContains: ['getV']),
-        error(diag.returnOfDoNotStore, 140, 2, messageContains: ['getV2']),
-      ],
-    );
+''');
   }
 
   test_topLevelVariable_awaitExpression() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 void get f async => await v;

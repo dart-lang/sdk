@@ -84,13 +84,17 @@ final _multitestOutcomes = {
   'static type warning', // Used by some analyzer tests.
 };
 
-void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
-    Map<String, Set<String>> outcomes) {
+void _generateTestsFromMultitest(
+  Path filePath,
+  Map<String, String> tests,
+  Map<String, Set<String>> outcomes,
+) {
   var contents = File(filePath.toNativePath()).readAsStringSync();
 
   var firstNewline = contents.indexOf('\n');
-  var lineSeparator =
-      (firstNewline == 0 || contents[firstNewline - 1] != '\r') ? '\n' : '\r\n';
+  var lineSeparator = (firstNewline == 0 || contents[firstNewline - 1] != '\r')
+      ? '\n'
+      : '\r\n';
   var lines = contents.split(lineSeparator);
   if (lines.last.isEmpty) lines.removeLast();
 
@@ -108,7 +112,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
     var annotation = Annotation.tryParse(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
-          annotation.key, () => List<String>.of(testsAsLines["none"]!));
+        annotation.key,
+        () => List<String>.of(testsAsLines["none"]!),
+      );
       // Add line to test with annotation.key as key, empty line to the rest.
       for (var entry in testsAsLines.entries) {
         entry.value.add(annotation.key == entry.key ? line : "");
@@ -120,8 +126,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
             outcome.add(nextOutcome);
           } else {
             DebugLogger.warning(
-                "${filePath.toNativePath()}: Invalid expectation "
-                "'$nextOutcome' on line $lineCount: $line");
+              "${filePath.toNativePath()}: Invalid expectation "
+              "'$nextOutcome' on line $lineCount: $line",
+            );
           }
         }
       }
@@ -142,12 +149,14 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   }
 
   // Check that every test (other than the none case) has at least one outcome.
-  var invalidTests =
-      outcomes.keys.where((test) => test != 'none' && outcomes[test]!.isEmpty);
+  var invalidTests = outcomes.keys.where(
+    (test) => test != 'none' && outcomes[test]!.isEmpty,
+  );
   for (var test in invalidTests) {
     DebugLogger.warning(
-        "${filePath.toNativePath()}: Test $test has no valid expectation. "
-        "Expected one of: ${_multitestOutcomes.toString()}");
+      "${filePath.toNativePath()}: Test $test has no valid expectation. "
+      "Expected one of: ${_multitestOutcomes.toString()}",
+    );
 
     outcomes.remove(test);
     testsAsLines.remove(test);
@@ -165,8 +174,11 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
 /// Writes the resulting tests to [outputDir] and returns a list of [TestFile]s
 /// for each of those generated tests.
 List<TestFile> splitMultitest(
-    TestFile multitest, String outputDir, Path suiteDir,
-    {bool hotReload = false}) {
+  TestFile multitest,
+  String outputDir,
+  Path suiteDir, {
+  bool hotReload = false,
+}) {
   // Each key in the map tests is a multitest tag or "none", and the texts of
   // the generated test is its value.
   var tests = <String, String>{};
@@ -188,8 +200,9 @@ List<TestFile> splitMultitest(
 
     // Copy file. Because some test suites may be read-only, we don't
     // want to copy the permissions, so we create the copy by writing.
-    var contents =
-        File(sourceDir.join(importPath).toNativePath()).readAsBytesSync();
+    var contents = File(
+      sourceDir.join(importPath).toNativePath(),
+    ).readAsBytesSync();
     File(targetDir.join(importPath).toNativePath()).writeAsBytesSync(contents);
   }
 
@@ -214,11 +227,17 @@ List<TestFile> splitMultitest(
     }
 
     // Create a [TestFile] for each split out section test.
-    testFiles.add(multitest.split(sectionFilePath, test.key, test.value,
+    testFiles.add(
+      multitest.split(
+        sectionFilePath,
+        test.key,
+        test.value,
         hasSyntaxError: hasSyntaxError,
         hasCompileError: hasCompileError,
         hasRuntimeError: hasRuntimeError,
-        hasStaticWarning: hasStaticWarning));
+        hasStaticWarning: hasStaticWarning,
+      ),
+    );
   }
 
   return testFiles;
@@ -277,13 +296,14 @@ class Annotation {
 Set<String> _findAllRelativeImports(Path topLibrary) {
   var found = <String>{};
   var libraryDir = topLibrary.directoryPath;
-  var relativeImportRegExp =
-      RegExp(r'^(?:@.*\s+)?' // Allow for a meta-data annotation.
-          r'(?:import|part)\s+'
-          r'''["']'''
-          r'(?!dart:|dart-ext:|data:|package:|/)' // Look-ahead: not in package.
-          r'([^]*?)' // The path to the imported file.
-          r'''["']''');
+  var relativeImportRegExp = RegExp(
+    r'^(?:@.*\s+)?' // Allow for a meta-data annotation.
+    r'(?:import|part)\s+'
+    r'''["']'''
+    r'(?!dart:|dart-ext:|data:|package:|/)' // Look-ahead: not in package.
+    r'([^]*?)' // The path to the imported file.
+    r'''["']''',
+  );
 
   processFile(Path filePath) {
     var file = File(filePath.toNativePath());
@@ -303,8 +323,10 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
         // This is just for safety reasons, we don't want to unintentionally
         // clobber files relative to the destination dir when copying them
         // over.
-        DebugLogger.error("${filePath.toNativePath()}: "
-            "Relative import in multitest containing '..' is not allowed.");
+        DebugLogger.error(
+          "${filePath.toNativePath()}: "
+          "Relative import in multitest containing '..' is not allowed.",
+        );
         DebugLogger.close();
         exit(1);
       }
@@ -328,7 +350,10 @@ String _suiteNameFromPath(Path suiteDir) {
 }
 
 Path _createMultitestDirectory(
-    String outputDir, Path suiteDir, Path sourceDir) {
+  String outputDir,
+  Path suiteDir,
+  Path sourceDir,
+) {
   var relative = sourceDir.relativeTo(suiteDir);
   var path = Path(outputDir)
       .append('generated_tests')

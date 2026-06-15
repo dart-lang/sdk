@@ -40,14 +40,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// A mapping of files or folders to be renamed.
   final Map<String, String?> _renameMapping;
 
-  MoveFileRefactoringImpl(
-    this.resourceProvider,
-    this.refactoringWorkspace,
-    String oldFile,
-  ) : pathContext = resourceProvider.pathContext,
+  new(this.resourceProvider, this.refactoringWorkspace, String oldFile)
+    : pathContext = resourceProvider.pathContext,
       _renameMapping = {oldFile: null};
 
-  MoveFileRefactoringImpl.multi(
+  new multi(
     this.resourceProvider,
     this.refactoringWorkspace,
     this._renameMapping,

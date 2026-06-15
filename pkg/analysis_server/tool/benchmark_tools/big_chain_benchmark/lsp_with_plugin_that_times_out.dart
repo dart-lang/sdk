@@ -31,12 +31,8 @@ class LspWithPluginThatTimesOutBencmark extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspWithPluginThatTimesOutBencmark(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;

@@ -56,7 +56,7 @@ final stops = <String>[];
 // STAYING FIXED. VERY FRAGILE. SHOULD BE FIXED OR REMOVED.
 const SDK_LINE = 142;
 const expected = <String>[
-  'set.dart:$SDK_LINE:21 (sdk_break_with_mixin_test.dart:$LINE_B:5)',
+  'set.dart:$SDK_LINE:23 (sdk_break_with_mixin_test.dart:$LINE_B:5)',
 ];
 
 final tests = <IsolateTest>[

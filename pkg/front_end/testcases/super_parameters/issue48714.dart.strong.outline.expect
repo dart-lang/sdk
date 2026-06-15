@@ -12,15 +12,15 @@ import "dart:core" as core;
 
 class Base extends core::Object {
   field core::int value;
-  constructor •(core::int value) → self::Base
+  constructor •(initializing-formal core::int value) → self::Base
     ;
 }
 class Extended extends self::Base {
-  constructor one(final core::int value) → self::Extended
+  constructor one(final super-initializing-formal core::int value) → self::Extended
     ;
-  constructor two(core::int value) → self::Extended
+  constructor two(super-initializing-formal core::int value) → self::Extended
     ;
-  constructor three(core::int value) → self::Extended
+  constructor three(super-initializing-formal core::int value) → self::Extended
     ;
 }
 static method main() → dynamic

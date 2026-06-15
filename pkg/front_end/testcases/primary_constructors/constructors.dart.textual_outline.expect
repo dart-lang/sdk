@@ -1,11 +1,11 @@
 class C1 {
   int i;
-  new (this.i);
+  new(this.i);
 }
 
 class C2 {
   final int i;
-  const new (this.i);
+  const new(this.i);
 }
 
 class C3 {
@@ -20,25 +20,25 @@ class C4 {
 
 class C5 {
   int i;
-  factory (int i) => new C5._(i);
+  factory(int i) => new C5._(i);
   new _(this.i);
 }
 
 class C6 {
   final int i;
-  factory (int i) => C6._(i);
+  factory(int i) => C6._(i);
   const new _(this.i);
 }
 
 class C7 {
   int i;
-  factory ({required int i}) = C7._;
+  factory({required int i}) = C7._;
   new _({required this.i});
 }
 
 class C8 {
   final int i;
-  const factory (int i) = C8._;
+  const factory(int i) = C8._;
   const new _(this.i);
 }
 
@@ -68,13 +68,13 @@ class C12 {
 
 class C13 {
   int i;
-  new (int i) : this._(i);
+  new(int i) : this._(i);
   new _(this.i);
 }
 
 class C14 {
   final int i;
-  const new (int i) : this._(i);
+  const new(int i) : this._(i);
   const new _(this.i);
 }
 

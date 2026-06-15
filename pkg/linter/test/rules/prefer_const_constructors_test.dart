@@ -22,27 +22,21 @@ class PreferConstConstructorsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_constructors;
 
   test_canBeConst_argumentIsAdjacentStrings() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(String s);
 }
-var a = A('adjacent' 'string');
-''',
-      [lint(41, 22)],
-    );
+var a = [!A('adjacent' 'string')!];
+''');
   }
 
   test_canBeConst_argumentIsListLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(List<int> l);
 }
-var a = A([]);
-''',
-      [lint(44, 5)],
-    );
+var a = [!A([])!];
+''');
   }
 
   test_canBeConst_argumentIsMap_nonLiteral() async {
@@ -64,51 +58,51 @@ A f(int x) => A({x: x});
   }
 
   test_canBeConst_argumentIsMapLiteral_instantiated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(Map<int, int> m);
 }
-var a = A({});
-''',
-      [lint(48, 5)],
-    );
+var a = [!A({})!];
+''');
   }
 
   test_canBeConst_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A();
 }
-A a = .new();
-''',
-      [lint(31, 6)],
-    );
+A a = [!.new()!];
+''');
+  }
+
+  test_canBeConst_dotShorthand_methodCall() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = [!.tightFor(height: 400)!].copyWith(minWidth: 400);
+}
+''');
   }
 
   test_canBeConst_explicitTypeArgument_dynamic() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<T> {
   const A();
 }
-var a = A<dynamic>();
-''',
-      [lint(36, 12)],
-    );
+var a = [!A<dynamic>()!];
+''');
   }
 
   test_canBeConst_explicitTypeArgument_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<T> {
   const A();
 }
-var a = A<String>();
-''',
-      [lint(36, 11)],
-    );
+var a = [!A<String>()!];
+''');
   }
 
   test_canBeConst_implicitTypeArgument() async {
@@ -121,15 +115,12 @@ A<T, int> f<T>() => A();
   }
 
   test_canBeConst_implicitTypeArgument_downwardInference() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A<T> {
   const A();
 }
-A<int> f() => A();
-''',
-      [lint(42, 3)],
-    );
+A<int> f() => [!A()!];
+''');
   }
 
   test_canBeConst_implicitTypeArgument_inConditional() async {
@@ -143,15 +134,12 @@ A<T, int> f<T>(bool b) => b ? A() : B();
   }
 
   test_canBeConst_intLiteralArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A(int x);
 }
-var a = A(5);
-''',
-      [lint(38, 4)],
-    );
+var a = [!A(5)!];
+''');
   }
 
   test_canBeConst_literal() async {
@@ -193,54 +181,42 @@ K k = .new();
   }
 
   test_canBeConst_newSyntax() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const new();
 }
-A a = A();
-''',
-      [lint(33, 3)],
-    );
+A a = [!A()!];
+''');
   }
 
   test_canBeConst_optionalNamedParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A({A? parent});
 }
-var a = A();
-''',
-      [lint(44, 3)],
-    );
+var a = [!A()!];
+''');
   }
 
   test_canBeConst_optionalNamedParameter_nested() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A({A? parent});
   const A.a();
 }
-var a = A(
-  parent: A.a(),
-);
-''',
-      [lint(59, 21), lint(72, 5)],
-    );
+var a = /*[0*/A(
+  parent: /*[1*/A.a()/*1]*/,
+)/*0]*/;
+''');
   }
 
   test_canBeConst_optionalNamedParameter_newKeyword() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A({A? parent});
 }
-var a = new A();
-''',
-      [lint(44, 7)],
-    );
+var a = [!new A()!];
+''');
   }
 
   test_cannotBeConst_argumentIsAdjacentStrings_withInterpolation() async {
@@ -379,33 +355,24 @@ class A {
   }
 
   test_class_primaryConstructor_const() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class const C(final int x);
-var c = C(1);
-''',
-      [lint(36, 4)],
-    );
+var c = [!C(1)!];
+''');
   }
 
   test_class_primaryConstructor_dotShorthand_const() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class const C(final int x);
-C get f => .new(1);
-''',
-      [lint(39, 7)],
-    );
+C get f => [!.new(1)!];
+''');
   }
 
   test_class_primaryConstructor_named_const() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class const C.named(final int x);
-var c = C.named(1);
-''',
-      [lint(42, 10)],
-    );
+var c = [!C.named(1)!];
+''');
   }
 
   test_constructorArgument_rhsOfLogicalOperation() async {
@@ -459,15 +426,35 @@ void f() {
 ''');
   }
 
+  test_dotShorthand_withConst() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+}
+void f() {
+  A a = const .tightFor(height: 400);
+}
+''');
+  }
+
+  test_dotShorthand_withConst_methodCall() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = const .tightFor(height: 400).copyWith(minWidth: 400);
+}
+''');
+  }
+
   test_extensionType_constPrimaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type const E(int i) {}
 
-var e = E(1);
-''',
-      [lint(42, 4)],
-    );
+var e = [!E(1)!];
+''');
   }
 
   test_extensionType_nonConstPrimaryConstructor() async {

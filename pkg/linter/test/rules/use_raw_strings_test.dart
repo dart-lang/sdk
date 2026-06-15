@@ -18,30 +18,21 @@ class UseRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.use_raw_strings;
 
   test_escapedBackslash() async {
-    await assertDiagnostics(
-      r'''
-var f = '\\';
-''',
-      [lint(8, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var f = [!'\\'!];
+''');
   }
 
   test_escapedDollar() async {
-    await assertDiagnostics(
-      r'''
-var f = '\$';
-''',
-      [lint(8, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var f = [!'\$'!];
+''');
   }
 
   test_escapedMultiple() async {
-    await assertDiagnostics(
-      r'''
-var f = '\$ and \\';
-''',
-      [lint(8, 11)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var f = [!'\$ and \\'!];
+''');
   }
 
   test_escapedMultiple_withInterpolation() async {
@@ -89,30 +80,21 @@ var f = r'\$ and \\ and \n';
   }
 
   test_triple_escapedBackslash() async {
-    await assertDiagnostics(
-      r"""
-var f = '''\\''';
-""",
-      [lint(8, 8)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var f = [!'''\\'''!];
+""");
   }
 
   test_triple_escapedDollar() async {
-    await assertDiagnostics(
-      r"""
-var f = '''\$''';
-""",
-      [lint(8, 8)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var f = [!'''\$'''!];
+""");
   }
 
   test_triple_escapedMultiple() async {
-    await assertDiagnostics(
-      r"""
-var f = '''\$ and \\''';
-""",
-      [lint(8, 15)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var f = [!'''\$ and \\'''!];
+""");
   }
 
   test_triple_escapedMultiple_andInterpolation() async {

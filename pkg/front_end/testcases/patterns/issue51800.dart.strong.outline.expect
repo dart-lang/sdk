@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class ExpansionTile extends core::Object /*hasConstConstructor*/  {
   final field self::CrossAxisAlignment? expandedCrossAxisAlignment;
-  const constructor •({self::CrossAxisAlignment? expandedCrossAxisAlignment = null}) → self::ExpansionTile
+  const constructor •({initializing-formal self::CrossAxisAlignment? expandedCrossAxisAlignment = null}) → self::ExpansionTile
     : self::ExpansionTile::expandedCrossAxisAlignment = expandedCrossAxisAlignment, assert(!(expandedCrossAxisAlignment =={core::Object::==}{(core::Object) → core::bool} self::CrossAxisAlignment::baseline)), super core::Object::•()
     ;
 }

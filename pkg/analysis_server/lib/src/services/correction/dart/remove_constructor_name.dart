@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveConstructorName extends ResolvedCorrectionProducer {
-  RemoveConstructorName({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -34,6 +34,10 @@ class RemoveConstructorName extends ResolvedCorrectionProducer {
       var dotToken = node.token.previous!;
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(dotToken, node.token.next!));
+      });
+    } else if (node is PrimaryConstructorName) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(node.period, node.name.next!));
       });
     }
   }

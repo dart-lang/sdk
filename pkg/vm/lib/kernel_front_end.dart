@@ -243,9 +243,14 @@ void declareCompilerOptions(ArgParser args) {
     help: 'Print this help message.',
   );
   args.addFlag(
-    'track-widget-creation',
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
   );
   args.addMultiOption(
     'delete-tostring-package-uri',
@@ -379,10 +384,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
-  final List<Uri> additionalDills = <Uri>[];
-  if (aot || linkPlatform) {
-    additionalDills.add(platformKernelUri);
-  }
 
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = new ErrorPrinter(verbosity);
@@ -418,7 +419,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
     ..fileSystem = fileSystem
-    ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experimentalFlags),
@@ -435,7 +435,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   compilerOptions.target = createFrontEndTarget(
     targetName,
-    trackWidgetCreation: options['track-widget-creation'],
+    trackCreationLocations: options['track-creation-locations'],
     supportMirrors: supportMirrors ?? !(aot || minimalKernel),
     constKeepLocalsIndicator: !(aot || minimalKernel),
   );
@@ -451,7 +451,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       additionalSources: additionalSources,
       nativeAssets: nativeAssetsUri,
       recordedUsages: recordedUsagesUri,
-      includePlatform: additionalDills.isNotEmpty,
+      includePlatform: aot || linkPlatform,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
       dynamicInterface: dynamicInterfaceUri,
@@ -546,15 +546,6 @@ class KernelCompilationResults {
   final CoreTypes? coreTypes;
   final Iterable<Uri>? compiledSources;
   final Uri? usedPackageConfig;
-
-  KernelCompilationResults(
-    this.component,
-    this.loadedLibraries,
-    this.classHierarchy,
-    this.coreTypes,
-    this.compiledSources,
-  ) : nativeAssetsLibrary = null,
-      usedPackageConfig = null;
 
   KernelCompilationResults.named({
     this.component,
@@ -710,17 +701,39 @@ Future<KernelCompilationResults> compileToKernel(
   }
 
   // Run global transformations only if component is correct.
-  if ((args.aot || args.minimalKernel) && component != null) {
-    await runGlobalTransformations(target, component, errorDetector, args);
+  if (component != null) {
+    if (args.aot || args.minimalKernel) {
+      await runGlobalTransformations(target, component, errorDetector, args);
 
-    if (args.minimalKernel) {
-      // compiledSources is component.uriToSource.keys.
-      // Make a copy of compiledSources to detach it from
-      // component.uriToSource which is cleared below.
-      compiledSources = compiledSources!.toList();
+      if (args.minimalKernel) {
+        // compiledSources is component.uriToSource.keys.
+        // Make a copy of compiledSources to detach it from
+        // component.uriToSource which is cleared below.
+        compiledSources = compiledSources!.toList();
 
-      component.metadata.clear();
-      component.uriToSource.clear();
+        component.metadata.clear();
+        component.uriToSource.clear();
+      }
+    } else if (dynamicInterface != null) {
+      // Even though the dynamic_interface_annotator is a global transformation,
+      // we apply it here to partially test dynamic modules with JIT when
+      // loading full kernel snapshots. We only use this to insert all
+      // dynamically-callable pragmas needed to perform runtime checks around
+      // dynamic calls.
+      //
+      // Note: this is not sufficient to support JIT in the general case. Here
+      // we don't handle how JIT uses a different code-path for loading the
+      // platform libraries, we also don't support loading code from sources to
+      // compile in front-end server, or incremental updates used in hot-reload,
+      // and we don't support concatenating dill files (since the global
+      // transformation will not see relations established when combining
+      // libraries). To properly support JIT we will need a modular strategy in
+      // the long run.
+      await _runDynamicInterfaceAnnotator(
+        component,
+        new CoreTypes(component),
+        args,
+      );
     }
   }
 
@@ -776,27 +789,11 @@ Future runGlobalTransformations(
 
   final coreTypes = new CoreTypes(component);
 
-  // dynamic_interface_annotator transformation annotates AST nodes with
+  // The dynamic_interface_annotator transformation annotates AST nodes with
   // pragmas and should precede other transformations looking at pragmas
   // (such as mixin_deduplication and TFA).
-  final dynamicInterface = args.dynamicInterface;
-  if (dynamicInterface != null) {
-    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
-    final dumpDetailedDynamicInterface = args.dumpDetailedDynamicInterface;
-    Map<String, List<Map<String, String>>>? detailedDynamicInterfaceJson =
-        (dumpDetailedDynamicInterface != null) ? {} : null;
-    dynamic_interface_annotator.annotateComponent(
-      File(fileUri.toFilePath()).readAsStringSync(),
-      dynamicInterface,
-      component,
-      coreTypes,
-      detailedDynamicInterfaceJson: detailedDynamicInterfaceJson,
-    );
-    if (dumpDetailedDynamicInterface != null) {
-      File(
-        dumpDetailedDynamicInterface,
-      ).writeAsStringSync(convert.json.encode(detailedDynamicInterfaceJson));
-    }
+  if (args.dynamicInterface != null) {
+    await _runDynamicInterfaceAnnotator(component, coreTypes, args);
   }
 
   // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
@@ -872,6 +869,30 @@ Future runGlobalTransformations(
   if (recordedUsagesFile != null) {
     assert(args.source != null);
     record_use.transformComponent(component, recordedUsagesFile);
+  }
+}
+
+Future _runDynamicInterfaceAnnotator(
+  Component component,
+  CoreTypes coreTypes,
+  KernelCompilationArguments args,
+) async {
+  final dynamicInterface = args.dynamicInterface!;
+  final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
+  final dumpDetailedDynamicInterface = args.dumpDetailedDynamicInterface;
+  Map<String, List<Map<String, String>>>? detailedDynamicInterfaceJson =
+      (dumpDetailedDynamicInterface != null) ? {} : null;
+  dynamic_interface_annotator.annotateComponent(
+    File(fileUri.toFilePath()).readAsStringSync(),
+    dynamicInterface,
+    component,
+    coreTypes,
+    detailedDynamicInterfaceJson: detailedDynamicInterfaceJson,
+  );
+  if (dumpDetailedDynamicInterface != null) {
+    File(
+      dumpDetailedDynamicInterface,
+    ).writeAsStringSync(convert.json.encode(detailedDynamicInterfaceJson));
   }
 }
 
@@ -984,7 +1005,7 @@ bool parseCommandLineDefines(
 /// Create front-end target with given name.
 Target? createFrontEndTarget(
   String targetName, {
-  bool trackWidgetCreation = false,
+  bool trackCreationLocations = false,
   bool supportMirrors = true,
   bool includeUnsupportedPlatformLibraryStubs = false,
   bool? constKeepLocalsIndicator,
@@ -994,7 +1015,7 @@ Target? createFrontEndTarget(
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     supportMirrors: supportMirrors,
     includeUnsupportedPlatformLibraryStubs:
         includeUnsupportedPlatformLibraryStubs,

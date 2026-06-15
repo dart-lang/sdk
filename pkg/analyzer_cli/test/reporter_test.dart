@@ -2,145 +2,267 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/error/error.dart';
+import 'dart:convert';
+
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
-import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
+import 'package:analyzer_cli/src/options.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
-
-import 'mocks.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
-  group('reporter', () {
-    late StringBuffer out;
-    late AnalysisStats stats;
-    late MockCommandLineOptions options;
-    late ErrorFormatter reporter;
-
-    setUp(() {
-      ansi.runningTests = true;
-
-      out = StringBuffer();
-      stats = AnalysisStats();
-
-      options = MockCommandLineOptions();
-      options.enableTypeChecks = false;
-      options.jsonFormat = false;
-      options.machineFormat = false;
-      options.verbose = false;
-      options.color = false;
-    });
-
-    tearDown(() {
-      ansi.runningTests = false;
-    });
-
-    group('human', () {
-      setUp(() {
-        reporter = HumanErrorFormatter(out, options, stats);
-      });
-
-      test('error', () async {
-        var error = mockResult(
-          DiagnosticType.SYNTACTIC_ERROR,
-          DiagnosticSeverity.ERROR,
-        );
-        await reporter.formatErrors([error]);
-        reporter.flush();
-
-        expect(
-          out.toString().trim(),
-          'error • MSG • /foo/bar/baz.dart:3:3 • mock_code',
-        );
-      });
-
-      test('hint', () async {
-        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
-        await reporter.formatErrors([error]);
-        reporter.flush();
-
-        expect(
-          out.toString().trim(),
-          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code',
-        );
-      });
-
-      test('stats', () async {
-        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
-        await reporter.formatErrors([error]);
-        reporter.flush();
-        stats.print(out);
-        expect(
-          out.toString().trim(),
-          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
-          '1 hint found.',
-        );
-      });
-    });
-
-    group('json', () {
-      setUp(() {
-        reporter = JsonErrorFormatter(out, options, stats);
-      });
-
-      test('error', () async {
-        var error = mockResult(
-          DiagnosticType.SYNTACTIC_ERROR,
-          DiagnosticSeverity.ERROR,
-        );
-        await reporter.formatErrors([error]);
-        reporter.flush();
-
-        expect(
-          out.toString().trim(),
-          '{"version":1,"diagnostics":[{'
-          '"code":"mock_code","severity":"ERROR","type":"SYNTACTIC_ERROR",'
-          '"location":{"file":"/foo/bar/baz.dart","range":{'
-          '"start":{"offset":20,"line":3,"column":3},'
-          '"end":{"offset":23,"line":3,"column":3}}},'
-          '"problemMessage":"MSG"}]}',
-        );
-      });
-    });
-  });
+  defineReflectiveTests(ReporterTest);
 }
 
-ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
-  // ErrorInfo
-  var location = CharacterLocation(3, 3);
-  var lineInfo = MockLineInfo(defaultLocation: location);
+@reflectiveTest
+class ReporterTest extends PubPackageResolutionTest {
+  final StringBuffer out = StringBuffer();
+  final AnalysisStats stats = AnalysisStats();
 
-  // File
-  ResourceProvider resourceProvider = MemoryResourceProvider();
-  var path = '/foo/bar/baz.dart';
-  var file = resourceProvider.getFile(resourceProvider.convertPath(path));
-
-  // Details
-  var code = MockErrorCode(type, severity, 'mock_code');
-  var uri = file.toUri();
-  var source = MockSource(path, uri);
-  var error = MockDiagnostic(source, code, 20, 'MSG');
-
-  return ErrorsResultImpl(
-    session: _MockAnalysisSession(),
-    file: file,
-    content: '<mock>',
-    uri: uri,
-    lineInfo: lineInfo,
-    isLibrary: true,
-    isPart: false,
-    diagnostics: [error],
-    analysisOptions: AnalysisOptionsImpl(),
-  );
-}
-
-class _MockAnalysisSession implements AnalysisSession {
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  void setUp() {
+    super.setUp();
+    ansi.runningTests = true;
+  }
+
+  @override
+  Future<void> tearDown() async {
+    ansi.runningTests = false;
+    await super.tearDown();
+  }
+
+  Future<void> test_human_contextMessage_otherFile() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--dart-sdk=${sdkRoot.path}',
+      '--verbose',
+      'test.dart',
+    ])!;
+    var reporter = HumanErrorFormatter(out, options, stats);
+
+    var libFile = newFile('$testPackageRootPath/lib/lib.dart', r'''
+class C {
+  final int? foo;
+  C(this.foo);
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'lib.dart';
+void f(C c) {
+  if (c.foo != null) {
+    c.foo.isEven;
+  }
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    expect(
+      out.toString().trim(),
+      contains(
+        "error • The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'. • package:test/test.dart:4:11 • unchecked_use_of_nullable_value",
+      ),
+    );
+    expect(
+      out.toString().trim(),
+      contains(
+        "  'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field at ${libFile.path}:2:14",
+      ),
+    );
+  }
+
+  Future<void> test_human_error() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = HumanErrorFormatter(out, options, stats);
+
+    newFile(testFile.path, r'''
+void f() {
+  x;
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    expect(
+      out.toString().trim(),
+      "error • Undefined name 'x'. • package:test/test.dart:2:3 • undefined_identifier",
+    );
+  }
+
+  Future<void> test_human_hint() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = HumanErrorFormatter(out, options, stats);
+
+    newFile(testFile.path, r'''
+void f() {
+  return;
+  1;
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    expect(
+      out.toString().trim(),
+      'warning • Dead code. • package:test/test.dart:3:3 • dead_code',
+    );
+  }
+
+  Future<void> test_human_stats() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = HumanErrorFormatter(out, options, stats);
+
+    newFile(testFile.path, r'''
+void f() {
+  return;
+  1;
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+    stats.print(out);
+
+    expect(
+      out.toString().trim(),
+      'warning • Dead code. • package:test/test.dart:3:3 • dead_code\n'
+      '1 warning found.',
+    );
+  }
+
+  Future<void> test_json_contextMessage_otherFile() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--format=json',
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = JsonErrorFormatter(out, options, stats);
+
+    var libFile = newFile('$testPackageRootPath/lib/lib.dart', r'''
+class C {
+  final int? foo;
+  C(this.foo);
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'lib.dart';
+void f(C c) {
+  if (c.foo != null) {
+    c.foo.isEven;
+  }
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    var expected = {
+      'version': 1,
+      'diagnostics': [
+        {
+          'code': 'unchecked_use_of_nullable_value',
+          'severity': 'ERROR',
+          'type': 'COMPILE_TIME_ERROR',
+          'location': {
+            'file': testFile.path,
+            'range': {
+              'start': {'offset': 66, 'line': 4, 'column': 11},
+              'end': {'offset': 72, 'line': 4, 'column': 17},
+            },
+          },
+          'problemMessage':
+              "The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.",
+          'correctionMessage':
+              "Try making the access conditional (using '?.') or adding a null check to the target ('!').",
+          'contextMessages': [
+            {
+              'location': {
+                'file': libFile.path,
+                'range': {
+                  'start': {'offset': 23, 'line': 2, 'column': 14},
+                  'end': {'offset': 26, 'line': 2, 'column': 17},
+                },
+              },
+              'message':
+                  "'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field",
+            },
+          ],
+          'documentation':
+              'https://dart.dev/diagnostics/unchecked_use_of_nullable_value',
+        },
+      ],
+    };
+    expect(json.decode(out.toString().trim()), expected);
+  }
+
+  Future<void> test_json_error() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--format=json',
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = JsonErrorFormatter(out, options, stats);
+
+    newFile(testFile.path, r'''
+void f() {
+  x;
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    var expected = {
+      'version': 1,
+      'diagnostics': [
+        {
+          'code': 'undefined_identifier',
+          'severity': 'ERROR',
+          'type': 'COMPILE_TIME_ERROR',
+          'location': {
+            'file': testFile.path,
+            'range': {
+              'start': {'offset': 13, 'line': 2, 'column': 3},
+              'end': {'offset': 14, 'line': 2, 'column': 4},
+            },
+          },
+          'problemMessage': "Undefined name 'x'.",
+          'correctionMessage':
+              'Try correcting the name to one that is defined, or defining the name.',
+          'documentation': 'https://dart.dev/diagnostics/undefined_identifier',
+        },
+      ],
+    };
+    expect(out.toString().trim(), json.encode(expected));
+  }
+
+  Future<ErrorsResult> _getErrorsResultForFile(File file) async {
+    var errorsResult = await contextCollection
+        .contextFor(file.path)
+        .currentSession
+        .getErrors(file.path);
+    return errorsResult as ErrorsResult;
+  }
 }

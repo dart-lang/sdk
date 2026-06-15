@@ -12,7 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -76,7 +76,7 @@ class Driver implements CommandLineStarter {
   late PathFilter pathFilter;
 
   /// Create a new Driver instance.
-  Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
+  new({@Deprecated('This parameter has no effect') bool isTesting = false});
 
   /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
@@ -275,13 +275,12 @@ class Driver implements CommandLineStarter {
           var sdkVersionConstraint = (package is PubPackage)
               ? package.sdkVersionConstraint
               : null;
-          var errors = AnalysisOptionsAnalyzer(
-            initialSource: FileSource(file),
+          var errors = AnalysisOptionsValidator(
             sourceFactory: analysisDriver.sourceFactory,
             contextRoot: contextRoot.root.path,
             sdkVersionConstraint: sdkVersionConstraint,
             resourceProvider: resourceProvider,
-          ).walkIncludes(content: content);
+          ).validateContent(file: file, content: content);
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(
@@ -549,7 +548,7 @@ class _AnalysisContextProvider {
   AnalysisContextCollectionImpl? _collection;
   DriverBasedAnalysisContext? _analysisContext;
 
-  _AnalysisContextProvider(this._resourceProvider)
+  new(this._resourceProvider)
     : _fileContentCache = FileContentCache(_resourceProvider);
 
   DriverBasedAnalysisContext? get analysisContext {

@@ -14,8 +14,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableElementTest_keepLinking);
     defineReflectiveTests(TopLevelVariableElementTest_fromBytes);
-    defineReflectiveTests(TopLevelVariableElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TopLevelVariableElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -34,44 +32,44 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F1 isOriginGetterSetter isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 isOriginGetterSetter b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F2 isOriginGetterSetter isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F3 isOriginDeclaration a (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F3 isComplete isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::a
       setters
-        #F4 isOriginDeclaration b (nameOffset:20) (firstTokenOffset:16) (offset:20)
+        #F4 hasImplicitReturnType isComplete isOriginDeclaration isStatic b (nameOffset:20) (firstTokenOffset:16) (offset:20)
           element: <testLibrary>::@setter::b
           formalParameters
-            #F5 requiredPositional _ (nameOffset:26) (firstTokenOffset:22) (offset:26)
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: <testLibrary>::@setter::b::@formalParameter::_
-        #F6 isOriginDeclaration a (nameOffset:36) (firstTokenOffset:32) (offset:36)
+        #F6 hasImplicitReturnType isComplete isOriginDeclaration isStatic a (nameOffset:36) (firstTokenOffset:32) (offset:36)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F7 requiredPositional _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
+            #F7 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
               element: <testLibrary>::@setter::a::@formalParameter::_
   topLevelVariables
-    isOriginGetterSetter a
+    isOriginGetterSetter isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    isOriginGetterSetter b
+    isOriginGetterSetter isStatic b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: int
       setter: <testLibrary>::@setter::b
   getters
-    static isOriginDeclaration a
+    isOriginDeclaration isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginDeclaration b
+    isOriginDeclaration isStatic b
       reference: <testLibrary>::@setter::b
       firstFragment: #F4
       formalParameters
@@ -80,7 +78,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::b
-    static isOriginDeclaration a
+    isOriginDeclaration isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F6
       formalParameters
@@ -105,46 +103,46 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F1 isOriginGetterSetter isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 isOriginGetterSetter b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F2 isOriginGetterSetter isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F3 isOriginDeclaration b (nameOffset:24) (firstTokenOffset:16) (offset:24)
+        #F3 isComplete isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@getter::b
-        #F4 isOriginDeclaration a (nameOffset:40) (firstTokenOffset:32) (offset:40)
+        #F4 isComplete isOriginDeclaration isStatic a (nameOffset:40) (firstTokenOffset:32) (offset:40)
           element: <testLibrary>::@getter::a
       setters
-        #F5 isOriginDeclaration a (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F5 hasImplicitReturnType isComplete isOriginDeclaration isStatic a (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F6 requiredPositional _ (nameOffset:10) (firstTokenOffset:6) (offset:10)
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@setter::a::@formalParameter::_
   topLevelVariables
-    isOriginGetterSetter a
+    isOriginGetterSetter isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    isOriginGetterSetter b
+    isOriginGetterSetter isStatic b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::b
   getters
-    static isOriginDeclaration b
+    isOriginDeclaration isStatic b
       reference: <testLibrary>::@getter::b
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::b
-    static isOriginDeclaration a
+    isOriginDeclaration isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F4
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginDeclaration a
+    isOriginDeclaration isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F5
       formalParameters
@@ -153,6 +151,37 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_getter_abstract() async {
+    var library = await buildLibrary(r'''
+int get x;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::x
+      getters
+        #F2 isOriginDeclaration isStatic x (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::x
+  topLevelVariables
+    isOriginGetterSetter isStatic x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::x
+  getters
+    isOriginDeclaration isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -167,19 +196,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:0) (offset:16)
+        #F2 isAsynchronous isComplete isOriginDeclaration isStatic foo (nameOffset:16) (firstTokenOffset:0) (offset:16)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    isOriginGetterSetter foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: Future<int>
       getter: <testLibrary>::@getter::foo
   getters
-    static isOriginDeclaration foo
+    isOriginDeclaration isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
       returnType: Future<int>
@@ -190,6 +219,7 @@ library
   test_getter_asyncStar() async {
     var library = await buildLibrary(r'''
 import 'dart:async';
+
 Stream<int> get foo async* {}
 ''');
     checkElementText(library, r'''
@@ -201,19 +231,19 @@ library
       libraryImports
         dart:async
       topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:21) (offset:37)
+        #F2 isAsynchronous isComplete isGenerator isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:22) (offset:38)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    isOriginGetterSetter foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: Stream<int>
       getter: <testLibrary>::@getter::foo
   getters
-    static isOriginDeclaration foo
+    isOriginDeclaration isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
       returnType: Stream<int>
@@ -221,13 +251,13 @@ library
 ''');
   }
 
-  test_getter_documented() async {
-    var library = await buildLibrary('''
-// Extra comment so doc comment offset != 0
-/**
- * Docs
- */
-get x => null;''');
+  test_getter_augmentation_chain() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment int get foo => 1;
+''');
+
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -235,20 +265,781 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_differentType() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment double get foo => 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:18) (offset:37)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_fromVariable() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int get foo => 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:29) (firstTokenOffset:13) (offset:29)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_fromVariable_const() async {
+    var library = await buildLibrary(r'''
+const int foo = 0;
+augment int get foo => 1;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @16
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:19) (offset:35)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_getter_augmentation_chain_fromVariable_differentType() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment double get foo => 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:13) (offset:32)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_fromVariable_final() async {
+    var library = await buildLibrary(r'''
+final int foo = 0;
+augment int get foo => 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:19) (offset:35)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+  topLevelVariables
+    hasInitializer isFinal isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_fromVariable_metadata() async {
+    var library = await buildLibrary(r'''
+final foo = 0;
+@deprecated
+augment int get foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F3
+        #F3 isAugmentation isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:15) (offset:43)
+          element: <testLibrary>::@getter::foo
+          metadata
+            Annotation
+              atSign: @ @15
+              name: SimpleIdentifier
+                token: deprecated @16
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          previousFragment: #F2
+  topLevelVariables
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      metadata
+        Annotation
+          atSign: @ @15
+          name: SimpleIdentifier
+            token: deprecated @16
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a1 = 1;
+const a2 = 2;
+const a3 = 3;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+@a1
+int get foo => 0;
+@a2
+augment int get foo => 1;
+@a3
+augment int get foo => 2;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:29) (firstTokenOffset:17) (offset:29)
+          element: <testLibrary>::@getter::foo
+          metadata
+            Annotation
+              atSign: @ @17
+              name: SimpleIdentifier
+                token: a1 @18
+                element: package:test/a.dart::@getter::a1
+                staticType: null
+              element: package:test/a.dart::@getter::a1
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:59) (firstTokenOffset:39) (offset:59)
+          element: <testLibrary>::@getter::foo
+          metadata
+            Annotation
+              atSign: @ @39
+              name: SimpleIdentifier
+                token: a2 @40
+                element: package:test/a.dart::@getter::a2
+                staticType: null
+              element: package:test/a.dart::@getter::a2
+          previousFragment: #F2
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:69) (offset:89)
+          element: <testLibrary>::@getter::foo
+          metadata
+            Annotation
+              atSign: @ @69
+              name: SimpleIdentifier
+                token: a3 @70
+                element: package:test/a.dart::@getter::a3
+                staticType: null
+              element: package:test/a.dart::@getter::a3
+          previousFragment: #F3
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      metadata
+        Annotation
+          atSign: @ @17
+          name: SimpleIdentifier
+            token: a1 @18
+            element: package:test/a.dart::@getter::a1
+            staticType: null
+          element: package:test/a.dart::@getter::a1
+        Annotation
+          atSign: @ @39
+          name: SimpleIdentifier
+            token: a2 @40
+            element: package:test/a.dart::@getter::a2
+            staticType: null
+          element: package:test/a.dart::@getter::a2
+        Annotation
+          atSign: @ @69
+          name: SimpleIdentifier
+            token: a3 @70
+            element: package:test/a.dart::@getter::a3
+            staticType: null
+          element: package:test/a.dart::@getter::a3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_noIntroductoryDeclaration() async {
+    var library = await buildLibrary(r'''
+augment int get foo => 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:16) (firstTokenOffset:0) (offset:16)
+          element: <testLibrary>::@getter::foo
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_twoDeclarations() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment int get foo => 1;
+augment int get foo => 2;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:60) (firstTokenOffset:44) (offset:60)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F3
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_chain_twoDeclarations_differentType() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment int get foo => 1;
+augment double get foo => 2;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:63) (firstTokenOffset:44) (offset:63)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F3
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_sameName_class() async {
+    var library = await buildLibrary(r'''
+class A {}
+augment int get A => 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      topLevelVariables
+        #F3 isOriginGetterSetter isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+          element: <testLibrary>::@topLevelVariable::A
+      getters
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic A (nameOffset:27) (firstTokenOffset:11) (offset:27)
+          element: <testLibrary>::@getter::A
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+  topLevelVariables
+    isOriginGetterSetter isStatic A
+      reference: <testLibrary>::@topLevelVariable::A
+      firstFragment: #F3
+      type: int
+      getter: <testLibrary>::@getter::A
+  getters
+    isOriginDeclaration isStatic A
+      reference: <testLibrary>::@getter::A
+      firstFragment: #F4
+      previousFragmentOfDifferentKind: #F1
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::A
+  exportEntries
+    declared <testLibrary>::@getter::A
+  exportNamespace
+    A: <testLibrary>::@getter::A
+''');
+  }
+
+  test_getter_augmentation_sameName_function() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment int get foo => 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:14) (offset:30)
+          element: <testLibrary>::@getter::foo
+      functions
+        #F3 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      previousFragmentOfDifferentKind: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      returnType: void
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_getter_augmentation_sameName_setter() async {
+    var library = await buildLibrary(r'''
+set foo(int _) {}
+augment int get foo => 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F3 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      previousFragmentOfDifferentKind: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_getter_documented() async {
+    var library = await buildLibrary(r'''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+get x => null;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:64) (firstTokenOffset:44) (offset:64)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic x (nameOffset:64) (firstTokenOffset:44) (offset:64)
           element: <testLibrary>::@getter::x
           documentationComment: /**\n * Docs\n */
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       documentationComment: /**\n * Docs\n */
@@ -258,7 +1049,9 @@ library
   }
 
   test_getter_external() async {
-    var library = await buildLibrary('external int get x;');
+    var library = await buildLibrary(r'''
+external int get x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -266,19 +1059,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:17) (firstTokenOffset:0) (offset:17)
+        #F2 isComplete isExternal isOriginDeclaration isStatic x (nameOffset:17) (firstTokenOffset:0) (offset:17)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
   getters
-    static external isOriginDeclaration x
+    isExternal isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
@@ -287,9 +1080,15 @@ library
   }
 
   test_getter_inferred_type_nonStatic_implicit_return() async {
-    var library = await buildLibrary(
-      'class C extends D { get f => null; } abstract class D { int get f; }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D {
+  get f => null;
+}
+
+abstract class D {
+  int get f;
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -297,7 +1096,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+        #F1 hasExtendsClause class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
             #F2 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -307,22 +1106,22 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isOriginDeclaration f (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F4 hasImplicitReturnType isComplete isOriginDeclaration f (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: <testLibrary>::@class::C::@getter::f
-        #F5 class D (nameOffset:52) (firstTokenOffset:37) (offset:52)
+        #F5 isAbstract class D (nameOffset:55) (firstTokenOffset:40) (offset:55)
           element: <testLibrary>::@class::D
           fields
-            #F6 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F6 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F8 isOriginDeclaration f (nameOffset:64) (firstTokenOffset:56) (offset:64)
+            #F8 isAbstract isOriginDeclaration f (nameOffset:69) (firstTokenOffset:61) (offset:69)
               element: <testLibrary>::@class::D::@getter::f
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       supertype: D
@@ -343,7 +1142,7 @@ library
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@class::C::@field::f
-    abstract class D
+    isAbstract isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F5
       fields
@@ -357,7 +1156,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F7
       getters
-        abstract isOriginDeclaration f
+        isOriginDeclaration f
           reference: <testLibrary>::@class::D::@getter::f
           firstFragment: #F8
           returnType: int
@@ -376,19 +1175,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isOriginDeclaration foo (nameOffset:18) (firstTokenOffset:0) (offset:18)
+        #F2 isComplete isGenerator isOriginDeclaration isStatic foo (nameOffset:18) (firstTokenOffset:0) (offset:18)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    isOriginGetterSetter foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: Iterator<int>
       getter: <testLibrary>::@getter::foo
   getters
-    static isOriginDeclaration foo
+    isOriginDeclaration isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
       returnType: Iterator<int>
@@ -397,7 +1196,10 @@ library
   }
 
   test_getters() async {
-    var library = await buildLibrary('int get x => null; get y => null;');
+    var library = await buildLibrary(r'''
+int get x => null;
+get y => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -405,33 +1207,33 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 isOriginGetterSetter y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isOriginGetterSetter isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@topLevelVariable::y
       getters
-        #F3 isOriginDeclaration x (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::x
-        #F4 isOriginDeclaration y (nameOffset:23) (firstTokenOffset:19) (offset:23)
+        #F4 hasImplicitReturnType isComplete isOriginDeclaration isStatic y (nameOffset:23) (firstTokenOffset:19) (offset:23)
           element: <testLibrary>::@getter::y
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
-    isOriginGetterSetter y
+    isOriginGetterSetter isStatic y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F2
       type: dynamic
       getter: <testLibrary>::@getter::y
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
-    static isOriginDeclaration y
+    isOriginDeclaration isStatic y
       reference: <testLibrary>::@getter::y
       firstFragment: #F4
       returnType: dynamic
@@ -440,9 +1242,10 @@ library
   }
 
   test_implicitTopLevelVariable_getterFirst() async {
-    var library = await buildLibrary(
-      'int get x => 0; void set x(int value) {}',
-    );
+    var library = await buildLibrary(r'''
+int get x => 0;
+void set x(int value) {}
+''');
 
     checkElementText(library, r'''
 library
@@ -451,32 +1254,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F2 isComplete isOriginDeclaration isStatic x (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional value (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -489,9 +1292,10 @@ library
   }
 
   test_implicitTopLevelVariable_setterFirst() async {
-    var library = await buildLibrary(
-      'void set x(int value) {} int get x => 0;',
-    );
+    var library = await buildLibrary(r'''
+void set x(int value) {}
+int get x => 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -499,32 +1303,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:33) (firstTokenOffset:25) (offset:33)
+        #F2 isComplete isOriginDeclaration isStatic x (nameOffset:33) (firstTokenOffset:25) (offset:33)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginDeclaration x (nameOffset:9) (firstTokenOffset:0) (offset:9)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional value (nameOffset:15) (firstTokenOffset:11) (offset:15)
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:15) (firstTokenOffset:11) (offset:15)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -536,13 +1340,10 @@ library
 ''');
   }
 
-  test_setter_documented() async {
-    var library = await buildLibrary('''
-// Extra comment so doc comment offset != 0
-/**
- * Docs
- */
-void set x(value) {}''');
+  test_setter_abstract() async {
+    var library = await buildLibrary(r'''
+set x(int _);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -550,23 +1351,987 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       setters
-        #F2 isOriginDeclaration x (nameOffset:69) (firstTokenOffset:44) (offset:69)
+        #F2 hasImplicitReturnType isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::x
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:10) (firstTokenOffset:6) (offset:10)
+              element: <testLibrary>::@setter::x::@formalParameter::_
+  topLevelVariables
+    isOriginGetterSetter isStatic x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::x
+  setters
+    isOriginDeclaration isStatic x
+      reference: <testLibrary>::@setter::x
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
+  test_setter_augmentation_chain() async {
+    var library = await buildLibrary(r'''
+set foo(int _) {}
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              nextFragment: #F4
+          nextFragment: #F5
+        #F5 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:38) (firstTokenOffset:34) (offset:38)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F3
+          previousFragment: #F2
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_fromVariable() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F5
+          nextFragment: #F6
+        #F6 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:13) (offset:25)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:33) (firstTokenOffset:29) (offset:33)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F4
+          previousFragment: #F3
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_fromVariable_differentType() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment set foo(double _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F5
+          nextFragment: #F6
+        #F6 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:13) (offset:25)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:36) (firstTokenOffset:29) (offset:36)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F4
+          previousFragment: #F3
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a1 = 1;
+const a2 = 2;
+const a3 = 3;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@a1
+set foo(int _) {}
+@a2
+augment set foo(int _) {}
+@a3
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:18) (offset:26)
+          element: <testLibrary>::@setter::foo
+          metadata
+            Annotation
+              atSign: @ @18
+              name: SimpleIdentifier
+                token: a1 @19
+                element: package:test/a.dart::@getter::a1
+                staticType: null
+              element: package:test/a.dart::@getter::a1
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:34) (firstTokenOffset:30) (offset:34)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              nextFragment: #F4
+          nextFragment: #F5
+        #F5 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:56) (firstTokenOffset:40) (offset:56)
+          element: <testLibrary>::@setter::foo
+          metadata
+            Annotation
+              atSign: @ @40
+              name: SimpleIdentifier
+                token: a2 @41
+                element: package:test/a.dart::@getter::a2
+                staticType: null
+              element: package:test/a.dart::@getter::a2
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:64) (firstTokenOffset:60) (offset:64)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F3
+              nextFragment: #F6
+          previousFragment: #F2
+          nextFragment: #F7
+        #F7 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:86) (firstTokenOffset:70) (offset:86)
+          element: <testLibrary>::@setter::foo
+          metadata
+            Annotation
+              atSign: @ @70
+              name: SimpleIdentifier
+                token: a3 @71
+                element: package:test/a.dart::@getter::a3
+                staticType: null
+              element: package:test/a.dart::@getter::a3
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:94) (firstTokenOffset:90) (offset:94)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F4
+          previousFragment: #F5
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      metadata
+        Annotation
+          atSign: @ @18
+          name: SimpleIdentifier
+            token: a1 @19
+            element: package:test/a.dart::@getter::a1
+            staticType: null
+          element: package:test/a.dart::@getter::a1
+        Annotation
+          atSign: @ @40
+          name: SimpleIdentifier
+            token: a2 @41
+            element: package:test/a.dart::@getter::a2
+            staticType: null
+          element: package:test/a.dart::@getter::a2
+        Annotation
+          atSign: @ @70
+          name: SimpleIdentifier
+            token: a3 @71
+            element: package:test/a.dart::@getter::a3
+            staticType: null
+          element: package:test/a.dart::@getter::a3
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_noIntroductoryDeclaration() async {
+    var library = await buildLibrary(r'''
+augment set foo(int value) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration value (nameOffset:20) (firstTokenOffset:16) (offset:20)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_twoDeclarations() async {
+    var library = await buildLibrary(r'''
+int set foo(int _) {}
+augment set foo(int _) {}
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              nextFragment: #F4
+          nextFragment: #F5
+        #F5 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:22) (offset:34)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F3
+              nextFragment: #F6
+          previousFragment: #F2
+          nextFragment: #F7
+        #F7 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F4
+          previousFragment: #F5
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_chain_twoDeclarations_differentType() async {
+    var library = await buildLibrary(r'''
+int set foo(int _) {}
+augment set foo(int _) {}
+augment set foo(double _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              nextFragment: #F4
+          nextFragment: #F5
+        #F5 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:22) (offset:34)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F3
+              nextFragment: #F6
+          previousFragment: #F2
+          nextFragment: #F7
+        #F7 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:71) (firstTokenOffset:64) (offset:71)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F4
+          previousFragment: #F5
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_class() async {
+    var library = await buildLibrary(r'''
+class A {}
+
+augment set A(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      topLevelVariables
+        #F3 isOriginGetterSetter isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+          element: <testLibrary>::@topLevelVariable::A
+      setters
+        #F4 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic A (nameOffset:24) (firstTokenOffset:12) (offset:24)
+          element: <testLibrary>::@setter::A
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:30) (firstTokenOffset:26) (offset:30)
+              element: <testLibrary>::@setter::A::@formalParameter::_
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+  topLevelVariables
+    isOriginGetterSetter isStatic A
+      reference: <testLibrary>::@topLevelVariable::A
+      firstFragment: #F3
+      type: int
+      setter: <testLibrary>::@setter::A
+  setters
+    isOriginDeclaration isStatic A
+      reference: <testLibrary>::@setter::A
+      firstFragment: #F4
+      previousFragmentOfDifferentKind: #F1
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::A
+  exportEntries
+    declared <testLibrary>::@class::A
+    declared <testLibrary>::@setter::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+    A=: <testLibrary>::@setter::A
+''');
+  }
+
+  test_setter_augmentation_sameName_function() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@topLevelVariable::foo
+      setters
+        #F2 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration _ (nameOffset:34) (firstTokenOffset:30) (offset:34)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+      functions
+        #F4 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
+      previousFragmentOfDifferentKind: #F4
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F3
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F4
+      returnType: void
+  exportEntries
+    declared <testLibrary>::@function::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_getter() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F3 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:38) (firstTokenOffset:34) (offset:38)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_getter_differentType() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment set foo(double _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F3 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: double
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_variable_const() async {
+    var library = await buildLibrary(r'''
+const int foo = 0;
+augment set foo(int _) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @16
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:19) (offset:31)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:39) (firstTokenOffset:35) (offset:39)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_variable_final() async {
+    var library = await buildLibrary(r'''
+final int foo = 0;
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:19) (offset:31)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:39) (firstTokenOffset:35) (offset:39)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    hasInitializer isFinal isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_augmentation_sameName_variable_metadata() async {
+    var library = await buildLibrary(r'''
+final foo = 0;
+@deprecated
+augment set foo(int _) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:39) (firstTokenOffset:15) (offset:39)
+          element: <testLibrary>::@setter::foo
+          metadata
+            Annotation
+              atSign: @ @15
+              name: SimpleIdentifier
+                token: deprecated @16
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:47) (firstTokenOffset:43) (offset:47)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      metadata
+        Annotation
+          atSign: @ @15
+          name: SimpleIdentifier
+            token: deprecated @16
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_setter_documented() async {
+    var library = await buildLibrary(r'''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+void set x(value) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+          element: <testLibrary>::@topLevelVariable::x
+      setters
+        #F2 isComplete isOriginDeclaration isStatic x (nameOffset:69) (firstTokenOffset:44) (offset:69)
           element: <testLibrary>::@setter::x
           documentationComment: /**\n * Docs\n */
           formalParameters
-            #F3 requiredPositional value (nameOffset:71) (firstTokenOffset:71) (offset:71)
+            #F3 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic
       setter: <testLibrary>::@setter::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F2
       documentationComment: /**\n * Docs\n */
@@ -580,7 +2345,9 @@ library
   }
 
   test_setter_external() async {
-    var library = await buildLibrary('external void set x(int value);');
+    var library = await buildLibrary(r'''
+external void set x(int value);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -588,22 +2355,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@topLevelVariable::x
       setters
-        #F2 isOriginDeclaration x (nameOffset:18) (firstTokenOffset:0) (offset:18)
+        #F2 isComplete isExternal isOriginDeclaration isStatic x (nameOffset:18) (firstTokenOffset:0) (offset:18)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F3 requiredPositional value (nameOffset:24) (firstTokenOffset:20) (offset:24)
+            #F3 requiredPositional isOriginDeclaration value (nameOffset:24) (firstTokenOffset:20) (offset:24)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       setter: <testLibrary>::@setter::x
   setters
-    static external isOriginDeclaration x
+    isExternal isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F2
       formalParameters
@@ -616,7 +2383,9 @@ library
   }
 
   test_setter_inferred_type_top_level_implicit_return() async {
-    var library = await buildLibrary('set f(int value) {}');
+    var library = await buildLibrary(r'''
+set f(int value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -624,22 +2393,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F1 isOriginGetterSetter isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::f
       setters
-        #F2 isOriginDeclaration f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F3 requiredPositional value (nameOffset:10) (firstTokenOffset:6) (offset:10)
+            #F3 requiredPositional isOriginDeclaration value (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter f
+    isOriginGetterSetter isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: int
       setter: <testLibrary>::@setter::f
   setters
-    static isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@setter::f
       firstFragment: #F2
       formalParameters
@@ -652,9 +2421,10 @@ library
   }
 
   test_setters() async {
-    var library = await buildLibrary(
-      'void set x(int value) {} set y(value) {}',
-    );
+    var library = await buildLibrary(r'''
+void set x(int value) {}
+set y(value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -662,34 +2432,34 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 isOriginGetterSetter y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F2 isOriginGetterSetter isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@topLevelVariable::y
       setters
-        #F3 isOriginDeclaration x (nameOffset:9) (firstTokenOffset:0) (offset:9)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional value (nameOffset:15) (firstTokenOffset:11) (offset:15)
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:15) (firstTokenOffset:11) (offset:15)
               element: <testLibrary>::@setter::x::@formalParameter::value
-        #F5 isOriginDeclaration y (nameOffset:29) (firstTokenOffset:25) (offset:29)
+        #F5 hasImplicitReturnType isComplete isOriginDeclaration isStatic y (nameOffset:29) (firstTokenOffset:25) (offset:29)
           element: <testLibrary>::@setter::y
           formalParameters
-            #F6 requiredPositional value (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F6 requiredPositional hasImplicitType isOriginDeclaration value (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@setter::y::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       setter: <testLibrary>::@setter::x
-    isOriginGetterSetter y
+    isOriginGetterSetter isStatic y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F2
       type: dynamic
       setter: <testLibrary>::@setter::y
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -698,7 +2468,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::x
-    static isOriginDeclaration y
+    isOriginDeclaration isStatic y
       reference: <testLibrary>::@setter::y
       firstFragment: #F5
       formalParameters
@@ -710,56 +2480,8 @@ library
 ''');
   }
 
-  test_top_level_variable_external() async {
-    var library = await buildLibrary('''
-external int i;
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginDeclaration i (nameOffset:13) (firstTokenOffset:13) (offset:13)
-          element: <testLibrary>::@topLevelVariable::i
-      getters
-        #F2 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-          element: <testLibrary>::@getter::i
-      setters
-        #F3 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-          element: <testLibrary>::@setter::i
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-              element: <testLibrary>::@setter::i::@formalParameter::value
-  topLevelVariables
-    external isOriginDeclaration i
-      reference: <testLibrary>::@topLevelVariable::i
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::i
-      setter: <testLibrary>::@setter::i
-  getters
-    static isOriginVariable i
-      reference: <testLibrary>::@getter::i
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::i
-  setters
-    static isOriginVariable i
-      reference: <testLibrary>::@setter::i
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::i
-''');
-  }
-
   test_unit_implicitVariable_getterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int get x => 0;
 void set x(int value) {}
 ''');
@@ -770,32 +2492,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F2 isComplete isOriginDeclaration isStatic x (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional value (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -808,7 +2530,7 @@ library
   }
 
   test_unit_implicitVariable_setterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void set x(int value) {}
 int get x => 0;
 ''');
@@ -819,32 +2541,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+        #F1 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginDeclaration x (nameOffset:33) (firstTokenOffset:25) (offset:33)
+        #F2 isComplete isOriginDeclaration isStatic x (nameOffset:33) (firstTokenOffset:25) (offset:33)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginDeclaration x (nameOffset:9) (firstTokenOffset:0) (offset:9)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional value (nameOffset:15) (firstTokenOffset:11) (offset:15)
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:15) (firstTokenOffset:11) (offset:15)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -857,7 +2579,7 @@ library
   }
 
   test_unit_variable_duplicate() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 int foo = 1;
 ''');
@@ -869,74 +2591,82 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 hasInitializer isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 hasInitializer isOriginDeclaration isStatic foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
+          element: <testLibrary>::@topLevelVariable::foo#1
+          inducedGetter: #F5
+          inducedSetter: #F6
       getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo::@def::0
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@getter::foo::@def::1
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+        #F5 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+          element: <testLibrary>::@getter::foo#1
+          inducingVariable: #F4
       setters
-        #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo::@def::0
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
           formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@def::0::@formalParameter::value
-        #F7 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@setter::foo::@def::1
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+        #F6 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+          element: <testLibrary>::@setter::foo#1
+          inducingVariable: #F4
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-              element: <testLibrary>::@setter::foo::@def::1::@formalParameter::value
+              element: <testLibrary>::@setter::foo#1::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      getter: <testLibrary>::@getter::foo::@def::0
-      setter: <testLibrary>::@setter::foo::@def::0
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
-      firstFragment: #F2
-      type: int
-      getter: <testLibrary>::@getter::foo::@def::1
-      setter: <testLibrary>::@setter::foo::@def::1
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo::@def::0
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo::@def::1
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F4
+      type: int
+      getter: <testLibrary>::@getter::foo#1
+      setter: <testLibrary>::@setter::foo#1
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo#1
       firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo#1
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
       formalParameters
         #E0 requiredPositional value
-          firstFragment: #F6
+          firstFragment: #F7
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo::@def::1
-      firstFragment: #F7
+      variable: <testLibrary>::@topLevelVariable::foo
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo#1
+      firstFragment: #F6
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
 ''');
   }
 
   test_unit_variable_duplicate_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 int get foo => 0;
 ''');
@@ -948,59 +2678,63 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+          element: <testLibrary>::@topLevelVariable::foo#1
       getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo::@def::0
-        #F4 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:13) (offset:21)
-          element: <testLibrary>::@getter::foo::@def::1
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+        #F5 isComplete isOriginDeclaration isStatic foo (nameOffset:21) (firstTokenOffset:13) (offset:21)
+          element: <testLibrary>::@getter::foo#1
       setters
-        #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      getter: <testLibrary>::@getter::foo::@def::0
+      getter: <testLibrary>::@getter::foo
       setter: <testLibrary>::@setter::foo
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
-      firstFragment: #F2
-      type: int
-      getter: <testLibrary>::@getter::foo::@def::1
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo::@def::0
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo::@def::1
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F4
+      type: int
+      getter: <testLibrary>::@getter::foo#1
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
+      variable: <testLibrary>::@topLevelVariable::foo
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo#1
       firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo#1
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
       formalParameters
         #E0 requiredPositional value
           firstFragment: #F6
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
   test_unit_variable_duplicate_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 set foo(int _) {}
 ''');
@@ -1012,61 +2746,65 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
-        #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+          element: <testLibrary>::@topLevelVariable::foo#1
       getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
       setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo::@def::0
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@def::0::@formalParameter::value
-        #F6 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:13) (offset:17)
-          element: <testLibrary>::@setter::foo::@def::1
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+        #F6 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:17) (firstTokenOffset:13) (offset:17)
+          element: <testLibrary>::@setter::foo#1
           formalParameters
-            #F7 requiredPositional _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
-              element: <testLibrary>::@setter::foo::@def::1::@formalParameter::_
+            #F7 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
+              element: <testLibrary>::@setter::foo#1::@formalParameter::_
   topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo::@def::0
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
-      firstFragment: #F2
-      type: int
-      setter: <testLibrary>::@setter::foo::@def::1
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo::@def::0
+      setter: <testLibrary>::@setter::foo
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F4
+      type: int
+      setter: <testLibrary>::@setter::foo#1
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
       formalParameters
         #E0 requiredPositional value
           firstFragment: #F5
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo#1
       firstFragment: #F6
       formalParameters
         #E1 requiredPositional _
           firstFragment: #F7
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
 ''');
   }
 
@@ -1083,32 +2821,34 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
           element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
       setters
-        #F3 isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
+        #F3 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
           element: <testLibrary>::@setter::foo
           formalParameters
-            #F4 requiredPositional newValue (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F4 requiredPositional isOriginDeclaration newValue (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::foo::@formalParameter::newValue
   topLevelVariables
-    final hasInitializer isOriginDeclaration foo
+    hasInitializer isFinal isOriginDeclaration isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::foo
       setter: <testLibrary>::@setter::foo
   getters
-    static isOriginVariable foo
+    isOriginVariable isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    static isOriginDeclaration foo
+    isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
@@ -1121,7 +2861,9 @@ library
   }
 
   test_variable() async {
-    var library = await buildLibrary('int x = 0;');
+    var library = await buildLibrary(r'''
+int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1129,32 +2871,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration x
+    hasInitializer isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1166,8 +2912,10 @@ library
 ''');
   }
 
-  test_variable_const() async {
-    var library = await buildLibrary('const int i = 0;');
+  test_variable_abstract() async {
+    var library = await buildLibrary(r'''
+abstract int i;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1175,17 +2923,1069 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration i (nameOffset:10) (firstTokenOffset:10) (offset:10)
+        #F1 isAbstract isOriginDeclaration isStatic i (nameOffset:13) (firstTokenOffset:13) (offset:13)
+          element: <testLibrary>::@topLevelVariable::i
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isAbstract isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@getter::i
+          inducingVariable: #F1
+      setters
+        #F3 isAbstract isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@setter::i
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::i::@formalParameter::value
+  topLevelVariables
+    isAbstract isOriginDeclaration isStatic i
+      reference: <testLibrary>::@topLevelVariable::i
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::i
+      setter: <testLibrary>::@setter::i
+  getters
+    isOriginVariable isStatic i
+      reference: <testLibrary>::@getter::i
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::i
+  setters
+    isOriginVariable isStatic i
+      reference: <testLibrary>::@setter::i
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::i
+''');
+  }
+
+  test_variable_augmentation_chain() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int foo = 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F7
+          previousFragment: #F3
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_const() async {
+    var library = await buildLibrary(r'''
+const int foo = 0;
+augment const int foo = 1;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @16
+              staticType: null
+          inducedGetter: #F2
+          nextFragment: #F3
+        #F3 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_1
+            IntegerLiteral
+              literal: 1 @43
+              staticType: int
+          inducedGetter: #F4
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F3
+          previousFragment: #F2
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_variable_augmentation_chain_differentType() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment double foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 isAugmentation isOriginDeclaration isStatic foo (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F7
+          previousFragment: #F3
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_final() async {
+    var library = await buildLibrary(r'''
+final int foo = 0;
+augment int foo = 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          nextFragment: #F3
+        #F3 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:31) (offset:31)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F4
+          inducedSetter: #F5
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F3
+          previousFragment: #F2
+      setters
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F3
+          formalParameters
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer isFinal isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_fromGetter() async {
+    var library = await buildLibrary(r'''
+int get foo => 0;
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F3
+          inducedSetter: #F4
+          previousFragment: #F1
+      getters
+        #F5 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F2
+          previousFragment: #F5
+      setters
+        #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F2
+          formalParameters
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_fromSetter() async {
+    var library = await buildLibrary(r'''
+set foo(int _) {}
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F3
+          inducedSetter: #F4
+          previousFragment: #F1
+      getters
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F2
+      setters
+        #F5 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              nextFragment: #F7
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F2
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+              previousFragment: #F6
+          previousFragment: #F5
+  topLevelVariables
+    hasInitializer isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: InvalidType
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_initializer() async {
+    var library = await buildLibrary(r'''
+int foo;
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:21) (firstTokenOffset:21) (offset:21)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F7
+          previousFragment: #F3
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_metadata() async {
+    var library = await buildLibrary(r'''
+final foo = 0;
+@deprecated
+augment final foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          nextFragment: #F3
+        #F3 hasImplicitType isAugmentation isFinal isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:41) (offset:41)
+          element: <testLibrary>::@topLevelVariable::foo
+          metadata
+            Annotation
+              atSign: @ @15
+              name: SimpleIdentifier
+                token: deprecated @16
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          inducedGetter: #F4
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F4
+        #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F3
+          previousFragment: #F2
+  topLevelVariables
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @15
+          name: SimpleIdentifier
+            token: deprecated @16
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_noIntroductoryDeclaration() async {
+    var library = await buildLibrary(r'''
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_twoDeclarations() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int foo = 1;
+augment int foo = 2;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+          nextFragment: #F7
+        #F7 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F8
+          inducedSetter: #F9
+          previousFragment: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+          nextFragment: #F8
+        #F8 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F7
+          previousFragment: #F5
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F11
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F10
+              nextFragment: #F12
+          previousFragment: #F3
+          nextFragment: #F9
+        #F9 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F7
+          formalParameters
+            #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F11
+          previousFragment: #F6
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F10
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_twoDeclarations_differentType() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int foo = 1;
+augment double foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+          nextFragment: #F7
+        #F7 isAugmentation isOriginDeclaration isStatic foo (nameOffset:49) (firstTokenOffset:49) (offset:49)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F8
+          inducedSetter: #F9
+          previousFragment: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+          nextFragment: #F8
+        #F8 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F7
+          previousFragment: #F5
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F11
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F10
+              nextFragment: #F12
+          previousFragment: #F3
+          nextFragment: #F9
+        #F9 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F7
+          formalParameters
+            #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F11
+          previousFragment: #F6
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F10
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_sameName_class() async {
+    var library = await buildLibrary(r'''
+class A {}
+augment int A = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      topLevelVariables
+        #F3 hasInitializer isAugmentation isOriginDeclaration isStatic A (nameOffset:23) (firstTokenOffset:23) (offset:23)
+          element: <testLibrary>::@topLevelVariable::A
+          inducedGetter: #F4
+          inducedSetter: #F5
+      getters
+        #F4 isAugmentation isComplete isOriginVariable isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+          element: <testLibrary>::@getter::A
+          inducingVariable: #F3
+      setters
+        #F5 isAugmentation isComplete isOriginVariable isStatic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+          element: <testLibrary>::@setter::A
+          inducingVariable: #F3
+          formalParameters
+            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@setter::A::@formalParameter::value
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic A
+      reference: <testLibrary>::@topLevelVariable::A
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      type: int
+      getter: <testLibrary>::@getter::A
+      setter: <testLibrary>::@setter::A
+  getters
+    isOriginVariable isStatic A
+      reference: <testLibrary>::@getter::A
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::A
+  setters
+    isOriginVariable isStatic A
+      reference: <testLibrary>::@setter::A
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::A
+  exportEntries
+    declared <testLibrary>::@getter::A
+    declared <testLibrary>::@setter::A
+  exportNamespace
+    A: <testLibrary>::@getter::A
+    A=: <testLibrary>::@setter::A
+''');
+  }
+
+  test_variable_augmentation_sameName_function() async {
+    var library = await buildLibrary(r'''
+void foo() {}
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+      getters
+        #F2 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+      setters
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+      functions
+        #F5 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+  topLevelVariables
+    hasInitializer isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      previousFragmentOfDifferentKind: #F5
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F5
+      returnType: void
+  exportEntries
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_const() async {
+    var library = await buildLibrary(r'''
+const int i = 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::i
           initializer: expression_0
             IntegerLiteral
               literal: 0 @14
               staticType: int
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
           element: <testLibrary>::@getter::i
+          inducingVariable: #F1
   topLevelVariables
-    const hasInitializer isOriginDeclaration i
+    hasInitializer isConst isOriginDeclaration isStatic i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -1194,7 +3994,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::i
   getters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@getter::i
       firstFragment: #F2
       returnType: int
@@ -1203,7 +4003,9 @@ library
   }
 
   test_variable_const_late() async {
-    var library = await buildLibrary('late const int i = 0;');
+    var library = await buildLibrary(r'''
+late const int i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1211,17 +4013,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration i (nameOffset:15) (firstTokenOffset:15) (offset:15)
+        #F1 hasInitializer isConst isLate isOriginDeclaration isStatic i (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::i
           initializer: expression_0
             IntegerLiteral
               literal: 0 @19
               staticType: int
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::i
+          inducingVariable: #F1
   topLevelVariables
-    late const hasInitializer isOriginDeclaration i
+    hasInitializer isConst isLate isOriginDeclaration isStatic i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -1230,7 +4034,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::i
   getters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@getter::i
       firstFragment: #F2
       returnType: int
@@ -1239,12 +4043,13 @@ library
   }
 
   test_variable_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-var x;''');
+var x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1252,20 +4057,24 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration x (nameOffset:64) (firstTokenOffset:64) (offset:64)
+        #F1 hasImplicitType isOriginDeclaration isStatic x (nameOffset:64) (firstTokenOffset:64) (offset:64)
           element: <testLibrary>::@topLevelVariable::x
           documentationComment: /**\n * Docs\n */
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+        #F3 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType isOriginDeclaration x
+    hasImplicitType isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       documentationComment: /**\n * Docs\n */
@@ -1273,13 +4082,13 @@ library
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1291,8 +4100,10 @@ library
 ''');
   }
 
-  test_variable_final() async {
-    var library = await buildLibrary('final int x = 0;');
+  test_variable_external() async {
+    var library = await buildLibrary(r'''
+external int i;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1300,19 +4111,73 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::x
+        #F1 isExternal isOriginDeclaration isStatic i (nameOffset:13) (firstTokenOffset:13) (offset:13)
+          element: <testLibrary>::@topLevelVariable::i
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::x
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@getter::i
+          inducingVariable: #F1
+      setters
+        #F3 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@setter::i
+          inducingVariable: #F1
+          formalParameters
+            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::i::@formalParameter::value
   topLevelVariables
-    final hasInitializer isOriginDeclaration x
+    isExternal isOriginDeclaration isStatic i
+      reference: <testLibrary>::@topLevelVariable::i
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::i
+      setter: <testLibrary>::@setter::i
+  getters
+    isOriginVariable isStatic i
+      reference: <testLibrary>::@getter::i
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::i
+  setters
+    isOriginVariable isStatic i
+      reference: <testLibrary>::@setter::i
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::i
+''');
+  }
+
+  test_variable_final() async {
+    var library = await buildLibrary(r'''
+final int x = 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:10) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::x
+          inducingVariable: #F1
+  topLevelVariables
+    hasInitializer isFinal isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
@@ -1331,19 +4196,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration foo (nameOffset:38) (firstTokenOffset:38) (offset:38)
+        #F1 isFinal isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
   topLevelVariables
-    final isOriginDeclaration foo
+    isFinal isOriginDeclaration isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int Function(int, {void Function() fn})?
       getter: <testLibrary>::@getter::foo
   getters
-    static isOriginVariable foo
+    isOriginVariable isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
       returnType: int Function(int, {void Function() fn})?
@@ -1352,14 +4219,17 @@ library
   }
 
   test_variable_getterInLib_setterInPart() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 void set x(int _) {}
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
+
 part 'a.dart';
-int get x => 42;''');
+
+int get x => 42;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1371,39 +4241,39 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
       topLevelVariables
-        #F2 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F2 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F3 isOriginDeclaration x (nameOffset:39) (firstTokenOffset:31) (offset:39)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:41) (firstTokenOffset:33) (offset:41)
           element: <testLibrary>::@getter::x
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       setters
-        #F4 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F4 isComplete isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F5 requiredPositional _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::_
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F4
       formalParameters
@@ -1416,13 +4286,15 @@ library
   }
 
   test_variable_getterInPart_setterInLib() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 int get x => 42;
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
+
 part 'a.dart';
+
 void set x(int _) {}
 ''');
     checkElementText(library, r'''
@@ -1436,39 +4308,39 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
       topLevelVariables
-        #F2 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F2 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
       setters
-        #F3 isOriginDeclaration x (nameOffset:40) (firstTokenOffset:31) (offset:40)
+        #F3 isComplete isOriginDeclaration isStatic x (nameOffset:42) (firstTokenOffset:33) (offset:42)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 requiredPositional _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
+            #F4 requiredPositional isOriginDeclaration _ (nameOffset:48) (firstTokenOffset:44) (offset:48)
               element: <testLibrary>::@setter::x::@formalParameter::_
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       getters
-        #F5 isOriginDeclaration x (nameOffset:24) (firstTokenOffset:16) (offset:24)
+        #F5 isComplete isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1481,14 +4353,20 @@ library
   }
 
   test_variable_getterInPart_setterInPart() async {
-    newFile('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
-    newFile(
-      '$testPackageLibPath/b.dart',
-      'part of my.lib; void set x(int _) {}',
-    );
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+int get x => 42;
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+void set x(int _) {}
+''');
+    var library = await buildLibrary(r'''
+library my.lib;
+
+part "a.dart";
+part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1500,11 +4378,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
         part_1
           uri: package:test/b.dart
-          partKeywordOffset: 31
+          partKeywordOffset: 32
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -1512,36 +4390,36 @@ library
       previousFragment: #F0
       nextFragment: #F2
       topLevelVariables
-        #F3 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F3 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F4 isOriginDeclaration x (nameOffset:24) (firstTokenOffset:16) (offset:24)
+        #F4 isComplete isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@getter::x
     #F2 package:test/b.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F1
       setters
-        #F5 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F5 isComplete isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F6 requiredPositional _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F6 requiredPositional isOriginDeclaration _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::_
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F4
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F5
       formalParameters
@@ -1554,7 +4432,9 @@ library
   }
 
   test_variable_implicit() async {
-    var library = await buildLibrary('int get x => 0;');
+    var library = await buildLibrary(r'''
+int get x => 0;
+''');
 
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
@@ -1568,7 +4448,9 @@ library
   }
 
   test_variable_implicit_type() async {
-    var library = await buildLibrary('var x;');
+    var library = await buildLibrary(r'''
+var x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1576,32 +4458,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasImplicitType isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType isOriginDeclaration x
+    hasImplicitType isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1614,7 +4500,9 @@ library
   }
 
   test_variable_initializer() async {
-    var library = await buildLibrary('int v = 0;');
+    var library = await buildLibrary(r'''
+int v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1622,32 +4510,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasInitializer isOriginDeclaration isStatic v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration v
+    hasInitializer isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -1660,7 +4552,9 @@ library
   }
 
   test_variable_initializer_final() async {
-    var library = await buildLibrary('final int v = 0;');
+    var library = await buildLibrary(r'''
+final int v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1668,19 +4562,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:10) (firstTokenOffset:10) (offset:10)
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic v (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
   topLevelVariables
-    final hasInitializer isOriginDeclaration v
+    hasInitializer isFinal isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int
@@ -1689,7 +4585,9 @@ library
   }
 
   test_variable_initializer_final_untyped() async {
-    var library = await buildLibrary('final v = 0;');
+    var library = await buildLibrary(r'''
+final v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1697,19 +4595,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration v
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int
@@ -1718,7 +4618,7 @@ library
   }
 
   test_variable_initializer_recordType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const x = (1, true);
 ''');
     checkElementText(library, r'''
@@ -1728,7 +4628,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             RecordLiteral
@@ -1742,11 +4642,13 @@ library
                   staticType: bool
               rightParenthesis: ) @18
               staticType: (int, bool)
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: (int, bool)
@@ -1755,7 +4657,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: (int, bool)
@@ -1764,11 +4666,13 @@ library
   }
 
   test_variable_initializer_staticMethod_ofExtension() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {
   static int f() => 0;
 }
+
 var x = E.f();
 ''');
     checkElementText(library, r'''
@@ -1785,25 +4689,29 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
           methods
-            #F4 isOriginDeclaration f (nameOffset:43) (firstTokenOffset:32) (offset:43)
+            #F4 isComplete isOriginDeclaration isStatic f (nameOffset:44) (firstTokenOffset:33) (offset:44)
               element: <testLibrary>::@extension::E::@method::f
       topLevelVariables
-        #F5 hasInitializer isOriginDeclaration x (nameOffset:59) (firstTokenOffset:59) (offset:59)
+        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F6
+          inducedSetter: #F7
       getters
-        #F6 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F6 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F5
       setters
-        #F7 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F7 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F5
           formalParameters
-            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@setter::x::@formalParameter::value
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -1817,25 +4725,25 @@ library
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
       methods
-        static isOriginDeclaration f
+        isOriginDeclaration isStatic f
           reference: <testLibrary>::@extension::E::@method::f
           firstFragment: #F4
           returnType: int
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F5
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F6
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F7
       formalParameters
@@ -1848,7 +4756,9 @@ library
   }
 
   test_variable_initializer_untyped() async {
-    var library = await buildLibrary('var v = 0;');
+    var library = await buildLibrary(r'''
+var v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1856,32 +4766,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -1894,7 +4808,9 @@ library
   }
 
   test_variable_late() async {
-    var library = await buildLibrary('late int x = 0;');
+    var library = await buildLibrary(r'''
+late int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1902,32 +4818,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:9) (firstTokenOffset:9) (offset:9)
+        #F1 hasInitializer isLate isOriginDeclaration isStatic x (nameOffset:9) (firstTokenOffset:9) (offset:9)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+        #F3 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    late hasInitializer isOriginDeclaration x
+    hasInitializer isLate isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1940,7 +4860,9 @@ library
   }
 
   test_variable_late_final() async {
-    var library = await buildLibrary('late final int x;');
+    var library = await buildLibrary(r'''
+late final int x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1948,32 +4870,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration x (nameOffset:15) (firstTokenOffset:15) (offset:15)
+        #F1 isFinal isLate isOriginDeclaration isStatic x (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F3 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::x
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    late final isOriginDeclaration x
+    isFinal isLate isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
@@ -1986,7 +4912,9 @@ library
   }
 
   test_variable_late_final_initialized() async {
-    var library = await buildLibrary('late final int x = 0;');
+    var library = await buildLibrary(r'''
+late final int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1994,19 +4922,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:15) (firstTokenOffset:15) (offset:15)
+        #F1 hasInitializer isFinal isLate isOriginDeclaration isStatic x (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
   topLevelVariables
-    late final hasInitializer isOriginDeclaration x
+    hasInitializer isFinal isLate isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: int
@@ -2025,74 +4955,84 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration a (nameOffset:8) (firstTokenOffset:8) (offset:8)
+        #F1 isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::0
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
+          element: <testLibrary>::@topLevelVariable::#0
+          inducedGetter: #F5
+          inducedSetter: #F6
       getters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@getter::a
-        #F4 isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::1
+          inducingVariable: #F1
+        #F5 isComplete isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::#1
+          inducingVariable: #F4
       setters
-        #F5 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@setter::a
+          inducingVariable: #F1
           formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@setter::a::@formalParameter::value
-        #F7 isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@setter::2
+        #F6 isComplete isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@setter::#2
+          inducingVariable: #F4
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-              element: <testLibrary>::@setter::2::@formalParameter::value
+              element: <testLibrary>::@setter::#2::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration a
+    isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: Object?
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    isOriginDeclaration <null-name>
-      reference: <testLibrary>::@topLevelVariable::0
-      firstFragment: #F2
+    isOriginDeclaration isStatic <null-name>
+      reference: <testLibrary>::@topLevelVariable::#0
+      firstFragment: #F4
       type: Object?
-      getter: <testLibrary>::@getter::1
-      setter: <testLibrary>::@setter::2
+      getter: <testLibrary>::@getter::#1
+      setter: <testLibrary>::@setter::#2
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
-      firstFragment: #F3
+      firstFragment: #F2
       returnType: Object?
       variable: <testLibrary>::@topLevelVariable::a
-    static isOriginVariable <null-name>
-      reference: <testLibrary>::@getter::1
-      firstFragment: #F4
-      returnType: Object?
-      variable: <testLibrary>::@topLevelVariable::0
-  setters
-    static isOriginVariable a
-      reference: <testLibrary>::@setter::a
+    isOriginVariable isStatic <null-name>
+      reference: <testLibrary>::@getter::#1
       firstFragment: #F5
+      returnType: Object?
+      variable: <testLibrary>::@topLevelVariable::#0
+  setters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@setter::a
+      firstFragment: #F3
       formalParameters
         #E0 requiredPositional value
-          firstFragment: #F6
+          firstFragment: #F7
           type: Object?
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
-    static isOriginVariable <null-name>
-      reference: <testLibrary>::@setter::2
-      firstFragment: #F7
+    isOriginVariable isStatic <null-name>
+      reference: <testLibrary>::@setter::#2
+      firstFragment: #F6
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
           type: Object?
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::0
+      variable: <testLibrary>::@topLevelVariable::#0
 ''');
   }
 
   test_variable_propagatedType_const_noDep() async {
-    var library = await buildLibrary('const i = 0;');
+    var library = await buildLibrary(r'''
+const i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2100,17 +5040,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration i (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::i
           initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::i
+          inducingVariable: #F1
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration i
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
@@ -2119,7 +5061,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::i
   getters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@getter::i
       firstFragment: #F2
       returnType: int
@@ -2128,8 +5070,14 @@ library
   }
 
   test_variable_propagatedType_final_dep_inLib() async {
-    newFile('$testPackageLibPath/a.dart', 'final a = 1;');
-    var library = await buildLibrary('import "a.dart"; final b = a / 2;');
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 1;
+''');
+    var library = await buildLibrary(r'''
+import "a.dart";
+
+final b = a / 2;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2139,19 +5087,21 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration b (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::b
+          inducingVariable: #F1
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration b
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F1
       type: double
       getter: <testLibrary>::@getter::b
   getters
-    static isOriginVariable b
+    isOriginVariable isStatic b
       reference: <testLibrary>::@getter::b
       firstFragment: #F2
       returnType: double
@@ -2160,10 +5110,17 @@ library
   }
 
   test_variable_propagatedType_final_dep_inPart() async {
-    newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
-    var library = await buildLibrary(
-      'library lib; part "a.dart"; final b = a / 2;',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+part of lib;
+final a = 1;
+''');
+    var library = await buildLibrary(r'''
+library lib;
+
+part "a.dart";
+
+final b = a / 2;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2175,42 +5132,46 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 13
+          partKeywordOffset: 14
           unit: #F1
       topLevelVariables
-        #F2 hasInitializer isOriginDeclaration b (nameOffset:34) (firstTokenOffset:34) (offset:34)
+        #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::b
+          inducedGetter: #F3
       getters
-        #F3 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F3 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::b
+          inducingVariable: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F4 hasInitializer isOriginDeclaration a (nameOffset:19) (firstTokenOffset:19) (offset:19)
+        #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F5
       getters
-        #F5 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F5 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F4
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration b
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: double
       getter: <testLibrary>::@getter::b
-    final hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable b
+    isOriginVariable isStatic b
       reference: <testLibrary>::@getter::b
       firstFragment: #F3
       returnType: double
       variable: <testLibrary>::@topLevelVariable::b
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F5
       returnType: int
@@ -2219,7 +5180,9 @@ library
   }
 
   test_variable_propagatedType_final_noDep() async {
-    var library = await buildLibrary('final i = 0;');
+    var library = await buildLibrary(r'''
+final i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2227,19 +5190,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration i (nameOffset:6) (firstTokenOffset:6) (offset:6)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic i (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::i
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::i
+          inducingVariable: #F1
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration i
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::i
   getters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@getter::i
       firstFragment: #F2
       returnType: int
@@ -2249,9 +5214,18 @@ library
 
   test_variable_propagatedType_implicit_dep() async {
     // The propagated type is defined in a library that is not imported.
-    newFile('$testPackageLibPath/a.dart', 'class C {}');
-    newFile('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
-    var library = await buildLibrary('import "b.dart"; final x = f();');
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+import "a.dart";
+C f() => null;
+''');
+    var library = await buildLibrary(r'''
+import "b.dart";
+
+final x = f();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2261,19 +5235,21 @@ library
       libraryImports
         package:test/b.dart
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration x (nameOffset:23) (firstTokenOffset:23) (offset:23)
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F2
       getters
-        #F2 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::x
+          inducingVariable: #F1
   topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration x
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::x
   getters
-    static isOriginVariable x
+    isOriginVariable isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F2
       returnType: C
@@ -2282,14 +5258,20 @@ library
   }
 
   test_variable_setterInPart_getterInPart() async {
-    newFile(
-      '$testPackageLibPath/a.dart',
-      'part of my.lib; void set x(int _) {}',
-    );
-    newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+void set x(int _) {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+int get x => 42;
+''');
+    var library = await buildLibrary(r'''
+library my.lib;
+
+part "a.dart";
+part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2301,11 +5283,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
         part_1
           uri: package:test/b.dart
-          partKeywordOffset: 31
+          partKeywordOffset: 32
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -2313,36 +5295,36 @@ library
       previousFragment: #F0
       nextFragment: #F2
       topLevelVariables
-        #F3 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F3 isOriginGetterSetter isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
       setters
-        #F4 isOriginDeclaration x (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F4 isComplete isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F5 requiredPositional _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
+            #F5 requiredPositional isOriginDeclaration _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
               element: <testLibrary>::@setter::x::@formalParameter::_
     #F2 package:test/b.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F1
       getters
-        #F6 isOriginDeclaration x (nameOffset:24) (firstTokenOffset:16) (offset:24)
+        #F6 isComplete isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    isOriginGetterSetter x
+    isOriginGetterSetter isStatic x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
   getters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@getter::x
       firstFragment: #F6
       returnType: int
       variable: <testLibrary>::@topLevelVariable::x
   setters
-    static isOriginDeclaration x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@setter::x
       firstFragment: #F4
       formalParameters
@@ -2355,7 +5337,9 @@ library
   }
 
   test_variable_type_dynamic() async {
-    var library = await buildLibrary('dynamic v;');
+    var library = await buildLibrary(r'''
+dynamic v;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2363,32 +5347,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration v (nameOffset:8) (firstTokenOffset:8) (offset:8)
+        #F1 isOriginDeclaration isStatic v (nameOffset:8) (firstTokenOffset:8) (offset:8)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+        #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@setter::v
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration v
+    isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -2401,7 +5389,9 @@ library
   }
 
   test_variable_type_inferred() async {
-    var library = await buildLibrary('var v = 0;');
+    var library = await buildLibrary(r'''
+var v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2409,32 +5399,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::v
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
@@ -2458,32 +5452,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration a (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: Never
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
       returnType: Never
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F3
       formalParameters
@@ -2507,32 +5505,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration a (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 hasImplicitType isOriginDeclaration isStatic a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F2
+          inducedSetter: #F3
       getters
-        #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F1
       setters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
+          inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasImplicitType isOriginDeclaration a
+    hasImplicitType isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F3
       formalParameters
@@ -2556,33 +5558,37 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
+        #F1 hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
-        #F2 isOriginDeclaration bar (nameOffset:29) (firstTokenOffset:29) (offset:29)
+          inducedGetter: #F2
+        #F3 isFinal isOriginDeclaration isStatic bar (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::bar
+          inducedGetter: #F4
       getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
           element: <testLibrary>::@getter::foo
-        #F4 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::bar
+          inducingVariable: #F3
   topLevelVariables
-    final hasInitializer isOriginDeclaration foo
+    hasInitializer isFinal isOriginDeclaration isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::foo
-    final isOriginDeclaration bar
+    isFinal isOriginDeclaration isStatic bar
       reference: <testLibrary>::@topLevelVariable::bar
-      firstFragment: #F2
+      firstFragment: #F3
       type: InvalidType
       getter: <testLibrary>::@getter::bar
   getters
-    static isOriginVariable foo
+    isOriginVariable isStatic foo
       reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
+      firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-    static isOriginVariable bar
+    isOriginVariable isStatic bar
       reference: <testLibrary>::@getter::bar
       firstFragment: #F4
       returnType: InvalidType
@@ -2595,6 +5601,7 @@ library
 class A<T> {
   const A();
 }
+
 const A<int> a = A();
 ''');
     checkElementText(library, r'''
@@ -2610,43 +5617,45 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer isOriginDeclaration a (nameOffset:41) (firstTokenOffset:41) (offset:41)
+        #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
-                  name: A @45
+                  name: A @46
                   element: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
-                leftParenthesis: ( @46
-                rightParenthesis: ) @47
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
               staticType: A<int>
+          inducedGetter: #F5
       getters
-        #F5 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+        #F5 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F4
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        const isOriginDeclaration new
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer isOriginDeclaration a
+    hasInitializer isConst isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: A<int>
@@ -2655,7 +5664,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F5
       returnType: A<int>
@@ -2664,7 +5673,10 @@ library
   }
 
   test_variables() async {
-    var library = await buildLibrary('int i; int j;');
+    var library = await buildLibrary(r'''
+int i;
+int j;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2672,63 +5684,71 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginDeclaration i (nameOffset:4) (firstTokenOffset:4) (offset:4)
+        #F1 isOriginDeclaration isStatic i (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::i
-        #F2 isOriginDeclaration j (nameOffset:11) (firstTokenOffset:11) (offset:11)
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 isOriginDeclaration isStatic j (nameOffset:11) (firstTokenOffset:11) (offset:11)
           element: <testLibrary>::@topLevelVariable::j
+          inducedGetter: #F5
+          inducedSetter: #F6
       getters
-        #F3 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::i
-        #F4 isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          inducingVariable: #F1
+        #F5 isComplete isOriginVariable isStatic j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
           element: <testLibrary>::@getter::j
+          inducingVariable: #F4
       setters
-        #F5 isOriginVariable i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::i
+          inducingVariable: #F1
           formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::i::@formalParameter::value
-        #F7 isOriginVariable j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+        #F6 isComplete isOriginVariable isStatic j (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
           element: <testLibrary>::@setter::j
+          inducingVariable: #F4
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@setter::j::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration i
+    isOriginDeclaration isStatic i
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::i
       setter: <testLibrary>::@setter::i
-    isOriginDeclaration j
+    isOriginDeclaration isStatic j
       reference: <testLibrary>::@topLevelVariable::j
-      firstFragment: #F2
+      firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::j
       setter: <testLibrary>::@setter::j
   getters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@getter::i
-      firstFragment: #F3
+      firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::i
-    static isOriginVariable j
+    isOriginVariable isStatic j
       reference: <testLibrary>::@getter::j
-      firstFragment: #F4
+      firstFragment: #F5
       returnType: int
       variable: <testLibrary>::@topLevelVariable::j
   setters
-    static isOriginVariable i
+    isOriginVariable isStatic i
       reference: <testLibrary>::@setter::i
-      firstFragment: #F5
+      firstFragment: #F3
       formalParameters
         #E0 requiredPositional value
-          firstFragment: #F6
+          firstFragment: #F7
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::i
-    static isOriginVariable j
+    isOriginVariable isStatic j
       reference: <testLibrary>::@setter::j
-      firstFragment: #F7
+      firstFragment: #F6
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
@@ -2743,2258 +5763,6 @@ library
     var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
-}
-
-abstract class TopLevelVariableElementTest_augmentation
-    extends ElementsBaseTest {
-  test_getter_augment_class() async {
-    var library = await buildLibrary(r'''
-class A {}
-augment int get A => 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::A
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-      topLevelVariables
-        #F3 isOriginGetterSetter A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
-          element: <testLibrary>::@topLevelVariable::A
-      getters
-        #F4 augment isOriginDeclaration A (nameOffset:27) (firstTokenOffset:11) (offset:27)
-          element: <testLibrary>::@getter::A
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F2
-  topLevelVariables
-    isOriginGetterSetter A
-      reference: <testLibrary>::@topLevelVariable::A
-      firstFragment: #F3
-      type: int
-      getter: <testLibrary>::@getter::A
-  getters
-    static isOriginDeclaration A
-      reference: <testLibrary>::@getter::A
-      firstFragment: #F4
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
-    declared <testLibrary>::@getter::A
-  exportNamespace
-    A: <testLibrary>::@getter::A
-''');
-  }
-
-  test_getter_augment_function() async {
-    var library = await buildLibrary(r'''
-void foo() {}
-augment int get foo => 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 augment isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:14) (offset:30)
-          element: <testLibrary>::@getter::foo
-      functions
-        #F3 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F3
-      returnType: void
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_getter() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment int get foo => 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_getter_differentType() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment double get foo => 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:18) (offset:37)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_getter_multiple_annotations() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a1 = 1;
-const a2 = 2;
-const a3 = 3;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-@a1
-int get foo => 0;
-@a2
-augment int get foo => 1;
-@a3
-augment int get foo => 2;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/a.dart
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:29) (firstTokenOffset:17) (offset:29)
-          element: <testLibrary>::@getter::foo
-          metadata
-            Annotation
-              atSign: @ @17
-              name: SimpleIdentifier
-                token: a1 @18
-                element: package:test/a.dart::@getter::a1
-                staticType: null
-              element: package:test/a.dart::@getter::a1
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:59) (firstTokenOffset:39) (offset:59)
-          element: <testLibrary>::@getter::foo
-          metadata
-            Annotation
-              atSign: @ @39
-              name: SimpleIdentifier
-                token: a2 @40
-                element: package:test/a.dart::@getter::a2
-                staticType: null
-              element: package:test/a.dart::@getter::a2
-          previousFragment: #F2
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:89) (firstTokenOffset:69) (offset:89)
-          element: <testLibrary>::@getter::foo
-          metadata
-            Annotation
-              atSign: @ @69
-              name: SimpleIdentifier
-                token: a3 @70
-                element: package:test/a.dart::@getter::a3
-                staticType: null
-              element: package:test/a.dart::@getter::a3
-          previousFragment: #F3
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      metadata
-        Annotation
-          atSign: @ @17
-          name: SimpleIdentifier
-            token: a1 @18
-            element: package:test/a.dart::@getter::a1
-            staticType: null
-          element: package:test/a.dart::@getter::a1
-        Annotation
-          atSign: @ @39
-          name: SimpleIdentifier
-            token: a2 @40
-            element: package:test/a.dart::@getter::a2
-            staticType: null
-          element: package:test/a.dart::@getter::a2
-        Annotation
-          atSign: @ @69
-          name: SimpleIdentifier
-            token: a3 @70
-            element: package:test/a.dart::@getter::a3
-            staticType: null
-          element: package:test/a.dart::@getter::a3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_multiple_getters() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment int get foo => 1;
-augment int get foo => 2;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:44) (offset:60)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F3
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_multiple_getters_differentType() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment int get foo => 1;
-augment double get foo => 2;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:44) (offset:63)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F3
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_setter() async {
-    var library = await buildLibrary(r'''
-set foo(int _) {}
-augment int get foo => 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:18) (offset:34)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_getter_augment_variable() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment int get foo => 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:29) (firstTokenOffset:13) (offset:29)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-      setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_getter_augment_variable_annotated() async {
-    var library = await buildLibrary(r'''
-final foo = 0;
-@deprecated
-augment int get foo;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:43) (firstTokenOffset:15) (offset:43)
-          element: <testLibrary>::@getter::foo
-          metadata
-            Annotation
-              atSign: @ @15
-              name: SimpleIdentifier
-                token: deprecated @16
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
-          previousFragment: #F2
-  topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      metadata
-        Annotation
-          atSign: @ @15
-          name: SimpleIdentifier
-            token: deprecated @16
-            element: dart:core::@getter::deprecated
-            staticType: null
-          element: dart:core::@getter::deprecated
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_getter_augment_variable_const() async {
-    var library = await buildLibrary(r'''
-const int foo = 0;
-augment int get foo => 1;
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
-            IntegerLiteral
-              literal: 0 @16
-              staticType: int
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:19) (offset:35)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-  topLevelVariables
-    const hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-''');
-  }
-
-  test_getter_augment_variable_differentType() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment double get foo => 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:32) (firstTokenOffset:13) (offset:32)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-      setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_getter_augment_variable_final() async {
-    var library = await buildLibrary(r'''
-final int foo = 0;
-augment int get foo => 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:19) (offset:35)
-          element: <testLibrary>::@getter::foo
-          previousFragment: #F2
-  topLevelVariables
-    final hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_setter_augment_class() async {
-    var library = await buildLibrary(r'''
-class A {}
-augment set A(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::A
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-      topLevelVariables
-        #F3 isOriginGetterSetter A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
-          element: <testLibrary>::@topLevelVariable::A
-      setters
-        #F4 augment isOriginDeclaration A (nameOffset:23) (firstTokenOffset:11) (offset:23)
-          element: <testLibrary>::@setter::A
-          formalParameters
-            #F5 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
-              element: <testLibrary>::@setter::A::@formalParameter::_
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F2
-  topLevelVariables
-    isOriginGetterSetter A
-      reference: <testLibrary>::@topLevelVariable::A
-      firstFragment: #F3
-      type: int
-      setter: <testLibrary>::@setter::A
-  setters
-    static isOriginDeclaration A
-      reference: <testLibrary>::@setter::A
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
-    declared <testLibrary>::@class::A
-    declared <testLibrary>::@setter::A
-  exportNamespace
-    A: <testLibrary>::@class::A
-    A=: <testLibrary>::@setter::A
-''');
-  }
-
-  test_setter_augment_function() async {
-    var library = await buildLibrary(r'''
-void foo() {}
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 augment isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F3 requiredPositional _ (nameOffset:34) (firstTokenOffset:30) (offset:34)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-      functions
-        #F4 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F4
-      returnType: void
-  exportedReferences
-    declared <testLibrary>::@function::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@function::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_getter() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 augment isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:38) (firstTokenOffset:34) (offset:38)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_getter_differentType() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment set foo(double _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 augment isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: double
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_getter_multiple_annotations() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a1 = 1;
-const a2 = 2;
-const a3 = 3;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-@a1
-set foo(int _) {}
-@a2
-augment set foo(int _) {}
-@a3
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/a.dart
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
-          element: <testLibrary>::@setter::foo
-          metadata
-            Annotation
-              atSign: @ @17
-              name: SimpleIdentifier
-                token: a1 @18
-                element: package:test/a.dart::@getter::a1
-                staticType: null
-              element: package:test/a.dart::@getter::a1
-          formalParameters
-            #F3 requiredPositional _ (nameOffset:33) (firstTokenOffset:29) (offset:33)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:39) (offset:55)
-          element: <testLibrary>::@setter::foo
-          metadata
-            Annotation
-              atSign: @ @39
-              name: SimpleIdentifier
-                token: a2 @40
-                element: package:test/a.dart::@getter::a2
-                staticType: null
-              element: package:test/a.dart::@getter::a2
-          formalParameters
-            #F5 requiredPositional _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F2
-          nextFragment: #F6
-        #F6 augment isOriginDeclaration foo (nameOffset:85) (firstTokenOffset:69) (offset:85)
-          element: <testLibrary>::@setter::foo
-          metadata
-            Annotation
-              atSign: @ @69
-              name: SimpleIdentifier
-                token: a3 @70
-                element: package:test/a.dart::@getter::a3
-                staticType: null
-              element: package:test/a.dart::@getter::a3
-          formalParameters
-            #F7 requiredPositional _ (nameOffset:93) (firstTokenOffset:89) (offset:93)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F4
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      metadata
-        Annotation
-          atSign: @ @17
-          name: SimpleIdentifier
-            token: a1 @18
-            element: package:test/a.dart::@getter::a1
-            staticType: null
-          element: package:test/a.dart::@getter::a1
-        Annotation
-          atSign: @ @39
-          name: SimpleIdentifier
-            token: a2 @40
-            element: package:test/a.dart::@getter::a2
-            staticType: null
-          element: package:test/a.dart::@getter::a2
-        Annotation
-          atSign: @ @69
-          name: SimpleIdentifier
-            token: a3 @70
-            element: package:test/a.dart::@getter::a3
-            staticType: null
-          element: package:test/a.dart::@getter::a3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_multiple_setters() async {
-    var library = await buildLibrary(r'''
-int set foo(int _) {}
-augment set foo(int _) {}
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F3 requiredPositional _ (nameOffset:16) (firstTokenOffset:12) (offset:16)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:22) (offset:34)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F2
-          nextFragment: #F6
-        #F6 augment isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F7 requiredPositional _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F4
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_multiple_setters_differentType() async {
-    var library = await buildLibrary(r'''
-int set foo(int _) {}
-augment set foo(int _) {}
-augment set foo(double _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F3 requiredPositional _ (nameOffset:16) (firstTokenOffset:12) (offset:16)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:22) (offset:34)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F2
-          nextFragment: #F6
-        #F6 augment isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F7 requiredPositional _ (nameOffset:71) (firstTokenOffset:64) (offset:71)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F4
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_setter() async {
-    var library = await buildLibrary(r'''
-set foo(int _) {}
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      setters
-        #F2 isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F3 requiredPositional _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          nextFragment: #F4
-        #F4 augment isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:18) (offset:30)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional _ (nameOffset:38) (firstTokenOffset:34) (offset:38)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F2
-  topLevelVariables
-    isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F2
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F3
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_variable() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-          nextFragment: #F5
-        #F5 augment isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:13) (offset:25)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F6 requiredPositional _ (nameOffset:33) (firstTokenOffset:29) (offset:33)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F3
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_variable_annotated() async {
-    var library = await buildLibrary(r'''
-final foo = 0;
-@deprecated
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 augment isOriginDeclaration foo (nameOffset:39) (firstTokenOffset:15) (offset:39)
-          element: <testLibrary>::@setter::foo
-          metadata
-            Annotation
-              atSign: @ @15
-              name: SimpleIdentifier
-                token: deprecated @16
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:47) (firstTokenOffset:43) (offset:47)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      metadata
-        Annotation
-          atSign: @ @15
-          name: SimpleIdentifier
-            token: deprecated @16
-            element: dart:core::@getter::deprecated
-            staticType: null
-          element: dart:core::@getter::deprecated
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_variable_const() async {
-    var library = await buildLibrary(r'''
-const int foo = 0;
-augment set foo(int _) {}
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
-            IntegerLiteral
-              literal: 0 @16
-              staticType: int
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 augment isOriginDeclaration foo (nameOffset:31) (firstTokenOffset:19) (offset:31)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:39) (firstTokenOffset:35) (offset:39)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    const hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-''');
-  }
-
-  test_setter_augment_variable_differentType() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment set foo(double _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-          nextFragment: #F5
-        #F5 augment isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:13) (offset:25)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F6 requiredPositional _ (nameOffset:36) (firstTokenOffset:29) (offset:36)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-          previousFragment: #F3
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_setter_augment_variable_final() async {
-    var library = await buildLibrary(r'''
-final int foo = 0;
-augment set foo(int _) {}
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 augment isOriginDeclaration foo (nameOffset:31) (firstTokenOffset:19) (offset:31)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:39) (firstTokenOffset:35) (offset:39)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    final hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_class() async {
-    var library = await buildLibrary(r'''
-class A {}
-augment int A = 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::A
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-      topLevelVariables
-        #F3 augment hasInitializer isOriginDeclaration A (nameOffset:23) (firstTokenOffset:23) (offset:23)
-          element: <testLibrary>::@topLevelVariable::A
-      getters
-        #F4 isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
-          element: <testLibrary>::@getter::A
-      setters
-        #F5 isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
-          element: <testLibrary>::@setter::A
-          formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
-              element: <testLibrary>::@setter::A::@formalParameter::value
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F2
-  topLevelVariables
-    hasInitializer isOriginDeclaration A
-      reference: <testLibrary>::@topLevelVariable::A
-      firstFragment: #F3
-      type: int
-      getter: <testLibrary>::@getter::A
-      setter: <testLibrary>::@setter::A
-  getters
-    static isOriginVariable A
-      reference: <testLibrary>::@getter::A
-      firstFragment: #F4
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::A
-  setters
-    static isOriginVariable A
-      reference: <testLibrary>::@setter::A
-      firstFragment: #F5
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F6
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
-    declared <testLibrary>::@getter::A
-    declared <testLibrary>::@setter::A
-  exportNamespace
-    A: <testLibrary>::@getter::A
-    A=: <testLibrary>::@setter::A
-''');
-  }
-
-  test_variable_augment_function() async {
-    var library = await buildLibrary(r'''
-void foo() {}
-augment int foo = 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 augment hasInitializer isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
-          element: <testLibrary>::@topLevelVariable::foo
-      getters
-        #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-      functions
-        #F5 isOriginDeclaration foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@function::foo
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F2
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  functions
-    isOriginDeclaration foo
-      reference: <testLibrary>::@function::foo
-      firstFragment: #F5
-      returnType: void
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_getter() async {
-    var library = await buildLibrary(r'''
-int get foo => 0;
-augment int foo = 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      getters
-        #F3 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@getter::foo
-  topLevelVariables
-    hasInitializer isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_variable_augment_multiple_variables() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment int foo = 1;
-augment int foo = 2;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-          nextFragment: #F3
-        #F3 augment hasInitializer isOriginDeclaration foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F2
-      getters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F4
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F5
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F6
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_multiple_variables_different_type() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment int foo = 1;
-augment double foo;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-          nextFragment: #F3
-        #F3 augment isOriginDeclaration foo (nameOffset:49) (firstTokenOffset:49) (offset:49)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F2
-      getters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F4
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F5
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F6
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_setter() async {
-    var library = await buildLibrary(r'''
-set foo(int _) {}
-augment int foo = 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      setters
-        #F3 isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F4 requiredPositional _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
-  topLevelVariables
-    hasInitializer isOriginGetterSetter foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      setter: <testLibrary>::@setter::foo
-  setters
-    static isOriginDeclaration foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F3
-      formalParameters
-        #E0 requiredPositional _
-          firstFragment: #F4
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_variable() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment int foo = 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_variable_annotated() async {
-    var library = await buildLibrary(r'''
-final foo = 0;
-@deprecated
-augment final foo;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment isOriginDeclaration foo (nameOffset:41) (firstTokenOffset:41) (offset:41)
-          element: <testLibrary>::@topLevelVariable::foo
-          metadata
-            Annotation
-              atSign: @ @15
-              name: SimpleIdentifier
-                token: deprecated @16
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-          element: <testLibrary>::@getter::foo
-  topLevelVariables
-    final hasImplicitType hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      metadata
-        Annotation
-          atSign: @ @15
-          name: SimpleIdentifier
-            token: deprecated @16
-            element: dart:core::@getter::deprecated
-            staticType: null
-          element: dart:core::@getter::deprecated
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_variable_augment_variable_augmented_const() async {
-    var library = await buildLibrary(r'''
-const int foo = 0;
-augment const int foo = 1;
-''');
-
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
-            IntegerLiteral
-              literal: 0 @16
-              staticType: null
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
-          element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_1
-            IntegerLiteral
-              literal: 1 @43
-              staticType: int
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-  topLevelVariables
-    const hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      constantInitializer
-        fragment: #F2
-        expression: expression_1
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-''');
-  }
-
-  test_variable_augment_variable_differentType() async {
-    var library = await buildLibrary(r'''
-int foo = 0;
-augment double foo;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:28) (offset:28)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-
-  test_variable_augment_variable_final() async {
-    var library = await buildLibrary(r'''
-final int foo = 0;
-augment int foo = 1;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 hasInitializer isOriginDeclaration foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:31) (firstTokenOffset:31) (offset:31)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::foo
-  topLevelVariables
-    final hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-''');
-  }
-
-  test_variable_augment_variable_initializer() async {
-    var library = await buildLibrary(r'''
-int foo;
-augment int foo = 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      topLevelVariables
-        #F1 isOriginDeclaration foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: #F2
-        #F2 augment hasInitializer isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:21) (offset:21)
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: #F1
-      getters
-        #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo
-      setters
-        #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo
-          formalParameters
-            #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@formalParameter::value
-  topLevelVariables
-    hasInitializer isOriginDeclaration foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: #F1
-      type: int
-      getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo
-  getters
-    static isOriginVariable foo
-      reference: <testLibrary>::@getter::foo
-      firstFragment: #F3
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo
-  setters
-    static isOriginVariable foo
-      reference: <testLibrary>::@setter::foo
-      firstFragment: #F4
-      formalParameters
-        #E0 requiredPositional value
-          firstFragment: #F5
-          type: int
-      returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibrary>::@getter::foo
-    declared <testLibrary>::@setter::foo
-  exportNamespace
-    foo: <testLibrary>::@getter::foo
-    foo=: <testLibrary>::@setter::foo
-''');
-  }
-}
-
-@reflectiveTest
-class TopLevelVariableElementTest_augmentation_fromBytes
-    extends TopLevelVariableElementTest_augmentation {
-  @override
-  bool get keepLinkingLibraries => false;
-}
-
-@reflectiveTest
-class TopLevelVariableElementTest_augmentation_keepLinking
-    extends TopLevelVariableElementTest_augmentation {
-  @override
-  bool get keepLinkingLibraries => true;
 }
 
 @reflectiveTest

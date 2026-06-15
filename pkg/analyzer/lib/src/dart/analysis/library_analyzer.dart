@@ -86,10 +86,6 @@ class LibraryAnalyzer {
   final Map<FileState, FileAnalysis> _libraryFiles = {};
   late final LibraryVerificationContext _libraryVerificationContext;
 
-  /// One verifier per library so that state of elements can be shared across
-  /// fragments in all files of this library.
-  late final InheritanceOverrideVerifier _inheritanceOverrideVerifier;
-
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
@@ -114,10 +110,6 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
-    );
-    _inheritanceOverrideVerifier = InheritanceOverrideVerifier(
-      _typeSystem,
-      _inheritance,
     );
   }
 
@@ -176,7 +168,12 @@ class LibraryAnalyzer {
         libraryFilePath: _library.file.path,
         unitFilePath: file.path,
       );
-      parsedUnit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
+      parsedUnit.accept(
+        ElementBindingVisitor.forAnalysis(
+          fragment: libraryFragment,
+          walker: elementWalker,
+        ),
+      );
       parsedUnit.accept(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
@@ -336,8 +333,17 @@ class LibraryAnalyzer {
   /// Compute diagnostics in [_libraryFiles], including errors and warnings,
   /// lints, and a few other cases.
   void _computeDiagnostics() {
+    var inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
+      diagnosticReportersByFragment: {
+        for (var fileAnalysis in _libraryFiles.values)
+          fileAnalysis.fragment: fileAnalysis.diagnosticReporter,
+      },
+    );
+
     for (var fileAnalysis in _libraryFiles.values) {
-      _computeVerifyErrors(fileAnalysis);
+      _computeVerifyErrors(fileAnalysis, inheritanceOverrideVerifier);
     }
 
     MemberDuplicateDefinitionVerifier.checkLibrary(
@@ -464,14 +470,17 @@ class LibraryAnalyzer {
     ).afterLibrary();
   }
 
-  void _computeVerifyErrors(FileAnalysis fileAnalysis) {
+  void _computeVerifyErrors(
+    FileAnalysis fileAnalysis,
+    InheritanceOverrideVerifier inheritanceOverrideVerifier,
+  ) {
     var diagnosticReporter = fileAnalysis.diagnosticReporter;
     var unit = fileAnalysis.unit;
 
     _computeConstantErrors(fileAnalysis);
 
     // Compute inheritance and override errors.
-    _inheritanceOverrideVerifier.verifyUnit(unit, diagnosticReporter);
+    inheritanceOverrideVerifier.verifyUnit(unit, diagnosticReporter);
 
     // Use the ErrorVerifier to compute errors.
     ErrorVerifier errorVerifier = ErrorVerifier(
@@ -515,10 +524,10 @@ class LibraryAnalyzer {
         diagnosticReporter,
         _typeProvider,
         _libraryElement,
-        unit,
         typeSystem: _typeSystem,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
+        inTestDirectory: fileAnalysis.file.isInTestDirectory,
       ),
     );
 
@@ -816,7 +825,12 @@ class LibraryAnalyzer {
       libraryFilePath: _library.file.path,
       unitFilePath: fileAnalysis.file.path,
     );
-    unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
+    unit.accept(
+      ElementBindingVisitor.forAnalysis(
+        fragment: libraryFragment,
+        walker: elementWalker,
+      ),
+    );
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)

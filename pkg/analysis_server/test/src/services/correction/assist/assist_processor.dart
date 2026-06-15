@@ -12,7 +12,6 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';

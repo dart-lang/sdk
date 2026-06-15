@@ -10,7 +10,7 @@ void main() async {
   const testNamePartsCfe = [
     'language',
     'compile_time_constant',
-    'compile_time_constant_test'
+    'compile_time_constant_test',
   ];
   const testNamePartsWeb = ['web', 'extension_type_assert_error_test'];
   const expectedLineCfe = 'Running CFE on 1 file...';
@@ -22,59 +22,92 @@ void main() async {
       'Running dart2js on ${toFileNameParts(testNamePartsWeb).join('/')}...';
   final expectedUpdateTextWeb = '${testNamePartsWeb.last}.dart (1 error)';
 
-  await doTest(toFileNameParts(testNamePartsCfe), testNamePartsCfe,
-      '--update=cfe', [expectedLineCfe], expectedUpdateTextCfe);
   await doTest(
-      toFileNameParts(testNamePartsCfe),
-      testNamePartsCfe,
-      '--update=cfe,web',
-      [expectedLineCfe, expectedLineCfeWeb],
-      expectedUpdateTextCfe,
-      runAll: false);
-  await doTest(toFileNameParts(testNamePartsWeb), testNamePartsWeb,
-      '--update=web', [expectedLineWeb], expectedUpdateTextWeb,
-      runAll: false);
+    toFileNameParts(testNamePartsCfe),
+    testNamePartsCfe,
+    '--update=cfe',
+    [expectedLineCfe],
+    expectedUpdateTextCfe,
+  );
   await doTest(
-      toFileNameParts(testNamePartsWeb),
-      testNamePartsWeb,
-      '--update=web,cfe',
-      [expectedLineCfe, expectedLineWeb],
-      expectedUpdateTextWeb,
-      runAll: false);
+    toFileNameParts(testNamePartsCfe),
+    testNamePartsCfe,
+    '--update=cfe,web',
+    [expectedLineCfe, expectedLineCfeWeb],
+    expectedUpdateTextCfe,
+    runAll: false,
+  );
+  await doTest(
+    toFileNameParts(testNamePartsWeb),
+    testNamePartsWeb,
+    '--update=web',
+    [expectedLineWeb],
+    expectedUpdateTextWeb,
+    runAll: false,
+  );
+  await doTest(
+    toFileNameParts(testNamePartsWeb),
+    testNamePartsWeb,
+    '--update=web,cfe',
+    [expectedLineCfe, expectedLineWeb],
+    expectedUpdateTextWeb,
+    runAll: false,
+  );
 }
 
 List<String> toFileNameParts(List<String> testNameParts) => [
-      'tests',
-      ...testNameParts.take(testNameParts.length - 1),
-      '${testNameParts.last}.dart',
-    ];
+  'tests',
+  ...testNameParts.take(testNameParts.length - 1),
+  '${testNameParts.last}.dart',
+];
 
 String toFileName(List<String> fileNameParts) => p.joinAll(fileNameParts);
 
-Future<void> doTest(List<String> fileNameParts, List<String> testNameParts,
-    String target, List<String> expectedLines, String expectedUpdateText,
-    {bool runAll = true}) async {
+Future<void> doTest(
+  List<String> fileNameParts,
+  List<String> testNameParts,
+  String target,
+  List<String> expectedLines,
+  String expectedUpdateText, {
+  bool runAll = true,
+}) async {
   var testFile = File(toFileName(fileNameParts));
   var testContent = testFile.readAsStringSync();
   try {
     var errorFound = false;
 
     var testName = testNameParts.join('/');
-    errorFound |=
-        await run(testName, target, expectedLines, expectedUpdateText);
+    errorFound |= await run(
+      testName,
+      target,
+      expectedLines,
+      expectedUpdateText,
+    );
 
     if (runAll) {
       var relativeNativePath = p.joinAll(fileNameParts);
       errorFound |= await run(
-          relativeNativePath, target, expectedLines, expectedUpdateText);
+        relativeNativePath,
+        target,
+        expectedLines,
+        expectedUpdateText,
+      );
 
       var relativeUriPath = fileNameParts.join('/');
-      errorFound |=
-          await run(relativeUriPath, target, expectedLines, expectedUpdateText);
+      errorFound |= await run(
+        relativeUriPath,
+        target,
+        expectedLines,
+        expectedUpdateText,
+      );
 
       var absoluteNativePath = File(relativeNativePath).absolute.path;
       errorFound |= await run(
-          absoluteNativePath, target, expectedLines, expectedUpdateText);
+        absoluteNativePath,
+        target,
+        expectedLines,
+        expectedUpdateText,
+      );
     }
 
     if (errorFound) {
@@ -87,8 +120,12 @@ Future<void> doTest(List<String> fileNameParts, List<String> testNameParts,
   }
 }
 
-Future<bool> run(String input, String target, List<String> expectedLines,
-    String expectedUpdateText) async {
+Future<bool> run(
+  String input,
+  String target,
+  List<String> expectedLines,
+  String expectedUpdateText,
+) async {
   const commonArguments = [
     'run',
     'pkg/test_runner/tool/update_static_error_tests.dart',

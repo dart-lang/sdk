@@ -20,7 +20,7 @@ class DataDriven extends MultiCorrectionProducer {
   @visibleForTesting
   static List<TransformSet>? transformSetsForTests;
 
-  DataDriven({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -74,7 +74,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
   /// The transform being applied to implement this fix.
   final Transform _transform;
 
-  DataDrivenFix(this._transform, {required super.context});
+  new(this._transform, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -10,7 +10,7 @@ extension type E(asy::Future<core::String> it) implements asy::Future<core::Stri
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */ {
+static extension-type-member method E|constructor#(initializing-formal asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */ {
   lowered final self::E /* erasure=asy::Future<core::String> */ #this = it;
   return #this;
 }

@@ -3,11 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// A callback for recording assist request timings.
 class AssistPerformance {
+  final OperationPerformanceImpl? operationPerformance;
   Duration? computeTime;
   List<ProducerTiming> producerTimings = [];
+
+  AssistPerformance([this.operationPerformance]);
 }
 
 /// Overall performance of a request for assists operation.

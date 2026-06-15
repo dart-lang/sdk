@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:http/http.dart' as http;
@@ -63,7 +62,7 @@ class MockProcess implements Process {
   final _exitCodeCompleter = Completer<int>();
   final String _stdout, _stderr;
 
-  MockProcess(this._pid, FutureOr<int> exitCode, this._stdout, this._stderr) {
+  new(this._pid, FutureOr<int> exitCode, this._stdout, this._stderr) {
     Future.value(exitCode).then(_exitCodeCompleter.complete);
   }
 
@@ -152,19 +151,6 @@ class MockProcessRunner implements ProcessRunner {
   }
 }
 
-class MockSource implements Source {
-  @override
-  final String fullName;
-
-  MockSource({this.fullName = 'mocked.dart'});
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() => fullName;
-}
-
 class TestNotificationManager implements AbstractNotificationManager {
   List<plugin.Notification> notifications = [];
 
@@ -208,7 +194,7 @@ class _IsResponseFailure extends Matcher {
   final String _id;
   final RequestErrorCode? _code;
 
-  _IsResponseFailure(this._id, this._code);
+  new(this._id, this._code);
 
   @override
   Description describe(Description description) {
@@ -259,7 +245,7 @@ class _IsResponseFailure extends Matcher {
 class _IsResponseSuccess extends Matcher {
   final String _id;
 
-  _IsResponseSuccess(this._id);
+  new(this._id);
 
   @override
   Description describe(Description description) {

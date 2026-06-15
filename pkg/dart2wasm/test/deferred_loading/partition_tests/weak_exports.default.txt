@@ -1,0 +1,8 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/weak_exports.dart prefix: D0
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/weak_exports.dart::@methods::d0_noExport
+  Constants
+     - StringConstant("No export")
+     - StringConstant("main - after D0 loaded")

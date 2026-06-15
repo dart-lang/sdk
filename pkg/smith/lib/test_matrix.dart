@@ -77,5 +77,5 @@ class TestMatrix {
     return TestMatrix._(configurations, builders, branches);
   }
 
-  TestMatrix._(this.configurations, this.builders, this.branches);
+  new _(this.configurations, this.builders, this.branches);
 }

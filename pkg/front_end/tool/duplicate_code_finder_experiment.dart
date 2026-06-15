@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, ScannerConfiguration, StringScanner;
+    show ErrorToken, StringScanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show BeginToken, SimpleToken, Token, TokenType;
 
@@ -13,7 +13,7 @@ class Duplicate {
   final List<FromToUri> where;
   final String example;
 
-  Duplicate(this.where, this.example);
+  new(this.where, this.example);
 
   @override
   String toString() => "Duplicate[$example]";
@@ -24,7 +24,7 @@ class FromToUri {
   final int startOffset;
   final int endOffset;
 
-  FromToUri(this.uri, this.startOffset, this.endOffset);
+  new(this.uri, this.startOffset, this.endOffset);
 }
 
 class Line {
@@ -35,13 +35,7 @@ class Line {
   Line? previous;
   Line? next;
 
-  Line(
-    this.content,
-    this.uri,
-    this.startOffset,
-    this.endOffset,
-    this.previous,
-  ) {
+  new(this.content, this.uri, this.startOffset, this.endOffset, this.previous) {
     if (previous != null) {
       previous!.next = this;
     }
@@ -52,7 +46,7 @@ class ExtendedLines {
   List<Line> startLines;
   int lineCount;
 
-  ExtendedLines(this.startLines, this.lineCount);
+  new(this.startLines, this.lineCount);
 }
 
 class MultiMap<K, V> {
@@ -353,15 +347,7 @@ List<ExtendedLines>? _extend(
 }
 
 Token _scan(String data) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-    forAugmentationLibrary: false,
-  );
-
-  StringScanner scanner = new StringScanner(
-    data,
-    configuration: scannerConfiguration,
-  );
+  StringScanner scanner = new StringScanner(data);
   Token firstToken = scanner.tokenize();
   return firstToken;
 }

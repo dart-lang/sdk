@@ -16,8 +16,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Sort child properties last in widget instance creations.';
 
 class SortChildPropertiesLast extends AnalysisRule {
-  SortChildPropertiesLast()
-    : super(name: LintNames.sort_child_properties_last, description: _desc);
+  new() : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.sortChildPropertiesLast;
@@ -35,7 +34,7 @@ class SortChildPropertiesLast extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -54,22 +53,22 @@ class _Visitor extends SimpleAstVisitor<void> {
         .reversed
         .where(
           (element) =>
-              element is NamedExpression &&
-              element.expression is! FunctionExpression,
+              element is NamedArgument &&
+              element.argumentExpression is! FunctionExpression,
         )
         .isEmpty;
     if (!onlyClosuresAfterChild) {
       var argument = arguments.firstWhere(isChildArg);
-      var name = (argument as NamedExpression).name.label.name;
+      var name = (argument as NamedArgument).name.lexeme;
       rule.reportAtNode(argument, arguments: [name]);
     }
   }
 
-  static bool isChildArg(Expression e) {
-    if (e is! NamedExpression) return false;
+  static bool isChildArg(Argument e) {
+    if (e is! NamedArgument) return false;
 
-    var name = e.name.label.name;
+    var name = e.name.lexeme;
     return (name == 'child' || name == 'children') &&
-        e.staticType.isWidgetProperty;
+        e.argumentExpression.staticType.isWidgetProperty;
   }
 }

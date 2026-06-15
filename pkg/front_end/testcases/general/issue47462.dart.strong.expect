@@ -39,6 +39,8 @@ static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/arr
   return core::List::generate<self::_#MyList#generate#tearOff::T>(length, generator, growable: growable);
 static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/array_patch.dart */ _#MyList#unmodifiable#tearOff<T extends core::num>(core::Iterable<dynamic> elements) → core::List<self::_#MyList#unmodifiable#tearOff::T>
   return core::List::unmodifiable<self::_#MyList#unmodifiable#tearOff::T>(elements);
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/core/list.dart */ _#MyList#unmodifiableOf#tearOff<T extends core::num>(core::Iterable<self::_#MyList#unmodifiableOf#tearOff::T> elements) → core::List<self::_#MyList#unmodifiableOf#tearOff::T>
+  return core::List::unmodifiableOf<self::_#MyList#unmodifiableOf#tearOff::T>(elements);
 
 constants  {
   #C1 = constructor-tearoff core::List::filled

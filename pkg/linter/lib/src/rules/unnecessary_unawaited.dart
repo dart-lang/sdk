@@ -16,8 +16,7 @@ import '../extensions.dart';
 const _desc = r"Unnecessary use of 'unawaited'.";
 
 class UnnecessaryUnawaited extends AnalysisRule {
-  UnnecessaryUnawaited()
-    : super(name: LintNames.unnecessary_unawaited, description: _desc);
+  new() : super(name: LintNames.unnecessary_unawaited, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryUnawaited;
@@ -35,7 +34,7 @@ class UnnecessaryUnawaited extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -47,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.argumentList.arguments.length != 1) return;
 
     var argument = node.argumentList.arguments.first;
-    var element = switch (argument.unParenthesized) {
+    var element = switch (argument.argumentExpression.unParenthesized) {
       BinaryExpression(:var element) => element,
       MethodInvocation(:var methodName) => methodName.element,
       PrefixExpression(:var element) => element,

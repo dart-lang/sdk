@@ -19,7 +19,7 @@ class LabelScopeImpl implements LabelScope {
 
   Map<String, JumpTarget>? forwardDeclaredLabels;
 
-  LabelScopeImpl([this._parent]);
+  new([this._parent]);
 
   @override
   void declareLabel(String name, JumpTarget target) {

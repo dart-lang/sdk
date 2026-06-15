@@ -1,7 +1,7 @@
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 final widgetsMediaQueryLibrary = MockLibraryUnit(
-  'src/widgets/media_query.dart',
+  'lib/src/widgets/media_query.dart',
   r'''
 class MediaQuery extends InheritedWidget {
   final MediaQueryData data;

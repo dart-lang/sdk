@@ -940,6 +940,7 @@ discard
 discarded
 discarding
 discards
+discouraged
 discover
 discovered
 discovery
@@ -952,6 +953,7 @@ display
 displayed
 displaying
 disregard
+disrupt
 distance
 distinct
 distinction
@@ -1003,6 +1005,7 @@ duration
 during
 dust
 dynamic
+dynamically
 each
 eagerly
 earlier
@@ -1197,8 +1200,10 @@ exporter
 exporters
 exporting
 exports
+expose
 exposed
 exposes
+exposing
 expressed
 expression
 expressions
@@ -1448,6 +1453,7 @@ happen
 happened
 happens
 hard
+hardcoded
 hare
 has
 hash
@@ -1624,6 +1630,7 @@ initializers
 initializes
 initializing
 initially
+initiates
 inject
 injected
 injection
@@ -1845,6 +1852,7 @@ listen
 listener
 listener's
 listeners
+listing
 lists
 literal
 literal's
@@ -2253,6 +2261,7 @@ pairs
 pairwise
 paragraph
 parameter
+parameterless
 parameters
 parent
 parent's
@@ -3354,6 +3363,7 @@ unhelpful
 unicode
 unified
 uniformity
+uniformly
 unifying
 unimplemented
 uninitialized

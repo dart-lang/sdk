@@ -38,39 +38,58 @@ Future<void> main(List<String> args) async {
 
   parser.addFlag("help", abbr: "h");
 
-  parser.addFlag("dry-run",
-      abbr: "n",
-      help: "Print result but do not overwrite any files.",
-      negatable: false);
-  parser.addFlag("context",
-      abbr: "c", help: "Include context messages in output.");
-  parser.addFlag("only-static-error-tests",
-      abbr: "o",
-      help: "Skips files that don't already have static error expectations.",
-      negatable: false);
+  parser.addFlag(
+    "dry-run",
+    abbr: "n",
+    help: "Print result but do not overwrite any files.",
+    negatable: false,
+  );
+  parser.addFlag(
+    "context",
+    abbr: "c",
+    help: "Include context messages in output.",
+  );
+  parser.addFlag(
+    "only-static-error-tests",
+    abbr: "o",
+    help: "Skips files that don't already have static error expectations.",
+    negatable: false,
+  );
 
   parser.addSeparator("What operations to perform:");
-  parser.addFlag("remove-all",
-      abbr: "r",
-      help: "Remove all existing error expectations.",
-      negatable: false);
-  parser.addMultiOption("remove",
-      help: "Remove error expectations for given front ends.",
-      allowed: sources);
-  parser.addFlag("insert-all",
-      abbr: "i",
-      help: "Insert error expectations for all front ends.",
-      negatable: false);
-  parser.addMultiOption("insert",
-      help: "Insert error expectations from given front ends.",
-      allowed: sources);
-  parser.addFlag("update-all",
-      abbr: "u",
-      help: "Replace error expectations for all front ends.",
-      negatable: false);
-  parser.addMultiOption("update",
-      help: "Update error expectations for given front ends.",
-      allowed: sources);
+  parser.addFlag(
+    "remove-all",
+    abbr: "r",
+    help: "Remove all existing error expectations.",
+    negatable: false,
+  );
+  parser.addMultiOption(
+    "remove",
+    help: "Remove error expectations for given front ends.",
+    allowed: sources,
+  );
+  parser.addFlag(
+    "insert-all",
+    abbr: "i",
+    help: "Insert error expectations for all front ends.",
+    negatable: false,
+  );
+  parser.addMultiOption(
+    "insert",
+    help: "Insert error expectations from given front ends.",
+    allowed: sources,
+  );
+  parser.addFlag(
+    "update-all",
+    abbr: "u",
+    help: "Replace error expectations for all front ends.",
+    negatable: false,
+  );
+  parser.addMultiOption(
+    "update",
+    help: "Update error expectations for given front ends.",
+    allowed: sources,
+  );
 
   var results = parser.parse(args);
 
@@ -119,11 +138,15 @@ Future<void> main(List<String> args) async {
 
   if (removeSources.isEmpty && insertSources.isEmpty) {
     _usageError(
-        parser, "Must provide at least one flag for an operation to perform.");
+      parser,
+      "Must provide at least one flag for an operation to perform.",
+    );
   }
 
-  var testFiles =
-      _listFiles(results.rest, onlyStaticErrorTests: onlyStaticErrorTests);
+  var testFiles = _listFiles(
+    results.rest,
+    onlyStaticErrorTests: onlyStaticErrorTests,
+  );
 
   var analyzerErrors = const <TestFile, List<StaticError>>{};
   var cfeErrors = const <TestFile, List<StaticError>>{};
@@ -142,18 +165,23 @@ Future<void> main(List<String> args) async {
   }
 
   print('Updating test files...');
+  var pendingUpdates = <Path, _PendingUpdate>{};
   for (var testFile in testFiles) {
-    _updateErrors(
-        testFile,
-        [
-          if (insertSources.contains(ErrorSource.analyzer))
-            ...?analyzerErrors[testFile],
-          if (insertSources.contains(ErrorSource.cfe)) ...?cfeErrors[testFile],
-          if (insertSources.contains(ErrorSource.web)) ...?webErrors[testFile],
-        ],
-        remove: removeSources,
-        includeContext: includeContext,
-        dryRun: dryRun);
+    _collectUpdate(pendingUpdates, testFile, [
+      if (insertSources.contains(ErrorSource.analyzer))
+        ...?analyzerErrors[testFile],
+      if (insertSources.contains(ErrorSource.cfe)) ...?cfeErrors[testFile],
+      if (insertSources.contains(ErrorSource.web)) ...?webErrors[testFile],
+    ], includeContext: includeContext);
+  }
+
+  for (var update in pendingUpdates.values) {
+    _writeUpdate(
+      update,
+      remove: removeSources,
+      includeContext: includeContext,
+      dryRun: dryRun,
+    );
   }
 }
 
@@ -171,8 +199,10 @@ List<String> _testFileOptions(TestFile testFile, {bool cfe = false}) {
 /// Omits multitests since those don't support being used as static error tests.
 /// Omits any [TestFile] that doesn't already contain a static error test
 /// expectation if [onlyStaticErrorTests] is `true`.
-List<TestFile> _listFiles(List<String> pathGlobs,
-    {required bool onlyStaticErrorTests}) {
+List<TestFile> _listFiles(
+  List<String> pathGlobs, {
+  required bool onlyStaticErrorTests,
+}) {
   print('Listing files...');
   var testFiles = <TestFile>[];
   for (var pathGlob in pathGlobs) {
@@ -197,8 +227,7 @@ List<TestFile> _listFiles(List<String> pathGlobs,
 
       if (!file.path.endsWith(".dart")) continue;
 
-      // Canonicalize the path in the same way StaticError does, so it matches.
-      var f = p.relative(file.path, from: Directory.current.path);
+      var f = StaticError.normalizePath(file.path);
       var testFile = TestFile.read(Path("."), f);
 
       if (testFile.isMultitest) {
@@ -228,12 +257,14 @@ void _usageError(ArgParser parser, String message) {
 
 /// Run analyzer on [allTestFiles] and return the errors for each file.
 Future<Map<TestFile, List<StaticError>>> _runAnalyzer(
-    List<TestFile> allTestFiles) async {
+  List<TestFile> allTestFiles,
+) async {
   // For performance, we want to analyze multiple tests using the same analysis
   // context collection. But a context collection only works with a single set
   // of experiment flags, so group the tests by their experiments.
-  var testsByExperiments =
-      EqualityMap<List<String>, List<TestFile>>(const ListEquality());
+  var testsByExperiments = EqualityMap<List<String>, List<TestFile>>(
+    const ListEquality(),
+  );
   for (var testFile in allTestFiles) {
     var experiments = testFile.experiments.toList()..sort();
     testsByExperiments.putIfAbsent(experiments, () => []).add(testFile);
@@ -248,8 +279,10 @@ Future<Map<TestFile, List<StaticError>>> _runAnalyzer(
       print('Running analyzer on ${_plural(testFiles, 'file')}...');
       resourceProvider = PhysicalResourceProvider.INSTANCE;
     } else {
-      print('Running analyzer on ${_plural(testFiles, 'file')} '
-          'with experiments "${experiments.join(', ')}"...');
+      print(
+        'Running analyzer on ${_plural(testFiles, 'file')} '
+        'with experiments "${experiments.join(', ')}"...',
+      );
 
       // If there are experiments, then synthesize an analysis options file in the
       // root directory that enables the experiments for all of the tests.
@@ -263,18 +296,21 @@ Future<Map<TestFile, List<StaticError>>> _runAnalyzer(
       resourceProvider =
           OverlayResourceProvider(PhysicalResourceProvider.INSTANCE)
             ..setOverlay(
-                Path('tests/analysis_options.yaml').absolute.toNativePath(),
-                content: options.toString(),
-                modificationStamp: 0);
+              Path('tests/analysis_options.yaml').absolute.toNativePath(),
+              content: options.toString(),
+              modificationStamp: 0,
+            );
     }
 
     var paths = [
       for (var testFile in testFiles)
-        p.normalize(testFile.path.absolute.toNativePath())
+        p.normalize(testFile.path.absolute.toNativePath()),
     ];
 
     var contextCollection = AnalysisContextCollection(
-        includedPaths: paths, resourceProvider: resourceProvider);
+      includedPaths: paths,
+      resourceProvider: resourceProvider,
+    );
 
     for (var testFile in testFiles) {
       errors[testFile] = await _runAnalyzerOnFile(contextCollection, testFile);
@@ -289,7 +325,9 @@ Future<Map<TestFile, List<StaticError>>> _runAnalyzer(
 /// Analyze [testFile] using [contextCollection] and return the list of reported
 /// errors.
 Future<List<StaticError>> _runAnalyzerOnFile(
-    AnalysisContextCollection contextCollection, TestFile testFile) async {
+  AnalysisContextCollection contextCollection,
+  TestFile testFile,
+) async {
   var absolutePath = testFile.path.absolute.toNativePath();
 
   var context = contextCollection.contextFor(absolutePath);
@@ -303,9 +341,11 @@ Future<List<StaticError>> _runAnalyzerOnFile(
         case Severity.error:
         case Severity.warning
             when AnalyzerError.isValidatedWarning(
-                diagnostic.diagnosticCode.lowerCaseName):
+              diagnostic.diagnosticCode.lowerCaseName,
+            ):
           errors.add(
-              _convertAnalysisError(context, errorsResult.path, diagnostic));
+            _convertAnalysisError(context, errorsResult.path, diagnostic),
+          );
         default:
           // Ignore todos and other harmless warnings like unused variables
           // which the tests are riddled with but we don't want to bother
@@ -321,35 +361,44 @@ Future<List<StaticError>> _runAnalyzerOnFile(
 /// Convert an [Diagnostic] from the analyzer package to the test runner's
 /// [StaticError] type.
 StaticError _convertAnalysisError(
-    AnalysisContext analysisContext, String containingFile, Diagnostic error) {
+  AnalysisContext analysisContext,
+  String containingFile,
+  Diagnostic error,
+) {
   var fileResult =
       analysisContext.currentSession.getFile(containingFile) as FileResult;
   var errorLocation = fileResult.lineInfo.getLocation(error.offset);
 
   var staticError = StaticError(
-      ErrorSource.analyzer,
-      // Analyzer reports error codes as lower snake case, but the test runner
-      // still expects upper snake case, so convert the error code to upper
-      // case.
-      '${error.diagnosticCode.type.name}.'
-      '${error.diagnosticCode.lowerCaseName.toUpperCase()}',
-      path: containingFile,
-      line: errorLocation.lineNumber,
-      column: errorLocation.columnNumber,
-      length: error.length);
+    ErrorSource.analyzer,
+    // Analyzer reports error codes as lower snake case, but the test runner
+    // still expects upper snake case, so convert the error code to upper
+    // case.
+    '${error.diagnosticCode.type.name}.'
+    '${error.diagnosticCode.lowerCaseName.toUpperCase()}',
+    path: containingFile,
+    line: errorLocation.lineNumber,
+    column: errorLocation.columnNumber,
+    length: error.length,
+  );
 
   for (var context in error.contextMessages) {
     var contextFileResult =
         analysisContext.currentSession.getFile(context.filePath) as FileResult;
-    var contextLocation =
-        contextFileResult.lineInfo.getLocation(context.offset);
+    var contextLocation = contextFileResult.lineInfo.getLocation(
+      context.offset,
+    );
 
-    staticError.contextMessages.add(StaticError(
-        ErrorSource.context, context.messageText(includeUrl: true),
+    staticError.contextMessages.add(
+      StaticError(
+        ErrorSource.context,
+        context.messageText(includeUrl: true),
         path: context.filePath,
         line: contextLocation.lineNumber,
         column: contextLocation.columnNumber,
-        length: context.length));
+        length: context.length,
+      ),
+    );
   }
 
   return staticError;
@@ -357,12 +406,14 @@ StaticError _convertAnalysisError(
 
 /// Invoke CFE on all [allTestFiles] and gather the static errors it reports.
 Future<Map<TestFile, List<StaticError>>> _runCfe(
-    List<TestFile> allTestFiles) async {
+  List<TestFile> allTestFiles,
+) async {
   // For performance, we want to run CFE on batches of files, but we can't use
   // the same invocation for files with different options, so group by options
   // first.
-  var testsByOptions =
-      EqualityMap<List<String>, List<TestFile>>(const ListEquality());
+  var testsByOptions = EqualityMap<List<String>, List<TestFile>>(
+    const ListEquality(),
+  );
   for (var testFile in allTestFiles) {
     var options = _testFileOptions(testFile, cfe: true)..sort();
     testsByOptions.putIfAbsent(options, () => []).add(testFile);
@@ -376,8 +427,10 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
     if (options.isEmpty) {
       print('Running CFE on ${_plural(testFiles, 'file')}...');
     } else {
-      print('Running CFE on ${_plural(testFiles, 'file')} '
-          'with options "${options.join(', ')}"...');
+      print(
+        'Running CFE on ${_plural(testFiles, 'file')} '
+        'with options "${options.join(', ')}"...',
+      );
     }
 
     var absolutePaths = [
@@ -411,12 +464,16 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
 
     var parsedErrors = <StaticError>[];
     FastaCommandOutput.parseErrors(
-        result.stdout as String, parsedErrors, parsedErrors);
+      result.stdout as String,
+      parsedErrors,
+      parsedErrors,
+    );
     for (var error in parsedErrors) {
       // If an error occurs in a file that is included in the current one, then
       // `error.path` may not be found, and `testFile` will be null.
-      var testFile =
-          testFiles.firstWhereOrNull((test) => test.path == Path(error.path));
+      var testFile = testFiles.firstWhereOrNull(
+        (test) => test.path == Path(error.path),
+      );
       if (testFile != null) {
         errors.putIfAbsent(testFile, () => []).add(error);
       }
@@ -426,13 +483,17 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
   return errors;
 }
 
-Future<Map<TestFile, List<StaticError>>> _runDart2js(List<TestFile> testFiles,
-    Map<TestFile, List<StaticError>> cfeErrors) async {
+Future<Map<TestFile, List<StaticError>>> _runDart2js(
+  List<TestFile> testFiles,
+  Map<TestFile, List<StaticError>> cfeErrors,
+) async {
   var errors = <TestFile, List<StaticError>>{};
   for (var testFile in testFiles) {
     print('Running dart2js on ${testFile.path}...');
     errors[testFile] = await _runDart2jsOnFile(
-        testFile, cfeErrors[testFile] ?? const <StaticError>[]);
+      testFile,
+      cfeErrors[testFile] ?? const <StaticError>[],
+    );
   }
 
   return errors;
@@ -440,7 +501,9 @@ Future<Map<TestFile, List<StaticError>>> _runDart2js(List<TestFile> testFiles,
 
 /// Invoke dart2js on [testFile] and gather all static errors it reports.
 Future<List<StaticError>> _runDart2jsOnFile(
-    TestFile testFile, List<StaticError> cfeErrors) async {
+  TestFile testFile,
+  List<StaticError> cfeErrors,
+) async {
   var result = await Process.run(dartPath, [
     'compile',
     'js',
@@ -452,7 +515,10 @@ Future<List<StaticError>> _runDart2jsOnFile(
 
   var errors = <StaticError>[];
   Dart2jsCompilerCommandOutput.parseErrors(
-      result.stdout as String, errors, errors);
+    result.stdout as String,
+    errors,
+    errors,
+  );
 
   // We only want the web-specific errors from dart2js, so filter out any errors
   // that are also reported by the CFE.
@@ -468,36 +534,87 @@ Future<List<StaticError>> _runDart2jsOnFile(
   return errors;
 }
 
-/// Update the static error expectations in [testFile].
+/// Collect the files that need to be updated for [testFile].
 ///
-/// Adds [errors] to the file and removes any existing errors that are in from
-/// the sources in [remove].
+/// Each selected root test owns a slice of any shared helper files it touches.
+/// The updater analyzes all roots before rewriting, so each touched file must
+/// be written once using all selected owners; otherwise newly inserted comments
+/// shift the line numbers for diagnostics collected from later roots.
+void _collectUpdate(
+  Map<Path, _PendingUpdate> pendingUpdates,
+  TestFile testFile,
+  List<StaticError> errors, {
+  required bool includeContext,
+}) {
+  // Error expectations can be in imported libraries or part files. Iterate
+  // over the set of paths that is the main file path plus all paths mentioned
+  // in expectations, updating them.
+  var paths = {
+    testFile.path,
+    for (var error in errors) Path(error.path),
+    if (includeContext)
+      for (var error in errors)
+        for (var context in error.contextMessages) Path(context.path),
+  };
+
+  for (var path in paths) {
+    var update = pendingUpdates.putIfAbsent(path, () => _PendingUpdate(path));
+    update.contextOwnerPaths.add(testFile.path.toNativePath());
+    update.addErrors(errors);
+  }
+}
+
+/// Update the static error expectations in [update].
+///
+/// Adds the collected errors to the file and removes any existing errors that
+/// are in from the sources in [remove].
 ///
 /// If [includeContext] is `true`, then includes context messages in the
 /// resulting test. If [dryRun] is `false`, then writes the result to disk.
 /// Otherwise, prints the resulting test file.
-void _updateErrors(TestFile testFile, List<StaticError> errors,
-    {required Set<ErrorSource> remove,
-    required bool includeContext,
-    required bool dryRun}) {
-  // Error expectations can be in imported libraries or part files. Iterate
-  // over the set of paths that is the main file path plus all paths mentioned
-  // in expectations, updating them.
-  var paths = {testFile.path, for (var error in errors) Path(error.path)};
+void _writeUpdate(
+  _PendingUpdate update, {
+  required Set<ErrorSource> remove,
+  required bool includeContext,
+  required bool dryRun,
+}) {
+  var path = update.path;
+  var nativePath = path.toNativePath();
+  var file = File(nativePath);
+  var pathErrors = update.errors
+      .where(
+        (error) =>
+            Path(error.path) == path ||
+            error.contextMessages.any((context) => Path(context.path) == path),
+      )
+      .toList();
+  var result = updateErrorExpectations(
+    nativePath,
+    file.readAsStringSync(),
+    update.errors,
+    remove: remove,
+    includeContext: includeContext,
+    contextOwnerPaths: update.contextOwnerPaths,
+  );
 
-  for (var path in paths) {
-    var nativePath = path.toNativePath();
-    var file = File(nativePath);
-    var pathErrors = errors.where((e) => Path(e.path) == path).toList();
-    var result = updateErrorExpectations(
-        nativePath, file.readAsStringSync(), pathErrors,
-        remove: remove, includeContext: includeContext);
+  if (dryRun) {
+    print(result);
+  } else {
+    file.writeAsStringSync(result);
+    print('- $nativePath (${_plural(pathErrors, 'error')})');
+  }
+}
 
-    if (dryRun) {
-      print(result);
-    } else {
-      file.writeAsString(result);
-      print('- $nativePath (${_plural(pathErrors, 'error')})');
+class _PendingUpdate {
+  final Path path;
+  final List<StaticError> errors = [];
+  final Set<String> contextOwnerPaths = {};
+
+  _PendingUpdate(this.path);
+
+  void addErrors(List<StaticError> errors) {
+    for (var error in errors) {
+      if (!this.errors.contains(error)) this.errors.add(error);
     }
   }
 }

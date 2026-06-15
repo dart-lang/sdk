@@ -271,31 +271,6 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
   __ Breakpoint();  // Not implemented.
 }
 
-void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
-                                            Register dst,
-                                            Register tmp) {
-  compiler::Label skip_reloc;
-  __ b(&skip_reloc);
-  InsertBSSRelocation(relocation);
-  __ Bind(&skip_reloc);
-
-  // For historical reasons, the PC on ARM points 8 bytes (two instructions)
-  // past the current instruction.
-  __ sub(tmp, PC,
-         compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
-
-  // tmp holds the address of the relocation.
-  __ ldr(dst, compiler::Address(tmp));
-
-  // dst holds the relocation itself: tmp - bss_start.
-  // tmp = tmp + (bss_start - tmp) = bss_start
-  __ add(tmp, tmp, compiler::Operand(dst));
-
-  // tmp holds the start of the BSS section.
-  // Load the "get-thread" routine: *bss_start.
-  __ ldr(dst, compiler::Address(tmp));
-}
-
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -303,8 +278,11 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
   // Note: If the stub was aligned, this could be a single PC relative load.
 
   // Load a pointer to the beginning of the stub into dst.
+  // This is not SubImmediate(dst, PC, Instr::kPCReadOffset + code_size)
+  // because synthesizing the large immediate changes what offset is needed.
   const intptr_t code_size = __ CodeSize();
-  __ SubImmediate(dst, PC, Instr::kPCReadOffset + code_size);
+  __ mov(dst, Operand(PC));
+  __ SubImmediate(dst, dst, Instr::kPCReadOffset + code_size);
 
   // Round dst down to the page size.
   __ AndImmediate(dst, dst, FfiCallbackMetadata::kPageMask);

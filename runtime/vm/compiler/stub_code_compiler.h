@@ -196,9 +196,8 @@ class StubCodeCompiler {
   // InitLateFinalInstanceField stubs.
   void GenerateInitLateInstanceFieldStub(bool is_final);
 
-  // Common function for generating AllocateClosure[TA][Generic] stubs.
-  void GenerateAllocateClosureStub(bool has_instantiator_type_args,
-                                   bool is_generic);
+  // Common function for generating AllocateClosure<N> stubs.
+  void GenerateAllocateClosureStub(intptr_t num_elements);
 
   // Common function for generating Allocate<TypedData>Array stubs.
   void GenerateAllocateTypedDataArrayStub(intptr_t cid);
@@ -238,11 +237,6 @@ class StubCodeCompiler {
   void GenerateReturnStub(intptr_t return_entry_point_offset_in_thread,
                           intptr_t return_function_offset_in_object_store,
                           intptr_t return_stub_offset_in_thread);
-
-  void GenerateLoadBSSEntry(BSS::Relocation relocation,
-                            Register dst,
-                            Register tmp);
-  void InsertBSSRelocation(BSS::Relocation reloc);
 
   void GenerateLoadFfiCallbackMetadataRuntimeFunction(uword function_index,
                                                       Register dst);

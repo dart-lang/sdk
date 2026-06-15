@@ -9,6 +9,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 import 'package:pub_semver/pub_semver.dart' show Version;
@@ -20,7 +21,7 @@ const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
 
 class PreferFinalParameters extends AnalysisRule {
-  PreferFinalParameters()
+  new()
     : super(
         name: LintNames.prefer_final_parameters,
         description: _desc,
@@ -56,7 +57,7 @@ class PreferFinalParameters extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) =>
@@ -78,9 +79,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   ) {
     if (parameters != null) {
       for (var param in parameters.parameters) {
-        if (param is DefaultFormalParameter) {
-          param = param.parameter;
-        }
         if (param.isFinal ||
             param.isConst ||
             // A field formal parameter is final even without the `final`
@@ -93,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null &&
-            !declaredElement.isInitializingFormal &&
+            declaredElement is! FieldFormalParameterElement &&
             !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportAtNode(param, arguments: [param.name!.lexeme]);

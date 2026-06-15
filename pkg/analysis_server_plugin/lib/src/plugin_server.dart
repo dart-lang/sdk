@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/analysis/driver.dart';
+library;
+
 import 'dart:async';
 
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
@@ -30,7 +33,9 @@ import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -84,11 +89,22 @@ class PluginServer {
   /// The recent state of analysis reults, to be cleared on file changes.
   final _recentState = <String, _PluginState>{};
 
+  /// The map of files currently being analyzed, mapped to their active session.
+  final _filesBeingAnalyzed = <String, AnalysisSession>{};
+
+  /// The map of files currently being resolved, mapped to their active session.
+  final _filesBeingResolved = <String, AnalysisSession>{};
+
   /// The next modification stamp for a changed file in the [_resourceProvider].
   int _overlayModificationStamp = 0;
 
   /// The map of registered features for each plugin, for namespacing purposes.
   static final registries = <String, PluginRegistryImpl>{};
+
+  /// The current subscription of [_contextCollection]'s
+  /// [AnalysisDriverScheduler.events] Stream. This must be cancelled when
+  /// [_contextCollection] is disposed.
+  StreamSubscription<Object>? _eventsSubscription;
 
   PluginServer({
     required ResourceProvider resourceProvider,
@@ -142,6 +158,7 @@ class PluginServer {
     protocol.AnalysisSetPriorityFilesParams parameters,
   ) async {
     _priorityPaths = parameters.files.toSet();
+    _updatePriorityFiles();
     return protocol.AnalysisSetPriorityFilesResult();
   }
 
@@ -302,17 +319,24 @@ class PluginServer {
     );
   }
 
+  /// Waits until all background drivers in the context collection are idle.
+  @visibleForTesting
+  Future<void> waitForIdle() async {
+    if (_contextCollection case var contextCollection?) {
+      await Future.wait([
+        for (var analysisContext in contextCollection.contexts)
+          analysisContext.driver.scheduler.waitForIdle(),
+      ]);
+    }
+  }
+
   /// This method is invoked when a new instance of [AnalysisContextCollection]
   /// is created, so the plugin can perform initial analysis of analyzed files.
   Future<void> _analyzeAllFilesInContextCollection({
-    required AnalysisContextCollection contextCollection,
+    required AnalysisContextCollectionImpl contextCollection,
   }) async {
-    _channel.sendNotification(
-      protocol.PluginStatusParams(
-        analysis: protocol.AnalysisStatus(true),
-      ).toNotification(),
-    );
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
+      final driver = analysisContext.driver;
       var paths = analysisContext.contextRoot
           .analyzedFiles()
           // TODO(srawlins): Enable analysis on other files, even if only
@@ -321,82 +345,10 @@ class PluginServer {
           .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
           .toSet();
 
-      await _analyzeLibraries(analysisContext: analysisContext, paths: paths);
-    });
-    _channel.sendNotification(
-      protocol.PluginStatusParams(
-        analysis: protocol.AnalysisStatus(false),
-      ).toNotification(),
-    );
-  }
-
-  /// Analyzes the libraries at the given [paths].
-  // TODO(srawlins): Refactor how libraries are analyzed using AnalysisDriver,
-  // to be similar to what analysis server does:
-  //
-  // 1. When the analysis roots change it creates the AnalysisContextCollection
-  //    and listens to the drivers' streams of results.
-  // 2. When a file changes, it lets the driver know about it.
-  // 3. As the driver analyzes the potentially impacted files it
-  //    a. runs the lints that have been enabled and
-  //    b. puts the result on the stream.
-  // 4. When a result is on the stream the server grabs the results and sends
-  //    the diagnostics to the client.
-  //
-  // It doesn't ever explicitly ask the driver which files were impacted and it
-  // doesn't explicitly run the lints directly because the driver will do that
-  // implicitly. There would be benefits to plugins working the same way:
-  //
-  // * The driver can do a more efficient job of scheduling analysis than the
-  //   server can (because of having a more complete picture).
-  // * It means there's only one way that we're trying to use the analyzer so it
-  //   will be easier to make changes to the analyzer when we need to (smaller
-  //   API exposure).
-  // * The logic for doing analysis is in one place so it's easier to reason
-  //   about.
-  // * We don't need to be familiar with two different architectures.
-  Future<void> _analyzeLibraries({
-    required AnalysisContext analysisContext,
-    required Set<String> paths,
-  }) async {
-    // First analyze priority files.
-    for (var path in _priorityPaths) {
-      if (paths.remove(path)) {
-        await _analyzeLibrary(
-          analysisContext: analysisContext,
-          libraryPath: path,
-        );
+      for (var path in paths) {
+        driver.addFile(path);
       }
-    }
-
-    // Then analyze the remaining files.
-    for (var path in paths) {
-      await _analyzeLibrary(
-        analysisContext: analysisContext,
-        libraryPath: path,
-      );
-    }
-  }
-
-  /// Analyzes the library at the given [libraryPath], sending an
-  /// 'analysis.errors' [Notification] for each compilation unit.
-  Future<void> _analyzeLibrary({
-    required AnalysisContext analysisContext,
-    required String libraryPath,
-  }) async {
-    var file = _resourceProvider.getFile(libraryPath);
-    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var analysisErrorsByPath = await _computeAnalysisErrors(
-      analysisContext,
-      libraryPath,
-      analysisOptions: analysisOptions as AnalysisOptionsImpl,
-    );
-    for (var MapEntry(key: path, value: analysisErrors)
-        in analysisErrorsByPath.entries) {
-      _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
-      );
-    }
+    });
   }
 
   /// Computes and returns [protocol.AnalysisError]s for each of the parts in
@@ -646,10 +598,10 @@ class PluginServer {
 
   /// Invokes [fn] first for priority analysis contexts, then for the rest.
   Future<void> _forAnalysisContexts(
-    AnalysisContextCollection contextCollection,
-    Future<void> Function(AnalysisContext analysisContext) fn,
+    AnalysisContextCollectionImpl contextCollection,
+    Future<void> Function(DriverBasedAnalysisContext analysisContext) fn,
   ) async {
-    var nonPriorityAnalysisContexts = <AnalysisContext>[];
+    var nonPriorityAnalysisContexts = <DriverBasedAnalysisContext>[];
     for (var analysisContext in contextCollection.contexts) {
       if (_isPriorityAnalysisContext(analysisContext)) {
         await fn(analysisContext);
@@ -674,10 +626,15 @@ class PluginServer {
         result = await _handleAnalysisWatchEvents(params);
 
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        var params = protocol.AnalysisSetContextRootsParams.fromRequest(
+        // This request is for legacy plugins. New plugins use
+        // `protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS`.
+        result = null;
+
+      case protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS:
+        var params = protocol.AnalysisSetAnalysisRootsParams.fromRequest(
           request,
         );
-        result = await _handleAnalysisSetContextRoots(params);
+        result = await _handleAnalysisSetAnalysisRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
         var params = protocol.AnalysisSetPriorityFilesParams.fromRequest(
@@ -722,6 +679,9 @@ class PluginServer {
         result = protocol.PluginDetailsResult(details);
 
       case protocol.PLUGIN_REQUEST_SHUTDOWN:
+        await Future.wait(
+          _plugins.map((p) => p.shutDown()).whereType<Future<Object?>>(),
+        );
         _channel.sendResponse(
           protocol.PluginShutdownResult().toResponse(request.id, requestTime),
         );
@@ -746,40 +706,23 @@ class PluginServer {
     return result.toResponse(request.id, requestTime);
   }
 
-  /// Handles files that might have been affected by a content change of
-  /// one or more files. The implementation may check if these files should
-  /// be analyzed, do such analysis, and send diagnostics.
-  ///
-  /// By default invokes [_analyzeLibraries] only for files that are analyzed in
-  /// this [analysisContext].
-  Future<void> _handleAffectedFiles({
-    required AnalysisContext analysisContext,
-    required List<String> paths,
-  }) async {
-    var analyzedPaths = paths
-        .where(analysisContext.contextRoot.isAnalyzed)
-        .toSet();
-
-    await _analyzeLibraries(
-      analysisContext: analysisContext,
-      paths: analyzedPaths,
-    );
-  }
-
-  /// Handles an 'analysis.setContextRoots' request.
-  Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
-    protocol.AnalysisSetContextRootsParams parameters,
+  /// Handles an 'analysis.setAnalysisRoots' request.
+  Future<protocol.AnalysisSetAnalysisRootsResult>
+  _handleAnalysisSetAnalysisRoots(
+    protocol.AnalysisSetAnalysisRootsParams parameters,
   ) async {
-    var currentContextCollection = _contextCollection;
-    if (currentContextCollection != null) {
+    if (_contextCollection case var contextCollection?) {
       _contextCollection = null;
-      await currentContextCollection.dispose();
+      await contextCollection.dispose();
+    }
+    if (_eventsSubscription case var eventsSubscription?) {
+      _eventsSubscription = null;
+      await eventsSubscription.cancel();
     }
 
-    var includedPaths = parameters.roots.map((e) => e.root).toList();
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
-      includedPaths: includedPaths,
+      includedPaths: parameters.included,
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(_resourceProvider),
@@ -791,12 +734,32 @@ class PluginServer {
             ..warning = false
             ..lint = false,
       withFineDependencies: true,
+      drainStreams: false,
     );
     _contextCollection = contextCollection;
+    _updatePriorityFiles();
+    _eventsSubscription = contextCollection.scheduler.events.listen((event) {
+      if (event is ResolvedUnitResult) {
+        _handleResolvedUnit(event);
+      } else if (event is AnalysisStatus) {
+        _handleAnalysisStatus(event);
+      } else if (event is ErrorsResult) {
+        _handleErrorsResult(event);
+      }
+    });
     await _analyzeAllFilesInContextCollection(
       contextCollection: contextCollection,
     );
-    return protocol.AnalysisSetContextRootsResult();
+
+    return protocol.AnalysisSetAnalysisRootsResult();
+  }
+
+  void _handleAnalysisStatus(AnalysisStatus status) {
+    _channel.sendNotification(
+      protocol.PluginStatusParams(
+        analysis: protocol.AnalysisStatus(status.isWorking),
+      ).toNotification(),
+    );
   }
 
   /// Handles an 'analysis.updateContent' request.
@@ -811,9 +774,7 @@ class PluginServer {
       // Prepare the old overlay contents.
       String? oldContent;
       try {
-        if (_resourceProvider.hasOverlay(path)) {
-          oldContent = _resourceProvider.getFile(path).readAsStringSync();
-        }
+        oldContent = _resourceProvider.getFile(path).readAsStringSync();
       } catch (_) {
         // Leave `oldContent` empty.
       }
@@ -845,16 +806,20 @@ class PluginServer {
       }
 
       if (newContent != null) {
-        _resourceProvider.setOverlay(
-          path,
-          content: newContent,
-          modificationStamp: _overlayModificationStamp++,
-        );
+        if (newContent != oldContent) {
+          _resourceProvider.setOverlay(
+            path,
+            content: newContent,
+            modificationStamp: _overlayModificationStamp++,
+          );
+          changedPaths.add(path);
+        }
       } else {
-        _resourceProvider.removeOverlay(path);
+        if (_resourceProvider.hasOverlay(path)) {
+          _resourceProvider.removeOverlay(path);
+          changedPaths.add(path);
+        }
       }
-
-      changedPaths.add(path);
     });
     await _handleContentChanged(modifiedPaths: changedPaths.toList());
     return protocol.AnalysisUpdateContentResult();
@@ -893,32 +858,40 @@ class PluginServer {
     List<String> removedPaths = const [],
   }) async {
     if (_contextCollection case var contextCollection?) {
-      _channel.sendNotification(
-        protocol.PluginStatusParams(
-          analysis: protocol.AnalysisStatus(true),
-        ).toNotification(),
-      );
+      _filesBeingAnalyzed.clear();
+      _filesBeingResolved.clear();
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
+        final driver = analysisContext.driver;
         for (var path in modifiedPaths) {
-          analysisContext.changeFile(path);
+          driver.changeFile(path);
         }
         for (var path in removedPaths) {
-          analysisContext.changeFile(path);
+          driver.removeFile(path);
         }
-        var affected = [
-          ...await analysisContext.applyPendingFileChanges(),
-          ...addedPaths,
-        ];
-        await _handleAffectedFiles(
-          analysisContext: analysisContext,
-          paths: affected,
-        );
+        for (var path in addedPaths) {
+          driver.addFile(path);
+        }
       });
-      _channel.sendNotification(
-        protocol.PluginStatusParams(
-          analysis: protocol.AnalysisStatus(false),
-        ).toNotification(),
-      );
+      for (var path in removedPaths) {
+        _channel.sendNotification(
+          protocol.AnalysisErrorsParams(path, []).toNotification(),
+        );
+      }
+    }
+  }
+
+  void _handleErrorsResult(ErrorsResult event) {
+    var path = event.path;
+    var session = event.session;
+    var analysisContext = session.analysisContext;
+    if (analysisContext is DriverBasedAnalysisContext) {
+      if (analysisContext.contextRoot.isAnalyzed(path)) {
+        var activeSession = _filesBeingResolved[path];
+        if (activeSession != session) {
+          _filesBeingResolved[path] = session;
+          analysisContext.driver.getResolvedUnit(path);
+        }
+      }
     }
   }
 
@@ -956,6 +929,40 @@ class PluginServer {
     );
   }
 
+  Future<void> _handleResolvedUnit(ResolvedUnitResult unitResult) async {
+    var analysisContext = unitResult.session.analysisContext;
+    if (!analysisContext.contextRoot.isAnalyzed(unitResult.path)) {
+      return;
+    }
+    if (unitResult.unit.declaredFragment !=
+        unitResult.libraryElement.firstFragment) {
+      return;
+    }
+    var session = unitResult.session;
+    var activeSession = _filesBeingAnalyzed[unitResult.path];
+    if (activeSession == session) {
+      return;
+    }
+    _filesBeingAnalyzed[unitResult.path] = session;
+    try {
+      var file = _resourceProvider.getFile(unitResult.path);
+      var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
+      var analysisErrorsByPath = await _computeAnalysisErrors(
+        analysisContext,
+        unitResult.path,
+        analysisOptions: analysisOptions as AnalysisOptionsImpl,
+      );
+      for (var MapEntry(key: path, value: analysisErrors)
+          in analysisErrorsByPath.entries) {
+        _channel.sendNotification(
+          protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
+        );
+      }
+    } on InconsistentAnalysisException {
+      // State changed during resolution; a subsequent pass will handle it.
+    }
+  }
+
   bool _isPriorityAnalysisContext(AnalysisContext analysisContext) =>
       _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
 
@@ -969,6 +976,14 @@ class PluginServer {
         ),
       ).toNotification(),
     );
+  }
+
+  void _updatePriorityFiles() {
+    if (_contextCollection case var contextCollection?) {
+      for (var analysisContext in contextCollection.contexts) {
+        analysisContext.driver.priorityFiles = _priorityPaths.toList();
+      }
+    }
   }
 
   /// The `onError` handler for use in [runZonedGuarded].

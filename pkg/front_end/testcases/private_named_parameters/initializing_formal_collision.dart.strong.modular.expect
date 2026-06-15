@@ -100,50 +100,50 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   final field core::String? _foo;
-  constructor •({required core::String? foo, required core::String? foo}) → self::C1
+  constructor •({required initializing-formal core::String? foo, required initializing-formal core::String? foo}) → self::C1
     : self::C1::_foo = foo, invalid-initializer "pkg/front_end/testcases/private_named_parameters/initializing_formal_collision.dart:8:41: Error: '_foo' was already initialized by this constructor.
   C1({required this._foo, required this._foo}) {}
                                         ^" {}
 }
 class C2 extends core::Object {
   final field core::String? _foo;
-  constructor •({required core::String? foo, core::String? _foo = #C1}) → self::C2
+  constructor •({required initializing-formal core::String? foo, core::String? _foo = #C1}) → self::C2
     : self::C2::_foo = foo, super core::Object::•() {}
 }
 class C3 extends core::Object {
   final field core::String? _foo;
-  constructor •({required core::String? foo, core::String? foo = #C1}) → self::C3
+  constructor •({required initializing-formal core::String? foo, core::String? foo = #C1}) → self::C3
     : self::C3::_foo = foo, super core::Object::•() {}
 }
 class C4 extends core::Object {
   final field core::String? _foo;
-  constructor •({core::String? _foo = #C1, required core::String? foo}) → self::C4
+  constructor •({core::String? _foo = #C1, required initializing-formal core::String? foo}) → self::C4
     : self::C4::_foo = foo, super core::Object::•() {}
 }
 class C5 extends core::Object {
   final field core::String? _foo;
-  constructor •(core::String _foo, {required core::String? foo}) → self::C5
+  constructor •(core::String _foo, {required initializing-formal core::String? foo}) → self::C5
     : self::C5::_foo = foo, super core::Object::•() {}
 }
 class C6 extends core::Object {
   final field core::String? foo;
   final field core::String? _foo;
-  constructor •({required core::String? foo, required core::String? foo}) → self::C6
+  constructor •({required initializing-formal core::String? foo, required initializing-formal core::String? foo}) → self::C6
     : self::C6::foo = foo, self::C6::_foo = foo, super core::Object::•() {}
 }
 class C7 extends core::Object {
   final field core::String? _foo;
-  constructor •({core::String? foo = #C1, required core::String? foo}) → self::C7
+  constructor •({core::String? foo = #C1, required initializing-formal core::String? foo}) → self::C7
     : self::C7::_foo = foo, super core::Object::•() {}
 }
 class C8 extends core::Object {
   final field core::String? _foo;
-  constructor •(core::String? foo, {required core::String? foo}) → self::C8
+  constructor •(core::String? foo, {required initializing-formal core::String? foo}) → self::C8
     : self::C8::_foo = foo, super core::Object::•() {}
 }
 class C9 extends core::Object {
   final field core::String? _foo;
-  constructor •(core::String? foo, {required core::String? foo, core::int? _foo = #C1, core::int? foo = #C1}) → self::C9
+  constructor •(core::String? foo, {required initializing-formal core::String? foo, core::int? _foo = #C1, core::int? foo = #C1}) → self::C9
     : self::C9::_foo = foo, super core::Object::•() {}
 }
 

@@ -2,34 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class WrongNumberOfTypeArgumentsExtensionTest extends PubPackageResolutionTest {
   test_notGeneric() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
 
 void f() {
   E<int>(0).foo();
+// ^^^^^
+// [diag.wrongNumberOfTypeArgumentsExtension] The extension 'E' is declared with 0 type parameters, but 1 type arguments were given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsExtension, 54, 5)],
-    );
+''');
 
-    var node = findNode.extensionOverride('E<int>');
+    var node = result.findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -56,20 +56,19 @@ ExtensionOverride
   }
 
   test_tooFew() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E<S, T> on int {
   void foo() {}
 }
 
 void f() {
   E<bool>(0).foo();
+// ^^^^^^
+// [diag.wrongNumberOfTypeArgumentsExtension] The extension 'E' is declared with 2 type parameters, but 1 type arguments were given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsExtension, 60, 6)],
-    );
+''');
 
-    var node = findNode.extensionOverride('E<bool>');
+    var node = result.findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -99,20 +98,19 @@ ExtensionOverride
   }
 
   test_tooMany() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on int {
   void foo() {}
 }
 
 void f() {
   E<bool, int>(0).foo();
+// ^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsExtension] The extension 'E' is declared with 1 type parameters, but 2 type arguments were given.
 }
-''',
-      [error(diag.wrongNumberOfTypeArgumentsExtension, 57, 11)],
-    );
+''');
 
-    var node = findNode.extensionOverride('E<bool, int>');
+    var node = result.findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E

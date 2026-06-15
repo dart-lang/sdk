@@ -10,7 +10,10 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import "package:front_end/src/util/textual_outline.dart"
     show TextualOutlineInfoForTesting, textualOutline;
 
-const ScannerConfiguration scannerConfiguration = const ScannerConfiguration();
+final ExperimentalFeatures experimentalFeatures =
+    const DefaultExperimentalFeatures();
+final ScannerConfiguration scannerConfiguration = experimentalFeatures
+    .buildScannerConfiguration();
 
 void main() {
   TextualOutlineInfoForTesting infoForTesting;
@@ -25,7 +28,7 @@ a() { print("hello"); }
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -47,7 +50,7 @@ a() { print("hello"); }
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -69,7 +72,7 @@ a() {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -90,7 +93,7 @@ a() {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -110,7 +113,7 @@ class A {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -133,7 +136,7 @@ class A {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -158,7 +161,7 @@ int f1, f2;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -188,7 +191,7 @@ int f1, f2;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -215,7 +218,7 @@ class A<T> {}
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -247,7 +250,7 @@ import "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -280,7 +283,7 @@ export "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -318,7 +321,7 @@ import "baz.dart";
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -352,7 +355,7 @@ bar() {
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -383,7 +386,7 @@ foo() {
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -410,7 +413,7 @@ class Class1 {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -437,7 +440,7 @@ class D2 = Super with Mixin;
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -469,7 +472,7 @@ import "a0.dart";
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -509,7 +512,7 @@ export "a3.dart" show foo;
     throwOnUnexpected: true,
     performModelling: true,
     returnNullOnError: false,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -539,7 +542,7 @@ main() {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
     infoForTesting: infoForTesting,
   );
   if (result !=

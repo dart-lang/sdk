@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameter extends MultiCorrectionProducer {
-  AddMissingParameter({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -22,7 +22,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
     var parent = node.parent;
     AstNode? invocation;
     Element? element;
-    if (parent is DefaultFormalParameter) {
+    if (parent is FormalParameterDefaultClause) {
       parent = parent.parent;
     }
     if (parent case FormalParameterList(
@@ -66,10 +66,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
-  _AddMissingOptionalPositionalParameter(
-    super.executableParameters, {
-    required super.context,
-  });
+  new(super.executableParameters, {required super.context});
 
   @override
   FixKind get fixKind => DartFixKind.addMissingParameterPositional;
@@ -99,7 +96,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
 abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
   final ExecutableParameters _executableParameters;
 
-  _AddMissingParameter(this._executableParameters, {required super.context});
+  new(this._executableParameters, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -129,7 +126,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
         builder.addInsertion(offset, (builder) {
           builder.write(prefix);
           builder.writeParameterMatchingArgument(
-            argument,
+            argument.argumentExpression,
             numRequired,
             <String>{},
             isOptional: isOptional,
@@ -138,7 +135,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
         });
       });
     }
-    if (parent is DefaultFormalParameter) {
+    if (parent is FormalParameterDefaultClause) {
       parent = parent.parent;
     }
     if (parent case FormalParameterList(:var parameters)) {
@@ -150,15 +147,10 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(_executableParameters.file, (builder) {
         SuperFormalParameter formalParameter;
         DartType? type;
-        if (parameter case DefaultFormalParameter(
-          :var defaultValue,
-          :SuperFormalParameter parameter,
-        )) {
+        if (parameter case SuperFormalParameter()) {
           formalParameter = parameter;
-          type = parameter.type?.type ?? defaultValue?.staticType;
-        } else if (parameter is SuperFormalParameter) {
-          formalParameter = parameter;
-          type = formalParameter.type?.type;
+          type =
+              parameter.type?.type ?? parameter.defaultClause?.value.staticType;
         } else {
           return;
         }
@@ -180,10 +172,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
-  _AddMissingRequiredPositionalParameter(
-    super._executableParameters, {
-    required super.context,
-  });
+  new(super._executableParameters, {required super.context});
 
   @override
   FixKind get fixKind => DartFixKind.addMissingParameterRequired;

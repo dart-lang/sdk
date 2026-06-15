@@ -53,10 +53,9 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
     for (var importedLibrary in docImportLibraries) {
       if (importedLibrary is LibraryElementImpl) {
         // TODO(kallentu): Handle combinators.
-        for (var exportedReference in importedLibrary.exportedReferences) {
-          var reference = exportedReference.reference;
+        for (var entry in importedLibrary.exportEntries) {
           var element = importedLibrary.internal.elementFactory
-              .elementOfReference3(reference);
+              .elementOfReference3(entry.reference);
           if (element is SetterElement) {
             _addSetter(element);
           } else {
@@ -195,9 +194,8 @@ class ImportsTrackingOfPrefix {
     var importedLibrary = import.importedLibrary!;
     var elementFactory = importedLibrary.internal.elementFactory;
 
-    for (var exportedReference in importedLibrary.exportedReferences) {
-      var reference = exportedReference.reference;
-      var element = elementFactory.elementOfReference3(reference);
+    for (var entry in importedLibrary.exportEntries) {
+      var element = elementFactory.elementOfReference3(entry.reference);
 
       // Check only accessed elements.
       if (!accessedElements.contains(element)) {
@@ -205,7 +203,7 @@ class ImportsTrackingOfPrefix {
       }
 
       // We want to exclude only deprecated exports.
-      if (!importedLibrary.isFromDeprecatedExport(exportedReference)) {
+      if (!importedLibrary.isFromDeprecatedExport(entry)) {
         continue;
       }
 
@@ -262,10 +260,9 @@ class ImportsTrackingOfPrefix {
       var importedLibrary = import.importedLibrary!;
       var elementFactory = importedLibrary.internal.elementFactory;
       var combinators = import.combinators.build();
-      for (var exportedReference in importedLibrary.exportedReferences) {
-        var reference = exportedReference.reference;
-        if (combinators.allows(reference.name)) {
-          var element = elementFactory.elementOfReference3(reference);
+      for (var entry in importedLibrary.exportEntries) {
+        if (combinators.allows(entry.name)) {
+          var element = elementFactory.elementOfReference3(entry.reference);
           (_elementImports[element] ??= []).add(import);
         }
       }
@@ -600,15 +597,11 @@ class PrefixScope implements Scope {
         var importedLibrary = importedUri.library;
         _importedLibraries.add(importedLibrary);
         var combinators = import.combinators.build();
-        for (var exportedReference in importedLibrary.exportedReferences) {
-          var reference = exportedReference.reference;
-          if (combinators.allows(reference.name)) {
-            var element = elementFactory.elementOfReference3(reference);
+        for (var entry in importedLibrary.exportEntries) {
+          if (combinators.allows(entry.name)) {
+            var element = elementFactory.elementOfReference3(entry.reference);
             if (_shouldAdd(importedLibrary, element)) {
-              _add(
-                element,
-                importedLibrary.isFromDeprecatedExport(exportedReference),
-              );
+              _add(element, importedLibrary.isFromDeprecatedExport(entry));
             }
           }
         }

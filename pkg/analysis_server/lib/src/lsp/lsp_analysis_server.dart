@@ -132,7 +132,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
-  LspAnalysisServer(
+  new(
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
@@ -936,12 +936,14 @@ class LspAnalysisServer extends AnalysisServer {
     MessageType type,
     String message,
     List<String> actions,
+    CancellationToken cancellationToken,
   ) async {
     assert(supportsShowMessageRequest);
     var response = await showUserPromptItems(
       type,
       message,
       actions.map((title) => MessageActionItem(title: title)).toList(),
+      cancellationToken,
     );
     return response?.title;
   }
@@ -959,9 +961,10 @@ class LspAnalysisServer extends AnalysisServer {
     MessageType type,
     String message,
     List<MessageActionItem> actions,
+    CancellationToken cancellationToken,
   ) async {
     assert(supportsShowMessageRequest);
-    var response = await sendLspRequest(
+    var responseFuture = sendLspRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(
         type: type.forLsp,
@@ -970,10 +973,19 @@ class LspAnalysisServer extends AnalysisServer {
       ),
     );
 
-    var result = response.result;
-    return result != null
-        ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
-        : null;
+    // Wait for either the result, or cancellation.
+    await Future.any([responseFuture, cancellationToken.whenCancelled]);
+
+    if (cancellationToken.isCancellationRequested) {
+      return null;
+    } else {
+      // If we didn't enter the branch above, we know this future completed.
+      var response = await responseFuture;
+      var result = response.result;
+      return result != null
+          ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
+          : null;
+    }
   }
 
   @override
@@ -1055,7 +1067,6 @@ class LspAnalysisServer extends AnalysisServer {
       precomputedNewContentForChange: precomputedNewContentForChange,
     );
 
-    notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
   }
 
@@ -1147,8 +1158,8 @@ class LspAnalysisServer extends AnalysisServer {
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
     var includedPaths = _workspaceFolders.isNotEmpty
-        ? _workspaceFolders.toSet()
-        : _getRootsForOpenFiles();
+        ? _workspaceFolders.toList()
+        : _getRootsForOpenFiles().toList();
 
     var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
         .expand(
@@ -1164,25 +1175,28 @@ class LspAnalysisServer extends AnalysisServer {
                 ),
         )
         .map(pathContext.normalize)
-        .toSet();
+        .toSet()
+        .toList();
 
-    var includedPathsList = includedPaths.toList();
-    var excludedPathsList = excludedPaths.toList();
-    notificationManager.setAnalysisRoots(includedPathsList, excludedPathsList);
+    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     if (detachableFileSystemManager != null) {
       detachableFileSystemManager?.setAnalysisRoots(
         null,
-        includedPathsList,
-        excludedPathsList,
+        includedPaths,
+        excludedPaths,
       );
     } else {
       var completer = analysisContextRebuildCompleter = Completer();
       try {
-        await contextManager.setRoots(includedPathsList, excludedPathsList);
+        await contextManager.setRoots(includedPaths, excludedPaths);
       } finally {
         completer.complete();
       }
     }
+
+    pluginManager.setAnalysisSetAnalysisRootsParams(
+      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
+    );
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -1238,12 +1252,11 @@ class LspInitializationOptions {
   /// Dart-Code, this flag can also be removed here for future SDKs.
   final bool useInEditorDartFixPrompt;
 
-  factory LspInitializationOptions(Object? options) =>
-      LspInitializationOptions._(
-        options is Map<String, Object?> ? options : const {},
-      );
+  factory(Object? options) => LspInitializationOptions._(
+    options is Map<String, Object?> ? options : const {},
+  );
 
-  LspInitializationOptions._(Map<String, Object?> options)
+  new _(Map<String, Object?> options)
     : raw = options,
       appHost = options['appHost'] as String?,
       remoteName = options['remoteName'] as String?,
@@ -1268,7 +1281,7 @@ class LspServerContextManagerCallbacks
   @override
   final LspAnalysisServer analysisServer;
 
-  LspServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
+  new(this.analysisServer, super.resourceProvider);
 
   @override
   void afterContextsCreated() {

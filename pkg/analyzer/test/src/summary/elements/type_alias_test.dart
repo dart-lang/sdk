@@ -17,7 +17,7 @@ main() {
 
 abstract class TypeAliasElementTest extends ElementsBaseTest {
   test_codeRange_functionTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw();
 
 /// Comment 1.
@@ -111,16 +111,16 @@ library
                 rightParenthesis: ) @279
               element: dart:core::@class::Object::@constructor::new
   typeAliases
-    Raw
+    isSimplyBounded Raw
       reference: <testLibrary>::@typeAlias::Raw
       firstFragment: #F1
       aliasedType: dynamic Function()
-    HasDocComment
+    isSimplyBounded HasDocComment
       reference: <testLibrary>::@typeAlias::HasDocComment
       firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       aliasedType: dynamic Function()
-    HasAnnotation
+    isSimplyBounded HasAnnotation
       reference: <testLibrary>::@typeAlias::HasAnnotation
       firstFragment: #F3
       metadata
@@ -135,7 +135,7 @@ library
             rightParenthesis: ) @80
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    AnnotationThenComment
+    isSimplyBounded AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -151,7 +151,7 @@ library
             rightParenthesis: ) @116
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    CommentThenAnnotation
+    isSimplyBounded CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -167,7 +167,7 @@ library
             rightParenthesis: ) @220
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    CommentAroundAnnotation
+    isSimplyBounded CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
       firstFragment: #F6
       documentationComment: /// Comment 2.
@@ -187,7 +187,7 @@ library
   }
 
   test_codeRange_genericTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw = Function();
 
 /// Comment 1.
@@ -281,16 +281,16 @@ library
                 rightParenthesis: ) @334
               element: dart:core::@class::Object::@constructor::new
   typeAliases
-    Raw
+    isSimplyBounded Raw
       reference: <testLibrary>::@typeAlias::Raw
       firstFragment: #F1
       aliasedType: dynamic Function()
-    HasDocComment
+    isSimplyBounded HasDocComment
       reference: <testLibrary>::@typeAlias::HasDocComment
       firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       aliasedType: dynamic Function()
-    HasAnnotation
+    isSimplyBounded HasAnnotation
       reference: <testLibrary>::@typeAlias::HasAnnotation
       firstFragment: #F3
       metadata
@@ -305,7 +305,7 @@ library
             rightParenthesis: ) @102
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    AnnotationThenComment
+    isSimplyBounded AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -321,7 +321,7 @@ library
             rightParenthesis: ) @149
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    CommentThenAnnotation
+    isSimplyBounded CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -337,7 +337,7 @@ library
             rightParenthesis: ) @264
           element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
-    CommentAroundAnnotation
+    isSimplyBounded CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
       firstFragment: #F6
       documentationComment: /// Comment 2.
@@ -373,7 +373,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -401,13 +401,13 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
       functions
-        #F3 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 requiredPositional a (nameOffset:32) (firstTokenOffset:25) (offset:32)
+            #F4 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:25) (offset:32)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -415,7 +415,7 @@ library
           firstFragment: #F2
       aliasedType: T Function()
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       formalParameters
@@ -446,7 +446,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -479,14 +479,14 @@ library
             #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T)
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -519,14 +519,14 @@ library
             #F4 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E1 T
   typeAliases
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T) Function()
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F3
       typeParameters
@@ -553,7 +553,7 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -580,7 +580,7 @@ library
             #F2 T (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -613,14 +613,14 @@ library
             #F4 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: T Function()
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -653,14 +653,14 @@ library
             #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T)
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -687,7 +687,7 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -720,14 +720,14 @@ library
             #F4 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: T Function()
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -754,7 +754,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -781,7 +781,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -792,7 +792,7 @@ library
   }
 
   test_genericTypeAlias_recursive() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
@@ -808,7 +808,7 @@ library
             #F2 X (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 X
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -820,7 +820,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = G Function();
 typedef G = F Function();
 ''');
@@ -836,11 +836,11 @@ library
         #F2 G (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::G
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function()
-    notSimplyBounded G
+    G
       reference: <testLibrary>::@typeAlias::G
       firstFragment: #F2
       aliasedType: dynamic Function()
@@ -848,7 +848,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
@@ -861,7 +861,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic> Function()
@@ -869,7 +869,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
@@ -885,7 +885,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -897,7 +897,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
@@ -913,7 +913,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -924,7 +924,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
@@ -937,7 +937,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function()
@@ -945,7 +945,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = List<int>;
 ''');
     checkElementText(library, r'''
@@ -961,7 +961,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -973,7 +973,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
@@ -986,7 +986,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic>
@@ -1010,18 +1010,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:42) (firstTokenOffset:37) (offset:42)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:42) (firstTokenOffset:37) (offset:42)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:46) (firstTokenOffset:44) (offset:46)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:46) (firstTokenOffset:44) (offset:46)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: void Function({int p})
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -1047,7 +1047,7 @@ library
         #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function(T Function<T, U>(U))
@@ -1071,7 +1071,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1104,14 +1104,14 @@ library
             #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T)
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -1138,7 +1138,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1165,7 +1165,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1198,14 +1198,14 @@ library
             #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: T Function()
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -1238,14 +1238,14 @@ library
             #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T)
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -1258,6 +1258,7 @@ library
   test_typeAlias_typeParameters_variance_function_invalid() async {
     var library = await buildLibrary(r'''
 class A {}
+
 typedef F<T> = void Function(A<int>);
 ''');
     checkElementText(library, r'''
@@ -1274,13 +1275,13 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 F (nameOffset:19) (firstTokenOffset:11) (offset:19)
+        #F3 F (nameOffset:20) (firstTokenOffset:12) (offset:20)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F4 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E0 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -1288,7 +1289,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F3
       typeParameters
@@ -1318,11 +1319,11 @@ library
             #F3 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function()
-    G
+    isSimplyBounded G
       reference: <testLibrary>::@typeAlias::G
       firstFragment: #F2
       typeParameters
@@ -1349,7 +1350,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1382,14 +1383,14 @@ library
             #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
-    F1
+    isSimplyBounded F1
       reference: <testLibrary>::@typeAlias::F1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: T Function()
-    F2
+    isSimplyBounded F2
       reference: <testLibrary>::@typeAlias::F2
       firstFragment: #F3
       typeParameters
@@ -1416,7 +1417,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1443,7 +1444,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1476,14 +1477,14 @@ library
             #F4 T (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: #E1 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: void Function(T)
-    B
+    isSimplyBounded B
       reference: <testLibrary>::@typeAlias::B
       firstFragment: #F3
       typeParameters
@@ -1510,7 +1511,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1543,14 +1544,14 @@ library
             #F4 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: Map<int, T>
-    B
+    isSimplyBounded B
       reference: <testLibrary>::@typeAlias::B
       firstFragment: #F3
       typeParameters
@@ -1577,7 +1578,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1610,14 +1611,14 @@ library
             #F4 T (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: #E1 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       aliasedType: (void Function(T), int)
-    B
+    isSimplyBounded B
       reference: <testLibrary>::@typeAlias::B
       firstFragment: #F3
       typeParameters
@@ -1644,7 +1645,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1671,7 +1672,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1698,7 +1699,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -1709,9 +1710,9 @@ library
   }
 
   test_typedef_function_generic() async {
-    var library = await buildLibrary(
-      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1725,7 +1726,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1738,6 +1739,7 @@ library
   test_typedef_function_generic_asFieldType() async {
     var library = await buildLibrary(r'''
 typedef Foo<S> = S Function<T>(T x);
+
 class A {
   Foo<int> f;
 }
@@ -1749,23 +1751,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:43) (firstTokenOffset:37) (offset:43)
+        #F1 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::A
           fields
-            #F2 isOriginDeclaration f (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F2 isOriginDeclaration f (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::A::@field::f
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F3 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@getter::f
+              inducingVariable: #F2
           setters
-            #F5 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F4 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@setter::f
+              inducingVariable: #F2
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
       typeAliases
         #F7 Foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -1774,7 +1780,7 @@ library
             #F8 S (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 S
   classes
-    hasNonFinalField class A
+    hasNonFinalField isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -1790,11 +1796,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int Function<T>(T)
             alias: <testLibrary>::@typeAlias::Foo
               typeArguments
@@ -1803,7 +1809,7 @@ library
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@setter::f
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F6
@@ -1814,7 +1820,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::f
   typeAliases
-    Foo
+    isSimplyBounded Foo
       reference: <testLibrary>::@typeAlias::Foo
       firstFragment: #F7
       typeParameters
@@ -1827,8 +1833,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C c);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1838,20 +1845,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F1 class C (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F2 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
-    notSimplyBounded class C
+    class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -1859,11 +1866,11 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
@@ -1873,8 +1880,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_omitted() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1884,20 +1892,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F1 class C (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
+            #F2 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
-    notSimplyBounded class C
+    class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -1905,11 +1913,11 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
@@ -1919,8 +1927,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = C Function();
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1930,20 +1939,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
-    notSimplyBounded class C
+    class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -1951,11 +1960,11 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: C<C<dynamic>> Function()
@@ -1963,9 +1972,9 @@ library
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary(
-      'typedef F<T extends U, U> = U Function(T t);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T extends U, U> = U Function(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1981,7 +1990,7 @@ library
             #F3 U (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 U
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1995,12 +2004,13 @@ library
   }
 
   test_typedef_legacy_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-typedef F();''');
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2012,7 +2022,7 @@ library
           element: <testLibrary>::@typeAlias::F
           documentationComment: /**\n * Docs\n */
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       documentationComment: /**\n * Docs\n */
@@ -2023,8 +2033,9 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_param_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F(C c);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -2034,20 +2045,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F4 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   classes
-    notSimplyBounded class C
+    class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -2055,11 +2066,11 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: void Function(C<C<dynamic>>)
@@ -2069,8 +2080,9 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef C F();
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -2080,20 +2092,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F4 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
   classes
-    notSimplyBounded class C
+    class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       typeParameters
@@ -2101,11 +2113,11 @@ library
           firstFragment: #F2
           bound: C<T>
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: C<C<dynamic>> Function()
@@ -2113,7 +2125,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
@@ -2129,7 +2141,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2141,7 +2153,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_because_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F();
 ''');
     checkElementText(library, r'''
@@ -2154,7 +2166,7 @@ library
         #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function()
@@ -2162,7 +2174,9 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('typedef void F<T>();');
+    var library = await buildLibrary(r'''
+typedef void F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2176,7 +2190,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2200,7 +2214,7 @@ library
         #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function(int, dynamic, [int, dynamic])
@@ -2208,7 +2222,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters() async {
-    var library = await buildLibrary('typedef F(g(x, y));');
+    var library = await buildLibrary(r'''
+typedef F(g(x, y));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2219,7 +2235,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function(dynamic Function(dynamic, dynamic))
@@ -2227,7 +2243,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters_in_generic_class() async {
-    var library = await buildLibrary('typedef F<A, B>(A g(B x));');
+    var library = await buildLibrary(r'''
+typedef F<A, B>(A g(B x));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2243,7 +2261,7 @@ library
             #F3 B (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E1 B
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2256,7 +2274,9 @@ library
   }
 
   test_typedef_legacy_parameter_return_type() async {
-    var library = await buildLibrary('typedef F(int g());');
+    var library = await buildLibrary(r'''
+typedef F(int g());
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2267,7 +2287,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function(int Function())
@@ -2275,7 +2295,9 @@ library
   }
 
   test_typedef_legacy_parameter_type() async {
-    var library = await buildLibrary('typedef F(int i);');
+    var library = await buildLibrary(r'''
+typedef F(int i);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2286,7 +2308,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function(int)
@@ -2294,7 +2316,9 @@ library
   }
 
   test_typedef_legacy_parameter_type_generic() async {
-    var library = await buildLibrary('typedef F<T>(T t);');
+    var library = await buildLibrary(r'''
+typedef F<T>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2308,7 +2332,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2319,7 +2343,9 @@ library
   }
 
   test_typedef_legacy_parameters() async {
-    var library = await buildLibrary('typedef F(x, y);');
+    var library = await buildLibrary(r'''
+typedef F(x, y);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2330,7 +2356,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function(dynamic, dynamic)
@@ -2338,7 +2364,9 @@ library
   }
 
   test_typedef_legacy_parameters_named() async {
-    var library = await buildLibrary('typedef F({y, z, x});');
+    var library = await buildLibrary(r'''
+typedef F({y, z, x});
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2349,7 +2377,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function({dynamic x, dynamic y, dynamic z})
@@ -2357,7 +2385,9 @@ library
   }
 
   test_typedef_legacy_return_type() async {
-    var library = await buildLibrary('typedef int F();');
+    var library = await buildLibrary(r'''
+typedef int F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2368,7 +2398,7 @@ library
         #F1 F (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: int Function()
@@ -2376,7 +2406,9 @@ library
   }
 
   test_typedef_legacy_return_type_generic() async {
-    var library = await buildLibrary('typedef T F<T>();');
+    var library = await buildLibrary(r'''
+typedef T F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2390,7 +2422,7 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2401,7 +2433,9 @@ library
   }
 
   test_typedef_legacy_return_type_implicit() async {
-    var library = await buildLibrary('typedef F();');
+    var library = await buildLibrary(r'''
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2412,7 +2446,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function()
@@ -2420,7 +2454,9 @@ library
   }
 
   test_typedef_legacy_return_type_void() async {
-    var library = await buildLibrary('typedef void F();');
+    var library = await buildLibrary(r'''
+typedef void F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2431,7 +2467,7 @@ library
         #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: void Function()
@@ -2439,7 +2475,9 @@ library
   }
 
   test_typedef_legacy_typeParameters() async {
-    var library = await buildLibrary('typedef U F<T, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2455,7 +2493,7 @@ library
             #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2468,9 +2506,11 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound() async {
-    var library = await buildLibrary(
-      'typedef U F<T extends Object, U extends D>(T t); class D {}',
-    );
+    var library = await buildLibrary(r'''
+typedef U F<T extends Object, U extends D>(T t);
+
+class D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2478,10 +2518,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class D (nameOffset:55) (firstTokenOffset:49) (offset:55)
+        #F1 class D (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::D
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -2493,7 +2533,7 @@ library
             #F5 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E1 U
   classes
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F1
       constructors
@@ -2501,7 +2541,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F2
   typeAliases
-    F
+    isSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F3
       typeParameters
@@ -2516,7 +2556,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive() async {
-    var library = await buildLibrary('typedef void F<T extends F>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends F>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2531,7 +2573,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2543,7 +2585,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive2() async {
-    var library = await buildLibrary('typedef void F<T extends List<F>>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends List<F>>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2558,7 +2602,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2570,7 +2614,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_complex() async {
-    var library = await buildLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends List<U>, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2586,7 +2632,7 @@ library
             #F3 U (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 U
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2600,7 +2646,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends U, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2616,7 +2664,7 @@ library
             #F3 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 U
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2645,18 +2693,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:30) (firstTokenOffset:28) (offset:30)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:30) (firstTokenOffset:28) (offset:30)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: dynamic
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -2691,22 +2739,22 @@ library
             #F3 R (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E0 R
       functions
-        #F4 isOriginDeclaration f1 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+        #F4 isComplete isOriginDeclaration isStatic f1 (nameOffset:65) (firstTokenOffset:60) (offset:65)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F5 requiredPositional a (nameOffset:71) (firstTokenOffset:68) (offset:71)
+            #F5 requiredPositional isOriginDeclaration a (nameOffset:71) (firstTokenOffset:68) (offset:71)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F6 isOriginDeclaration f2 (nameOffset:82) (firstTokenOffset:77) (offset:82)
+        #F6 isComplete isOriginDeclaration isStatic f2 (nameOffset:82) (firstTokenOffset:77) (offset:82)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F7 requiredPositional a (nameOffset:93) (firstTokenOffset:85) (offset:93)
+            #F7 requiredPositional isOriginDeclaration a (nameOffset:93) (firstTokenOffset:85) (offset:93)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
-    A1
+    isSimplyBounded A1
       reference: <testLibrary>::@typeAlias::A1
       firstFragment: #F1
       aliasedType: void Function()
-    A2
+    isSimplyBounded A2
       reference: <testLibrary>::@typeAlias::A2
       firstFragment: #F2
       typeParameters
@@ -2714,7 +2762,7 @@ library
           firstFragment: #F3
       aliasedType: R Function()
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F4
       formalParameters
@@ -2723,7 +2771,7 @@ library
           type: void Function()
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F6
       formalParameters
@@ -2762,22 +2810,22 @@ library
             #F4 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
       functions
-        #F5 isOriginDeclaration f1 (nameOffset:59) (firstTokenOffset:54) (offset:59)
+        #F5 isComplete isOriginDeclaration isStatic f1 (nameOffset:59) (firstTokenOffset:54) (offset:59)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F6 requiredPositional a (nameOffset:65) (firstTokenOffset:62) (offset:65)
+            #F6 requiredPositional isOriginDeclaration a (nameOffset:65) (firstTokenOffset:62) (offset:65)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F7 isOriginDeclaration f2 (nameOffset:76) (firstTokenOffset:71) (offset:76)
+        #F7 isComplete isOriginDeclaration isStatic f2 (nameOffset:76) (firstTokenOffset:71) (offset:76)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F8 requiredPositional a (nameOffset:95) (firstTokenOffset:79) (offset:95)
+            #F8 requiredPositional isOriginDeclaration a (nameOffset:95) (firstTokenOffset:79) (offset:95)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
-    A1
+    isSimplyBounded A1
       reference: <testLibrary>::@typeAlias::A1
       firstFragment: #F1
       aliasedType: List<int>
-    A2
+    isSimplyBounded A2
       reference: <testLibrary>::@typeAlias::A2
       firstFragment: #F2
       typeParameters
@@ -2787,7 +2835,7 @@ library
           firstFragment: #F4
       aliasedType: Map<T, U>
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F5
       formalParameters
@@ -2796,7 +2844,7 @@ library
           type: List<int>
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F7
       formalParameters
@@ -2834,22 +2882,22 @@ library
             #F3 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
       functions
-        #F4 isOriginDeclaration f1 (nameOffset:49) (firstTokenOffset:44) (offset:49)
+        #F4 isComplete isOriginDeclaration isStatic f1 (nameOffset:49) (firstTokenOffset:44) (offset:49)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F5 requiredPositional a (nameOffset:55) (firstTokenOffset:52) (offset:55)
+            #F5 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:52) (offset:55)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F6 isOriginDeclaration f2 (nameOffset:66) (firstTokenOffset:61) (offset:66)
+        #F6 isComplete isOriginDeclaration isStatic f2 (nameOffset:66) (firstTokenOffset:61) (offset:66)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F7 requiredPositional a (nameOffset:77) (firstTokenOffset:69) (offset:77)
+            #F7 requiredPositional isOriginDeclaration a (nameOffset:77) (firstTokenOffset:69) (offset:77)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
-    A1
+    isSimplyBounded A1
       reference: <testLibrary>::@typeAlias::A1
       firstFragment: #F1
       aliasedType: Never
-    A2
+    isSimplyBounded A2
       reference: <testLibrary>::@typeAlias::A2
       firstFragment: #F2
       typeParameters
@@ -2857,7 +2905,7 @@ library
           firstFragment: #F3
       aliasedType: Never?
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F4
       formalParameters
@@ -2866,7 +2914,7 @@ library
           type: Never
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F6
       formalParameters
@@ -2901,13 +2949,13 @@ library
             #F3 U (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E1 U
       functions
-        #F4 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: <testLibrary>::@function::f
           formalParameters
-            #F5 requiredPositional a (nameOffset:48) (firstTokenOffset:33) (offset:48)
+            #F5 requiredPositional isOriginDeclaration a (nameOffset:48) (firstTokenOffset:33) (offset:48)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -2917,7 +2965,7 @@ library
           firstFragment: #F3
       aliasedType: (T, U)
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       formalParameters
@@ -2951,16 +2999,16 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           typeParameters
             #F4 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 U
           formalParameters
-            #F5 requiredPositional a (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F5 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -2968,7 +3016,7 @@ library
           firstFragment: #F2
       aliasedType: T
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       typeParameters
@@ -3001,18 +3049,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:25) (offset:27)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: void
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -3027,7 +3075,9 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<int, T>;
+
 class A<T, U> {}
+
 class B implements X<String> {}
 ''');
     checkElementText(library, r'''
@@ -3037,21 +3087,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class A (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
-            #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
+        #F5 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3061,7 +3111,7 @@ library
             #F8 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E2 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -3070,10 +3120,10 @@ library
         #E1 U
           firstFragment: #F3
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F5
       interfaces
@@ -3086,7 +3136,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F7
       typeParameters
@@ -3099,9 +3149,13 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<T>?;
+
 class A<T> {}
+
 class B {}
+
 class C {}
+
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
@@ -3111,31 +3165,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F1 class A (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F2 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 class B (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class C (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::C
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 class D (nameOffset:68) (firstTokenOffset:62) (offset:68)
           element: <testLibrary>::@class::D
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3145,31 +3199,31 @@ library
             #F11 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F6
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F8
       interfaces
@@ -3180,7 +3234,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F10
       typeParameters
@@ -3193,9 +3247,13 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<T?>;
+
 class A<T> {}
+
 class B {}
+
 class C {}
+
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
@@ -3205,31 +3263,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F1 class A (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F2 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 class B (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class C (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::C
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 class D (nameOffset:68) (firstTokenOffset:62) (offset:68)
           element: <testLibrary>::@class::D
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3239,31 +3297,31 @@ library
             #F11 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F6
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F8
       interfaces
@@ -3278,7 +3336,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F10
       typeParameters
@@ -3291,6 +3349,45 @@ library
   test_typedef_nonFunction_asInterfaceType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
+class A implements X {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      typeAliases
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::X
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+  typeAliases
+    isSimplyBounded X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
+      aliasedType: Never
+''');
+  }
+
+  test_typedef_nonFunction_asInterfaceType_Null_none() async {
+    var library = await buildLibrary(r'''
+typedef X = Null;
+
 class A implements X {}
 ''');
     checkElementText(library, r'''
@@ -3310,7 +3407,7 @@ library
         #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -3318,44 +3415,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    X
-      reference: <testLibrary>::@typeAlias::X
-      firstFragment: #F3
-      aliasedType: Never
-''');
-  }
-
-  test_typedef_nonFunction_asInterfaceType_Null_none() async {
-    var library = await buildLibrary(r'''
-typedef X = Null;
-class A implements X {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
-          element: <testLibrary>::@class::A
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-      typeAliases
-        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@typeAlias::X
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F2
-  typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
       aliasedType: Null
@@ -3365,8 +3425,11 @@ library
   test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
     var library = await buildLibrary(r'''
 typedef X<T> = T;
+
 class A {}
+
 class B {}
+
 class C<U> implements A, X<U>, B {}
 ''');
     checkElementText(library, r'''
@@ -3376,25 +3439,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
+        #F3 class B (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F5 class C (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::C
           typeParameters
-            #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
+            #F6 U (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: #E0 U
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -3404,21 +3467,21 @@ library
             #F9 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       typeParameters
@@ -3428,11 +3491,11 @@ library
         A
         B
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F8
       typeParameters
@@ -3445,8 +3508,11 @@ library
   test_typedef_nonFunction_asInterfaceType_void() async {
     var library = await buildLibrary(r'''
 typedef X = void;
+
 class A {}
+
 class B {}
+
 class C implements A, X, B {}
 ''');
     checkElementText(library, r'''
@@ -3456,43 +3522,43 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
+        #F3 class B (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F5 class C (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
         #F7 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       interfaces
@@ -3503,7 +3569,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F7
       aliasedType: void
@@ -3513,7 +3579,9 @@ library
   test_typedef_nonFunction_asMixinType_none() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>;
+
 class A<T> {}
+
 class B with X {}
 ''');
     checkElementText(library, r'''
@@ -3523,36 +3591,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: Object
@@ -3564,7 +3632,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F6
       aliasedType: A<int>
@@ -3574,9 +3642,13 @@ library
   test_typedef_nonFunction_asMixinType_question() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>?;
+
 class A<T> {}
+
 mixin M1 {}
+
 mixin M2 {}
+
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
@@ -3586,41 +3658,41 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
+        #F4 class B (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F6 mixin M1 (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F7 mixin M2 (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M2
       typeAliases
         #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: Object
@@ -3632,18 +3704,18 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   mixins
-    mixin M1
+    isSimplyBounded mixin M1
       reference: <testLibrary>::@mixin::M1
       firstFragment: #F6
       superclassConstraints
         Object
-    mixin M2
+    isSimplyBounded mixin M2
       reference: <testLibrary>::@mixin::M2
       firstFragment: #F7
       superclassConstraints
         Object
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F8
       aliasedType: A<int>?
@@ -3653,9 +3725,13 @@ library
   test_typedef_nonFunction_asMixinType_question2() async {
     var library = await buildLibrary(r'''
 typedef X = A<int?>;
+
 class A<T> {}
+
 mixin M1 {}
+
 mixin M2 {}
+
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
@@ -3665,41 +3741,41 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
+        #F4 class B (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F6 mixin M1 (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F7 mixin M2 (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M2
       typeAliases
         #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: Object
@@ -3713,18 +3789,18 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
   mixins
-    mixin M1
+    isSimplyBounded mixin M1
       reference: <testLibrary>::@mixin::M1
       firstFragment: #F6
       superclassConstraints
         Object
-    mixin M2
+    isSimplyBounded mixin M2
       reference: <testLibrary>::@mixin::M2
       firstFragment: #F7
       superclassConstraints
         Object
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F8
       aliasedType: A<int?>
@@ -3734,6 +3810,7 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -3743,17 +3820,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -3761,7 +3838,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
       aliasedType: Never
@@ -3771,7 +3848,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_none() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>;
+
 class A<T> {}
+
 class B extends X {}
 ''');
     checkElementText(library, r'''
@@ -3781,36 +3860,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 hasExtendsClause class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
         #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: A<int>
@@ -3823,7 +3902,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F6
       aliasedType: A<int>
@@ -3833,7 +3912,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
     var library = await buildLibrary(r'''
 typedef X<T> = T;
+
 class A<T> {}
+
 class B extends X<A<int>> {}
 ''');
     checkElementText(library, r'''
@@ -3843,19 +3924,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 T (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F4 hasExtendsClause class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3865,17 +3946,17 @@ library
             #F7 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: A<int>
@@ -3890,7 +3971,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F6
       typeParameters
@@ -3903,6 +3984,7 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
     var library = await buildLibrary(r'''
 typedef X = Null;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -3912,17 +3994,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -3930,7 +4012,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
       aliasedType: Null
@@ -3940,7 +4022,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_question() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>?;
+
 class A<T> {}
+
 class D extends X {}
 ''');
     checkElementText(library, r'''
@@ -3950,36 +4034,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F4 hasExtendsClause class D (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
       constructors
@@ -3987,7 +4071,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F6
       aliasedType: A<int>?
@@ -3997,7 +4081,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
     var library = await buildLibrary(r'''
 typedef X = A<int?>;
+
 class A<T> {}
+
 class D extends X {}
 ''');
     checkElementText(library, r'''
@@ -4007,36 +4093,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F4 hasExtendsClause class D (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
         #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
       supertype: A<int?>
@@ -4049,7 +4135,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int?}
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F6
       aliasedType: A<int?>
@@ -4059,6 +4145,7 @@ library
   test_typedef_nonFunction_asSuperType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -4068,17 +4155,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4086,7 +4173,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
       aliasedType: Never
@@ -4096,6 +4183,7 @@ library
   test_typedef_nonFunction_asSuperType_Null_none() async {
     var library = await buildLibrary(r'''
 typedef X = Null;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -4105,17 +4193,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
         #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4123,7 +4211,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   typeAliases
-    X
+    isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
       aliasedType: Null
@@ -4142,10 +4230,10 @@ library
       element: <testLibrary>
       typeAliases
         #F1 <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@typeAlias::0
+          element: <testLibrary>::@typeAlias::#0
   typeAliases
-    <null-name>
-      reference: <testLibrary>::@typeAlias::0
+    isSimplyBounded <null-name>
+      reference: <testLibrary>::@typeAlias::#0
       firstFragment: #F1
       aliasedType: int
 ''');
@@ -4166,18 +4254,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:30) (firstTokenOffset:28) (offset:30)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:30) (firstTokenOffset:28) (offset:30)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: dynamic
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4206,18 +4294,18 @@ library
         #F1 A (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:38) (firstTokenOffset:33) (offset:38)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:42) (firstTokenOffset:40) (offset:42)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:40) (offset:42)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: dynamic Function()
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4244,18 +4332,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:22) (firstTokenOffset:17) (offset:22)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:22) (firstTokenOffset:17) (offset:22)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:26) (firstTokenOffset:24) (offset:26)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:26) (firstTokenOffset:24) (offset:26)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: int
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4282,18 +4370,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:25) (offset:27)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: int?
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4323,13 +4411,13 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isOriginDeclaration f (nameOffset:33) (firstTokenOffset:28) (offset:33)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:33) (firstTokenOffset:28) (offset:33)
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 requiredPositional a (nameOffset:45) (firstTokenOffset:35) (offset:45)
+            #F4 requiredPositional isOriginDeclaration a (nameOffset:45) (firstTokenOffset:35) (offset:45)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -4337,7 +4425,7 @@ library
           firstFragment: #F2
       aliasedType: Map<int, T>
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       formalParameters
@@ -4366,18 +4454,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:24) (firstTokenOffset:19) (offset:24)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: Never
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4404,18 +4492,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:25) (firstTokenOffset:20) (offset:25)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:25) (firstTokenOffset:20) (offset:25)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:29) (firstTokenOffset:27) (offset:29)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: Never?
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4448,37 +4536,37 @@ library
         #F2 A2 (nameOffset:29) (firstTokenOffset:21) (offset:29)
           element: <testLibrary>::@typeAlias::A2
       functions
-        #F3 isOriginDeclaration f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F4 requiredPositional a (nameOffset:54) (firstTokenOffset:51) (offset:54)
+            #F4 requiredPositional isOriginDeclaration a (nameOffset:54) (firstTokenOffset:51) (offset:54)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isOriginDeclaration f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F6 requiredPositional a (nameOffset:72) (firstTokenOffset:68) (offset:72)
+            #F6 requiredPositional isOriginDeclaration a (nameOffset:72) (firstTokenOffset:68) (offset:72)
               element: <testLibrary>::@function::f2::@formalParameter::a
-        #F7 isOriginDeclaration f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
+        #F7 isComplete isOriginDeclaration isStatic f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
           element: <testLibrary>::@function::f3
           formalParameters
-            #F8 requiredPositional a (nameOffset:89) (firstTokenOffset:86) (offset:89)
+            #F8 requiredPositional isOriginDeclaration a (nameOffset:89) (firstTokenOffset:86) (offset:89)
               element: <testLibrary>::@function::f3::@formalParameter::a
-        #F9 isOriginDeclaration f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
+        #F9 isComplete isOriginDeclaration isStatic f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
           element: <testLibrary>::@function::f4
           formalParameters
-            #F10 requiredPositional a (nameOffset:107) (firstTokenOffset:103) (offset:107)
+            #F10 requiredPositional isOriginDeclaration a (nameOffset:107) (firstTokenOffset:103) (offset:107)
               element: <testLibrary>::@function::f4::@formalParameter::a
   typeAliases
-    A1
+    isSimplyBounded A1
       reference: <testLibrary>::@typeAlias::A1
       firstFragment: #F1
       aliasedType: String
-    A2
+    isSimplyBounded A2
       reference: <testLibrary>::@typeAlias::A2
       firstFragment: #F2
       aliasedType: String?
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F3
       formalParameters
@@ -4487,7 +4575,7 @@ library
           type: String
             alias: <testLibrary>::@typeAlias::A1
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F5
       formalParameters
@@ -4497,7 +4585,7 @@ library
             alias: <testLibrary>::@typeAlias::A1
               nullabilitySuffix: NullabilitySuffix.question
       returnType: void
-    isOriginDeclaration f3
+    isOriginDeclaration isStatic f3
       reference: <testLibrary>::@function::f3
       firstFragment: #F7
       formalParameters
@@ -4506,7 +4594,7 @@ library
           type: String?
             alias: <testLibrary>::@typeAlias::A2
       returnType: void
-    isOriginDeclaration f4
+    isOriginDeclaration isStatic f4
       reference: <testLibrary>::@function::f4
       firstFragment: #F9
       formalParameters
@@ -4538,18 +4626,18 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isOriginDeclaration f1 (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F4 requiredPositional a (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F4 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isOriginDeclaration f2 (nameOffset:39) (firstTokenOffset:34) (offset:39)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:39) (firstTokenOffset:34) (offset:39)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F6 requiredPositional a (nameOffset:49) (firstTokenOffset:42) (offset:49)
+            #F6 requiredPositional isOriginDeclaration a (nameOffset:49) (firstTokenOffset:42) (offset:49)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -4557,7 +4645,7 @@ library
           firstFragment: #F2
       aliasedType: T
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F3
       formalParameters
@@ -4568,7 +4656,7 @@ library
               typeArguments
                 dynamic
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F5
       formalParameters
@@ -4602,23 +4690,23 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isOriginDeclaration f1 (nameOffset:24) (firstTokenOffset:19) (offset:24)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F4 requiredPositional a (nameOffset:29) (firstTokenOffset:27) (offset:29)
+            #F4 requiredPositional isOriginDeclaration a (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isOriginDeclaration f2 (nameOffset:40) (firstTokenOffset:35) (offset:40)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:40) (firstTokenOffset:35) (offset:40)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F6 requiredPositional a (nameOffset:50) (firstTokenOffset:43) (offset:50)
+            #F6 requiredPositional isOriginDeclaration a (nameOffset:50) (firstTokenOffset:43) (offset:50)
               element: <testLibrary>::@function::f2::@formalParameter::a
-        #F7 isOriginDeclaration f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F7 isComplete isOriginDeclaration isStatic f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: <testLibrary>::@function::f3
           formalParameters
-            #F8 requiredPositional a (nameOffset:72) (firstTokenOffset:64) (offset:72)
+            #F8 requiredPositional isOriginDeclaration a (nameOffset:72) (firstTokenOffset:64) (offset:72)
               element: <testLibrary>::@function::f3::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       typeParameters
@@ -4626,7 +4714,7 @@ library
           firstFragment: #F2
       aliasedType: T?
   functions
-    isOriginDeclaration f1
+    isOriginDeclaration isStatic f1
       reference: <testLibrary>::@function::f1
       firstFragment: #F3
       formalParameters
@@ -4637,7 +4725,7 @@ library
               typeArguments
                 dynamic
       returnType: void
-    isOriginDeclaration f2
+    isOriginDeclaration isStatic f2
       reference: <testLibrary>::@function::f2
       firstFragment: #F5
       formalParameters
@@ -4648,7 +4736,7 @@ library
               typeArguments
                 int
       returnType: void
-    isOriginDeclaration f3
+    isOriginDeclaration isStatic f3
       reference: <testLibrary>::@function::f3
       firstFragment: #F7
       formalParameters
@@ -4678,18 +4766,18 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 requiredPositional a (nameOffset:27) (firstTokenOffset:25) (offset:27)
+            #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
-    A
+    isSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       aliasedType: void
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F2
       formalParameters
@@ -4716,7 +4804,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    notSimplyBounded F
+    F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: (dynamic, int) Function()
@@ -4724,7 +4812,10 @@ library
   }
 
   test_typedefs() async {
-    var library = await buildLibrary('f() {} g() {}');
+    var library = await buildLibrary(r'''
+f() {}
+g() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4732,16 +4823,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
-        #F2 isOriginDeclaration g (nameOffset:7) (firstTokenOffset:7) (offset:7)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
-    isOriginDeclaration g
+    isOriginDeclaration isStatic g
       reference: <testLibrary>::@function::g
       firstFragment: #F2
       returnType: dynamic

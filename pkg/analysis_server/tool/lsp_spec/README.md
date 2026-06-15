@@ -60,107 +60,104 @@ Client workspace settings are requested with `workspace/configuration` during in
 Below is a list of LSP methods and their implementation status.
 
 - Method: The LSP method name
-- Basic Impl: This method has an implementation but may assume some client capabilities
-- Capabilities: Only types from the original spec or as advertised in client capabilities are returned
-- Plugins: This functionality works with server plugins
-- Tests: Has automated tests
-- Tested Client: Has been manually tested in at least one LSP client editor
+- Server: The method is supported by the Dart server.
 
-| Method | Server | Plugins | Notes |
-| - | - | - | - |
-| initialize | ✅ | N/A | trace and other options NYI|
-| initialized | ✅ | N/A | |
-| shutdown | ✅ | N/A | supported but does nothing|
-| exit | ✅ | N/A | |
-| $/cancelRequest | ✅ | | |
-| $/logTrace | | | |
-| $/progress | | | |
-| $/setTrace | | | |
-| client/registerCapability | ✅ | ✅ | |
-| client/unregisterCapability | ✅ | ✅ | |
-| notebookDocument/* | | | |
-| telemetry/event | | | |
-| textDocument/codeAction (assists) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`|
-| textDocument/codeAction (fixAll) | ✅ | | |
-| textDocument/codeAction (fixes) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`|
-| textDocument/codeAction (organiseImports) | ✅ | | |
-| textDocument/codeAction (refactors) | ✅ | | |
-| textDocument/codeAction (sortMembers) | ✅ | | |
-|  codeAction/resolve | | | |
-| textDocument/codeLens | ✅ | | |
-|   codeLens/resolve | | | |
-| textDocument/completion | ✅ | ✅ | |
-|   completionItem/resolve | ✅ | | |
-| textDocument/declaration | | | |
-| textDocument/definition | ✅ | ✅ | |
-| textDocument/diagnostic | | | |
-| textDocument/didChange | ✅ | ✅ | |
-| textDocument/didClose | ✅ | ✅ | |
-| textDocument/didOpen | ✅ | ✅ | |
-| textDocument/didSave | | | |
-| textDocument/documentColor | ✅ | | |
-|   textDocument/colorPresentation | ✅ | | |
-| textDocument/documentHighlight | ✅ | | |
-| textDocument/documentLink | ✅ | | |
-|   documentLink/resolve | | | |
-| textDocument/documentSymbol | ✅ | | |
-| textDocument/foldingRange | ✅ | ✅ | |
-| textDocument/formatting | ✅ | | |
-|   textDocument/onTypeFormatting | ✅ | | |
-|   textDocument/rangeFormatting | ✅ | | |
-| textDocument/hover | ✅ | | |
-| textDocument/implementation | ✅ | | |
-| textDocument/inlayHint | ✅ | | |
-|   inlayHint/resolve | | | |
-| textDocument/inlineValue | ✅ | | |
-| textDocument/linkedEditingRange | | | |
-| textDocument/moniker | | | |
-| textDocument/prepareCallHierarchy | ✅ | | |
-|   callHierarchy/incomingCalls | ✅ | | |
-|   callHierarchy/outgoingCalls | ✅ | | |
-| textDocument/prepareRename | ✅ | | |
-|   textDocument/rename | ✅ | | |
-| textDocument/prepareTypeHierarchy | ✅ | | |
-|   typeHierarchy/subtypes | ✅ | | |
-|   typeHierarchy/supertypes | ✅ | | |
-| textDocument/publishDiagnostics | ✅ | ✅ | |
-| textDocument/references | ✅ | | |
-| textDocument/selectionRange | ✅ | | |
-| textDocument/semanticTokens/full | ✅ | ✅ | |
-| textDocument/semanticTokens/full/delta | | | |
-| textDocument/semanticTokens/range | ✅ | ✅ | |
-| workspace/semanticTokens/refresh | | | |
-| textDocument/signatureHelp | ✅ | | |
-| textDocument/typeDefinition | ✅ | | |
-| textDocument/willSave | | | |
-| textDocument/willSaveWaitUntil | | | |
-| window/logMessage | ✅ | | |
-| window/showDocument | | | |
-| window/showMessage | ✅ | | |
-| window/showMessageRequest | | | |
-| window/workDoneProgress/cancel | | | |
-| window/workDoneProgress/create | ✅ | | |
-| workspace/applyEdit | ✅ | | |
-| workspace/codeLens/refresh | | | |
-| workspace/configuration | ✅ | | |
-| workspace/diagnostic | | | |
-| workspace/diagnostic/refresh | | | |
-| workspace/didChangeConfiguration | ✅ | | |
-| workspace/didChangeWatchedFiles | | | unused, server does own watching|
-| workspace/didChangeWorkspaceFolders | ✅ | ✅ | |
-| workspace/didCreateFiles | | | |
-| workspace/didDeleteFiles | | | |
-| workspace/didRenameFiles | | | |
-| workspace/executeCommand | ✅ | | |
-| workspace/inlayHint/refresh | | | |
-| workspace/inlineValue/refresh | | | |
-| workspace/symbol | ✅ | | |
-|   workspaceSymbol/resolve | | | |
-| workspace/willCreateFiles | | | |
-| workspace/willDeleteFiles | | | |
-| workspace/willRenameFiles | | | |
-| workspace/willRenameFiles | ✅ | | |
-| workspace/workspaceFolders | | | |
+| Method | Server | Notes |
+| - | - | - |
+| initialize | ✅ | trace and other options NYI |
+| initialized | ✅ | |
+| shutdown | ✅ | supported but does nothing |
+| exit | ✅ | |
+| $/cancelRequest | ✅ | |
+| $/logTrace | | |
+| $/progress | | |
+| $/setTrace | | |
+| client/registerCapability | ✅ | |
+| client/unregisterCapability | ✅ | |
+| command/resolve | ✅ | A custom command used to support the experimental "Interactive Forms" feature |
+| notebookDocument/* | | |
+| telemetry/event | | |
+| textDocument/codeAction (assists) | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor` |
+| textDocument/codeAction (fixAll) | ✅ | |
+| textDocument/codeAction (fixes) | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix` |
+| textDocument/codeAction (organiseImports) | ✅ | |
+| textDocument/codeAction (refactors) | ✅ | |
+| textDocument/codeAction (sortMembers) | ✅ | |
+|  codeAction/resolve | | |
+| textDocument/codeLens | ✅ | |
+|   codeLens/resolve | | |
+| textDocument/completion | ✅ | |
+|   completionItem/resolve | ✅ | |
+| textDocument/declaration | | |
+| textDocument/definition | ✅ | |
+| textDocument/diagnostic | | |
+| textDocument/didChange | ✅ | |
+| textDocument/didClose | ✅ | |
+| textDocument/didOpen | ✅ | |
+| textDocument/didSave | | |
+| textDocument/documentColor | ✅ | |
+|   textDocument/colorPresentation | ✅ | |
+| textDocument/documentHighlight | ✅ | |
+| textDocument/documentLink | ✅ | |
+|   documentLink/resolve | | |
+| textDocument/documentSymbol | ✅ | |
+| textDocument/foldingRange | ✅ | |
+| textDocument/formatting | ✅ | |
+|   textDocument/onTypeFormatting | ✅ | |
+|   textDocument/rangeFormatting | ✅ | |
+| textDocument/hover | ✅ | |
+| textDocument/implementation | ✅ | |
+| textDocument/inlayHint | ✅ | |
+|   inlayHint/resolve | | |
+| textDocument/inlineValue | ✅ | |
+| textDocument/linkedEditingRange | | |
+| textDocument/moniker | | |
+| textDocument/prepareCallHierarchy | ✅ | |
+|   callHierarchy/incomingCalls | ✅ | |
+|   callHierarchy/outgoingCalls | ✅ | |
+| textDocument/prepareRename | ✅ | |
+|   textDocument/rename | ✅ | |
+| textDocument/prepareTypeHierarchy | ✅ | |
+|   typeHierarchy/subtypes | ✅ | |
+|   typeHierarchy/supertypes | ✅ | |
+| textDocument/publishDiagnostics | ✅ | |
+| textDocument/references | ✅ | |
+| textDocument/selectionRange | ✅ | |
+| textDocument/semanticTokens/full | ✅ | |
+| textDocument/semanticTokens/full/delta | | |
+| textDocument/semanticTokens/range | ✅ | |
+| workspace/semanticTokens/refresh | | |
+| textDocument/signatureHelp | ✅ | |
+| textDocument/typeDefinition | ✅ | |
+| textDocument/willSave | | |
+| textDocument/willSaveWaitUntil | | |
+| window/logMessage | ✅ | |
+| window/showDocument | | |
+| window/showMessage | ✅ | |
+| window/showMessageRequest | | |
+| window/workDoneProgress/cancel | | |
+| window/workDoneProgress/create | ✅ | |
+| workspace/applyEdit | ✅ | |
+| workspace/codeLens/refresh | | |
+| workspace/configuration | ✅ | |
+| workspace/diagnostic | | |
+| workspace/diagnostic/refresh | | |
+| workspace/didChangeConfiguration | ✅ | |
+| workspace/didChangeWatchedFiles | | unused, server does own watching |
+| workspace/didChangeWorkspaceFolders | ✅ | |
+| workspace/didCreateFiles | | |
+| workspace/didDeleteFiles | | |
+| workspace/didRenameFiles | | |
+| workspace/executeCommand | ✅ | |
+| workspace/inlayHint/refresh | | |
+| workspace/inlineValue/refresh | | |
+| workspace/symbol | ✅ | |
+|   workspaceSymbol/resolve | | |
+| workspace/willCreateFiles | | |
+| workspace/willDeleteFiles | | |
+| workspace/willRenameFiles | | |
+| workspace/willRenameFiles | ✅ | |
+| workspace/workspaceFolders | | |
 
 ## Custom Fields, Methods and Notifications
 
@@ -294,6 +291,20 @@ Params: None
 Returns: `FlutterWidgetPreviews | null`
 
 Returns the set of detected Flutter Widget Previews in the analyzed project.
+
+### dart/workspace/migrate Method
+
+Direction: Client -> Server
+Params: `DartMigrateParams`
+Returns: `DartMigrateResult`
+
+Migrates the provided pub workspace folders or non-pub workspace packages to the
+latest Dart version. For packages that are part of a pub workspace, only the
+workspace root should be passed. Migrating individual packages within a
+workspace independently is not supported.
+
+The response includes a summary of the results and a `WorkspaceEdit` containing
+the changes to be applied.
 
 ### dart/openUri Notification
 

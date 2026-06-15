@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///synthesized_super_constructor_with_parameters_l
 
 class A1 extends core::Object {
   final field core::int a;
-  constructor •(core::int a) → self::A1
+  constructor •(initializing-formal core::int a) → self::A1
     : self::A1::a = a, super core::Object::•()
     ;
 }
@@ -19,13 +19,13 @@ class C1 extends self::A1 implements self::B1 /*isEliminatedMixin*/  {
     ;
 }
 class D1 extends self::C1 {
-  constructor •(core::int a) → self::D1
+  constructor •(super-initializing-formal core::int a) → self::D1
     : super self::C1::•(a)
     ;
 }
 class A2 extends core::Object {
   final field core::int a;
-  constructor •({core::int a = #C1}) → self::A2
+  constructor •({initializing-formal core::int a = #C1}) → self::A2
     : self::A2::a = a, super core::Object::•()
     ;
 }
@@ -37,13 +37,13 @@ class C2 extends self::A2 implements self::B2 /*isEliminatedMixin*/  {
     ;
 }
 class D2 extends self::C2 {
-  constructor •({core::int a = #C1}) → self::D2
+  constructor •({super-initializing-formal core::int a = #C1}) → self::D2
     : super self::C2::•(a: a)
     ;
 }
 class A3 extends core::Object {
   final field core::int a;
-  constructor •([core::int a = #C1]) → self::A3
+  constructor •([initializing-formal core::int a = #C1]) → self::A3
     : self::A3::a = a, super core::Object::•()
     ;
 }
@@ -55,12 +55,12 @@ class C3 extends self::A3 implements self::B3 /*isEliminatedMixin*/  {
     ;
 }
 class D3 extends self::C3 {
-  constructor •([core::int a = #C1]) → self::D3
+  constructor •([super-initializing-formal core::int a = #C1]) → self::D3
     : super self::C3::•(a)
     ;
 }
 class D4 extends self::C4 {
-  constructor •([core::int foo = #C2]) → self::D4
+  constructor •([super-initializing-formal core::int foo = #C2]) → self::D4
     : super self::C4::•(foo)
     ;
 }
@@ -72,18 +72,18 @@ class C4 extends self::A4 implements self::B4 /*isEliminatedMixin*/  {
 abstract class B4 extends core::Object /*isMixinDeclaration*/  {
 }
 class A4 extends self::AA4 {
-  constructor •([core::int foo = #C2]) → self::A4
+  constructor •([super-initializing-formal core::int foo = #C2]) → self::A4
     : super self::AA4::•(foo)
     ;
 }
 class AA4 extends core::Object {
   final field core::int foo;
-  constructor •([core::int foo = #C2]) → self::AA4
+  constructor •([initializing-formal core::int foo = #C2]) → self::AA4
     : self::AA4::foo = foo, super core::Object::•()
     ;
 }
 class D5 extends self::C5c {
-  constructor •([core::int foo = #C2]) → self::D5
+  constructor •([super-initializing-formal core::int foo = #C2]) → self::D5
     : super self::C5c::•(foo)
     ;
 }
@@ -105,18 +105,18 @@ class C5a extends self::A5 implements self::B5 /*isEliminatedMixin*/  {
 abstract class B5 extends core::Object /*isMixinDeclaration*/  {
 }
 class A5 extends self::AA5 {
-  constructor •([core::int foo = #C2]) → self::A5
+  constructor •([super-initializing-formal core::int foo = #C2]) → self::A5
     : super self::AA5::•(foo)
     ;
 }
 class AA5 extends core::Object {
   final field core::int foo;
-  constructor •([core::int foo = #C2]) → self::AA5
+  constructor •([initializing-formal core::int foo = #C2]) → self::AA5
     : self::AA5::foo = foo, super core::Object::•()
     ;
 }
 class D6 extends syn::C6 {
-  constructor •({core::int a = #C1}) → self::D6
+  constructor •({super-initializing-formal core::int a = #C1}) → self::D6
     : super syn::C6::•(a: a)
     ;
 }
@@ -128,12 +128,12 @@ class C7 extends syn::A7 implements self::B7 /*isEliminatedMixin*/  {
     ;
 }
 class D7 extends self::C7 {
-  constructor •([core::int a = #C1]) → self::D7
+  constructor •([super-initializing-formal core::int a = #C1]) → self::D7
     : super self::C7::•(a)
     ;
 }
 class D8 extends syn::C8 {
-  constructor •({core::int? a = #C3}) → self::D8
+  constructor •({super-initializing-formal core::int? a = #C3}) → self::D8
     : super syn::C8::•(a: a)
     ;
 }
@@ -145,7 +145,7 @@ class C9 extends syn::A9 implements self::B9 /*isEliminatedMixin*/  {
     ;
 }
 class D9 extends self::C9 {
-  constructor •([core::int? a = #C3]) → self::D9
+  constructor •([super-initializing-formal core::int? a = #C3]) → self::D9
     : super self::C9::•(a)
     ;
 }
@@ -157,7 +157,7 @@ import "dart:core" as core;
 
 class A6 extends core::Object {
   final field core::int a;
-  constructor •({core::int a = #C1}) → syn::A6
+  constructor •({initializing-formal core::int a = #C1}) → syn::A6
     : syn::A6::a = a, super core::Object::•()
     ;
 }
@@ -170,13 +170,13 @@ class C6 extends syn::A6 implements syn::B6 /*isEliminatedMixin*/  {
 }
 class A7 extends core::Object {
   final field core::int a;
-  constructor •([core::int a = #C1]) → syn::A7
+  constructor •([initializing-formal core::int a = #C1]) → syn::A7
     : syn::A7::a = a, super core::Object::•()
     ;
 }
 class A8 extends core::Object {
   final field core::int? a;
-  constructor •({core::int? a = #C3}) → syn::A8
+  constructor •({initializing-formal core::int? a = #C3}) → syn::A8
     : syn::A8::a = a, super core::Object::•()
     ;
 }
@@ -189,7 +189,7 @@ class C8 extends syn::A8 implements syn::B8 /*isEliminatedMixin*/  {
 }
 class A9 extends core::Object {
   final field core::int? a;
-  constructor •([core::int? a = #C3]) → syn::A9
+  constructor •([initializing-formal core::int? a = #C3]) → syn::A9
     : syn::A9::a = a, super core::Object::•()
     ;
 }

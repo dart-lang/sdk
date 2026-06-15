@@ -52,7 +52,7 @@ class ClientDynamicRegistrations {
   ];
   final ClientCapabilities _capabilities;
 
-  ClientDynamicRegistrations(this._capabilities);
+  new(this._capabilities);
 
   bool get callHierarchy =>
       _capabilities.textDocument?.callHierarchy?.dynamicRegistration ?? false;
@@ -147,7 +147,7 @@ class ServerCapabilitiesComputer {
 
   var _lastRegistrationId = 0;
 
-  ServerCapabilitiesComputer(this._server);
+  new(this._server);
 
   List<TextDocumentFilterScheme> get pluginTypes => _server
       .pluginManager
@@ -223,6 +223,15 @@ class ServerCapabilitiesComputer {
         // Indicate that we support the 'updateDiagnosticInformation'
         // custom request.
         'updateDiagnosticInformation': {},
+
+        // Interactive Forms support.
+        'interactiveResolveProvider': {
+          // The kinds of interactive resolutions that the server supports.
+          // For example, "command" indicates that the server supports resolving
+          // `ExecuteCommandParams` interactively through "command/resolve".
+          'kinds': ['command'],
+        },
+
         'textDocument': {
           // These properties can be used by the client to know that we support
           // custom methods like `dart/textDocument/augmented`.

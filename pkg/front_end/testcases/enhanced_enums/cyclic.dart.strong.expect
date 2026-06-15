@@ -25,7 +25,7 @@ class CyclicReference extends core::_Enum /*isEnum*/  {
   enum-element static const field self::CyclicReference e2 = invalid-expression "Constant expression depends on itself.";
   final field self::CyclicReference other;
   static const field core::List<self::CyclicReference> values = invalid-expression "Constant expression depends on itself.";
-  const constructor •(core::int #index, core::String #name, self::CyclicReference other) → self::CyclicReference
+  const constructor •(core::int #index, core::String #name, initializing-formal self::CyclicReference other) → self::CyclicReference
     : self::CyclicReference::other = other, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

@@ -38,7 +38,7 @@ class ServerDriver {
   /// The server is run in a separate process.
   // TODO(brianwilkerson): Add a flag controlling whether the server is in the
   //  same process as the driver or in a separate process.
-  factory ServerDriver({required List<String> arguments}) {
+  factory({required List<String> arguments}) {
     var parsedArgs = Driver.createArgParser().parse(arguments);
 
     var protocolOption = parsedArgs.option(Driver.serverProtocolOption);
@@ -67,7 +67,7 @@ class ServerDriver {
   /// When the server is [start]ed, it will use the given [_protocol].
   ///
   /// The server is run in a separate process.
-  ServerDriver._({required this.arguments, required this._protocol});
+  new _({required this.arguments, required this._protocol});
 
   /// The messages read from the analysis server's stdout.
   Stream<Message> get serverMessages => _serverMessagesController.stream;
@@ -222,5 +222,5 @@ enum ServerProtocol {
   lsp('lsp');
 
   final String flagValue;
-  const ServerProtocol(this.flagValue);
+  new(this.flagValue);
 }

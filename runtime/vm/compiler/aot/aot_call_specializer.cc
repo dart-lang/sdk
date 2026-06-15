@@ -54,6 +54,10 @@ DEFINE_FLAG(int,
 static void GetUniqueDynamicTarget(IsolateGroup* isolate_group,
                                    const String& fname,
                                    Object* function) {
+  if (isolate_group->has_dynamically_extendable_classes()) {
+    *function = Object::null();
+    return;
+  }
   UniqueFunctionsMap functions_map(
       isolate_group->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());

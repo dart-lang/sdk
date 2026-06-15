@@ -26,7 +26,7 @@ abstract class TemporaryOverlayOperation {
   final Set<AnalysisContext> _affectedContexts = {};
   final Map<AnalysisDriver, Set<String>> _originalAddedFiles = {};
 
-  TemporaryOverlayOperation(this.server)
+  new(this.server)
     : contextManager = server.contextManager,
       resourceProvider = server.resourceProvider;
 

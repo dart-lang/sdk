@@ -30,7 +30,7 @@ const _desc =
     'declared.';
 
 class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
-  DeprecatedMemberUseFromSamePackage()
+  new()
     : super(
         name: LintNames.deprecated_member_use_from_same_package,
         description: _desc,
@@ -55,7 +55,7 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
 class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
   final MultiAnalysisRule _rule;
 
-  _DeprecatedElementUsageReporter({required this._rule});
+  new({required this._rule});
 
   @override
   void report(
@@ -91,7 +91,7 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final ElementUsageFrontierDetector<String> _deprecatedVerifier;
 
-  _RecursiveVisitor(MultiAnalysisRule rule, WorkspacePackage package)
+  new(MultiAnalysisRule rule, WorkspacePackage package)
     : _deprecatedVerifier = ElementUsageFrontierDetector(
         workspacePackage: package,
         usagesAndReporters: [
@@ -151,13 +151,6 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorName(ConstructorName node) {
     _deprecatedVerifier.constructorName(node);
     super.visitConstructorName(node);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _withDeprecatedFormalParameter(node, () {
-      super.visitDefaultFormalParameter(node);
-    });
   }
 
   @override
@@ -309,9 +302,9 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     _withDeprecatedFormalParameter(node, () {
-      super.visitSimpleFormalParameter(node);
+      super.visitRegularFormalParameter(node);
     });
   }
 
@@ -325,6 +318,13 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _deprecatedVerifier.superConstructorInvocation(node);
     super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _withDeprecatedFormalParameter(node, () {
+      super.visitSuperFormalParameter(node);
+    });
   }
 
   @override
@@ -369,7 +369,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule _rule;
   final RuleContext _context;
 
-  _Visitor(this._rule, this._context);
+  new(this._rule, this._context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,7 +34,7 @@ class TransformSetManagerTest extends AbstractContextTest {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
+        ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1-1.0')),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -63,7 +63,7 @@ class TransformSetManagerTest extends AbstractContextTest {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
+        ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1')),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -107,8 +107,8 @@ class TransformSetManagerTest extends AbstractContextTest {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
-        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+        ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
     );
 
     newFile('/home/test/pubspec.yaml', '');

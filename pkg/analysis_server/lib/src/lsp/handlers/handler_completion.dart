@@ -67,7 +67,7 @@ class CompletionHandler
   /// already completed, cancelling this token will not do anything.
   CancelableToken? previousRequestCancellationToken;
 
-  CompletionHandler(super.server)
+  new(super.server)
     : suggestFromUnimportedLibraries =
           server.initializationOptions?.suggestFromUnimportedLibraries ?? true {
     var budgetMs = server.initializationOptions?.completionBudgetMilliseconds;
@@ -860,7 +860,7 @@ class CompletionHandler
 
 class CompletionRegistrations extends FeatureRegistration
     with StaticRegistration<CompletionOptions> {
-  CompletionRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations {
@@ -944,7 +944,7 @@ class _CompletionResults {
   /// Defaults are only supported on Dart server items (not plugins).
   final CompletionItemDefaults? defaults;
 
-  _CompletionResults({
+  new({
     this.rankedItems = const [],
     this.unrankedItems = const [],
     required this.fuzzy,
@@ -952,21 +952,18 @@ class _CompletionResults {
     this.defaults,
   });
 
-  _CompletionResults.empty()
-    : this(fuzzy: _FuzzyScoreHelper.empty, isIncomplete: false);
+  new empty() : this(fuzzy: _FuzzyScoreHelper.empty, isIncomplete: false);
 
   /// An empty result set marked as incomplete because an error occurred.
-  _CompletionResults.emptyIncomplete()
+  new emptyIncomplete()
     : this(fuzzy: _FuzzyScoreHelper.empty, isIncomplete: true);
 
-  _CompletionResults.unranked(
-    List<CompletionItem> unrankedItems, {
-    required bool isIncomplete,
-  }) : this(
-         unrankedItems: unrankedItems,
-         fuzzy: _FuzzyScoreHelper.empty,
-         isIncomplete: isIncomplete,
-       );
+  new unranked(List<CompletionItem> unrankedItems, {required bool isIncomplete})
+    : this(
+        unrankedItems: unrankedItems,
+        fuzzy: _FuzzyScoreHelper.empty,
+        isIncomplete: isIncomplete,
+      );
 
   /// Any prefix used to filter the results.
   String get targetPrefix => fuzzy.prefix;
@@ -984,7 +981,7 @@ class _FuzzyScoreHelper {
 
   final FuzzyMatcher _matcher;
 
-  _FuzzyScoreHelper(this.prefix) : _matcher = FuzzyMatcher(prefix);
+  new(this.prefix) : _matcher = FuzzyMatcher(prefix);
 
   bool completionItemMatches(CompletionItem item) =>
       stringMatches(item.filterText ?? item.label);

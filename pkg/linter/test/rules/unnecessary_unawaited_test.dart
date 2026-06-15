@@ -21,20 +21,17 @@ class UnnecessaryUnawaitedTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_unawaited;
 
   test_binaryOperator_annotated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {
-  unawaited(c + c);
+  [!unawaited!](c + c);
 }
 class C {
   @awaitNotRequired
   Future<void> operator +(C c) => Future.value();
 }
-''',
-      [lint(70, 9)],
-    );
+''');
   }
 
   test_binaryOperator_notAnnotated() async {
@@ -50,18 +47,15 @@ class C {
   }
 
   test_function_annotated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f() {
-  unawaited(f2());
+  [!unawaited!](f2());
 }
 @awaitNotRequired
 Future<void> f2() => Future.value();
-''',
-      [lint(67, 9)],
-    );
+''');
   }
 
   test_function_notAnnotated() async {
@@ -75,20 +69,17 @@ Future<void> f2() => Future.value();
   }
 
   test_method_annotated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {
-  unawaited(c.m());
+  [!unawaited!](c.m());
 }
 class C {
   @awaitNotRequired
   Future<void> m() => Future.value();
 }
-''',
-      [lint(70, 9)],
-    );
+''');
   }
 
   test_method_notAnnotated() async {
@@ -104,18 +95,15 @@ class C {
   }
 
   test_topLevelVariable_annotated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f() {
-  unawaited(f2);
+  [!unawaited!](f2);
 }
 @awaitNotRequired
 Future<void> f2 = Future.value();
-''',
-      [lint(67, 9)],
-    );
+''');
   }
 
   test_topLevelVariable_notAnnotated() async {
@@ -129,20 +117,17 @@ Future<void> f2 = Future.value();
   }
 
   test_unaryOperator_annotated() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {
-  unawaited(-c);
+  [!unawaited!](-c);
 }
 class C {
   @awaitNotRequired
   Future<void> operator -() => Future.value();
 }
-''',
-      [lint(70, 9)],
-    );
+''');
   }
 
   test_unaryOperator_notAnnotated() async {

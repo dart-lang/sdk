@@ -5,8 +5,6 @@
 // It's a compile-time error to write a formal non-declaring parameter with a
 // `var` keyword and no type annotation.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 typedef void Logger(var message);
 //                  ^^^
 // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER

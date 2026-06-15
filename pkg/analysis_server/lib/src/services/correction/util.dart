@@ -76,6 +76,36 @@ List<AstNode> findLocalElementReferences(AstNode root, LocalElement element) {
   return collector.references;
 }
 
+/// Returns references to the [parameterElement] inside the constructor components and field initializers.
+List<SimpleIdentifier> findParameterReferences({
+  required FormalParameterElement parameterElement,
+  required FunctionBody? constructorBody,
+  required NodeList<ConstructorInitializer>? initializers,
+  List<Expression> fieldInitializers = const [],
+  List<AstNode> nodesBeingRemoved = const [],
+}) {
+  var references = <SimpleIdentifier>[];
+  var visitor = _ParameterReferenceVisitor(
+    references,
+    parameterElement,
+    nodesBeingRemoved,
+  );
+  if (initializers != null) {
+    for (var initializer in initializers) {
+      if (!nodesBeingRemoved.contains(initializer)) {
+        initializer.accept(visitor);
+      }
+    }
+  }
+  for (var initializer in fieldInitializers) {
+    initializer.accept(visitor);
+  }
+  constructorBody?.accept(visitor);
+  return references;
+}
+
+// TODO(scheglov): replace with nodes once there will be
+// [CompilationUnit.getComments].
 /// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
@@ -91,8 +121,6 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
-// TODO(scheglov): replace with nodes once there will be
-// [CompilationUnit.getComments].
 /// Return all [LocalElement]s defined in the given [node].
 List<LocalElement> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
@@ -350,27 +378,21 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
       (node.parent as VariableDeclaration).name == node.token;
 }
 
-/// Return `true` if the given [node] is the name of a [NamedExpression].
-bool isNamedExpressionName(SimpleIdentifier node) {
-  var parent = node.parent;
-  if (parent is Label) {
-    var label = parent;
-    if (identical(label.label, node)) {
-      var parent2 = label.parent;
-      if (parent2 is NamedExpression) {
-        return identical(parent2.name, label);
-      }
+/// If the given [node] is a [NamedArgument], returns it.
+/// If it is an [Expression] that is the `argumentExpression` of a
+/// [NamedArgument], returns that [NamedArgument].
+/// Otherwise returns [node].
+AstNode stepUpNamedExpression(AstNode node) {
+  if (node is NamedArgument) {
+    return node;
+  }
+  if (node is Expression) {
+    var parent = node.parent;
+    if (parent is NamedArgument && parent.argumentExpression == node) {
+      return parent;
     }
   }
-  return false;
-}
-
-/// If the given [expression] is the `expression` property of a
-/// [NamedExpression] then returns this [NamedExpression], otherwise returns
-/// [expression].
-Expression stepUpNamedExpression(Expression expression) {
-  var parent = expression.parent;
-  return parent is NamedExpression ? parent : expression;
+  return node;
 }
 
 /// Return `true` if the given [lists] are identical at the given [position].
@@ -393,7 +415,7 @@ class ReturnTypeComputer extends RecursiveAstVisitor<void> {
 
   DartType? returnType;
 
-  ReturnTypeComputer(this._typeSystem, {this._isGenerator = false});
+  new(this._typeSystem, {this._isGenerator = false});
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -439,7 +461,7 @@ class _DeclarationCollector extends RecursiveAstVisitor<void> {
   final String name;
   bool isDeclared = false;
 
-  _DeclarationCollector(this.name);
+  new(this.name);
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -453,7 +475,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final Element element;
   final List<AstNode> references = [];
 
-  _ElementReferenceCollector(this.element);
+  new(this.element);
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
@@ -505,6 +527,31 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
     }
 
     super.visitVariableDeclaration(node);
+  }
+}
+
+class _ParameterReferenceVisitor extends GeneralizingAstVisitor<void> {
+  final List<SimpleIdentifier> references;
+
+  final FormalParameterElement parameterElement;
+
+  final List<AstNode> nodesBeingRemoved;
+
+  new(this.references, this.parameterElement, this.nodesBeingRemoved);
+
+  @override
+  void visitNode(AstNode node) {
+    if (!nodesBeingRemoved.contains(node)) {
+      super.visitNode(node);
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.element;
+    if (element == parameterElement) {
+      references.add(node);
+    }
   }
 }
 

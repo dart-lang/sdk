@@ -25,12 +25,9 @@ var x = '\\';
   }
 
   test_escapedColon() async {
-    await assertDiagnostics(
-      r'''
-var x = '\:';
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = '[!\!]:';
+''');
   }
 
   test_escapedDoubleQuotes_inDoubleQuotes() async {
@@ -40,12 +37,9 @@ var x = "\"";
   }
 
   test_escapedDoubleQuotes_inSingleQuotes() async {
-    await assertDiagnostics(
-      r'''
-var x = '\"';
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = '[!\!]"';
+''');
   }
 
   test_escapedDoubleQuotes_inSingleQuotes_raw() async {
@@ -61,12 +55,9 @@ var x = """text"\""text""";
   }
 
   test_escapedDoubleQuotes_inThreeDoubleQuotes() async {
-    await assertDiagnostics(
-      r'''
-var x = """\"text""";
-''',
-      [lint(11, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = """[!\!]"text""";
+''');
   }
 
   test_escapedDoubleQuotes_inThreeDoubleQuotes_atEnd() async {
@@ -76,21 +67,15 @@ var x = """text\"""";
   }
 
   test_escapedDoubleQuotes_inThreeSingleQuotes() async {
-    await assertDiagnostics(
-      r"""
-var x = '''\"''';
-""",
-      [lint(11, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var x = '''[!\!]"''';
+""");
   }
 
   test_escapedLowerA() async {
-    await assertDiagnostics(
-      r'''
-var x = '\a';
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = '[!\!]a';
+''');
   }
 
   test_escapedLowerDollar() async {
@@ -118,12 +103,9 @@ var x = '\t';
   }
 
   test_escapedSingleQuote_inDoubleQuotes() async {
-    await assertDiagnostics(
-      r'''
-var x = "\'";
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = "[!\!]'";
+''');
   }
 
   test_escapedSingleQuote_inDoubleQuotes_raw() async {
@@ -145,21 +127,15 @@ var x = '''text'\''text''';
   }
 
   test_escapedSingleQuote_inThreeDoubleQuotes() async {
-    await assertDiagnostics(
-      r'''
-var x = """\'""";
-''',
-      [lint(11, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = """[!\!]'""";
+''');
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes() async {
-    await assertDiagnostics(
-      r"""
-var x = '''\'text''';
-""",
-      [lint(11, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var x = '''[!\!]'text''';
+""");
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes_atEnd() async {

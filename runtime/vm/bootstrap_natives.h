@@ -45,18 +45,17 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
-  V(Integer_fromEnvironment, 3)                                                \
-  V(Integer_parse, 1)                                                          \
+  V(Integer_fromEnvironment, 2)                                                \
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
   V(Integer_ushrFromInteger, 2)                                                \
-  V(Bool_fromEnvironment, 3)                                                   \
-  V(Bool_hasEnvironment, 2)                                                    \
-  V(Capability_factory, 1)                                                     \
+  V(Bool_fromEnvironment, 2)                                                   \
+  V(Bool_hasEnvironment, 1)                                                    \
+  V(Capability_factory, 0)                                                     \
   V(Capability_equals, 2)                                                      \
   V(Capability_get_hashcode, 1)                                                \
   V(createConstMapFromMapOfDeeplyImmutables, 1)                                \
-  V(RawReceivePort_factory, 2)                                                 \
+  V(RawReceivePort_factory, 1)                                                 \
   V(RawReceivePort_get_id, 1)                                                  \
   V(RawReceivePort_closeInternal, 1)                                           \
   V(RawReceivePort_setActive, 2)                                               \
@@ -66,6 +65,8 @@ namespace dart {
   V(SendPort_sendInternal_, 2)                                                 \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
+  V(Integer_trailingZeroBitCount, 1)                                           \
+  V(Integer_oneBitCount, 1)                                                    \
   V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
@@ -97,14 +98,14 @@ namespace dart {
   V(Double_equalToInteger, 2)                                                  \
   V(Double_greaterThan, 2)                                                     \
   V(Double_equal, 2)                                                           \
-  V(Double_doubleFromInteger, 2)                                               \
+  V(Double_doubleFromInteger, 1)                                               \
   V(Double_parse, 3)                                                           \
   V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
   V(Double_flipSignBit, 1)                                                     \
-  V(RegExp_factory, 6)                                                         \
+  V(RegExp_factory, 5)                                                         \
   V(RegExp_getPattern, 1)                                                      \
   V(RegExp_getIsMultiLine, 1)                                                  \
   V(RegExp_getIsCaseSensitive, 1)                                              \
@@ -114,11 +115,11 @@ namespace dart {
   V(RegExp_getGroupNameMap, 1)                                                 \
   V(RegExp_ExecuteMatch, 3)                                                    \
   V(RegExp_ExecuteMatchSticky, 3)                                              \
-  V(List_allocate, 2)                                                          \
+  V(List_allocate, 1)                                                          \
   V(List_setIndexed, 3)                                                        \
   V(List_getLength, 1)                                                         \
   V(List_slice, 4)                                                             \
-  V(ImmutableList_from, 4)                                                     \
+  V(ImmutableList_from, 3)                                                     \
   V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBase_joinReplaceAllResult, 4)                                        \
@@ -131,7 +132,7 @@ namespace dart {
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
   V(String_concat, 2)                                                          \
-  V(String_fromEnvironment, 3)                                                 \
+  V(String_fromEnvironment, 2)                                                 \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
@@ -170,9 +171,9 @@ namespace dart {
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_splat, 1)                                                        \
-  V(Float32x4_fromInt32x4Bits, 2)                                              \
-  V(Float32x4_fromFloat64x2, 2)                                                \
-  V(Float32x4_zero, 1)                                                         \
+  V(Float32x4_fromInt32x4Bits, 1)                                              \
+  V(Float32x4_fromFloat64x2, 1)                                                \
+  V(Float32x4_zero, 0)                                                         \
   V(Float32x4_add, 2)                                                          \
   V(Float32x4_negate, 1)                                                       \
   V(Float32x4_sub, 2)                                                          \
@@ -205,8 +206,8 @@ namespace dart {
   V(Float32x4_reciprocalSqrt, 1)                                               \
   V(Float64x2_fromDoubles, 2)                                                  \
   V(Float64x2_splat, 1)                                                        \
-  V(Float64x2_zero, 1)                                                         \
-  V(Float64x2_fromFloat32x4, 2)                                                \
+  V(Float64x2_zero, 0)                                                         \
+  V(Float64x2_fromFloat32x4, 1)                                                \
   V(Float64x2_add, 2)                                                          \
   V(Float64x2_negate, 1)                                                       \
   V(Float64x2_sub, 2)                                                          \
@@ -225,7 +226,7 @@ namespace dart {
   V(Float64x2_sqrt, 1)                                                         \
   V(Int32x4_fromInts, 4)                                                       \
   V(Int32x4_fromBools, 4)                                                      \
-  V(Int32x4_fromFloat32x4Bits, 2)                                              \
+  V(Int32x4_fromFloat32x4Bits, 1)                                              \
   V(Int32x4_or, 2)                                                             \
   V(Int32x4_and, 2)                                                            \
   V(Int32x4_xor, 2)                                                            \
@@ -251,21 +252,26 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
+  V(Isolate_create_, 1)                                                        \
   V(Isolate_exit_, 2)                                                          \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_isPinnedToCurrentThread, 1)                                        \
+  V(Isolate_pinToCurrentThread, 0)                                             \
+  V(Isolate_runSync_, 2)                                                       \
+  V(Isolate_runEventLoopSync_, 1)                                              \
   V(Isolate_sendOOB, 2)                                                        \
+  V(Isolate_shutdownSync_, 1)                                                  \
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
-  V(GrowableList_allocate, 2)                                                  \
+  V(GrowableList_allocate, 1)                                                  \
   V(GrowableList_setIndexed, 3)                                                \
   V(GrowableList_getLength, 1)                                                 \
   V(GrowableList_getCapacity, 1)                                               \
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
-  V(Internal_nativeEffect, 1)                                                  \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
@@ -289,7 +295,7 @@ namespace dart {
   V(ThreadLocal_hasValue, 1)                                                   \
   V(ThreadLocal_setValue, 2)                                                   \
   V(Uri_isWindowsPlatform, 0)                                                  \
-  V(UserTag_new, 2)                                                            \
+  V(UserTag_new, 1)                                                            \
   V(UserTag_label, 1)                                                          \
   V(UserTag_makeCurrent, 1)                                                    \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
@@ -303,6 +309,7 @@ namespace dart {
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \
   V(Ffi_deleteNativeCallable, 1)                                               \
+  V(Ffi_deleteIsolateGroupNativeCallable, 1)                                   \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_close, 1)                                                           \
@@ -320,7 +327,7 @@ namespace dart {
   V(DartApiDLMajorVersion, 0)                                                  \
   V(DartApiDLMinorVersion, 0)                                                  \
   V(DartNativeApiFunctionPointer, 1)                                           \
-  V(TransferableTypedData_factory, 2)                                          \
+  V(TransferableTypedData_factory, 1)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
   V(Timer_postTimerEvent, 1)
 

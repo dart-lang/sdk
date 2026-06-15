@@ -7,10 +7,9 @@ class Class {}
 main() {
   var o;
   /*current: dynamic*/
-  /*as: Class!*/
   for (
   // ignore: UNUSED_LOCAL_VARIABLE
-  Class c
+  Class /*as: Class!*/ c
       in
       /*as: Iterable<dynamic>!*/
       /*dynamic|dynamic*/ o?. /*dynamic*/ iterable) {}

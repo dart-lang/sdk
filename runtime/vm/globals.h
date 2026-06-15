@@ -149,6 +149,10 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define TARGET_HAS_FAST_WRITE_WRITE_FENCE 1
 #define HOST_HAS_FAST_WRITE_WRITE_FENCE 1
 
+#if defined(DEBUG)
+#define SNAPSHOT_BACKTRACE
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //
@@ -207,13 +211,13 @@ static constexpr intptr_t kAllocationCanary = 123;
 
 // Macros to get the contents of the fp register.
 #if __GNUC__
-#define COPY_FP_REGISTER(fp)                                                   \
-  fp = reinterpret_cast<uintptr_t>(__builtin_frame_address(0))
+#define GET_FP_REGISTER()                                                      \
+  reinterpret_cast<uintptr_t>(__builtin_frame_address(0))
 #elif _MSC_VER
-#define COPY_FP_REGISTER(fp)                                                   \
-  fp = reinterpret_cast<uintptr_t>(_AddressOfReturnAddress()) - kWordSize
+#define GET_FP_REGISTER()                                                      \
+  reinterpret_cast<uintptr_t>(_AddressOfReturnAddress()) - kWordSize
 #else
-#define COPY_FP_REGISTER(fp) fp = 0
+#define GET_FP_REGISTER() 0
 #endif
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \

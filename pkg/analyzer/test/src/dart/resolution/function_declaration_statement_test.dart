@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionDeclarationStatementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,16 +18,15 @@ main() {
 class FunctionDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_generic() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   T g<T, U>(T a, U b) => a;
+//  ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 15, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -87,16 +87,15 @@ FunctionDeclarationStatement
   }
 
   test_generic_fBounded() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T extends U, U, V extends U>(T x, U y, V z) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -177,16 +176,15 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>({T? a}) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -234,16 +232,15 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalPositional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>([T? a]) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -291,16 +288,15 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>({required T? a}) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -349,16 +345,15 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredPositional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>(T a) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -403,16 +398,15 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   g() {}
+//^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 13, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -436,16 +430,15 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   g() => 0;
+//^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 13, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration

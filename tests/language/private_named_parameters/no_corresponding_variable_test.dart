@@ -5,8 +5,6 @@
 /// A private named parameter must refer to an instance variable with the same
 /// private name.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 class C {
   C({this._unknown});
   // ^^^^^^^^^^^^^

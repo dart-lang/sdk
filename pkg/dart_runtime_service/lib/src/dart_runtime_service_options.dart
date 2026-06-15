@@ -13,6 +13,9 @@ class DartRuntimeServiceOptions {
     this.disableOriginCheck = false,
     this.sseHandlerPath,
     this.autoStart = true,
+    this.serveDevTools = false,
+    this.enableServicePortFallback = false,
+    this.host,
   });
 
   /// If true, enables log output for the service.
@@ -43,6 +46,18 @@ class DartRuntimeServiceOptions {
   /// If true, the HTTP server will be started on initialization.
   final bool autoStart;
 
+  /// If true, Dart DevTools should be made available via the HTTP server.
+  final bool serveDevTools;
+
+  /// If true, the service should attempt to bind to a different port if [port]
+  /// is unavailable.
+  final bool enableServicePortFallback;
+
+  /// The host the service should attempt to bind to.
+  ///
+  /// If null, defaults to loopback IPv4 address.
+  final String? host;
+
   DartRuntimeServiceOptions copyWith({
     bool? enableLogging,
     int? port,
@@ -50,6 +65,9 @@ class DartRuntimeServiceOptions {
     bool? disableOriginCheck,
     String? sseHandlerPath,
     bool? autoStart,
+    bool? serveDevTools,
+    bool? enableServicePortFallback,
+    String? host,
   }) {
     return DartRuntimeServiceOptions(
       enableLogging: enableLogging ?? this.enableLogging,
@@ -58,6 +76,10 @@ class DartRuntimeServiceOptions {
       disableOriginCheck: disableOriginCheck ?? this.disableOriginCheck,
       sseHandlerPath: sseHandlerPath ?? this.sseHandlerPath,
       autoStart: autoStart ?? this.autoStart,
+      serveDevTools: serveDevTools ?? this.serveDevTools,
+      enableServicePortFallback:
+          enableServicePortFallback ?? this.enableServicePortFallback,
+      host: host ?? this.host,
     );
   }
 }

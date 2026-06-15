@@ -7,23 +7,14 @@ import 'dart:mirrors';
 import 'package:analysis_server/src/protocol_server.dart'
     hide DiagnosticMessage, Enum;
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/source/line_info.dart' as engine;
-import 'package:analyzer/source/source.dart' as engine;
-import 'package:analyzer/src/dart/analysis/results.dart' as engine;
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as engine;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'abstract_context.dart';
 import 'constants.dart';
-import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -33,75 +24,52 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisErrorTest {
-  late MockSource source;
-  late MockDiagnostic engineDiagnostic;
-  late ResolvedUnitResult result;
+class AnalysisErrorTest extends AbstractContextTest {
+  void test_fromEngine_hasContextMessage() async {
+    var content = r'''
+void f() {
+  print(x);
+  var x = 1;
+}
+''';
+    var normalizedContent = normalizeSource(content);
+    var file = newFile('$testPackageLibPath/foo.dart', content);
+    var result = await getResolvedUnit(file);
 
-  void setUp() {
-    // prepare Source
-    source = MockSource(fullName: 'foo.dart');
-    // prepare AnalysisError
-    engineDiagnostic = MockDiagnostic(
-      source: source,
-      diagnosticCode: diag.ambiguousExport,
-      offset: 10,
-      length: 20,
-      message: 'my message',
+    var engineDiagnostic = result.diagnostics.firstWhere(
+      (d) => d.diagnosticCode == diag.referencedBeforeDeclaration,
     );
-    // prepare ResolvedUnitResult
-    var lineInfo = engine.LineInfo([0, 5, 9, 20]);
-    result = _ResolvedUnitResultImplMock(
-      lineInfo: lineInfo,
-      diagnostics: [engineDiagnostic],
-      path: 'foo.dart',
-    );
-  }
 
-  void test_fromEngine_hasContextMessage() {
-    engineDiagnostic.contextMessages.add(
-      engine.DiagnosticMessageImpl(
-        filePath: 'bar.dart',
-        offset: 30,
-        length: 5,
-        message: 'context',
-        url: null,
-      ),
-    );
-    var error = newAnalysisError_fromEngine(
-      _ResolvedUnitResultImplMock(
-        lineInfo: engine.LineInfo([0, 5, 9, 20]),
-        diagnostics: [engineDiagnostic],
-        path: 'bar.dart',
-      ),
-      engineDiagnostic,
-    );
+    var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       severityKey: 'ERROR',
       typeKey: 'COMPILE_TIME_ERROR',
       locationKey: {
-        fileKey: 'foo.dart',
-        offsetKey: 10,
-        lengthKey: 20,
-        startLineKey: 3,
-        startColumnKey: 2,
-        endLineKey: 4,
-        endColumnKey: 11,
+        fileKey: file.path,
+        offsetKey: normalizedContent.indexOf('x'),
+        lengthKey: 1,
+        startLineKey: 2,
+        startColumnKey: 9,
+        endLineKey: 2,
+        endColumnKey: 10,
       },
-      messageKey: 'my message',
-      codeKey: 'ambiguous_export',
-      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      messageKey:
+          "Local variable 'x' can't be referenced before it is declared.",
+      correctionKey:
+          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      codeKey: 'referenced_before_declaration',
+      urlKey: 'https://dart.dev/diagnostics/referenced_before_declaration',
       contextReferencesKey: [
         {
-          messageKey: 'context',
+          messageKey: "The declaration of 'x' is here.",
           locationKey: {
-            fileKey: 'bar.dart',
-            offsetKey: 30,
-            lengthKey: 5,
-            startLineKey: 4,
-            startColumnKey: 11,
-            endLineKey: 4,
-            endColumnKey: 16,
+            fileKey: file.path,
+            offsetKey: normalizedContent.indexOf('x = 1'),
+            lengthKey: 1,
+            startLineKey: 3,
+            startColumnKey: 7,
+            endLineKey: 3,
+            endColumnKey: 8,
           },
         },
       ],
@@ -109,122 +77,160 @@ class AnalysisErrorTest {
     });
   }
 
-  void test_fromEngine_hasCorrection() {
-    engineDiagnostic = MockDiagnostic(
-      source: source,
-      diagnosticCode: diag.ambiguousExport,
-      offset: 10,
-      length: 20,
-      message: 'my message',
-      correctionMessage: 'my correction',
+  void test_fromEngine_hasCorrection() async {
+    newFile('$testPackageLibPath/lib1.dart', 'class N {}\n');
+    newFile('$testPackageLibPath/lib2.dart', 'class N {}\n');
+    var content = r'''
+export 'lib1.dart';
+export 'lib2.dart';
+''';
+    var normalizedContent = normalizeSource(content);
+    var file = newFile('$testPackageLibPath/foo.dart', content);
+    var result = await getResolvedUnit(file);
+
+    var engineDiagnostic = result.diagnostics.firstWhere(
+      (d) => d.diagnosticCode == diag.ambiguousExport,
     );
+
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       severityKey: 'ERROR',
       typeKey: 'COMPILE_TIME_ERROR',
       locationKey: {
-        fileKey: 'foo.dart',
-        offsetKey: 10,
-        lengthKey: 20,
-        startLineKey: 3,
-        startColumnKey: 2,
-        endLineKey: 4,
-        endColumnKey: 11,
+        fileKey: file.path,
+        offsetKey: normalizedContent.indexOf("'lib2.dart'"),
+        lengthKey: 11,
+        startLineKey: 2,
+        startColumnKey: 8,
+        endLineKey: 2,
+        endColumnKey: 19,
       },
-      messageKey: 'my message',
-      correctionKey: 'my correction',
+      messageKey: engineDiagnostic.message,
+      correctionKey:
+          'Try removing the export of one of the libraries, or explicitly hiding the name in one of the export directives.',
       codeKey: 'ambiguous_export',
       urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
       hasFixKey: false,
     });
   }
 
-  void test_fromEngine_hasUrl() {
-    engineDiagnostic = MockDiagnostic(
-      source: source,
-      diagnosticCode: MockDiagnosticCode(
-        url: 'http://codes.dartlang.org/TEST_ERROR',
-      ),
-      offset: 10,
-      length: 20,
-      message: 'my message',
+  void test_fromEngine_hasUrl() async {
+    var content = r'''
+void f() {
+  print(x);
+  var x = 1;
+}
+''';
+    var normalizedContent = normalizeSource(content);
+    var file = newFile('$testPackageLibPath/foo.dart', content);
+    var result = await getResolvedUnit(file);
+
+    var engineDiagnostic = result.diagnostics.firstWhere(
+      (d) => d.diagnosticCode == diag.referencedBeforeDeclaration,
     );
+
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       severityKey: 'ERROR',
       typeKey: 'COMPILE_TIME_ERROR',
       locationKey: {
-        fileKey: 'foo.dart',
-        offsetKey: 10,
-        lengthKey: 20,
-        startLineKey: 3,
-        startColumnKey: 2,
-        endLineKey: 4,
-        endColumnKey: 11,
+        fileKey: file.path,
+        offsetKey: normalizedContent.indexOf('x'),
+        lengthKey: 1,
+        startLineKey: 2,
+        startColumnKey: 9,
+        endLineKey: 2,
+        endColumnKey: 10,
       },
-      messageKey: 'my message',
-      codeKey: 'test_error',
-      urlKey: 'http://codes.dartlang.org/TEST_ERROR',
+      messageKey:
+          "Local variable 'x' can't be referenced before it is declared.",
+      correctionKey:
+          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      codeKey: 'referenced_before_declaration',
+      urlKey: 'https://dart.dev/diagnostics/referenced_before_declaration',
+      contextReferencesKey: [
+        {
+          messageKey: "The declaration of 'x' is here.",
+          locationKey: {
+            fileKey: file.path,
+            offsetKey: normalizedContent.indexOf('x = 1'),
+            lengthKey: 1,
+            startLineKey: 3,
+            startColumnKey: 7,
+            endLineKey: 3,
+            endColumnKey: 8,
+          },
+        },
+      ],
       hasFixKey: false,
     });
   }
 
-  void test_fromEngine_lint() {
-    engineDiagnostic = MockDiagnostic(
-      source: source,
-      diagnosticCode: LintCode(
-        'my_lint',
-        'my message',
-        correctionMessage: 'correction',
-        uniqueName: 'LintCode.my_lint',
-      ),
-      offset: 10,
-      length: 20,
-      message: 'my message',
+  void test_fromEngine_lint() async {
+    createAnalysisOptionsFile(lints: ['avoid_print']);
+    var content = r'''
+void f() {
+  print('hello');
+}
+''';
+    var normalizedContent = normalizeSource(content);
+    var file = newFile('$testPackageLibPath/foo.dart', content);
+    var result = await getResolvedUnit(file);
+
+    var engineDiagnostic = result.diagnostics.firstWhere(
+      (d) => d.diagnosticCode.lowerCaseName == 'avoid_print',
     );
+
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
       severityKey: 'INFO',
       typeKey: 'LINT',
       locationKey: {
-        fileKey: 'foo.dart',
-        offsetKey: 10,
-        lengthKey: 20,
-        startLineKey: 3,
-        startColumnKey: 2,
-        endLineKey: 4,
-        endColumnKey: 11,
+        fileKey: file.path,
+        offsetKey: normalizedContent.indexOf('print'),
+        lengthKey: 5,
+        startLineKey: 2,
+        startColumnKey: 3,
+        endLineKey: 2,
+        endColumnKey: 8,
       },
-      messageKey: 'my message',
-      codeKey: 'my_lint',
+      messageKey: engineDiagnostic.message,
+      correctionKey: 'Try using a logging framework.',
+      codeKey: 'avoid_print',
+      urlKey: 'https://dart.dev/diagnostics/avoid_print',
       hasFixKey: false,
     });
   }
 
-  void test_fromEngine_noCorrection() {
-    engineDiagnostic = MockDiagnostic(
-      source: source,
-      diagnosticCode: diag.ambiguousExport,
-      offset: 10,
-      length: 20,
-      message: 'my message',
+  void test_fromEngine_noCorrection() async {
+    var content = r'''
+void f() {
+  // TODO: something
+}
+''';
+    var normalizedContent = normalizeSource(content);
+    var file = newFile('$testPackageLibPath/foo.dart', content);
+    var result = await getResolvedUnit(file);
+
+    var engineDiagnostic = result.diagnostics.firstWhere(
+      (d) => d.diagnosticCode.type == engine.DiagnosticType.TODO,
     );
+
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      severityKey: 'ERROR',
-      typeKey: 'COMPILE_TIME_ERROR',
+      severityKey: 'INFO',
+      typeKey: 'TODO',
       locationKey: {
-        fileKey: 'foo.dart',
-        offsetKey: 10,
-        lengthKey: 20,
-        startLineKey: 3,
-        startColumnKey: 2,
-        endLineKey: 4,
-        endColumnKey: 11,
+        fileKey: file.path,
+        offsetKey: normalizedContent.indexOf('TODO'),
+        lengthKey: 15,
+        startLineKey: 2,
+        startColumnKey: 6,
+        endLineKey: 2,
+        endColumnKey: 21,
       },
-      messageKey: 'my message',
-      codeKey: 'ambiguous_export',
-      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      messageKey: engineDiagnostic.message,
+      codeKey: 'todo',
       hasFixKey: false,
     });
   }
@@ -331,140 +337,8 @@ class EnumTester<EngineEnum, ApiEnum> {
       } else {
         var apiValue = convert(engineValue);
         expect((apiValue as Enum).name, equals(enumName));
+        expect((apiValue as Enum).name, equals(engineValue.toString()));
       }
     });
   }
-}
-
-class MockDiagnostic implements engine.Diagnostic {
-  final MockSource? _source;
-  final engine.DiagnosticCode? _diagnosticCode;
-  final int? _offset;
-  final int? _length;
-  final String? _message;
-
-  final DiagnosticMessage? _problemMessage;
-  final String? _correctionMessage;
-
-  @override
-  List<DiagnosticMessage> contextMessages = <DiagnosticMessage>[];
-
-  MockDiagnostic({
-    this._source,
-    this._diagnosticCode,
-    this._offset,
-    this._length,
-    this._message,
-    this._problemMessage,
-    this._correctionMessage,
-  });
-
-  @override
-  String? get correction => null;
-
-  @override
-  String? get correctionMessage => _correctionMessage;
-
-  @override
-  engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;
-
-  @override
-  engine.DiagnosticCode get errorCode => diagnosticCode;
-
-  @override
-  int get length => _length!;
-
-  @override
-  String get message => _message!;
-
-  @override
-  int get offset => _offset!;
-
-  @override
-  DiagnosticMessage get problemMessage => _problemMessage!;
-
-  @override
-  Severity get severity => throw UnimplementedError();
-
-  @override
-  engine.Source get source => _source!;
-}
-
-class MockDiagnosticCode implements engine.DiagnosticCode {
-  @override
-  engine.DiagnosticType type;
-
-  @override
-  engine.DiagnosticSeverity severity;
-
-  @override
-  String lowerCaseName;
-
-  @override
-  String? url;
-
-  MockDiagnosticCode({
-    this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
-    this.severity = engine.DiagnosticSeverity.ERROR,
-    this.lowerCaseName = 'test_error',
-    this.url,
-  });
-
-  @override
-  String get correctionMessage {
-    throw StateError('Unexpected invocation of correctionMessage');
-  }
-
-  @override
-  bool get hasPublishedDocs => false;
-
-  @override
-  bool get isIgnorable => true;
-
-  @override
-  bool get isUnresolvedIdentifier => false;
-
-  @override
-  String get lowerCaseUniqueName {
-    throw StateError('Unexpected invocation of lowerCaseUniqueName');
-  }
-
-  @override
-  String get problemMessage {
-    throw StateError('Unexpected invocation of problemMessage');
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _AnalysisSessionMock implements engine.AnalysisSession {
-  @override
-  SomeFileResult getFile(String path) => InvalidPathResult();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
-  @override
-  final engine.LineInfo lineInfo;
-
-  @override
-  final List<engine.Diagnostic> diagnostics;
-
-  @override
-  final String path;
-
-  @override
-  final session = _AnalysisSessionMock();
-
-  _ResolvedUnitResultImplMock({
-    required this.lineInfo,
-    required this.diagnostics,
-    required this.path,
-  });
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

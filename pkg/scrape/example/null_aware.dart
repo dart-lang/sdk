@@ -179,7 +179,8 @@ class NullVisitor extends ScrapeVisitor {
 
     if (parent is ConditionalExpression && parent.condition == node) {
       recordType(
-          "Condition in conditional expression 'foo?.bar() ? baz : bang");
+        "Condition in conditional expression 'foo?.bar() ? baz : bang",
+      );
       return;
     }
 
@@ -208,7 +209,7 @@ class NullVisitor extends ScrapeVisitor {
       return;
     }
 
-    if (parent is NamedExpression) {
+    if (parent is NamedArgument) {
       recordType("Named argument 'fn(name: foo?.bar())'");
       return;
     }

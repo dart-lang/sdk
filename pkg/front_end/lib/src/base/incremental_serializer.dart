@@ -352,7 +352,7 @@ class SerializationGroup {
   Set<SerializationGroup>? dependencies;
   Set<SerializationGroup>? othersDependingOnMe;
 
-  SerializationGroup(this.serializedData, this.uris);
+  new(this.serializedData, this.uris);
 
   /// Register the dependency that this group depends on the [other] one.
   /// The registration is bilateral so that [other] is added as a dependency for

@@ -6,6 +6,9 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 /// Matchers for data types defined in the analysis server API.
 library;
 

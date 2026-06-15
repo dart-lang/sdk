@@ -2,32 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MapPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case {0: String a}:
+//                  ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -54,18 +54,17 @@ MapPattern
   }
 
   test_matchDynamic_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case {0: var a}:
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 44, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -89,18 +88,17 @@ MapPattern
   }
 
   test_matchDynamic_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case <int, String>{0: var a}:
+//                            ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
       break;
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 57, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -136,15 +134,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_empty() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {}) {}
+//           ^^
+// [diag.emptyMapPattern] A map pattern must have at least one entry.
 }
-''',
-      [error(diag.emptyMapPattern, 42, 2)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -155,15 +152,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_first() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: ''}) {}
+//            ^^^
+// [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
-''',
-      [error(diag.restElementInMapPattern, 43, 3)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -186,15 +182,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_last() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
+//                   ^^^
+// [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
-''',
-      [error(diag.restElementInMapPattern, 50, 3)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -217,18 +212,16 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_multiple() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: '', ...}) {}
+//            ^^^
+// [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
+//                        ^^^
+// [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
-''',
-      [
-        error(diag.restElementInMapPattern, 43, 3),
-        error(diag.restElementInMapPattern, 55, 3),
-      ],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -253,18 +246,16 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_withPattern() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...var rest}) {}
+//                   ^^^^^^^^^^^
+// [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
+//                          ^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'rest' isn't used.
 }
-''',
-      [
-        error(diag.restElementInMapPattern, 50, 11),
-        error(diag.unusedLocalVariable, 57, 4),
-      ],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -294,15 +285,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: var a}) {}
+//                   ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 50, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -326,15 +316,14 @@ MapPattern
   }
 
   test_matchMap_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
+//                                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 62, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -370,12 +359,12 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_constant() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: 0}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -397,15 +386,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_empty() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {}) {}
+//           ^^
+// [diag.emptyMapPattern] A map pattern must have at least one entry.
 }
-''',
-      [error(diag.emptyMapPattern, 32, 2)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -416,15 +404,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: int a}) {}
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 43, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -451,15 +438,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: var a}) {}
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 43, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -483,12 +469,12 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_constant() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case <bool, int>{true: 0}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -522,15 +508,14 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
+//                                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 1)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -566,15 +551,14 @@ MapPattern
   }
 
   test_rewrite_key() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
+//            ^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
 }
-''',
-      [error(diag.nonConstantMapPatternKey, 45, 3)],
-    );
-    var node = findNode.singleGuardedPattern.pattern;
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -604,15 +588,14 @@ MapPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<bool, int> x) {
   var {true: a} = x;
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 40, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclaration;
+''');
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -643,17 +626,16 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var <bool, int>{true: a} = g();
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 35, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclaration;
+''');
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -704,17 +686,16 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withVariableType() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var {true: int a} = g();
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 28, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclaration;
+''');
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

@@ -74,7 +74,7 @@ class ForInLowering {
       //   }
       final valueVariable = stmt.variable;
 
-      final streamVariable = new VariableDeclaration(
+      final streamVariable = new Variable(
         ForInVariables.stream,
         initializer: stmt.iterable,
         type: stmt.iterable.getStaticType(staticTypeContext),
@@ -86,7 +86,7 @@ class ForInLowering {
         staticTypeContext.nullable,
         [valueVariable.type],
       );
-      final forIteratorVariable = VariableDeclaration(
+      final forIteratorVariable = Variable(
         ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
@@ -124,7 +124,7 @@ class ForInLowering {
 
         // let _ = asyncStarMoveNextCall in (condition)
         whileCondition = new Let(
-          new VariableDeclaration(
+          new Variable(
             null,
             initializer: asyncStarMoveNextCall,
             isSynthesized: true,
@@ -143,7 +143,13 @@ class ForInLowering {
       )..fileOffset = stmt.bodyOffset;
       valueVariable.initializer!.parent = valueVariable;
 
-      final whileBody = new Block(<Statement>[valueVariable, stmt.body]);
+      final whileBody = new Block(<Statement>[
+        new VariableStatement(
+          VariableDeclaration(valueVariable)
+            ..fileOffset = valueVariable.fileOffset,
+        )..fileOffset = valueVariable.fileOffset,
+        stmt.body,
+      ]);
       final tryBody = new WhileStatement(whileCondition, whileBody)
         ..fileOffset = stmt.fileOffset;
 
@@ -182,8 +188,14 @@ class ForInLowering {
       final tryFinally = new TryFinally(tryBody, tryFinalizer);
 
       final block = new Block(<Statement>[
-        streamVariable,
-        forIteratorVariable,
+        new VariableStatement(
+          VariableDeclaration(streamVariable)
+            ..fileOffset = streamVariable.fileOffset,
+        )..fileOffset = streamVariable.fileOffset,
+        new VariableStatement(
+          VariableDeclaration(forIteratorVariable)
+            ..fileOffset = forIteratorVariable.fileOffset,
+        )..fileOffset = forIteratorVariable.fileOffset,
         tryFinally,
       ]);
       return block;
@@ -265,22 +277,28 @@ class ForInLowering {
 
     final syncForLoopVariableInitialization =
         _ensureSyncForLoopVariableInitialization(
-          variable: stmt.expressionVariable,
+          variable: stmt.variable,
           initializer: syncForLoopVariableInitializer,
         );
 
-    final Block body = Block([syncForLoopVariableInitialization, stmt.body])
-      ..fileOffset = stmt.bodyOffset;
+    final Block body = Block([
+      syncForLoopVariableInitialization
+        ..fileOffset = syncForLoopVariableInitialization.fileOffset,
+      stmt.body,
+    ])..fileOffset = stmt.bodyOffset;
 
     final forStatement = ForStatement([], condition, [], body)
       ..scope = stmt.scope
       ..fileOffset = stmt.fileOffset;
 
-    return Block([syncForIteratorVariableInitialization, forStatement]);
+    return Block([
+      syncForIteratorVariableInitialization
+        ..fileOffset = syncForIteratorVariableInitialization.fileOffset,
+      forStatement,
+    ]);
   }
 
-  (VariableDeclaration, VariableInitializationBase)
-  _createSyncForIteratorVariableAndInitialization({
+  (Variable, Statement) _createSyncForIteratorVariableAndInitialization({
     required Expression initializer,
     required DartType type,
     required int fileOffset,
@@ -289,35 +307,43 @@ class ForInLowering {
       final variable = SyntheticVariable(
         cosmeticName: ForInVariables.syncForIterator,
         type: type,
-      );
-      final initialization = VariableInitializationBase(
-        variable: variable,
         initializer: initializer,
       );
+      final initialization = VariableStatement(
+        VariableDeclaration(variable)..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
       return (variable, initialization);
     } else {
-      final variableAndInitialization = VariableDeclaration(
+      final variableAndInitialization = Variable(
         ForInVariables.syncForIterator,
         initializer: initializer,
         type: type,
         isSynthesized: true,
       )..fileOffset = fileOffset;
-      return (variableAndInitialization, variableAndInitialization);
+      return (
+        variableAndInitialization,
+        VariableStatement(
+          VariableDeclaration(variableAndInitialization)
+            ..fileOffset = fileOffset,
+        )..fileOffset = fileOffset,
+      );
     }
   }
 
-  VariableInitializationBase _ensureSyncForLoopVariableInitialization({
-    required VariableDeclaration variable,
+  Statement _ensureSyncForLoopVariableInitialization({
+    required Variable variable,
     required Expression initializer,
   }) {
+    initializer.parent = variable;
+    variable..initializer = initializer;
     if (isClosureContextLoweringEnabled) {
-      return VariableInitializationBase(
-        variable: variable,
-        initializer: initializer,
-      );
+      return VariableStatement(
+        VariableDeclaration(variable)..fileOffset = variable.fileOffset,
+      )..fileOffset = variable.fileOffset;
     } else {
-      initializer.parent = variable;
-      return variable..initializer = initializer;
+      return VariableStatement(
+        VariableDeclaration(variable)..fileOffset = variable.fileOffset,
+      )..fileOffset = variable.fileOffset;
     }
   }
 }

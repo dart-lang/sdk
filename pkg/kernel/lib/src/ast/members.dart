@@ -49,7 +49,7 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, this.fileUri, Reference? reference) : super(reference);
+  new(this.name, this.fileUri, Reference? reference) : super(reference);
 
   /// The enclosing [TypeDeclaration] if this member a class member or an
   /// abstract extension type member.
@@ -264,7 +264,7 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member {
+class Field extends Member implements ScopeProvider {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression? initializer; // May be null.
@@ -291,7 +291,10 @@ class Field extends Member {
   /// in the field values of [InstanceConstant].
   Reference get fieldReference => super.reference;
 
-  Field.mutable(
+  @override
+  Scope? scope;
+
+  new mutable(
     Name name, {
     this.type = const DynamicType(),
     this.initializer,
@@ -317,7 +320,7 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(
+  new immutable(
     Name name, {
     this.type = const DynamicType(),
     this.initializer,
@@ -579,7 +582,7 @@ class Constructor extends Member {
 
   List<Initializer> initializers;
 
-  Constructor(
+  new(
     this.function, {
     required Name name,
     bool isConst = false,
@@ -971,7 +974,7 @@ class Procedure extends Member implements GenericFunction {
   /// being null.
   FunctionType? signatureType;
 
-  Procedure(
+  new(
     Name name,
     ProcedureKind kind,
     FunctionNode function, {
@@ -1008,7 +1011,7 @@ class Procedure extends Member implements GenericFunction {
          ),
        );
 
-  Procedure._byReferenceRenamed(
+  new _byReferenceRenamed(
     Name name,
     this.kind,
     this.function, {
@@ -1089,6 +1092,7 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagExtensionTypeMember = 1 << 7;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 8;
   static const int FlagErroneous = 1 << 9;
+  static const int FlagHasExternalEffectPragma = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -1240,6 +1244,14 @@ class Procedure extends Member implements GenericFunction {
         : (flags & ~FlagHasWeakTearoffReferencePragma);
   }
 
+  bool get hasExternalEffectPragma => flags & FlagHasExternalEffectPragma != 0;
+
+  void set hasExternalEffectPragma(bool value) {
+    flags = value
+        ? (flags | FlagHasExternalEffectPragma)
+        : (flags & ~FlagHasExternalEffectPragma);
+  }
+
   @override
   bool get isErroneous => flags & FlagErroneous != 0;
 
@@ -1359,15 +1371,15 @@ class RedirectingFactoryTarget {
   /// otherwise.
   final String? errorMessage;
 
-  RedirectingFactoryTarget(Member target, List<DartType> typeArguments)
+  new(Member target, List<DartType> typeArguments)
     : this.byReference(target.reference, typeArguments);
 
-  RedirectingFactoryTarget.byReference(
+  new byReference(
     Reference this.targetReference,
     List<DartType> this.typeArguments,
   ) : errorMessage = null;
 
-  RedirectingFactoryTarget.error(String this.errorMessage)
+  new error(String this.errorMessage)
     : targetReference = null,
       typeArguments = null;
 

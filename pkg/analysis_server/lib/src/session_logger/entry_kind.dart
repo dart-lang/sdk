@@ -30,8 +30,8 @@ enum EntryKind {
   final String name;
 
   /// Creates a new kind with the given [name].
-  const EntryKind(this.name);
+  new(this.name);
 
   /// Returns the kind with the given [name].
-  factory EntryKind.forName(String name) => _nameMap[name]!;
+  factory forName(String name) => _nameMap[name]!;
 }

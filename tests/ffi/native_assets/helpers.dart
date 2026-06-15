@@ -134,7 +134,9 @@ enum KernelCombine { source, concatenation }
 
 enum Runtime { aot, appjit, jit }
 
-enum AotCompile { assembly, elf }
+enum AotCompile { assembly, elf, macho }
+
+final defaultAotCompile = Platform.isMacOS ? AotCompile.macho : AotCompile.elf;
 
 Future<void> runGenKernel({
   required Runtime runtime,
@@ -232,6 +234,16 @@ Future<void> runGenSnapshot({
         arguments: [
           '--snapshot-kind=app-aot-elf',
           '--elf=${outputUri.toFilePath()}',
+          '--strip',
+          dillUri.toFilePath(),
+        ],
+      );
+    case AotCompile.macho:
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=${outputUri.toFilePath()}',
           '--strip',
           dillUri.toFilePath(),
         ],
@@ -349,7 +361,7 @@ Future<void> compileAndRun({
   required Runtime runtime,
   required KernelCombine kernelCombine,
   required bool protobufAwareTreeshaking,
-  AotCompile aotCompile = AotCompile.elf,
+  AotCompile? aotCompile,
   required List<String> runArguments,
   bool useSymlink = false,
 }) async {
@@ -374,7 +386,7 @@ Future<void> compileAndRun({
         tempUri: tempUri,
         dillUri: outDillUri,
         outputUri: snapshotUri,
-        aotCompile: aotCompile,
+        aotCompile: aotCompile ?? defaultAotCompile,
       );
       if (useSymlink) {
         await withTempDir(prefix: 'link dir', (tempDir) async {
@@ -454,7 +466,7 @@ Future<void> invokeSelf({
   required String nativeAssetsYaml,
   Runtime runtime = Runtime.jit,
   KernelCombine kernelCombine = KernelCombine.source,
-  AotCompile aotCompile = AotCompile.elf,
+  AotCompile? aotCompile,
   bool protobufAwareTreeshaking = false,
 }) async {
   await withTempDir((Uri tempUri) async {
@@ -465,7 +477,7 @@ Future<void> invokeSelf({
       runtime: runtime,
       kernelCombine: kernelCombine,
       protobufAwareTreeshaking: protobufAwareTreeshaking,
-      aotCompile: aotCompile,
+      aotCompile: aotCompile ?? defaultAotCompile,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, 'done'].join(' '));

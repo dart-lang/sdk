@@ -17,7 +17,7 @@ typedef StaticOptions =
 
 class SelectionRangeHandler
     extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
-  SelectionRangeHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_selectionRange;
 
@@ -91,7 +91,7 @@ class SelectionRangeHandler
 
 class SelectionRangeRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  SelectionRangeRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

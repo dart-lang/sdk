@@ -22,7 +22,7 @@ part of "dart:core";
 /// ```
 @pragma("vm:entry-point")
 final class Null {
-  factory Null._uninstantiable() {
+  factory _uninstantiable() {
     throw UnsupportedError('class Null cannot be instantiated');
   }
 

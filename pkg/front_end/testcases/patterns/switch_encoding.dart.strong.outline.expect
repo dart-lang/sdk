@@ -15,13 +15,13 @@ class E extends core::_Enum /*isEnum*/  {
 }
 class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {
   final field core::int field;
-  const constructor •(core::int field) → self::PrimitiveEquals
+  const constructor •(initializing-formal core::int field) → self::PrimitiveEquals
     : self::PrimitiveEquals::field = field, super core::Object::•()
     ;
 }
 class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
   final field core::int field;
-  const constructor •(core::int field) → self::NonPrimitiveEquals
+  const constructor •(initializing-formal core::int field) → self::NonPrimitiveEquals
     : self::NonPrimitiveEquals::field = field, super core::Object::•()
     ;
   get hashCode() → core::int

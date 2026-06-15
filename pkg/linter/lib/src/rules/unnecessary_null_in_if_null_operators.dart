@@ -17,7 +17,7 @@ import '../extensions.dart';
 const _desc = r'Avoid using `null` in `??` operators.';
 
 class UnnecessaryNullInIfNullOperators extends AnalysisRule {
-  UnnecessaryNullInIfNullOperators()
+  new()
     : super(
         name: LintNames.unnecessary_null_in_if_null_operators,
         description: _desc,
@@ -39,7 +39,7 @@ class UnnecessaryNullInIfNullOperators extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {

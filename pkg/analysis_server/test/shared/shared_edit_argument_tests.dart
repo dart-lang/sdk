@@ -307,6 +307,56 @@ mixin SharedEditArgumentTests
     );
   }
 
+  Future<void> test_primaryConstructor_addArg() async {
+    var content = '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''';
+    var expectedContent = '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyWidget(1, y: 2);
+}
+''';
+    await _expectArgumentEdit(
+      content,
+      ArgumentEdit(name: 'y', newValue: 2),
+      expectedContent,
+    );
+  }
+
+  Future<void> test_primaryConstructor_editArg() async {
+    var content = '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyW^idget(1, y: 1);
+}
+''';
+    var expectedContent = '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/widgets.dart';
+
+class MyWidget(int x, {int? y}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyWidget(1, y: 2);
+}
+''';
+    await _expectArgumentEdit(
+      content,
+      ArgumentEdit(name: 'y', newValue: 2),
+      expectedContent,
+    );
+  }
+
   Future<void> test_requiredPositional_addAfterNamed() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectSimpleArgumentEdit(

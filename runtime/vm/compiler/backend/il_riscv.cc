@@ -1367,7 +1367,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
   // Pass a pointer to the first argument in R2.
-  __ AddImmediate(T2, SP, (ArgumentCount() - 1) * kWordSize);
+  __ AddImmediate(S8, SP, (ArgumentCount() - 1) * kWordSize);
 
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -1629,7 +1629,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The dummy return address is in RA, no need to pop it as on Intel.
 
   // These can be anything besides the return registers (A0, A1) and THR (S1).
-  const Register vm_tag_reg = T2;
+  const Register vm_tag_reg = S8;
   const Register old_exit_frame_reg = T3;
   const Register old_exit_through_ffi_reg = T4;
   const Register tmp = T5;
@@ -2067,7 +2067,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(rep == kTagged);
     ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
-           (class_id() == kTypeArgumentsCid) || (class_id() == kRecordCid));
+           (class_id() == kTypeArgumentsCid) || (class_id() == kClosureCid) ||
+           (class_id() == kRecordCid));
     const Register result = locs()->out(0).reg();
     __ Load(result, element_address);
   }
@@ -2946,10 +2947,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_array_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(source(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateArray(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
   __ Bind(&done);
@@ -2964,7 +2962,7 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   locs->set_temp(0, Location::RegisterLocation(T1));
-  locs->set_temp(1, Location::RegisterLocation(T2));
+  locs->set_temp(1, Location::RegisterLocation(S8));
   locs->set_temp(2, Location::RegisterLocation(T3));
   locs->set_out(0, Location::RegisterLocation(A0));
   return locs;
@@ -2990,12 +2988,9 @@ class AllocateContextSlowPath
         instruction(), /*num_slow_path_args=*/0);
     ASSERT(slow_path_env != nullptr);
 
-    auto object_store = compiler->isolate_group()->object_store();
-    const auto& allocate_context_stub = Code::ZoneHandle(
-        compiler->zone(), object_store->allocate_context_stub());
-
     __ LoadImmediate(T1, instruction()->num_context_variables());
-    compiler->GenerateStubCall(instruction()->source(), allocate_context_stub,
+    compiler->GenerateStubCall(instruction()->source(),
+                               StubCode::AllocateContext(),
                                UntaggedPcDescriptors::kOther, locs,
                                instruction()->deopt_id(), slow_path_env);
     ASSERT(instruction()->locs()->out(0).reg() == A0);
@@ -3046,11 +3041,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == T1);
   ASSERT(locs()->out(0).reg() == A0);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(T1, num_context_variables());
-  compiler->GenerateStubCall(source(), allocate_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateContext(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
 }
@@ -3070,10 +3062,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == T5);
   ASSERT(locs()->out(0).reg() == A0);
 
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& clone_context_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
-  compiler->GenerateStubCall(source(), clone_context_stub,
+  compiler->GenerateStubCall(source(), StubCode::CloneContext(),
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id(), env());
 }
@@ -3169,13 +3158,10 @@ class CheckStackOverflowSlowPath
           __ TsanFuncEntry();
         }
       }
-      auto object_store = compiler->isolate_group()->object_store();
       const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
-      const auto& stub = Code::ZoneHandle(
-          compiler->zone(),
-          live_fpu_regs
-              ? object_store->stack_overflow_stub_with_fpu_regs_stub()
-              : object_store->stack_overflow_stub_without_fpu_regs_stub());
+      const auto& stub = live_fpu_regs
+                             ? StubCode::StackOverflowSharedWithFPURegs()
+                             : StubCode::StackOverflowSharedWithoutFPURegs();
 
       if (compiler->CanPcRelativeCall(stub)) {
         __ GenerateUnRelocatedPcRelativeCall();
@@ -4070,19 +4056,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
-  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
-  // replaced with isolate-specific stubs.
-  auto object_store = IsolateGroup::Current()->object_store();
-  const bool stubs_in_vm_isolate =
-      object_store->allocate_mint_with_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap() ||
-      object_store->allocate_mint_without_fpu_regs_stub()
-          ->untag()
-          ->InVMIsolateHeap();
-  const bool shared_slow_path_call =
-      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
+  const bool shared_slow_path_call = SlowPathSharingSupported(opt);
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone) LocationSummary(
@@ -4144,12 +4118,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
     }
-    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-    const auto& stub = Code::ZoneHandle(
-        compiler->zone(),
-        live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
-                      : object_store->allocate_mint_without_fpu_regs_stub());
+    const auto& stub = live_fpu_regs
+                           ? StubCode::AllocateMintSharedWithFPURegs()
+                           : StubCode::AllocateMintSharedWithoutFPURegs();
 
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));
@@ -4200,12 +4172,10 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ TsanFuncEntry();
       }
     }
-    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-    const auto& stub = Code::ZoneHandle(
-        compiler->zone(),
-        live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
-                      : object_store->allocate_mint_without_fpu_regs_stub());
+    const auto& stub = live_fpu_regs
+                           ? StubCode::AllocateMintSharedWithFPURegs()
+                           : StubCode::AllocateMintSharedWithoutFPURegs();
 
     ASSERT(!locs()->live_registers()->ContainsRegister(
         AllocateMintABI::kResultReg));
@@ -6932,22 +6902,20 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 2;
+  const intptr_t kNumTemps = 1;
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_temp(1, Location::RequiresRegister());
 
   return summary;
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register index_reg = locs()->in(0).reg();
-  Register target_address_reg = locs()->temp(0).reg();
-  Register offset_reg = locs()->temp(1).reg();
+  Register offset_reg = locs()->temp(0).reg();
 
   ASSERT(RequiredInputRepresentation(0) == kTagged);
   __ LoadObject(offset_reg, offsets_);
@@ -6961,9 +6929,9 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intx_t imm = -entry_offset;
   intx_t lo = ImmLo(imm);
   intx_t hi = ImmHi(imm);
-  __ auipc(target_address_reg, hi);
-  __ add(target_address_reg, target_address_reg, offset_reg);
-  __ jr(target_address_reg, lo);
+  __ auipc(FAR_TMP, hi);
+  __ add(FAR_TMP, FAR_TMP, offset_reg);
+  __ jr(FAR_TMP, lo);
 }
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,

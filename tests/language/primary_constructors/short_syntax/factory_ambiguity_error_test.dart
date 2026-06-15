@@ -5,8 +5,6 @@
 // `factory() => C();` is a factory constructor whose name is the name of the
 // enclosing class, and not a method.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C {
   final int x;
   C.named(this.x);
@@ -16,7 +14,7 @@ class C {
 void main() {
   var c = C.named(1);
   c.factory();
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [cfe] The method 'factory' isn't defined for the type 'C'.
 }

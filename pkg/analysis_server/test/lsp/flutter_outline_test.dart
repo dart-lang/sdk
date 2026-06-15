@@ -101,7 +101,7 @@ Widget build(BuildContext context) => Icon(Icons.alarm);
     var widgetsFilePath = driver.currentSession.uriConverter.uriToPath(
       Uri.parse(widgetsUri),
     )!;
-    var widgetsFileUri = Uri.file(widgetsFilePath);
+    var widgetsFileUri = toUri(widgetsFilePath);
 
     // We have to provide content to open a file so just read it.
     var widgetsFileContent =

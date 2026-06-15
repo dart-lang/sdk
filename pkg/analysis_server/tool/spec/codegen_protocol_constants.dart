@@ -58,7 +58,7 @@ Iterable<String> _split(String first) {
 /// A visitor that produces Dart code defining constants associated with the
 /// API.
 class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
-  _CodegenVisitor(super.api) {
+  new(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -77,6 +77,7 @@ class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
 
   /// Generate all of the constants associated with the [api].
   void generateConstants() {
+    writeln('// ignore: constant_identifier_names');
     writeln("const String PROTOCOL_VERSION = '${api.version}';");
     writeln();
     var visitor = _ConstantVisitor(api);
@@ -105,7 +106,7 @@ class _Constant {
   final String value;
 
   /// Initialize a newly created constant.
-  _Constant(this.name, this.value);
+  new(this.name, this.value);
 }
 
 /// A visitor that visits an API to compute a list of constants to be generated.
@@ -114,7 +115,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
   List<_Constant> constants = <_Constant>[];
 
   /// Initialize a newly created visitor to visit the given [api].
-  _ConstantVisitor(super.api);
+  new(super.api);
 
   @override
   void visitNotification(Notification notification) {

@@ -30,6 +30,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/internal_ast.dart';
 import 'source_library_builder.dart';
+import 'stack_listener_impl.dart';
 
 extension CheckHelper on ProblemReporting {
   InvalidExpression buildProblem({
@@ -182,7 +183,7 @@ extension CheckHelper on ProblemReporting {
     }
     if (function.namedParameters.isNotEmpty) {
       for (int i = 0; i < function.namedParameters.length; i++) {
-        VariableDeclaration parameter = function.namedParameters[i];
+        Variable parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name!)) {
           return diag.valueForRequiredParameterNotProvidedError
               .withArguments(parameterName: parameter.name!)
@@ -283,11 +284,15 @@ extension CheckHelper on ProblemReporting {
   void checkAsyncReturnType({
     required SourceLibraryBuilder libraryBuilder,
     required TypeEnvironment typeEnvironment,
-    required AsyncMarker asyncMarker,
-    required DartType returnType,
+    required AsyncModifier asyncModifier,
+    required DartType? returnType,
     required TypeBuilder returnTypeBuilder,
     required Uri fileUri,
   }) {
+    if (returnType == null) {
+      return;
+    }
+
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.
     // We use the same trick in each case below. For example to decide whether
@@ -297,7 +302,7 @@ extension CheckHelper on ProblemReporting {
 
     // We use [problem == null] to signal success.
     Message? problem;
-    switch (asyncMarker) {
+    switch (asyncModifier.kind) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
         if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
@@ -872,6 +877,7 @@ extension CheckHelper on ProblemReporting {
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
     if (offset == -1) {
+      // Coverage-ignore-block(suite): Not run.
       offset = message.charOffset;
     }
     return buildProblem(

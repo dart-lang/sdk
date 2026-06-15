@@ -25,10 +25,11 @@ class FunctionExpressionResolver {
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
     var parent = node.parent;
-    var isFunctionDeclaration = parent is FunctionDeclaration;
+    var isFunctionDeclaration = parent is FunctionDeclarationImpl;
     var body = node.body;
+    var isClosure = _resolver.flowAnalysis.isActive && !isFunctionDeclaration;
 
-    if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
+    if (isClosure) {
       var element = node.declaredFragment!.element;
       _resolver.flowAnalysis.executableDeclaration_enter(
         node,
@@ -64,7 +65,7 @@ class FunctionExpressionResolver {
     }
     _resolve2(node, imposedType);
 
-    if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
+    if (isClosure) {
       _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
       _resolver.flowAnalysis.flow?.functionExpression_end();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);

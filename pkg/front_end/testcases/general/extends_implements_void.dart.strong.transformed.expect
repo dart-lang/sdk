@@ -127,7 +127,7 @@ abstract class _C&Object&void extends core::Object /*isAnonymousMixin,hasConstCo
     ;
 }
 abstract class _G&_Enum&void extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_G&_Enum&void
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_G&_Enum&void
     : super core::_Enum::•(index, _name)
     ;
 }
@@ -136,7 +136,7 @@ extension type D(core::Object o) {
   constructor • = self::D|constructor#;
   constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
-static extension-type-member method D|constructor#(core::Object o) → self::D% /* erasure=core::Object, declared=! */ {
+static extension-type-member method D|constructor#(initializing-formal core::Object o) → self::D% /* erasure=core::Object, declared=! */ {
   lowered final self::D% /* erasure=core::Object, declared=! */ #this = o;
   return #this;
 }

@@ -318,3 +318,12 @@ argument type. It should be either `external` or return its argument (for backwa
 Compiler replaces `weakRef(foo)` expression with either `foo` if method `foo()` is used and retained during
 tree shaking, or `null` if `foo()` is only used through weak references.
 Target `foo` should be a constant tearoff of a static method without arguments.
+
+### Declaring an external effect method
+
+```dart
+@pragma('external-effect')
+external void effect(Object? o);
+```
+
+Declares a special static external method `effect` which the compiler will treat as live code when performing any analysis of the program. For example, a type referenced from this call that would otherwise be tree-shaken will no longer be tree-shaken. To reduce code size the call itself (and its arguments) are dropped in the compiled output though.

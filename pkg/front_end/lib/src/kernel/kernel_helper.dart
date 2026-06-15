@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/library_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -45,7 +46,7 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  DelayedDefaultValueCloner(
+  new(
     this.original,
     this.synthesized, {
     this.identicalSignatures = true,
@@ -142,9 +143,8 @@ class DelayedDefaultValueCloner {
         } else if (i < positionalSuperParameters.length) {
           int? superParameterIndex = positionalSuperParameters[i];
           if (superParameterIndex != null) {
-            VariableDeclaration originalParameter =
-                _original.positionalParameters[i];
-            VariableDeclaration synthesizedParameter =
+            Variable originalParameter = _original.positionalParameters[i];
+            Variable synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
@@ -182,10 +182,9 @@ class DelayedDefaultValueCloner {
           int? originalNamedParameterIndex =
               originalNamedParameterIndices[superParameterName];
           if (originalNamedParameterIndex != null) {
-            VariableDeclaration originalParameter =
+            Variable originalParameter =
                 _original.namedParameters[originalNamedParameterIndex];
-            VariableDeclaration synthesizedParameter =
-                _synthesized.namedParameters[i];
+            Variable synthesizedParameter = _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
               synthesizedParameter,
@@ -200,8 +199,7 @@ class DelayedDefaultValueCloner {
       }
     } else {
       for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        VariableDeclaration synthesizedParameter =
-            _synthesized.positionalParameters[i];
+        Variable synthesizedParameter = _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
           if (i >= _synthesized.requiredParameterCount) {
             if (i < _original.requiredParameterCount) {
@@ -233,15 +231,14 @@ class DelayedDefaultValueCloner {
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, VariableDeclaration> originalParameters = {};
+        Map<String, Variable> originalParameters = {};
         for (int i = 0; i < _original.namedParameters.length; i++) {
           originalParameters[_original.namedParameters[i].name!] =
               _original.namedParameters[i];
         }
         for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          VariableDeclaration synthesizedParameter =
-              _synthesized.namedParameters[i];
-          VariableDeclaration? originalParameter =
+          Variable synthesizedParameter = _synthesized.namedParameters[i];
+          Variable? originalParameter =
               originalParameters[synthesizedParameter.name!];
           if (originalParameter != null) {
             if (!originalParameter.isRequired &&
@@ -265,10 +262,7 @@ class DelayedDefaultValueCloner {
     _hasCloned = true;
   }
 
-  void _cloneInitializer(
-    VariableDeclaration originalParameter,
-    VariableDeclaration clonedParameter,
-  ) {
+  void _cloneInitializer(Variable originalParameter, Variable clonedParameter) {
     if (originalParameter.initializer != null) {
       CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
@@ -279,8 +273,8 @@ class DelayedDefaultValueCloner {
   }
 
   void _cloneDefaultValueForSuperParameters(
-    VariableDeclaration originalParameter,
-    VariableDeclaration synthesizedParameter,
+    Variable originalParameter,
+    Variable synthesizedParameter,
     TypeEnvironment typeEnvironment, {
     required bool isOptional,
   }) {
@@ -328,7 +322,7 @@ class TypeDependency {
   final bool copyReturnType;
   bool _hasBeenInferred = false;
 
-  TypeDependency(
+  new(
     this.synthesized,
     this.original,
     this.substitution, {
@@ -338,10 +332,9 @@ class TypeDependency {
   void copyInferred() {
     if (_hasBeenInferred) return;
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
+      Variable synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      VariableDeclaration originalParameter =
-          original.function!.positionalParameters[i];
+      Variable originalParameter = original.function!.positionalParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
@@ -351,10 +344,8 @@ class TypeDependency {
       }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
-      VariableDeclaration synthesizedParameter =
-          synthesized.function!.namedParameters[i];
-      VariableDeclaration originalParameter =
-          original.function!.namedParameters[i];
+      Variable synthesizedParameter = synthesized.function!.namedParameters[i];
+      Variable originalParameter = original.function!.namedParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
@@ -390,20 +381,20 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
 extension FunctionNodeExtension on FunctionNode {
   void registerFunctionBody(
     Statement body, {
-    AsyncMarker asyncMarker = AsyncMarker.Sync,
+    AsyncModifier asyncModifier = AsyncModifier.implicitSync,
     DartType? emittedValueType = null,
   }) {
     assert(
-      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      !(asyncModifier.kind == AsyncMarker.Sync && emittedValueType != null),
       "Unexpected emitted value type for sync function.",
     );
     assert(
-      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      !(asyncModifier.kind != AsyncMarker.Sync && emittedValueType == null),
       "Missing emitted value type for non-sync function.",
     );
     this.body = body..parent = this;
-    this.asyncMarker = asyncMarker;
-    this.dartAsyncMarker = asyncMarker;
+    this.asyncMarker = asyncModifier.kind;
+    this.dartAsyncMarker = asyncModifier.kind;
     this.emittedValueType = emittedValueType;
   }
 }

@@ -94,19 +94,26 @@ abstract class Folder implements Resource {
   void create();
 
   /// Return an existing child [Resource] with the given [relPath].
-  /// Return a not existing [File] if no such child exist.
+  ///
+  /// Return a non-existing [File] if no such child exists.
   Resource getChild(String relPath);
 
-  /// Return a [File] representing a child [Resource] with the given
-  /// [relPath].  This call does not check whether a file with the given name
-  /// exists on the filesystem - client must call the [File]'s `exists` getter
-  /// to determine whether the folder actually exists.
+  /// Return a [File] representing a child at the given [relPath].
+  ///
+  /// This call does not check whether a file exists at the given path; clients
+  /// must call the [File]'s `exists` getter to determine whether the file
+  /// actually exists. If a folder exists at the path, the returned [File]'s
+  /// `exists` getter returns `false`.
+  @Deprecated('Use getFile instead.')
   File getChildAssumingFile(String relPath);
 
-  /// Return a [Folder] representing a child [Resource] with the given
-  /// [relPath].  This call does not check whether a folder with the given name
-  /// exists on the filesystem--client must call the [Folder]'s `exists` getter
-  /// to determine whether the folder actually exists.
+  /// Return a [Folder] representing a child at the given [relPath].
+  ///
+  /// This call does not check whether a folder exists at the given path;
+  /// clients must call the [Folder]'s `exists` getter to determine whether the
+  /// folder actually exists. If a file exists at the path, the returned
+  /// [Folder]'s `exists` getter returns `false`.
+  @Deprecated('Use getFolder instead.')
   Folder getChildAssumingFolder(String relPath);
 
   /// Return a list of existing direct children [Resource]s (folders and files)
@@ -114,6 +121,22 @@ abstract class Folder implements Resource {
   ///
   /// On I/O errors, this will throw [FileSystemException].
   List<Resource> getChildren();
+
+  /// Return a [File] representing a child at the given [relPath].
+  ///
+  /// This call does not check whether a file exists at the given path; clients
+  /// must call the [File]'s `exists` getter to determine whether the file
+  /// actually exists. If a folder exists at the path, the returned [File]'s
+  /// `exists` getter returns `false`.
+  File getFile(String relPath);
+
+  /// Return a [Folder] representing a child at the given [relPath].
+  ///
+  /// This call does not check whether a folder exists at the given path;
+  /// clients must call the [Folder]'s `exists` getter to determine whether the
+  /// folder actually exists. If a file exists at the path, the returned
+  /// [Folder]'s `exists` getter returns `false`.
+  Folder getFolder(String relPath);
 
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).

@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::Class1
+  constructor •(initializing-formal core::int field) → self::Class1
     : self::Class1::field = field, super core::Object::•()
     ;
   static synthetic method _#new#tearOff(core::int field) → self::Class1
@@ -29,7 +29,7 @@ abstract class Interface2 extends core::Object {
 }
 class Class2 extends core::Object implements self::Interface2 {
   final field core::int field;
-  constructor •(core::int field) → self::Class2
+  constructor •(initializing-formal core::int field) → self::Class2
     : self::Class2::field = field, super core::Object::•()
     ;
   static synthetic method _#new#tearOff(core::int field) → self::Class2

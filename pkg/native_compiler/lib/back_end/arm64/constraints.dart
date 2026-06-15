@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
@@ -16,21 +17,21 @@ final class Arm64Constraints extends Constraints {
   // TODO: enable returning unboxed FP values on FP register.
   static const bool returnFPValuesOnFPRegister = false;
 
-  late final volatileRegisters = <Constraint>[
+  late final allRegisters = <Constraint>[
     ...getAllocatableRegisters(),
     ...getAllocatableFPRegisters(),
   ];
+  // TODO:add callee-save registers
+  late final volatileRegisters = allRegisters;
 
-  late final volatileRegistersExceptReturnReg = volatileRegisters
-      .where((r) => r != returnReg)
-      .toList();
-  late final volatileRegistersExceptFPReturnReg = volatileRegisters
-      .where((r) => r != returnFPReg)
-      .toList();
+  late final volatileRegistersExceptReturnReg = volatileRegistersExcept(
+    returnReg,
+  );
+  late final volatileRegistersExceptFPReturnReg = volatileRegistersExcept(
+    returnFPReg,
+  );
 
   List<Constraint?>? _parameters;
-
-  Arm64Constraints();
 
   @override
   int getNumberOfRegisters() => numberOfRegisters;
@@ -43,6 +44,19 @@ final class Arm64Constraints extends Constraints {
 
   @override
   List<FPRegister> getAllocatableFPRegisters() => allocatableFPRegisters;
+
+  List<Constraint> volatileRegistersExcept(PhysicalRegister reg) => [
+    for (final r in volatileRegisters)
+      if (r != reg) r,
+  ];
+
+  List<Constraint> allRegistersExcept(
+    Constraint? result,
+    List<Constraint?> inputs,
+  ) => [
+    for (final r in allRegisters)
+      if (r != result && !inputs.contains(r)) r,
+  ];
 
   // TODO: pass arguments on registers
   // TODO: add callee-save registers
@@ -114,7 +128,7 @@ final class Arm64Constraints extends Constraints {
       InstructionConstraints(
         anyCpuRegister,
         instr.op.isDoubleComparison
-            ? const [anyFpuRegister, anyFpuRegister]
+            ? [anyFpuRegister, anyFpuRegisterOrZero(instr.right)]
             : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
       );
 
@@ -144,13 +158,22 @@ final class Arm64Constraints extends Constraints {
       callConstraints(instr);
 
   @override
-  InstructionConstraints? visitParameter(Parameter instr) =>
-      InstructionConstraints(
-        instr.isFunctionParameter
-            ? parameterConstraint(instr)
-            : anyLocation(instr),
-        const [],
-      );
+  InstructionConstraints? visitParameter(Parameter instr) {
+    Constraint result;
+    if (instr.isFunctionParameter) {
+      result = parameterConstraint(instr);
+    } else {
+      final variable = instr.variable;
+      if (variable.isExceptionVariable) {
+        result = exceptionObjectReg;
+      } else if (variable.isStackTraceVariable) {
+        result = stackTraceObjectReg;
+      } else {
+        result = anyLocation(instr);
+      }
+    }
+    return InstructionConstraints(result, const []);
+  }
 
   @override
   InstructionConstraints? visitLoadLocal(LoadLocal instr) =>
@@ -194,10 +217,14 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitThrow(Throw instr) => InstructionConstraints(
-    null,
-    [anyCpuRegister, if (instr.inputCount == 2) anyCpuRegister],
-  );
+  InstructionConstraints? visitThrow(Throw instr) {
+    final inputs = allocatableRegisters.take(instr.inputCount).toList();
+    return InstructionConstraints(
+      null,
+      inputs,
+      allRegistersExcept(null, inputs),
+    );
+  }
 
   @override
   InstructionConstraints? visitNullCheck(NullCheck instr) =>
@@ -217,20 +244,19 @@ final class Arm64Constraints extends Constraints {
           _ => true,
         };
     if (callsTypeTestingStub) {
+      final inputs = [
+        TypeTestingStub.instanceReg,
+        if (instr.inputCount > 1) ...const [
+          TypeTestingStub.instantiatorTypeArgumentsReg,
+          TypeTestingStub.functionTypeArgumentsReg,
+        ],
+      ];
       return InstructionConstraints(
         TypeTestingStub.instanceReg,
-        [
-          TypeTestingStub.instanceReg,
-          if (instr.inputCount > 1) ...const [
-            TypeTestingStub.instantiatorTypeArgumentsReg,
-            TypeTestingStub.functionTypeArgumentsReg,
-          ],
-        ],
-        const [
-          TypeTestingStub.dstTypeReg,
-          TypeTestingStub.subtypeTestCacheReg,
-          TypeTestingStub.scratchReg,
-        ],
+        inputs,
+        // Type testing stub can call runtime without preserving registers.
+        // TODO: save registers on slow path
+        allRegistersExcept(TypeTestingStub.instanceReg, inputs),
       );
     }
     return InstructionConstraints(anyCpuRegister, [
@@ -254,20 +280,18 @@ final class Arm64Constraints extends Constraints {
       _ => true,
     };
     if (callsSubtypeTestCacheStub) {
+      final inputs = [
+        TypeTestingStub.instanceReg,
+        if (instr.inputCount > 1) ...const [
+          TypeTestingStub.instantiatorTypeArgumentsReg,
+          TypeTestingStub.functionTypeArgumentsReg,
+        ],
+      ];
       return InstructionConstraints(
         TypeTestingStub.subtypeTestCacheResultReg,
-        [
-          TypeTestingStub.instanceReg,
-          if (instr.inputCount > 1) ...const [
-            TypeTestingStub.instantiatorTypeArgumentsReg,
-            TypeTestingStub.functionTypeArgumentsReg,
-          ],
-        ],
-        const [
-          TypeTestingStub.dstTypeReg,
-          TypeTestingStub.subtypeTestCacheReg,
-          TypeTestingStub.scratchReg,
-        ],
+        inputs,
+        // TODO: save registers on slow path
+        allRegistersExcept(TypeTestingStub.subtypeTestCacheResultReg, inputs),
       );
     }
     return InstructionConstraints(anyCpuRegister, [
@@ -281,33 +305,56 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyRegisterOrImmediate(instr.inputDefAt(0)),
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
-
-  @override
-  InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyRegisterOrImmediate(instr.inputDefAt(0)),
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
-
-  @override
-  InstructionConstraints? visitAllocateObject(AllocateObject instr) =>
-      InstructionConstraints(
-        AllocationStub.resultReg,
-        [if (instr.hasTypeArguments) AllocationStub.typeArgumentsReg],
+      const InstructionConstraints(
+        InstantiateTypeArgumentsStub.resultTypeArgumentsReg,
         [
-          if (!instr.hasTypeArguments) AllocationStub.typeArgumentsReg,
-          AllocationStub.tagsReg,
-          AllocationStub.scratch1Reg,
-          AllocationStub.scratch2Reg,
+          InstantiateTypeArgumentsStub.instantiatorTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.functionTypeArgumentsReg,
+        ],
+        [
+          InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.scratchReg,
         ],
       );
 
   @override
+  InstructionConstraints? visitTypeLiteral(TypeLiteral instr) {
+    final type = instr.uninstantiatedType;
+    final callsRuntime =
+        type is! ast.TypeParameterType || type.nullability == .nullable;
+    if (callsRuntime) {
+      final inputs = const [R1, R2];
+      return InstructionConstraints(R0, inputs, allRegistersExcept(R0, inputs));
+    }
+    return const InstructionConstraints(anyCpuRegister, [
+      anyCpuRegister,
+      anyCpuRegister,
+    ]);
+  }
+
+  @override
+  InstructionConstraints? visitAllocateObject(AllocateObject instr) {
+    final inputs = [
+      if (instr.hasTypeArguments) AllocationStub.typeArgumentsReg,
+    ];
+    return InstructionConstraints(
+      AllocationStub.resultReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(AllocationStub.resultReg, inputs),
+    );
+  }
+
+  @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
+
+  @override
+  InstructionConstraints? visitAllocateContext(AllocateContext instr) =>
       const InstructionConstraints(AllocationStub.resultReg, [], [
         AllocationStub.tagsReg,
         AllocationStub.scratch1Reg,
@@ -329,6 +376,14 @@ final class Arm64Constraints extends Constraints {
         [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
         const [anyCpuRegister, anyCpuRegister],
       );
+
+  @override
+  InstructionConstraints? visitAllocateRecord(AllocateRecord instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
 
   @override
   InstructionConstraints? visitBoxInt(BoxInt instr) =>
@@ -400,4 +455,29 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryBoolOp(UnaryBoolOp instr) =>
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitEnterSuspendableFunction(
+    EnterSuspendableFunction instr,
+  ) {
+    final inputs = [InitSuspendableFunctionStub.typeArgsReg];
+    return InstructionConstraints(
+      null,
+      inputs,
+      allRegistersExcept(null, inputs),
+    );
+  }
+
+  @override
+  InstructionConstraints? visitSuspend(Suspend instr) {
+    final inputs = [
+      SuspendStub.argumentReg,
+      if (instr.op == .awaitWithTypeCheck) SuspendStub.typeArgsReg,
+    ];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      allRegistersExcept(returnReg, inputs),
+    );
+  }
 }

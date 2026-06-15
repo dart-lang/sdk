@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:matcher/src/core_matchers.dart';
-import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousImportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -28,19 +25,15 @@ const foo = 0;
 const foo = 0;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
 @foo
+// [diag.invalidAnnotation][column 1][length 4] Annotation must be either a const variable reference or const constructor invocation.
+// [diag.ambiguousImport][column 2][length 3] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 class A {}
-''',
-      [
-        error(diag.invalidAnnotation, 35, 4),
-        error(diag.ambiguousImport, 36, 3),
-      ],
-    );
+''');
   }
 
   test_as() async {
@@ -50,12 +43,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
-f(p) {p as N;}''',
-      [error(diag.ambiguousImport, 51, 1)],
+f(p) {p as N;}
+//         ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -66,12 +60,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
-class A extends N {}''',
-      [error(diag.ambiguousImport, 56, 1), error(diag.extendsNonClass, 56, 1)],
+class A extends N {}
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -82,15 +78,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
-class A implements N {}''',
-      [
-        error(diag.implementsNonClass, 59, 1),
-        error(diag.ambiguousImport, 59, 1),
-      ],
+class A implements N {}
+//                 ^
+// [diag.implementsNonClass] Classes and mixins can only implement other classes and mixins.
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -101,24 +96,23 @@ class N {}
     newFile("$testPackageLibPath/lib2.dart", '''
 class N {}
 ''');
-    var partFile = newFile('$testPackageLibPath/part.dart', '''
-part of 'lib.dart';
-class A extends N {}
-''');
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    var partFile = getFile('$testPackageLibPath/part.dart');
+    var libFile = getFile('$testPackageLibPath/lib.dart');
+
+    await resolveFilesWithDiagnostics({
+      libFile: r'''
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';
-''');
-    ResolvedUnitResult libResult = await resolveFile(libFile);
-    ResolvedUnitResult partResult = await resolveFile(partFile);
-    expect(libResult.diagnostics, hasLength(0));
-    GatheringDiagnosticListener()
-      ..addAll(partResult.diagnostics)
-      ..assertErrors([
-        error(diag.extendsNonClass, 36, 1),
-        error(diag.ambiguousImport, 36, 1),
-      ]);
+''',
+      partFile: r'''
+part of 'lib.dart';
+class A extends N {}
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''',
+    });
   }
 
   test_instanceCreation() async {
@@ -128,13 +122,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 library L;
 import 'lib1.dart';
 import 'lib2.dart';
-f() {new N();}''',
-      [error(diag.ambiguousImport, 60, 1)],
+f() {new N();}
+//       ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -145,20 +140,18 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 import 'lib1.dart';
 import 'lib2.dart';
 f() {
   N n = .new();
+//^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+//       ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type 'InvalidType'.
   print(n);
-}''',
-      [
-        error(diag.ambiguousImport, 59, 1),
-        error(diag.dotShorthandUndefinedInvocation, 66, 3),
-      ],
-    );
+}''');
   }
 
   test_is() async {
@@ -168,12 +161,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
-f(p) {p is N;}''',
-      [error(diag.ambiguousImport, 51, 1)],
+f(p) {p is N;}
+//         ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -184,12 +178,13 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
-g() { N.FOO; }''',
-      [error(diag.ambiguousImport, 46, 1)],
+g() { N.FOO; }
+//    ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -199,7 +194,7 @@ g() { N.FOO; }''',
     newFile('$testPackageLibPath/a.dart', '''
 class StreamController {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async'; // ignore: unused_import
 import 'a.dart';
 
@@ -208,14 +203,13 @@ StreamController s = StreamController();
   }
 
   test_systemLibrary_systemLibrary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:html';
 import 'dart:io';
 g(File f) {}
-''',
-      [error(diag.ambiguousImport, 40, 4)],
-    );
+//^^^^
+// [diag.ambiguousImport] The name 'File' is defined in the libraries 'dart:html' and 'dart:io'.
+''');
   }
 
   test_typeAnnotation() async {
@@ -225,29 +219,34 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
 typedef N FT(N p);
+//      ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+//           ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
 N f(N p) {
+// [diag.ambiguousImport][column 1][length 1] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+//  ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
   N v;
+//^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   return null;
 }
 class A {
   N m() { return null; }
+//^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
 }
-class B<T extends N> {}''',
-      [
-        error(diag.ambiguousImport, 48, 1),
-        error(diag.ambiguousImport, 53, 1),
-        error(diag.ambiguousImport, 59, 1),
-        error(diag.ambiguousImport, 63, 1),
-        error(diag.ambiguousImport, 72, 1),
-        error(diag.unusedLocalVariable, 74, 1),
-        error(diag.ambiguousImport, 106, 1),
-        error(diag.ambiguousImport, 149, 1),
-      ],
+class B<T extends N> {}
+//                ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -258,13 +257,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-A<N>? f() { return null; }''',
-      [error(diag.ambiguousImport, 56, 1)],
+A<N>? f() { return null; }
+//^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -275,13 +275,14 @@ class N {}''');
     newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-f() {new A<N>();}''',
-      [error(diag.ambiguousImport, 65, 1)],
+f() {new A<N>();}
+//         ^
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.''',
     );
   }
 
@@ -294,17 +295,16 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
 void f() {
   x;
+//^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [error(diag.ambiguousImport, 48, 1)],
-    );
+''');
   }
 
   test_variable_read_prefixed() async {
@@ -316,17 +316,16 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 void f() {
   p.x;
+//  ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [error(diag.ambiguousImport, 60, 1)],
-    );
+''');
   }
 
   test_variable_write() async {
@@ -338,25 +337,25 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
 void f() {
   x = 0;
+//^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   x += 1;
+//^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   ++x;
+//  ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   x++;
+//^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [
-        error(diag.ambiguousImport, 48, 1, messageContains: ["'x'"]),
-        error(diag.ambiguousImport, 57, 1),
-        error(diag.ambiguousImport, 69, 1),
-        error(diag.ambiguousImport, 74, 1),
-      ],
-    );
+''');
   }
 
   test_variable_write_prefixed() async {
@@ -368,24 +367,24 @@ var x;
 var x;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 void f() {
   p.x = 0;
+//  ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   p.x += 1;
+//  ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   ++p.x;
+//    ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
   p.x++;
+//  ^
+// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
-''',
-      [
-        error(diag.ambiguousImport, 60, 1),
-        error(diag.ambiguousImport, 71, 1),
-        error(diag.ambiguousImport, 85, 1),
-        error(diag.ambiguousImport, 92, 1),
-      ],
-    );
+''');
   }
 }

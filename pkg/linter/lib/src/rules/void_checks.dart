@@ -18,7 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't assign to `void`.";
 
 class VoidChecks extends AnalysisRule {
-  VoidChecks() : super(name: LintNames.void_checks, description: _desc);
+  new() : super(name: LintNames.void_checks, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.voidChecks;
@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, RuleContext context) : typeSystem = context.typeSystem;
+  new(this.rule, RuleContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
     if (type is DynamicType) return true;
@@ -180,14 +180,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkArgs(
-    NodeList<Expression> args,
+    NodeList<Argument> args,
     List<FormalParameterElement> parameters,
   ) {
     for (var arg in args) {
       var parameterElement = arg.correspondingParameter;
       if (parameterElement != null) {
         var type = parameterElement.type;
-        var expression = arg is NamedExpression ? arg.expression : arg;
+        var expression = arg.argumentExpression;
         _check(type, expression.staticType, expression);
       }
     }

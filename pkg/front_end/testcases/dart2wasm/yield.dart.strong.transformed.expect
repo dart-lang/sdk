@@ -9,22 +9,35 @@ static method method(final core::Iterable<core::int> iterable) → core::Iterabl
   yield* iterable;
 }
 static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<core::int> {
-  final synthesized asy::StreamController<core::int> #controller = asy::StreamController::•<core::int>(sync: #C1);
+  synthesized asy::Completer<void>? #paused;
+  synthesized asy::Completer<void>? #cancelCompleter;
+  synthesized core::bool #isDone = #C1;
+  final dynamic #onCancelCallback = () → FutureOr<void> {
+    if(#isDone)
+      return #C2;
+    if(#paused == null) {
+    }
+    else {
+      #paused.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
+      #paused = #C2;
+    }
+    if(#cancelCompleter == null)
+      #cancelCompleter = asy::Completer::sync<void>();
+    return #cancelCompleter.{asy::Completer::future}{asy::Future<void>};
+  };
+  final dynamic #onResumeCallback = () → void
+    if(#paused == null) {
+    }
+    else {
+      #paused.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
+      #paused = #C2;
+    }
+;
+  final synthesized asy::StreamController<core::int> #controller = asy::StreamController::•<core::int>(sync: #C3, onCancel: #onCancelCallback, onResume: #onResumeCallback);
   final synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* emittedValueType= void */ {
     void :async_temporary_0;
     void :async_temporary_1;
     dynamic :async_temporary_2;
-    synthesized asy::Completer<void>? #paused;
-    final dynamic #onCancelCallback = () → void {
-      if(#paused == null) {
-      }
-      else {
-        #paused.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
-        #paused = #C2;
-      }
-    };
-    #controller.{asy::StreamController::onResume} = #onCancelCallback;
-    #controller.{asy::StreamController::onCancel} = #onCancelCallback;
     {
       core::int #t1 = 0;
       core::Object #t2;
@@ -63,12 +76,20 @@ static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<c
           }
         }
         on dynamic catch(final dynamic #t4, final core::StackTrace #t5) {
-          #controller.{asy::StreamController::addError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
+          if(#cancelCompleter == null)
+            #controller.{asy::StreamController::addError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
+          else {
+            #cancelCompleter.{asy::Completer::completeError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
+            #cancelCompleter = #C2;
+          }
           #t4;
           #t5;
         }
       finally {
+        #isDone = #C3;
         #controller.{asy::StreamController::close}(){() → asy::Future<dynamic>};
+        if(!(#cancelCompleter == null))
+          #cancelCompleter.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
         #t1;
         #t2;
         #t3;
@@ -82,6 +103,7 @@ static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<c
 }
 
 constants  {
-  #C1 = true
+  #C1 = false
   #C2 = null
+  #C3 = true
 }

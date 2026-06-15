@@ -27,7 +27,7 @@ class TypeDefinitionHandler
     with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
-  TypeDefinitionHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_typeDefinition;
@@ -101,6 +101,9 @@ class TypeDefinitionHandler
           if (node.parent case PatternField field) {
             type = field.pattern.matchedValueType;
           }
+        } else if (node is NamedArgument) {
+          originEntity = node.name;
+          type = node.correspondingParameter?.type;
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);
@@ -215,10 +218,6 @@ class TypeDefinitionHandler
         if (node.inDeclarationContext()) {
           return element.type;
         }
-        var parent = node.parent?.parent;
-        if (parent is NamedExpression && parent.name.label == node) {
-          return element.type;
-        }
       } else if (node.inSetterContext()) {
         var writeElement = node.writeOrReadElement;
         if (writeElement
@@ -235,7 +234,7 @@ class TypeDefinitionHandler
 
 class TypeDefinitionRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  TypeDefinitionRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => TextDocumentRegistrationOptions(

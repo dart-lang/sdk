@@ -45,6 +45,7 @@ export '../base/ticker.dart' show Ticker;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 export '../kernel/constructor_tearoff_lowering.dart' show isTearOffLowering;
+export '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
 export '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 export 'compiler_state.dart'
@@ -53,16 +54,16 @@ export 'compiler_state.dart'
 class DdcResult {
   final Component component;
   final Component? sdkSummary;
-  final List<Component> additionalDills;
+  final List<Component> additionalDillModules;
   final ClassHierarchy classHierarchy;
   final Set<Library>? neededDillLibraries;
   late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
   late final Component compiledLibraries = _computeCompiledLibraries();
 
-  DdcResult(
+  new(
     this.component,
     this.sdkSummary,
-    this.additionalDills,
+    this.additionalDillModules,
     this.classHierarchy,
     this.neededDillLibraries,
   );
@@ -70,7 +71,7 @@ class DdcResult {
   Set<Library> _computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
 
-    for (Component c in additionalDills) {
+    for (Component c in additionalDillModules) {
       for (Library lib in c.libraries) {
         librariesFromDill.add(lib);
       }
@@ -105,20 +106,23 @@ InitializedCompilerState initializeCompiler(
   Uri? sdkSummary,
   Uri? packagesFile,
   Uri? librariesSpecificationUri,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
   Target target, {
   FileSystem? fileSystem,
   Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
   Map<String, String>? environmentDefines,
 }) {
-  additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
+  additionalDillModules.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
       oldState.options.compileSdk == compileSdk &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      equalLists(oldState.options.additionalDills, additionalDills) &&
+      equalLists(
+        oldState.options.additionalDillModules,
+        additionalDillModules,
+      ) &&
       equalMaps(
         oldState.options.explicitExperimentalFlags,
         explicitExperimentalFlags,
@@ -133,7 +137,7 @@ InitializedCompilerState initializeCompiler(
     ..sdkRoot = sdkRoot
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
-    ..additionalDills = additionalDills
+    ..additionalDillModules = additionalDillModules
     ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
@@ -154,13 +158,13 @@ InitializedCompilerState initializeCompiler(
 Future<InitializedCompilerState> initializeIncrementalCompiler(
   InitializedCompilerState? oldState,
   Set<String> tags,
-  List<Component> doneAdditionalDills,
+  List<Component> doneAdditionalDillModules,
   bool compileSdk,
   Uri? sdkRoot,
   Uri? sdkSummary,
   Uri? packagesFile,
   Uri? librariesSpecificationUri,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
   Map<Uri, List<int>> workerInputDigests,
   Target target, {
   FileSystem? fileSystem,
@@ -171,11 +175,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   return modular.initializeIncrementalCompiler(
     oldState,
     tags,
-    doneAdditionalDills,
+    doneAdditionalDillModules,
     sdkSummary,
     packagesFile,
     librariesSpecificationUri,
-    additionalDills,
+    additionalDillModules,
     workerInputDigests,
     target,
     compileSdk: compileSdk,
@@ -211,7 +215,9 @@ Future<DdcResult?> compile(
 
   // These should be cached.
   Component? sdkSummary = await processedOpts.loadSdkSummary(null);
-  List<Component> summaries = await processedOpts.loadAdditionalDills(null);
+  List<Component> summaries = await processedOpts.loadAdditionalDillModules(
+    null,
+  );
   return new DdcResult(
     component,
     sdkSummary,

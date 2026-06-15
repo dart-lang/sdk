@@ -17,331 +17,231 @@ main() {
 @reflectiveTest
 class TopMergeTest extends AbstractTypeSystemTest {
   test_differentStructure() {
-    _checkThrows(intNone, functionTypeNone(returnType: voidNone));
+    _checkThrows(parseType('int'), parseType('void Function()'));
 
-    _checkThrows(intNone, typeParameterTypeNone(typeParameter('T')));
-
-    _checkThrows(
-      functionTypeNone(returnType: voidNone),
-      typeParameterTypeNone(typeParameter('T')),
-    );
+    withTypeParameterScope('T', (scope) {
+      _checkThrows(parseType('int'), scope.parseType('T'));
+      _checkThrows(parseType('void Function()'), scope.parseType('T'));
+    });
   }
 
   test_dynamic() {
     // NNBD_TOP_MERGE(dynamic, dynamic) = dynamic
-    _check(dynamicType, dynamicType, dynamicType);
+    _check(parseType('dynamic'), parseType('dynamic'), parseType('dynamic'));
   }
 
   test_function_formalParameters_differentCount() {
     _checkThrows(
-      functionTypeNone(returnType: voidNone, formalParameters: []),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function(int)'),
     );
   }
 
   test_function_parameters_covariant() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          requiredParameter(type: objectQuestion, isCovariant: true),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: dynamicType)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          requiredParameter(type: objectQuestion, isCovariant: true),
-        ],
-      ),
+      parseFunctionType('void Function(covariant Object?)'),
+      parseFunctionType('void Function(dynamic)'),
+      parseFunctionType('void Function(covariant Object?)'),
     );
 
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, isCovariant: true)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: numNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: numNone, isCovariant: true)],
-      ),
+      parseFunctionType('void Function(covariant int)'),
+      parseFunctionType('void Function(num)'),
+      parseFunctionType('void Function(covariant num)'),
     );
   }
 
   test_function_parameters_kind_optionalPositional_optionalPositional() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: intNone)],
-      ),
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int])'),
     );
   }
 
   test_function_parameters_kind_requiredNamed_optionalNamed() {
     _checkThrows(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(type: intNone, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(type: intNone, name: 'a')],
-      ),
+      parseFunctionType('void Function({required int a})'),
+      parseFunctionType('void Function({int a})'),
     );
   }
 
   test_function_parameters_kind_requiredPositional_optionalPositional() {
     _checkThrows(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: intNone)],
-      ),
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function([int])'),
     );
 
     _checkThrows(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(type: intNone, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(type: intNone, name: 'b')],
-      ),
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int b})'),
     );
   }
 
   test_function_parameters_mismatch() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'b')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone, name: 'a')],
-      ),
+      parseFunctionType('void Function(int a)'),
+      parseFunctionType('void Function(int b)'),
+      parseFunctionType('void Function(int a)'),
     );
   }
 
   test_function_parameters_type() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: dynamicType, name: 'a')],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: objectQuestion, name: 'a')],
-      ),
+      parseFunctionType('void Function(Object? a)'),
+      parseFunctionType('void Function(dynamic a)'),
+      parseFunctionType('void Function(Object? a)'),
     );
   }
 
   test_function_returnType() {
     _check(
-      functionTypeNone(returnType: voidNone),
-      functionTypeNone(returnType: objectQuestion),
-      functionTypeNone(returnType: objectQuestion),
+      parseFunctionType('void Function()'),
+      parseFunctionType('Object? Function()'),
+      parseFunctionType('Object? Function()'),
     );
   }
 
   test_function_typeParameters_boundsMerge() {
-    var T1 = typeParameter('T', bound: dynamicType);
-    var T2 = typeParameter('T', bound: objectQuestion);
-    var TR = typeParameter('T', bound: objectQuestion);
     _check(
-      functionTypeNone(
-        typeParameters: [T1],
-        returnType: typeParameterTypeNone(T1),
-      ),
-      functionTypeNone(
-        typeParameters: [T2],
-        returnType: typeParameterTypeNone(T2),
-      ),
-      functionTypeNone(
-        typeParameters: [TR],
-        returnType: typeParameterTypeNone(TR),
-      ),
+      parseFunctionType('T Function<T extends dynamic>()'),
+      parseFunctionType('T Function<T extends Object?>()'),
+      parseFunctionType('T Function<T extends Object?>()'),
     );
   }
 
   test_function_typeParameters_boundsMismatch() {
-    var T1 = typeParameter('T', bound: intNone);
-    var T2 = typeParameter('T');
     _checkThrows(
-      functionTypeNone(
-        typeParameters: [T1],
-        returnType: typeParameterTypeNone(T1),
-      ),
-      functionTypeNone(
-        typeParameters: [T2],
-        returnType: typeParameterTypeNone(T2),
-      ),
+      parseFunctionType('T Function<T extends int>()'),
+      parseFunctionType('T Function<T>()'),
     );
   }
 
   test_function_typeParameters_differentCount() {
-    var T = typeParameter('T');
-    var S = typeParameter('S');
     _checkThrows(
-      functionTypeNone(returnType: voidNone),
-      functionTypeNone(typeParameters: [T, S], returnType: voidNone),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function<T, S>()'),
     );
   }
 
   test_interface() {
     _check(
-      listNone(dynamicType),
-      listNone(objectQuestion),
-      listNone(objectQuestion),
+      parseType('List<dynamic>'),
+      parseType('List<Object?>'),
+      parseType('List<Object?>'),
     );
 
     _check(
-      listNone(voidNone),
-      listNone(objectQuestion),
-      listNone(objectQuestion),
+      parseType('List<void>'),
+      parseType('List<Object?>'),
+      parseType('List<Object?>'),
     );
 
-    _checkThrows(iterableNone(intNone), listNone(intNone));
+    _checkThrows(parseType('Iterable<int>'), parseType('List<int>'));
   }
 
   test_invalid() {
-    _check(invalidType, intNone, invalidType);
-    _check(intNone, invalidType, invalidType);
+    _check(
+      parseType('InvalidType'),
+      parseType('int'),
+      parseType('InvalidType'),
+    );
+    _check(
+      parseType('int'),
+      parseType('InvalidType'),
+      parseType('InvalidType'),
+    );
   }
 
   test_never() {
-    _check(neverNone, neverNone, neverNone);
+    _check(parseType('Never'), parseType('Never'), parseType('Never'));
   }
 
   test_nullability() {
     // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
-    _check(intQuestion, intQuestion, intQuestion);
+    _check(parseType('int?'), parseType('int?'), parseType('int?'));
   }
 
   test_nullability_mismatch() {
-    _checkThrows(intQuestion, intNone);
+    _checkThrows(parseType('int?'), parseType('int'));
   }
 
   test_objectQuestion() {
     // NNBD_TOP_MERGE(Object?, Object?) = Object?
-    _check(objectQuestion, objectQuestion, objectQuestion);
+    _check(parseType('Object?'), parseType('Object?'), parseType('Object?'));
 
     // NNBD_TOP_MERGE(Object?, void) = Object?
     // NNBD_TOP_MERGE(void, Object?) = Object?
-    _check(objectQuestion, voidNone, objectQuestion);
+    _check(parseType('Object?'), parseType('void'), parseType('Object?'));
 
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, Object?) = Object?
-    _check(objectQuestion, dynamicType, objectQuestion);
+    _check(parseType('Object?'), parseType('dynamic'), parseType('Object?'));
   }
 
   test_record() {
     _check(
-      recordTypeNone(positionalTypes: [dynamicType]),
-      recordTypeNone(positionalTypes: [objectQuestion]),
-      recordTypeNone(positionalTypes: [objectQuestion]),
+      parseRecordType('(dynamic,)'),
+      parseRecordType('(Object?,)'),
+      parseRecordType('(Object?,)'),
     );
 
     _check(
-      recordTypeNone(positionalTypes: [voidNone]),
-      recordTypeNone(positionalTypes: [objectQuestion]),
-      recordTypeNone(positionalTypes: [objectQuestion]),
+      parseRecordType('(void,)'),
+      parseRecordType('(Object?,)'),
+      parseRecordType('(Object?,)'),
     );
 
     _check(
-      recordTypeNone(namedTypes: {'f': dynamicType}),
-      recordTypeNone(namedTypes: {'f': objectQuestion}),
-      recordTypeNone(namedTypes: {'f': objectQuestion}),
+      parseRecordType('({dynamic f})'),
+      parseRecordType('({Object? f})'),
+      parseRecordType('({Object? f})'),
     );
 
     _check(
-      recordTypeNone(
-        positionalTypes: [dynamicType],
-        namedTypes: {'f': voidNone},
-      ),
-      recordTypeNone(
-        positionalTypes: [objectQuestion],
-        namedTypes: {'f': objectQuestion},
-      ),
-      recordTypeNone(
-        positionalTypes: [objectQuestion],
-        namedTypes: {'f': objectQuestion},
-      ),
+      parseRecordType('(dynamic, {void f})'),
+      parseRecordType('(Object?, {Object? f})'),
+      parseRecordType('(Object?, {Object? f})'),
     );
   }
 
   test_record_namedFields_differentCount() {
     _checkThrows(
-      recordTypeNone(namedTypes: {'a': intNone}),
-      recordTypeNone(namedTypes: {'a': intNone, 'b': intNone}),
+      parseRecordType('({int a})'),
+      parseRecordType('({int a, int b})'),
     );
   }
 
   test_record_namedFields_differentNames() {
-    _checkThrows(
-      recordTypeNone(namedTypes: {'a': intNone}),
-      recordTypeNone(namedTypes: {'b': intNone}),
-    );
+    _checkThrows(parseRecordType('({int a})'), parseRecordType('({int b})'));
   }
 
   test_record_positionalFields_differentCount() {
-    _checkThrows(
-      recordTypeNone(positionalTypes: [intNone]),
-      recordTypeNone(positionalTypes: [intNone, intNone]),
-    );
+    _checkThrows(parseRecordType('(int,)'), parseRecordType('(int, int)'));
   }
 
   test_typeParameter() {
-    var T = typeParameter('T');
+    withTypeParameterScope('T', (scope1) {
+      _check(
+        scope1.parseType('T'),
+        scope1.parseType('T'),
+        scope1.parseType('T'),
+      );
 
-    _check(
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(T),
-    );
-
-    var S = typeParameter('T');
-    _checkThrows(typeParameterTypeNone(T), typeParameterTypeNone(S));
-    _checkThrows(typeParameterTypeNone(S), typeParameterTypeNone(T));
+      withTypeParameterScope('T', (scope2) {
+        _checkThrows(scope1.parseType('T'), scope2.parseType('T'));
+        _checkThrows(scope2.parseType('T'), scope1.parseType('T'));
+      });
+    });
   }
 
   test_void() {
     // NNBD_TOP_MERGE(void, void) = void
-    _check(voidNone, voidNone, voidNone);
+    _check(parseType('void'), parseType('void'), parseType('void'));
 
     // NNBD_TOP_MERGE(void, dynamic) = Object?
     // NNBD_TOP_MERGE(dynamic, void) = Object?
-    _check(voidNone, dynamicType, objectQuestion);
+    _check(parseType('void'), parseType('dynamic'), parseType('Object?'));
   }
 
   void _check(TypeImpl T, TypeImpl S, TypeImpl expected) {

@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x;
+  constructor n1() → self::A
+    ;
+  constructor n2() → self::A
+    ;
+  constructor n3() → self::A
+    ;
+  constructor n4() → self::A
+    ;
+}
+static method f() → core::int
+  ;
+static method main() → void
+  ;

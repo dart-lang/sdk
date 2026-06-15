@@ -410,6 +410,20 @@ CodePtr CompileParsedFunctionHelper::Compile() {
   // volatile because the variable may be clobbered by a longjmp.
   volatile intptr_t far_branch_level = 0;
 
+  // For sufficiently large functions the first emission attempt at
+  // far_branch_level=0 is almost certain to throw branch_offset_error from
+  // the assembler, which unwinds the entire optimizing pipeline
+  // (BuildFlowGraph + every optimization pass + code generation) and reruns
+  // it from scratch. Pre-set far_branch_level=1 when we already know the
+  // attempt is doomed.
+  if (optimized() && function.unoptimized_code() != Code::null()) {
+    const intptr_t unoptimized_size =
+        Code::Handle(function.unoptimized_code()).Size();
+    if (unoptimized_size > 1 * MB) {
+      far_branch_level = 1;
+    }
+  }
+
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
     *result = Code::null();
@@ -1015,7 +1029,6 @@ void BackgroundCompiler::Run() {
     Thread* thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
-    HANDLESCOPE(thread);
     Function& function = Function::Handle(zone);
     QueueElement* element = nullptr;
     {

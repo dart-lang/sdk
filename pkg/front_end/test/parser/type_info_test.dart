@@ -34,11 +34,7 @@ void main() {
 }
 
 ScannerResult scanString(String source, {bool includeComments = false}) =>
-    scanner.scanString(
-      source,
-      configuration: const ScannerConfiguration(enableTripleShift: true),
-      includeComments: includeComments,
-    );
+    scanner.scanString(source, includeComments: includeComments);
 
 @reflectiveTest
 class NoTypeInfoTest {
@@ -3442,7 +3438,7 @@ class TypeInfoListener implements Listener {
   List<ExpectedError>? errors;
   Token? firstToken;
 
-  TypeInfoListener({this.firstToken, this.metadataAllowed = false}) {
+  new({this.firstToken, this.metadataAllowed = false}) {
     if (firstToken != null && firstToken!.isEof) {
       firstToken = firstToken!.next;
     }
@@ -3699,7 +3695,7 @@ class ExpectedError {
   final int start;
   final int length;
 
-  ExpectedError(this.code, this.start, this.length);
+  new(this.code, this.start, this.length);
 
   @override
   bool operator ==(other) =>

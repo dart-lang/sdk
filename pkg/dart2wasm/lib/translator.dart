@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
@@ -20,20 +23,19 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
+import 'constructor_info.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
-import 'dynamic_module_kernel_metadata.dart';
-import 'dynamic_modules.dart';
-import 'exports.dart';
 import 'functions.dart';
+import 'generate_wasm.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
+import 'namer.dart';
 import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
-import 'serialization.dart';
 import 'static_dispatch_table.dart';
 import 'symbols.dart';
 import 'table_based_globals.dart';
@@ -44,9 +46,11 @@ import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
   bool uniqueConstantNames = true;
+  bool minifyInteropNames = true;
   int optimizationLevel = 1;
   bool? inliningOverride;
   bool jsCompatibility = false;
@@ -78,69 +82,7 @@ class TranslatorOptions {
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>
       omitBoundsChecksOverride ?? optimizationLevel >= 4;
-
-  void serialize(DataSerializer sink) {
-    sink.writeBool(enableAsserts);
-    sink.writeBool(importSharedMemory);
-    sink.writeInt(optimizationLevel);
-    sink.writeNullable(inliningOverride, sink.writeBool);
-    sink.writeBool(jsCompatibility);
-    sink.writeBool(standalone);
-    sink.writeNullable(omitImplicitTypeChecksOverride, sink.writeBool);
-    sink.writeBool(omitExplicitTypeChecks);
-    sink.writeNullable(omitBoundsChecksOverride, sink.writeBool);
-    sink.writeBool(polymorphicSpecialization);
-    sink.writeBool(printKernel);
-    sink.writeBool(printWasm);
-    sink.writeNullable(minifyOverride, sink.writeBool);
-    sink.writeBool(verifyTypeChecks);
-    sink.writeBool(verbose);
-    sink.writeBool(enableExperimentalFfi);
-    sink.writeBool(enableExperimentalWasmInterop);
-    sink.writeBool(generateSourceMaps);
-    sink.writeBool(enableDeferredLoading);
-    sink.writeBool(enableMultiModuleStressTestMode);
-    sink.writeBool(enableProtobufTreeShaker);
-    sink.writeBool(enableProtobufMixinTreeShaker);
-    sink.writeInt(inliningLimit);
-    sink.writeInt(
-      sharedMemoryMaxPages == null ? 0 : (sharedMemoryMaxPages! + 1),
-    );
-  }
-
-  static TranslatorOptions deserialize(DataDeserializer source) {
-    final TranslatorOptions options = TranslatorOptions();
-    options.enableAsserts = source.readBool();
-    options.importSharedMemory = source.readBool();
-    options.optimizationLevel = source.readInt();
-    options.inliningOverride = source.readNullable(source.readBool);
-    options.jsCompatibility = source.readBool();
-    options.standalone = source.readBool();
-    options.omitImplicitTypeChecksOverride = source.readNullable(
-      source.readBool,
-    );
-    options.omitExplicitTypeChecks = source.readBool();
-    options.omitBoundsChecksOverride = source.readNullable(source.readBool);
-    options.polymorphicSpecialization = source.readBool();
-    options.printKernel = source.readBool();
-    options.printWasm = source.readBool();
-    options.minifyOverride = source.readNullable(source.readBool);
-    options.verifyTypeChecks = source.readBool();
-    options.verbose = source.readBool();
-    options.enableExperimentalFfi = source.readBool();
-    options.enableExperimentalWasmInterop = source.readBool();
-    options.generateSourceMaps = source.readBool();
-    options.enableDeferredLoading = source.readBool();
-    options.enableMultiModuleStressTestMode = source.readBool();
-    options.enableProtobufTreeShaker = source.readBool();
-    options.enableProtobufMixinTreeShaker = source.readBool();
-    options.inliningLimit = source.readInt();
-    final int sharedMemoryMaxPages = source.readInt();
-    options.sharedMemoryMaxPages = sharedMemoryMaxPages == 0
-        ? null
-        : (sharedMemoryMaxPages - 1);
-    return options;
-  }
+  bool get uniqueTypes => enableUniqueTypes ?? optimizationLevel >= 2;
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -154,8 +96,6 @@ class Translator with KernelNodes {
 
   final Symbols symbols;
 
-  late final Exporter exporter;
-
   // Kernel input and context.
   final Component component;
   final List<Library> libraries;
@@ -164,6 +104,9 @@ class Translator with KernelNodes {
   late final TypeEnvironment typeEnvironment;
   final ClosedWorldClassHierarchy hierarchy;
   late final ClassHierarchySubtypes subtypes;
+
+  @override
+  bool get isStandalone => options.standalone;
 
   // TFA-inferred metadata.
   late final Map<TreeNode, DirectCallMetadata> directCallMetadata =
@@ -204,7 +147,6 @@ class Translator with KernelNodes {
   late final TableBasedGlobals tableBasedGlobals;
   late final DispatchTable dispatchTable;
   late final DynamicDispatchTable dynamicDispatchTable;
-  DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
   late final DartGlobals dartGlobals;
   late final Constants constants;
@@ -213,8 +155,10 @@ class Translator with KernelNodes {
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
 
-  late final DynamicModuleConstants? dynamicModuleConstants;
   late final DeferredModuleLoadingMap loadingMap;
+
+  final Namer exportNamer;
+  late final InteropMemberNamer interopMemberNamer;
 
   // Information about the program used and updated by the various phases.
 
@@ -255,19 +199,26 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
+  final Map<Reference, ConstructorInfo> constructorInfo = {};
   late final w.ValueType voidMarker = w.RefType.def(
     w.StructType("void"),
     nullable: true,
   );
-  // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = mainModule.memories.import(
-    "ffi",
-    "memory",
-    options.importSharedMemory,
-    0,
-    options.sharedMemoryMaxPages,
-  );
   final Map<Procedure, w.Memory> _memories = {};
+
+  // Lazily import FFI memory if used.
+  final _ffiMemoryImports = <w.ModuleBuilder, w.Memory>{};
+  w.Memory ffiMemory(w.ModuleBuilder usingModule) {
+    return _ffiMemoryImports.putIfAbsent(usingModule, () {
+      return usingModule.memories.import(
+        "ffi",
+        "memory",
+        options.importSharedMemory,
+        0,
+        options.sharedMemoryMaxPages,
+      );
+    });
+  }
 
   /// Maps record shapes to the record class for the shape. Classes generated
   /// by `record_class_generator` library.
@@ -277,7 +228,7 @@ class Translator with KernelNodes {
   final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
   final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
-  final Map<Procedure, Map<w.ModuleBuilder, ClosureImplementation>>
+  final Map<Member, Map<w.ModuleBuilder, ClosureImplementation>>
   tearOffFunctionCache = {};
 
   final Map<FunctionNode, Map<w.ModuleBuilder, ClosureImplementation>>
@@ -430,7 +381,7 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    jsStringClass: jsStringClass,
+    stringImplClass: stringImplClass,
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -463,12 +414,6 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
-  final Map<w.ModuleBuilder, w.Global> _thisModuleGlobals = {};
-
-  DynamicModuleInfo? dynamicModuleInfo;
-  bool get dynamicModuleSupportEnabled => dynamicModuleInfo != null;
-  bool get isDynamicSubmodule => dynamicModuleInfo?.isSubmodule ?? false;
-  w.ModuleBuilder get dynamicSubmodule => dynamicModuleInfo!.submodule;
 
   w.ModuleBuilder moduleForReference(Reference reference) {
     final module = _moduleOutputData.moduleForReference(reference);
@@ -510,6 +455,9 @@ class Translator with KernelNodes {
         )
       : Closures(this, member, findCaptures: false);
 
+  ConstructorInfo getConstructorInfo(Constructor node) =>
+      constructorInfo[node.reference] ??= ConstructorInfo(node, this);
+
   Translator(
     this.component,
     this.coreTypes,
@@ -517,45 +465,26 @@ class Translator with KernelNodes {
     this.recordClasses,
     this.loadingMap,
     this._moduleOutputData,
-    this.options, {
-    bool enableDynamicModules = false,
-    required MainModuleMetadata mainModuleMetadata,
-  }) : symbols = Symbols(options.minify),
-       libraries = component.libraries,
-       hierarchy =
-           ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
-    if (enableDynamicModules) {
-      dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
-    }
+    this.options,
+  ) : symbols = Symbols(options.minify),
+      libraries = component.libraries,
+      hierarchy =
+          ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy,
+      exportNamer = Namer(minify: options.minify) {
     typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     crossModuleFunctionTable = CrossModuleFunctionTable(this);
     tableBasedGlobals = TableBasedGlobals(this);
-    dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
-      ..translator = this;
+    dispatchTable = DispatchTable(this);
     dynamicDispatchTable = DynamicDispatchTable(this);
-    if (isDynamicSubmodule) {
-      dynamicMainModuleDispatchTable = mainModuleMetadata.dispatchTable
-        ..translator = this;
-    }
     compilationQueue = CompilationQueue(this);
     functions = FunctionCollector(this);
     types = Types(this);
     _exceptionTags = ExceptionTags(this);
 
-    dynamicModuleConstants =
-        (component.metadata[DynamicModuleConstantRepository.repositoryTag]
-                    as DynamicModuleConstantRepository?)
-                ?.mapping[component] ??=
-            DynamicModuleConstants();
-
-    exporter = Exporter(
-      options.minify,
-      mainModuleMetadata,
-      dynamicModuleConstants,
-    );
+    interopMemberNamer = InteropMemberNamer(coreTypes, exportNamer, options);
   }
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
@@ -574,32 +503,6 @@ class Translator with KernelNodes {
       _builderToOutput[builder] = outputModule;
       moduleToBuilder[builder.module] = builder;
     }
-  }
-
-  w.Global getThisModuleGlobal(w.ModuleBuilder module) {
-    return _thisModuleGlobals.putIfAbsent(module, () {
-      final global = module.globals.define(
-        w.GlobalType(w.RefType.extern(nullable: true)),
-        'thisModule',
-      );
-      final gb = global.initializer;
-      gb.ref_null(w.HeapType.extern);
-      gb.end();
-
-      final thisModuleSetter = module.functions.define(
-        typesBuilder.defineFunction(const [
-          w.RefType.extern(nullable: false),
-        ], const []),
-        "setThisModule",
-      );
-      module.exports.export("\$setThisModule", thisModuleSetter);
-      final fb = thisModuleSetter.body;
-      fb.local_get(thisModuleSetter.locals[0]);
-      fb.global_set(global);
-      fb.end();
-
-      return global;
-    });
   }
 
   void drainCompletionQueue() {
@@ -624,10 +527,7 @@ class Translator with KernelNodes {
 
     dispatchTable.build();
     dynamicDispatchTable.build(dynamicCallShapes);
-    dynamicMainModuleDispatchTable?.build();
     functions.initialize();
-
-    dynamicModuleInfo?.initSubmodule();
 
     drainCompletionQueue();
 
@@ -636,8 +536,6 @@ class Translator with KernelNodes {
       action();
     }
     assert(compilationQueue.isEmpty);
-
-    dynamicModuleInfo?.finishDynamicModule();
 
     constructorClosures.clear();
     dispatchTable.output();
@@ -679,17 +577,12 @@ class Translator with KernelNodes {
       );
     }
 
-    // Ensure non-empty modules expose `$setThisModule` function.
-    for (final moduleBuilder in _outputToBuilder.values) {
-      getThisModuleGlobal(moduleBuilder);
-    }
-
-    // This getter will be null if we pass e.g. `--load-ids=<uri>` as the
+    // This getter will be null if we pass e.g. `--use-load-ids` as the
     // runtime code will then be pruned to call out to embedder instead of
     // consulting the load mapping bundled in the app.
     final loadingMapGetter = dartInternalLoadingMapGetter;
-    if (loadingMapGetter != null) {
-      // This function will be null if we didn't pass `--load-ids=<uri>` but we
+    if (loadingMapGetter != null && !options.standalone) {
+      // This function will be null if we didn't pass `--use-load-ids` but we
       // ended up not having any actual deferred code (e.g. `await
       // foo.loadLibrary()` is never called anywhere).
       final function =
@@ -702,7 +595,7 @@ class Translator with KernelNodes {
 
     // If original program uses deferred loading this will be non-null.
     final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
-    if (loadingMapNamesGetter != null) {
+    if (loadingMapNamesGetter != null && !options.standalone) {
       // If the actual emitted code accesses the names (i.e. --no-minify and
       // code emits a deferred library load)
       assert(!options.minify);
@@ -716,7 +609,13 @@ class Translator with KernelNodes {
 
     final result = <ModuleMetadata, w.Module>{};
     _outputToBuilder.forEach((outputModule, builder) {
-      result[outputModule] = builder.build();
+      final module = builder.build();
+      if (builder != mainModule) {
+        if (module.exports.exported.isNotEmpty) {
+          throw StateError('Deferred modules are not allowed to have exports.');
+        }
+      }
+      result[outputModule] = module;
     });
     return result;
   }
@@ -724,40 +623,85 @@ class Translator with KernelNodes {
   // NOTE: We do this after code generation is complete. So the code generation
   // phase has the opportunity to generate more wasm modules and add them to the
   // loading map.
+  //
+  // Keep in sync with sdk/lib/_internal/wasm/js_common/deferred_patch.dart's
+  // `_decodeEncodedModuleIds` and `_loadLibraryViaEmbedderModuleNames`
   void _patchLoadingMapGetter(w.FunctionBuilder function) {
-    final externRef = w.RefType.extern(nullable: false);
-    final arrayExternRef = wasmArrayType(
-      externRef,
-      externRef.toString(),
-      mutable: false,
-    );
-    final arrayArrayString = wasmArrayType(
-      w.RefType(arrayExternRef, nullable: false),
-      arrayExternRef.toString(),
-      mutable: false,
+    final moduleMap = loadingMap.moduleMap;
+    final byteArrayType = wasmArrayType(w.PackedType.i8, 'WasmI8');
+    final arrayOfNullableByteArray = wasmArrayType(
+      w.RefType(byteArrayType, nullable: true),
+      'WasmArray<WasmI8>',
     );
 
-    _lazyInitializeGlobal(
-      function,
-      w.RefType(arrayArrayString, nullable: false),
-      'loadIdModuleNames',
-      (b) {
-        final moduleMap = loadingMap.moduleMap;
-        for (int i = 0; i < moduleMap.length; ++i) {
-          final moduleNames = moduleMap[i];
-          for (int k = 0; k < moduleNames.length; ++k) {
-            b.global_get(
-              getInternalizedStringGlobal(
-                function.moduleBuilder,
-                moduleNames[k].moduleName,
-              ),
-            );
-          }
-          b.array_new_fixed(arrayExternRef, moduleNames.length);
-        }
-        b.array_new_fixed(arrayArrayString, moduleMap.length);
-      },
+    // Make a global containing the load id -> module id list table.
+    final loadingMapGlobal = mainModule.globals.define(
+      w.GlobalType(w.RefType(arrayOfNullableByteArray, nullable: false)),
     );
+    loadingMapGlobal.initializer
+      ..i32_const(moduleMap.length)
+      ..array_new_default(arrayOfNullableByteArray)
+      ..end();
+
+    // Make the getter return that array.
+    _replaceBody(function)
+      ..global_get(loadingMapGlobal)
+      ..end();
+
+    // Emit code to initialize the load id -> module id list table.
+    final startFunction = mainModule.startFunction.body;
+    final encodedSegment = mainModule.dataSegments.define();
+    for (int i = 0; i < moduleMap.length; ++i) {
+      final moduleNames = moduleMap[i];
+      if (moduleNames.isEmpty) continue;
+
+      // We sort the module ids increasingly, thereby allowing us to encode them
+      // via delta to previous module id.
+      final moduleIds = <int>[];
+      for (int k = 0; k < moduleNames.length; ++k) {
+        final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
+          moduleNames[k].moduleName,
+        );
+        moduleIds.add(moduleId);
+      }
+      moduleIds.sort();
+
+      // Make the encoded list of module ids.
+      final moduleIdsEncoded = BytesBuilder();
+      moduleIdsEncoded.writeULEB128(moduleNames.length);
+      int lastId = 0;
+      for (int i = 0; i < moduleIds.length; ++i) {
+        final moduleId = moduleIds[i];
+        final diff = moduleId - lastId;
+        moduleIdsEncoded.writeULEB128(diff);
+        lastId = moduleId;
+      }
+
+      // Append the encoded module id list to the data segment & make start
+      // function patch the runtime with the list.
+      startFunction.global_get(loadingMapGlobal);
+      startFunction.i32_const(i);
+      {
+        startFunction.i32_const(encodedSegment.length);
+        startFunction.i32_const(moduleIdsEncoded.length);
+        startFunction.array_new_data(byteArrayType, encodedSegment);
+        encodedSegment.append(moduleIdsEncoded.takeBytes());
+      }
+      startFunction.array_set(arrayOfNullableByteArray);
+    }
+
+    final mainModuleOutput = _builderToOutput[mainModule]!;
+    final prefix = WasmCompilerOptions.deferredModuleFilenamePrefix(
+      mainModuleOutput.moduleName,
+    );
+    final prefixGetter =
+        functions.getExistingFunction(
+              dartInternalModuleNamePrefixGetter!.reference,
+            )
+            as w.FunctionBuilder;
+    _replaceBody(prefixGetter)
+      ..global_get(getInternalizedStringGlobal(mainModule, prefix))
+      ..end();
   }
 
   void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
@@ -803,12 +747,7 @@ class Translator with KernelNodes {
       ..ref_null(w.HeapType.none)
       ..end();
 
-    final b = w.InstructionsBuilder(
-      f.moduleBuilder,
-      f.type.inputs,
-      f.type.outputs,
-    );
-    f.replaceBody(b);
+    final b = _replaceBody(f);
 
     final label = b.block(const [], [type]);
     b.global_get(global);
@@ -820,6 +759,16 @@ class Translator with KernelNodes {
     b.local_get(local);
     b.end();
     b.end();
+  }
+
+  w.InstructionsBuilder _replaceBody(w.FunctionBuilder function) {
+    final newBody = w.InstructionsBuilder(
+      function.moduleBuilder,
+      function.type.inputs,
+      function.type.outputs,
+    );
+    function.replaceBody(newBody);
+    return newBody;
   }
 
   void _printFunction(w.BaseFunction function, Object name) {
@@ -840,18 +789,39 @@ class Translator with KernelNodes {
   List<w.ValueType> callReference(
     Reference reference,
     w.InstructionsBuilder b,
-  ) {
-    final callTarget = directCallTarget(reference);
-    if (callTarget.supportsInlining && callTarget.shouldInline) {
-      return b.inlineCallTo(callTarget);
+  ) => callTarget(directCallTarget(reference), b, reference);
+
+  List<w.ValueType> callTarget(
+    CallTarget callTarget,
+    w.InstructionsBuilder b, [
+    Reference? reference,
+  ]) {
+    late final List<w.ValueType> outputs;
+    if (callTarget.supportsInlining) {
+      final decision = callTarget.shouldInline;
+      if (decision.shouldInline) {
+        b.comment('Inlining ${callTarget.name}, reason: ${decision.reason}');
+        outputs = b.inlineCallTo(callTarget);
+      } else {
+        b.comment('Not inlining, reason: ${decision.reason}');
+        outputs = callFunction(callTarget.function, b, reference);
+      }
+    } else {
+      outputs = callFunction(callTarget.function, b, reference);
     }
-    return callFunction(functions.getFunction(reference), b);
+    if (callTarget.synthesizeNullReturnValue) {
+      assert(outputs.isEmpty);
+      b.ref_null(w.HeapType.none);
+      return [w.RefType(w.HeapType.none, nullable: true)];
+    }
+    if (callTarget.synthesizeNoReturn) {
+      assert(outputs.isEmpty);
+      b.unreachable();
+      return const [];
+    }
+    return outputs;
   }
 
-  late final WasmFunctionImporter _importedFunctions = WasmFunctionImporter(
-    this,
-    'func',
-  );
   late final WasmMemoryImporter _importedMemories = WasmMemoryImporter(
     this,
     'memory',
@@ -863,26 +833,38 @@ class Translator with KernelNodes {
   /// module. Otherwise does an indirect call through the static dispatch table.
   List<w.ValueType> callFunction(
     w.BaseFunction function,
-    w.InstructionsBuilder b,
-  ) {
+    w.InstructionsBuilder b, [
+    Reference? target,
+  ]) {
+    // If the target function is defined in the same module as the caller, just
+    // invoke it.
     final targetModuleBuilder = moduleToBuilder[function.enclosingModule]!;
     if (targetModuleBuilder == b.moduleBuilder) {
       b.call(function);
-    } else {
-      b.i32_const(crossModuleFunctionTable.indexForFunction(function));
-      b.call_indirect(
-        function.type,
-        crossModuleFunctionTable.getWasmTable(b.moduleBuilder),
-      );
+      return b.emitUnreachableIfNoResult(function.type.outputs);
     }
-    return b.emitUnreachableIfNoResult(function.type.outputs);
-  }
 
-  void declareMainAppFunctionExportWithName(
-    String name,
-    w.BaseFunction exportable,
-  ) {
-    _importedFunctions.exportDefinitionWithName(name, exportable);
+    // If the target function is already available via the dispatch table, use
+    // it from there.
+    if (target != null) {
+      final dispatchTableIndex = dispatchTable.indexForTarget(target);
+      if (dispatchTableIndex != null) {
+        b.i32_const(dispatchTableIndex);
+        b.call_indirect(
+          function.type,
+          dispatchTable.getWasmTable(b.moduleBuilder),
+        );
+        return b.emitUnreachableIfNoResult(function.type.outputs);
+      }
+    }
+
+    // Otherwise add & call via the cross module function table.
+    b.i32_const(crossModuleFunctionTable.indexForFunction(function));
+    b.call_indirect(
+      function.type,
+      crossModuleFunctionTable.getWasmTable(b.moduleBuilder),
+    );
+    return b.emitUnreachableIfNoResult(function.type.outputs);
   }
 
   void callDispatchTable(
@@ -890,37 +872,24 @@ class Translator with KernelNodes {
     SelectorInfo selector, {
     Reference? interfaceTarget,
     required bool useUncheckedEntry,
-    DispatchTable? table,
   }) {
-    table ??= dispatchTable;
     functions.recordSelectorUse(selector, useUncheckedEntry);
 
-    if (dynamicModuleSupportEnabled &&
-        (selector.isDynamicSubmoduleOverridable ||
-            selector.isDynamicSubmoduleInheritable)) {
-      dynamicModuleInfo!.callOverridableDispatch(
-        b,
-        selector,
-        interfaceTarget!,
-        useUncheckedEntry: useUncheckedEntry,
-      );
-    } else {
-      final offset = selector.targets(unchecked: useUncheckedEntry).offset;
-      if (offset == null) {
-        b.unreachable();
-        return;
-      }
-
-      final receiverType = selector.signature.inputs.first;
-      b.loadClassId(this, receiverType);
-      if (offset != 0) {
-        b.i32_const(offset);
-        b.i32_add();
-      }
-      final signature = selector.signature;
-      b.call_indirect(signature, table.getWasmTable(b.moduleBuilder));
-      b.emitUnreachableIfNoResult(signature.outputs);
+    final offset = selector.targets(unchecked: useUncheckedEntry).offset;
+    if (offset == null) {
+      b.unreachable();
+      return;
     }
+
+    final receiverType = selector.signature.inputs.first;
+    b.loadClassId(this, receiverType);
+    if (offset != 0) {
+      b.i32_const(offset);
+      b.i32_add();
+    }
+    final signature = selector.signature;
+    b.call_indirect(signature, dispatchTable.getWasmTable(b.moduleBuilder));
+    b.emitUnreachableIfNoResult(signature.outputs);
   }
 
   Class classForType(DartType type) {
@@ -959,19 +928,21 @@ class Translator with KernelNodes {
     }).withDeclaredNullability(nullability);
   }
 
-  void pushModuleId(w.InstructionsBuilder b) {
-    if (!isDynamicSubmodule || b.moduleBuilder != dynamicSubmodule) {
-      b.i64_const(0);
-    } else {
-      b.global_get(dynamicModuleInfo!.moduleIdGlobal);
-    }
-  }
-
   /// Compute the runtime type of a tear-off. This is the signature of the
   /// method with the types of all covariant parameters replaced by `Object?`.
-  FunctionType getTearOffType(Procedure method) {
-    assert(method.kind == ProcedureKind.Method);
-    final FunctionType staticType = method.getterType as FunctionType;
+  FunctionType getTearOffType(Member method) {
+    if (method is Constructor) {
+      return method.function.computeFunctionType(Nullability.nonNullable);
+    }
+
+    method as Procedure;
+    assert(
+      method.kind == ProcedureKind.Method ||
+          method.kind == ProcedureKind.Factory,
+    );
+    final FunctionType staticType = method.function.computeFunctionType(
+      Nullability.nonNullable,
+    );
 
     final positionalParameters = List.of(staticType.positionalParameters);
     assert(
@@ -1056,6 +1027,10 @@ class Translator with KernelNodes {
     bool nullable = type.isPotentiallyNullable;
     if (type is InterfaceType) {
       Class cls = type.classNode;
+
+      if (cls == coreTypes.deprecatedNullClass) {
+        return const w.RefType.none(nullable: true);
+      }
 
       // Abstract `Function`?
       if (cls == coreTypes.functionClass) {
@@ -1164,17 +1139,6 @@ class Translator with KernelNodes {
       return topType.withNullability(nullable);
     }
     if (type is FunctionType) {
-      if (dynamicModuleSupportEnabled) {
-        // The closure representation is based on the available closure
-        // definitions and invocations seen in the program. For dynamic modules,
-        // this can differ from one module to another. So use the less specific
-        // closure base class everywhere. Usages will get downcast to the
-        // appropriate closure type.
-        return w.RefType.def(
-          closureLayouter.closureBaseStruct,
-          nullable: nullable,
-        );
-      }
       ClosureRepresentation? representation = closureLayouter
           .getClosureRepresentation(
             type.typeParameters.length,
@@ -1295,20 +1259,24 @@ class Translator with KernelNodes {
   }
 
   ClosureImplementation getTearOffClosure(
-    Procedure member,
+    Member member,
     w.ModuleBuilder closureModule,
   ) {
+    assert(
+      member is Constructor ||
+          member is Procedure &&
+              (member.kind == ProcedureKind.Method ||
+                  member.kind == ProcedureKind.Factory),
+    );
     final innerCache = tearOffFunctionCache.putIfAbsent(member, () => {});
     return innerCache.putIfAbsent(closureModule, () {
-      assert(member.kind == ProcedureKind.Method);
       final reference = getFunctionEntry(
         member.reference,
         uncheckedEntry: false,
       );
-      w.BaseFunction target = functions.getFunction(reference);
       return getClosure(
-        member.function,
-        target,
+        member.function!,
+        directCallTarget(reference),
         closureModule,
         paramInfoForDirectCall(reference),
         "$member tear-off",
@@ -1325,10 +1293,7 @@ class Translator with KernelNodes {
     // We can only unpack (type, positional, named) argument arrays and forward
     // to specific vtable entries if we have closed-world knowledge of all used
     // name combinations.
-    assert(
-      !dynamicModuleSupportEnabled &&
-          !closureLayouter.usesFunctionApplyWithNamedArguments,
-    );
+    assert(!closureLayouter.usesFunctionApplyWithNamedArguments);
 
     final moduleCache = _closureArgumentsDispatchers[module] ??= {};
     return moduleCache.putIfAbsent(r, () {
@@ -1353,7 +1318,7 @@ class Translator with KernelNodes {
 
   ClosureImplementation getClosure(
     FunctionNode functionNode,
-    w.BaseFunction target,
+    CallTarget target,
     w.ModuleBuilder closureModule,
     ParameterInfo paramInfo,
     String name,
@@ -1376,18 +1341,21 @@ class Translator with KernelNodes {
       return existingImplementation;
     }
 
+    final functionType = functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
+
     // Look up the closure representation for the signature.
-    int typeCount = functionNode.typeParameters.length;
-    int positionalCount = functionNode.positionalParameters.length;
-    final List<VariableDeclaration> namedParamsSorted =
-        functionNode.namedParameters.toList()
-          ..sort((p1, p2) => p1.name!.compareTo(p2.name!));
-    List<String> names = namedParamsSorted.map((p) => p.name!).toList();
+    final int typeCount = functionType.typeParameters.length;
+    final int positionalCount = functionType.positionalParameters.length;
+    final namedParamsSorted = functionType.namedParameters.toList()
+      ..sort((p1, p2) => p1.name.compareTo(p2.name));
+    List<String> names = namedParamsSorted.map((p) => p.name).toList();
     assert(typeCount == paramInfo.typeParamCount);
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
     assert(
-      target.type.inputs.length ==
+      target.signature.inputs.length ==
           (paramInfo.takesContextOrReceiver ? 1 : 0) +
               paramInfo.typeParamCount +
               paramInfo.positional.length +
@@ -1398,10 +1366,8 @@ class Translator with KernelNodes {
     assert(
       representation.vtableStruct.fields.length ==
           representation.vtableBaseIndex +
-              (dynamicModuleSupportEnabled
-                  ? 0
-                  : (1 + positionalCount) +
-                        representation.nameCombinations.length),
+              (1 + positionalCount) +
+              representation.nameCombinations.length,
     );
 
     List<w.BaseFunction> functions = [];
@@ -1415,7 +1381,7 @@ class Translator with KernelNodes {
       while (namedArgIdx < argNames.length &&
           namedParamIdx < namedParamsSorted.length) {
         int comp = argNames[namedArgIdx].compareTo(
-          namedParamsSorted[namedParamIdx].name!,
+          namedParamsSorted[namedParamIdx].name,
         );
         if (comp < 0) {
           // Unexpected named argument passed
@@ -1528,15 +1494,11 @@ class Translator with KernelNodes {
     );
     final ib = vtable.initializer;
 
-    // NOTE: In dynamic modules we do not have closed world knowledge of closure
-    // definitions and callsites, so the dynamic call entry cannot dispatch to
-    // representation specific vtable entries.
-    //
-    // Even if we have closed world knowledge, if anywhere in the program
-    // `Function.apply` is used with named arguments, then we don't know which
-    // name-combinations may be used and we want to avoid creating vtable
-    // entries for all possible name combinations. So also in this situation we
-    // cannot dispatch to representation-specific vtable entries.
+    // NOTE: If anywhere in the program `Function.apply` is used with named
+    // arguments, then we don't know which name-combinations may be used and we
+    // want to avoid creating vtable entries for all possible name combinations.
+    // So also in this situation we cannot dispatch to representation-specific
+    // vtable entries.
     //
     // If none of the two cases above apply, we can make the dynamic call entry
     // be a shared stub that dispatches (based on arguments) to the right
@@ -1544,8 +1506,7 @@ class Translator with KernelNodes {
     // have 1 dynamic call entry function per closure but rather 1 per closure
     // shape / representation.
     w.BaseFunction? dynamicCallEntry;
-    if (dynamicModuleSupportEnabled ||
-        closureLayouter.usesFunctionApplyWithNamedArguments) {
+    if (closureLayouter.usesFunctionApplyWithNamedArguments) {
       ib.ref_func(dynamicCallEntry = makeDynamicCallEntry());
     }
     if (representation.isGeneric) {
@@ -1561,14 +1522,13 @@ class Translator with KernelNodes {
         representation.instantiationFunctionForModule(ib.moduleBuilder),
       );
     }
-    if (!dynamicModuleSupportEnabled) {
-      for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
-        fillVtableEntry(ib, posArgCount, const []);
-      }
-      for (NameCombination nameCombination in representation.nameCombinations) {
-        fillVtableEntry(ib, positionalCount, nameCombination.names);
-      }
+    for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
+      fillVtableEntry(ib, posArgCount, const []);
     }
+    for (NameCombination nameCombination in representation.nameCombinations) {
+      fillVtableEntry(ib, positionalCount, nameCombination.names);
+    }
+
     ib.struct_new(representation.vtableStruct);
     ib.end();
 
@@ -1602,11 +1562,8 @@ class Translator with KernelNodes {
       }
       if (to != voidMarker) {
         // This can happen e.g. when a `return;` is guaranteed to be never taken
-        // but TFA didn't remove the dead code. In that case we synthesize a
-        // dummy value.
-        getDummyValuesCollectorForModule(
-          b.moduleBuilder,
-        ).instantiateLocalDummyValue(b, to);
+        // but TFA didn't remove the dead code.
+        b.unreachable();
         return;
       }
     }
@@ -1641,7 +1598,7 @@ class Translator with KernelNodes {
 
         w.Local temp = b.addLocal(from);
         b.local_set(temp);
-        b.i32_const((info.classId as AbsoluteClassId).value);
+        b.i32_const(info.classId);
         b.local_get(temp);
         b.struct_new(info.struct);
       } else if (from is w.RefType) {
@@ -1700,12 +1657,7 @@ class Translator with KernelNodes {
     // covariant parameters will type check correctly, except parameters that
     // were marked explicitly with the `covariant` keyword.
     final useUncheckedEntry =
-        !metadata.hasTearOffUses &&
-        !metadata.hasNonThisUses &&
-        // For dynamic modules we always use the checked entry since TFA
-        // provides per-module results so we don't know if the unchecked entry
-        // can be used in a future module.
-        !dynamicModuleSupportEnabled;
+        !metadata.hasTearOffUses && !metadata.hasNonThisUses;
 
     if (member is Field) {
       return needToCheckImplicitSetterValue(
@@ -1759,7 +1711,7 @@ class Translator with KernelNodes {
   }
 
   bool needToCheckParameter(
-    VariableDeclaration parameter, {
+    Variable parameter, {
     required bool uncheckedEntry,
   }) {
     if (options.omitImplicitTypeChecks) return false;
@@ -1772,9 +1724,9 @@ class Translator with KernelNodes {
   ({
     List<TypeParameter> typeParameters,
     List<DartType> typeParametersToTypeCheck,
-    List<VariableDeclaration> positional,
+    List<Variable> positional,
     List<DartType> positionalToTypeCheck,
-    List<VariableDeclaration> named,
+    List<Variable> named,
     List<DartType> namedToTypeCheck,
   })
   getParametersToCheck(Member member) {
@@ -1782,9 +1734,8 @@ class Translator with KernelNodes {
     final List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
-    final List<VariableDeclaration> positional =
-        memberFunction.positionalParameters;
-    final List<VariableDeclaration> named = memberFunction.namedParameters;
+    final List<Variable> positional = memberFunction.positionalParameters;
+    final List<Variable> named = memberFunction.namedParameters;
 
     // If this is a CFE-inserted `forwarding-stub` then the types we have to
     // check against are those from the forwarding target.
@@ -1834,16 +1785,14 @@ class Translator with KernelNodes {
     return [for (final param in typeParameters) param.bound];
   }
 
-  List<DartType> _typesFromPositionalParameters(
-    List<VariableDeclaration> typeParameters,
-  ) {
+  List<DartType> _typesFromPositionalParameters(List<Variable> typeParameters) {
     if (typeParameters.isEmpty) return const [];
     return [for (final param in typeParameters) param.type];
   }
 
   List<DartType> _typeFromNamedParameters(
-    List<VariableDeclaration> namedOrder,
-    List<VariableDeclaration> namedType,
+    List<Variable> namedOrder,
+    List<Variable> namedType,
   ) {
     if (namedOrder.isEmpty) return const [];
     final namedTypes = <DartType>[];
@@ -1863,53 +1812,49 @@ class Translator with KernelNodes {
     return namedTypes;
   }
 
-  DispatchTable dispatchTableForTarget(Reference target) {
-    assert(target.asMember.isInstanceMember);
-    if (!isDynamicSubmodule) return dispatchTable;
-    if (moduleForReference(target) == dynamicSubmodule) return dispatchTable;
-    assert(
-      target.asMember.isDynamicSubmoduleCallable(coreTypes) ||
-          target.asMember.isDynamicSubmoduleInheritable(coreTypes),
-    );
-    return dynamicMainModuleDispatchTable!;
-  }
-
   AstCallTarget directCallTarget(Reference target) {
     final signature = signatureForDirectCall(target);
     return AstCallTarget(signature, this, target);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
-    return _signatureForModule(
-      target,
-      target.asMember.isInstanceMember ? dispatchTableForTarget(target) : null,
-    );
-  }
-
-  w.FunctionType signatureForMainModule(Reference target) {
-    return _signatureForModule(
-      target,
-      target.asMember.isInstanceMember ? dynamicMainModuleDispatchTable! : null,
-    );
-  }
-
-  w.FunctionType _signatureForModule(Reference target, DispatchTable? table) {
-    if (table != null && !target.isBodyReference) {
-      final selector = table.selectorForTarget(target);
-      if (selector.containsTarget(target) ||
-          selector.isDynamicSubmoduleOverridable) {
+    if (target.asMember.isInstanceMember && !target.isBodyReference) {
+      final selector = dispatchTable.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
         return selector.signature;
       }
     }
     return functions.getFunctionType(target);
   }
 
+  bool synthesizeNullReturnValue(Reference target) {
+    final member = target.asMember;
+    if (member.isInstanceMember) {
+      final table = dispatchTable;
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
+        return selector.synthesizeNullReturnValue;
+      }
+    }
+    return functions.synthesizeNullReturnValue(target);
+  }
+
+  bool synthesizeNoReturn(Reference target) {
+    final member = target.asMember;
+    if (member.isInstanceMember) {
+      final table = dispatchTable;
+      final selector = table.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
+        return selector.synthesizeNoReturn;
+      }
+    }
+    return functions.synthesizeNoReturn(target);
+  }
+
   ParameterInfo paramInfoForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
-      final table = dispatchTableForTarget(target);
-      final selector = table.selectorForTarget(target);
-      if (selector.containsTarget(target) ||
-          selector.isDynamicSubmoduleOverridable) {
+      final selector = dispatchTable.selectorForTarget(target);
+      if (selector.containsTarget(target)) {
         return selector.paramInfo;
       }
     }
@@ -1965,9 +1910,7 @@ class Translator with KernelNodes {
   }
 
   Member? singleTarget(TreeNode node) {
-    final member = directCallMetadata[node]?.targetMember;
-    if (!dynamicModuleSupportEnabled || member == null) return member;
-    return member.isDynamicSubmoduleOverridable(coreTypes) ? null : member;
+    return directCallMetadata[node]?.targetMember;
   }
 
   /// Direct call information of a [FunctionInvocation] based on TFA's direct
@@ -2015,45 +1958,37 @@ class Translator with KernelNodes {
       );
 
       return SingleClosureTarget._(
-        member,
+        directCallTarget(entryReference),
         paramInfoForDirectCall(entryReference),
-        signatureForDirectCall(entryReference),
-        null,
-      );
-    } else {
-      // A closure in the member is called.
-      final Closures enclosingMemberClosures = getClosures(
-        member,
-        findCaptures: true,
-      );
-      final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
-        (lambda) => lambda.index == closureId - 1,
-      );
-      final FunctionType lambdaDartType = lambda.functionNode
-          .computeFunctionType(Nullability.nonNullable);
-      final w.BaseFunction lambdaFunction = functions.getLambdaFunction(
-        lambda,
-        member,
-        enclosingMemberClosures,
-      );
-
-      if (!typeEnvironment.isSubtypeOf(
-        lambdaDartType,
-        node.receiver.getStaticType(typeContext),
-      )) {
-        return null;
-      }
-
-      return SingleClosureTarget._(
-        member,
-        ParameterInfo.fromLocalFunction(lambda.functionNode),
-        lambdaFunction.type,
-        lambdaFunction,
       );
     }
+
+    // A closure in the member is called.
+    final Closures enclosingMemberClosures = getClosures(
+      member,
+      findCaptures: true,
+    );
+    final Lambda lambda = enclosingMemberClosures.lambdas.values.firstWhere(
+      (lambda) => lambda.index == closureId - 1,
+    );
+    final FunctionType lambdaDartType = lambda.functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
+
+    if (!typeEnvironment.isSubtypeOf(
+      lambdaDartType,
+      node.receiver.getStaticType(typeContext),
+    )) {
+      return null;
+    }
+
+    return SingleClosureTarget._(
+      lambda.callTarget,
+      ParameterInfo.fromLocalFunction(lambda.functionNode),
+    );
   }
 
-  bool canSkipImplicitCheck(VariableDeclaration node) {
+  bool canSkipImplicitCheck(Variable node) {
     return inferredArgTypeMetadata[node]?.skipCheck ?? false;
   }
 
@@ -2063,7 +1998,7 @@ class Translator with KernelNodes {
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  DartType typeOfParameterVariable(VariableDeclaration node, bool isRequired) {
+  DartType typeOfParameterVariable(Variable node, bool isRequired) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2078,7 +2013,7 @@ class Translator with KernelNodes {
       // If [node] is a parameter of a `operator==` method, then the argument to
       // it cannot be nullable.
       final member = node.parent!.parent;
-      if (member is Procedure && member.name.text == '==') {
+      if (member is Procedure && member.name == equalsName) {
         return coreTypes.objectNonNullableRawType;
       }
       // The type argument of a static type is not required to conform
@@ -2092,7 +2027,7 @@ class Translator with KernelNodes {
 
   // The type to use assuming the argument was already checked (in case a
   // covariant check is needed).
-  DartType typeOfCheckedParameterVariable(VariableDeclaration node) {
+  DartType typeOfCheckedParameterVariable(Variable node) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2112,10 +2047,7 @@ class Translator with KernelNodes {
     return _inferredTypeOfField(node) ?? node.type;
   }
 
-  w.ValueType translateTypeOfParameter(
-    VariableDeclaration node,
-    bool isRequired,
-  ) {
+  w.ValueType translateTypeOfParameter(Variable node, bool isRequired) {
     return translateType(typeOfParameterVariable(node, isRequired));
   }
 
@@ -2123,7 +2055,7 @@ class Translator with KernelNodes {
     return translateType(typeOfField(node));
   }
 
-  w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
+  w.ValueType translateTypeOfLocalVariable(Variable node) {
     DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
     if (dartType is InterfaceType) {
       final info = classInfo[dartType.classNode];
@@ -2138,7 +2070,7 @@ class Translator with KernelNodes {
     return translateType(dartType);
   }
 
-  DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
+  DartType? _inferredTypeOfParameterVariable(Variable node) {
     return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
   }
 
@@ -2153,7 +2085,7 @@ class Translator with KernelNodes {
     return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
-  DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
+  DartType? _inferredTypeOfLocalVariable(Variable node) {
     InferredType? inferredType = inferredTypeMetadata[node];
     if (node.isFinal) {
       inferredType ??= inferredTypeMetadata[node.initializer];
@@ -2166,6 +2098,10 @@ class Translator with KernelNodes {
     InferredType? inferredType,
   ) {
     if (inferredType == null) return null;
+
+    if (defaultType is VoidType) {
+      defaultType = coreTypes.objectNullableRawType;
+    }
 
     // To check whether [inferredType] is more precise than [defaultType] we
     // require it (for now) to be an interface type.
@@ -2192,6 +2128,8 @@ class Translator with KernelNodes {
       return null;
     }
 
+    if (concreteClass == coreTypes.deprecatedNullClass) return const NullType();
+
     final typeParameters = concreteClass.typeParameters;
     final typeArguments = typeParameters.isEmpty
         ? const <DartType>[]
@@ -2202,90 +2140,209 @@ class Translator with KernelNodes {
     return InterfaceType(concreteClass, nullability, typeArguments);
   }
 
-  bool shouldInline(Reference target, w.FunctionType signature) {
-    if (!options.inlining) return false;
-    if (isDynamicSubmodule && moduleForReference(target) == mainModule) {
-      // We avoid inlining code from the main module into dynamic submodules
-      // so that we can avoid needing to export more code.
-      return false;
-    }
+  InliningDecision shouldInline(Reference target, w.FunctionType signature) {
+    if (!options.inlining) return InliningDecision(false, 'inlining disabled');
 
     // Unchecked entry point functions perform very little, mainly optional
     // parameter handling and then call the real body function.
     //
     // By inlining them we can often avoid downcasts and sometimes boxing. The
     // force inlining here seem to even lead to overall size decreases.
-    if (target.isUncheckedEntryReference) return true;
+    if (target.isUncheckedEntryReference) {
+      return InliningDecision(true, 'unchecked entry');
+    }
 
     final member = target.asMember;
-    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
-      return false;
+    if (member.isExternal) return InliningDecision(false, 'external');
+    if (util.getWasmNeverInlinePragma(coreTypes, member) ?? false) {
+      return InliningDecision(false, '@pragma("wasm:never-inline")');
     }
-    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
-      return true;
+    if (util.getWasmPreferInlinePragma(coreTypes, member) ?? false) {
+      return InliningDecision(true, '@pragma("wasm:prefer-inline")');
     }
     if (member is Field) {
-      // Implicit getter/setter for instance fields are just loads/stores.
-      if (member.isInstanceMember) return true;
+      return _shouldInlineFieldAccessor(target, member);
+    }
+    if (member is Constructor) {
+      return _shouldInlineConstructorCall(target, signature, member);
+    }
+    return _shouldInlineProcedureCall(target, signature, member as Procedure);
+  }
 
-      // Implicit setter for static fields are just stores.
-      if (target == member.setterReference) return true;
+  InliningDecision _shouldInlineFieldAccessor(Reference target, Field field) {
+    if (field.isInstanceMember) {
+      // Implicit instance getters are just loads.
+      if (target.isImplicitGetter) {
+        return InliningDecision(true, 'Implicit getter.');
+      }
 
+      // Implicit instance setters are just stores, except if the value needs
+      // to be type checked.
+      assert(target.isImplicitSetter);
+      if (target == field.checkedEntryReference) {
+        return InliningDecision(false, 'Implicit setter with type check.');
+      }
+      return InliningDecision(true, 'Implicit setter without type check.');
+    }
+
+    // Implicit setter for static fields are just stores.
+    if (target == field.setterReference) {
+      return InliningDecision(true, 'Implicit static setter');
+    }
+
+    if (target == field.getterReference) {
       // Implicit getter for static fields may invoke lazy static initializer.
-      if (dartGlobals.getConstantInitializer(member) != null) {
+      if (dartGlobals.getConstantInitializer(field) != null) {
         // This global will get it's initializer eagerly set, so no lazy init
         // function to be called.
-        return true;
+        return InliningDecision(
+          true,
+          'Implicit static getter without initializer',
+        );
       }
+      return InliningDecision(false, 'static getter with initializer');
+    }
+    throw UnimplementedError();
+  }
+
+  /// Whether the initializer function should never be inlined (neither by
+  /// dart2wasm, nor by binaryen or wasm runtime).
+  ///
+  /// Static field initializers are exectued at most once, so if they are big,
+  /// we want to prevent them from ever being inlined. For small ones, we leave
+  /// it up to normal inlining heuristics (which may decide it's beneficial to
+  /// inline e.g. due to size).
+  ///
+  /// If we didn't do this and a static field is only accessed at one place,
+  /// then binaryen would inline it always (due to only one caller), which would
+  /// make the callee possibly very large, which in return may prevent that one
+  /// from getting inlined into other functions (by binaryen & wasm runtime)
+  bool neverInlineStaticFieldInitializer(Field field) {
+    if (dartGlobals.getConstantInitializer(field) != null) {
+      // The initializer is a constant.
       return false;
     }
-    if (target.isInitializerReference) return true;
+    final nodeCounter = NodeCounter(this);
+    field.initializer!.accept(nodeCounter);
+    // The cost of an initializer function is the wasm function type, wasm
+    // function body and calls to it.
+    return nodeCounter.count > 10;
+  }
 
-    final function = member.function!;
-    if (function.body == null) return false;
-
-    // We never want to inline throwing functions (as they are slow paths).
-    if (member is Procedure && member.function.returnType is NeverType) {
-      return false;
+  InliningDecision _shouldInlineConstructorCall(
+    Reference target,
+    w.FunctionType signature,
+    Constructor constructor,
+  ) {
+    final callOverhead = signature.inputs.length + /* call instruction = */ 1;
+    if (target.isInitializerReference) {
+      return InliningDecision(true, 'Initializer');
+    }
+    if (target.isConstructorBodyReference) {
+      final nodeCounter = NodeCounter(this);
+      for (final init in constructor.initializers) {
+        // The body will have to call the super body with evaluated arguments
+        // supplied as to the body function.
+        if (init is SuperInitializer) {
+          nodeCounter.count += getConstructorInfo(
+            init.target,
+          ).bodyParameters.length;
+          break;
+        }
+        if (init is RedirectingInitializer) {
+          nodeCounter.count += getConstructorInfo(
+            init.target,
+          ).bodyParameters.length;
+          break;
+        }
+      }
+      // If we think the overhead of pushing arguments is around the same as the
+      // body itself, we always inline.
+      constructor.function.body?.accept(nodeCounter);
+      return InliningDecision(
+        nodeCounter.count < callOverhead,
+        'SizeEstimate=${nodeCounter.count} < CallOverhead=$callOverhead',
+      );
     }
 
-    final nodeCount = NodeCounter(
-      options.omitImplicitTypeChecks || target.isUncheckedEntryReference,
-    ).countNodes(member);
+    // The size of the constructor allocator is always guaranteed to be
+    // larger than the caller as it comes with this base cost:
+    //
+    //   i32.const <classid>
+    //   i32.const 0
+    //   <N fields>
+    //   struct.new
+    assert(constructor.reference == target);
+    return InliningDecision(false, 'Constructor allocator');
+  }
+
+  InliningDecision _shouldInlineProcedureCall(
+    Reference target,
+    w.FunctionType signature,
+    Procedure member,
+  ) {
+    final callOverhead = signature.inputs.length + /* call instruction = */ 1;
+    final function = member.function;
+    if (function.returnType is NeverType) {
+      // Procedure always throws.
+      return InliningDecision(false, 'Throwing function');
+    }
+
+    if (target.isUncheckedEntryReference) {
+      // Unchecked entry point functions perform very little, mainly optional
+      // parameter handling and then call the real body function.
+      //
+      // By inlining them we can often avoid downcasts and sometimes boxing. The
+      // force inlining here seem to even lead to overall size decreases.
+      return InliningDecision(true, 'Unchecked entry');
+    }
+
+    if (target.isCheckedEntryReference) {
+      // Checked entry point functions have to perform extra type checks on
+      // parameters.
+      return InliningDecision(false, 'Checked entry');
+    }
+    if (target.isTearOffReference) {
+      // This has to perform closure allocation.
+      return InliningDecision(false, 'TearOff');
+    }
+
+    assert(target.isBodyReference || target == member.reference);
+
+    final nodeCounter = NodeCounter(this);
+    function.body?.accept(nodeCounter);
+    int nodeCount = nodeCounter.count;
 
     // Special cases for iterator inlining:
     //   class ... implements Iterable<T> {
     //     Iterator<T> get iterator => FooIterator(...)
     //   }
-    //   class ... implements Iterator<T> {
-    //     T get current => _current as E;
-    //   }
     final klass = member.enclosingClass;
     if (klass != null) {
       final name = member.name.text;
-      if (name == 'iterator' && nodeCount <= 20) {
+      if (name == 'iterator') {
         if (typeEnvironment.isSubtypeOf(
           klass.getThisType(coreTypes, Nullability.nonNullable),
           coreTypes.iterableRawType(Nullability.nonNullable),
         )) {
-          return true;
-        }
-      }
-      if (name == 'current' && nodeCount <= 5) {
-        if (typeEnvironment.isSubtypeOf(
-          klass.getThisType(coreTypes, Nullability.nonNullable),
-          coreTypes.iteratorRawType(Nullability.nonNullable),
-        )) {
-          return true;
+          nodeCount--; // Give slightly more budget.
         }
       }
     }
 
     // If we think the overhead of pushing arguments is around the same as the
     // body itself, we always inline.
-    if (nodeCount <= signature.inputs.length) return true;
+    if (nodeCount <= callOverhead) {
+      return InliningDecision(
+        true,
+        'SizeEstimate=$nodeCount <= CallOverhead=$callOverhead',
+      );
+    }
 
-    return nodeCount <= options.inliningLimit;
+    return InliningDecision(
+      nodeCount <= options.inliningLimit,
+      '$nodeCount <= inliningLimit=${options.inliningLimit}',
+    );
   }
 
   bool supportsInlining(Reference target) {
@@ -2376,6 +2433,8 @@ class Translator with KernelNodes {
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
 
   w.Global getInternalizedStringGlobal(w.ModuleBuilder module, String s) {
+    assert(!options.standalone, "Standalone mode doesn't have string globals");
+
     w.Global? internalizedString = _internalizedStringGlobals[(module, s)];
     if (internalizedString != null) {
       return internalizedString;
@@ -2420,6 +2479,47 @@ class Translator with KernelNodes {
     return internalizedString;
   }
 
+  void pushStandaloneStringConstant(
+    w.InstructionsBuilder instructions,
+    w.DataSegmentBuilder data,
+    String s,
+  ) {
+    assert(options.standalone);
+
+    Uint8List byteContents;
+    bool isAscii;
+    if (s.codeUnits.every((c) => c <= 127)) {
+      byteContents = Uint8List.fromList(s.codeUnits);
+      isAscii = true;
+    } else {
+      final list = ByteData(s.length * 2);
+      for (var i = 0; i < s.length; i++) {
+        list.setUint16(2 * i, s.codeUnitAt(i), .little);
+      }
+      byteContents = list.buffer.asUint8List();
+      isAscii = false;
+    }
+
+    final kernelFunction = isAscii
+        ? embedderStringFromAsciiBytes
+        : embedderStringFromCharCodeArray;
+    final importedFunction =
+        functions.getFunction(kernelFunction.reference) as w.ImportedFunction;
+    // The signature is (WasmArray<i8 | i16> data, i32 offset, i32 length)
+    final arrayRefType =
+        (importedFunction.type.inputs[0] as w.RefType).heapType as w.ArrayType;
+
+    instructions
+      ..i32_const(data.length)
+      ..i32_const(s.length)
+      ..array_new_data(arrayRefType, data)
+      ..i32_const(0)
+      ..i32_const(s.length)
+      ..call(importedFunction);
+
+    data.content.add(byteContents);
+  }
+
   w.Memory findMemory(
     Procedure topLevelExternalMemoryGetter,
     w.ModuleBuilder moduleBuilder,
@@ -2438,7 +2538,9 @@ class Translator with KernelNodes {
         this,
         topLevelExternalMemoryGetter,
       )!;
-      final exportName = getExportName(topLevelExternalMemoryGetter.reference);
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalMemoryGetter,
+      );
       final import = util.getWasmImportPragma(
         coreTypes,
         topLevelExternalMemoryGetter,
@@ -2468,17 +2570,6 @@ class Translator with KernelNodes {
     });
   }
 
-  /// If the member with the reference [target] is exported, get the export
-  /// name.
-  String? getExportName(Reference target) {
-    final member = target.asMember;
-    if (member.reference == target) {
-      return util.getWasmExportPragma(coreTypes, member) ??
-          util.getWasmWeakExportPragma(coreTypes, member);
-    }
-    return null;
-  }
-
   void instantiateDummyValueHeapType(
     w.InstructionsBuilder b,
     w.HeapType type,
@@ -2487,7 +2578,10 @@ class Translator with KernelNodes {
     instantiateHeapType,
   ) {
     if (type == w.HeapType.struct) {
-      final structType = typesBuilder.defineStruct(name);
+      final structType = typesBuilder.defineStruct(
+        name,
+        brand: options.uniqueTypes,
+      );
       b.struct_new(structType);
       return;
     } else if (type is w.DefType) {
@@ -2520,10 +2614,6 @@ class CompilationQueue {
 
   bool get isEmpty => _pending.isEmpty;
   void add(CompilationTask entry) {
-    assert(
-      !translator.isDynamicSubmodule ||
-          entry.function.enclosingModule == translator.dynamicSubmodule.module,
-    );
     _pending.add(entry);
   }
 
@@ -2625,7 +2715,7 @@ class AstCompilationTask extends CompilationTask {
 class _ClosureTrampolineGenerator implements CodeGenerator {
   final Translator translator;
   final w.FunctionBuilder trampoline;
-  final w.BaseFunction target;
+  final CallTarget target;
   final int typeCount;
   final int posArgCount;
   final List<String> argNames;
@@ -2656,7 +2746,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       translator.convertType(
         b,
         receiver.type,
-        target.type.inputs[targetIndex++],
+        target.signature.inputs[targetIndex++],
       );
     }
     int argIndex = 1;
@@ -2668,12 +2758,16 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (i < posArgCount) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.positional[i]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
@@ -2683,27 +2777,32 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
       if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
         w.Local arg = trampoline.locals[argIndex++];
         b.local_get(arg);
-        translator.convertType(b, arg.type, target.type.inputs[targetIndex++]);
+        translator.convertType(
+          b,
+          arg.type,
+          target.signature.inputs[targetIndex++],
+        );
         argNameIndex++;
       } else {
         translator.constants.instantiateConstant(
           b,
           paramInfo.named[argName]!,
-          target.type.inputs[targetIndex++],
+          target.signature.inputs[targetIndex++],
         );
       }
     }
     assert(argIndex == trampoline.type.inputs.length);
-    assert(targetIndex == target.type.inputs.length);
+    assert(targetIndex == target.signature.inputs.length);
     assert(argNameIndex == argNames.length);
 
-    translator.callFunction(target, b);
-
-    translator.convertType(
-      b,
-      translator.outputOrVoid(target.type.outputs),
-      translator.outputOrVoid(trampoline.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(trampoline.type.outputs),
+      );
+    }
     b.end();
   }
 }
@@ -2713,7 +2812,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
 class _ClosureDynamicEntryGenerator implements CodeGenerator {
   final Translator translator;
   final FunctionNode functionNode;
-  final w.BaseFunction target;
+  final CallTarget target;
   final ParameterInfo paramInfo;
   final String name;
   final w.FunctionBuilder function;
@@ -2737,7 +2836,10 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     final b = function.body;
 
-    final int typeCount = functionNode.typeParameters.length;
+    final member = functionNode.parent;
+    final int typeCount = member is Constructor
+        ? member.enclosingClass.typeParameters.length
+        : functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
     final typeArgsListLocal = function.locals[1];
@@ -2753,7 +2855,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     // of type arguments in the list, but optional positional and named
     // parameters may be missing.
 
-    final targetInputs = target.type.inputs;
+    final targetInputs = target.signature.inputs;
     int inputIdx = 0;
 
     // Push context or receiver
@@ -2856,7 +2958,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(
           b,
           translator.nullableObjectArrayType.elementType.type.unpacked,
-          target.type.inputs[inputIdx],
+          target.signature.inputs[inputIdx],
         );
       } else {
         // Parameter may not be passed.
@@ -2890,13 +2992,14 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       inputIdx += 1;
     }
 
-    translator.callFunction(target, b);
-
-    translator.convertType(
-      b,
-      translator.outputOrVoid(target.type.outputs),
-      translator.outputOrVoid(function.type.outputs),
-    );
+    final outputs = translator.callTarget(target, b);
+    if (outputs.isNotEmpty) {
+      translator.convertType(
+        b,
+        outputs.single,
+        translator.outputOrVoid(function.type.outputs),
+      );
+    }
 
     b.end(); // end function
   }
@@ -3260,45 +3363,12 @@ class _ClosureArgumentsToVtableEntryDispatcherGenerator
 }
 
 class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
-  final bool omitCovarianceChecks;
+  final Translator translator;
+
+  NodeCounter(this.translator);
+
+  bool hadReturn = false;
   int count = 0;
-
-  NodeCounter(this.omitCovarianceChecks);
-
-  int countNodes(Member member) {
-    count = 0;
-    if (member is Constructor) {
-      count += 2; // object creation overhead
-      for (final init in member.initializers) {
-        init.accept(this);
-      }
-      for (final field in member.enclosingClass.fields) {
-        field.initializer?.accept(this);
-      }
-    }
-
-    final function = member.function!;
-    if (!omitCovarianceChecks) {
-      for (final parameter in function.positionalParameters) {
-        if (parameter.isCovariantByDeclaration ||
-            parameter.isCovariantByClass) {
-          count++;
-        }
-      }
-    }
-    for (final parameter in function.positionalParameters) {
-      if (!omitCovarianceChecks) {
-        if (parameter.isCovariantByDeclaration ||
-            parameter.isCovariantByClass) {
-          count++;
-        }
-      }
-      if (!parameter.isRequired) count++;
-    }
-
-    function.body?.accept(this);
-    return count;
-  }
 
   // We only count tree nodes and do not recurse into things that aren't part of
   // the tree (e.g. constants, variable types, ...)
@@ -3307,6 +3377,35 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   void defaultTreeNode(TreeNode node) {
     count++;
     node.visitChildren(this);
+  }
+
+  // Constructor initializers
+  @override
+  void visitFieldInitializer(FieldInitializer node) {
+    handleFieldInitializerValue(node.value);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    node.variable.initializer!.accept(this);
+  }
+
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
+    node.arguments.accept(this);
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    node.arguments.accept(this);
+  }
+
+  void handleFieldInitializerValue(Expression? value) {
+    // These compress very well, let's not count those field initializer
+    // expressions for the size of the initializer function.
+    if (value == null || value is NullLiteral || value is NullConstant) return;
+    if (value is BoolLiteral || value is BoolConstant) return;
+    value.accept(this);
   }
 
   // The following AST nodes do not actually emit any code, so we don't count
@@ -3321,6 +3420,17 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     node.visitChildren(this);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    node.expression?.accept(this);
+    if (!hadReturn) {
+      // The first return is free.
+      hadReturn = true;
+      return;
+    }
+    count++;
   }
 
   @override
@@ -3339,6 +3449,11 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitLet(Let node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitArguments(Arguments node) {
     count += node.types.length;
     node.visitChildren(this);
@@ -3348,6 +3463,65 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   void visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
   }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    node.operand.accept(this);
+    count += 2;
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    node.operand.accept(this);
+    count += 3;
+  }
+
+  @override
+  void defaultDartType(DartType node) {
+    // The only [DartType]s we care about are those passed in calls and they are
+    // handled already in [visitArguments].
+    return;
+  }
+
+  // Some nodes are more costly.
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    node.visitChildren(this);
+    _countInstanceCallCost(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    node.visitChildren(this);
+    _countInstanceCallCost(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    node.visitChildren(this);
+    _countInstanceCallCost(node);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    node.visitChildren(this);
+    _countInstanceCallCost(node);
+  }
+
+  void _countInstanceCallCost(TreeNode node) {
+    count++; // Call cost.
+
+    // Indirect calls are more costly.
+    if (translator.singleTarget(node) == null) {
+      count += 2; // Additional cost for indirect calls.
+    }
+  }
+}
+
+class InliningDecision {
+  final bool shouldInline;
+  final String? reason;
+  InliningDecision(this.shouldInline, this.reason);
 }
 
 /// Creates forwarders for generic functions where the caller passes a constant
@@ -3497,8 +3671,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
     this.selector,
     this.callingModule,
     this.useUncheckedEntry,
-  ) : assert(!selector.isDynamicSubmoduleOverridable),
-      super(
+  ) : super(
         translator.typesBuilder.defineFunction([
           w.NumType.i32,
           ...selector.signature.inputs,
@@ -3512,12 +3685,14 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   bool get supportsInlining => true;
 
   @override
-  bool get shouldInline =>
-      selector
-          .targets(unchecked: useUncheckedEntry)
-          .staticDispatchRanges
-          .length <=
-      1;
+  InliningDecision get shouldInline => InliningDecision(
+    selector
+            .targets(unchecked: useUncheckedEntry)
+            .staticDispatchRanges
+            .length <=
+        1,
+    'staticDispatchRanges <= 1',
+  );
 
   @override
   CodeGenerator get inliningCodeGen => PolymorphicDispatcherCodeGenerator(
@@ -3543,7 +3718,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
     this.translator,
     this.selector,
     this.useUncheckedEntry,
-  ) : assert(!selector.isDynamicSubmoduleOverridable);
+  );
 
   @override
   void generate(
@@ -3688,6 +3863,13 @@ void instantiateDummyValue(
   }
 }
 
+/// Manages wasm entities that are shared between internal Dart wasm modules.
+///
+/// Deferred loading depends on sharing wasm entities between modules. This
+/// class manages the naming and import/export of those entities.
+///
+/// As these entities are internal to the Dart wasm modules, we can minify the
+/// names used to refer to them.
 abstract class _WasmImporter<T extends w.Exportable> {
   final Translator _translator;
   final String _exportPrefix;
@@ -3695,7 +3877,7 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
   _WasmImporter(this._translator, this._exportPrefix);
 
-  T _import(
+  T import(
     w.ModuleBuilder importingModule,
     T definition,
     String moduleName,
@@ -3704,36 +3886,19 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
   Iterable<T> get imports => _map.values.expand((v) => v.values);
 
-  /// Declare that a module already exports [exportable] under [name].
-  ///
-  /// Normally the [_WasmImporter] class works by exporting in one module and
-  /// importing in another module on first cross-module access. That makes sense
-  /// if we build all modules simultaniously. But if we are e.g. building a
-  /// dynamic module then the main module already exports it. So one can use
-  /// this method for declaring such an existing export.
-  void exportDefinitionWithName(String name, T exportable) {
-    assert(!_map.containsKey(exportable));
-
-    final owningModule =
-        _translator.moduleToBuilder[exportable.enclosingModule]!;
-    owningModule.exports.export(name, exportable);
-    _map[exportable] = {};
-  }
-
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
     if (keyModuleBuilder == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
-      _translator.exporter.export(
-        keyModuleBuilder,
+      final name = _translator.exportNamer.getName(
         '$_exportPrefix${_map.length}',
-        key,
       );
+      keyModuleBuilder.exports.export(name, key);
       return {};
     });
     return innerMap.putIfAbsent(module, () {
-      return _import(
+      return import(
         module,
         key,
         _translator.nameForModule(keyModuleBuilder),
@@ -3751,7 +3916,7 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   WasmFunctionImporter(super._translator, super._exportPrefix);
 
   @override
-  w.BaseFunction _import(
+  w.BaseFunction import(
     w.ModuleBuilder importingModule,
     w.BaseFunction definition,
     String moduleName,
@@ -3772,7 +3937,7 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
   WasmGlobalImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Global _import(
+  w.Global import(
     w.ModuleBuilder importingModule,
     w.Global definition,
     String moduleName,
@@ -3792,7 +3957,7 @@ class WasmMemoryImporter extends _WasmImporter<w.Memory> {
   WasmMemoryImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Memory _import(
+  w.Memory import(
     w.ModuleBuilder importingModule,
     w.Memory definition,
     String moduleName,
@@ -3812,7 +3977,7 @@ class WasmTableImporter extends _WasmImporter<w.Table> {
   WasmTableImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Table _import(
+  w.Table import(
     w.ModuleBuilder importingModule,
     w.Table definition,
     String moduleName,
@@ -3832,7 +3997,7 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
   WasmTagImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Tag _import(
+  w.Tag import(
     w.ModuleBuilder importingModule,
     w.Tag definition,
     String moduleName,
@@ -3843,26 +4008,23 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
 }
 
 class SingleClosureTarget {
-  /// When `lambdaFunction` is null, the member being directly called. Otherwise
-  /// the enclosing member of the closure being called.
-  final Member member;
+  final CallTarget callTarget;
 
   /// [ParameterInfo] specifying how to compile arguments to the closure or
   /// member.
   final ParameterInfo paramInfo;
 
-  /// Wasm function type that goes along with the [paramInfo] for compiling
-  /// arguments.
-  final w.FunctionType signature;
+  SingleClosureTarget._(this.callTarget, this.paramInfo);
+}
 
-  /// If the callee is a local function or function expression (intead of a
-  /// member), this Wasm function for it.
-  final w.BaseFunction? lambdaFunction;
-
-  SingleClosureTarget._(
-    this.member,
-    this.paramInfo,
-    this.signature,
-    this.lambdaFunction,
-  );
+extension on BytesBuilder {
+  void writeULEB128(int value) {
+    assert(value >= 0);
+    do {
+      int byte = value & 0x7F;
+      value >>>= 7;
+      if (value != 0) byte |= 0x80;
+      addByte(byte);
+    } while (value != 0);
+  }
 }

@@ -23,13 +23,11 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename_type_para
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -41,12 +39,16 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertGetterToMethodRefactoring(
+  factory(
     RefactoringWorkspace workspace,
-    AnalysisSession session,
+    ResolvedUnitResult resolvedUnit,
     GetterElement element,
   ) {
-    return ConvertGetterToMethodRefactoringImpl(workspace, session, element);
+    return ConvertGetterToMethodRefactoringImpl(
+      workspace,
+      resolvedUnit,
+      element,
+    );
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -64,12 +66,16 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
 abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertMethodToGetterRefactoring(
+  factory(
     RefactoringWorkspace workspace,
-    AnalysisSession session,
+    ResolvedUnitResult resolvedUnit,
     ExecutableElement element,
   ) {
-    return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
+    return ConvertMethodToGetterRefactoringImpl(
+      workspace,
+      resolvedUnit,
+      element,
+    );
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -86,7 +92,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
 /// [Refactoring] to extract an expression into a local variable declaration.
 abstract class ExtractLocalRefactoring implements Refactoring {
   /// Returns a new [ExtractLocalRefactoring] instance.
-  factory ExtractLocalRefactoring(
+  factory(
     ResolvedUnitResult resolveResult,
     int selectionOffset,
     int selectionLength,
@@ -147,7 +153,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
 /// [Refactoring] to extract an [Expression] or [Statement]s into a new method.
 abstract class ExtractMethodRefactoring implements Refactoring {
   /// Returns a new [ExtractMethodRefactoring] instance.
-  factory ExtractMethodRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int selectionOffset,
@@ -227,7 +233,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
 /// a widget, into a new stateless or stateful widget.
 abstract class ExtractWidgetRefactoring implements Refactoring {
   /// Returns a new [ExtractWidgetRefactoring] instance.
-  factory ExtractWidgetRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -267,7 +273,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
 /// [Refactoring] to inline a local variable.
 abstract class InlineLocalRefactoring implements Refactoring {
   /// Returns a new [InlineLocalRefactoring] instance.
-  factory InlineLocalRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -295,7 +301,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
 /// [Refactoring] to inline an executable element.
 abstract class InlineMethodRefactoring implements Refactoring {
   /// Returns a new [InlineMethodRefactoring] instance.
-  factory InlineMethodRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -336,7 +342,7 @@ abstract class InlineMethodRefactoring implements Refactoring {
 /// [Refactoring] to move/rename a file or folder.
 abstract class MoveFileRefactoring implements Refactoring {
   /// Returns a new [MoveFileRefactoring] instance.
-  factory MoveFileRefactoring(
+  factory(
     ResourceProvider resourceProvider,
     RefactoringWorkspace workspace,
     String oldFilePath,
@@ -402,7 +408,7 @@ class RefactoringWorkspace {
   final Iterable<AnalysisDriver> drivers;
   final SearchEngine searchEngine;
 
-  RefactoringWorkspace(this.drivers, this.searchEngine);
+  new(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
   bool containsElement(Element element) {
@@ -462,6 +468,7 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
+    element = element.baseElement;
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
@@ -494,10 +501,20 @@ abstract class RenameRefactoring implements Refactoring {
       );
     }
     if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLabelRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLibraryRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (enclosingElement?.thisOrAncestorOfType<InterfaceElement>()
         case var enclosingElement?) {
@@ -511,15 +528,26 @@ abstract class RenameRefactoring implements Refactoring {
       }
     }
     if (element is FormalParameterElement) {
-      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
+      return RenameParameterRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLocalRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
+        resolvedUnit,
         element,
       );
     }
@@ -581,6 +609,10 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node;
     } else if (node is InstanceCreationExpression) {
       nameNode = node;
+    } else if (node is Label) {
+      nameNode = node.name;
+    } else if (node is LabelReference) {
+      nameNode = node.name;
     } else if (node is LibraryDirective) {
       nameNode = node;
     } else if (node is MethodDeclaration) {
@@ -590,7 +622,7 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is EnumDeclaration) {
       nameNode = node.namePart.typeName;
     } else if (node is ExtensionTypeDeclaration) {
-      nameNode = node.primaryConstructor.typeName;
+      nameNode = node.namePart.typeName;
     } else if (node is FunctionDeclaration) {
       nameNode = node.name;
     } else if (node is MixinDeclaration) {
@@ -599,9 +631,11 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is NamedType) {
       nameNode = node.name;
+    } else if (node is NamedArgument) {
+      nameNode = node.name;
     } else if (node is PrimaryConstructorName) {
       nameNode = node.name;
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is FormalParameter) {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {
       nameNode = node.token;
@@ -615,10 +649,6 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var offset = nameNode.offset;
     var length = nameNode.length;
-
-    if (node is SimpleIdentifier && element is FormalParameterElement) {
-      element = declaredParameterElement2(node, element);
-    }
 
     // Use the prefix offset/length when renaming an import directive.
     if (element is MockLibraryImportElement) {
@@ -656,5 +686,5 @@ class RenameRefactoringElement {
   final int offset;
   final int length;
 
-  RenameRefactoringElement(this.element, this.offset, this.length);
+  new(this.element, this.offset, this.length);
 }

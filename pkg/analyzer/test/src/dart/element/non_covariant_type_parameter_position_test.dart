@@ -4,8 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,116 +20,111 @@ main() {
 @reflectiveTest
 class NonCovariantTypeParameterPositionVisitorTest
     extends AbstractTypeSystemTest {
-  late final T_element = typeParameter('T');
-  late final T = typeParameterTypeNone(T_element);
-
-  FunctionTypeImpl get _contravariantT {
-    return functionTypeNone(
-      returnType: voidNone,
-      formalParameters: [positionalParameter(type: T)],
-    );
-  }
-
-  void expectNonCovariant(DartType type) {
-    var actual = _compute(type);
+  void expectNonCovariant(DartType type, TypeParameterElementImpl T) {
+    var actual = _compute(type, T);
     expect(actual, isTrue);
   }
 
-  void expectNotNonCovariant(DartType type) {
-    var actual = _compute(type);
+  void expectNotNonCovariant(DartType type, TypeParameterElementImpl T) {
+    var actual = _compute(type, T);
     expect(actual, isFalse);
   }
 
   test_dynamic() {
-    expectNotNonCovariant(dynamicType);
+    withTypeParameterScope('T', (scope) {
+      expectNotNonCovariant(parseType('dynamic'), scope.typeParameter('T'));
+    });
   }
 
   test_function() {
-    expectNotNonCovariant(functionTypeNone(returnType: T));
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    // void Function(T)
-    expectNonCovariant(_contravariantT);
+      expectNotNonCovariant(scope.parseType('T Function()'), T);
 
-    // void Function(T) Function()
-    expectNonCovariant(functionTypeNone(returnType: _contravariantT));
+      // void Function(T)
+      expectNonCovariant(scope.parseType('void Function([T])'), T);
 
-    // void Function(void Function(T))
-    expectNotNonCovariant(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: _contravariantT)],
-      ),
-    );
+      // void Function(T) Function()
+      expectNonCovariant(scope.parseType('void Function([T]) Function()'), T);
 
-    // T Function(T)
-    expectNonCovariant(
-      functionTypeNone(
-        returnType: T,
-        formalParameters: [positionalParameter(type: T)],
-      ),
-    );
+      // void Function(void Function(T))
+      expectNotNonCovariant(
+        scope.parseType('void Function([void Function([T])])'),
+        T,
+      );
+
+      // T Function(T)
+      expectNonCovariant(scope.parseType('T Function([T])'), T);
+
+      // void Function<U extends T>()
+      expectNonCovariant(scope.parseType('void Function<U extends T>()'), T);
+    });
 
     // Not the `T` for which we check.
-    var T2 = typeParameter('T');
-    expectNotNonCovariant(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          positionalParameter(type: typeParameterTypeNone(T2)),
-        ],
-      ),
-    );
-
-    // void Function<U extends T>()
-    expectNonCovariant(
-      functionTypeNone(
-        typeParameters: [typeParameter('U', bound: T)],
-        returnType: voidNone,
-      ),
-    );
+    withTypeParameterScope('T', (scope1) {
+      var T = scope1.typeParameter('T');
+      scope1.withTypeParameterScope('T', (scope2) {
+        expectNotNonCovariant(scope2.parseType('void Function([T])'), T);
+      });
+    });
   }
 
   test_interface() {
-    expectNotNonCovariant(intNone);
-    expectNotNonCovariant(listNone(T));
-    expectNonCovariant(listNone(_contravariantT));
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      expectNotNonCovariant(parseType('int'), T);
+      expectNotNonCovariant(scope.parseType('List<T>'), T);
+      expectNonCovariant(scope.parseType('List<void Function([T])>'), T);
+    });
   }
 
   test_invalidType() {
-    expectNotNonCovariant(invalidType);
+    withTypeParameterScope('T', (scope) {
+      expectNotNonCovariant(parseType('InvalidType'), scope.typeParameter('T'));
+    });
   }
 
   test_never() {
-    expectNotNonCovariant(neverNone);
+    withTypeParameterScope('T', (scope) {
+      expectNotNonCovariant(parseType('Never'), scope.typeParameter('T'));
+    });
   }
 
   test_record() {
-    expectNotNonCovariant(recordTypeNone(positionalTypes: [T]));
-
-    expectNonCovariant(recordTypeNone(positionalTypes: [_contravariantT]));
-
-    expectNonCovariant(recordTypeNone(positionalTypes: [T, _contravariantT]));
-
-    expectNotNonCovariant(recordTypeNone(namedTypes: {'a': T}));
-
-    expectNonCovariant(recordTypeNone(namedTypes: {'a': _contravariantT}));
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      expectNotNonCovariant(scope.parseType('(T,)'), T);
+      expectNonCovariant(scope.parseType('(void Function([T]),)'), T);
+      expectNonCovariant(scope.parseType('(T, void Function([T]))'), T);
+      expectNotNonCovariant(scope.parseType('({T a})'), T);
+      expectNonCovariant(scope.parseType('({void Function([T]) a})'), T);
+    });
   }
 
   test_typeParameter() {
-    expectNotNonCovariant(T);
+    withTypeParameterScope('T', (scope1) {
+      var T = scope1.typeParameter('T');
+      scope1.withTypeParameterScope('U', (scope2) {
+        expectNotNonCovariant(scope2.parseType('U'), T);
+      });
+    });
 
-    var U = typeParameter('U');
-    expectNotNonCovariant(typeParameterTypeNone(U));
+    withTypeParameterScope('T', (scope) {
+      expectNotNonCovariant(scope.parseType('T'), scope.typeParameter('T'));
+    });
   }
 
   test_void() {
-    expectNotNonCovariant(voidNone);
+    withTypeParameterScope('T', (scope) {
+      expectNotNonCovariant(parseType('void'), scope.typeParameter('T'));
+    });
   }
 
-  bool _compute(DartType type) {
+  bool _compute(DartType type, TypeParameterElementImpl T) {
     return type.accept(
       NonCovariantTypeParameterPositionVisitor([
-        T_element,
+        T,
       ], initialVariance: Variance.covariant),
     );
   }

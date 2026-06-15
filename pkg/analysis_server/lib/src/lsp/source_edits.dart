@@ -11,9 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/formatter.dart';
@@ -223,7 +221,7 @@ class FileEditInformation {
   final int? selectionOffsetRelative;
   final int? selectionLength;
 
-  FileEditInformation(
+  new(
     this.doc,
     this.lineInfo,
     this.edits, {
@@ -284,7 +282,7 @@ class _MinimalEditComputer {
   /// The edits being built.
   final _edits = <TextEdit>[];
 
-  _MinimalEditComputer({
+  new({
     required ParsedUnitResult result,
     required this._lineInfo,
     required String unformatted,
@@ -669,27 +667,14 @@ class _MinimalEditComputer {
   /// be parsed.
   static Token? _parse(String s, FeatureSet featureSet) {
     try {
-      var scanner =
-          Scanner(
-            s,
-            DiagnosticReporter(
-              DiagnosticListener.nullListener,
-              _SourceMock.instance,
-            ),
-          )..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+      var scanner = Scanner(inputText: s, reportError: (_) {})
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       return scanner.tokenize();
     } catch (e) {
       return null;
     }
   }
-}
-
-class _SourceMock implements Source {
-  static final Source instance = _SourceMock();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

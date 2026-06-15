@@ -70,15 +70,25 @@ bool ServiceIsolate::SendServiceControlMessage(Thread* thread,
   cname.type = Dart_CObject_kString;
   cname.value.as_string = const_cast<char*>(name);
 
-  Dart_CObject* values[4];
+  Dart_CObject cis_system;
+  bool is_startup = (code == VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID);
+  if (is_startup) {
+    cis_system.type = Dart_CObject_kBool;
+    cis_system.value.as_bool = Isolate::IsSystemIsolate(thread->isolate());
+  }
+
+  Dart_CObject* values[5];
   values[0] = &ccode;
   values[1] = &port_int;
   values[2] = &send_port;
   values[3] = &cname;
+  if (is_startup) {
+    values[4] = &cis_system;
+  }
 
   Dart_CObject message;
   message.type = Dart_CObject_kArray;
-  message.value.as_array.length = 4;
+  message.value.as_array.length = is_startup ? 5 : 4;
   message.value.as_array.values = values;
 
   return PortMap::PostMessage(WriteApiMessage(thread->zone(), &message, port_,
@@ -224,10 +234,6 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (isolate->is_vm_isolate()) {
-    return false;
-  }
-
   Dart_Port main_port = Dart_GetMainPortId();
   if (FLAG_trace_service) {
     OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate %s %" Pd64
@@ -247,9 +253,6 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (isolate->is_vm_isolate()) {
-    return false;
-  }
 
   Dart_Port main_port = isolate->main_port();
   if (FLAG_trace_service) {
@@ -401,7 +404,7 @@ class RunServiceTask : public ThreadPool::Task {
     }
 
     isolate->message_handler()->Run(
-        isolate->group()->thread_pool(), nullptr,
+        isolate->group()->thread_pool(),
         [](uword parameter) {
           ShutdownIsolate(reinterpret_cast<Dart_Isolate>(parameter));
           ServiceIsolate::FinishedExiting();
@@ -419,7 +422,6 @@ class RunServiceTask : public ThreadPool::Task {
       auto T = Thread::Current();
       TransitionNativeToVM transition(T);
       StackZone zone(T);
-      HandleScope handle_scope(T);
 
       auto I = T->isolate();
       ASSERT(I->is_service_isolate());
@@ -631,7 +633,8 @@ void ServiceIsolate::BootVmServiceLibrary() {
 
 void ServiceIsolate::RegisterRunningIsolates(
     const GrowableArray<Dart_Port>& isolate_ports,
-    const GrowableArray<const String*>& isolate_names) {
+    const GrowableArray<const String*>& isolate_names,
+    const GrowableArray<bool>& isolate_is_system) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
 
@@ -654,10 +657,11 @@ void ServiceIsolate::RegisterRunningIsolates(
 
   Integer& port_int = Integer::Handle(zone);
   SendPort& send_port = SendPort::Handle(zone);
-  Array& args = Array::Handle(zone, Array::New(3));
+  Array& args = Array::Handle(zone, Array::New(4));
   Object& result = Object::Handle(zone);
 
   ASSERT(isolate_ports.length() == isolate_names.length());
+  ASSERT(isolate_ports.length() == isolate_is_system.length());
   for (intptr_t i = 0; i < isolate_ports.length(); ++i) {
     const Dart_Port port_id = isolate_ports[i];
     const String& name = *isolate_names[i];
@@ -667,6 +671,7 @@ void ServiceIsolate::RegisterRunningIsolates(
     args.SetAt(0, port_int);
     args.SetAt(1, send_port);
     args.SetAt(2, name);
+    args.SetAt(3, Bool::Get(isolate_is_system[i]));
     result = DartEntry::InvokeFunction(register_function_, args);
     if (FLAG_trace_service) {
       OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",

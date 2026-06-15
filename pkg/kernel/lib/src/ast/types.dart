@@ -60,11 +60,8 @@ abstract interface class TypeParameter implements TreeNode, Annotatable {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  factory TypeParameter([
-    String? name,
-    DartType? bound,
-    DartType? defaultType,
-  ]) = NominalParameter;
+  factory([String? name, DartType? bound, DartType? defaultType]) =
+      NominalParameter;
 
   abstract int flags;
 
@@ -161,7 +158,7 @@ class NominalParameter extends TreeNode implements TypeParameter {
   @override
   bool get isLegacyCovariant => _variance == null;
 
-  NominalParameter([this.name, DartType? bound, DartType? defaultType])
+  new([this.name, DartType? bound, DartType? defaultType])
     : bound = bound ?? TypeParameter.unsetBoundSentinel,
       defaultType = defaultType ?? TypeParameter.unsetDefaultTypeSentinel;
 
@@ -366,7 +363,7 @@ class StructuralParameter extends Node implements SharedTypeParameter {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  StructuralParameter([this.name, DartType? bound, DartType? defaultType])
+  new([this.name, DartType? bound, DartType? defaultType])
     : bound = bound ?? unsetBoundSentinel,
       defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
@@ -442,10 +439,10 @@ class Supertype extends Node {
   Reference className;
   final List<DartType> typeArguments;
 
-  Supertype(Class classNode, List<DartType> typeArguments)
+  new(Class classNode, List<DartType> typeArguments)
     : this.byReference(classNode.reference, typeArguments);
 
-  Supertype.byReference(this.className, this.typeArguments);
+  new byReference(this.className, this.typeArguments);
 
   Class get classNode => className.asClass;
 
@@ -516,7 +513,7 @@ class Supertype extends Node {
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
 sealed class DartType extends Node implements SharedType {
-  const DartType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v);
@@ -525,7 +522,8 @@ sealed class DartType extends Node implements SharedType {
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   @override
-  bool operator ==(Object other) => equals(other, null);
+  bool operator ==(Object other) =>
+      identical(this, other) || equals(other, null);
 
   /// The nullability declared on the type.
   ///
@@ -664,7 +662,7 @@ sealed class TypeDeclarationType extends DartType {
 }
 
 abstract class AuxiliaryType extends DartType {
-  const AuxiliaryType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitAuxiliaryType(this);
@@ -681,7 +679,7 @@ abstract class AuxiliaryType extends DartType {
 /// an update whenever an experimental type (a subclass of [ExperimentalType])
 /// is added or removed in the CFE.
 sealed class ExperimentalType extends DartType {
-  const ExperimentalType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
@@ -702,7 +700,7 @@ class InvalidType extends DartType implements SharedInvalidType {
   @override
   final int hashCode = 12345;
 
-  const InvalidType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitInvalidType(this);
@@ -755,7 +753,7 @@ class DynamicType extends DartType implements SharedDynamicType {
   @override
   final int hashCode = 54321;
 
-  const DynamicType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitDynamicType(this);
@@ -800,7 +798,7 @@ class VoidType extends DartType implements SharedVoidType {
   @override
   final int hashCode = 123121;
 
-  const VoidType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitVoidType(this);
@@ -845,11 +843,11 @@ class NeverType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  const NeverType.nullable() : this.internal(Nullability.nullable);
+  const new nullable() : this.internal(Nullability.nullable);
 
-  const NeverType.nonNullable() : this.internal(Nullability.nonNullable);
+  const new nonNullable() : this.internal(Nullability.nonNullable);
 
-  const NeverType.internal(this.declaredNullability)
+  const new internal(this.declaredNullability)
     : assert(declaredNullability != Nullability.undetermined);
 
   static NeverType fromNullability(Nullability nullability) {
@@ -921,7 +919,7 @@ class NullType extends DartType implements SharedNullType {
   @override
   final int hashCode = 415324;
 
-  const NullType();
+  const new();
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitNullType(this);
@@ -974,7 +972,7 @@ class InterfaceType extends TypeDeclarationType {
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(
+  new(
     Class classNode,
     Nullability declaredNullability, [
     List<DartType>? typeArguments,
@@ -984,7 +982,7 @@ class InterfaceType extends TypeDeclarationType {
          typeArguments ?? _defaultTypeArguments(classNode),
        );
 
-  InterfaceType.byReference(
+  new byReference(
     this.classReference,
     this.declaredNullability,
     this.typeArguments,
@@ -1101,7 +1099,7 @@ class FunctionType extends DartType implements SharedFunctionType {
   @override
   late final int hashCode = _computeHashCode();
 
-  FunctionType(
+  new(
     List<DartType> positionalParameters,
     this.returnType,
     this.declaredNullability, {
@@ -1337,17 +1335,14 @@ class TypedefType extends DartType {
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(
-    Typedef typedef,
-    Nullability nullability, [
-    List<DartType>? typeArguments,
-  ]) : this.byReference(
-         typedef.reference,
-         nullability,
-         typeArguments ?? const <DartType>[],
-       );
+  new(Typedef typedef, Nullability nullability, [List<DartType>? typeArguments])
+    : this.byReference(
+        typedef.reference,
+        nullability,
+        typeArguments ?? const <DartType>[],
+      );
 
-  TypedefType.byReference(
+  new byReference(
     this.typedefReference,
     this.declaredNullability,
     this.typeArguments,
@@ -1458,7 +1453,7 @@ class FutureOrType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  FutureOrType(this.typeArgument, this.declaredNullability);
+  new(this.typeArgument, this.declaredNullability);
 
   @override
   Nullability get nullability {
@@ -1538,7 +1533,7 @@ class ExtensionType extends TypeDeclarationType {
   @override
   final List<DartType> typeArguments;
 
-  ExtensionType(
+  new(
     ExtensionTypeDeclaration extensionTypeDeclaration,
     Nullability declaredNullability, [
     List<DartType>? typeArguments,
@@ -1548,7 +1543,7 @@ class ExtensionType extends TypeDeclarationType {
          typeArguments ?? _defaultTypeArguments(extensionTypeDeclaration),
        );
 
-  ExtensionType.byReference(
+  new byReference(
     this.extensionTypeDeclarationReference,
     this.declaredNullability,
     this.typeArguments,
@@ -1738,7 +1733,7 @@ class NamedType extends Node
   @override
   final bool isRequired;
 
-  const NamedType(this.name, this.type, {this.isRequired = false});
+  const new(this.name, this.type, {this.isRequired = false});
 
   @override
   String get nameShared => name;
@@ -1747,7 +1742,8 @@ class NamedType extends Node
   DartType get typeShared => type;
 
   @override
-  bool operator ==(Object other) => equals(other, null);
+  bool operator ==(Object other) =>
+      identical(this, other) || equals(other, null);
 
   bool equals(Object other, Assumptions? assumptions) {
     return other is NamedType &&
@@ -1802,7 +1798,7 @@ class IntersectionType extends DartType {
   final TypeParameterType left;
   final DartType right;
 
-  IntersectionType(this.left, this.right) {
+  new(this.left, this.right) {
     // TODO(cstefantsova): Also assert that [rhs] is a subtype of [lhs.bound].
 
     Nullability leftNullability = left.nullability;
@@ -2112,14 +2108,14 @@ class TypeParameterType extends DartType implements TypeParameterTypeInterface {
   @override
   final TypeParameter parameter;
 
-  TypeParameterType(this.parameter, this.declaredNullability);
+  new(this.parameter, this.declaredNullability);
 
   /// Creates a type parameter type with default nullability.
   ///
   /// The nullability is computed as if the programmer omitted the modifier.
   /// Either `Nullability.nonNullable` or `Nullability.undetermined` will be
   /// used, depending on the nullability of the bound of [parameter].
-  TypeParameterType.withDefaultNullability(this.parameter)
+  new withDefaultNullability(this.parameter)
     : declaredNullability = parameter.computeNullabilityFromBound();
 
   @override
@@ -2202,14 +2198,14 @@ class StructuralParameterType extends DartType {
 
   final StructuralParameter parameter;
 
-  StructuralParameterType(this.parameter, this.declaredNullability);
+  new(this.parameter, this.declaredNullability);
 
   /// Creates a structural parameter type with default nullability.
   ///
   /// The nullability is computed as if the programmer omitted the modifier.
   /// Either [Nullability.nonNullable] or [Nullability.undetermined] will be
   /// used, depending on the nullability of the bound of [parameter].
-  StructuralParameterType.withDefaultNullability(this.parameter)
+  new withDefaultNullability(this.parameter)
     : declaredNullability = parameter.computeNullabilityFromBound();
 
   @override
@@ -2236,9 +2232,6 @@ class StructuralParameterType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
@@ -2308,7 +2301,7 @@ class RecordType extends DartType implements SharedRecordType {
   @override
   final Nullability declaredNullability;
 
-  RecordType(this.positional, this.named, this.declaredNullability)
+  new(this.positional, this.named, this.declaredNullability)
     : /*TODO(johnniwinther): Enabled this assert:
         assert(named.length == named.map((p) => p.name).toSet().length,
             "Named field types must have unique names in a RecordType: "
@@ -2453,7 +2446,10 @@ class TypeVariable extends VariableBase {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  TypeVariable({this.cosmeticName, required this.parameter});
+  @override
+  late VariableContext context;
+
+  new({this.cosmeticName, required this.parameter});
 
   @override
   void addAnnotation(Expression annotation) {
@@ -2516,10 +2512,7 @@ class FunctionTypeParameterType extends ExperimentalType
   @override
   Nullability declaredNullability;
 
-  FunctionTypeParameterType({
-    required this.variable,
-    required this.declaredNullability,
-  });
+  new({required this.variable, required this.declaredNullability});
 
   @override
   TypeParameter get parameter => variable.parameter;
@@ -2591,7 +2584,7 @@ class ClassTypeParameterType extends ExperimentalType
   @override
   Nullability declaredNullability;
 
-  ClassTypeParameterType({
+  new({
     required this.thisVariable,
     required this.parameter,
     required this.declaredNullability,

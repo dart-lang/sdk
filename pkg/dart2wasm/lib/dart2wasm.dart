@@ -8,7 +8,6 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'dynamic_modules.dart' show DynamicModuleType;
 import 'generate_wasm.dart';
 import 'option.dart';
 
@@ -30,6 +29,10 @@ final List<Option> options = [
     defaultsTo: _d.translatorOptions.importSharedMemory,
   ),
   Flag("inlining", (o, value) => o.translatorOptions.inliningOverride = value),
+  Flag(
+    "unique-types",
+    (o, value) => o.translatorOptions.enableUniqueTypes = value,
+  ),
   Flag("minify", (o, value) => o.translatorOptions.minifyOverride = value),
   Flag("dry-run", (o, value) => o.dryRun = value, defaultsTo: _d.dryRun),
   StringMultiOption(
@@ -89,6 +92,11 @@ final List<Option> options = [
     (o, value) => o.translatorOptions.uniqueConstantNames = value,
     defaultsTo: true,
     negatable: true,
+  ),
+  Flag(
+    "minify-interop-names",
+    (o, value) => o.translatorOptions.minifyInteropNames = value,
+    defaultsTo: false,
   ),
   Flag(
     "verify-type-checks",
@@ -175,7 +183,8 @@ final List<Option> options = [
     (o, value) => o.translatorOptions.enableDeferredLoading = value,
     defaultsTo: _d.translatorOptions.enableDeferredLoading,
   ),
-  UriOption("load-ids", (o, value) => o.loadsIdsUri = value),
+  UriOption("deferred-map", (o, value) => o.deferredMapUri = value),
+  Flag("use-load-ids", (o, value) => o.useLoadIds = value),
   UriOption(
     "read-program-split",
     (o, value) => o.programSplitConstraintsUri = value,
@@ -192,42 +201,10 @@ final List<Option> options = [
     defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
   ),
 
-  // Flags for dynamic modules
-  StringOption(
-    "dynamic-module-type",
-    (o, value) => o.dynamicModuleType = DynamicModuleType.parse(value),
-  ),
-
-  // The modified dill file to be output by the dynamic main module compilation.
-  // The dill will contain the AST for the main module as well as some
-  // annotations to help identify entities when compiling dynamic submodules.
-  UriOption(
-    "dynamic-module-main",
-    (o, value) => o.dynamicMainModuleUri = value,
-  ),
-
-  // A yaml file describing the interface of the main module accessible from
-  // dynamic submodules.
-  UriOption(
-    "dynamic-module-interface",
-    (o, value) => o.dynamicInterfaceUri = value,
-  ),
-
-  // A binary metadata file produced by the dynamic main module compilation.
-  UriOption(
-    "dynamic-module-metadata",
-    (o, value) => o.dynamicModuleMetadataFile = value,
-  ),
-
   Flag(
-    "validate-dynamic-modules",
-    (o, value) => o.validateDynamicModules = value,
-    defaultsTo: true,
-    negatable: true,
-  ),
-  StringOption(
-    "dynamic-module-library-prefix",
-    (o, value) => o.dynamicModuleLibraryPrefix = value,
+    "strip-toolchain-annotations",
+    (o, value) => o.stripToolchainAnnotations = value,
+    defaultsTo: _d.stripToolchainAnnotations,
   ),
 
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),

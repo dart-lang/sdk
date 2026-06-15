@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,8 +17,7 @@ main() {
 @reflectiveTest
 class DotShorthandInvocationResolutionTest extends PubPackageResolutionTest {
   test_assert_lhs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -28,14 +26,14 @@ class C {
 class CAssert {
   const CAssert.regular(C ctor)
     : assert(const .named(1) == ctor);
+//           ^^^^^^^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
-''',
-      [error(diag.dotShorthandMissingContext, 114, 15)],
-    );
+''');
   }
 
   test_basic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -48,7 +46,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -66,7 +64,7 @@ DotShorthandInvocation
   }
 
   test_basic_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C member<U>(U x) => C(x);
   T x;
@@ -79,7 +77,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -114,7 +112,7 @@ DotShorthandInvocation
   }
 
   test_basic_parameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member(int x) => C(x);
   int x;
@@ -127,7 +125,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -150,7 +148,7 @@ DotShorthandInvocation
   }
 
   test_chain_method() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -164,8 +162,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -182,7 +180,7 @@ DotShorthandInvocation
   }
 
   test_chain_property() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -196,8 +194,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -214,7 +212,7 @@ DotShorthandInvocation
   }
 
   test_equality() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static C member(int x) => C(x);
   int x;
@@ -228,8 +226,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -252,7 +250,7 @@ DotShorthandInvocation
   }
 
   test_equality_indexExpression() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -264,8 +262,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -282,79 +280,74 @@ DotShorthandInvocation
   }
 
   test_error_context_invalid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C { }
 
 void main() {
   C Function() c = .member();
+//                  ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type 'C Function()'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 47, 6)],
-    );
+''');
   }
 
   test_error_context_none() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var c = .member();
+//         ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 25, 6)],
-    );
+''');
   }
 
   test_error_notStatic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C foo() => C();
 }
 
 void main() {
   final C c = .foo();
+//             ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'C'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 60, 3)],
-    );
+''');
   }
 
   test_error_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C { }
 
 void main() {
   C c = .member();
+//       ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type 'C'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 36, 6)],
-    );
+''');
   }
 
   test_error_unresolved_new() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named();
 }
 
 void main() {
   C c = .new();
+//       ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type 'C'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 49, 3)],
-    );
+''');
   }
 
   test_extensionType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type C(int integer) {
   static C one() => C(1);
 }
@@ -365,8 +358,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -383,22 +376,21 @@ DotShorthandInvocation
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
 }
 
 void main() {
   final C _ = .member()();
+//            ^^^^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 69, 9)],
-    );
+''');
   }
 
   test_functionExpression_call() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
   C call() => this;
@@ -409,7 +401,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandInvocation
@@ -434,7 +426,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_argument() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
   C call(int a) => this;
@@ -445,7 +437,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandInvocation
@@ -475,7 +467,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_extension() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
 }
@@ -489,7 +481,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandInvocation
@@ -514,7 +506,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
   C call<T>(T t) => this;
@@ -525,7 +517,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandInvocation
@@ -567,7 +559,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_nested() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member(C c) => C();
   static C one() => C(); 
@@ -579,7 +571,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandInvocation
@@ -618,8 +610,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member(C c) => C();
   static C one() => C(); 
@@ -627,14 +618,14 @@ class C {
 
 void main() {
   C _ = .member(.one())();
+//      ^^^^^^^^^^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 92, 15)],
-    );
+''');
   }
 
   test_futureOr() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 class C {
@@ -649,7 +640,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -667,7 +658,7 @@ DotShorthandInvocation
   }
 
   test_futureOr_nested() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 class C {
@@ -682,7 +673,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -700,7 +691,7 @@ DotShorthandInvocation
   }
 
   test_mixin() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member(int x) => C(x);
   int x;
@@ -722,8 +713,8 @@ void main() {
 
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -740,7 +731,7 @@ DotShorthandInvocation
   }
 
   test_nested() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C<int> member() => C(1);
   static C<U> memberType<U, V>(U u) => C(u);
@@ -754,7 +745,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.dotShorthandInvocation('.memberType');
+    var node = result.findNode.dotShorthandInvocation('.memberType');
     assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
@@ -808,8 +799,7 @@ DotShorthandInvocation
   }
 
   test_postfixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -818,19 +808,17 @@ class C {
 
 void main() {
   C c = .member()++;
+//       ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//               ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 87, 6),
-        error(diag.illegalAssignmentToNonAssignable, 95, 2),
-      ],
-    );
+''');
   }
 
   test_prefixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -839,14 +827,13 @@ class C {
 
 void main() {
   C c = ++.member();
+//         ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//                ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 89, 6),
-        error(diag.missingAssignableSelector, 96, 1),
-      ],
-    );
+''');
   }
 
   test_privateClass_otherLibrary_constructor() async {
@@ -860,21 +847,19 @@ typedef Public = _Private;
 final Public p = _Private();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .new();
+//     ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_Private'.
   x = .named();
+//     ^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 51, 3),
-        error(diag.dotShorthandUndefinedInvocation, 65, 5),
-      ],
-    );
+''');
   }
 
   test_privateClass_otherLibrary_invocation() async {
@@ -887,21 +872,20 @@ typedef Public = _Private;
 final Public p = _Private();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .instance();
+//     ^^^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
-    );
+''');
   }
 
   test_privateClass_sameLibrary_constructor() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class _Private {
   _Private();
 }
@@ -916,9 +900,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -931,12 +914,11 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateClass_sameLibrary_invocation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class _Private {
   static _Private instance() => _Private();
 }
@@ -951,7 +933,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -979,17 +962,16 @@ typedef Public = _Private;
 final Public p = _Private.one;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .a();
+//     ^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'a' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 51, 1)],
-    );
+''');
   }
 
   test_privateEnum_otherLibrary_invocation() async {
@@ -1003,21 +985,20 @@ typedef Public = _Private;
 final Public p = _Private.one;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .instance();
+//     ^^^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
-    );
+''');
   }
 
   test_privateEnum_sameLibrary_constructor() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum _Private {
   one;
   factory _Private.a() => one;
@@ -1033,9 +1014,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -1048,12 +1028,11 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateEnum_sameLibrary_invocation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum _Private {
   one;
   static _Private instance() => one;
@@ -1069,7 +1048,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1096,21 +1076,19 @@ typedef Public = _Private;
 final Public p = _Private(1);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .new(1);
+//     ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_Private'.
   x = .named(1);
+//     ^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [
-        error(diag.dotShorthandUndefinedInvocation, 51, 3),
-        error(diag.dotShorthandUndefinedInvocation, 66, 5),
-      ],
-    );
+''');
   }
 
   test_privateExtensionType_otherLibrary_invocation() async {
@@ -1123,21 +1101,20 @@ typedef Public = _Private;
 final Public p = _Private(1);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .instance();
+//     ^^^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
-    );
+''');
   }
 
   test_privateExtensionType_sameLibrary_constructor() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type _Private(int i) {}
 
 typedef Public = _Private;
@@ -1150,9 +1127,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -1170,12 +1146,11 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateExtensionType_sameLibrary_invocation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type _Private(int it) {
   static _Private instance() => _Private(0);
 }
@@ -1190,7 +1165,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1218,21 +1194,20 @@ typedef Public = _Private;
 final Public p = C();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .instance();
+//     ^^^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
-''',
-      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
-    );
+''');
   }
 
   test_privateMixin_sameLibrary_invocation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin _Private {
   static _Private instance() => C();
 }
@@ -1248,7 +1223,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1266,8 +1242,7 @@ DotShorthandInvocation
   }
 
   test_requiredParameters_missing() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member({required int x}) => C(x);
   int x;
@@ -1276,15 +1251,15 @@ class C {
 
 void main() {
   C c = .member();
+//       ^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
   print(c);
 }
-''',
-      [error(diag.missingRequiredArgument, 103, 6)],
-    );
+''');
   }
 
   test_typeParameters_inference() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C<X> foo<X>(X x) => new C<X>();
   C<U> cast<U>() => new C<U>();
@@ -1295,8 +1270,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1318,8 +1293,7 @@ DotShorthandInvocation
   }
 
   test_typeParameters_notAssignable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C<int> member() => C(1);
 
@@ -1329,49 +1303,27 @@ class C<T> {
 
 void main() {
   C<bool> c = .member();
+//            ^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C<int>' can't be assigned to a variable of type 'C<bool>'.
   print(c);
 }
 
-''',
-      [error(diag.invalidAssignment, 105, 9)],
-    );
+''');
   }
 
   test_undefinedInvocation_message() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo();
-''',
-      [
-        error(
-          diag.dotShorthandUndefinedInvocation,
-          12,
-          3,
-          messageContains: [
-            "context type 'int'",
-            "static method or constructor 'foo'",
-          ],
-        ),
-      ],
-    );
+//          ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
+''');
   }
 
   test_undefinedInvocation_message_equalityRhs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo();
-''',
-      [
-        error(
-          diag.dotShorthandUndefinedInvocation,
-          23,
-          3,
-          messageContains: [
-            "context type 'int'",
-            "static method or constructor 'foo'",
-          ],
-        ),
-      ],
-    );
+//                     ^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
+''');
   }
 }

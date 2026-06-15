@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/util/relativize.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
+import '../../test/utils/io_utils.dart';
+
 const String dataTypeOutputPrefix = 'datatype';
 
 const List<int> dataTypeHierarchySizes = [
@@ -80,7 +82,7 @@ List<Test> tests = [''');
 ''');
 
   String result = new DartFormatter(
-    languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    languageVersion: getPackageVersionFor("front_end"),
   ).format(sb.toString());
   new File.fromUri(fileUri).writeAsStringSync(result);
 }
@@ -219,7 +221,7 @@ class CounterVisitor$size implements Visitor$size<void, Counter> {
 ''');
 
   String result = new DartFormatter(
-    languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    languageVersion: getPackageVersionFor("front_end"),
   ).format(sb.toString());
   new File.fromUri(fileUri).writeAsStringSync(result);
 }

@@ -6,7 +6,7 @@ extension type N(Null _) {
   constructor • = self::N|constructor#;
   constructor tearoff • = self::N|constructor#_#new#tearOff;
 }
-static extension-type-member const method N|constructor#(wildcard Null _#wc0#formal) → self::N% /* erasure=Null, declared=! */ {
+static extension-type-member const method N|constructor#(wildcard initializing-formal Null _#wc0#formal) → self::N% /* erasure=Null, declared=! */ {
   lowered final self::N% /* erasure=Null, declared=! */ #this = _#wc0#formal;
   return #this;
 }

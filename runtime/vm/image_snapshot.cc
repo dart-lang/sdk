@@ -450,7 +450,8 @@ void ImageWriter::DumpInstructionsSizes() {
     }
     owner = WeakSerializationReference::Unwrap(data.code_->owner());
     js.OpenObject();
-    if (owner.IsFunction()) {
+    if (owner.IsFunction() &&
+        (owner.ptr() != StubCode::UnknownDartCode().owner())) {
       cls = Function::Cast(owner).Owner();
       name = cls.ScrubbedName();
       lib = cls.library();
@@ -688,9 +689,9 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  uword tags =
-      GetMarkedTags(obj.ptr()->untag()->GetClassId(), SizeInSnapshot(obj),
-                    obj.IsCanonical(), obj.IsImmutable());
+  uword tags = GetMarkedTags(obj.ptr()->untag()->GetClassId(),
+                             SizeInSnapshot(obj), obj.IsCanonical(),
+                             obj.IsShallowImmutable(), obj.IsDeeplyImmutable());
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(obj.ptr()->untag()->GetHeaderHash(),
                                          tags);
@@ -701,12 +702,11 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
 const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
   switch (section) {
     case ProgramSection::Text:
-      return vm ? kVmSnapshotInstructionsAsmSymbol
-                : kIsolateSnapshotInstructionsAsmSymbol;
+      return kSnapshotTextAsmSymbol;
     case ProgramSection::Data:
-      return vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
+      return kSnapshotDataAsmSymbol;
     case ProgramSection::Bss:
-      return vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
+      return kSnapshotBssAsmSymbol;
     case ProgramSection::BuildId:
       return kSnapshotBuildIdAsmSymbol;
   }
@@ -867,10 +867,6 @@ void ImageWriter::WriteText(bool vm) {
   FrameUnwindPrologue();
 #endif
 
-#if defined(DART_PRECOMPILER)
-  PcDescriptors& descriptors = PcDescriptors::Handle(zone_);
-#endif
-
   // We don't expect more than 64 bytes of padding.
   uint8_t padding_bytes[64];
   memset(&padding_bytes[0], 0, sizeof(padding_bytes));
@@ -959,34 +955,7 @@ void ImageWriter::WriteText(bool vm) {
       // target-sized words starting from that address.
       ASSERT(Utils::IsAligned(payload_start, compiler::target::kWordSize));
       const uword payload_size = insns.Size();
-      auto const payload_end = payload_start + payload_size;
-      auto cursor = payload_start;
-#if defined(DART_PRECOMPILER)
-      descriptors = code.pc_descriptors();
-      PcDescriptors::Iterator iterator(
-          descriptors, /*kind_mask=*/UntaggedPcDescriptors::kBSSRelocation);
-      while (iterator.MoveNext()) {
-        // We only generate BSS relocations in the precompiler.
-        ASSERT(FLAG_precompiled_mode);
-        auto const next_reloc_offset = iterator.PcOffset();
-        auto const next_reloc_address = payload_start + next_reloc_offset;
-        // We only generate BSS relocations that are target word-sized and at
-        // target word-aligned offsets in the payload. Double-check this.
-        ASSERT(
-            Utils::IsAligned(next_reloc_address, compiler::target::kWordSize));
-        text_offset += WriteBytes(cursor, next_reloc_address - cursor);
-
-        // The instruction stream at the relocation position holds the target
-        // offset into the BSS section.
-        const auto target_offset =
-            *reinterpret_cast<const compiler::target::word*>(
-                next_reloc_address);
-        text_offset += Relocation(text_offset, instructions_label, text_offset,
-                                  bss_label, target_offset);
-        cursor = next_reloc_address + compiler::target::kWordSize;
-      }
-#endif
-      text_offset += WriteBytes(cursor, payload_end - cursor);
+      text_offset += WriteBytes(payload_start, payload_size);
     }
 
     // 4. Add appropriate padding. Note we can't simply copy from the object
@@ -1288,10 +1257,8 @@ void AssemblyImageWriter::Finalize() {
 #if defined(DART_TARGET_OS_WINDOWS)
   // __declspec(dllexport)
   const char* const exported_symbols[] = {
-      kVmSnapshotDataCSymbol,
-      kVmSnapshotInstructionsCSymbol,
-      kIsolateSnapshotDataCSymbol,
-      kIsolateSnapshotInstructionsCSymbol,
+      kSnapshotDataCSymbol,
+      kSnapshotTextCSymbol,
   };
   assembly_stream_->WriteString(".section .drectve,\"yni\"\n");
   assembly_stream_->WriteString(".ascii \"");
@@ -2095,14 +2062,15 @@ ImageReader::ImageReader(const uint8_t* data_image,
     : data_image_(ASSERT_NOTNULL(data_image)),
       instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
 
-ApiErrorPtr ImageReader::VerifyAlignment() const {
+char* ImageReader::VerifyAlignment() const {
+  // If this changes, bin_to_assembly.py and bin_to_coff.py must also change.
+  COMPILE_ASSERT(kObjectStartAlignment == 64);
+
   if (!Utils::IsAligned(data_image_, kObjectStartAlignment) ||
       !Utils::IsAligned(instructions_image_, kObjectStartAlignment)) {
-    return ApiError::New(
-        String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
-        Heap::kOld);
+    return Utils::StrDup("Snapshot is misaligned");
   }
-  return ApiError::null();
+  return nullptr;
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

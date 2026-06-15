@@ -24,7 +24,7 @@ import 'create_constructor.dart';
 /// parameter and declaring the corresponding field. This matches a workflow
 /// with the [CreateConstructor] assist.
 class BindToField extends ResolvedCorrectionProducer {
-  BindToField({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -37,11 +37,17 @@ class BindToField extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<FormalParameter>();
     if (parameter != null) {
-      if (parameter is DefaultFormalParameter) {
-        var separator = parameter.separator;
-        if (separator != null && node.offset >= separator.offset) {
+      if (parameter.defaultClause case var defaultClause?) {
+        if (node.offset >= defaultClause.separator.offset) {
           // Don't propose the assist if the selection is inside the default
           // value.
+          return;
+        }
+      }
+      if (parameter.declaredFragment?.element
+          case FieldFormalParameterElement element) {
+        if (element.isDeclaring) {
+          // A declaring parameter is already bound to a field.
           return;
         }
       }
@@ -55,9 +61,7 @@ class BindToField extends ResolvedCorrectionProducer {
     FormalParameter parameter,
     LibraryElement libraryElement2,
   ) async {
-    if (parameter is SuperFormalParameter ||
-        (parameter is DefaultFormalParameter &&
-            parameter.parameter is SuperFormalParameter)) {
+    if (parameter is SuperFormalParameter) {
       // Don't propose the assist for super parameters because they can't be
       // bound to a field.
       return;
@@ -105,12 +109,10 @@ class BindToField extends ResolvedCorrectionProducer {
 
   static SourceRange _replaceable(FormalParameter parameter) {
     return switch (parameter) {
-      SimpleFormalParameter() => range.startEnd(
-        parameter.type ?? parameter.keyword ?? parameter.name!,
-        parameter,
+      RegularFormalParameter() => range.startEnd(
+        parameter.type ?? parameter.constFinalOrVarKeyword ?? parameter.name!,
+        parameter.functionTypedSuffix?.endToken ?? parameter.name!,
       ),
-      DefaultFormalParameter() => _replaceable(parameter.parameter),
-      FunctionTypedFormalParameter() => range.node(parameter),
       // Should not happen, as these are excluded, but better to not crash.
       FieldFormalParameter() || SuperFormalParameter() => range.node(parameter),
     };

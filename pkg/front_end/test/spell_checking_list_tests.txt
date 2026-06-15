@@ -68,6 +68,7 @@ authority
 autobianchi
 autofocus
 automatic
+availability
 averaged
 averages
 avg
@@ -235,9 +236,11 @@ days
 db
 dbenchmark
 ddart
+ddebug
 dds
 debugger
 declarative
+decls
 decrease
 decrements
 dectcem
@@ -349,6 +352,7 @@ filesize
 filesystem
 filler
 filters
+fin
 fisk
 five
 fixtures
@@ -502,6 +506,7 @@ launch
 launching
 law
 le
+leftovers
 legs
 lengths
 lightly
@@ -515,7 +520,6 @@ llc
 ln
 locale
 locating
-logd
 logs
 loo
 lookahead
@@ -816,6 +820,7 @@ ss
 ssls
 sssp
 stacks
+standing
 stashed
 stat
 statistics
@@ -835,6 +840,7 @@ subcommand
 subdir
 subfolder
 subs
+subtest
 subtool
 subtools
 successes
@@ -877,6 +883,7 @@ tpt
 transitively
 translators
 transparent
+treenode
 triangle
 triggers
 trimming

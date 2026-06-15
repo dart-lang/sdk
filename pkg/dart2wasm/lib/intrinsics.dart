@@ -10,7 +10,6 @@ import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_dispatchers.dart';
-import 'dynamic_modules.dart';
 import 'translator.dart';
 import 'types.dart';
 import 'util.dart';
@@ -286,7 +285,6 @@ enum StaticIntrinsic {
   setIdentityHashField('dart:_object_helper', null, 'setIdentityHashField'),
   unsafeCast('dart:_internal', null, 'unsafeCast'),
   unsafeCastOpaque('dart:_internal', null, 'unsafeCastOpaque'),
-  nativeEffect('dart:_internal', null, '_nativeEffect'),
   floatToIntBits('dart:_internal', null, 'floatToIntBits'),
   intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
   doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
@@ -630,6 +628,21 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    // int.trailingZeroBitCount
+    if (cls == translator.coreTypes.intClass &&
+        name == 'trailingZeroBitCount') {
+      codeGen.translateExpression(receiver, w.NumType.i64);
+      b.i64_ctz();
+      return w.NumType.i64;
+    }
+
+    // int.oneBitCount
+    if (cls == translator.coreTypes.intClass && name == 'oneBitCount') {
+      codeGen.translateExpression(receiver, w.NumType.i64);
+      b.i64_popcnt();
+      return w.NumType.i64;
+    }
+
     return null;
   }
 
@@ -807,6 +820,26 @@ class Intrinsifier {
               );
               b.i64_div_s();
               return w.NumType.i64;
+            case "minS":
+            case "maxS":
+              w.Local localA = b.addLocal(w.NumType.i64);
+              w.Local localB = b.addLocal(w.NumType.i64);
+              codeGen.translateExpression(receiver, w.NumType.i64);
+              b.local_tee(localA);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.i64,
+              );
+              b.local_tee(localB);
+              b.local_get(localA);
+              b.local_get(localB);
+              if (name == "minS") {
+                b.i64_le_s();
+              } else {
+                b.i64_ge_s();
+              }
+              b.select(w.NumType.i64);
+              return w.NumType.i64;
             default:
               throw 'Unknown WasmI64 member $name';
           }
@@ -840,6 +873,22 @@ class Intrinsifier {
               );
               b.f64_copysign();
               return w.NumType.f64;
+            case "min":
+              codeGen.translateExpression(receiver, w.NumType.f64);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.f64,
+              );
+              b.f64_min();
+              return w.NumType.f64;
+            case "max":
+              codeGen.translateExpression(receiver, w.NumType.f64);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.f64,
+              );
+              b.f64_max();
+              return w.NumType.f64;
             default:
               throw 'Unknown WasmF64 member $name';
           }
@@ -864,7 +913,8 @@ class Intrinsifier {
         assert(name == '[]=');
         codeGen.translateExpression(node.arguments.positional[1], table.type);
         b.table_set(table);
-        return codeGen.voidMarker;
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
       }
     }
 
@@ -978,10 +1028,6 @@ class Intrinsifier {
 
     // ClassID getters
     if (cls?.name == 'ClassID') {
-      if (target.name.text == 'maxClassId') {
-        codeGen.b.i32_const(translator.classIdNumbering.maxClassId);
-        return w.NumType.i32;
-      }
       final libAndClassName = translator.getPragma(target, "wasm:class-id");
       if (libAndClassName != null) {
         List<String> libAndClassNameParts = libAndClassName.split("#");
@@ -999,8 +1045,8 @@ class Intrinsifier {
                   throw 'Class $className not found in library $lib '
                       '(${target.location})',
             );
-        ClassId classId = translator.classInfo[cls]!.classId;
-        b.pushClassIdToStack(translator, classId);
+        int classId = translator.classInfo[cls]!.classId;
+        b.i32_const(classId);
         return w.NumType.i32;
       }
 
@@ -1009,13 +1055,6 @@ class Intrinsifier {
           translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid,
         );
         return w.NumType.i32;
-      }
-    }
-
-    if (target.enclosingLibrary.name == 'dart._internal') {
-      if (target.name.text == '_numClassesForConstCaches') {
-        b.i64_const(translator.classIdNumbering.maxClassId);
-        return w.NumType.i64;
       }
     }
 
@@ -1030,27 +1069,72 @@ class Intrinsifier {
         case "_noSubstitutionIndex":
           b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
           return w.NumType.i32;
-        case "_mainModuleRtt":
-          final moduleRttType = translator.translateType(
-            InterfaceType(translator.moduleRtt, Nullability.nonNullable),
+        case "_typeRowDisplacementOffsets":
+          final type = w.RefType(
+            translator.wasmArrayType(w.NumType.i32, 'i32'),
+            nullable: false,
           );
           translator.constants.instantiateConstant(
             b,
-            translator.types.rtt.mainModuleRtt,
-            moduleRttType,
+            translator.types.rtt.typeRowDisplacementOffsets,
+            type,
           );
-          return moduleRttType;
+          return type;
+        case "_typeRowDisplacementTable":
+          final type = w.RefType(
+            translator.wasmArrayType(w.NumType.i32, 'i32'),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeRowDisplacementTable,
+            type,
+          );
+          return type;
+        case "_typeRowDisplacementSubstTable":
+          final type = w.RefType(
+            translator.wasmArrayType(w.PackedType.i16, 'i16'),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeRowDisplacementSubstTable,
+            type,
+          );
+          return type;
+        case "_canonicalSubstitutionTable":
+          final type = w.RefType(
+            translator.wasmArrayType(
+              w.RefType(
+                translator.arrayTypeForDartType(
+                  translator.typeType,
+                  mutable: true,
+                ),
+                nullable: false,
+              ),
+              '_TypeArray',
+            ),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.canonicalSubstitutionTable,
+            type,
+          );
+          return type;
+        case "_typeNames":
+          final type = w.RefType(
+            translator.wasmArrayType(translator.stringType, 'String'),
+            nullable: true,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeNames,
+            type,
+          );
+          return type;
       }
     }
-
-    if (target.enclosingLibrary.name == 'dart._js_helper') {
-      if (target.name.text == 'thisModule') {
-        final global = translator.getThisModuleGlobal(b.moduleBuilder);
-        b.global_get(global);
-        return global.type.type;
-      }
-    }
-
     return null;
   }
 
@@ -1131,7 +1215,8 @@ class Intrinsifier {
             b.i32_wrap_i64();
             codeGen.translateExpression(value, typeOfExp(value));
             b.array_set(arrayType);
-            return codeGen.voidMarker;
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.wasmArrayCopy:
             assert(fieldType.mutable);
             final destArray = node.arguments.positional[0];
@@ -1155,7 +1240,8 @@ class Intrinsifier {
             codeGen.translateExpression(size, w.NumType.i64);
             b.i32_wrap_i64();
             b.array_copy(arrayType, arrayType);
-            return codeGen.voidMarker;
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.wasmArrayFill:
             assert(fieldType.mutable);
             final array = node.arguments.positional[0];
@@ -1176,7 +1262,8 @@ class Intrinsifier {
             codeGen.translateExpression(size, w.NumType.i64);
             b.i32_wrap_i64();
             b.array_fill(arrayType);
-            return codeGen.voidMarker;
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.wasmArrayClone:
             assert(fieldType.mutable);
             // Until `array.new_copy` we need a special case for empty arrays.
@@ -1282,7 +1369,8 @@ class Intrinsifier {
           }
         }
         b.array_set(arrayType);
-        return codeGen.voidMarker;
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
 
       case StaticIntrinsic.identical:
         // We can use reference equality for `identical()` except if one of the
@@ -1341,12 +1429,9 @@ class Intrinsifier {
       case StaticIntrinsic.isObjectClassId:
         final classId = node.arguments.positional.single;
 
-        final objectClassId =
-            (translator.classIdNumbering.classIds[translator
-                        .coreTypes
-                        .objectClass]
-                    as AbsoluteClassId)
-                .value;
+        final objectClassId = translator
+            .classIdNumbering
+            .classIds[translator.coreTypes.objectClass]!;
 
         codeGen.translateExpression(classId, w.NumType.i32);
         b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
@@ -1354,10 +1439,9 @@ class Intrinsifier {
       case StaticIntrinsic.isClosureClassId:
         final classId = node.arguments.positional.single;
 
-        final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForMainModule(
-              translator.coreTypes.functionClass,
-            );
+        final ranges = translator.classIdNumbering.getConcreteClassIdRange(
+          translator.coreTypes.functionClass,
+        );
         assert(ranges.length <= 1);
 
         codeGen.translateExpression(classId, w.NumType.i32);
@@ -1366,30 +1450,14 @@ class Intrinsifier {
         return w.NumType.i32;
       case StaticIntrinsic.isRecordClassId:
         final classId = node.arguments.positional.single;
-        final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForMainModule(
-              translator.coreTypes.recordClass,
-            );
+        final ranges = translator.classIdNumbering.getConcreteClassIdRange(
+          translator.coreTypes.recordClass,
+        );
         assert(ranges.length <= 1);
 
-        if (translator.dynamicModuleSupportEnabled) {
-          final submoduleRanges = translator.classIdNumbering
-              .getConcreteClassIdRangeForDynamicSubmodule(
-                translator.coreTypes.recordClass,
-              );
-          final classIdLocal = b.addLocal(w.NumType.i32);
-          codeGen.translateExpression(classId, w.NumType.i32);
-          b.local_tee(classIdLocal);
-          b.local_get(classIdLocal);
-          translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
-            BuiltinUpdatableFunctions.recordId,
-            b,
-            skipSubmodule: submoduleRanges.isEmpty,
-          );
-        } else {
-          codeGen.translateExpression(classId, w.NumType.i32);
-          b.emitClassIdRangeCheck(ranges);
-        }
+        codeGen.translateExpression(classId, w.NumType.i32);
+        b.emitClassIdRangeCheck(ranges);
+
         return w.NumType.i32;
 
       // dart:_object_helper static functions.
@@ -1408,7 +1476,8 @@ class Intrinsifier {
         codeGen.translateExpression(hash, w.NumType.i64);
         b.i32_wrap_i64();
         b.struct_set(translator.objectInfo.struct, FieldIndex.identityHash);
-        return codeGen.voidMarker;
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
 
       // dart:_internal static functions
       case StaticIntrinsic.unsafeCast:
@@ -1417,9 +1486,6 @@ class Intrinsifier {
         // Just evaluate the operand and let the context convert it to the
         // expected type.
         return codeGen.translateExpression(operand, typeOfExp(operand));
-      case StaticIntrinsic.nativeEffect:
-        // Ignore argument
-        return translator.voidMarker;
       case StaticIntrinsic.floatToIntBits:
         codeGen.translateExpression(
           node.arguments.positional.single,
@@ -1464,7 +1530,7 @@ class Intrinsifier {
         final constant = argument.constant;
         if (constant is! StaticTearOffConstant) throw error;
         final target = constant.target;
-        if (translator.getPragma(target, 'wasm:weak-export', '') == null) {
+        if (!hasWasmWeakExportPragma(codeGen.translator.coreTypes, target)) {
           throw error;
         }
 
@@ -1529,42 +1595,43 @@ class Intrinsifier {
           b.i32_add();
           offset = 0;
         }
+        final memory = translator.ffiMemory(b.moduleBuilder);
         switch (intrinsic) {
           case StaticIntrinsic.loadInt8:
-            b.i64_load8_s(translator.ffiMemory, offset);
+            b.i64_load8_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint8:
-            b.i64_load8_u(translator.ffiMemory, offset);
+            b.i64_load8_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt16:
-            b.i64_load16_s(translator.ffiMemory, offset);
+            b.i64_load16_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint16:
-            b.i64_load16_u(translator.ffiMemory, offset);
+            b.i64_load16_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt32:
-            b.i64_load32_s(translator.ffiMemory, offset);
+            b.i64_load32_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint32:
-            b.i64_load32_u(translator.ffiMemory, offset);
+            b.i64_load32_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt64:
           case StaticIntrinsic.loadUint64:
-            b.i64_load(translator.ffiMemory, offset);
+            b.i64_load(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadFloat:
-            b.f32_load(translator.ffiMemory, offset);
+            b.f32_load(memory, offset);
             b.f64_promote_f32();
             return w.NumType.f64;
           case StaticIntrinsic.loadFloatUnaligned:
-            b.f32_load(translator.ffiMemory, offset, 0);
+            b.f32_load(memory, offset, 0);
             b.f64_promote_f32();
             return w.NumType.f64;
           case StaticIntrinsic.loadDouble:
-            b.f64_load(translator.ffiMemory, offset);
+            b.f64_load(memory, offset);
             return w.NumType.f64;
           case StaticIntrinsic.loadDoubleUnaligned:
-            b.f64_load(translator.ffiMemory, offset, 0);
+            b.f64_load(memory, offset, 0);
             return w.NumType.f64;
           case StaticIntrinsic.storeInt8:
           case StaticIntrinsic.storeUint8:
@@ -1572,62 +1639,70 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store8(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.i64_store8(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeInt16:
           case StaticIntrinsic.storeUint16:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store16(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.i64_store16(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeInt32:
           case StaticIntrinsic.storeUint32:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store32(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.i64_store32(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeInt64:
           case StaticIntrinsic.storeUint64:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.i64_store(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeFloat:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.f64,
             );
             b.f32_demote_f64();
-            b.f32_store(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.f32_store(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeFloatUnaligned:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.f64,
             );
             b.f32_demote_f64();
-            b.f32_store(translator.ffiMemory, offset, 0);
-            return translator.voidMarker;
+            b.f32_store(memory, offset, 0);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeDouble:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.f64,
             );
-            b.f64_store(translator.ffiMemory, offset);
-            return translator.voidMarker;
+            b.f64_store(memory, offset);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           case StaticIntrinsic.storeDoubleUnaligned:
             codeGen.translateExpression(
               node.arguments.positional[2],
               w.NumType.f64,
             );
-            b.f64_store(translator.ffiMemory, offset, 0);
-            return translator.voidMarker;
+            b.f64_store(memory, offset, 0);
+            b.ref_null(w.HeapType.none);
+            return translator.topType;
           default:
             throw StateError('Unhandled ffi intrinsic: $intrinsic');
         }
@@ -2515,7 +2590,8 @@ class Intrinsifier {
         codeGen.translateExpression(length, w.NumType.i64);
         b.i32_wrap_i64();
         b.memory_fill(memory);
-        return codeGen.voidMarker;
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
       case StaticIntrinsic.wasmMemoryLoadFloat32:
       case StaticIntrinsic.wasmMemoryLoadFloat64:
       case StaticIntrinsic.wasmMemoryLoadInt8:
@@ -2602,7 +2678,8 @@ class Intrinsifier {
             throw AssertionError('unreachable');
         }
 
-        return codeGen.voidMarker;
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
     }
   }
 
@@ -2782,7 +2859,7 @@ class Intrinsifier {
 
         // Both int?
         b.local_get(cid);
-        b.i32_const((intInfo.classId as AbsoluteClassId).value);
+        b.i32_const(intInfo.classId);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -2797,7 +2874,7 @@ class Intrinsifier {
 
         // Both double?
         b.local_get(cid);
-        b.i32_const((doubleInfo.classId as AbsoluteClassId).value);
+        b.i32_const(doubleInfo.classId);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -2829,11 +2906,7 @@ class Intrinsifier {
         final w.Local nonNullArg = b.addLocal(translator.topTypeNonNullable);
         final List<int> classIds =
             translator.valueClasses.keys
-                .map(
-                  (cls) =>
-                      (translator.classInfo[cls]!.classId as AbsoluteClassId)
-                          .value,
-                )
+                .map((cls) => translator.classInfo[cls]!.classId)
                 .toList()
               ..sort();
 
@@ -3182,8 +3255,7 @@ class Intrinsifier {
           namedArgsListLocal,
           noSuchMethodBlock,
         );
-        if (translator.dynamicModuleSupportEnabled ||
-            translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+        if (translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
           generateDynamicClosureCallViaDynamicEntry(
             translator,
             b,

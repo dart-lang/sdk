@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -17,14 +16,54 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeResolutionTest extends PubPackageResolutionTest {
+  test_augment_primaryConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {}
+
+augment extension type A(int it) {}
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+''');
+
+    var node = result.findNode.extensionTypeDeclaration('augment');
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@58
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@52
+''');
+  }
+
   test_constructor_factoryHead_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory named() => A(0);
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -58,13 +97,13 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_named_const() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {
   const factory named(int it) = A;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   constKeyword: const
@@ -98,13 +137,13 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   factory () => A.named(0);
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -142,13 +181,13 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed_const() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type const A.named(int it) {
   const factory A(int it) = A.named;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   constKeyword: const
@@ -190,13 +229,13 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   new named() : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   newKeyword: new
@@ -226,13 +265,13 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named_const() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   const new named() : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   constKeyword: const
@@ -263,13 +302,13 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   new () : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   newKeyword: new
@@ -298,13 +337,13 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed_const() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   const new () : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   constKeyword: const
@@ -334,13 +373,13 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_factory_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   factory A.named() => A(0);
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -379,13 +418,13 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_factory_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   factory A() => A.named(0);
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -427,13 +466,13 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.named() : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -467,13 +506,13 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   A() : this.it = 0;
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -505,21 +544,19 @@ ConstructorDeclaration
   }
 
   test_field_staticConst() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(String it) {
   static const int foo = 0;
   static const int bar = 1;
 }
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -582,16 +619,16 @@ ExtensionTypeDeclaration
   }
 
   test_implementsClause() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements num {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -624,7 +661,7 @@ ExtensionTypeDeclaration
   }
 
   test_method_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {
   void foo<U>(T t, U u) {
     T;
@@ -633,7 +670,7 @@ extension type A<T>(int it) {
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -698,16 +735,16 @@ MethodDeclaration
   }
 
   test_primaryConstructor_formalParameters_defaultValue_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({int a = 0}) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -740,16 +777,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_defaultValue_optionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A([int a = 0]) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -782,19 +819,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_fieldFormalParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(this.it) {}
-''',
-      [error(diag.expectedRepresentationField, 17, 4)],
-    );
+//               ^^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -818,20 +854,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_fieldFormalParameter_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(this.it) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 4)],
-    );
+//               ^^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -855,16 +890,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_functionTypedFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it()) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -894,20 +929,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_functionTypedFormalParameter_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it()) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 3)],
-    );
+//               ^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -937,19 +971,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_const() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(const int it) {}
-''',
-      [error(diag.extraneousModifier, 17, 5)],
-    );
+//               ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -976,20 +1009,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_const_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(const int it) {}
-''',
-      [error(diag.extraneousModifier, 33, 5)],
-    );
+//               ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1016,19 +1048,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(covariant int it) {}
-''',
-      [error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9)],
-    );
+//               ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1055,20 +1086,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(covariant int it) {}
-''',
-      [error(diag.extraneousModifierInPrimaryConstructor, 33, 9)],
-    );
+//               ^^^^^^^^^
+// [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1095,16 +1125,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_hasType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(final int it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1131,20 +1161,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_hasType_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(final int it) {}
-''',
-      [error(diag.representationFieldModifier, 33, 5)],
-    );
+//               ^^^^^
+// [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1171,16 +1200,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_noType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(final it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1203,23 +1232,21 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_final_noType_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(final it) {}
-''',
-      [
-        error(diag.representationFieldModifier, 33, 5),
-        error(diag.expectedRepresentationType, 39, 2),
-      ],
-    );
+//               ^^^^^
+// [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
+//                     ^^
+// [diag.expectedRepresentationType] Expected a representation type.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1242,19 +1269,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_required() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(required int it) {}
-''',
-      [error(diag.extraneousModifier, 17, 8)],
-    );
+//               ^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'required' here.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1281,19 +1307,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_static() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(static int it) {}
-''',
-      [error(diag.extraneousModifier, 17, 6)],
-    );
+//               ^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'static' here.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1319,19 +1344,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_var() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(var it) {}
-''',
-      [error(diag.representationFieldModifier, 17, 3)],
-    );
+//               ^^^
+// [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1354,23 +1378,21 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_var_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(var it) {}
-''',
-      [
-        error(diag.representationFieldModifier, 33, 3),
-        error(diag.expectedRepresentationType, 37, 2),
-      ],
-    );
+//               ^^^
+// [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
+//                   ^^
+// [diag.expectedRepresentationType] Expected a representation type.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1393,16 +1415,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({int? it}) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1431,20 +1453,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({int? it}) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 1)],
-    );
+//               ^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1473,19 +1494,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({int? a, int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 24, 1)],
-    );
+//                      ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1524,20 +1544,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({int? a, int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 40, 1)],
-    );
+//                      ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1576,19 +1595,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalNamed_requiredNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({int? a, required int b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 24, 1)],
-    );
+//                      ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1627,16 +1645,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A([int? it]) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1665,20 +1683,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A([int? it]) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 1)],
-    );
+//               ^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1707,19 +1724,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A([int? a, int? b]) {}
-''',
-      [error(diag.multipleRepresentationFields, 24, 1)],
-    );
+//                      ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1758,20 +1774,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A([int? a, int? b]) {}
-''',
-      [error(diag.multipleRepresentationFields, 40, 1)],
-    );
+//                      ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1810,16 +1825,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({required int it}) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1848,20 +1863,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A({required int it}) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 1)],
-    );
+//               ^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1890,19 +1904,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_optionalNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({required int a, int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 32, 1)],
-    );
+//                              ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1941,19 +1954,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredNamed_requiredNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({required int a, required int b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 32, 1)],
-    );
+//                              ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1992,16 +2004,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2027,17 +2039,17 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_language310() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2063,19 +2075,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int a, {int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 22, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2113,20 +2124,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, {int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 38, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2164,19 +2174,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int a, {int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 22, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2214,20 +2223,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, {int? b}) {}
-''',
-      [error(diag.multipleRepresentationFields, 38, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2265,19 +2273,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int a, int b) {}
-''',
-      [error(diag.multipleRepresentationFields, 22, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2312,20 +2319,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int a, int b) {}
-''',
-      [error(diag.multipleRepresentationFields, 38, 1)],
-    );
+//                    ^
+// [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2360,19 +2366,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_memberWithClassName() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int A) {}
-''',
-      [error(diag.memberWithClassName, 21, 1)],
-    );
+//                   ^
+// [diag.memberWithClassName] A class member can't have the same name as the enclosing class.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2398,20 +2403,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_memberWithClassName_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int A) {}
-''',
-      [error(diag.memberWithClassName, 37, 1)],
-    );
+//                   ^
+// [diag.memberWithClassName] A class member can't have the same name as the enclosing class.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2437,18 +2441,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_metadata() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(@deprecated int it) {}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2482,19 +2484,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noFormalParameters() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A() {}
-''',
-      [error(diag.expectedRepresentationField, 17, 1)],
-    );
+//               ^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.extensionTypeDeclaration('A');
+    var node = result.findNode.extensionTypeDeclaration('A');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2510,20 +2511,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noFormalParameters_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A() {}
-''',
-      [error(diag.expectedRepresentationField, 33, 1)],
-    );
+//               ^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2539,16 +2539,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2570,20 +2570,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(it) {}
-''',
-      [error(diag.expectedRepresentationType, 33, 2)],
-    );
+//               ^^
+// [diag.expectedRepresentationType] Expected a representation type.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2605,16 +2604,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(@deprecated it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2644,20 +2643,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(@deprecated it) {}
-''',
-      [error(diag.expectedRepresentationType, 45, 2)],
-    );
+//                           ^^
+// [diag.expectedRepresentationType] Expected a representation type.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2687,21 +2685,20 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_scope() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
+//               ^^^
+// [diag.notAType] int isn't a type.
   static const String int = 'not a type';
 }
-''',
-      [error(diag.notAType, 17, 3)],
-    );
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2745,19 +2742,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_scope_language310() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it) {
   static const String int = 'not a type';
 }
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2801,19 +2798,18 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_superFormalParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(super.it) {}
-''',
-      [error(diag.expectedRepresentationField, 17, 5)],
-    );
+//               ^^^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2836,20 +2832,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_superFormalParameter_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(super.it) {}
-''',
-      [error(diag.expectedRepresentationField, 33, 5)],
-    );
+//               ^^^^^
+// [diag.expectedRepresentationField] Expected a representation field.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2872,16 +2867,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_trailingComma() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it,) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2907,20 +2902,19 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_formalParameters_trailingComma_language310() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 extension type A(int it,) {}
-''',
-      [error(diag.representationFieldTrailingComma, 39, 1)],
-    );
+//                     ^
+// [diag.representationFieldTrailingComma] The representation field can't have a trailing comma.
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2946,22 +2940,20 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_missing() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E {}
-''',
-      [
-        error(diag.missingPrimaryConstructor, 15, 1),
-        error(diag.expectedRepresentationField, 17, 0),
-      ],
-    );
+//             ^
+// [diag.missingPrimaryConstructor] An extension type declaration must have a primary constructor declaration.
+//               ^
+// [diag.expectedRepresentationField][column 18][length 0] Expected a representation field.
+''');
 
-    var node = findNode.extensionTypeDeclaration('E');
+    var node = result.findNode.extensionTypeDeclaration('extension type E');
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: ( <synthetic>
@@ -2977,18 +2969,16 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_named() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     constructorName: PrimaryConstructorName
       period: .
@@ -3017,14 +3007,14 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructor_scopes() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 extension type E<@foo T>([@foo int it = foo]) {
   static const foo = 1;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: E
@@ -3080,11 +3070,11 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E<T extends U, U extends num>(T it) {}
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: E
@@ -3130,26 +3120,25 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({bool it = false}) {
   this : assert(it) {
     it;
   }
   this : assert(!it) {
+//^^^^
+// [diag.multiplePrimaryConstructorBodyDeclarations] Only one primary constructor body declaration is allowed.
     it;
   }
 }
-''',
-      [error(diag.multiplePrimaryConstructorBodyDeclarations, 74, 4)],
-    );
+''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3233,14 +3222,14 @@ ExtensionTypeDeclaration
   }
 
   test_primaryConstructorBody_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   @deprecated
   this;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -3258,13 +3247,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A({bool it = false}) {
   this : assert(it);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -3284,13 +3273,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(bool it) {
   this : assert(it);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -3310,7 +3299,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   this {
     it;
@@ -3320,7 +3309,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -3345,20 +3334,18 @@ PrimaryConstructorBody
   }
 
   test_secondaryConstructor_fieldFormalParameter() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.named(this.it);
 }
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3408,20 +3395,18 @@ ExtensionTypeDeclaration
   }
 
   test_secondaryConstructor_fieldInitializer() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(num it) {
   const A.named(int a) : it = a;
 }
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3485,34 +3470,32 @@ ExtensionTypeDeclaration
   }
 
   test_typeParameter_bound_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<T extends Unresolved>(int it) {}
-''',
-      [error(diag.undefinedClass, 27, 10)],
-    );
+//                         ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
+''');
   }
 
   test_typeParameter_metadata_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E<@Unresolved T>(int it) {}
-''',
-      [error(diag.undefinedAnnotation, 17, 11)],
-    );
+//               ^^^^^^^^^^^
+// [diag.undefinedAnnotation] Undefined name 'Unresolved' used as an annotation.
+''');
   }
 
   test_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T, U>(Map<T, U> it) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -3562,16 +3545,16 @@ ExtensionTypeDeclaration
   }
 
   test_typeParameters_wildcards() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type ET<_, _, _ extends num>(int _) {}
 ''');
 
-    var node = findNode.singleExtensionTypeDeclaration;
+    var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: ET
     typeParameters: TypeParameterList
       leftBracket: <

@@ -386,7 +386,7 @@ class ExceptionHandlerStack {
         canHandleJSExceptions |= handler.canHandleJSExceptions;
       }
 
-      if (canHandleJSExceptions) {
+      if (canHandleJSExceptions && !codeGen.translator.options.standalone) {
         b.catch_legacy(codeGen.translator.getJsExceptionTag(b.moduleBuilder));
 
         final jsExceptionLocal = codeGen.addLocal(
@@ -446,8 +446,8 @@ abstract class _ExceptionHandler {
 }
 
 class _Catcher extends _ExceptionHandler {
-  final List<VariableDeclaration> _exceptionVars = [];
-  final List<VariableDeclaration> _stackTraceVars = [];
+  final List<Variable> _exceptionVars = [];
+  final List<Variable> _stackTraceVars = [];
   final StateMachineCodeGenerator codeGen;
   bool _canHandleJSExceptions = false;
 
@@ -487,19 +487,25 @@ const int continuationRethrow = 2;
 const int continuationJump = 3;
 
 class Finalizer extends _ExceptionHandler {
-  final VariableDeclaration _continuationVar;
-  final VariableDeclaration _exceptionVar;
-  final VariableDeclaration _stackTraceVar;
+  final Variable _continuationVar;
+  final Variable _exceptionVar;
+  final Variable _stackTraceVar;
   final Finalizer? parentFinalizer;
   final StateMachineCodeGenerator codeGen;
 
   Finalizer._(this.codeGen, TryFinally node, this.parentFinalizer, super.target)
     : _continuationVar =
-          (node.parent as Block).statements[0] as VariableDeclaration,
+          ((node.parent as Block).statements[0] as VariableStatement)
+              .declaration
+              .variable,
       _exceptionVar =
-          (node.parent as Block).statements[1] as VariableDeclaration,
+          ((node.parent as Block).statements[1] as VariableStatement)
+              .declaration
+              .variable,
       _stackTraceVar =
-          (node.parent as Block).statements[2] as VariableDeclaration;
+          ((node.parent as Block).statements[2] as VariableStatement)
+              .declaration
+              .variable;
 
   @override
   bool get canHandleJSExceptions => true;
@@ -613,19 +619,20 @@ class _IndirectLabelTarget implements LabelTarget {
 /// used to get the exception and stack trace to throw when compiling
 /// [Rethrow].
 class CatchVariables {
-  final VariableDeclaration exception;
-  final VariableDeclaration stackTrace;
+  final Variable exception;
+  final Variable stackTrace;
 
   CatchVariables._(this.exception, this.stackTrace);
 }
 
 abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
-  final w.FunctionBuilder function;
+  final String functionName;
   StateMachineEntryAstCodeGenerator(
     Translator translator,
     Member enclosingMember,
-    this.function,
-  ) : super(translator, function.type, enclosingMember);
+    w.FunctionType signature,
+    this.functionName,
+  ) : super(translator, signature, enclosingMember);
 
   /// Generate the outer function.
   ///
@@ -644,13 +651,14 @@ abstract class StateMachineEntryAstCodeGenerator extends AstCodeGenerator {
 
 abstract class ProcedureStateMachineEntryCodeGenerator
     extends StateMachineEntryAstCodeGenerator {
-  final Procedure member;
+  Procedure get member => enclosingMember as Procedure;
 
   ProcedureStateMachineEntryCodeGenerator(
-    Translator translator,
-    w.FunctionBuilder function,
-    this.member,
-  ) : super(translator, member, function);
+    super.translator,
+    super.member,
+    super.signature,
+    super.functionName,
+  );
 
   @override
   void generateInternal() {
@@ -676,13 +684,14 @@ abstract class LambdaStateMachineEntryCodeGenerator
     extends StateMachineEntryAstCodeGenerator {
   final Lambda lambda;
 
-  LambdaStateMachineEntryCodeGenerator(
-    Translator translator,
-    Member enclosingMember,
-    this.lambda,
-    Closures closures,
-  ) : super(translator, enclosingMember, lambda.function) {
-    this.closures = closures;
+  LambdaStateMachineEntryCodeGenerator(Translator translator, this.lambda)
+    : super(
+        translator,
+        lambda.enclosingMember,
+        lambda.callTarget.signature,
+        lambda.callTarget.name,
+      ) {
+    closures = lambda.enclosingMemberClosures;
   }
 
   @override
@@ -867,7 +876,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
     allocateContext(node);
     for (VariableDeclaration variable in node.variables) {
-      translateStatement(variable);
+      translateVariableDeclaration(variable);
     }
     emitTargetLabel(inner);
     _jumpToTarget(after, condition: node.condition, negated: true);
@@ -985,6 +994,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
           switchInfo.compare(
             switchValueNonNullableLocal,
             () => translateExpression(exp, switchInfo.nonNullableType),
+            exp,
           );
           b.if_();
           _jumpToTarget(innerTargets[c]!);
@@ -1046,10 +1056,10 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
     for (Catch c in node.catches) {
       if (c.exception != null) {
-        visitVariableDeclaration(c.exception!);
+        visitVariable(c.exception!);
       }
       if (c.stackTrace != null) {
-        visitVariableDeclaration(c.stackTrace!);
+        visitVariable(c.stackTrace!);
       }
     }
 
@@ -1337,7 +1347,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
   /// Similar to the [VariableSet] visitor, but the value is pushed to the
   /// stack by the callback [pushValue].
-  void setVariable(VariableDeclaration variable, void Function() pushValue) {
+  void setVariable(Variable variable, void Function() pushValue) {
     final w.Local? local = locals[variable];
     final Capture? capture = closures.captures[variable];
     if (capture != null) {
@@ -1354,7 +1364,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     }
   }
 
-  w.ValueType _getVariable(VariableDeclaration variable) {
+  w.ValueType _getVariable(Variable variable) {
     final w.Local? local = locals[variable];
     final Capture? capture = closures.captures[variable];
     if (capture != null) {
@@ -1376,7 +1386,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   }
 
   /// Same as [_getVariable], but boxes the value if it's not already boxed.
-  void _getVariableBoxed(VariableDeclaration variable) {
+  void _getVariableBoxed(Variable variable) {
     final varType = _getVariable(variable);
     translator.convertType(b, varType, translator.topType);
   }

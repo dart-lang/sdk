@@ -22,6 +22,7 @@ import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/assigned_variables_impl.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/body_builder_context.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/kernel/resolver.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
@@ -170,14 +171,14 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   final TestRecorderForTesting recorderForTesting =
       new TestRecorderForTesting();
 
-  TestIncrementalCompiler(
+  new(
     this.bodyBuilderCreator,
     CompilerContext context, {
     Uri? initializeFromDillUri,
     required bool outlineOnly,
   }) : super(context, initializeFromDillUri, outlineOnly);
 
-  TestIncrementalCompiler.fromComponent(
+  new fromComponent(
     this.bodyBuilderCreator,
     super.context,
     super._componentToInitializeFrom,
@@ -227,7 +228,7 @@ class KernelTargetTest extends IncrementalKernelTarget {
   final BodyBuilderCreator bodyBuilderCreator;
   bool skipTransformations = false;
 
-  KernelTargetTest(
+  new(
     CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,
@@ -262,7 +263,7 @@ class KernelTargetTest extends IncrementalKernelTarget {
 class SourceLoaderTest extends SourceLoader {
   final BodyBuilderCreator bodyBuilderCreator;
 
-  SourceLoaderTest(
+  new(
     api.FileSystem fileSystem,
     bool includeComments,
     KernelTarget target,
@@ -284,7 +285,7 @@ class SourceLoaderTest extends SourceLoader {
 const BodyBuilderCreator defaultBodyBuilderCreator = BodyBuilderTest.new;
 
 class BodyBuilderTest extends BodyBuilderImpl {
-  BodyBuilderTest({
+  new({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext context,
     required ExtensionScope extensionScope,
@@ -292,7 +293,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
     LocalScope? formalParameterScope,
     required ClassHierarchy hierarchy,
     required CoreTypes coreTypes,
-    VariableDeclaration? thisVariable,
+    InternalVariable? thisVariable,
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
     required AssignedVariablesImpl assignedVariables,

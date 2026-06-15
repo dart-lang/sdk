@@ -12,21 +12,18 @@ part of "dart:convert";
 ///
 /// The [StringConversionSink] class provides a default implementation of
 /// [add], [asUtf8Sink] and [asStringSink].
-abstract mixin class StringConversionSink
+abstract mixin class const StringConversionSink()
     implements ChunkedConversionSink<String> {
-  const StringConversionSink();
-
-  factory StringConversionSink.withCallback(
-    void Function(String accumulated) callback,
-  ) = _StringCallbackSink;
-  factory StringConversionSink.from(Sink<String> sink) = _StringAdapterSink;
+  factory withCallback(void Function(String accumulated) callback) =
+      _StringCallbackSink;
+  factory from(Sink<String> sink) = _StringAdapterSink;
 
   /// Creates a new instance wrapping the given [sink].
   ///
   /// Every string that is added to the returned instance is forwarded to
   /// the [sink]. The instance is allowed to buffer and is not required to
   /// forward immediately.
-  factory StringConversionSink.fromStringSink(StringSink sink) =
+  factory fromStringSink(StringSink sink) =
       _StringSinkConversionSink<StringSink>;
 
   /// Adds the next [chunk] to `this`.
@@ -62,10 +59,8 @@ abstract mixin class StringConversionSink
 abstract interface class ClosableStringSink implements StringSink {
   /// Creates a new instance combining a [StringSink] [sink] and a callback
   /// [onClose] which is invoked when the returned instance is closed.
-  factory ClosableStringSink.fromStringSink(
-    StringSink sink,
-    void Function() onClose,
-  ) = _ClosableStringSink;
+  factory fromStringSink(StringSink sink, void Function() onClose) =
+      _ClosableStringSink;
 
   /// Closes `this` and flushes any outstanding data.
   void close();

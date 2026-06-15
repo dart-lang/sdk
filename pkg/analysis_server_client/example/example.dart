@@ -69,7 +69,7 @@ class _Handler with NotificationHandler, ConnectionHandler {
   final Server server;
   int errorCount = 0;
 
-  _Handler(this.server);
+  new(this.server);
 
   @override
   void onAnalysisErrors(AnalysisErrorsParams params) {

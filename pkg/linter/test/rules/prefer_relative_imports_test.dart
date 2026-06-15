@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -37,7 +37,7 @@ import 'package:foo/foo.dart';
     var packageConfigBuilder = PackageConfigFileBuilder();
     packageConfigBuilder.add(
       name: 'internal_package',
-      rootPath: '$testPackageRootPath/vendor/internal_package',
+      rootFolder: getFolder('$testPackageRootPath/vendor/internal_package'),
     );
     writeTestPackageConfig(packageConfigBuilder);
 
@@ -54,13 +54,10 @@ import 'package:internal_package/lib.dart';
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// This provides [C].
-import 'package:test/lib.dart';
-''',
-      [lint(30, 23)],
-    );
+import [!'package:test/lib.dart'!];
+''');
   }
 
   test_samePackage_packageSchema_fromOutsideLib() async {
@@ -83,15 +80,12 @@ class C {}
 part 'test.dart';
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 /// This provides [C].
-import 'package:test/lib.dart';
-''',
-      [lint(49, 23)],
-    );
+import [!'package:test/lib.dart'!];
+''');
   }
 
   test_samePackage_relativeUri() async {

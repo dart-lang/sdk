@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
-import 'package:test/test.dart';
 
 class ElementPrinter {
   final TreeStringSink _sink;
@@ -130,7 +129,7 @@ class ElementPrinter {
       case NeverFragmentImpl():
         _sink.writeln('Never@-1');
       case PrefixElementImpl element:
-        writelnReference(element.reference);
+        _sink.writeln(_libraryImportPrefixElementToReferenceString(element));
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -336,35 +335,37 @@ class ElementPrinter {
     }
   }
 
+  String _libraryImportPrefixElementToReferenceString(
+    PrefixElementImpl element,
+  ) {
+    var fragment = element.firstFragment.enclosingFragment;
+    var fragmentUriStr = '${fragment.source.uri}';
+    var libraryUriStr = '${fragment.element.uri}';
+    var libraryStr = _referenceToString(fragment.element.reference!);
+
+    String fragmentStr;
+    if (fragmentUriStr == libraryUriStr) {
+      if (fragmentUriStr == 'package:test/test.dart') {
+        fragmentStr = '<testLibraryFragment>';
+      } else {
+        fragmentStr = '$libraryStr::<fragment>';
+      }
+    } else {
+      fragmentStr = '$libraryStr::@fragment::${_toPosixUriStr(fragmentUriStr)}';
+    }
+
+    return '$fragmentStr::@prefix::${element.localId}';
+  }
+
   String _referenceToString(Reference reference) {
-    var parent = reference.parent!;
-    if (parent.parent == null) {
-      var libraryUriStr = reference.name;
-
-      // Very often we have just the test library.
-      if (libraryUriStr == 'package:test/test.dart') {
-        return '<testLibrary>';
-      }
-
-      return _toPosixUriStr(libraryUriStr);
-    }
-
-    // Compress often used library fragments.
-    if (parent.name == '@fragment') {
-      var libraryRef = parent.parent!;
-      if (reference.name == libraryRef.name) {
-        if (libraryRef.name == 'package:test/test.dart') {
-          return '<testLibraryFragment>';
+    return reference.debugString(
+      formatLibraryUri: (uriString) {
+        if (uriString == 'package:test/test.dart') {
+          return '<testLibrary>';
         }
-        return '${_referenceToString(libraryRef)}::<fragment>';
-      }
-    }
-
-    var name = reference.name;
-    if (name.isEmpty) {
-      fail('Currently every reference must have a name');
-    }
-    return '${_referenceToString(parent)}::$name';
+        return _toPosixUriStr(uriString);
+      },
+    );
   }
 
   String _stringOfSource(Source source) {

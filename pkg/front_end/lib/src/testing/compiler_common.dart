@@ -32,7 +32,7 @@ import '../compute_platform_binaries_location.dart'
 Future<CompilerResult?> compileScript(
   dynamic scriptOrSources, {
   String fileName = 'main.dart',
-  List<String> additionalDills = const [],
+  List<String> additionalDillModules = const [],
   CompilerOptions? options,
   bool retainDataForTesting = false,
   bool requireMain = true,
@@ -45,7 +45,7 @@ Future<CompilerResult?> compileScript(
     assert(scriptOrSources is Map);
     sources = scriptOrSources;
   }
-  await setup(options, sources, additionalDills: additionalDills);
+  await setup(options, sources, additionalDillModules: additionalDillModules);
   return await kernelForProgramInternal(
     toTestUri(fileName),
     options,
@@ -60,11 +60,11 @@ Future<CompilerResult?> compileScript(
 Future<Component?> compileUnit(
   List<String> inputs,
   Map<String, dynamic> sources, {
-  List<String> additionalDills = const [],
+  List<String> additionalDillModules = const [],
   CompilerOptions? options,
 }) async {
   options ??= new CompilerOptions();
-  await setup(options, sources, additionalDills: additionalDills);
+  await setup(options, sources, additionalDillModules: additionalDillModules);
   return (await kernelForModule(
     inputs.map(toTestUri).toList(),
     options,
@@ -77,12 +77,12 @@ Future<Component?> compileUnit(
 Future<Uint8List?> summarize(
   List<String> inputs,
   Map<String, dynamic> sources, {
-  List<String> additionalDills = const [],
+  List<String> additionalDillModules = const [],
   CompilerOptions? options,
   bool truncate = false,
 }) async {
   options ??= new CompilerOptions();
-  await setup(options, sources, additionalDills: additionalDills);
+  await setup(options, sources, additionalDillModules: additionalDillModules);
   return await summaryFor(
     inputs.map(toTestUri).toList(),
     options,
@@ -104,7 +104,7 @@ Future<Uint8List?> summarize(
 Future<Null> setup(
   CompilerOptions options,
   Map<String, dynamic> sources, {
-  List<String> additionalDills = const [],
+  List<String> additionalDillModules = const [],
 }) async {
   MemoryFileSystem fs = createMemoryFileSystem();
   sources.forEach((name, data) {
@@ -127,7 +127,7 @@ Future<Null> setup(
   options
     ..verify = true
     ..fileSystem = new HybridFileSystem(fs)
-    ..additionalDills = additionalDills.map(toTestUri).toList();
+    ..additionalDillModules = additionalDillModules.map(toTestUri).toList();
   if (options.packagesFileUri == null) {
     options.packagesFileUri = toTestUri('.dart_tool/package_config.json');
   }

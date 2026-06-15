@@ -22,8 +22,7 @@ class RequireTrailingCommas extends AnalysisRule {
   /// The version when tall-style was introduced in the formatter.
   static final Version language37 = Version(3, 7, 0);
 
-  RequireTrailingCommas()
-    : super(name: LintNames.require_trailing_commas, description: _desc);
+  new() : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.requireTrailingCommas;
@@ -54,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   late LineInfo _lineInfo;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitArgumentList(ArgumentList node) {

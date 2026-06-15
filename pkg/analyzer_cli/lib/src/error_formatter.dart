@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer_cli/src/ansi.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -47,7 +46,7 @@ class AnalysisStats {
   int lintCount = 0;
   int warnCount = 0;
 
-  AnalysisStats();
+  new();
 
   /// The total number of diagnostics reported to the user.
   int get filteredCount => errorCount + warnCount + hintCount + lintCount;
@@ -117,7 +116,7 @@ class CLIError implements Comparable<CLIError> {
   final String? correction;
   final String? url;
 
-  CLIError({
+  new({
     required this.severity,
     required this.sourcePath,
     required this.offset,
@@ -172,7 +171,7 @@ class ContextMessage {
   final String message;
   final int line;
   final int column;
-  ContextMessage(this.filePath, this.message, this.line, this.column);
+  new(this.filePath, this.message, this.line, this.column);
 }
 
 /// Helper for formatting [Diagnostic]s.
@@ -185,7 +184,7 @@ abstract class ErrorFormatter {
   final AnalysisStats stats;
   final SeverityProcessor _severityProcessor;
 
-  ErrorFormatter(
+  new(
     this.out,
     this.options,
     this.stats, {
@@ -223,6 +222,12 @@ abstract class ErrorFormatter {
   /// be filtered.
   DiagnosticSeverity? _computeSeverity(Diagnostic diagnostic) =>
       _severityProcessor(diagnostic);
+
+  // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
+  LineInfo _getLineInfo(ErrorsResult result, String filePath) {
+    var fileResult = result.session.getFile(filePath) as FileResult;
+    return fileResult.lineInfo;
+  }
 }
 
 class HumanErrorFormatter extends ErrorFormatter {
@@ -231,12 +236,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   // This is a Set in order to de-dup CLI errors.
   final Set<CLIError> batchedErrors = {};
 
-  HumanErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {
@@ -322,23 +322,16 @@ class HumanErrorFormatter extends ErrorFormatter {
     }
     var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
-      // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
-      var session = result.session.analysisContext;
-      if (session is DriverBasedAnalysisContext) {
-        var fileResult = session.driver.getFileSync(message.filePath);
-        if (fileResult is FileResult) {
-          var lineInfo = fileResult.lineInfo;
-          var location = lineInfo.getLocation(message.offset);
-          contextMessages.add(
-            ContextMessage(
-              message.filePath,
-              message.messageText(includeUrl: true),
-              location.lineNumber,
-              location.columnNumber,
-            ),
-          );
-        }
-      }
+      var lineInfo = _getLineInfo(result, message.filePath);
+      var location = lineInfo.getLocation(message.offset);
+      contextMessages.add(
+        ContextMessage(
+          message.filePath,
+          message.messageText(includeUrl: true),
+          location.lineNumber,
+          location.columnNumber,
+        ),
+      );
     }
 
     batchedErrors.add(
@@ -359,12 +352,7 @@ class HumanErrorFormatter extends ErrorFormatter {
 }
 
 class JsonErrorFormatter extends ErrorFormatter {
-  JsonErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {}
@@ -413,9 +401,7 @@ class JsonErrorFormatter extends ErrorFormatter {
 
     var diagnostics = <Map<String, dynamic>>[];
     for (var result in results) {
-      var errors = result.diagnostics;
-      var lineInfo = result.lineInfo;
-      for (var error in errors) {
+      for (var error in result.diagnostics) {
         var severity = _computeSeverity(error);
         if (severity == null) {
           continue;
@@ -427,7 +413,7 @@ class JsonErrorFormatter extends ErrorFormatter {
               contextMessage.filePath,
               contextMessage.offset,
               contextMessage.length,
-              lineInfo,
+              _getLineInfo(result, contextMessage.filePath),
             ),
             'message': contextMessage.messageText(includeUrl: true),
           });
@@ -443,7 +429,7 @@ class JsonErrorFormatter extends ErrorFormatter {
             problemMessage.filePath,
             problemMessage.offset,
             problemMessage.length,
-            lineInfo,
+            result.lineInfo,
           ),
           'problemMessage': problemMessage.messageText(includeUrl: true),
           if (error.correctionMessage != null)
@@ -464,12 +450,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _return = '\r'.codeUnitAt(0);
   final Set<Diagnostic> _seenDiagnostics = <Diagnostic>{};
 
-  MachineErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {}

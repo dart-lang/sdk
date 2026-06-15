@@ -8,7 +8,7 @@ extension type E<T extends core::Object? = dynamic>(({required t: T%}) it) {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(({required t: self::E|constructor#::T%}) it) → self::E<self::E|constructor#::T%>% /* erasure=({required t: self::E|constructor#::T%}), declared=! */ {
+static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(initializing-formal({required t: self::E|constructor#::T%}) it) → self::E<self::E|constructor#::T%>% /* erasure=({required t: self::E|constructor#::T%}), declared=! */ {
   lowered final self::E<self::E|constructor#::T%>% /* erasure=({required t: self::E|constructor#::T%}), declared=! */ #this = it;
   return #this;
 }

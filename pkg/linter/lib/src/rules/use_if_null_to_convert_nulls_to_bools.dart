@@ -19,7 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 
 class UseIfNullToConvertNullsToBools extends AnalysisRule {
-  UseIfNullToConvertNullsToBools()
+  new()
     : super(
         name: LintNames.use_if_null_to_convert_nulls_to_bools,
         description: _desc,
@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   bool isNullableBool(DartType? type) =>
       type != null &&

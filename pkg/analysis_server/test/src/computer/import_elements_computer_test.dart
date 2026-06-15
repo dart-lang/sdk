@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -112,7 +112,7 @@ void f() {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -132,7 +132,7 @@ import 'package:pkg/foo.dart';
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -152,7 +152,7 @@ import 'package:pkg/foo.dart' as foo;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -173,7 +173,7 @@ import 'package:pkg/foo.dart' as foo;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -192,7 +192,7 @@ import 'package:pkg/foo.dart' show A, B, C hide D;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -211,7 +211,7 @@ import 'package:pkg/foo.dart' show B, A;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -232,7 +232,7 @@ import 'package:pkg/foo.dart' as foo show B, A;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -249,7 +249,7 @@ import 'package:pkg/foo.dart';
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -266,7 +266,7 @@ import 'package:pkg/foo.dart' as foo;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -295,7 +295,7 @@ class A {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -321,7 +321,7 @@ import 'package:pkg/foo.dart';
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -340,7 +340,7 @@ import 'package:pkg/foo.dart' hide B, C;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -359,7 +359,7 @@ import 'package:pkg/foo.dart' hide A, B;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -378,7 +378,7 @@ import 'package:pkg/foo.dart' hide A, C;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -397,7 +397,7 @@ import 'package:pkg/foo.dart' hide A, C hide A, C;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -416,7 +416,7 @@ import 'package:pkg/foo.dart' hide B, C hide D, F hide G, H;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -435,7 +435,7 @@ import 'package:pkg/foo.dart' hide B hide C;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -454,7 +454,7 @@ import 'package:pkg/foo.dart' hide A hide B;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -473,7 +473,7 @@ import 'package:pkg/foo.dart' hide A hide C;
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''
@@ -492,7 +492,7 @@ import 'package:pkg/foo.dart';
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await createBuilder('''

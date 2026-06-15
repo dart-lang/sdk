@@ -159,3 +159,64 @@ class LineStarts extends BytecodeDeclaration {
   @override
   String toString() => 'Line starts: $lineStarts';
 }
+
+enum RecordedCoverageType {
+  // Used for most types of coverage.
+  regular,
+  // Used when recording that a branch reached a particular target.
+  branchTarget,
+}
+
+/// Keeps types and file offsets of coverage information recorded
+/// by RecordCoverage instructions.
+///
+/// RecordCoverage instructions use indices into the list of types
+/// and file offsets collected during generation, and the bytecode reader
+/// generates an appropriate coverage array from it at load time.
+class RecordedCoverageArray extends BytecodeDeclaration {
+  final _recordedCoverageMap = <(RecordedCoverageType, int), int>{};
+  final _recordedCoverageList = <(RecordedCoverageType, int)>[];
+
+  RecordedCoverageArray();
+
+  bool get isEmpty => _recordedCoverageList.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+
+  // Adds the type and file offset to the list of types and file offsets
+  // recorded for RecordCoverage instructions. Returns the index into
+  // the list for use as the argument to the RecordCoverage instruction.
+  int add(RecordedCoverageType type, int fileOffset) {
+    final key = (type, fileOffset);
+    int? index = _recordedCoverageMap[key];
+    if (index == null) {
+      index = _recordedCoverageList.length;
+      _recordedCoverageList.add(key);
+      _recordedCoverageMap[key] = index;
+    }
+    return index;
+  }
+
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(_recordedCoverageList.length);
+    final encodeFileOffsets = new SLEB128DeltaEncoder();
+    for (final (type, fileOffset) in _recordedCoverageList) {
+      writer.writePackedUInt30(type.index);
+      encodeFileOffsets.write(writer, fileOffset);
+    }
+  }
+
+  RecordedCoverageArray.read(BufferedReader reader) {
+    final decodeFileOffsets = new SLEB128DeltaDecoder();
+    final length = reader.readPackedUInt30();
+    for (int i = 0; i < length; i++) {
+      final type = RecordedCoverageType.values[(reader.readPackedUInt30())];
+      final fileOffset = decodeFileOffsets.read(reader);
+      final key = (type, fileOffset);
+      _recordedCoverageList.add(key);
+      _recordedCoverageMap[key] = i;
+    }
+  }
+
+  @override
+  String toString() => _recordedCoverageList.toString();
+}

@@ -161,7 +161,7 @@ class ClassReference {
   final String name;
   final Uri libImportUri;
 
-  const ClassReference(this.name, this.libImportUri);
+  const new(this.name, this.libImportUri);
 
   @override
   int get hashCode => name.hashCode * 13 + libImportUri.hashCode * 17;

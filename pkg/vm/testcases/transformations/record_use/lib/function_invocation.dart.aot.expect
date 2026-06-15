@@ -1,0 +1,43 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart";
+
+class EntityId extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::EntityId
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=#lib::EntityId]
+static method get1<T extends core::Object? = dynamic>(self::get1::T% t) → self::EntityId {
+  return new self::EntityId::•();
+}
+
+[@vm.inferred-return-type.metadata=#lib::EntityId]
+static method get2<T extends core::Object? = dynamic>(self::get2::T% t) → self::EntityId {
+  return new self::EntityId::•();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Closure (closure 1 in #lib::idExtractor)]
+[@vm.closure-id=1]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C1
+static method idExtractor<T extends core::Object? = dynamic>([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo")] [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "foo")] core::String entityType) → (self::idExtractor::T%) → self::EntityId {
+  return [@vm.closure-id=1](self::idExtractor::T% v) → self::EntityId => [@vm.inferred-type.metadata=? (receiver not int)] [@vm.direct-call.metadata=dart._compact_hash::__ConstMap&_LinkedHashImmutableBase&MapMixin&_HashBase&_OperatorEqualsAndCanonicalHashCode&_LinkedHashMapMixin&_UnmodifiableMapMixin&_ImmutableLinkedHashMapMixin.[]] [@vm.inferred-type.metadata=dart.core::_Closure? (skip check)] #C6.{core::Map::[]}(entityType){(core::Object?) → core::Function?}!(v) as{TypeError,ForDynamic} self::EntityId;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::idExtractor)] self::idExtractor<dynamic>("foo"));
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = "foo"
+  #C3 = static-tearoff self::get1
+  #C4 = "bar"
+  #C5 = static-tearoff self::get2
+  #C6 = <core::String, core::Function>{#C2:#C3, #C4:#C5}
+}

@@ -160,7 +160,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
 }
 
 static IntegerPtr ParseInteger(const String& value) {
-  // Used by both Integer_parse and Integer_fromEnvironment.
+  // Used by Integer_fromEnvironment.
   if (value.IsOneByteString()) {
     // Quick conversion for unpadded integers in strings.
     const intptr_t len = value.Length();
@@ -180,14 +180,9 @@ static IntegerPtr ParseInteger(const String& value) {
   return Integer::New(value);
 }
 
-DEFINE_NATIVE_ENTRY(Integer_parse, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-  return ParseInteger(value);
-}
-
-DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 3) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(2));
+DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(1));
   // Call the embedder to supply us with the environment.
   const String& env_value =
       String::Handle(Api::GetEnvironmentValue(thread, name));
@@ -268,6 +263,26 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
   }
   int64_t value = operand.Value();
   intptr_t result = Utils::BitLength(value);
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
+}
+
+// Unified bit-count natives. Receiver is _IntegerImplementation, so the
+// operand can be either Smi or Mint at runtime.
+DEFINE_NATIVE_ENTRY(Integer_trailingZeroBitCount, 0, 1) {
+  const Integer& operand =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t result =
+      Utils::CountTrailingZeros64(static_cast<uint64_t>(operand.Value()));
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
+}
+
+DEFINE_NATIVE_ENTRY(Integer_oneBitCount, 0, 1) {
+  const Integer& operand =
+      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t result =
+      Utils::CountOneBits64(static_cast<uint64_t>(operand.Value()));
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
 }

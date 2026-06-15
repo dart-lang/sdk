@@ -1250,9 +1250,10 @@ class CallSiteInliner : public ValueObject {
 
     if ((function.HasOptionalPositionalParameters() ||
          function.HasOptionalNamedParameters()) &&
-        !function.AreValidArguments(function.NumTypeParameters(),
-                                    arguments->length(), argument_names,
-                                    nullptr)) {
+        !function.AreValidArguments(
+            function.NumTypeParameters(),
+            arguments->length() - call_data->first_arg_index, argument_names,
+            nullptr)) {
       TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
       PRINT_INLINING_TREE("Optional arg mismatch", &call_data->caller,
                           &function, call_data->call);
@@ -1858,9 +1859,10 @@ class CallSiteInliner : public ValueObject {
       // Arguments mismatch: Caller supplied unsupported named argument.
       ASSERT(argument_names_count == 0);
       // Create a stub for each optional positional parameters with an actual.
-      for (intptr_t i = first_arg_index + fixed_param_count; i < arg_count;
+      for (intptr_t i = fixed_param_count; i < arg_count - first_arg_index;
            ++i) {
-        param_stubs->Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
+        param_stubs->Add(CreateParameterStub(
+            i, (*arguments)[first_arg_index + i], callee_graph));
       }
       ASSERT(function.NumOptionalPositionalParameters() ==
              (param_count - fixed_param_count));

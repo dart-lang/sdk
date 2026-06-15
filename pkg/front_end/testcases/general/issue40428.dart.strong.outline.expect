@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 abstract class SuperClass1 extends core::Object {
   final field core::String value;
-  constructor •(core::String value) → self::SuperClass1
+  constructor •(initializing-formal core::String value) → self::SuperClass1
     ;
 }
 abstract class SuperClass2 extends core::Object {

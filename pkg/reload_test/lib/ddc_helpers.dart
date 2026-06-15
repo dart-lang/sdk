@@ -23,14 +23,20 @@ class D8Configuration {
   final Uri preamblesScript;
   final Uri sealNativeObjectScript;
 
-  D8Configuration._(this.sdkRoot, this.binary, this.preamblesScript,
-      this.sealNativeObjectScript);
+  D8Configuration._(
+    this.sdkRoot,
+    this.binary,
+    this.preamblesScript,
+    this.sealNativeObjectScript,
+  );
 
   factory D8Configuration(Uri sdkRoot) {
-    final preamblesScript = sdkRoot
-        .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
+    final preamblesScript = sdkRoot.resolve(
+      'sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js',
+    );
     final sealNativeObjectScript = sdkRoot.resolve(
-        'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
+      'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js',
+    );
     final arch = Abi.current().toString().split('_')[1];
     final Uri binaryFromRoot;
     if (Platform.isWindows) {
@@ -40,12 +46,18 @@ class D8Configuration {
     } else if (Platform.isMacOS) {
       binaryFromRoot = Uri.file('third_party/d8/macos/$arch/d8');
     } else {
-      throw UnsupportedError('Unsupported platform for running d8: '
-          '${Platform.operatingSystem}');
+      throw UnsupportedError(
+        'Unsupported platform for running d8: '
+        '${Platform.operatingSystem}',
+      );
     }
     final binary = sdkRoot.resolveUri(binaryFromRoot);
     return D8Configuration._(
-        sdkRoot, binary, preamblesScript, sealNativeObjectScript);
+      sdkRoot,
+      binary,
+      preamblesScript,
+      sealNativeObjectScript,
+    );
   }
 }
 
@@ -80,7 +92,8 @@ String generateD8Bootstrapper({
   required List<Map<String, String?>> scriptDescriptors,
   required FileDataPerGeneration modifiedFilesPerGeneration,
 }) {
-  final d8BootstrapJS = '''
+  final d8BootstrapJS =
+      '''
 load("$ddcModuleLoaderJsPath");
 load("$dartSdkJsPath");
 
@@ -123,16 +136,8 @@ self.\$dartLoader.loader = loader;
 let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)};
 let previousGenerations = new Set();
 
-// Append a helper function for hot restart.
-self.\$dartReloadModifiedModules = async function(subAppName, callback) {
-  let expectedName = "$entrypointModuleName";
-  if (subAppName !== expectedName) {
-    throw Error("Unexpected app name " + subAppName
-        + " (expected: " + expectedName + "). "
-        + "Hot Reload Runner does not support multiple subapps, so only "
-        + "one app name should be provided across reloads/restarts.");
-  }
-
+// Append a helper function to provide reloaded sources information.
+self.\$injectedReloadedSourcesHelper = function() {
   // Resolve the next generation's directory and load all modified files.
   let nextGeneration = self.\$dartLoader.loader.intendedHotRestartGeneration;
   if (previousGenerations.has(nextGeneration)) {
@@ -143,18 +148,37 @@ self.\$dartReloadModifiedModules = async function(subAppName, callback) {
   let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
   // Stop if the next generation does not exist.
   if (modifiedFilePaths == void 0) {
-    return;
+    return null;
   }
 
-  // Load all modified files.
+  // Collect reload generation resources.
+  let fileDescriptors = [];
   for (let i = 0; i < modifiedFilePaths.length; i++) {
     let modifiedFilePath = modifiedFilePaths[i][1];
-    self.\$dartLoader.forceLoadScript(modifiedFilePath);
+    fileDescriptors.push({src: modifiedFilePath});
   }
+  return fileDescriptors;
+}
 
-  // Run main in an async callback. D8 performs synchronous loads, so we need
-  // to insert an async task to match its semantics to that of Chrome.
-  await Promise.resolve().then(() => { callback(); });
+// Append a helper function for hot restart.
+self.\$dartReloadModifiedModules = function(filesToReload, appName) {
+  let expectedName = "$entrypointModuleName";
+  if (appName !== expectedName) {
+    throw Error("Unexpected app name " + appName
+        + " (expected: " + expectedName + "). "
+        + "Hot Reload Runner does not support multiple subapps, so only "
+        + "one app name should be provided across reloads/restarts.");
+  }
+  return new Promise(function(resolve) {
+    // Load all modified files.
+    for (let i = 0; i < filesToReload.length; i++) {
+      let modifiedFilePath = filesToReload[i].src;
+      self.\$dartLoader.forceLoadScript(modifiedFilePath);
+    }
+    // D8 performs synchronous loads, but we return a Promise to match the
+    // semantics in Chrome.
+    resolve(filesToReload);
+  });
 }
 
 // Append a helper function for hot reload.
@@ -343,7 +367,8 @@ String generateChromeBootstrapper({
   required List<Map<String, String?>> scriptDescriptors,
   required FileDataPerGeneration modifiedFilesPerGeneration,
 }) {
-  final bootstrapJS = '''
+  final bootstrapJS =
+      '''
 var _currentDirectory = "$jsFileRoot";
 
 window.\$dartCreateScript = (function() {
@@ -491,15 +516,8 @@ let _scriptUrls = {
     }
 
     let previousGenerations = new Set();
-    self.\$dartReloadModifiedModules = async function(subAppName, callback) {
-      let expectedName = "$entrypointModuleName";
-      if (subAppName !== expectedName) {
-        throw Error("Unexpected app name " + subAppName
-            + " (expected: " + expectedName + "). "
-            + "Hot Reload Runner does not support multiple subapps, so only "
-            + "one app name should be provided across reloads/restarts.");
-      }
-
+    // Append a helper function to provide reloaded sources information.
+    self.\$injectedReloadedSourcesHelper = function() {
       // Resolve the next generation's directory and load all modified files.
       let nextGeneration = self.\$dartLoader.loader.intendedHotRestartGeneration;
       if (previousGenerations.has(nextGeneration)) {
@@ -510,33 +528,57 @@ let _scriptUrls = {
       let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
       // Stop if the next generation does not exist.
       if (modifiedFilePaths == void 0) {
-        return;
+        return null;
       }
 
-      // Load all modified files.
-      var numToLoad = 0;
-      var numLoaded = 0;
+      // Collect reload generation resources.
+      let fileDescriptors = [];
       for (let i = 0; i < modifiedFilePaths.length; i++) {
-        numToLoad++
         let modifiedFileId =  modifiedFilePaths[i][0];
         let modifiedFilePath = modifiedFilePaths[i][1];
-
-        // Invalidate DDC state for hot restart.
-        self.\$dartLoader.moduleIdToUrl.set(modifiedFileId, modifiedFilePath);
-        self.\$dartLoader.urlToModuleId.set(modifiedFilePath, modifiedFileId);
-
-        // Remove the old script.
-        var el = document.getElementById(modifiedFileId);
-        if (el) el.remove();
-
-        loadHotRestartScript(modifiedFileId, modifiedFilePath, function() {
-          numLoaded++;
-          if (numToLoad == numLoaded) callback();
-        });
+        fileDescriptors.push({src: modifiedFilePath, id: modifiedFileId});
       }
+      return fileDescriptors;
+    }
 
-      // Call the callback immediately if we found no updated scripts.
-      if (numToLoad == 0) callback();
+    // Append a helper function for hot restart.
+    self.\$dartReloadModifiedModules = async function(filesToReload, subAppName) {
+      let expectedName = "$entrypointModuleName";
+      if (subAppName !== expectedName) {
+        throw Error("Unexpected app name " + subAppName
+            + " (expected: " + expectedName + "). "
+            + "Hot Reload Runner does not support multiple subapps, so only "
+            + "one app name should be provided across reloads/restarts.");
+      }
+      // Load all modified files.
+      return new Promise(function(resolve) {
+        function callback() {
+          resolve(filesToReload);
+        }
+        var numToLoad = 0;
+        var numLoaded = 0;
+        for (let i = 0; i < filesToReload.length; i++) {
+          numToLoad++
+          let modifiedFileId =  filesToReload[i].id;
+          let modifiedFilePath = filesToReload[i].src;
+
+          // Invalidate DDC state for hot restart.
+          self.\$dartLoader.moduleIdToUrl.set(modifiedFileId, modifiedFilePath);
+          self.\$dartLoader.urlToModuleId.set(modifiedFilePath, modifiedFileId);
+
+          // Remove the old script.
+          var el = document.getElementById(modifiedFileId);
+          if (el) el.remove();
+
+          loadHotRestartScript(modifiedFileId, modifiedFilePath, function() {
+            numLoaded++;
+            if (numToLoad == numLoaded) callback();
+          });
+        }
+
+        // Call the callback immediately if we found no updated scripts.
+        if (numToLoad == 0) callback();
+      });
     }
 
     // Begin loading libraries

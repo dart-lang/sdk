@@ -7,6 +7,7 @@ import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
@@ -117,42 +118,43 @@ template("application_snapshot") {
     gen_kernel_args += invoker.gen_kernel_args
   }
 
-  # Build the kernel file using the prebuilt VM to speed up the debug and
-  # simulator builds.
-  prebuilt_dart_action(target_name + "_dill") {
+  action(target_name + "_dill") {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
+    } else if (_is_dart) {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+    } else {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
+
+    gen_kernel_tool = "$_dart_root/utils:bootstrap_gen_kernel.exe"
+    gen_kernel_exe = get_label_info(gen_kernel_tool, "root_out_dir") +
+                     "/bootstrap_gen_kernel.exe"
+
     deps = extra_deps + [
              "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
              "$_dart_root/runtime/vm:vm_platform",
-             "$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
+             gen_kernel_tool,
            ]
-    gen_kernel_kernel =
-        get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
-                       "target_gen_dir") + "/bootstrap_gen_kernel.dill"
     platform_dill = "$root_out_dir/vm_platform.dill"
 
     inputs = extra_inputs + [
-               gen_kernel_kernel,
+               gen_kernel_exe,
                platform_dill,
                main_dart,
                package_config,
              ]
-    output = "$target_gen_dir/$name.dart.dill"
+    output = "$target_out_dir/$name.jit.dill"
     outputs = [ output ]
 
     depfile = "$output.d"
 
-    vm_args = [
-      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
-      "-Dsdk_hash=$sdk_hash",
-    ]
-
-    script = gen_kernel_kernel
+    script = "$_dart_root/build/gn_run_binary.py"
     is_product_flag = dart_runtime_mode == "release"
 
     args = [
+      rebase_path(gen_kernel_exe, root_build_dir),
       "--packages=" + rebase_path(package_config, root_build_dir),
       "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--no-aot",
@@ -180,45 +182,46 @@ template("application_snapshot") {
   if (dart_snapshot_kind == "kernel") {
     copy(target_name) {
       deps = extra_deps + [ ":${target_name}_dill" ]
-      sources = [ "$target_gen_dir/$name.dart.dill" ]
+      sources = [ "$target_out_dir/$name.jit.dill" ]
       outputs = [ output ]
 
-      assert(snapshot_vm_args != "", "Ignoring unused argument")
-      assert(training_args != "", "Ignoring unused argument")
-      assert(training_inputs != "", "Ignoring unused argument")
-      assert(training_deps != "", "Ignoring unused argument")
+      not_needed([
+                   "snapshot_vm_args",
+                   "training_args",
+                   "training_inputs",
+                   "training_deps",
+                 ])
     }
-  } else {
+  } else if (dart_snapshot_kind == "app-jit") {
     dart_action(target_name) {
+      mnemonic = "APP_JIT"
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }
       deps = extra_deps + [ ":${target_name}_dill" ] + training_deps
-      depfile = "$output.d"
 
-      script = "$target_gen_dir/$name.dart.dill"
+      # No depfile needed when running from a kernel file. The set of inputs is
+      # known at GN time.
+
+      script = "$target_out_dir/$name.jit.dill"
 
       inputs = extra_inputs + training_inputs
 
       outputs = [ output ]
 
-      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
-      # snapshot (creating a circular dep. for kernel-service_snapshot).
+      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel
+      # service snapshot (creating a circular dep. for kernel-service_snapshot).
       dfe = "NEVER_LOADED"
 
       vm_args = [
                   "--deterministic",
                   "--packages=" + rebase_path(package_config, root_build_dir),
+                  "--snapshot-kind=app-jit",
                   "--snapshot=" + rebase_path(output, root_build_dir),
-                  "--snapshot-depfile=" + rebase_path(depfile, root_build_dir),
                 ] + snapshot_vm_args
-
-      if (dart_snapshot_kind == "app-jit") {
-        vm_args += [ "--snapshot-kind=app-jit" ]
-        args = training_args
-      } else {
-        assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
-      }
+      args = training_args
     }
+  } else {
+    assert(false, "Unknown snapshot_kind: $dart_snapshot_kind")
   }
 }

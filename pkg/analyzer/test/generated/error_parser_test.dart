@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/node_text_expectations.dart';
 import '../src/diagnostics/parser_diagnostics.dart';
 import '../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,664 +20,667 @@ main() {
 @reflectiveTest
 class ErrorParserTest extends ParserDiagnosticsTest {
   void test_abstractClassMember_constructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract class C {
   abstract C.c();
+//^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
 }
 ''');
-    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_field() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract class C {
   abstract C f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_abstractClassMember_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract class C {
   abstract get m;
+//^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
 }
 ''');
-    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_method() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract class C {
   abstract m();
+//^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
 }
 ''');
-    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractClassMember_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract class C {
   abstract set m(v);
+//^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
 }
 ''');
-    parseResult.assertErrors([error(diag.abstractClassMember, 21, 8)]);
   }
 
   void test_abstractEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract enum E {ONE}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelFunction_function() {
-    var parseResult = parseStringWithErrors(r'''
-abstract f(v) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelFunction_getter() {
-    var parseResult = parseStringWithErrors(r'''
-abstract get m {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelFunction_setter() {
-    var parseResult = parseStringWithErrors(r'''
-abstract set m(v) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelVariable() {
-    var parseResult = parseStringWithErrors(r'''
-abstract C f;
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_abstractTypeDef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 abstract typedef F();
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
   void test_await_missing_async2_issue36048() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() { // missing async
   await foo.bar();
+//^^^^^
+// [diag.awaitInWrongContext] The await expression can only be used in an async function.
 }
 ''');
-    parseResult.assertErrors([error(diag.awaitInWrongContext, 28, 5)]);
   }
 
   void test_await_missing_async3_issue36048() {
     // missing async
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() {
   (await foo);
+// ^^^^^
+// [diag.awaitInWrongContext] The await expression can only be used in an async function.
 }
 ''');
-    parseResult.assertErrors([error(diag.awaitInWrongContext, 12, 5)]);
   }
 
   void test_await_missing_async4_issue36048() {
     // missing async
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() {
   [await foo];
+// ^^^^^
+// [diag.awaitInWrongContext] The await expression can only be used in an async function.
 }
 ''');
-    parseResult.assertErrors([error(diag.awaitInWrongContext, 12, 5)]);
   }
 
   void test_await_missing_async_issue36048() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() { // missing async
   await foo();
+//^^^^^
+// [diag.awaitInWrongContext] The await expression can only be used in an async function.
 }
 ''');
-    parseResult.assertErrors([error(diag.awaitInWrongContext, 28, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   do {break;} while (x);
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (; x;) {break;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   if (x) {break;}
+//        ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 }
 ''');
-    parseResult.assertErrors([error(diag.breakOutsideOfLoop, 21, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (x) {case 1: break;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   while (x) {break;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for(; x;) {() {break;};}
+//               ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 }
 ''');
-    parseResult.assertErrors([error(diag.breakOutsideOfLoop, 28, 5)]);
   }
 
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   () {for (; x;) {break;}};
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_classInClass_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { abstract class B {} }
+//        ^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
+//                 ^^^^^
+// [diag.classInClass] Classes can't be declared inside other classes.
 ''');
-    parseResult.assertErrors([
-      error(diag.abstractClassMember, 10, 8),
-      error(diag.classInClass, 19, 5),
-    ]);
   }
 
   void test_classInClass_nonAbstract() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { class B {} }
+//        ^^^^^
+// [diag.classInClass] Classes can't be declared inside other classes.
 ''');
-    parseResult.assertErrors([error(diag.classInClass, 10, 5)]);
   }
 
   void test_classTypeAlias_abstractAfterEq() {
     // This syntax has been removed from the language in favor of
     // "abstract class A = B with C;" (issue 18098).
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A = abstract B with C;
+//        ^^^^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'abstract' can't be used as a type.
+//                 ^
+// [diag.expectedToken] Expected to find 'with'.
+// [diag.expectedToken] Expected to find ';'.
+//                   ^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedIdentifierButGotKeyword] 'with' can't be used as an identifier because it's a keyword.
+// [diag.expectedToken] Expected to find ';'.
+//                        ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.builtInIdentifierAsType, 10, 8),
-      error(diag.expectedToken, 19, 1),
-      error(diag.expectedToken, 19, 1),
-      error(diag.missingConstFinalVarOrType, 21, 4),
-      error(diag.expectedIdentifierButGotKeyword, 21, 4),
-      error(diag.expectedToken, 21, 4),
-      error(diag.missingConstFinalVarOrType, 26, 1),
-    ]);
   }
 
   void test_colonInPlaceOfIn() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (var x : list) {}
+//           ^
+// [diag.colonInPlaceOfIn] For-in loops use 'in' rather than a colon.
 }
 ''');
-    parseResult.assertErrors([error(diag.colonInPlaceOfIn, 24, 1)]);
   }
 
   void test_constAndCovariant() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   covariant const C f = null;
+//          ^^^^^
+// [diag.conflictingModifiers] Members can't be declared to be both 'const' and 'covariant'.
 }
 ''');
-    parseResult.assertErrors([error(diag.conflictingModifiers, 22, 5)]);
   }
 
   void test_constAndFinal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const final int x = null;
+//      ^^^^^
+// [diag.constAndFinal] Members can't be declared to be both 'const' and 'final'.
 }
 ''');
-    parseResult.assertErrors([error(diag.constAndFinal, 18, 5)]);
   }
 
   void test_constAndVar() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const var x = null;
+//      ^^^
+// [diag.conflictingModifiers] Members can't be declared to be both 'var' and 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.conflictingModifiers, 18, 3)]);
   }
 
   void test_constClass() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 const class C {}
+// [diag.constClass][column 1][length 5] Classes can't be declared to be 'const'.
 ''');
-    parseResult.assertErrors([error(diag.constClass, 0, 5)]);
   }
 
   void test_constEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `const` as a malformed top level const
+    // and `enum` as the start of an enum declaration.
+    parseTestCodeWithDiagnostics(r'''
 const enum E {ONE}
+// [diag.expectedToken][column 1][length 5] Expected to find ';'.
+//    ^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `const` as a malformed top level const
-      // and `enum` as the start of an enum declaration.
-      error(diag.expectedToken, 0, 5),
-      error(diag.missingIdentifier, 6, 4),
-    ]);
   }
 
   void test_constFactory() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const factory C() {}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_constMethod() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const int m() {}
+//^^^^^
+// [diag.constMethod] Getters, setters and methods can't be declared to be 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constMethod_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const m() {}
+//^^^^^
+// [diag.constMethod] Getters, setters and methods can't be declared to be 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constMethod_noReturnType2() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const m();
+//^^^^^
+// [diag.constMethod] Getters, setters and methods can't be declared to be 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.constMethod, 12, 5)]);
   }
 
   void test_constructor_super_cascade_synthetic() {
     // https://github.com/dart-lang/sdk/issues/37110
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super.. {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
+//                            ^^
+// [diag.expectedToken] Expected to find '('.
+//                               ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidSuperInInitializer, 25, 5),
-      error(diag.expectedToken, 30, 2),
-      error(diag.missingIdentifier, 33, 1),
-    ]);
   }
 
   void test_constructor_super_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super().foo {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super().foo() {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_named_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super.c().create() {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_super_named_method_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super.c().create().x() {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_this_cascade_synthetic() {
     // https://github.com/dart-lang/sdk/issues/37110
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): this.. {} }
+//                       ^^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                           ^^
+// [diag.expectedToken] Expected to find '.'.
+//                              ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignmentInInitializer, 25, 4),
-      error(diag.expectedToken, 29, 2),
-      error(diag.missingIdentifier, 32, 1),
-    ]);
   }
 
   void test_constructor_this_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): this().foo; }
+//                       ^^^^
+// [diag.invalidThisInInitializer] Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())
 ''');
-    parseResult.assertErrors([error(diag.invalidThisInInitializer, 25, 4)]);
   }
 
   void test_constructor_this_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): this().foo(); }
+//                       ^^^^
+// [diag.invalidThisInInitializer] Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())
 ''');
-    parseResult.assertErrors([error(diag.invalidThisInInitializer, 25, 4)]);
   }
 
   void test_constructor_this_named_method() {
     // https://github.com/dart-lang/sdk/issues/37600
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super.c().create() {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructor_this_named_method_field() {
     // https://github.com/dart-lang/sdk/issues/37600
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class B extends A { B(): super.c().create().x {} }
+//                       ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
 ''');
-    parseResult.assertErrors([error(diag.invalidSuperInInitializer, 25, 5)]);
   }
 
   void test_constructorPartial() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { C< }
+//         ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 11, 1),
-      error(diag.expectedTypeName, 13, 1),
-      error(diag.missingIdentifier, 13, 1),
-    ]);
   }
 
   void test_constructorPartial2() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { C<@Foo }
+//          ^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//           ^^^
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.annotationOnTypeArgument, 12, 4),
-      error(diag.expectedToken, 13, 3),
-      error(diag.expectedTypeName, 17, 1),
-      error(diag.missingIdentifier, 17, 1),
-    ]);
   }
 
   void test_constructorPartial3() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { C<@Foo @Bar() }
+//          ^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//               ^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+//                      ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.annotationOnTypeArgument, 12, 4),
-      error(diag.annotationOnTypeArgument, 17, 6),
-      error(diag.expectedToken, 22, 1),
-      error(diag.expectedTypeName, 24, 1),
-      error(diag.missingIdentifier, 24, 1),
-    ]);
   }
 
   void test_constructorWithReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C C() {}
+//^
+// [diag.constructorWithReturnType] Constructors can't have a return type.
 }
 ''');
-    parseResult.assertErrors([error(diag.constructorWithReturnType, 12, 1)]);
   }
 
   void test_constructorWithReturnType_var() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   var C() {}
+//^^^
+// [diag.varReturnType] The return type can't be 'var'.
 }
 ''');
-    parseResult.assertErrors([error(diag.varReturnType, 12, 3)]);
   }
 
   void test_constTypedef() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `const` as a malformed top level const
+    // and `typedef` as the start of an typedef declaration.
+    parseTestCodeWithDiagnostics(r'''
 const typedef F();
+// [diag.expectedToken][column 1][length 5] Expected to find ';'.
+//    ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `const` as a malformed top level const
-      // and `typedef` as the start of an typedef declaration.
-      error(diag.expectedToken, 0, 5),
-      error(diag.missingIdentifier, 6, 7),
-    ]);
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   do {continue;} while (x);
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInForStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (; x;) {continue;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInIfStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   if (x) {continue;}
+//        ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 }
 ''');
-    parseResult.assertErrors([error(diag.continueOutsideOfLoop, 21, 8)]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (x) {case 1: continue a;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInWhileStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   while (x) {continue;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for(; x;) {() {continue;};}
+//               ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 }
 ''');
-    parseResult.assertErrors([error(diag.continueOutsideOfLoop, 28, 8)]);
   }
 
   void test_continueOutsideOfLoop_functionExpression_withALoop() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   () {for (; x;) {continue;}};
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueWithoutLabelInCase_error() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (x) {case 1: continue;}
+//                    ^^^^^^^^
+// [diag.continueWithoutLabelInCase] A continue statement in a switch statement must have a label as a target.
 }
 ''');
-    parseResult.assertErrors([error(diag.continueWithoutLabelInCase, 33, 8)]);
   }
 
   void test_continueWithoutLabelInCase_noError() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (x) {case 1: continue a;}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   while (a) { switch (b) {default: continue;}}
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_covariantAfterVar() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   var covariant f;
+//    ^^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'covariant' should be before the modifier 'var'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 16, 9)]);
   }
 
   void test_covariantAndFinal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   covariant final f = null;
+//^^^^^^^^^
+// [diag.finalAndCovariant] Members can't be declared to be both 'final' and 'covariant'.
 }
 ''');
-    parseResult.assertErrors([error(diag.finalAndCovariant, 12, 9)]);
   }
 
   void test_covariantAndStatic() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   covariant static A f;
+//          ^^^^^^
+// [diag.covariantAndStatic] Members can't be declared to be both 'covariant' and 'static'.
 }
 ''');
-    parseResult.assertErrors([error(diag.covariantAndStatic, 22, 6)]);
   }
 
   void test_covariantAndType_local() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   covariant int x;
+//^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 13, 9)]);
   }
 
   void test_covariantConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { covariant C(); }
+//        ^^^^^^^^^
+// [diag.covariantMember] Getters, setters and methods can't be declared to be 'covariant'.
 ''');
-    parseResult.assertErrors([error(diag.covariantMember, 10, 9)]);
   }
 
   void test_covariantMember_getter_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static covariant get x => 0;
+//       ^^^^^^^^^
+// [diag.covariantAndStatic] Members can't be declared to be both 'covariant' and 'static'.
 }
 ''');
-    parseResult.assertErrors([error(diag.covariantAndStatic, 19, 9)]);
   }
 
   void test_covariantMember_getter_returnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static covariant int get x => 0;
+//       ^^^^^^^^^
+// [diag.covariantAndStatic] Members can't be declared to be both 'covariant' and 'static'.
 }
 ''');
-    parseResult.assertErrors([error(diag.covariantAndStatic, 19, 9)]);
   }
 
   void test_covariantMember_method() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   covariant int m() => 0;
+//^^^^^^^^^
+// [diag.covariantMember] Getters, setters and methods can't be declared to be 'covariant'.
 }
 ''');
-    parseResult.assertErrors([error(diag.covariantMember, 12, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_class() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 covariant class C {}
+// [diag.extraneousModifier][column 1][length 9] Can't have modifier 'covariant' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 covariant enum E { v }
+// [diag.extraneousModifier][column 1][length 9] Can't have modifier 'covariant' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_covariantTopLevelDeclaration_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 covariant typedef F();
+// [diag.extraneousModifier][column 1][length 9] Can't have modifier 'covariant' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 9)]);
   }
 
   void test_defaultValueInFunctionType_named_colon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function({int x : 0});
+//                               ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 ''');
-    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
 
     var node = parseResult.findNode.singleFormalParameterList;
     assertParsedNodeText(node, r'''
@@ -697,10 +701,11 @@ FormalParameterList
   }
 
   void test_defaultValueInFunctionType_named_equal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function({int x = 0});
+//                               ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 ''');
-    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
 
     var node = parseResult.findNode.singleFormalParameterList;
     assertParsedNodeText(node, r'''
@@ -721,10 +726,11 @@ FormalParameterList
   }
 
   void test_defaultValueInFunctionType_positional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function([int x = 0]);
+//                               ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 ''');
-    parseResult.assertErrors([error(diag.defaultValueInFunctionType, 33, 1)]);
 
     var node = parseResult.findNode.singleFormalParameterList;
     assertParsedNodeText(node, r'''
@@ -746,252 +752,257 @@ FormalParameterList
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class Foo{}
 library l;
+// [diag.libraryDirectiveNotFirst][column 1][length 7] The library directive must appear before all other directives.
 ''');
-    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 12, 7)]);
   }
 
   void test_directiveAfterDeclaration_classBetweenDirectives() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 library l;
 class Foo{}
 part 'a.dart';
+// [diag.directiveAfterDeclaration][column 1][length 4] Directives must appear before any declarations.
 ''');
-    parseResult.assertErrors([error(diag.directiveAfterDeclaration, 23, 4)]);
   }
 
   void test_duplicatedModifier_const() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const const m = null;
+//      ^^^^^
+// [diag.duplicatedModifier] The modifier 'const' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 5)]);
   }
 
   void test_duplicatedModifier_external() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external external f();
+//         ^^^^^^^^
+// [diag.duplicatedModifier] The modifier 'external' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 21, 8)]);
   }
 
   void test_duplicatedModifier_factory() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory factory C() {}
+//        ^^^^^^^
+// [diag.duplicatedModifier] The modifier 'factory' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 20, 7)]);
   }
 
   void test_duplicatedModifier_final() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final final m = null;
+//      ^^^^^
+// [diag.duplicatedModifier] The modifier 'final' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 5)]);
   }
 
   void test_duplicatedModifier_static() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static static var m;
+//       ^^^^^^
+// [diag.duplicatedModifier] The modifier 'static' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 19, 6)]);
   }
 
   void test_duplicatedModifier_var() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   var var m;
+//    ^^^
+// [diag.duplicatedModifier] The modifier 'var' was already specified.
 }
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 16, 3)]);
   }
 
   void test_duplicateLabelInSwitchStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (e) {l1: case 0: break; l1: case 1: break;}
+//                               ^^
+// [diag.duplicateLabelInSwitchStatement] The label 'l1' was already used in this switch statement.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.duplicateLabelInSwitchStatement, 44, 2),
-    ]);
   }
 
   void test_emptyEnumBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 enum E {}
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_emptyFunctionBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f();
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_enumInClass() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class Foo {
   enum Bar {
+//^^^^
+// [diag.enumInClass] Enums can't be declared inside classes.
     Bar1, Bar2, Bar3
   }
 }
 ''');
-    parseResult.assertErrors([error(diag.enumInClass, 14, 4)]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = 1 == 2 == 3;
+//             ^^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 15, 2),
-    ]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_neq() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = 1 == 2 != 3;
+//             ^^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 15, 2),
-    ]);
   }
 
   void test_equalityCannotBeEqualityOperand_neq_eq() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = 1 != 2 == 3;
+//             ^^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 15, 2),
-    ]);
   }
 
   void test_expectedBody_class() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A class B {}
+//    ^
+// [diag.expectedClassBody] A class declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedClassBody, 6, 1)]);
   }
 
   void test_expectedCaseOrDefault() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (e) {break;}
+//            ^^^^^
+// [diag.expectedToken] Expected to find 'case'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 25, 5)]);
   }
 
   void test_expectedClassMember_inClass_afterType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C{ heart 2 heart }
+//       ^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//             ^
+// [diag.expectedClassMember] Expected a class member.
+//               ^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 9, 5),
-      error(diag.expectedToken, 9, 5),
-      error(diag.expectedClassMember, 15, 1),
-      error(diag.missingConstFinalVarOrType, 17, 5),
-      error(diag.expectedToken, 17, 5),
-    ]);
   }
 
   void test_expectedClassMember_inClass_beforeType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { 4 score }
+//        ^
+// [diag.expectedClassMember] Expected a class member.
+//          ^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedClassMember, 10, 1),
-      error(diag.missingConstFinalVarOrType, 12, 5),
-      error(diag.expectedToken, 12, 5),
-    ]);
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 @A
+//^
+// [diag.expectedExecutable][column 3][length 0] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([error(diag.expectedExecutable, 3, 0)]);
   }
 
   void test_expectedExecutable_inClass_afterVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { void 2 void }
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
+//               ^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 15, 1),
-      error(diag.expectedToken, 15, 1),
-      error(diag.expectedToken, 17, 4),
-      error(diag.missingIdentifier, 22, 1),
-    ]);
   }
 
   void test_expectedExecutable_topLevel_afterType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 heart 2 heart
+// [diag.missingConstFinalVarOrType][column 1][length 5] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 5] Expected to find ';'.
+//    ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//      ^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 0, 5),
-      error(diag.expectedToken, 0, 5),
-      error(diag.expectedExecutable, 6, 1),
-      error(diag.missingConstFinalVarOrType, 8, 5),
-      error(diag.expectedToken, 8, 5),
-    ]);
   }
 
   void test_expectedExecutable_topLevel_afterVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void 2 void
+// [diag.expectedToken][column 1][length 4] Expected to find ';'.
+//   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//     ^^^^
+// [diag.expectedToken] Expected to find ';'.
+//         ^
+// [diag.missingIdentifier][column 12][length 0] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 4),
-      error(diag.missingIdentifier, 5, 1),
-      error(diag.expectedExecutable, 5, 1),
-      error(diag.expectedToken, 7, 4),
-      error(diag.missingIdentifier, 12, 0),
-    ]);
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 4 score
+// [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
+//^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedExecutable, 0, 1),
-      error(diag.missingConstFinalVarOrType, 2, 5),
-      error(diag.expectedToken, 2, 5),
-    ]);
   }
 
   void test_expectedExecutable_topLevel_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 x
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 1] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 0, 1),
-      error(diag.expectedToken, 0, 1),
-    ]);
   }
 
   void test_expectedInterpolationIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var s = '$x$';
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 12, 1)]);
 
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
@@ -1029,37 +1040,40 @@ CompilationUnit
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '$$foo';
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 10, 1)]);
   }
 
   void test_expectedToken_commaMissingInArgumentList() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   g(x, y z);
+//       ^
+// [diag.expectedToken] Expected to find ','.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void}
+//^^^^
+// [diag.expectedToken] Expected to find ';'.
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
 }
+// [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 4),
-      error(diag.missingIdentifier, 17, 1),
-      error(diag.expectedExecutable, 19, 1),
-    ]);
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
-    var parseResult = parseStringWithErrors("export '' class A {}");
-    parseResult.assertErrors([error(diag.expectedToken, 7, 2)]);
+    var parseResult = parseTestCodeWithDiagnostics(r'''export '' class A {}
+//     ^^
+// [diag.expectedToken] Expected to find ';'.''');
 
     var unit = parseResult.unit;
     assertParsedNodeText(unit, r'''
@@ -1083,20 +1097,22 @@ CompilationUnit
 
   void test_expectedToken_semicolonMissingAfterExpression() {
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   x
+//^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_expectedToken_semicolonMissingAfterImport() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import '' class A {}
+//     ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 7, 2)]);
 
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
@@ -1119,13 +1135,12 @@ CompilationUnit
   }
 
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 export class A {}
+// [diag.expectedToken][column 1][length 6] Expected to find ';'.
+//     ^^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 6),
-      error(diag.expectedStringLiteral, 7, 5),
-    ]);
 
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
@@ -1148,409 +1163,424 @@ CompilationUnit
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   do {} (x);
+//      ^
+// [diag.expectedToken] Expected to find 'while'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 19, 1)]);
   }
 
   void test_expectedTypeName_as() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x as;
+//          ^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
   }
 
   void test_expectedTypeName_as_void() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x as void;
+//           ^^^^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 13, 4)]);
   }
 
   void test_expectedTypeName_is() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x is;
+//          ^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 12, 1)]);
   }
 
   void test_expectedTypeName_is_void() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x is void;
+//           ^^^^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([error(diag.expectedTypeName, 13, 4)]);
   }
 
   void test_exportAsType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 export<dynamic> foo;
+// [diag.builtInIdentifierAsType][column 1][length 6] The built-in identifier 'export' can't be used as a type.
 ''');
-    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 0, 6)]);
   }
 
   void test_exportAsType_inClass() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { export<dynamic> foo; }
+//        ^^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'export' can't be used as a type.
 ''');
-    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 10, 6)]);
   }
 
   void test_externalAfterConst() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const external C();
+//      ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'external' should be before the modifier 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 8)]);
   }
 
   void test_externalAfterFactory() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory external C() {}
+//        ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'external' should be before the modifier 'factory'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 20, 8)]);
   }
 
   void test_externalAfterStatic() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static external int m();
+//       ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'external' should be before the modifier 'static'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 19, 8)]);
   }
 
   void test_externalClass() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 external class C {}
+// [diag.externalClass][column 1][length 8] Classes can't be declared to be 'external'.
 ''');
-    parseResult.assertErrors([error(diag.externalClass, 0, 8)]);
   }
 
   void test_externalEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 external enum E {ONE}
+// [diag.externalEnum][column 1][length 8] Enums can't be declared to be 'external'.
 ''');
-    parseResult.assertErrors([error(diag.externalEnum, 0, 8)]);
   }
 
   void test_externalField_const() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external const A f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_externalField_final() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external final A f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_externalField_static() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external static A f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_externalField_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external A f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_externalField_untyped() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   external var f;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_externalTypedef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 external typedef F();
+// [diag.externalTypedef][column 1][length 8] Typedefs can't be declared to be 'external'.
 ''');
-    parseResult.assertErrors([error(diag.externalTypedef, 0, 8)]);
   }
 
   void test_extraCommaInParameterList() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(int a, , int b) {}
+//            ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
   }
 
   void test_extraCommaTrailingNamedParameterGroup() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f({int b},) {}
+//            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 14, 1)]);
   }
 
   void test_extraCommaTrailingPositionalParameterGroup() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f([int b],) {}
+//            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 14, 1)]);
   }
 
   void test_extraTrailingCommaInParameterList() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a,,) {}
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 9, 1)]);
   }
 
   void test_factory_issue_36400() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class T { T factory T() { return null; } }
+//        ^
+// [diag.typeBeforeFactory] Factory constructors cannot have a return type.
 ''');
-    parseResult.assertErrors([error(diag.typeBeforeFactory, 10, 1)]);
   }
 
   void test_factoryTopLevelDeclaration_class() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 factory class C {}
+// [diag.factoryTopLevelDeclaration][column 1][length 7] Top-level declarations can't be declared to be 'factory'.
 ''');
-    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryTopLevelDeclaration_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 factory enum E { v }
+// [diag.factoryTopLevelDeclaration][column 1][length 7] Top-level declarations can't be declared to be 'factory'.
 ''');
-    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryTopLevelDeclaration_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 factory typedef F();
+// [diag.factoryTopLevelDeclaration][column 1][length 7] Top-level declarations can't be declared to be 'factory'.
 ''');
-    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_factoryWithInitializers() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory C() : x = 3 {}
+//            ^
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.expectedClassMember] Expected a class member.
+//              ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionBody, 24, 1),
-      error(diag.expectedClassMember, 24, 1),
-      error(diag.missingConstFinalVarOrType, 26, 1),
-      error(diag.expectedToken, 30, 1),
-      error(diag.missingIdentifier, 32, 1),
-      error(diag.missingMethodParameters, 32, 1),
-    ]);
   }
 
+  @skippedTest // TODO(scheglov): fix it
   void test_factoryWithoutBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory C();
+//           ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 23, 1)]);
+  }
+
+  void test_factoryWithoutBody_language305() {
+    parseTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class C {
+  factory C();
+//           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
   }
 
   void test_fieldInitializerOutsideConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   void m(this.x);
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_finalAndCovariant() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final covariant f = null;
+//      ^^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'covariant' should be before the modifier 'final'.
+// [diag.finalAndCovariant] Members can't be declared to be both 'final' and 'covariant'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.modifierOutOfOrder, 18, 9),
-      error(diag.finalAndCovariant, 18, 9),
-    ]);
   }
 
   void test_finalAndVar() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final var x = null;
+//      ^^^
+// [diag.finalAndVar] Members can't be declared to be both 'final' and 'var'.
 }
 ''');
-    parseResult.assertErrors([error(diag.finalAndVar, 18, 3)]);
   }
 
   void test_finalClassMember_modifierOnly() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final
+//^^^^^
+// [diag.expectedToken] Expected to find ';'.
 }
+// [diag.missingIdentifier][column 1][length 1] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 5),
-      error(diag.missingIdentifier, 18, 1),
-    ]);
   }
 
   void test_finalConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final C() {}
+//^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 12, 5)]);
   }
 
   void test_finalEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 final enum E {ONE}
+// [diag.finalEnum][column 1][length 5] Enums can't be declared to be 'final'.
 ''');
-    parseResult.assertErrors([error(diag.finalEnum, 0, 5)]);
   }
 
   void test_finalMethod() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final int m() {}
+//^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 12, 5)]);
   }
 
   void test_finalTypedef() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `final` as a malformed top level final
+    // and `typedef` as the start of an typedef declaration.
+    parseTestCodeWithDiagnostics(r'''
 final typedef F();
+// [diag.expectedToken][column 1][length 5] Expected to find ';'.
+//    ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `final` as a malformed top level final
-      // and `typedef` as the start of an typedef declaration.
-      error(diag.expectedToken, 0, 5),
-      error(diag.missingIdentifier, 6, 7),
-    ]);
   }
 
   void test_functionTypedField_invalidType_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 Function(abstract) x = null;
+//       ^^^^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'abstract' can't be used as a type.
 ''');
-    parseResult.assertErrors([error(diag.builtInIdentifierAsType, 9, 8)]);
   }
 
   void test_functionTypedField_invalidType_class() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 Function(class) x = null;
+//       ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedIdentifierButGotKeyword] 'class' can't be used as an identifier because it's a keyword.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 9, 5),
-      error(diag.expectedIdentifierButGotKeyword, 9, 5),
-    ]);
   }
 
   void test_functionTypedParameter_const() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(const x()) {}
+//     ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 7, 5),
-      error(diag.functionTypedParameterVar, 7, 5),
-    ]);
   }
 
   void test_functionTypedParameter_final() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(final x()) {}
+//     ^^^^^
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 ''');
-    parseResult.assertErrors([
-      error(diag.functionTypedParameterVar, 7, 5),
-      error(diag.extraneousModifier, 7, 5),
-    ]);
   }
 
   void test_functionTypedParameter_incomplete1() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(int Function(
+//                  ^
+// [diag.missingFunctionBody][column 21][length 0] A function body must be provided.
+// [diag.expectedToken][column 21][length 1] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
-      error(diag.missingFunctionBody, 21, 0),
-    ]);
   }
 
   void test_functionTypedParameter_var() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(var x()) {}
+//     ^^^
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 ''');
-    parseResult.assertErrors([
-      error(diag.functionTypedParameterVar, 7, 3),
-      error(diag.extraneousModifier, 7, 3),
-    ]);
   }
 
   void test_genericFunctionType_asIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 final int Function = 0;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_asIdentifier2() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 int Function() {}
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_asIdentifier3() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 int Function() => 0;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_genericFunctionType_extraLessThan() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class Wrong<T> {
   T Function(<List<int> foo) bar;
+//           ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 30, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
   }
 
   void test_getterInFunction_block_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   get x { return _x; }
+//^^^
+// [diag.expectedToken] Expected to find ';'.
+//    ^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.expectedToken, 17, 1),
-    ]);
 
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
@@ -1590,48 +1620,47 @@ CompilationUnit
   }
 
   void test_getterInFunction_block_returnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   int get x { return _x; }
+//    ^^^
+// [diag.expectedToken] Expected to find ';'.
+//        ^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 17, 3),
-      error(diag.expectedToken, 21, 1),
-    ]);
   }
 
   void test_getterInFunction_expression_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   get x => _x;
+//^^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 3),
-      error(diag.missingFunctionParameters, 19, 2),
-    ]);
   }
 
   void test_getterInFunction_expression_returnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   int get x => _x;
+//    ^^^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 17, 3),
-      error(diag.missingFunctionParameters, 23, 2),
-    ]);
   }
 
   void test_getterNativeWithBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   String get m native "str" => 0;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -1649,499 +1678,512 @@ MethodDeclaration
   }
 
   void test_getterWithParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   int get x() {}
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
 }
 ''');
-    parseResult.assertErrors([error(diag.getterWithParameters, 21, 1)]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_int() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   0 = 1;
+//^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignableSelector, 13, 1),
-      error(diag.illegalAssignmentToNonAssignable, 13, 1),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_this() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   this = 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignableSelector, 13, 4),
-      error(diag.illegalAssignmentToNonAssignable, 13, 4),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = 0--;
+//       ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.illegalAssignmentToNonAssignable, 9, 2),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = 0++;
+//       ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.illegalAssignmentToNonAssignable, 9, 2),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parenthesized() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = (x)++;
+//         ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.illegalAssignmentToNonAssignable, 11, 2),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_primarySelectorPostfix() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x(y)(z)++;
+//             ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.illegalAssignmentToNonAssignable, 15, 2),
-    ]);
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   super = x;
+//^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignableSelector, 13, 5),
-      error(diag.illegalAssignmentToNonAssignable, 13, 5),
-    ]);
   }
 
   void test_implementsBeforeExtends() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A implements B extends C {}
+//                   ^^^^^^^
+// [diag.implementsBeforeExtends] The extends clause must be before the implements clause.
 ''');
-    parseResult.assertErrors([error(diag.implementsBeforeExtends, 21, 7)]);
   }
 
   void test_implementsBeforeWith() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A extends B implements C with D {}
+//                             ^^^^
+// [diag.implementsBeforeWith] The with clause must be before the implements clause.
 ''');
-    parseResult.assertErrors([error(diag.implementsBeforeWith, 31, 4)]);
   }
 
   void test_initializedVariableInForEach() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (int a = 0 in foo) {}
+//           ^
+// [diag.initializedVariableInForEach] The loop variable in a for-each loop can't be initialized.
 }
 ''');
-    parseResult.assertErrors([error(diag.initializedVariableInForEach, 24, 1)]);
   }
 
   void test_initializedVariableInForEach_annotation() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (@Foo var a = 0 in foo) {}
+//                ^
+// [diag.initializedVariableInForEach] The loop variable in a for-each loop can't be initialized.
 }
 ''');
-    parseResult.assertErrors([error(diag.initializedVariableInForEach, 29, 1)]);
   }
 
   void test_initializedVariableInForEach_localFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (f()) {}
+//       ^
+// [diag.expectedToken] Expected to find ';'.
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingIdentifier, 21, 1),
-    ]);
   }
 
   void test_initializedVariableInForEach_localFunction2() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (T f()) {}
+//       ^
+// [diag.expectedToken] Expected to find ';'.
+//         ^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
   }
 
   void test_initializedVariableInForEach_var() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (var a = 0 in foo) {}
+//           ^
+// [diag.initializedVariableInForEach] The loop variable in a for-each loop can't be initialized.
 }
 ''');
-    parseResult.assertErrors([error(diag.initializedVariableInForEach, 24, 1)]);
   }
 
   void test_invalidAwaitInFor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   await for (; ;) {}
+//^^^^^
+// [diag.invalidAwaitInFor] The keyword 'await' isn't allowed for a normal 'for' statement.
 }
 ''');
-    parseResult.assertErrors([error(diag.invalidAwaitInFor, 13, 5)]);
   }
 
   void test_invalidCodePoint() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = 'begin \u{110000}';
+//             ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
-    parseResult.assertErrors([error(diag.invalidCodePoint, 15, 9)]);
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_nonIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 /// [new 42]
+//       ^^^
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
 void f() {}
 ''');
-    parseResult.assertErrors([error(diag.invalidCommentReference, 9, 3)]);
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_tooMuch() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 /// [new a.b.c.d]
+//       ^^^^^^^
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
 void f() {}
 ''');
-    parseResult.assertErrors([error(diag.invalidCommentReference, 9, 7)]);
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_nonIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 /// [42]
+//   ^^
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
 void f() {}
 ''');
-    parseResult.assertErrors([error(diag.invalidCommentReference, 5, 2)]);
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_tooMuch() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]
+//   ^^^^^^^
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
 void f() {}
 ''');
-    parseResult.assertErrors([error(diag.invalidCommentReference, 5, 7)]);
   }
 
   void test_invalidConstructorName_star() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C.*();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
   }
 
   void test_invalidConstructorName_with() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C.with();
+//  ^^^^
+// [diag.expectedIdentifierButGotKeyword] 'with' can't be used as an identifier because it's a keyword.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedIdentifierButGotKeyword, 14, 4),
-    ]);
   }
 
   void test_invalidConstructorSuperAssignment() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C() : super = 42;
+//      ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+//      ^^^^^^^^^^
+// [diag.invalidInitializer] Not a valid initializer.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignableSelector, 18, 5),
-      error(diag.invalidInitializer, 18, 10),
-    ]);
   }
 
   void test_invalidConstructorSuperFieldAssignment() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C() : super.a = 42;
+//            ^
+// [diag.fieldInitializedOutsideDeclaringClass] A field can only be initialized in its declaring class
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.fieldInitializedOutsideDeclaringClass, 24, 1),
-    ]);
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = 'not \x0 a';
+//           ^^^
+// [diag.invalidHexEscape] An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.
 ''');
-    parseResult.assertErrors([error(diag.invalidHexEscape, 13, 3)]);
   }
 
   void test_invalidHexEscape_tooFewDigits() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\x0';
+//       ^^^
+// [diag.invalidHexEscape] An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.
 ''');
-    parseResult.assertErrors([error(diag.invalidHexEscape, 9, 3)]);
   }
 
   void test_invalidInlineFunctionType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef F = int Function(int a());
+//                            ^
+// [diag.invalidInlineFunctionType] Inline function types can't be used for parameters in a generic function type.
 ''');
-    parseResult.assertErrors([error(diag.invalidInlineFunctionType, 30, 1)]);
   }
 
   void test_invalidInterpolation_missingClosingBrace_issue35900() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main () { print('${x' '); }
+//                  ^^^
+// [diag.expectedToken] Expected to find '}'.
+//                     ^
+// [diag.expectedStringLiteral] Expected a string literal.
+// [diag.expectedToken] Expected to find '}'.
+//                        ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+//                         ^
+// [diag.expectedExecutable][column 28][length 0] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 3),
-      error(diag.expectedToken, 23, 1),
-      error(diag.expectedStringLiteral, 23, 1),
-      error(diag.unterminatedStringLiteral, 27, 1),
-      error(diag.expectedExecutable, 28, 0),
-    ]);
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '$1';
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 10, 1)]);
   }
 
   void test_invalidLiteralInConfiguration() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 import 'a.dart' if (a == 'x $y z') 'a.dart';
+//                          ^^
+// [diag.invalidLiteralInConfiguration] The literal in a configuration can't contain interpolation.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidLiteralInConfiguration, 28, 2),
-    ]);
   }
 
   void test_invalidOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { void operator ===(x) { } }
+//                      ^
+// [diag.unsupportedOperator] The '===' operator is not supported.
 ''');
-    parseResult.assertErrors([error(diag.unsupportedOperator, 24, 1)]);
   }
 
   void test_invalidOperator_unary() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { int operator unary- => 0; }
+//                     ^^^^^
+// [diag.unexpectedToken] Unexpected text 'unary'.
+//                          ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.unexpectedToken, 23, 5),
-      error(diag.missingMethodParameters, 28, 1),
-    ]);
   }
 
   void test_invalidOperatorAfterSuper_assignableExpression() {
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   super?.v = 0;
+//     ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 18, 2),
-    ]);
   }
 
   void test_invalidOperatorAfterSuper_constructorInitializer2() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { C() : super?.namedConstructor(); }
+//                   ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 21, 2),
-    ]);
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   super?.v;
+//     ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidOperatorQuestionmarkPeriodForSuper, 18, 2),
-    ]);
   }
 
   void test_invalidOperatorForSuper() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   ++super;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingAssignableSelector, 15, 5)]);
   }
 
   void test_invalidPropertyAccess_this() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x.this;
+//        ^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 10, 4)]);
   }
 
   void test_invalidStarAfterAsync() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 foo() async* => 0;
+//           ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
-    parseResult.assertErrors([error(diag.returnInGenerator, 13, 2)]);
   }
 
   void test_invalidSync() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 foo() sync* => 0;
+//          ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
-    parseResult.assertErrors([error(diag.returnInGenerator, 12, 2)]);
   }
 
   void test_invalidTopLevelSetter() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var set foo; main(){}
+// [diag.varReturnType][column 1][length 3] The return type can't be 'var'.
+//      ^^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.varReturnType, 0, 3),
-      error(diag.missingFunctionParameters, 8, 3),
-    ]);
   }
 
   void test_invalidTopLevelVar() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var Function(var arg);
+// [diag.varReturnType][column 1][length 3] The return type can't be 'var'.
+//           ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 ''');
-    parseResult.assertErrors([
-      error(diag.varReturnType, 0, 3),
-      error(diag.extraneousModifier, 13, 3),
-    ]);
   }
 
   void test_invalidTypedef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef var Function(var arg);
+// [diag.expectedToken][column 1][length 7] Expected to find ';'.
+//      ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.missingTypedefParameters] Typedefs must have an explicit list of parameters.
+// [diag.varReturnType] The return type can't be 'var'.
+//                   ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 7),
-      error(diag.missingIdentifier, 8, 3),
-      error(diag.missingTypedefParameters, 8, 3),
-      error(diag.varReturnType, 8, 3),
-      error(diag.extraneousModifier, 21, 3),
-    ]);
   }
 
   void test_invalidTypedef2() {
     // https://github.com/dart-lang/sdk/issues/31171
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef T = typedef F = Map<String, dynamic> Function();
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 7),
-    ]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u{';
+//       ^^^
+// [diag.invalidUnicodeEscapeUBracket] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
 ''');
-    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 3)]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits_noBracket() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u';
+//       ^^
+// [diag.invalidUnicodeEscapeUStarted] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.
 ''');
-    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUStarted, 9, 2)]);
   }
 
   void test_invalidUnicodeEscape_incomplete_someDigits() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u{0A';
+//       ^^^^^
+// [diag.invalidUnicodeEscapeUBracket] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
 ''');
-    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 5)]);
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u0 and some more';
+//       ^^^
+// [diag.invalidUnicodeEscapeUNoBracket] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidUnicodeEscapeUNoBracket, 9, 3),
-    ]);
   }
 
   void test_invalidUnicodeEscape_too_high_number_variable() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u{110000}';
+//       ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
-    parseResult.assertErrors([error(diag.invalidCodePoint, 9, 9)]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_fixed() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u04';
+//       ^^^^
+// [diag.invalidUnicodeEscapeUNoBracket] An escape sequence starting with '\u' must be followed by 4 hexadecimal digits.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidUnicodeEscapeUNoBracket, 9, 4),
-    ]);
   }
 
   void test_invalidUnicodeEscape_tooFewDigits_variable() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u{}';
+//       ^^^^
+// [diag.invalidUnicodeEscapeUBracket] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
 ''');
-    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 4)]);
   }
 
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = '\u{0000000001}';
+//       ^^^^^^^^^
+// [diag.invalidUnicodeEscapeUBracket] An escape sequence starting with '\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.
 ''');
-    parseResult.assertErrors([error(diag.invalidUnicodeEscapeUBracket, 9, 9)]);
   }
 
   void test_libraryDirectiveNotFirst() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 import 'x.dart'; library l;
+//               ^^^^^^^
+// [diag.libraryDirectiveNotFirst] The library directive must appear before all other directives.
 ''');
-    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 17, 7)]);
   }
 
   void test_libraryDirectiveNotFirst_afterPart() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 part 'a.dart';
 library l;
+// [diag.libraryDirectiveNotFirst][column 1][length 7] The library directive must appear before all other directives.
 ''');
-    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 15, 7)]);
   }
 
   void test_localFunction_annotation() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 class C { m() { @Foo f() {} } }
 ''');
-    result.assertNoErrors();
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -2164,43 +2206,48 @@ FunctionDeclaration
   }
 
   void test_localFunctionDeclarationModifier_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { m() { abstract f() {} } }
+//              ^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 16, 8)]);
   }
 
   void test_localFunctionDeclarationModifier_external() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { m() { external f() {} } }
+//              ^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'external' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 16, 8)]);
   }
 
   void test_localFunctionDeclarationModifier_factory() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { m() { factory f() {} } }
+//              ^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 16, 7)]);
   }
 
   void test_localFunctionDeclarationModifier_static() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { m() { static f() {} } }
+//              ^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 16, 6)]);
   }
 
   void test_method_invalidTypeParameterExtends() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
 
     // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 class C {
   f<E>(E extends num p);
+//       ^^^^^^^
+// [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    result.assertErrors([error(diag.expectedToken, 19, 7)]);
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
@@ -2223,12 +2270,13 @@ MethodDeclaration
   }
 
   void test_method_invalidTypeParameters() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 class C {
   void m<E, hello!>() {}
+//          ^^^^^
+// [diag.expectedToken] Expected to find '>'.
 }
 ''');
-    result.assertErrors([error(diag.expectedToken, 22, 5)]);
 
     var method = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(method, r'''
@@ -2255,40 +2303,41 @@ MethodDeclaration
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   x.y = y;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_missingAssignableSelector_prefix_minusMinus_literal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = --0;
+//        ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    parseResult.assertErrors([error(diag.missingAssignableSelector, 10, 1)]);
   }
 
   void test_missingAssignableSelector_prefix_plusPlus_literal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = ++0;
+//        ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    parseResult.assertErrors([error(diag.missingAssignableSelector, 10, 1)]);
   }
 
   void test_missingAssignableSelector_selector() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x(y)(z).a++;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_missingAssignableSelector_superAsExpressionFunctionBody() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 main() => super;
+//        ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    result.assertErrors([error(diag.missingAssignableSelector, 10, 5)]);
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -2307,10 +2356,11 @@ FunctionDeclaration
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 main() {super;}
+//      ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    result.assertErrors([error(diag.missingAssignableSelector, 8, 5)]);
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -2333,128 +2383,140 @@ FunctionDeclaration
   }
 
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   super.x = x;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_missingCatchOrFinally() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   try {}
+//^^^
+// [diag.missingCatchOrFinally] A try block must be followed by an 'on', 'catch', or 'finally' clause.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingCatchOrFinally, 13, 3)]);
   }
 
   void test_missingClosingParenthesis() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(int a, int b ;
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
   }
 
   void test_missingConstFinalVarOrType_static() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A { static f; }
+//               ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 17, 1)]);
   }
 
   void test_missingConstFinalVarOrType_topLevel() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 a;
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([error(diag.missingConstFinalVarOrType, 0, 1)]);
   }
 
   void test_missingEnumComma() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 enum E {one two}
+//          ^^^
+// [diag.expectedToken] Expected to find ','.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 3)]);
   }
 
   void test_missingExpressionInThrow() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   throw;
+//     ^
+// [diag.missingExpressionInThrow] Missing expression after 'throw'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingExpressionInThrow, 18, 1)]);
   }
 
   void test_missingFunctionBody_invalid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() return 0;
+//       ^^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 9, 6)]);
   }
 
   void test_missingFunctionParameters_local_nonVoid_block() {
     // The parser does not recognize this as a function declaration, so it tries
     // to parse it as an expression statement. It isn't clear what the best
     // error message is in this case.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   int f { return x;}
+//    ^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
   }
 
   void test_missingFunctionParameters_local_nonVoid_expression() {
     // The parser does not recognize this as a function declaration, so it tries
     // to parse it as an expression statement. It isn't clear what the best
     // error message is in this case.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   int f => x;
+//      ^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 19, 2)]);
   }
 
   void test_missingFunctionParameters_local_void_block() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void f { return x;}
+//     ^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 18, 1)]);
   }
 
   void test_missingFunctionParameters_local_void_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void f => x;
+//       ^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 20, 2)]);
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_block() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 int f { return x;}
+//  ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 1)]);
   }
 
   void test_missingFunctionParameters_topLevel_nonVoid_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 int f => x;
+//  ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 1)]);
   }
 
   void test_missingFunctionParameters_topLevel_void_block() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 void f { return x;}
+//   ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    result.assertErrors([error(diag.missingFunctionParameters, 5, 1)]);
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -2480,10 +2542,11 @@ FunctionDeclaration
   }
 
   void test_missingFunctionParameters_topLevel_void_expression() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 void f => x;
+//   ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    result.assertErrors([error(diag.missingFunctionParameters, 5, 1)]);
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -2504,113 +2567,120 @@ FunctionDeclaration
   }
 
   void test_missingIdentifier_afterOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var a = 1 *;
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_beforeClosingCurly() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   int
+//^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    parseResult.assertErrors([
-      error(
-        diag.missingConstFinalVarOrType,
-        12,
-        3,
-      ), // offset adjusted for indentation/newlines
-      error(diag.expectedToken, 12, 3),
-    ]);
   }
 
   void test_missingIdentifier_inEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 enum E {, TWO}
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 8, 1)]);
   }
 
   void test_missingIdentifier_inParameterGroupNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, {}) {}
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inParameterGroupOptional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, []) {}
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inSymbol_afterPeriod() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = #a.;
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 11, 1)]);
   }
 
   void test_missingIdentifier_inSymbol_first() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var s = #;
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 9, 1)]);
   }
 
   void test_missingIdentifierForParameterGroup() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(,) {}
+//     ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 7, 1)]);
   }
 
   void test_missingKeywordOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   +(x) {}
+//^
+// [diag.missingKeywordOperator] Operator declarations must be preceded by the keyword 'operator'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingKeywordOperator, 12, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   +() {}
+//^
+// [diag.missingKeywordOperator] Operator declarations must be preceded by the keyword 'operator'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingKeywordOperator, 12, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterTypeName() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   int +() {}
+//    ^
+// [diag.missingKeywordOperator] Operator declarations must be preceded by the keyword 'operator'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingKeywordOperator, 16, 1)]);
   }
 
   void test_missingKeywordOperator_parseClassMember_afterVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   void +() {}
+//     ^
+// [diag.missingKeywordOperator] Operator declarations must be preceded by the keyword 'operator'.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingKeywordOperator, 17, 1)]);
   }
 
   void test_missingMethodParameters_void_block() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 class C {
   void m {}
+//     ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
 }
 ''');
-    result.assertErrors([error(diag.missingMethodParameters, 17, 1)]);
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
@@ -2629,22 +2699,22 @@ MethodDeclaration
   }
 
   void test_missingMethodParameters_void_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   void m => null;
+//     ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingMethodParameters, 17, 1)]);
   }
 
   void test_missingNameForNamedParameter_colon() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function({int : 0});
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 ''');
-    result.assertErrors([
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.defaultValueInFunctionType, 31, 1),
-    ]);
 
     var parameter = result.findNode.singleFormalParameterList;
     assertParsedNodeText(parameter, r'''
@@ -2665,13 +2735,12 @@ FormalParameterList
   }
 
   void test_missingNameForNamedParameter_equals() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function({int = 0});
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 ''');
-    result.assertErrors([
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.defaultValueInFunctionType, 31, 1),
-    ]);
 
     var parameter = result.findNode.singleFormalParameterList;
     assertParsedNodeText(parameter, r'''
@@ -2692,10 +2761,11 @@ FormalParameterList
   }
 
   void test_missingNameForNamedParameter_noDefault() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 typedef F = void Function({int});
+//                            ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    result.assertErrors([error(diag.missingIdentifier, 30, 1)]);
 
     var parameter = result.findNode.singleFormalParameterList;
     assertParsedNodeText(parameter, r'''
@@ -2712,182 +2782,201 @@ FormalParameterList
   }
 
   void test_missingNameInPartOfDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 part of;
+//     ^
+// [diag.expectedStringLiteral] Expected a string literal.
 ''');
-    parseResult.assertErrors([error(diag.expectedStringLiteral, 7, 1)]);
   }
 
   void test_missingPrefixInDeferredImport() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 import 'foo.dart' deferred;
+//                ^^^^^^^^
+// [diag.missingPrefixInDeferredImport] Deferred imports should have a prefix.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingPrefixInDeferredImport, 18, 8),
-    ]);
   }
 
   void test_missingStartAfterSync() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() sync {}
+//     ^^^^
+// [diag.missingStarAfterSync] The modifier 'sync' must be followed by a star ('*').
 ''');
-    parseResult.assertErrors([error(diag.missingStarAfterSync, 7, 4)]);
   }
 
   void test_missingStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   is
+//^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
 }
+// [diag.expectedTypeName][column 1][length 1] Expected a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 2),
-      error(diag.expectedToken, 13, 2),
-      error(diag.expectedTypeName, 16, 1),
-    ]);
   }
 
   void test_missingStatement_afterVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void;
+//    ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 17, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_named() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, {b: 0) {}
+//             ^
+// [diag.expectedToken] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 15, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, [b = 0) {}
+//              ^
+// [diag.expectedToken] Expected to find ']'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 16, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef int F;
+//           ^
+// [diag.missingTypedefParameters] Typedefs must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingTypedefParameters, 13, 1)]);
   }
 
   void test_missingTypedefParameters_typeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef F<E>;
+//          ^
+// [diag.missingTypedefParameters] Typedefs must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingTypedefParameters, 12, 1)]);
   }
 
   void test_missingTypedefParameters_void() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef void F;
+//            ^
+// [diag.missingTypedefParameters] Typedefs must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingTypedefParameters, 14, 1)]);
   }
 
   void test_missingVariableInForEach() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (a < b in foo) {}
+//       ^
+// [diag.unexpectedToken] Unexpected text '<'.
 }
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 20, 1)]);
   }
 
   void test_mixedParameterGroups_namedPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, {b}, [c]) {}
+//           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_mixedParameterGroups_positionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, [b], {c}) {}
+//           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_mixin_application_lacks_with_clause() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class Foo = Bar;
+//             ^
+// [diag.expectedToken] Expected to find 'with'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 15, 1)]);
   }
 
   void test_multipleExtendsClauses() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A extends B extends C {}
+//                ^^^^^^^
+// [diag.multipleExtendsClauses] Each class definition can have at most one extends clause.
 ''');
-    parseResult.assertErrors([error(diag.multipleExtendsClauses, 18, 7)]);
   }
 
   void test_multipleImplementsClauses() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A implements B implements C {}
+//                   ^^^^^^^^^^
+// [diag.multipleImplementsClauses] Each class or mixin definition can have at most one implements clause.
 ''');
-    parseResult.assertErrors([error(diag.multipleImplementsClauses, 21, 10)]);
   }
 
   void test_multipleLibraryDirectives() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 library l; library m;
+//         ^^^^^^^
+// [diag.multipleLibraryDirectives] Only one library directive may be declared in a file.
 ''');
-    parseResult.assertErrors([error(diag.multipleLibraryDirectives, 11, 7)]);
   }
 
   void test_multipleNamedParameterGroups() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, {b}, {c}) {}
+//           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_multiplePartOfDirectives() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 part of l; part of m;
+//      ^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
+//         ^^^^
+// [diag.multiplePartOfDirectives] Only one part-of directive may be declared in a file.
+//                 ^
+// [diag.partOfName] The 'part of' directive can't use a name with the enhanced-parts feature.
 ''');
-    parseResult.assertErrors([
-      error(diag.partOfName, 8, 1),
-      error(diag.multiplePartOfDirectives, 11, 4),
-      error(diag.partOfName, 19, 1),
-    ]);
   }
 
   void test_multiplePositionalParameterGroups() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, [b], [c]) {}
+//           ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
   }
 
   void test_multipleVariablesInForEach() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   for (int a, b in foo) {}
+//          ^
+// [diag.unexpectedToken] Unexpected text ','.
 }
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 23, 1)]);
   }
 
   void test_multipleWithClauses() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A extends B with C with D {}
+//                       ^^^^
+// [diag.multipleWithClauses] Each class definition can have at most one with clause.
 ''');
-    parseResult.assertErrors([error(diag.multipleWithClauses, 25, 4)]);
   }
 
   void test_namedFunctionExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = (f() {});
+//       ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
 ''');
-    parseResult.assertErrors([error(diag.namedFunctionExpression, 9, 1)]);
 
     var node = parseResult.findNode.singleParenthesizedExpression;
     assertParsedNodeText(node, r'''
@@ -2906,10 +2995,11 @@ ParenthesizedExpression
   }
 
   void test_namedParameterOutsideGroup() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 void f(a, b : 0) {}
+//          ^
+// [diag.namedParameterOutsideGroup] Named parameters must be enclosed in curly braces ('{' and '}').
 ''');
-    result.assertErrors([error(diag.namedParameterOutsideGroup, 12, 1)]);
 
     var list = result.findNode.singleFormalParameterList;
     assertParsedNodeText(list, r'''
@@ -2928,79 +3018,81 @@ FormalParameterList
   }
 
   void test_nonConstructorFactory_field() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory int x;
+//            ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionParameters, 24, 1),
-      error(diag.missingFunctionBody, 24, 1),
-      error(diag.missingConstFinalVarOrType, 24, 1),
-    ]);
   }
 
   void test_nonConstructorFactory_method() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   factory int m() {}
+//            ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.missingFunctionParameters, 24, 1),
-      error(diag.missingFunctionBody, 24, 1),
-    ]);
   }
 
   void test_nonIdentifierLibraryName_library() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 library 'lib';
+//      ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 8, 5)]);
   }
 
   void test_nonIdentifierLibraryName_partOf() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 part of 3;
+//   ^^
+// [diag.expectedToken] Expected to find ';'.
+//      ^
+// [diag.expectedStringLiteral] Expected a string literal.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//       ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 5, 2),
-      error(diag.expectedStringLiteral, 8, 1),
-      error(diag.expectedExecutable, 8, 1),
-      error(diag.unexpectedToken, 9, 1),
-    ]);
   }
 
   void test_nonUserDefinableOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   operator +=(int x) => x + 1;
+//         ^^
+// [diag.invalidOperator] The string '+=' isn't a user-definable operator.
 }
 ''');
-    parseResult.assertErrors([error(diag.invalidOperator, 21, 2)]);
   }
 
   void test_optionalAfterNormalParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 f({a}, b) {}
+//   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 5, 1)]);
   }
 
   void test_optionalAfterNormalParameters_positional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 f([a], b) {}
+//   ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 5, 1)]);
   }
 
   void test_parseCascadeSection_missingIdentifier() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 var x = a..();
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    result.assertErrors([
-      error(diag.missingIdentifier, 11, 1), // at '('
-    ]);
 
     var methodInvocation = result.findNode.singleMethodInvocation;
     assertParsedNodeText(methodInvocation, r'''
@@ -3015,12 +3107,11 @@ MethodInvocation
   }
 
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 var x = a..<E>();
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    result.assertErrors([
-      error(diag.missingIdentifier, 11, 1), // at '<'
-    ]);
     var methodInvocation = result.findNode.singleMethodInvocation;
     assertParsedNodeText(methodInvocation, r'''
 MethodInvocation
@@ -3040,30 +3131,32 @@ MethodInvocation
   }
 
   void test_partialNamedConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { C. }
+//        ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.missingMethodParameters, 10, 1),
-      error(diag.missingFunctionBody, 13, 1),
-    ]);
   }
 
   void test_positionalAfterNamedArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   g(x: 1, 2);
+//        ^
+// [diag.positionalAfterNamedArgument] Positional arguments must occur before named arguments.
 }
 ''', featureSet: FeatureSets.language_2_16);
-    parseResult.assertErrors([error(diag.positionalAfterNamedArgument, 21, 1)]);
   }
 
   void test_positionalParameterOutsideGroup() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 void f(a, b = 0) {}
+//          ^
+// [diag.namedParameterOutsideGroup] Named parameters must be enclosed in curly braces ('{' and '}').
 ''');
-    result.assertErrors([error(diag.namedParameterOutsideGroup, 12, 1)]);
     var list = result.findNode.singleFormalParameterList;
     assertParsedNodeText(list, r'''
 FormalParameterList
@@ -3081,242 +3174,246 @@ FormalParameterList
   }
 
   void test_redirectionInNonFactoryConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   C() = D;
+//    ^
+// [diag.redirectionInNonFactoryConstructor] Only factory constructor can specify '=' redirection.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.redirectionInNonFactoryConstructor, 16, 1),
-    ]);
   }
 
   void test_setterInFunction_block() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   set x(v) {_x = v;}
+//^^^
+// [diag.unexpectedToken] Unexpected text 'set'.
 }
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 13, 3)]);
   }
 
   void test_setterInFunction_expression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   set x(v) => _x = v;
+//^^^
+// [diag.unexpectedToken] Unexpected text 'set'.
 }
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 13, 3)]);
   }
 
   void test_staticAfterConst() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   final static int f = 0;
+//      ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 6)]);
   }
 
   void test_staticAfterFinal() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   const static int f = 0;
+//      ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 18, 6)]);
   }
 
   void test_staticAfterVar() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   var static f = 0;
+//    ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'var'.
 }
 ''');
-    parseResult.assertErrors([error(diag.modifierOutOfOrder, 16, 6)]);
   }
 
   void test_staticConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static C.m() {}
+//^^^^^^
+// [diag.staticConstructor] Constructors can't be static.
 }
 ''');
-    parseResult.assertErrors([error(diag.staticConstructor, 12, 6)]);
   }
 
   void test_staticGetterWithoutBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static get m;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_staticOperator_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static operator +(int x) => x + 1;
+//^^^^^^
+// [diag.staticOperator] Operators can't be static.
 }
 ''');
-    parseResult.assertErrors([error(diag.staticOperator, 12, 6)]);
   }
 
   void test_staticOperator_returnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static int operator +(int x) => x + 1;
+//^^^^^^
+// [diag.staticOperator] Operators can't be static.
 }
 ''');
-    parseResult.assertErrors([error(diag.staticOperator, 12, 6)]);
   }
 
   void test_staticOperatorNamedMethod() {
     // operator can be used as a method name
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { static operator(x) => x; }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_staticSetterWithoutBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   static set m(x);
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_staticTopLevelDeclaration_class() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 static class C {}
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 static enum E { v }
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_function() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 static f() {}
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 static typedef F();
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_staticTopLevelDeclaration_variable() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 static var x;
+// [diag.extraneousModifier][column 1][length 6] Can't have modifier 'static' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 6)]);
   }
 
   void test_string_unterminated_interpolation_block() {
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 m() {
  {
  '${${
+//   ^
+// [diag.expectedToken] Expected to find '}'.
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+//    ^
+// [diag.expectedToken][column 7][length 0] Expected to find ';'.
+// [diag.expectedToken][column 7][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 14, 1),
-      error(diag.unterminatedStringLiteral, 15, 1),
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedToken, 16, 0),
-    ]);
   }
 
   void test_switchCase_missingColon() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {case 1 return 0;}
+//                   ^^^^^^
+// [diag.expectedToken] Expected to find ':'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 32, 6)]);
   }
 
   void test_switchDefault_missingColon() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {default return 0;}
+//                    ^^^^^^
+// [diag.expectedToken] Expected to find ':'.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 33, 6)]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {default: return 0; case 1: return 1;}
+//                               ^^^^
+// [diag.switchHasCaseAfterDefaultCase] The default case should be the last case in a switch statement.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.switchHasCaseAfterDefaultCase, 44, 4),
-    ]);
   }
 
   void test_switchHasCaseAfterDefaultCase_repeated() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {default: return 0; case 1: return 1; case 2: return 2;}
+//                               ^^^^
+// [diag.switchHasCaseAfterDefaultCase] The default case should be the last case in a switch statement.
+//                                                 ^^^^
+// [diag.switchHasCaseAfterDefaultCase] The default case should be the last case in a switch statement.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.switchHasCaseAfterDefaultCase, 44, 4),
-      error(diag.switchHasCaseAfterDefaultCase, 62, 4),
-    ]);
   }
 
   void test_switchHasMultipleDefaultCases() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {default: return 0; default: return 1;}
+//                               ^^^^^^^
+// [diag.switchHasMultipleDefaultCases] The 'default' case can only be declared once.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.switchHasMultipleDefaultCases, 44, 7),
-    ]);
   }
 
   void test_switchHasMultipleDefaultCases_repeated() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) {default: return 0; default: return 1; default: return 2;}
+//                               ^^^^^^^
+// [diag.switchHasMultipleDefaultCases] The 'default' case can only be declared once.
+//                                                  ^^^^^^^
+// [diag.switchHasMultipleDefaultCases] The 'default' case can only be declared once.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.switchHasMultipleDefaultCases, 44, 7),
-      error(diag.switchHasMultipleDefaultCases, 63, 7),
-    ]);
   }
 
   void test_switchMissingBlock() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (a) return;
+//         ^
+// [diag.expectedSwitchStatementBody] A switch statement must have a body, even if it is empty.
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedSwitchStatementBody, 22, 1)]);
   }
 
   void test_topLevel_getter() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 get x => 7;
 ''');
-    result.assertNoErrors();
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
@@ -3332,211 +3429,219 @@ FunctionDeclaration
   }
 
   void test_topLevelFactory_withFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 factory Function() x = null;
+// [diag.factoryTopLevelDeclaration][column 1][length 7] Top-level declarations can't be declared to be 'factory'.
 ''');
-    parseResult.assertErrors([error(diag.factoryTopLevelDeclaration, 0, 7)]);
   }
 
   void test_topLevelOperator_withFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 operator Function() x = null;
+// [diag.topLevelOperator][column 1][length 8] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([error(diag.topLevelOperator, 0, 8)]);
   }
 
   void test_topLevelOperator_withoutOperator() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 +(bool x, bool y) => x | y;
+// [diag.topLevelOperator][column 1][length 1] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([error(diag.topLevelOperator, 0, 1)]);
   }
 
   void test_topLevelOperator_withoutType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 operator +(bool x, bool y) => x | y;
+// [diag.topLevelOperator][column 1][length 8] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([error(diag.topLevelOperator, 0, 8)]);
   }
 
   void test_topLevelOperator_withType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 bool operator +(bool x, bool y) => x | y;
+//   ^^^^^^^^
+// [diag.topLevelOperator] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([error(diag.topLevelOperator, 5, 8)]);
   }
 
   void test_topLevelOperator_withVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void operator +(bool x, bool y) => x | y;
+//   ^^^^^^^^
+// [diag.topLevelOperator] Operators must be declared within a class.
 ''');
-    parseResult.assertErrors([error(diag.topLevelOperator, 5, 8)]);
   }
 
   void test_topLevelVariable_withMetadata() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 String @A string;
+// [diag.missingConstFinalVarOrType][column 1][length 6] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 6] Expected to find ';'.
+//        ^^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 0, 6),
-      error(diag.expectedToken, 0, 6),
-      error(diag.missingConstFinalVarOrType, 10, 6),
-    ]);
   }
 
   void test_typedef_incomplete() {
     // TODO(brianwilkerson): Improve recovery for this case.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 
 typedef T
 
 main() {
+//   ^
+// [diag.expectedToken] Expected to find ';'.
+//     ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
   Function<
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 49, 1),
-      error(diag.expectedExecutable, 51, 1),
-    ]);
   }
 
   void test_typedef_namedFunction() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 typedef void Function();
+//           ^^^^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'Function' can't be used as an identifier because it's a keyword.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedIdentifierButGotKeyword, 13, 8),
-    ]);
   }
 
   void test_typedefInClass_withoutReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { typedef F(x); }
+//        ^^^^^^^
+// [diag.typedefInClass] Typedefs can't be declared inside classes.
 ''');
-    parseResult.assertErrors([error(diag.typedefInClass, 10, 7)]);
   }
 
   void test_typedefInClass_withReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { typedef int F(int x); }
+//        ^^^^^^^
+// [diag.typedefInClass] Typedefs can't be declared inside classes.
 ''');
-    parseResult.assertErrors([error(diag.typedefInClass, 10, 7)]);
   }
 
   void test_unexpectedCommaThenInterpolation() {
     // https://github.com/Dart-Code/Dart-Code/issues/1548
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 main() { String s = 'a' 'b', 'c$foo'; return s; }
+//                         ^
+// [diag.expectedToken] Expected to find ';'.
+//                           ^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 29, 2),
-    ]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, b}) {}
+//         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, b]) {}
+//         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 1)]);
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   String s = (null));
+//                ^
+// [diag.expectedToken] Expected to find ';'.
+//                 ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.unexpectedToken, 30, 1),
-    ]);
   }
 
   void test_unexpectedToken_invalidPostfixExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = f()++;
+//         ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.illegalAssignmentToNonAssignable, 11, 2),
-    ]);
   }
 
   void test_unexpectedToken_invalidPrefixExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = ++f();
+//          ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    parseResult.assertErrors([error(diag.missingAssignableSelector, 12, 1)]);
   }
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 f() => return null;
+//     ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 7, 6)]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { int x; ; int y;}
+//               ^
+// [diag.expectedClassMember] Expected a class member.
 ''');
-    parseResult.assertErrors([error(diag.expectedClassMember, 17, 1)]);
   }
 
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 int x; ; int y;
+//     ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 7, 1)]);
   }
 
   void test_unnamedLibraryDirective() {
-    parseStringWithErrors(
-      'library;',
+    parseTestCodeWithDiagnostics(
+      r'''library;
+// [diag.experimentNotEnabled][column 1][length 7] This requires the 'unnamed-libraries' language feature to be enabled.''',
       featureSet: FeatureSets.language_2_18,
-    ).assertErrors([error(diag.experimentNotEnabled, 0, 7)]);
+    );
   }
 
   void test_unnamedLibraryDirective_enabled() {
-    var parseResult = parseStringWithErrors('library;');
-    parseResult.assertNoErrors();
+    parseTestCodeWithDiagnostics('library;');
   }
 
   void test_unterminatedString_at_eof() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void main() {
-  var x = "''');
-    parseResult.assertErrors([
-      error(diag.unterminatedStringLiteral, 24, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedToken, 24, 1),
-    ]);
+  var x = "
+//        ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 12][length 1] Expected to find '}'.
+''');
   }
 
   void test_unterminatedString_at_eol() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void main() {
   var x = "
+//        ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
 ;
 }
 ''');
-    parseResult.assertErrors([error(diag.unterminatedStringLiteral, 24, 1)]);
   }
 
   void test_unterminatedString_multiline_at_eof_3_quotes() {
@@ -3544,14 +3649,14 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void main() {
-  var x = """''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 3),
-      error(diag.unterminatedStringLiteral, 26, 1),
-      error(diag.expectedToken, 27, 1),
-    ]);
+  var x = """
+//        ^^^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 14][length 1] Expected to find '}'.''');
   }
 
   void test_unterminatedString_multiline_at_eof_4_quotes() {
@@ -3559,14 +3664,14 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void main() {
-  var x = """"''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 4),
-      error(diag.unterminatedStringLiteral, 27, 1),
-      error(diag.expectedToken, 28, 1),
-    ]);
+  var x = """"
+//        ^^^^
+// [diag.expectedToken] Expected to find ';'.
+//           ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 15][length 1] Expected to find '}'.''');
   }
 
   void test_unterminatedString_multiline_at_eof_5_quotes() {
@@ -3574,19 +3679,20 @@ void main() {
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
     // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void main() {
-  var x = """""''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 5),
-      error(diag.unterminatedStringLiteral, 28, 1),
-      error(diag.expectedToken, 29, 1),
-    ]);
+  var x = """""
+//        ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//            ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 16][length 1] Expected to find '}'.''');
   }
 
   void test_useOfUnaryPlusOperator() {
-    var result = parseStringWithErrors('var v = +x;');
-    result.assertErrors([error(diag.missingIdentifier, 8, 1)]);
+    var result = parseTestCodeWithDiagnostics(r'''var v = +x;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.''');
     var binaryExpression = result.findNode.singleBinaryExpression;
     assertParsedNodeText(binaryExpression, r'''
 BinaryExpression
@@ -3599,103 +3705,102 @@ BinaryExpression
   }
 
   void test_varAndType_field() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C { var int x; }
+//        ^^^
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 ''');
-    parseResult.assertErrors([error(diag.varAndType, 10, 3)]);
   }
 
   void test_varAndType_local() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   var int x;
+//^^^
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 }
 ''');
-    parseResult.assertErrors([error(diag.varAndType, 13, 3)]);
   }
 
   void test_varAndType_parameter() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(var int x) {}
+//     ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
+// [diag.varAndType] Variables can't be declared using both 'var' and a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 7, 3),
-      error(diag.varAndType, 7, 3),
-    ]);
   }
 
   void test_varAndType_topLevelVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var int x;
+// [diag.varAndType][column 1][length 3] Variables can't be declared using both 'var' and a type name.
 ''');
-    parseResult.assertErrors([error(diag.varAndType, 0, 3)]);
   }
 
   void test_varAsTypeName_as() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 var v = x as var;
+//        ^^
+// [diag.expectedToken] Expected to find ';'.
+//           ^^^
+// [diag.expectedTypeName] Expected a type name.
+//              ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 2),
-      error(diag.expectedTypeName, 13, 3),
-      error(diag.missingIdentifier, 16, 1),
-    ]);
   }
 
   void test_varClass() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `var` as a malformed top level var
+    // and `class` as the start of a class declaration.
+    parseTestCodeWithDiagnostics(r'''
 var class C {}
+// [diag.expectedToken][column 1][length 3] Expected to find ';'.
+//  ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `var` as a malformed top level var
-      // and `class` as the start of a class declaration.
-      error(diag.expectedToken, 0, 3),
-      error(diag.missingIdentifier, 4, 5),
-    ]);
   }
 
   void test_varEnum() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `var` as a malformed top level var
+    // and `enum` as the start of an enum declaration.
+    parseTestCodeWithDiagnostics(r'''
 var enum E {ONE}
+// [diag.expectedToken][column 1][length 3] Expected to find ';'.
+//  ^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `var` as a malformed top level var
-      // and `enum` as the start of an enum declaration.
-      error(diag.expectedToken, 0, 3),
-      error(diag.missingIdentifier, 4, 4),
-    ]);
   }
 
   void test_varReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   var m() {}
+//^^^
+// [diag.varReturnType] The return type can't be 'var'.
 }
 ''');
-    parseResult.assertErrors([error(diag.varReturnType, 12, 3)]);
   }
 
   void test_varTypedef() {
-    var parseResult = parseStringWithErrors(r'''
+    // Fasta interprets the `var` as a malformed top level var
+    // and `typedef` as the start of an typedef declaration.
+    parseTestCodeWithDiagnostics(r'''
 var typedef F();
+// [diag.expectedToken][column 1][length 3] Expected to find ';'.
+//  ^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      // Fasta interprets the `var` as a malformed top level var
-      // and `typedef` as the start of an typedef declaration.
-      error(diag.expectedToken, 0, 3),
-      error(diag.missingIdentifier, 4, 7),
-    ]);
   }
 
   void test_voidParameter() {
-    var result = parseStringWithErrors(r'''
+    var result = parseTestCodeWithDiagnostics(r'''
 void f(void a) {}
 ''');
-    result.assertNoErrors();
     var node = result.findNode.singleFormalParameter;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
@@ -3706,115 +3811,105 @@ RegularFormalParameter
   }
 
   void test_voidVariable_parseClassMember_initializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   void x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseClassMember_noInitializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class C {
   void x;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void x = 0;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnit_noInitializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void x;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void a = 0;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void a;
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_statement_initializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_voidVariable_statement_noInitializer() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f() {
   void x;
 }
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_withBeforeExtends() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A with B extends C {}
+//             ^^^^^^^
+// [diag.withBeforeExtends] The extends clause must be before the with clause.
 ''');
-    parseResult.assertErrors([error(diag.withBeforeExtends, 15, 7)]);
   }
 
   void test_withWithoutExtends() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 class A with B, C {}
 ''');
-    parseResult.assertNoErrors();
   }
 
   void test_wrongSeparatorForPositionalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, [b : 0]) {}
+//           ^
+// [diag.wrongSeparatorForPositionalParameter] The default value of a positional parameter should be preceded by '='.
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongSeparatorForPositionalParameter, 13, 1),
-    ]);
   }
 
   void test_wrongTerminatorForParameterGroup_named() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, {b, c]) {}
+//             ^
+// [diag.expectedToken] Expected to find '}'.
+//              ^
+// [diag.expectedToken] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
-      error(diag.expectedToken, 16, 1),
-    ]);
   }
 
   void test_wrongTerminatorForParameterGroup_optional() {
-    var parseResult = parseStringWithErrors(r'''
+    parseTestCodeWithDiagnostics(r'''
 void f(a, [b, c}) {}
+//             ^
+// [diag.expectedToken] Expected to find ']'.
+//              ^
+// [diag.expectedToken] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
-      error(diag.expectedToken, 16, 1),
-    ]);
   }
 
   void test_yieldAsLabel() {
     // yield can be used as a label
-    var parseResult = parseStringWithErrors('main() { yield: break yield; }');
-    parseResult.assertNoErrors();
+    parseTestCodeWithDiagnostics('main() { yield: break yield; }');
   }
 }

@@ -14,8 +14,9 @@ final Uri repoRoot = Platform.script.resolve("../../../");
 void main() {
   // Parse every status file in the repository.
   for (var directory in ["tests", "runtime/tests"]) {
-    for (var entry in Directory.fromUri(repoRoot.resolve(directory))
-        .listSync(recursive: true)) {
+    for (var entry in Directory.fromUri(
+      repoRoot.resolve(directory),
+    ).listSync(recursive: true)) {
       if (!entry.path.endsWith(".status")) continue;
       try {
         var statusFile = StatusFile.read(entry.path);

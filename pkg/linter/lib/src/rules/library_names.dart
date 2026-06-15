@@ -16,7 +16,7 @@ import '../utils.dart';
 const _desc = r'Name libraries using `lowercase_with_underscores`.';
 
 class LibraryNames extends AnalysisRule {
-  LibraryNames() : super(name: LintNames.library_names, description: _desc);
+  new() : super(name: LintNames.library_names, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.libraryNames;
@@ -34,7 +34,7 @@ class LibraryNames extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitLibraryDirective(LibraryDirective node) {

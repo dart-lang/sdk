@@ -28,8 +28,7 @@ class BasicClassHierarchy implements ClassHierarchy {
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
-  BasicClassHierarchy(Component component)
-    : knownLibraries = component.libraries.toSet() {
+  new(Component component) : knownLibraries = component.libraries.toSet() {
     for (var library in knownLibraries) {
       for (var classNode in library.classes) {
         buildSuperTypeSets(classNode);

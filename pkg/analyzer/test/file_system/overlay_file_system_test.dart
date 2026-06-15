@@ -354,6 +354,15 @@ class FileTest extends OverlayTestSupport {
     expect(file.toUri(), Uri.file(file.path));
   }
 
+  test_write_read_bytes_can_be_read_as_string() {
+    var expectedContent = "æble";
+    File file = _file(exists: true, content: expectedContent);
+    expect(file.readAsStringSync(), expectedContent);
+    var byteContent = file.readAsBytesSync();
+    file.writeAsBytesSync(byteContent);
+    expect(file.readAsStringSync(), expectedContent);
+  }
+
   test_writeAsBytesSync_withoutOverlay() {
     File file = _file(exists: true);
     var bytes = Uint8List.fromList([99, 99]);
@@ -550,18 +559,6 @@ class FolderTest extends OverlayTestSupport {
     expect(child, _isFolder);
   }
 
-  test_getChildAssumingFile() {
-    Folder folder = _folder(exists: true);
-    File child = folder.getChildAssumingFile('README.md');
-    expect(child, isNotNull);
-  }
-
-  test_getChildAssumingFolder() {
-    Folder folder = _folder(exists: true);
-    Folder child = folder.getChildAssumingFolder('lib');
-    expect(child, isNotNull);
-  }
-
   test_getChildren_existing() {
     Folder folder = _folder(exists: true);
     Folder child1 = _folder(
@@ -632,6 +629,18 @@ class FolderTest extends OverlayTestSupport {
     List<Resource> children = file.parent.parent.getChildren();
     expect(children, hasLength(1));
     expect(children[0], _isFolder);
+  }
+
+  test_getFile() {
+    Folder folder = _folder(exists: true);
+    File child = folder.getFile('README.md');
+    expect(child, isNotNull);
+  }
+
+  test_getFolder() {
+    Folder folder = _folder(exists: true);
+    Folder child = folder.getFolder('lib');
+    expect(child, isNotNull);
   }
 
   test_isOrContains_false() {

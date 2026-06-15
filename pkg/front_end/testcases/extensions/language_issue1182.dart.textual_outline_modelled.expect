@@ -3,7 +3,8 @@ class Foo<S extends num> {
 }
 
 extension Test<T> on T {
-  T Function(T) get test => (a) => this;
+  T Function(T) get test =>
+      (a) => this;
 }
 
 void main() {}

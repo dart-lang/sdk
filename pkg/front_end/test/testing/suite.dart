@@ -80,8 +80,15 @@ import 'package:kernel/ast.dart'
         TreeNode,
         Typedef,
         UnevaluatedConstant,
-        VariableDeclaration,
-        Version;
+        Version,
+        LegacyVariable,
+        LocalVariable,
+        LateVariable,
+        SyntheticVariable,
+        CatchVariable,
+        ThisVariable,
+        PositionalParameter,
+        NamedParameter;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -249,7 +256,7 @@ class FastaContext extends ChainContext with MatchContext {
     return _assertsEnabled!;
   }
 
-  FastaContext(
+  new(
     this.baseUri,
     this.vm,
     this.platformBinaries,
@@ -504,7 +511,7 @@ class FastaContext extends ChainContext with MatchContext {
 }
 
 class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const Run();
+  const new();
 
   @override
   String get name => "run";
@@ -564,7 +571,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
 
 class StressConstantEvaluatorStep
     extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const StressConstantEvaluatorStep();
+  const new();
 
   @override
   String get name => "stress constant evaluator";
@@ -621,7 +628,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     return unsupported("StressConstantEvaluatorVisitor.hasSeenError", -1, null);
   }
 
-  StressConstantEvaluatorVisitor(
+  new(
     Target target,
     Component component,
     Map<String, String>? environmentDefines,
@@ -781,13 +788,15 @@ class CompilationSetup {
     Map<ExperimentalFlag, Version>? experimentEnabledVersion,
     Map<ExperimentalFlag, Version>? experimentReleasedVersion,
     Uri? dynamicInterfaceSpecificationUri,
+    bool allowDynamicCallsInDynamicModules,
+    List<String> dynamicCallsSelectorAllowList,
   )
   createCompilerOptions;
 
   final ProcessedOptions Function(CompilerOptions compilerOptions)
   createProcessedOptions;
 
-  CompilationSetup(
+  new(
     this.testOptions,
     this.folderOptions,
     this.compilerOptions,
@@ -826,13 +835,13 @@ CompilationSetup createCompilationSetup(
     Map<ExperimentalFlag, Version>? experimentEnabledVersion,
     Map<ExperimentalFlag, Version>? experimentReleasedVersion,
     Uri? dynamicInterfaceSpecificationUri,
+    bool allowDynamicCallsInDynamicModules,
+    List<String> dynamicCallsSelectorAllowList,
   ) {
     CompilerOptions compilerOptions = new CompilerOptions()
       ..onDiagnostic = (CfeDiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
-      ..enableUnscheduledExperiments =
-          folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
       ..librariesSpecificationUri = librariesSpecificationUri
@@ -844,6 +853,8 @@ CompilationSetup createCompilationSetup(
       ..omitOsMessageForTesting = true
       ..packagesFileUri = packagesFileUri
       ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
+      ..allowDynamicCallsInDynamicModules = allowDynamicCallsInDynamicModules
+      ..dynamicCallsSelectorAllowList = dynamicCallsSelectorAllowList
       ..target = createTarget(folderOptions, context)
       ..verify =
           // TODO(johnniwinther): Enable verification in outline and modular
@@ -877,6 +888,8 @@ CompilationSetup createCompilationSetup(
     testOptions.experimentEnabledVersion,
     testOptions.experimentReleasedVersion,
     testOptions.dynamicInterfaceSpecificationUri,
+    testOptions.allowDynamicCallsInDynamicModules,
+    testOptions.dynamicCallsSelectorAllowList,
   );
   ProcessedOptions options = createProcessedOptions(compilerOptions);
   options.sdkSummaryComponent = context.loadPlatform(options.target);
@@ -893,7 +906,7 @@ CompilationSetup createCompilationSetup(
 
 class FuzzCompiles
     extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const FuzzCompiles();
+  const new();
 
   @override
   String get name {
@@ -1657,7 +1670,7 @@ part of "${newEntryUri}";
 }
 
 class Strategy extends EquivalenceStrategy {
-  const Strategy();
+  const new();
 
   @override
   bool checkLibrary_procedures(
@@ -1705,10 +1718,73 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkVariableStatement_binaryOffsetNoTag(
+  bool checkLegacyVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
-    VariableDeclaration node,
-    VariableDeclaration other,
+    LegacyVariable node,
+    LegacyVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkLocalVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkLateVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkSyntheticVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkCatchVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    CatchVariable node,
+    CatchVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkThisVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    ThisVariable node,
+    ThisVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkPositionalParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkNamedParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
   ) {
     return true;
   }
@@ -1806,12 +1882,7 @@ class FuzzAstVisitorSorterChunk {
   final String? metadataAndComments;
   final int layer;
 
-  FuzzAstVisitorSorterChunk(
-    this.originalType,
-    this.data,
-    this.metadataAndComments,
-    this.layer,
-  );
+  new(this.originalType, this.data, this.metadataAndComments, this.layer);
 
   @override
   String toString() {
@@ -1863,8 +1934,7 @@ class FuzzAstVisitorSorter extends IgnoreSomeForCompatibilityAstVisitor {
   final String asString;
   final ExperimentalFeatures experimentalFeatures;
 
-  FuzzAstVisitorSorter(this.bytes, this.experimentalFeatures)
-    : asString = utf8.decode(bytes) {
+  new(this.bytes, this.experimentalFeatures) : asString = utf8.decode(bytes) {
     CompilationUnitEnd ast = getAST(
       bytes,
       includeBody: false,
@@ -2187,7 +2257,7 @@ class SemiForceExperimentalInvalidationIncrementalCompiler
   @override
   bool skipExperimentalInvalidationChecksForTesting = true;
 
-  SemiForceExperimentalInvalidationIncrementalCompiler.fromComponent(
+  new fromComponent(
     CompilerContext context,
     Component? componentToInitializeFrom,
   ) : super.fromComponent(context, componentToInitializeFrom);
@@ -2197,7 +2267,7 @@ class _FakeFileSystem extends FileSystem {
   bool redirectAndRecord = true;
   final Map<Uri, Uint8List?> data = {};
   final FileSystem fs;
-  _FakeFileSystem(this.fs);
+  new(this.fs);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -2209,7 +2279,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
   @override
   final Uri uri;
-  _FakeFileSystemEntity(this.fs, this.uri);
+  new(this.fs, this.uri);
 
   Future<void> _ensureCachedIfOk() async {
     if (fs.data.containsKey(uri)) return;
@@ -2354,7 +2424,7 @@ CompileMode compileModeFromName(String? name) {
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final CompileMode compileMode;
 
-  const Outline(this.compileMode, {this.updateComments = false});
+  const new(this.compileMode, {this.updateComments = false});
 
   final bool updateComments;
 
@@ -2456,7 +2526,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
               serializeIfBuildingSummary: false,
               buildComponent: compileMode != CompileMode.outline,
               retainDataForTesting: true,
-              additionalDillsForTesting: alsoAppend != null
+              additionalDillModulesForTesting: alsoAppend != null
                   ? [alsoAppend]
                   : null,
               allowVerificationErrorForTesting: true,
@@ -2487,7 +2557,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 }
 
 class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const Transform();
+  const new();
 
   @override
   String get name => "transform component";
@@ -2538,7 +2608,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
   final VerificationStage stage;
 
-  const Verify(this.stage);
+  const new(this.stage);
 
   @override
   String get name => "verify";
@@ -2633,19 +2703,19 @@ class TestVmTarget extends VmTarget with TestTarget, TestTargetMixin {
   @override
   final TestTargetFlags flags;
 
-  TestVmTarget(this.flags) : super(flags);
+  new(this.flags) : super(flags);
 }
 
 class TestWasmTarget extends WasmTarget with TestTarget, TestTargetMixin {
   @override
   final TestTargetFlags flags;
 
-  TestWasmTarget(this.flags);
+  new(this.flags);
 }
 
 class EnsureNoErrors
     extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const EnsureNoErrors();
+  const new();
 
   @override
   String get name => "check errors";
@@ -2670,7 +2740,7 @@ class EnsureNoErrors
 
 class MatchHierarchy
     extends Step<ComponentResult, ComponentResult, FastaContext> {
-  const MatchHierarchy();
+  const new();
 
   @override
   String get name => "check hierarchy";
@@ -2700,7 +2770,7 @@ class MatchHierarchy
 }
 
 class NoneConstantsBackendWithJs extends NoneConstantsBackend {
-  const NoneConstantsBackendWithJs({required bool supportsUnevaluatedConstants})
+  const new({required bool supportsUnevaluatedConstants})
     : super(supportsUnevaluatedConstants: supportsUnevaluatedConstants);
 
   @override
@@ -2711,11 +2781,8 @@ class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
   @override
   final TestTargetFlags flags;
 
-  TestDart2jsTarget(
-    String name,
-    this.flags, {
-    dart2jsOptions.CompilerOptions? options,
-  }) : super(name, flags, options: options);
+  new(String name, this.flags, {dart2jsOptions.CompilerOptions? options})
+    : super(name, flags, options: options);
 }
 
 class TestDevCompilerTarget extends DevCompilerTarget
@@ -2723,7 +2790,7 @@ class TestDevCompilerTarget extends DevCompilerTarget
   @override
   final TestTargetFlags flags;
 
-  TestDevCompilerTarget(this.flags) : super(flags);
+  new(this.flags) : super(flags);
 }
 
 class _LibraryFinder extends RecursiveVisitor {

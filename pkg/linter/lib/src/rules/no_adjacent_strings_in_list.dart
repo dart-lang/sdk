@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't use adjacent strings in list.";
 
 class NoAdjacentStringsInList extends AnalysisRule {
-  NoAdjacentStringsInList()
+  new()
     : super(name: LintNames.no_adjacent_strings_in_list, description: _desc);
 
   @override
@@ -38,7 +38,7 @@ class NoAdjacentStringsInList extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(AstNode? element) {
     if (element is AdjacentStrings) {

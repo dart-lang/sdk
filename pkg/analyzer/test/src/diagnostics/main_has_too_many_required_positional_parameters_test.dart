@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MainHasTooManyRequiredPositionalParametersTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,72 +18,63 @@ main() {
 class MainHasTooManyRequiredPositionalParametersTest
     extends PubPackageResolutionTest {
   test_namedOptional_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main({int a = 0}) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalOptional_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f([int a = 0]) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalRequired_0() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main() {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalRequired_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalRequired_2() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args, int a) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalRequired_2_positionalOptional_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args, int a, [int b = 0]) {}
 ''');
-    assertNoErrorsInResult();
   }
 
   test_positionalRequired_3() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args, int a, int b) {}
+//   ^^^^
+// [diag.mainHasTooManyRequiredPositionalParameters] The function 'main' can't have more than two required positional parameters.
 ''');
-    assertErrorsInResult([
-      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
-    ]);
   }
 
   test_positionalRequired_3_namedOptional_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args, int a, int b, {int c = 0}) {}
+//   ^^^^
+// [diag.mainHasTooManyRequiredPositionalParameters] The function 'main' can't have more than two required positional parameters.
 ''');
-    assertErrorsInResult([
-      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
-    ]);
   }
 
   test_positionalRequired_3_namedRequired_1() async {
-    await resolveTestCode('''
+    await resolveTestCodeWithDiagnostics('''
 void main(args, int a, int b, {required int c}) {}
+//   ^^^^
+// [diag.mainHasTooManyRequiredPositionalParameters] The function 'main' can't have more than two required positional parameters.
+// [diag.mainHasRequiredNamedParameters] The function 'main' can't have any required named parameters.
 ''');
-    assertErrorsInResult([
-      error(diag.mainHasRequiredNamedParameters, 5, 4),
-      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
-    ]);
   }
 }

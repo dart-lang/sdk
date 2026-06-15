@@ -14,7 +14,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 class NoTrailingSpaces extends AnalysisRule {
   static const DiagnosticCode code = diag.noTrailingSpaces;
 
-  NoTrailingSpaces()
+  new()
     : super(
         name: 'no_trailing_spaces',
         description:
@@ -39,7 +39,7 @@ class NoTrailingSpaces extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

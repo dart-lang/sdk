@@ -6,5 +6,7 @@
 
 class ClassInOtherLibrary {
   final int? i;
+  //         ^
+  // [context 2 for why_not_promoted_public_error_test.dart] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
   ClassInOtherLibrary(this.i);
 }

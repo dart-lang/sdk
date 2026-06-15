@@ -30,19 +30,16 @@ Widget f() {
   }
 
   test_infiniteWidth_infiniteHeight() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
-  return SizedBox(
+  return [!SizedBox!](
     height: double.infinity,
     width: double.infinity,
     child: Container(),
   );
 }
-''',
-      [lint(61, 8)],
-    );
+''');
   }
 
   test_infiniteWidth_noHeight() async {
@@ -112,14 +109,11 @@ Widget f() {
   }
 
   test_zeroWidth_zeroHeight() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
-  return SizedBox(height: 0, width: 0,child: Container());
+  return [!SizedBox!](height: 0, width: 0,child: Container());
 }
-''',
-      [lint(61, 8)],
-    );
+''');
   }
 }

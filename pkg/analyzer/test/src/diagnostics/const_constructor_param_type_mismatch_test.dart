@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +18,7 @@ class ConstConstructorParamTypeMismatchTest extends PubPackageResolutionTest {
   test_assignable_fieldFormal_omittedType() async {
     // If a field is declared without a type, and no initializer, it's type is
     // dynamic.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final x;
   const A(this.x);
@@ -29,7 +28,7 @@ var v = const A(5);
   }
 
   test_assignable_fieldFormal_subtype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -46,8 +45,7 @@ var v = const C(const B());
 
   test_assignable_fieldFormal_typedef() async {
     // foo has the type dynamic -> dynamic, so it is not assignable to A.f.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef String Int2String(int x);
 class A {
   final Int2String f;
@@ -55,16 +53,14 @@ class A {
 }
 foo(x) => 1;
 var v = const A(foo);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 116, 3),
-        error(diag.constConstructorParamTypeMismatch, 116, 3),
-      ],
-    );
+//              ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'dynamic Function(dynamic)' can't be assigned to the parameter type 'Int2String'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'dynamic Function(dynamic)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.
+''');
   }
 
   test_assignable_fieldFormal_typeSubstitution() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T x;
   const A(this.x);
@@ -74,37 +70,36 @@ var v = const A<int>(3);
   }
 
   test_assignable_typeSubstitution() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A(T x);
 }
-var v = const A<int>(3);''');
+var v = const A<int>(3);
+''');
   }
 
   test_assignable_undefined() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(Unresolved x);
+//        ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
 }
 var v = const A('foo');
-''',
-      [error(diag.undefinedClass, 20, 10)],
-    );
+''');
   }
 
   test_assignable_undefined_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(Unresolved x);
+//        ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
 }
 var v = const A(null);
-''',
-      [error(diag.undefinedClass, 20, 10)],
-    );
+''');
   }
 
   test_int_to_double_reference_from_other_library_other_file_after() async {
@@ -116,7 +111,7 @@ class D {
 }
 const D constant2 = const D(constant);
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final double d;
   const C(this.d);
@@ -128,7 +123,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final double d;
   const C(this.d);
@@ -148,7 +143,7 @@ const D constant2 = const D(constant);
   }
 
   test_int_to_double_single_library() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   final double d;
   const C(this.d);
@@ -164,7 +159,7 @@ class C {
   const C([this.x = 0]);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 const c = C();
 ''');
@@ -182,31 +177,28 @@ class C {
     var otherFileResult = await resolveFile(other);
     expect(otherFileResult.diagnostics, isEmpty);
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 const c = C();
 ''');
   }
 
   test_notAssignable_fieldFormal_optional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A([this.x = 'foo']);
+//                  ^^^^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
 }
 var v = const A();
-''',
-      [
-        error(diag.invalidAssignment, 45, 5),
-        error(diag.constConstructorParamTypeMismatch, 64, 9),
-      ],
-    );
+//      ^^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_notAssignable_fieldFormal_supertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -219,19 +211,16 @@ class C {
 }
 const A u = const A();
 var v = const C(u);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 143, 1),
-        error(diag.constConstructorParamTypeMismatch, 143, 1),
-      ],
-    );
+//              ^
+// [diag.argumentTypeNotAssignable] The argument type 'A' can't be assigned to the parameter type 'B'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'A' can't be assigned to a parameter of type 'B' in a const constructor.
+''');
   }
 
   test_notAssignable_fieldFormal_typedef() async {
     // foo has type String -> int, so it is not assignable to A.f
     // (A.f requires it to be int -> String).
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef String Int2String(int x);
 class A {
   final Int2String f;
@@ -239,75 +228,63 @@ class A {
 }
 int foo(String x) => 1;
 var v = const A(foo);
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 127, 3),
-        error(diag.constConstructorParamTypeMismatch, 127, 3),
-      ],
-    );
+//              ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int Function(String)' can't be assigned to the parameter type 'Int2String'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'int Function(String)' can't be assigned to a parameter of type 'String Function(int)' in a const constructor.
+''');
   }
 
   test_notAssignable_fieldFormal_unrelated() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
 }
 var v = const A('foo');
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 62, 5),
-        error(diag.constConstructorParamTypeMismatch, 62, 5),
-      ],
-    );
+//              ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_notAssignable_fieldFormal_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final Unresolved x;
+//      ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   const A(String this.x);
 }
 var v = const A('foo');
-''',
-      [error(diag.undefinedClass, 18, 10)],
-    );
+''');
   }
 
   test_notAssignable_typeSubstitution() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A(T x);
 }
 var v = const A<int>('foo');
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 52, 5),
-        error(diag.constConstructorParamTypeMismatch, 52, 5),
-      ],
-    );
+//                   ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_notAssignable_unrelated() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(int x);
 }
 var v = const A('foo');
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 46, 5),
-        error(diag.constConstructorParamTypeMismatch, 46, 5),
-      ],
-    );
+//              ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
   }
 
   test_superFormalParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int a = 0});
 }
@@ -321,7 +298,7 @@ class B extends A {
   }
 
   test_superFormalParameter_inherited() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({int a = 0});
 }
@@ -335,7 +312,7 @@ const b = const B();
   }
 
   test_superFormalParameter_inherited_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A({int a = 0});
 }

@@ -454,11 +454,6 @@ class Object {
 
   bool IsNew() const { return ptr()->IsNewObject(); }
   bool IsOld() const { return ptr()->IsOldObject(); }
-#if defined(DEBUG)
-  bool InVMIsolateHeap() const;
-#else
-  bool InVMIsolateHeap() const { return ptr()->untag()->InVMIsolateHeap(); }
-#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -548,7 +543,8 @@ class Object {
   V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
   V(Bytecode, implicit_shared_static_setter_bytecode)                          \
-  V(Bytecode, method_extractor_bytecode)                                       \
+  V(Bytecode, method_extractor_with_ita_bytecode)                              \
+  V(Bytecode, method_extractor_without_ita_bytecode)                           \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
   V(Bytecode, nsm_dispatcher_bytecode)                                         \
@@ -573,99 +569,18 @@ class Object {
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(UnhandledException, unhandled_oom_exception)                               \
-  V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
   V(TypedData, uninitialized_index)                                            \
-  V(Array, uninitialized_data)
+  V(Array, uninitialized_data)                                                 \
+  V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
   static const Type& name() { return Roots::name(); }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
-  static void set_vm_isolate_snapshot_object_table(const Array& table);
-
-  static ClassPtr class_class() { return Roots::class_class(); }
-  static ClassPtr dynamic_class() { return Roots::dynamic_class(); }
-  static ClassPtr void_class() { return Roots::void_class(); }
-  static ClassPtr type_parameters_class() {
-    return Roots::type_parameters_class();
-  }
-  static ClassPtr type_arguments_class() {
-    return Roots::type_arguments_class();
-  }
-  static ClassPtr patch_class_class() { return Roots::patch_class_class(); }
-  static ClassPtr function_class() { return Roots::function_class(); }
-  static ClassPtr closure_data_class() { return Roots::closure_data_class(); }
-  static ClassPtr ffi_trampoline_data_class() {
-    return Roots::ffi_trampoline_data_class();
-  }
-  static ClassPtr field_class() { return Roots::field_class(); }
-  static ClassPtr script_class() { return Roots::script_class(); }
-  static ClassPtr library_class() { return Roots::library_class(); }
-  static ClassPtr namespace_class() { return Roots::namespace_class(); }
-  static ClassPtr kernel_program_info_class() {
-    return Roots::kernel_program_info_class();
-  }
-  static ClassPtr code_class() { return Roots::code_class(); }
-  static ClassPtr instructions_class() { return Roots::instructions_class(); }
-  static ClassPtr instructions_section_class() {
-    return Roots::instructions_section_class();
-  }
-  static ClassPtr instructions_table_class() {
-    return Roots::instructions_table_class();
-  }
-  static ClassPtr object_pool_class() { return Roots::object_pool_class(); }
-  static ClassPtr pc_descriptors_class() {
-    return Roots::pc_descriptors_class();
-  }
-  static ClassPtr code_source_map_class() {
-    return Roots::code_source_map_class();
-  }
-  static ClassPtr compressed_stackmaps_class() {
-    return Roots::compressed_stackmaps_class();
-  }
-  static ClassPtr var_descriptors_class() {
-    return Roots::var_descriptors_class();
-  }
-  static ClassPtr exception_handlers_class() {
-    return Roots::exception_handlers_class();
-  }
-  static ClassPtr context_class() { return Roots::context_class(); }
-  static ClassPtr context_scope_class() { return Roots::context_scope_class(); }
-  static ClassPtr bytecode_class() { return Roots::bytecode_class(); }
-  static ClassPtr sentinel_class() { return Roots::sentinel_class(); }
-  static ClassPtr api_error_class() { return Roots::api_error_class(); }
-  static ClassPtr language_error_class() {
-    return Roots::language_error_class();
-  }
-  static ClassPtr unhandled_exception_class() {
-    return Roots::unhandled_exception_class();
-  }
-  static ClassPtr unwind_error_class() { return Roots::unwind_error_class(); }
-  static ClassPtr singletargetcache_class() {
-    return Roots::singletargetcache_class();
-  }
-  static ClassPtr unlinkedcall_class() { return Roots::unlinkedcall_class(); }
-  static ClassPtr monomorphicsmiablecall_class() {
-    return Roots::monomorphicsmiablecall_class();
-  }
-  static ClassPtr icdata_class() { return Roots::icdata_class(); }
-  static ClassPtr megamorphic_cache_class() {
-    return Roots::megamorphic_cache_class();
-  }
-  static ClassPtr subtypetestcache_class() {
-    return Roots::subtypetestcache_class();
-  }
-  static ClassPtr loadingunit_class() { return Roots::loadingunit_class(); }
-  static ClassPtr weak_serialization_reference_class() {
-    return Roots::weak_serialization_reference_class();
-  }
-  static ClassPtr weak_array_class() { return Roots::weak_array_class(); }
-
-  // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
   static void Init(IsolateGroup* isolate_group);
   static void InitVtables();
@@ -764,7 +679,7 @@ class Object {
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
-  Object() : ptr_(Roots::null_obj()) {}
+  Object() : ptr_(nullptr) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
@@ -1907,10 +1822,12 @@ class Class : public Object {
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
   FunctionPtr InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr GetInvocationDispatcher(const String& target_name,
-                                      const Array& args_desc,
-                                      UntaggedFunction::Kind kind,
-                                      bool create_if_absent) const;
+  FunctionPtr GetInvocationDispatcher(
+      const String& target_name,
+      const Array& args_desc,
+      UntaggedFunction::Kind kind,
+      bool create_if_absent,
+      bool is_dynamically_callable = false) const;
 
   FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
 
@@ -2171,7 +2088,8 @@ class Class : public Object {
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
-                                         UntaggedFunction::Kind kind) const;
+                                         UntaggedFunction::Kind kind,
+                                         bool is_dynamically_callable) const;
 
   FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
@@ -2801,7 +2719,7 @@ class ICData : public CallSiteData {
     kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx = 0,
     kCachedICDataMaxArgsTestedWithoutExactnessTracking = 2,
     kCachedICDataOneArgWithExactnessTrackingIdx =
-        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+            kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
         kCachedICDataMaxArgsTestedWithoutExactnessTracking + 1,
     kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
   };
@@ -3698,6 +3616,10 @@ class Function : public Object {
 
   bool IsCachableIdempotent() const;
 
+  // Whether this function represents an external effect and should be dropped
+  // from codegen.
+  bool IsExternalEffect() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 
@@ -4144,7 +4066,7 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array,
-      const Array& coverage_array) const;
+      const TypedData& coverage_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
@@ -4166,7 +4088,7 @@ class Function : public Object {
   // Coverage data array is a list of pairs:
   //   element 2 * i + 0 is token position
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
-  ArrayPtr GetCoverageArray() const;
+  TypedDataPtr GetCoverageArray() const;
 
   // Outputs this function's service ID to the provided JSON object.
   void AddFunctionServiceId(const JSONObject& obj) const;
@@ -4191,7 +4113,8 @@ class Function : public Object {
   V(WasExecutedBit)                                                            \
   V(ProhibitsInstructionHoisting)                                              \
   V(ProhibitsBoundsCheckGeneralization)                                        \
-  V(IsDynamicallyOverridden)
+  V(IsDynamicallyOverridden)                                                   \
+  V(IsRedirectingFactory)
 
   enum StateBits {
 #define DECLARE_FLAG_POS(Name) k##Name##Pos,
@@ -4250,6 +4173,8 @@ class Function : public Object {
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
+  // dynamically_callable: host function or dynamic forwarder that can be
+  //                       invoked dynamically from a dynamic module.
 
 // Bits that are set when function is created, don't have to worry about
 // concurrent updates.
@@ -4268,7 +4193,7 @@ class Function : public Object {
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
   V(IsExtensionTypeMember, is_extension_type_member)                           \
-  V(IsRedirectingFactory, is_redirecting_factory)
+  V(IsDynamicallyCallable, is_dynamically_callable)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
@@ -4573,6 +4498,13 @@ class Field : public Object {
   }
   bool has_deeply_immutable_type() const {
     return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
+  void set_is_dynamically_callable(bool value) const {
+    untag()->kind_bits_.UpdateBool<IsDynamicallyCallableBit>(value);
+  }
+  bool is_dynamically_callable() const {
+    return untag()->kind_bits_.Read<IsDynamicallyCallableBit>();
   }
 
 #if defined(DART_DYNAMIC_MODULES)
@@ -4984,6 +4916,10 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                NoSanitizeThreadBit::kNextBit>;
+  using IsDynamicallyCallableBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               HasDeeplyImmutableTypeBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -6024,7 +5960,7 @@ class Instructions : public Object {
   uint32_t Hash() const { return Hash(ptr()); }
 
   static uint32_t Hash(const InstructionsPtr instr) {
-    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart(instr)),
+    return HashBytes(reinterpret_cast<const void*>(PayloadStart(instr)),
                      Size(instr));
   }
 
@@ -6202,9 +6138,17 @@ class LocalVarDescriptors : public Object {
                UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   static constexpr intptr_t kBytesPerElement =
-      sizeof(UntaggedLocalVarDescriptors::VarInfo);
+      sizeof(UntaggedLocalVarDescriptors::VarInfo) +
+      sizeof(CompressedStringPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedLocalVarDescriptors);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
@@ -6213,10 +6157,8 @@ class LocalVarDescriptors : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(UntaggedLocalVarDescriptors) +
-        (len * kWordSize)  // RawStrings for names.
-        + (len * sizeof(UntaggedLocalVarDescriptors::VarInfo)));
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptors) +
+                                 len * kBytesPerElement);
   }
 
   static LocalVarDescriptorsPtr New(intptr_t num_variables);
@@ -6357,9 +6299,9 @@ class PcDescriptors : public Object {
   // The base argument is added to the PC offset for each entry.
   void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
- private:
-  static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
+  static const char* KindToCString(UntaggedPcDescriptors::Kind kind);
 
+ private:
   static PcDescriptorsPtr New(intptr_t length);
 
   void SetLength(intptr_t value) const;
@@ -7004,7 +6946,6 @@ class Code : public Object {
   uword PayloadStart() const { return PayloadStartOf(ptr()); }
   static uword PayloadStartOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return 0;
     const uword entry_offset = HasMonomorphicEntry(code)
                                    ? Instructions::kPolymorphicEntryOffsetAOT
                                    : 0;
@@ -7029,6 +6970,13 @@ class Code : public Object {
       return code->untag()->entry_point_;
     }
     return Instructions::EntryPoint(instr);
+#endif
+  }
+  static uword StubEntryPointOf(const CodePtr code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->untag()->entry_point_;
+#else
+    return Instructions::EntryPoint(InstructionsOf(code));
 #endif
   }
 
@@ -7069,7 +7017,6 @@ class Code : public Object {
   uword Size() const { return PayloadSizeOf(ptr()); }
   static uword PayloadSizeOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
     auto instr = InstructionsOf(code);
@@ -7078,6 +7025,13 @@ class Code : public Object {
       return 0;
     }
     return Instructions::Size(instr);
+#endif
+  }
+  static uword StubPayloadSizeOf(const CodePtr code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->untag()->instructions_length_;
+#else
+    return Instructions::Size(InstructionsOf(code));
 #endif
   }
 
@@ -7666,11 +7620,29 @@ class Bytecode : public Object {
 
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+
+  intptr_t recorded_coverage_binary_offset() const {
+    return untag()->recorded_coverage_binary_offset_;
+  }
+  void set_recorded_coverage_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->recorded_coverage_binary_offset_, value);
+  }
+
+  TypedDataPtr coverage_array() const { return untag()->coverage_array(); }
+  TypedDataPtr EnsureCoverageArray(Thread* thread) const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool HasLocalVariablesInfo() const {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
+  bool HasRecordedCoverage() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (recorded_coverage_binary_offset() != 0);
 #else
     return false;
 #endif
@@ -12303,6 +12275,7 @@ class LinkedHashBase : public Instance {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
   }
+  static intptr_t NextFieldOffset() { return sizeof(UntaggedLinkedHashBase); }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(UntaggedLinkedHashBase, type_arguments_);
@@ -12400,6 +12373,8 @@ class LinkedHashBase : public Instance {
   static constexpr intptr_t kInitialIndexBits = 2;
   static constexpr intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
   static constexpr intptr_t kUninitializedIndexSize = 1;
+
+  static const ClassId kClassId = kLinkedHashBaseCid;
 
  private:
   LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
@@ -12638,35 +12613,17 @@ class Closure : public Instance {
   }
 #endif
 
-  TypeArgumentsPtr instantiator_type_arguments() const {
-    return untag()->instantiator_type_arguments();
+  static intptr_t LengthOf(ClosurePtr ptr) {
+    return UntaggedClosure::LengthBits::decode(
+        Smi::Value(ptr->untag()->length_and_flags()));
   }
-  void set_instantiator_type_arguments(const TypeArguments& args) const {
-    untag()->set_instantiator_type_arguments(args.ptr());
-  }
-  static intptr_t instantiator_type_arguments_offset() {
-    return OFFSET_OF(UntaggedClosure, instantiator_type_arguments_);
-  }
-
-  TypeArgumentsPtr function_type_arguments() const {
-    return untag()->function_type_arguments();
-  }
-  void set_function_type_arguments(const TypeArguments& args) const {
-    untag()->set_function_type_arguments(args.ptr());
-  }
-  static intptr_t function_type_arguments_offset() {
-    return OFFSET_OF(UntaggedClosure, function_type_arguments_);
+  intptr_t length() const { return LengthOf(ptr()); }
+  static intptr_t length_and_flags_offset() {
+    return OFFSET_OF(UntaggedClosure, length_and_flags_);
   }
 
-  TypeArgumentsPtr delayed_type_arguments() const {
-    return untag()->delayed_type_arguments();
-  }
-  void set_delayed_type_arguments(const TypeArguments& args) const {
-    untag()->set_delayed_type_arguments(args.ptr());
-  }
-  static intptr_t delayed_type_arguments_offset() {
-    return OFFSET_OF(UntaggedClosure, delayed_type_arguments_);
-  }
+  SmiPtr hash() const { return untag()->hash(); }
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedClosure, hash_); }
 
   FunctionPtr function() const { return untag()->function(); }
   static intptr_t function_offset() {
@@ -12675,8 +12632,149 @@ class Closure : public Instance {
   static FunctionPtr FunctionOf(ClosurePtr closure) {
     return closure.untag()->function();
   }
+  void set_function(const Function& function) const {
+    untag()->set_function(function.ptr());
+#if defined(DART_PRECOMPILED_RUNTIME)
+    untag()->entry_point_ = function.entry_point();
+#endif
+  }
 
-  ObjectPtr RawContext() const { return untag()->context(); }
+  ObjectPtr ElementAt(intptr_t index) const {
+    ASSERT((0 <= index) && (index < length()));
+    return untag()->element(index);
+  }
+  void SetElementAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < length()));
+    untag()->set_element(index, value.ptr());
+  }
+
+  static constexpr intptr_t kBytesPerElement = kCompressedWordSize;
+  static constexpr intptr_t kMaxElements =
+      UntaggedClosure::LengthBits::max() / kBytesPerElement;
+
+  static constexpr bool IsValidLength(intptr_t length) {
+    return 0 <= length && length <= kMaxElements;
+  }
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedClosure); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
+  static intptr_t element_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedClosure, data) +
+           kBytesPerElement * index;
+  }
+  static intptr_t element_index_at_offset(intptr_t offset_in_bytes) {
+    const intptr_t index =
+        (offset_in_bytes - OFFSET_OF_RETURNED_VALUE(UntaggedClosure, data)) /
+        kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedClosure) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedClosure, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t num_elements) {
+    return RoundedAllocationSize(sizeof(UntaggedClosure) +
+                                 (num_elements * kBytesPerElement));
+  }
+
+  bool has_delayed_type_arguments() const {
+    return UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
+        Smi::Value(untag()->length_and_flags()));
+  }
+  bool has_instantiator_type_arguments() const {
+    return UntaggedClosure::HasInstantiatorTypeArgumentsBit::decode(
+        Smi::Value(untag()->length_and_flags()));
+  }
+  bool has_function_type_arguments() const {
+    return UntaggedClosure::HasFunctionTypeArgumentsBit::decode(
+        Smi::Value(untag()->length_and_flags()));
+  }
+
+  intptr_t delayed_type_arguments_index() const {
+    ASSERT(has_delayed_type_arguments());
+    return UntaggedClosure::kDelayedTypeArgumentsIndex;
+  }
+  intptr_t instantiator_type_arguments_index() const {
+    ASSERT(has_instantiator_type_arguments());
+    return UntaggedClosure::InstantiatorTypeArgumentsIndexBits::decode(
+        Smi::Value(untag()->length_and_flags()));
+  }
+  intptr_t function_type_arguments_index() const {
+    ASSERT(has_function_type_arguments());
+    return UntaggedClosure::FunctionTypeArgumentsIndexBits::decode(
+        Smi::Value(untag()->length_and_flags()));
+  }
+
+  TypeArgumentsPtr delayed_type_arguments() const {
+    return has_delayed_type_arguments() ? TypeArguments::RawCast(ElementAt(
+                                              delayed_type_arguments_index()))
+                                        : TypeArguments::null();
+  }
+  static TypeArgumentsPtr delayed_type_arguments(ClosurePtr ptr) {
+    return UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
+               Smi::Value(ptr.untag()->length_and_flags()))
+               ? TypeArguments::RawCast(ptr.untag()->element(
+                     UntaggedClosure::kDelayedTypeArgumentsIndex))
+               : TypeArguments::null();
+  }
+  void set_delayed_type_arguments(const TypeArguments& args) const {
+    SetElementAt(delayed_type_arguments_index(), args);
+  }
+
+  TypeArgumentsPtr instantiator_type_arguments() const {
+    return has_instantiator_type_arguments()
+               ? TypeArguments::RawCast(
+                     ElementAt(instantiator_type_arguments_index()))
+               : TypeArguments::null();
+  }
+  static TypeArgumentsPtr instantiator_type_arguments(ClosurePtr ptr) {
+    const intptr_t length_and_flags =
+        Smi::Value(ptr.untag()->length_and_flags());
+    return UntaggedClosure::HasInstantiatorTypeArgumentsBit::decode(
+               length_and_flags)
+               ? TypeArguments::RawCast(ptr.untag()->element(
+                     UntaggedClosure::InstantiatorTypeArgumentsIndexBits::
+                         decode(length_and_flags)))
+               : TypeArguments::null();
+  }
+  void set_instantiator_type_arguments(const TypeArguments& args) const {
+    SetElementAt(instantiator_type_arguments_index(), args);
+  }
+
+  TypeArgumentsPtr function_type_arguments() const {
+    return has_function_type_arguments() ? TypeArguments::RawCast(ElementAt(
+                                               function_type_arguments_index()))
+                                         : TypeArguments::null();
+  }
+  static TypeArgumentsPtr function_type_arguments(ClosurePtr ptr) {
+    const intptr_t length_and_flags =
+        Smi::Value(ptr.untag()->length_and_flags());
+    return UntaggedClosure::HasFunctionTypeArgumentsBit::decode(
+               length_and_flags)
+               ? TypeArguments::RawCast(ptr.untag()->element(
+                     UntaggedClosure::FunctionTypeArgumentsIndexBits::decode(
+                         length_and_flags)))
+               : TypeArguments::null();
+  }
+  void set_function_type_arguments(const TypeArguments& args) const {
+    SetElementAt(function_type_arguments_index(), args);
+  }
+
+  static ObjectPtr RawContextOf(ClosurePtr ptr) {
+    return ptr->untag()->element(LengthOf(ptr) - 1);
+  }
+  ObjectPtr RawContext() const { return RawContextOf(ptr()); }
+
+  void SetRawContext(const Object& context) const {
+    SetElementAt(length() - 1, context);
+  }
 
   ContextPtr GetContext() const {
     ASSERT(!Function::IsImplicitClosureFunction(function()));
@@ -12688,21 +12786,11 @@ class Closure : public Instance {
     return Instance::RawCast(RawContext());
   }
 
-  static intptr_t context_offset() {
-    return OFFSET_OF(UntaggedClosure, context_);
-  }
-
   // Returns whether the closure is generic, that is, it has a generic closure
   // function and no delayed type arguments.
   bool IsGeneric() const {
-    return delayed_type_arguments() == Object::empty_type_arguments().ptr();
-  }
-
-  SmiPtr hash() const { return untag()->hash(); }
-  static intptr_t hash_offset() { return OFFSET_OF(UntaggedClosure, hash_); }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedClosure));
+    return has_delayed_type_arguments() &&
+           (delayed_type_arguments() == Object::empty_type_arguments().ptr());
   }
 
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
@@ -12711,6 +12799,24 @@ class Closure : public Instance {
     return Function::Handle(function()).Hash();
   }
   uword ComputeHash() const;
+
+  static bool HasDelayedTypeArgumentsField(const Function& function) {
+    ASSERT(function.IsClosureFunction());
+    return function.IsGeneric();
+  }
+
+  static bool HasInstantiatorTypeArgumentsField(const Function& function) {
+    ASSERT(function.IsClosureFunction());
+    return !function.HasInstantiatedSignature(kCurrentClass);
+  }
+
+  static bool HasFunctionTypeArgumentsField(const Function& function) {
+    ASSERT(function.IsClosureFunction());
+    return function.HasGenericParent();
+  }
+
+  static ClosurePtr New(intptr_t length_and_flags,
+                        Heap::Space space = Heap::kNew);
 
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,

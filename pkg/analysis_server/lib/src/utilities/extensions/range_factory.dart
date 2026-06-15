@@ -15,7 +15,7 @@ class TokenWithOptionalComma {
   /// `true` if a comma is previously included.
   final bool includesComma;
 
-  TokenWithOptionalComma(this.token, this.includesComma);
+  new(this.token, this.includesComma);
 }
 
 extension RangeFactoryExtensions on RangeFactory {

@@ -4,18 +4,20 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'dart_test.dart' as dart_test;
-import 'generated_classes_test.dart' as generated_classes_test;
-import 'json_test.dart' as json_test;
-import 'meta_model_test.dart' as meta_model_test;
-import 'readme_test.dart' as readme_test;
+import 'codegen_test.dart' as codegen;
+import 'dart_test.dart' as dart;
+import 'generated_classes_test.dart' as generated_classes;
+import 'json_test.dart' as json;
+import 'meta_model_test.dart' as meta_model;
+import 'readme_test.dart' as readme;
 
 void main() {
   defineReflectiveSuite(() {
-    dart_test.main();
-    generated_classes_test.main();
-    json_test.main();
-    meta_model_test.main();
-    readme_test.main();
+    codegen.main();
+    dart.main();
+    generated_classes.main();
+    json.main();
+    meta_model.main();
+    readme.main();
   }, name: 'lsp-tool');
 }

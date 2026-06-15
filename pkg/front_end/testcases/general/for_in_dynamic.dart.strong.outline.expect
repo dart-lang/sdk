@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method makeList(core::List<dynamic> list) → core::List<dynamic>
+  ;
+static method makeStream(core::List<dynamic> list) → asy::Stream<dynamic> async* 
+  ;
+static method test() → dynamic async 
+  ;
+static method main() → dynamic async 
+  ;

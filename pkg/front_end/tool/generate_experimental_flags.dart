@@ -287,7 +287,6 @@ class ExperimentalFlag {
   /// Libraries can still opt out of the feature by using a language version
   /// below the [experimentEnabledVersion].
   final bool isExpired;
-  final Version enabledVersion;
 
   /// The minimum version that enables the feature by default.
   ///
@@ -303,11 +302,10 @@ class ExperimentalFlag {
   ///    sdk/lib/_internal/allowed_experiments.json
   final Version experimentReleasedVersion;
 
-  const ExperimentalFlag(
+  const new(
       {required this.name,
       required this.isEnabledByDefault,
       required this.isExpired,
-      required this.enabledVersion,
       required this.experimentEnabledVersion,
       required this.experimentReleasedVersion});
 ''');
@@ -356,7 +354,6 @@ class ExperimentalFlag {
       name: '$key',
       isEnabledByDefault: $shipped,
       isExpired: ${expired == true},
-      enabledVersion: $enabledInVersion,
       experimentEnabledVersion: $enabledInVersion,
       experimentReleasedVersion: $releasedInVersion);
 ''');
@@ -374,7 +371,7 @@ class GlobalFeatures {
   final Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   final Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
 
-  GlobalFeatures(this.explicitExperimentalFlags,
+  new(this.explicitExperimentalFlags,
       {this.allowedExperimentalFlags,
       this.defaultExperimentFlagsForTesting,
       this.experimentEnabledVersionForTesting,
@@ -430,7 +427,7 @@ class LibraryFeatures {
   final Uri canonicalUri;
   final Version libraryVersion;
 
-  LibraryFeatures(this.globalFeatures, this.canonicalUri, this.libraryVersion);
+  new(this.globalFeatures, this.canonicalUri, this.libraryVersion);
 ''');
   for (String key in keys) {
     String identifier = keyToIdentifier(key);

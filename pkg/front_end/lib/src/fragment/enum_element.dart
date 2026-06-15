@@ -29,7 +29,7 @@ class EnumElementDeclaration
 
   late final int elementIndex;
 
-  EnumElementDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
     type.registerInferable(this);
     type.registerInferredTypeListener(this);
@@ -142,20 +142,19 @@ class EnumElementDeclaration
     PropertyReferences references, {
     required List<TypeParameter>? classTypeParameters,
   }) {
-    _field =
-        new Field.immutable(
-            dummyName,
-            type: _type,
-            isFinal: false,
-            isConst: true,
-            isStatic: true,
-            fileUri: fileUri,
-            fieldReference: references.fieldReference,
-            getterReference: references.getterReference,
-            isEnumElement: true,
-          )
-          ..fileOffset = nameOffset
-          ..fileEndOffset = nameOffset;
+    _field = extern.createImmutableField(
+      dummyName,
+      type: _type,
+      isFinal: false,
+      isConst: true,
+      isStatic: true,
+      fileUri: fileUri,
+      fieldReference: references.fieldReference,
+      getterReference: references.getterReference,
+      isEnumElement: true,
+      fileOffset: nameOffset,
+      fileEndOffset: nameOffset,
+    );
     nameScheme
         .getFieldMemberName(
           FieldNameType.Field,
@@ -329,8 +328,8 @@ class EnumElementDeclaration
     MemberBuilder? constructorBuilder = result?.getable;
 
     List<Expression> enumSyntheticArguments = <Expression>[
-      new IntLiteral(elementIndex),
-      new StringLiteral(constant),
+      extern.createIntLiteral(coreTypes, elementIndex, fileOffset: fileOffset),
+      extern.createStringLiteral(constant, fileOffset: fileOffset),
     ];
     TypeArguments? typeArguments;
     List<TypeBuilder>? typeArgumentBuilders =
@@ -388,7 +387,10 @@ class EnumElementDeclaration
         inferredFieldType = fieldType;
       }
     } else {
-      Arguments arguments = new Arguments(enumSyntheticArguments);
+      Arguments arguments = extern.createArguments(
+        enumSyntheticArguments,
+        fileOffset: fileOffset,
+      );
       if (constructorBuilder == null ||
           constructorBuilder is! SourceConstructorBuilder ||
           !constructorBuilder.isConst) {
@@ -408,15 +410,17 @@ class EnumElementDeclaration
           "Initializer has already been computed for $this: "
           "${_field!.initializer}.",
         );
-        _field!.initializer = new InvalidExpression(text)
-          ..fileOffset = nameOffset
-          ..parent = _field;
+        _field!.initializer =
+            extern.createInvalidExpression(text, fileOffset: nameOffset)
+              ..fileOffset = nameOffset
+              ..parent = _field;
       } else {
-        Expression initializer = new ConstructorInvocation(
+        Expression initializer = extern.createConstructorInvocation(
           constructorBuilder.invokeTarget as Constructor,
           arguments,
           isConst: true,
-        )..fileOffset = nameOffset;
+          fileOffset: fileOffset,
+        );
         assert(
           _field!.initializer == null,
           "Initializer has already been computed for $this: "
@@ -428,7 +432,7 @@ class EnumElementDeclaration
     fieldType = inferredFieldType;
   }
 
-  (DartType, Expression?) _computeType(
+  (DartType, Expression?, ScopeProviderInfo?) _computeType(
     ClassHierarchyBase hierarchy,
     Token? token,
   ) {
@@ -441,12 +445,16 @@ class EnumElementDeclaration
       libraryBuilder.loader.coreTypes,
       token,
     );
-    return (fieldType, _field!.initializer);
+    return (fieldType, _field!.initializer, null);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     // Initializer has already been created through [_buildElement].
   }
 
@@ -488,7 +496,7 @@ class EnumElementFragment implements Fragment {
     name.length,
   );
 
-  EnumElementFragment({
+  new({
     required this.metadata,
     required this.name,
     required this.nameOffset,
@@ -548,7 +556,7 @@ class _EnumElementClassMember implements ClassMember {
 
   Covariance? _covariance;
 
-  _EnumElementClassMember(this._builder, this._fragment);
+  new(this._builder, this._fragment);
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -693,7 +701,7 @@ class _EnumElementClassMember implements ClassMember {
 class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
   final EnumElementFragment _fragment;
 
-  _EnumElementFragmentBodyBuilderContext(
+  new(
     this._fragment,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {

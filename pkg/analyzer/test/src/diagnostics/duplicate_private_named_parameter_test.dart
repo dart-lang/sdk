@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,165 +15,125 @@ main() {
 @reflectiveTest
 class DuplicatePrivateNamedParameterTest extends PubPackageResolutionTest {
   test_initializingFormal_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({required this._foo, required this._foo}) {}
+//                 ^^^^
+// [context 1] The first definition of this name.
+//                                     ^^^^
+// [diag.duplicateFieldFormalParameter][context 1] The field '_foo' can't be initialized by multiple parameters in the same constructor.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(
-          diag.duplicateFieldFormalParameter,
-          71,
-          4,
-          contextMessages: [message(testFile, 51, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_initializingFormal_privateNamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({required this._foo, String? _foo}) {}
+//                 ^^^^
+// [context 1] The first definition of this name.
+//                               ^^^^
+// [diag.duplicateDefinition][context 1] The name '_foo' is already defined.
+// [diag.privateNamedNonFieldParameter] Named parameters that don't refer to instance variables can't start with underscore.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(diag.privateNamedNonFieldParameter, 65, 4),
-        error(
-          diag.duplicateDefinition,
-          65,
-          4,
-          contextMessages: [message(testFile, 51, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_initializingFormal_publicNamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({required this._foo, String? foo}) {}
+//                 ^^^^
+// [diag.privateNamedParameterDuplicatePublicName][context 1] The corresponding public name 'foo' is already the name of another parameter.
+//                               ^^^
+// [context 1] The first definition of this name.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(
-          diag.privateNamedParameterDuplicatePublicName,
-          51,
-          4,
-          contextMessages: [message(testFile, 65, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_privateNamed_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({String? _foo, required this._foo}) {}
+//           ^^^^
+// [context 1] The first definition of this name.
+// [diag.privateNamedNonFieldParameter] Named parameters that don't refer to instance variables can't start with underscore.
+//                               ^^^^
+// [diag.duplicateDefinition][context 1] The name '_foo' is already defined.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(diag.privateNamedNonFieldParameter, 45, 4),
-        error(
-          diag.duplicateDefinition,
-          65,
-          4,
-          contextMessages: [message(testFile, 45, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_privatePositional_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C(String _foo, {required this._foo}) {}
+//         ^^^^
+// [context 1] The first definition of this name.
+//                              ^^^^
+// [diag.duplicateDefinition][context 1] The name '_foo' is already defined.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(
-          diag.duplicateDefinition,
-          64,
-          4,
-          contextMessages: [message(testFile, 43, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_publicInitializingFormal_privateInitializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? foo;
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({required this.foo, required this._foo}) {}
+//                 ^^^
+// [context 1] The first definition of this name.
+//                                    ^^^^
+// [diag.privateNamedParameterDuplicatePublicName][context 1] The corresponding public name 'foo' is already the name of another parameter.
 }
-''',
-      [
-        error(diag.unusedField, 47, 4),
-        error(
-          diag.privateNamedParameterDuplicatePublicName,
-          91,
-          4,
-          contextMessages: [message(testFile, 72, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_publicNamed_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C({String? foo, required this._foo}) {}
+//           ^^^
+// [context 1] The first definition of this name.
+//                              ^^^^
+// [diag.privateNamedParameterDuplicatePublicName][context 1] The corresponding public name 'foo' is already the name of another parameter.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(
-          diag.privateNamedParameterDuplicatePublicName,
-          64,
-          4,
-          contextMessages: [message(testFile, 45, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_publicPositional_initializingFormal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final String? _foo;
+//              ^^^^
+// [diag.unusedField] The value of the field '_foo' isn't used.
   C(String? foo, {required this._foo}) {}
+//          ^^^
+// [context 1] The first definition of this name.
+//                              ^^^^
+// [diag.privateNamedParameterDuplicatePublicName][context 1] The corresponding public name 'foo' is already the name of another parameter.
 }
-''',
-      [
-        error(diag.unusedField, 26, 4),
-        error(
-          diag.privateNamedParameterDuplicatePublicName,
-          64,
-          4,
-          contextMessages: [message(testFile, 44, 3)],
-        ),
-      ],
-    );
+''');
   }
 }

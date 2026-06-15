@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -34,7 +35,7 @@ Future<void> main(List<String> args) async {
 }
 
 class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
-  const AssignedVariablesDataComputer();
+  const new();
 
   @override
   DataInterpreter<_Data> get dataValidator =>
@@ -50,15 +51,16 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
     Map<Id, ActualData<_Data>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
-    assignedVariables = memberBuilder
-        .dataForTesting!
-        .inferenceData
-        .flowAnalysisResult
-        .assignedVariables;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
+    AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables =
+        memberBuilder
+            .dataForTesting!
+            .inferenceData
+            .flowAnalysisResult
+            .assignedVariables;
     if (assignedVariables == null) return;
     member.accept(
       new AssignedVariablesDataExtractor(
@@ -72,10 +74,10 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, VariableDeclaration>
+  final AssignedVariablesForTesting<TreeNode, InternalVariable>
   _assignedVariables;
 
-  AssignedVariablesDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<_Data>> actualMap,
     this._assignedVariables,
@@ -119,7 +121,7 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
 }
 
 class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
-  const _AssignedVariablesDataInterpreter();
+  const new();
 
   @override
   String getText(_Data actualData, [String? indentation]) {
@@ -174,7 +176,7 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(
+  new(
     this.declared,
     this.read,
     this.readCaptured,

@@ -1,7 +1,7 @@
 class Class {
-  const Class.named(
-      {dynamic x = (({dynamic y = const [Alias2.impl()]}) =>
-          const [Alias.impl()])});
+  const Class.named({
+    dynamic x = (({dynamic y = const [Alias2.impl()]}) => const [Alias.impl()]),
+  });
 }
 
 typedef Alias<X> = Const<X>;

@@ -181,7 +181,7 @@ sealed class NativeTypeCfe {
   /// [offsetInBytes] and [unaligned] based on the ABI of the struct. It also
   /// wraps the expression in a return statement.
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -234,7 +234,7 @@ sealed class NativeTypeCfe {
     DartType dartType,
     int fileOffset,
     bool unalignedAccess,
-    VariableDeclaration argument,
+    Variable argument,
     FfiTransformer transformer,
     Procedure offsetGetter,
   ) {
@@ -289,7 +289,7 @@ final class InvalidNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -396,7 +396,7 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -483,7 +483,7 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -582,7 +582,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -896,7 +896,7 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -985,7 +985,7 @@ class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Expression generateStore(
-    VariableDeclaration value, {
+    Variable value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,

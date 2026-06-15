@@ -15,7 +15,7 @@ class ByteStoreTimings {
   final _readTime = Stopwatch();
   var _readCount = 0;
 
-  ByteStoreTimings(this.reason) : time = DateTime.now();
+  new(this.reason) : time = DateTime.now();
 
   int get readCount => _readCount;
   Duration get readTime => _readTime.elapsed;
@@ -34,7 +34,7 @@ class TimingByteStore implements ByteStore {
   /// The current bucket to record times into.
   var _current = ByteStoreTimings('startup');
 
-  TimingByteStore(this._store);
+  new(this._store);
 
   @override
   Uint8List? get(String key) {

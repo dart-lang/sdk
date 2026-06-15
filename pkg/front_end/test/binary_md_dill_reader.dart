@@ -32,7 +32,7 @@ class BinaryMdDillReader {
   bool _ranSetup = false;
   List<String> readingStack = [];
 
-  BinaryMdDillReader(this._binaryMdContent, this._dillContent);
+  new(this._binaryMdContent, this._dillContent);
 
   void setup() {
     if (!_ranSetup) {
@@ -235,7 +235,7 @@ class BinaryMdDillReader {
   /// * "Class extends Node {" into "Class"
   /// * "Byte tag = 97;" into "Byte"
   /// * "List<T> {" into "List<T>"
-  String _getType(final String inputString) {
+  String _getType(String inputString) {
     String? cached = _typeCache[inputString];
     if (cached != null) return cached;
     int end = math.max(
@@ -807,6 +807,16 @@ class BinaryMdDillReader {
         }
       } else {
         throw "Unknown Constant";
+      }
+    }
+    if (what == "Variable") {
+      if (tagMap[_dillContent[_binaryOffset]] != null) {
+        what = tagMap[_dillContent[_binaryOffset]]!;
+        if (!isA(what, "Variable")) {
+          throw "Expected Variable but found $what";
+        }
+      } else {
+        throw "Unknown Variable";
       }
     }
 

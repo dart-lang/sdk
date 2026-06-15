@@ -1,0 +1,59 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Use a package, then remove the package from the package config.
+
+type: newworld
+worlds:
+  - entry: package:foo/a.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib"
+            },
+            {
+              "name": "bar",
+              "rootUri": "../bar",
+              "packageUri": "lib"
+            }
+          ]
+        }
+      foo/lib/a.dart: |
+        import "package:bar/a.dart";
+        void main() {
+          A();
+        }
+      bar/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+    expectedLibraryCount: 2
+
+  - entry: package:foo/a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - .dart_tool/package_config.json
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib"
+            }
+          ]
+        }
+    expectedLibraryCount: 1
+    errors: true
+    advancedInvalidation: packageUpdate

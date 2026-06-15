@@ -55,7 +55,7 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
 
   final List<Combinator>? _combinators;
 
-  LoadLibraryBuilder(
+  new(
     this.parent,
     this.fileOffset,
     this._imported,

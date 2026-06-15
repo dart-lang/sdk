@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -198,7 +199,7 @@ class TestServer implements AnalysisServer {
 
   bool supportsOpenUri = true;
 
-  TestServer(this.instrumentationService);
+  new(this.instrumentationService);
 
   @override
   OpenUriNotificationSender? get openUriNotificationSender =>
@@ -217,6 +218,7 @@ class TestServer implements AnalysisServer {
     MessageType type,
     String message,
     List<String> actionLabels,
+    CancellationToken cancellationToken,
   ) async {
     return actionLabels.where((s) => s == respondWithButton).firstOrNull;
   }
@@ -225,7 +227,7 @@ class TestServer implements AnalysisServer {
 class TestSurveyManager extends SurveyManager {
   int numberOfChecksPerformed = 0;
 
-  TestSurveyManager(
+  new(
     super.server,
     super.instrumentationService,
     super.analytics, {

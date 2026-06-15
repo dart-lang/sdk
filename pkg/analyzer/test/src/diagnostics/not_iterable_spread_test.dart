@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotIterableSpreadTest);
     defineReflectiveTests(NotIterableSpreadWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NotIterableSpreadTest extends PubPackageResolutionTest {
   test_iterable_interfaceTypeTypedef() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef A = List<int>;
 f(A a) {
   var v = [...a];
@@ -27,20 +28,20 @@ f(A a) {
   }
 
   test_iterable_list() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = [0];
 var v = [...a];
 ''');
   }
 
   test_iterable_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = [...?null];
 ''');
   }
 
   test_iterable_typeParameter_bound_list() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends List<int>>(T a) {
   var v = [...a];
   v;
@@ -49,7 +50,7 @@ void f<T extends List<int>>(T a) {
   }
 
   test_iterable_typeParameter_bound_listQuestion() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends List<int>?>(T a) {
   var v = [...?a];
   v;
@@ -58,67 +59,60 @@ void f<T extends List<int>?>(T a) {
   }
 
   test_notIterable_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = [...a];
-''',
-      [error(diag.notIterableSpread, 23, 1)],
-    );
+//          ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
   }
 
   test_notIterable_forElement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = [for (var i in []) ...a];
-''',
-      [
-        error(diag.unusedLocalVariable, 29, 1),
-        error(diag.notIterableSpread, 41, 1),
-      ],
-    );
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                            ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
   }
 
   test_notIterable_ifElement_else() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
-''',
-      [error(diag.notIterableSpread, 45, 1)],
-    );
+//                                ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
   }
 
   test_notIterable_ifElement_then() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = [if (1 > 0) ...a];
-''',
-      [error(diag.notIterableSpread, 34, 1)],
-    );
+//                     ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
   }
 
   test_notIterable_typeParameter_bound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   var v = [...a];
+//            ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
   v;
 }
-''',
-      [error(diag.notIterableSpread, 43, 1)],
-    );
+''');
   }
 
   test_spread_map_in_iterable_context() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<int> f() => [...{1: 2, 3: 4}];
-''',
-      [error(diag.notIterableSpread, 21, 12)],
-    );
+//                   ^^^^^^^^^^^^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
+''');
   }
 }
 
@@ -126,24 +120,22 @@ List<int> f() => [...{1: 2, 3: 4}];
 class NotIterableSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_list() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   [...a];
+//    ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 26, 1)],
-    );
+''');
   }
 
   test_set() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   <int>{...a};
+//         ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 31, 1)],
-    );
+''');
   }
 }

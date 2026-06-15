@@ -6,20 +6,23 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
+  var testSources = _TestSources();
+
   Diagnostic invalid_assignment = Diagnostic.tmp(
-    source: TestSource(),
+    source: testSources.source(),
     offset: 0,
     length: 1,
     diagnosticCode: diag.invalidAssignment,
@@ -30,7 +33,7 @@ main() {
   );
 
   Diagnostic assignment_of_do_not_store = Diagnostic.tmp(
-    source: TestSource(),
+    source: testSources.source(),
     offset: 0,
     length: 1,
     diagnosticCode: diag.assignmentOfDoNotStore,
@@ -40,7 +43,7 @@ main() {
   );
 
   Diagnostic unused_local_variable = Diagnostic.tmp(
-    source: TestSource(),
+    source: testSources.source(),
     offset: 0,
     length: 1,
     diagnosticCode: diag.unusedLocalVariable,
@@ -50,7 +53,7 @@ main() {
   );
 
   Diagnostic use_of_void_result = Diagnostic.tmp(
-    source: TestSource(),
+    source: testSources.source(),
     offset: 0,
     length: 1,
     diagnosticCode: diag.useOfVoidResult,
@@ -59,7 +62,7 @@ main() {
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
   Diagnostic annotate_overrides = Diagnostic.tmp(
-    source: TestSource(),
+    source: testSources.source(),
     offset: 0,
     length: 1,
     diagnosticCode: LintCode(
@@ -110,7 +113,7 @@ analyzer:
       expect(
         errorProcessor.appliesTo(
           Diagnostic.tmp(
-            source: TestSource(),
+            source: testSources.source(),
             offset: 0,
             length: 1,
             diagnosticCode: diag.castFromNullAlwaysFails,
@@ -217,4 +220,8 @@ class _TestContext {
   ErrorProcessor? getProcessor(Diagnostic diagnostic) {
     return ErrorProcessor.getProcessor(analysisOptions, diagnostic);
   }
+}
+
+class _TestSources with ResourceProviderMixin {
+  FileSource source() => FileSource(newFile('/test.dart', ''));
 }

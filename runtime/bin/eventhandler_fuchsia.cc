@@ -234,11 +234,10 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
     port_ = port;
   }
 
-  handle_ = handle;
   wait_key_ = key;
   LOG_INFO("zx_object_wait_async(fd = %ld, signals = %x)\n", fd_, signals);
   zx_status_t status =
-      zx_object_wait_async(handle_, port_, key, signals, ZX_WAIT_ASYNC_ONCE);
+      zx_object_wait_async(handle, port_, key, signals, ZX_WAIT_ASYNC_ONCE);
   if (status != ZX_OK) {
     LOG_ERR("zx_object_wait_async failed: %s\n", zx_status_get_string(status));
     return false;
@@ -256,13 +255,12 @@ void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
   MutexLocker ml(&mutex_);
   LOG_INFO("IOHandle::CancelWait: fd = %ld\n", fd_);
   ASSERT(port != ZX_HANDLE_INVALID);
-  ASSERT(handle_ != ZX_HANDLE_INVALID);
   if (key == 0) {
-    LOG_ERR("IOHandle::CancelWait calling zx_port_cancel with key == 0");
+    LOG_ERR("IOHandle::CancelWait calling zx_port_cancel_key with key == 0");
   }
-  zx_status_t status = zx_port_cancel(port, handle_, key);
+  zx_status_t status = zx_port_cancel_key(port, 0u, key);
   if ((status != ZX_OK) && (status != ZX_ERR_NOT_FOUND)) {
-    LOG_ERR("zx_port_cancel failed: %s\n", zx_status_get_string(status));
+    LOG_ERR("zx_port_cancel_key failed: %s\n", zx_status_get_string(status));
   }
 }
 

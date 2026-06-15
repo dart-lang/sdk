@@ -32,24 +32,7 @@ class C {}
     );
   }
 
-  test_class_constructor_block_to_empty() {
-    _assertSameSignature(
-      r'''
-class C {
-  C() {
-    var v = 1;
-  }
-}
-''',
-      r'''
-class C {
-  C();
-}
-''',
-    );
-  }
-
-  test_class_constructor_body() {
+  test_class_constructor_block_to_block_differentStatement() {
     _assertSameSignature(
       r'''
 class C {
@@ -68,7 +51,73 @@ class C {
     );
   }
 
+  test_class_constructor_block_to_block_identical() {
+    _assertSameSignature(
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+    );
+  }
+
+  test_class_constructor_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class C {
+  C();
+}
+''',
+    );
+  }
+
+  test_class_constructor_block_to_external() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C() {}
+}
+''',
+      r'''
+class C {
+  external C();
+}
+''',
+    );
+  }
+
   test_class_constructor_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C();
+}
+''',
+      r'''
+class C {
+  C() {}
+}
+''',
+    );
+  }
+
+  test_class_constructor_empty_to_empty() {
     _assertSameSignature(
       r'''
 class C {
@@ -77,9 +126,22 @@ class C {
 ''',
       r'''
 class C {
-  C() {
-    var v = 1;
+  C();
+}
+''',
+    );
   }
+
+  test_class_constructor_external_to_block() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  external C();
+}
+''',
+      r'''
+class C {
+  C() {}
 }
 ''',
     );
@@ -107,11 +169,15 @@ class C {
       r'''
 class C {
   C.foo() : ;
+//        ^
+// [diag.missingInitializer] Expected an initializer.
 }
 ''',
       r'''
 class C {
   C.foo() : f;
+//          ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
 }
 ''',
     );
@@ -318,6 +384,91 @@ class A {
       r'''
 class A {
   factory A() =;
+//             ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_block_differentStatement() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class A {
+  factory A() {
+    var v = 2;
+  }
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_block_identical() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+class A {
+  factory A() {}
+}
+''',
+      r'''
+class A {
+  factory A();
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+class A {
+  factory A();
+}
+''',
+      r'''
+class A {
+  factory A() {}
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_empty_to_empty() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A();
+}
+''',
+      r'''
+class A {
+  factory A();
 }
 ''',
     );
@@ -340,6 +491,8 @@ class A {
 class A {
   factory A() =
   static void foo<U>() {}
+//^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''',
     );
@@ -380,12 +533,16 @@ augment class A {
       r'''
 class A {
   static f = Object();
+//       ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''',
       r'''
 class A {
   const
   static f = Object();
+//^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
 }
 ''',
     );
@@ -584,6 +741,9 @@ static final f = Object();
       r'''
 const
 static final f = Object();
+// [diag.modifierOutOfOrder][column 1][length 6] The modifier 'static' should be before the modifier 'const'.
+//     ^^^^^
+// [diag.constAndFinal] Members can't be declared to be both 'const' and 'final'.
 ''',
     );
   }
@@ -799,6 +959,17 @@ void foo() => super.foo();
 ''',
       r'''
 void foo() => 0;
+''',
+    );
+  }
+
+  test_classLike_method_external_to_block() {
+    _assertNotSameSignature_classLike(
+      r'''
+external void foo();
+''',
+      r'''
+void foo() {}
 ''',
     );
   }
@@ -1372,6 +1543,17 @@ int foo() => 2;
     );
   }
 
+  test_executable_body_block_to_external() {
+    _assertNotSameSignature_executable(
+      r'''
+void foo() {}
+''',
+      r'''
+external void foo();
+''',
+    );
+  }
+
   test_executable_body_block_to_native() {
     _assertNotSameSignature_executable(
       r'''
@@ -1416,6 +1598,17 @@ int foo() => 0;
 ''',
       r'''
 int foo() native;
+''',
+    );
+  }
+
+  test_executable_body_external_to_block() {
+    _assertNotSameSignature_executable(
+      r'''
+external void foo();
+''',
+      r'''
+void foo() {}
 ''',
     );
   }
@@ -1688,10 +1881,20 @@ class A {}
       r'''
 foo
 Future<List<int>> bar() {}
+// [diag.missingFunctionParameters][column 1][length 6] Functions must have an explicit list of parameters.
+//     ^^^^
+// [diag.expectedToken] Expected to find '>'.
+//                ^^^
+// [diag.missingFunctionBody] A function body must be provided.
 ''',
       r'''
 foo
 Future<List<int>> bar(int x) {}
+// [diag.missingFunctionParameters][column 1][length 6] Functions must have an explicit list of parameters.
+//     ^^^^
+// [diag.expectedToken] Expected to find '>'.
+//                ^^^
+// [diag.missingFunctionBody] A function body must be provided.
 ''',
     );
   }
@@ -1928,6 +2131,54 @@ mixin M {
     );
   }
 
+  test_topLevelFunction_body_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+int foo() {
+  return 0;
+}
+''',
+      r'''
+int foo();
+''',
+    );
+  }
+
+  test_topLevelFunction_body_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+int foo();
+''',
+      r'''
+int foo() {
+  return 0;
+}
+''',
+    );
+  }
+
+  test_topLevelVariable_abstract_add() {
+    _assertNotSameSignature(
+      r'''
+int foo;
+''',
+      r'''
+abstract int foo;
+''',
+    );
+  }
+
+  test_topLevelVariable_abstract_remove() {
+    _assertNotSameSignature(
+      r'''
+abstract int foo;
+''',
+      r'''
+int foo;
+''',
+    );
+  }
+
   test_topLevelVariable_augment_add() {
     _assertNotSameSignature(
       r'''
@@ -1997,10 +2248,10 @@ var a = 2;
   test_topLevelVariable_withoutType2() {
     _assertNotSameSignature(
       r'''
-var a = 1, b = 2, c, d = 4;;
+var a = 1, b = 2, c, d = 4;
 ''',
       r'''
-var a = 1, b, c = 3, d = 4;;
+var a = 1, b, c = 3, d = 4;
 ''',
     );
   }
@@ -2096,11 +2347,11 @@ typedef F = void Function(double);
   }
 
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
-    var oldResult = parseStringWithErrors(oldCode);
+    var oldResult = parseTestCodeWithDiagnostics(oldCode);
     var oldUnit = oldResult.unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    var newResult = parseStringWithErrors(newCode);
+    var newResult = parseTestCodeWithDiagnostics(newCode);
     var newUnit = newResult.unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 

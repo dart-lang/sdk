@@ -27,7 +27,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
   final CorrectionUtils utils;
 
-  RenameConstructorRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

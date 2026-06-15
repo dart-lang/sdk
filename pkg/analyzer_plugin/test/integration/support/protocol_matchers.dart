@@ -4,7 +4,10 @@
 //
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/tool/spec/generate_files".
+// "pkg/analyzer_plugin/tool/spec/generate_all.dart".
+
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
 
 /// Matchers for data types defined in the analysis server API.
 library;
@@ -1215,6 +1218,22 @@ final Matcher isAnalysisOutlineParams = LazyMatcher(
     'outline': isListOf(isOutline),
   }),
 );
+
+/// analysis.setAnalysisRoots params
+///
+///     {
+///       "included": List<FilePath>
+///       "excluded": List<FilePath>
+///     }
+final Matcher isAnalysisSetAnalysisRootsParams = LazyMatcher(
+  () => MatchesJsonObject('analysis.setAnalysisRoots params', {
+    'included': isListOf(isFilePath),
+    'excluded': isListOf(isFilePath),
+  }),
+);
+
+/// analysis.setAnalysisRoots result
+final Matcher isAnalysisSetAnalysisRootsResult = isNull;
 
 /// analysis.setContextRoots params
 ///

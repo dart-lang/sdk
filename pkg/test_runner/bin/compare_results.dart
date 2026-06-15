@@ -56,13 +56,15 @@ class Event {
   String deflakeInfo(String name) {
     final isTimeout = after.outcome == 'Timeout';
     final lastTimeMs = before?.timeMs;
-    return jsonEncode(DeflakeInfo(
-      name: name,
-      repeat: isTimeout ? 2 : 5,
-      timeout: isTimeout && lastTimeMs != null
-          ? ((2 * lastTimeMs) / 1000).ceil()
-          : -1,
-    ).toJson());
+    return jsonEncode(
+      DeflakeInfo(
+        name: name,
+        repeat: isTimeout ? 2 : 5,
+        timeout: isTimeout && lastTimeMs != null
+            ? ((2 * lastTimeMs) / 1000).ceil()
+            : -1,
+      ).toJson(),
+    );
   }
 }
 
@@ -81,8 +83,11 @@ class Options {
   bool get judgement => _options["judgement"] as bool;
   String? get logs => _options["logs"] as String?;
   bool get logsOnly => _options["logs-only"] as bool;
-  Iterable<String> get statusFilter => ["passing", "flaky", "failing"]
-      .where((option) => _options[option] as bool);
+  Iterable<String> get statusFilter => [
+    "passing",
+    "flaky",
+    "failing",
+  ].where((option) => _options[option] as bool);
   bool get unchanged => _options["unchanged"] as bool;
   bool get nameOnly => _options["name-only"] as bool;
   bool get verbose => _options["verbose"] as bool;
@@ -92,12 +97,13 @@ class Options {
 bool firstSection = true;
 
 bool search(
-    String description,
-    String searchForStatus,
-    Iterable<Event> events,
-    Options options,
-    Map<String, Map<String, dynamic>> logs,
-    List<String>? logSection) {
+  String description,
+  String searchForStatus,
+  Iterable<Event> events,
+  Options options,
+  Map<String, Map<String, dynamic>> logs,
+  List<String>? logSection,
+) {
   var judgement = false;
   var beganSection = false;
   var count = options.count;
@@ -133,8 +139,9 @@ bool search(
     // single named configuration. Therefore we can't right now always emit
     // the configuration name, so only do it if there's more than one in the
     // results being compared (that won't happen during deflaking.
-    final name =
-        configurations.length == 1 ? event.after.name : event.after.key;
+    final name = configurations.length == 1
+        ? event.after.name
+        : event.after.key;
     if (!after.flaked && !after.matches) {
       judgement = true;
     }
@@ -151,14 +158,17 @@ bool search(
       if (options.human) {
         final expect = after.matches ? "" : ", expected ${after.expectation}";
         if (before == null || before.outcome == after.outcome) {
-          output = "$name ${event.description} "
+          output =
+              "$name ${event.description} "
               "(${event.after.outcome}$expect)";
         } else {
-          output = "$name ${event.description} "
+          output =
+              "$name ${event.description} "
               "(${event.before?.outcome} -> ${event.after.outcome}$expect)";
         }
       } else {
-        output = "$name ${before?.outcome} ${after.outcome} "
+        output =
+            "$name ${before?.outcome} ${after.outcome} "
             "${before?.expectation} ${after.expectation} "
             "${before?.matches} ${after.matches} "
             "${before?.flaked} ${after.flaked}";
@@ -183,42 +193,75 @@ bool search(
 
 void main(List<String> args) async {
   final parser = ArgParser();
-  parser.addFlag("changed",
-      abbr: 'c',
-      negatable: false,
-      help: "Show only tests that changed results.");
-  parser.addOption("count",
-      abbr: "C",
-      help: "Upper limit on how many tests to report in each section");
-  parser.addFlag("failing",
-      abbr: 'f', negatable: false, help: "Show failing tests.");
-  parser.addOption("flakiness-data",
-      abbr: 'd', help: "File containing flakiness data");
-  parser.addFlag("judgement",
-      abbr: 'j',
-      negatable: false,
-      help: "Exit 1 only if any of the filtered results failed.");
-  parser.addFlag("flaky",
-      abbr: 'F', negatable: false, help: "Show flaky tests.");
+  parser.addFlag(
+    "changed",
+    abbr: 'c',
+    negatable: false,
+    help: "Show only tests that changed results.",
+  );
+  parser.addOption(
+    "count",
+    abbr: "C",
+    help: "Upper limit on how many tests to report in each section",
+  );
+  parser.addFlag(
+    "failing",
+    abbr: 'f',
+    negatable: false,
+    help: "Show failing tests.",
+  );
+  parser.addOption(
+    "flakiness-data",
+    abbr: 'd',
+    help: "File containing flakiness data",
+  );
+  parser.addFlag(
+    "judgement",
+    abbr: 'j',
+    negatable: false,
+    help: "Exit 1 only if any of the filtered results failed.",
+  );
+  parser.addFlag(
+    "flaky",
+    abbr: 'F',
+    negatable: false,
+    help: "Show flaky tests.",
+  );
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
   parser.addFlag("human", abbr: "h", negatable: false);
-  parser.addFlag("passing",
-      abbr: 'p', negatable: false, help: "Show passing tests.");
-  parser.addFlag("unchanged",
-      abbr: 'u',
-      negatable: false,
-      help: "Show only tests with unchanged results.");
-  parser.addFlag("name-only",
-      help: "Only show the test names.", negatable: false);
-  parser.addFlag("verbose",
-      abbr: "v",
-      help: "Show the old and new result for each test",
-      negatable: false);
-  parser.addOption("logs",
-      abbr: "l", help: "Path to file holding logs of failing and flaky tests.");
-  parser.addFlag("logs-only",
-      help: "Only print logs of failing and flaky tests, no other output",
-      negatable: false);
+  parser.addFlag(
+    "passing",
+    abbr: 'p',
+    negatable: false,
+    help: "Show passing tests.",
+  );
+  parser.addFlag(
+    "unchanged",
+    abbr: 'u',
+    negatable: false,
+    help: "Show only tests with unchanged results.",
+  );
+  parser.addFlag(
+    "name-only",
+    help: "Only show the test names.",
+    negatable: false,
+  );
+  parser.addFlag(
+    "verbose",
+    abbr: "v",
+    help: "Show the old and new result for each test",
+    negatable: false,
+  );
+  parser.addOption(
+    "logs",
+    abbr: "l",
+    help: "Path to file holding logs of failing and flaky tests.",
+  );
+  parser.addFlag(
+    "logs-only",
+    help: "Only print logs of failing and flaky tests, no other output",
+    negatable: false,
+  );
 
   final options = Options(parser.parse(args));
   if (options.help) {
@@ -235,15 +278,18 @@ ${parser.usage}""");
 
   if (options.changed && options.unchanged) {
     print(
-        "error: The options --changed and --unchanged are mutually exclusive");
+      "error: The options --changed and --unchanged are mutually exclusive",
+    );
     exitCode = 2;
     return;
   }
 
   final parameters = options.rest;
   if (parameters.length != 2) {
-    print("error: Expected two parameters "
-        "(results before, results after)");
+    print(
+      "error: Expected two parameters "
+      "(results before, results after)",
+    );
     exitCode = 2;
     return;
   }
@@ -306,16 +352,22 @@ ${parser.usage}""");
     final searchForChanged = options.unchanged
         ? "unchanged"
         : options.changed
-            ? "changed"
-            : null;
+        ? "changed"
+        : null;
     final aboutStatus = filterDescriptions[searchForStatus]![searchForChanged];
     final sectionHeader = "The following tests $aboutStatus:";
     final logSectionArg =
         searchForStatus == "failing" || searchForStatus == "flaky"
-            ? logSection
-            : null;
+        ? logSection
+        : null;
     final possibleJudgement = search(
-        sectionHeader, searchForStatus, events, options, logs, logSectionArg);
+      sectionHeader,
+      searchForStatus,
+      events,
+      options,
+      logs,
+      logSectionArg,
+    );
     if (searchForStatus == "failing") {
       judgement = possibleJudgement;
     }
@@ -332,8 +384,8 @@ ${parser.usage}""");
     var oldNew = options.unchanged
         ? "old "
         : options.changed
-            ? "new "
-            : "";
+        ? "new "
+        : "";
     if (judgement) {
       if (options.human && !options.logsOnly) {
         print("There were ${oldNew}test failures.");

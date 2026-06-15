@@ -36,7 +36,7 @@ final stops = <String>[];
 const expected = <String>[
   '$file:$LINE_A:10', // on '(' of 'void code()'
   '$file:${LINE_A + 2}:17', // on '='
-  '$file:${LINE_A + 3}:26', // after last ''' (i.e. before ';')
+  '$file:${LINE_A + 3}:11', // on the first '''
   '$file:${LINE_A + 5}:5', // on call to 'print'
   '$file:${LINE_A + 6}:5', // on call to 'print'
   '$file:${LINE_A + 9}:5', // on 'throw'

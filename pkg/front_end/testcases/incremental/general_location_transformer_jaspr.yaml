@@ -1,0 +1,44 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This tests that Jaspr-style components, including redirecting factory
+# constructors, are correctly transformed to include tracking information.
+
+type: newworld
+target: dartdevc
+trackCreationLocations: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        @pragma('track-creation-locations')
+        abstract class Component {
+          const Component({this.key});
+
+          const factory Component.text(String text, {String? key}) = Text._;
+
+          final String? key;
+        }
+
+        class Text extends Component {
+          const Text._(this.text, {super.key});
+
+          final String text;
+        }
+
+        class MyComponent extends Component {
+          const MyComponent(this.children, {this.id, super.key});
+
+          final List<Component> children;
+          final String? id;
+        }
+
+        void main() {
+          var c1 = MyComponent([]);
+          var c2 = MyComponent([c1], id: '2');
+
+          const c3 = MyComponent([Component.text('Hello')]);
+          const c4 = MyComponent([c3, MyComponent([], id: 'x')], id: '4');
+        }
+    expectedLibraryCount: 1

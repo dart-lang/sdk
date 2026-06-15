@@ -84,36 +84,40 @@ void runTest({required bool useVmService}) {
       // Spawn our own Chrome process so we can terminate it.
       final devToolsUri =
           'http://${event['params']['host']}:${event['params']['port']}';
-      final chrome = await Chrome.locate()!.start(url: devToolsUri);
+      final chromeProcess = await testController.launchChrome(devToolsUri);
       final stdoutSub =
-          chrome.process.stdout.transform(utf8.decoder).listen((e) {
+          chromeProcess.stdout.transform(utf8.decoder).listen((e) {
         print('[CHROME STDOUT]: $e');
       });
       final stderrSub =
-          chrome.process.stderr.transform(utf8.decoder).listen((e) {
+          chromeProcess.stderr.transform(utf8.decoder).listen((e) {
         print('[CHROME STDERR]: $e');
       });
 
-      // Wait for DevTools to inform server that it's connected.
-      print('Waiting for clients...');
-      await testController.waitForClients();
+      try {
+        // Wait for DevTools to inform server that it's connected.
+        print('Waiting for clients...');
+        await testController.waitForClients();
 
-      // Close the browser, which will disconnect DevTools SSE connection
-      // back to the server.
-      print('Killing Chrome...');
-      chrome.kill();
-      await chrome.onExit;
-      await Future.wait([stdoutSub.cancel(), stderrSub.cancel()]);
+        // Close the browser, which will disconnect DevTools SSE connection
+        // back to the server.
+        print('Killing Chrome...');
+        chromeProcess.kill();
+        await chromeProcess.exitCode;
 
-      // Await a long delay to wait for the SSE client to close.
-      print('Delaying to wait for SSE connection to cleanup...');
-      await delay(duration: const Duration(seconds: 15));
+        // Await a long delay to wait for the SSE client to close.
+        print('Delaying to wait for SSE connection to cleanup...');
+        await delay(duration: const Duration(seconds: 15));
 
-      // Ensure the client is completely removed from the list.
-      print('Expecting no clients...');
-      await testController.waitForClients(expectNone: true);
+        // Ensure the client is completely removed from the list.
+        print('Expecting no clients...');
+        await testController.waitForClients(expectNone: true);
 
-      print('Done!');
+        print('Done!');
+      } finally {
+        chromeProcess.kill();
+        await Future.wait([stdoutSub.cancel(), stderrSub.cancel()]);
+      }
     }, timeout: const Timeout.factor(20));
   });
 }

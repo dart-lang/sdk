@@ -11,6 +11,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
+import 'package:dartdev/src/commands/dart_mcp_server.dart';
 import 'package:meta/meta.dart';
 import 'package:pub/pub.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -20,7 +21,6 @@ import 'src/commands/build.dart';
 import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
-import 'src/commands/dart_mcp_server.dart';
 import 'src/commands/debug_adapter.dart';
 import 'src/commands/development_service.dart';
 import 'src/commands/devtools.dart';
@@ -36,6 +36,7 @@ import 'src/commands/tooling_daemon.dart';
 import 'src/commands/uninstall.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/unified_analytics.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
@@ -46,6 +47,8 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   int? exitCode = 1;
   try {
     VmInteropHandler.initialize(port);
+    // Set the DART_ROOT environment variable to the SDK path.
+    await VmInteropHandler.setEnvironmentVariable('DART_ROOT', sdk.sdkPath);
     // Call the runner to execute the command; see DartdevRunner.
     final runner = DartdevRunner(args, vmArgs: io.Platform.executableArguments);
     exitCode = await runner.run(args);
@@ -182,10 +185,13 @@ class DartdevRunner extends CommandRunner<int> {
     // We don't want to run analytics when we're running in a CI environment
     // unless we're explicitly testing analytics for dartdev.
     final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
+    final envSuppressAnalytics =
+        io.Platform.environment[DashEnvVar.suppressAnalytics.name] == 'true';
     bool suppressAnalytics =
         !topLevelResults.flag('analytics') ||
         topLevelResults.flag('suppress-analytics') ||
-        implicitlySuppressAnalytics;
+        implicitlySuppressAnalytics ||
+        envSuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
@@ -197,6 +203,7 @@ class DartdevRunner extends CommandRunner<int> {
     final disableAnalytics = topLevelResults.flag('disable-analytics');
 
     if (!implicitlySuppressAnalytics &&
+        !envSuppressAnalytics &&
         suppressAnalytics &&
         (enableAnalytics || disableAnalytics)) {
       // This isn't an error if we're implicitly disabling analytics because
@@ -207,6 +214,29 @@ class DartdevRunner extends CommandRunner<int> {
       );
       return 254;
     }
+
+    // Propagate analytics environment variables to subtools.
+
+    // Since VmInteropHandler.setEnvironmentVariable is non-overwriting by design
+    // in C++, we unset the variable first to ensure the explicitly resolved
+    // value takes precedence.
+    await VmInteropHandler.setEnvironmentVariable(
+      DashEnvVar.suppressAnalytics.name,
+      null,
+    );
+
+    await VmInteropHandler.setEnvironmentVariable(
+      DashEnvVar.suppressAnalytics.name,
+      suppressAnalytics.toString(),
+    );
+    final envTool = io.Platform.environment[DashEnvVar.tool.name];
+    if (envTool == null) {
+      await VmInteropHandler.setEnvironmentVariable(
+        DashEnvVar.tool.name,
+        DashTool.dartTool.label,
+      );
+    }
+
     // The Analytics instance used to report information back to Google Analytics;
     // see lib/src/unified_analytics.dart.
     _unifiedAnalytics ??= createUnifiedAnalytics(

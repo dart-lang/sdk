@@ -19,15 +19,12 @@ class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   String get lintRule => LintNames.literal_only_boolean_expressions;
 
   test_adjacent_string_interpolation_constant() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   const a = 20;
-  if ('$a' '0' == 20) {}
+  [!if ('$a' '0' == 20) {}!]
 }
-''',
-      [lint(29, 22)],
-    );
+''');
   }
 
   test_adjacent_string_interpolation_nonconstant() async {
@@ -39,36 +36,27 @@ void f(int a) {
   }
 
   test_doWhile_false() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  do {} while (false);
+  [!do {} while (false);!]
 }
-''',
-      [lint(13, 20)],
-    );
+''');
   }
 
   test_for_trueCondition() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (; true; ) {}
+  [!for (; true; ) {}!]
 }
-''',
-      [lint(13, 17)],
-    );
+''');
   }
 
   test_if_andTrue() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (1 != 0 && true) {}
+  [!if (1 != 0 && true) {}!]
 }
-''',
-      [lint(13, 22)],
-    );
+''');
   }
 
   test_if_notTrue() async {
@@ -91,47 +79,35 @@ void f(String? text) {
   }
 
   test_if_or_thenAndTrue() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (1 != 0 || 3 < 4 && true) {}
+  [!if (1 != 0 || 3 < 4 && true) {}!]
 }
-''',
-      [lint(13, 31)],
-    );
+''');
   }
 
   test_if_true() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (true) {}
+  [!if (true) {}!]
 }
-''',
-      [lint(13, 12)],
-    );
+''');
   }
 
   test_if_trueAnd() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (true && 1 != 0) {}
+  [!if (true && 1 != 0) {}!]
 }
-''',
-      [lint(13, 22)],
-    );
+''');
   }
 
   test_if_trueAnd_thenOr() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (true && 1 != 0 || 3 < 4) {}
+  [!if (true && 1 != 0 || 3 < 4) {}!]
 }
-''',
-      [lint(13, 31)],
-    );
+''');
   }
 
   test_if_trueAndFalse() async {
@@ -146,14 +122,11 @@ void bad() {
   }
 
   test_if_x() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (1 != 0) {}
+  [!if (1 != 0) {}!]
 }
-''',
-      [lint(13, 14)],
-    );
+''');
   }
 
   test_ifCase_intLiteral() async {
@@ -246,32 +219,34 @@ void f<T>(a) {
   }
 
   test_nullAware() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(bool p) {
-  if (null ?? p) {}
+  [!if (null ?? p) {}!]
 }
-''',
-      [lint(19, 17)],
-    );
+''');
   }
 
   test_string_interpolation_constant() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   const a = 15;
-  if ('$a'=='20') {}
+  [!if ('$a' == '20') {}!]
 }
-''',
-      [lint(29, 18)],
-    );
+''');
   }
 
   test_string_interpolation_nonconstant() async {
     await assertNoDiagnostics(r'''
 void f(int a) {
   if ('$a'=='20') {}
+}
+''');
+  }
+
+  test_string_interpolation_typeVariable() async {
+    await assertNoDiagnostics(r'''
+void f<T>() {
+  if ('$T' == '20') {}
 }
 ''');
   }

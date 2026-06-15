@@ -30,21 +30,15 @@ Future<void> c() async {}
   }
 
   test_function_async_voidReturnType_arrow() async {
-    await assertDiagnostics(
-      r'''
-void f() async => null;
-''',
-      [lint(5, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void [!f!]() async => null;
+''');
   }
 
   test_function_async_voidReturnType_block() async {
-    await assertDiagnostics(
-      r'''
-void f() async {}
-''',
-      [lint(5, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void [!f!]() async {}
+''');
   }
 
   test_function_asyncStar() async {
@@ -104,43 +98,31 @@ void f() {
   }
 
   test_functionLocal_async_arrow() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  void g() async => null;
+  void [!g!]() async => null;
 }
-''',
-      [lint(18, 1)],
-    );
+''');
   }
 
   test_functionLocal_main_async_arrow() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  void main() async => null;
+  void [!main!]() async => null;
 }
-''',
-      [lint(18, 4)],
-    );
+''');
   }
 
   test_getter_async() async {
-    await assertDiagnostics(
-      r'''
-void get l async => null;
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void get [!l!] async => null;
+''');
   }
 
   test_getter_async_voidReturnType() async {
-    await assertDiagnostics(
-      r'''
-void get f async => null;
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void get [!f!] async => null;
+''');
   }
 
   test_getter_notAsync() async {
@@ -150,14 +132,11 @@ void get f => null;
   }
 
   test_localFunction_async() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Future<void> f() async {
-  void g() async {}
+  void [!g!]() async {}
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_main_async() async {
@@ -170,25 +149,19 @@ void main() async {
   }
 
   test_method_async_arrow() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Foo {
-  void d() async => null;
+  void [!d!]() async => null;
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_method_async_block() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Foo {
-  void f() async {}
+  void [!f!]() async {}
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_method_async_futureVoidReturnType_arrow() async {
@@ -216,14 +189,11 @@ class Foo {
   }
 
   test_method_main_async_arrow() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Foo {
-  void main() async => null;
+  void [!main!]() async => null;
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_method_notAsync_arrow() async {
@@ -251,14 +221,11 @@ class Foo {
   }
 
   test_operator_async() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class Foo {
-  void operator |(_) async => null;
+  void operator [!|!](_) async => null;
 }
-''',
-      [lint(28, 1)],
-    );
+''');
   }
 
   test_operator_notAsync() async {

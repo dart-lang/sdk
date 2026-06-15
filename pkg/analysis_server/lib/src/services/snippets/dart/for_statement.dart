@@ -11,7 +11,7 @@ class ForStatement extends DartSnippetProducer {
   static const prefix = 'for';
   static const label = 'for';
 
-  ForStatement(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

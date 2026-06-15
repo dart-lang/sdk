@@ -212,7 +212,7 @@ static extension-member method _extension#2|<=(lowered final core::String #this,
   return true;
 static extension-member method _extension#3|<=(lowered final core::String #this, dynamic other) → core::bool
   return true;
-static extension-type-member method ExtensionType|constructor#(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }

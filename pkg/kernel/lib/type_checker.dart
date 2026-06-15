@@ -24,7 +24,7 @@ abstract class TypeChecker {
   Library? currentLibrary;
   InterfaceType? currentThisType;
 
-  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk = true})
+  new(this.coreTypes, this.hierarchy, {this.ignoreSdk = true})
     : environment = new TypeEnvironment(coreTypes, hierarchy);
 
   void checkComponent(Component component) {
@@ -149,7 +149,7 @@ class TypeCheckingVisitor
   DartType? currentYieldType;
   AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
-  TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
+  new(this.checker, this.environment, this.hierarchy);
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);
@@ -274,7 +274,7 @@ class TypeCheckingVisitor
         );
       }
     }
-    for (VariableDeclaration namedParameter in node.namedParameters) {
+    for (Variable namedParameter in node.namedParameters) {
       if (!namedParameter.isRequired) {
         handleOptionalParameter(
           namedParameter,
@@ -304,7 +304,7 @@ class TypeCheckingVisitor
   }
 
   void handleOptionalParameter(
-    VariableDeclaration parameter, {
+    Variable parameter, {
     required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod,
   }) {
     Expression? initializer = parameter.initializer;
@@ -1121,16 +1121,12 @@ class TypeCheckingVisitor
     // TODO(asgerf): Store interface targets on for-in loops or desugar them,
     // instead of doing the ad-hoc resolution here.
     if (node.isAsync) {
-      checkAssignable(
-        node,
-        getStreamElementType(iterable),
-        node.expressionVariable.type,
-      );
+      checkAssignable(node, getStreamElementType(iterable), node.variable.type);
     } else {
       checkAssignable(
         node,
         getIterableElementType(iterable),
-        node.expressionVariable.type,
+        node.variable.type,
       );
     }
     visitStatement(node.body);
@@ -1187,7 +1183,7 @@ class TypeCheckingVisitor
 
   @override
   void visitForStatement(ForStatement node) {
-    node.variableInitializations.forEach(visitVariableInitialization);
+    node.variables.forEach(_handleVariableDeclaration);
     if (node.condition != null) {
       node.condition = checkExpressionAndAssignability(
         node.condition!,
@@ -1260,16 +1256,25 @@ class TypeCheckingVisitor
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    visitVariableInitialization(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitializationBase node) {
+  void visitVariable(Variable node) {
     if (node.initializer != null) {
       node.initializer = checkExpressionAndAssignability(
         node.initializer!,
         node.type,
+      );
+    }
+  }
+
+  @override
+  void visitVariableStatement(VariableStatement node) {
+    _handleVariableDeclaration(node.declaration);
+  }
+
+  void _handleVariableDeclaration(VariableDeclaration node) {
+    if (node.variable.initializer != null) {
+      node.variable.initializer = checkExpressionAndAssignability(
+        node.variable.initializer!,
+        node.variable.type,
       );
     }
   }
@@ -1332,7 +1337,7 @@ class TypeCheckingVisitor
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    visitVariableDeclaration(node.variable);
+    visitVariable(node.variable);
   }
 
   @override

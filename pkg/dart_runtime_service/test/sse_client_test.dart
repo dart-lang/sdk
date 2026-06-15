@@ -25,19 +25,27 @@ void main() {
   late HttpServer server;
   late WebDriver webdriver;
   late Process chromeDriver;
+  late int chromeDriverPort;
 
   setUpAll(() async {
+    final socket = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    chromeDriverPort = socket.port;
+    await socket.close();
+
     var chromedriverPath = Platform.environment['CHROMEDRIVER_PATH'];
+    final Uri chromedriverUri;
     if (chromedriverPath == null) {
       chromedriverPath = '../../../third_party/webdriver/chrome/chromedriver';
       if (Platform.isWindows) {
         chromedriverPath = '$chromedriverPath.exe';
       }
+      chromedriverUri = resolveTestRelativePath(chromedriverPath);
+    } else {
+      chromedriverUri = Uri.file(chromedriverPath);
     }
-    final chromedriverUri = resolveTestRelativePath(chromedriverPath);
     try {
       chromeDriver = await Process.start(chromedriverUri.toFilePath(), [
-        '--port=4444',
+        '--port=$chromeDriverPort',
         '--url-base=wd/hub',
       ]);
       final started = Completer<void>();
@@ -91,7 +99,10 @@ void main() {
             'binary': ?Platform.environment['CHROME_PATH'],
           },
         });
-      webdriver = await createDriver(desired: capabilities);
+      webdriver = await createDriver(
+        desired: capabilities,
+        uri: Uri.parse('http://localhost:$chromeDriverPort/wd/hub/'),
+      );
     });
 
     tearDown(() async {

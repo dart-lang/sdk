@@ -60,67 +60,55 @@ class A {
   }
 
   test_field_plusEquals_nonStringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String buffer = '';
 
   void foo(int n) {
     int aux = n;
     while (aux-- > 0) {
-      buffer += ''.toLowerCase();
+      [!buffer += ''.toLowerCase()!];
     }
   }
 }
-''',
-      [lint(100, 26)],
-    );
+''');
   }
 
   test_field_plusEquals_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   String buffer = '';
 
   void foo(int n) {
     int aux = n;
     while (aux-- > 0) {
-      buffer += 'a';
+      [!buffer += 'a'!];
     }
   }
 }
-''',
-      [lint(100, 13)],
-    );
+''');
   }
 
   test_localVariable_assignment_interpolatedStringLiteralAsPrefix() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
-    buffer = '${buffer}a';
+    [!buffer!] = '${buffer}a';
   }
 }
-''',
-      [lint(69, 6)],
-    );
+''');
   }
 
   test_localVariable_assignment_interpolatedStringLiteralAsPrefixWithPlus() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
-    buffer = '${buffer + 'a'}a';
+    [!buffer!] = '${buffer + 'a'}a';
   }
 }
-''',
-      [lint(69, 6)],
-    );
+''');
   }
 
   test_localVariable_assignment_interpolatedStringLiteralNotAsPrefix() async {
@@ -135,87 +123,69 @@ void foo() {
   }
 
   test_localVariable_doLoop_plusEquals_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   do {
-    buffer += 'a';
+    [!buffer += 'a'!];
   } while (buffer.length < 10);
 }
-''',
-      [lint(43, 13)],
-    );
+''');
   }
 
   test_localVariable_plus_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
-    buffer = buffer + 'a';
+    [!buffer!] = buffer + 'a';
   }
 }
-''',
-      [lint(69, 6)],
-    );
+''');
   }
 
   test_localVariable_plusEquals_nonStringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (final s in ['a']) {
-    buffer += s;
+    [!buffer += s!];
   }
 }
-''',
-      [lint(63, 11)],
-    );
+''');
   }
 
   test_localVariable_plusEquals_nonStringLiteral_parenthesized() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (final s in ['a']) {
-    (buffer += s);
+    ([!buffer += s!]);
   }
 }
-''',
-      [lint(64, 11)],
-    );
+''');
   }
 
   test_localVariable_plusEquals_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
-    buffer += 'a';
+    [!buffer += 'a'!];
   }
 }
-''',
-      [lint(69, 13)],
-    );
+''');
   }
 
   test_localVariable_whileLoop_plusEquals_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
   var buffer = '';
   while (buffer.length < 10) {
-    buffer += 'a';
+    [!buffer += 'a'!];
   }
 }
-''',
-      [lint(67, 13)],
-    );
+''');
   }
 
   test_loopVariable_plusEquals_nonStringLiteral() async {

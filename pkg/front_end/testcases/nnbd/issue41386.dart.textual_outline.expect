@@ -1,4 +1,5 @@
-bool Function(T) predicate<T>(bool Function(T) fn) => (T val) => fn(val);
+bool Function(T) predicate<T>(bool Function(T) fn) =>
+    (T val) => fn(val);
 
 void test() {}
 

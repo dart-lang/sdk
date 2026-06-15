@@ -104,8 +104,7 @@ class WidgetPreviewVerifier {
       ClassDeclaration declaration => declaration.namePart.typeName,
       EnumDeclaration declaration => declaration.namePart.typeName,
       ExtensionDeclaration declaration => declaration.name,
-      ExtensionTypeDeclaration declaration =>
-        declaration.primaryConstructor.typeName,
+      ExtensionTypeDeclaration declaration => declaration.namePart.typeName,
       MixinDeclaration declaration => declaration.name,
       _ => null,
     };
@@ -226,7 +225,7 @@ class WidgetPreviewVerifier {
 class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
   final DiagnosticReporter diagnosticReporter;
 
-  NamedExpression? rootArgument;
+  NamedArgument? rootArgument;
   _InvalidWidgetPreviewArgumentDetectorVisitor({
     required this.diagnosticReporter,
   });
@@ -234,18 +233,12 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
   @override
   void visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {
-      // All arguments to Preview(...) are named.
-      if (argument is NamedExpression) {
+      if (argument is NamedArgument) {
         rootArgument = argument;
-        visitNamedExpression(argument);
+        argument.argumentExpression.accept(this);
         rootArgument = null;
       }
     }
-  }
-
-  @override
-  void visitNamedExpression(NamedExpression node) {
-    super.visitNamedExpression(node);
   }
 
   @override

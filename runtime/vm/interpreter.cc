@@ -27,6 +27,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -42,6 +43,16 @@ DEFINE_FLAG(uint64_t,
             interpreter_trace_file_max_bytes,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+constexpr bool kDefaultCheckDynamicCalls = true;
+#else
+constexpr bool kDefaultCheckDynamicCalls = false;
+#endif
+DEFINE_FLAG(bool,
+            check_dynamic_calls,
+            kDefaultCheckDynamicCalls,
+            "Whether to check dynamic calls from dynamic modules.");
 
 // InterpreterSetjmpBuffer are linked together, and the last created one
 // is referenced by the Interpreter. When an exception is thrown, the exception
@@ -439,52 +450,164 @@ DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   }
 }
 
+using StackSlotFormatter = void (*)(Zone*, BaseTextBuffer*, const ObjectPtr*);
+
+static void PrintStackSlot(Zone* zone,
+                           BaseTextBuffer* buffer,
+                           const ObjectPtr* address,
+                           const char* description = nullptr,
+                           StackSlotFormatter formatter = nullptr) {
+  buffer->Printf("  %#" Px ": ", reinterpret_cast<uword>(address));
+  // The value in the stack slot can be 0, which means using #% prints "0"
+  // instead of "0x0...0". Be explicit so the output is consistently formatted.
+  // Also print out unsigned to avoid weirdness if somehow negative.
+  const int hex_size = kWordSize * 2;
+  buffer->Printf("0x%0*.*" Px "", hex_size, hex_size,
+                 static_cast<uword>(*address));
+  if (description != nullptr || formatter != nullptr) {
+    buffer->AddString(" (");
+    if (description != nullptr) {
+      buffer->Printf("%s%s", description, formatter != nullptr ? ": " : "");
+    }
+    if (formatter != nullptr) {
+      formatter(zone, buffer, address);
+    }
+    buffer->AddString(")");
+  }
+  buffer->AddString("\n");
+}
+
+static void PrintStackSlot(Zone* zone,
+                           BaseTextBuffer* buffer,
+                           const ObjectPtr* address,
+                           StackSlotFormatter formatter) {
+  PrintStackSlot(zone, buffer, address, /*description=*/nullptr, formatter);
+}
+
+static void ObjectFormatter(Zone* zone,
+                            BaseTextBuffer* buffer,
+                            const ObjectPtr* address) {
+  if (!address->IsWellFormed()) {
+    buffer->AddString("<invalid>");
+    return;
+  }
+  const auto& obj = Object::Handle(zone, *address);
+  if (obj.IsNull()) {
+    buffer->AddString("<null>");
+  } else if (obj.IsString()) {
+    // Can't use EscapeSpecialCharacters as that allocates.
+    buffer->Printf("\"%s\"", obj.ToCString());
+  } else if (obj.IsFunction()) {
+    buffer->AddString(Function::Cast(obj).ToFullyQualifiedCString());
+  } else {
+    // Unless in a no safepoint scope, ToCString() calls may allocate
+    // (for example, when getting the type arguments of a generic instance).
+    NoSafepointScope scope;
+    buffer->AddString(obj.ToCString());
+  }
+}
+
+static void ArgumentsDescriptorFormatter(Zone* zone,
+                                         BaseTextBuffer* buffer,
+                                         const ObjectPtr* address) {
+  auto const ptr = *address;
+  if (ptr == Array::null()) {
+    buffer->AddString("<none>");
+  } else if (ptr->IsArray() || ptr->IsImmutableArray()) {
+    ArgumentsDescriptor args_desc(Array::Handle(zone, Array::RawCast(ptr)));
+    args_desc.PrintTo(buffer);
+  } else {
+    buffer->AddString("unexpected object: ");
+    // Fall back to ObjectFormatter.
+    ObjectFormatter(zone, buffer, address);
+  }
+}
+
 void Interpreter::PrintStackFrames(const ObjectPtr* FP,
                                    const ObjectPtr* SP,
+                                   const KBCInstr* pc,
                                    intptr_t depth) {
-  const word *fp = reinterpret_cast<const word*>(FP),
-             *sp = reinterpret_cast<const word*>(SP);
-  for (intptr_t i = 0; i < depth; i++) {
-    const word caller_pc = fp[kKBCSavedCallerPcSlotFromFp];
-    const bool is_entry_frame = caller_pc == kEntryFramePcMarker;
-    // The entry frame slots are printed separately from the rest of the frame.
-    auto* const frame_end = fp + (is_entry_frame ? kKBCEntrySavedSlots : 0);
+  Zone* const zone = Thread::Current()->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.AddString("Printing stack starting at:\n");
+  buffer.Printf("  FP = %#" Px "\n", reinterpret_cast<uword>(FP));
+  buffer.Printf("  SP = %#" Px "\n", reinterpret_cast<uword>(SP));
+  buffer.Printf("  pc = %#" Px "\n", reinterpret_cast<uword>(pc));
+  buffer.Printf("  stack base = %#" Px "\n", stack_base());
+  buffer.AddString("Current stack frames:\n");
+  intptr_t last_printed = 0;
+  // Depth >= 0 means print all frames on the stack.
+  for (intptr_t i = 0; depth <= 0 || i < depth; i++) {
+    // Stop if the current SP or FP is not part of the stack.
+    if (!HasFrame(reinterpret_cast<uword>(SP))) {
+      buffer.Printf("** INVALID SP: %#" Px " **\n",
+                    reinterpret_cast<uword>(SP));
+      break;
+    }
+    if (!HasFrame(reinterpret_cast<uword>(FP))) {
+      buffer.Printf("** INVALID FP: %#" Px " **\n",
+                    reinterpret_cast<uword>(FP));
+      break;
+    }
 
-    THR_Print("Frame %" Pd "%s:\n", i, is_entry_frame ? " (entry)" : "");
-    for (auto* current = sp; current >= frame_end; --current) {
-      THR_Print("  %#" Px ": %#" Px "\n", reinterpret_cast<uword>(current),
-                *current);
+    const bool is_entry_frame = IsEntryFrameMarker(pc);
+
+    auto* first_slot = FP;
+    if (is_entry_frame) {
+      // The reserved entry frame slots are printed separately from
+      // the rest of the frame.
+      first_slot += kKBCEntrySavedSlots;
+    }
+
+    for (auto* current = SP; current >= first_slot; --current) {
+      PrintStackSlot(zone, &buffer, current, ObjectFormatter);
     }
 
     if (is_entry_frame) {
-      THR_Print("  %#" Px ": %#" Px " (pool pointer)\n",
-                reinterpret_cast<uword>(fp + kKBCSavedPpSlotFromEntryFp),
-                fp[kKBCSavedPpSlotFromEntryFp]);
-      THR_Print("  %#" Px ": %#" Px " (args descriptor)\n",
-                reinterpret_cast<uword>(fp + kKBCSavedArgDescSlotFromEntryFp),
-                fp[kKBCSavedArgDescSlotFromEntryFp]);
-      THR_Print("  %#" Px ": %#" Px " (exit link)\n",
-                reinterpret_cast<uword>(fp + kKBCExitLinkSlotFromEntryFp),
-                fp[kKBCExitLinkSlotFromEntryFp]);
+      PrintStackSlot(zone, &buffer, FP + kKBCSavedPpSlotFromEntryFp,
+                     "pool pointer", ObjectFormatter);
+      PrintStackSlot(zone, &buffer, FP + kKBCSavedArgDescSlotFromEntryFp,
+                     "args descriptor", ArgumentsDescriptorFormatter);
+      PrintStackSlot(zone, &buffer, FP + kKBCExitLinkSlotFromEntryFp,
+                     "exit link");
     }
 
-    THR_Print("  %#" Px ": %#" Px " (saved caller fp)\n",
-              reinterpret_cast<uword>(fp + kKBCSavedCallerFpSlotFromFp),
-              fp[kKBCSavedCallerFpSlotFromFp]);
-    THR_Print("  %#" Px ": %#" Px " (saved caller pc)\n",
-              reinterpret_cast<uword>(fp + kKBCSavedCallerPcSlotFromFp),
-              fp[kKBCSavedCallerPcSlotFromFp]);
-    if (is_entry_frame) break;
-    THR_Print("  %#" Px ": %#" Px " (caller pc)\n",
-              reinterpret_cast<uword>(fp + kKBCPcMarkerSlotFromFp),
-              fp[kKBCPcMarkerSlotFromFp]);
-    THR_Print("  %#" Px ": %#" Px " (called function)\n",
-              reinterpret_cast<uword>(fp + kKBCFunctionSlotFromFp),
-              fp[kKBCFunctionSlotFromFp]);
-    sp = fp + kKBCCallerSpSlotFromFp;
-    fp = reinterpret_cast<const word*>(fp[kKBCSavedCallerFpSlotFromFp]);
-    THR_Print("\n");
+    // Stop iteration if we've hit the start of the stack.
+    if (reinterpret_cast<uword>(FP) == stack_base()) {
+      buffer.AddString("---------------stack start--------------\n");
+      break;
+    }
+
+    // Print the frame separator at the frame pointer, so the caller saved
+    // values are printed as part of the preceding frame.
+    buffer.Printf("-------------%s--------------\n",
+                  is_entry_frame ? "call boundary" : "-------------");
+
+    PrintStackSlot(zone, &buffer, FP + kKBCSavedCallerFpSlotFromFp,
+                   "saved caller fp");
+    PrintStackSlot(zone, &buffer, FP + kKBCSavedCallerPcSlotFromFp,
+                   "saved caller pc");
+    PrintStackSlot(zone, &buffer, FP + kKBCPcMarkerSlotFromFp, "bytecode",
+                   ObjectFormatter);
+    PrintStackSlot(zone, &buffer, FP + kKBCFunctionSlotFromFp, "function",
+                   ObjectFormatter);
+
+    // Calculate the next PC and SP _before_ FP.
+    pc = reinterpret_cast<const KBCInstr*>(
+        static_cast<uword>(FP[kKBCSavedCallerPcSlotFromFp]));
+    SP = FP + kKBCCallerSpSlotFromFp;
+    FP = reinterpret_cast<const ObjectPtr*>(
+        static_cast<uword>(FP[kKBCSavedCallerFpSlotFromFp]));
+
+    // Stop if the calculated SP underflows the stack.
+    if (!HasFrame(reinterpret_cast<uword>(SP))) {
+      buffer.AddString("----------------UNDERFLOW---------------\n");
+      break;
+    }
+    THR_Print("%s", buffer.buffer() + last_printed);
+    last_printed = buffer.length();
   }
+  THR_Print("%s", buffer.buffer() + last_printed);
 }
 
 #endif  // defined(DEBUG)
@@ -599,6 +722,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                                ObjectPtr** FP,
                                                ObjectPtr** SP) {
   ASSERT(Function::HasCode(function));
+  ASSERT(!Function::IsInterpreted(function));
   ASSERT(function->untag()->code() != StubCode::LazyCompile().ptr());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
@@ -759,7 +883,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
                                                  ObjectPtr* top,
                                                  const KBCInstr** pc,
                                                  ObjectPtr** FP,
-                                                 ObjectPtr** SP) {
+                                                 ObjectPtr** SP,
+                                                 bool check_dynamic_call) {
   ObjectPtr null_value = Object::null();
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
@@ -792,14 +917,32 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 
   if (target != Function::null()) {
     lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
-    top[0] = target;
-    return Invoke(thread, call_base, top, pc, FP, SP);
+
+    if (check_dynamic_call) {
+      // Ensure the function can be called dynamically from a dynamic module.
+      // TODO(b/448095881): don't perform this check repeatedly, consider
+      // splitting the lookup-cache to separately track dynamic calls.
+      Zone* zone = thread->zone();
+      const Function& target_func = Function::Handle(zone, target);
+      if (!target_func.is_dynamically_callable() &&
+          !target_func.is_declared_in_bytecode()) {
+        target = Function::null();
+        top[4] = null_value;
+      }
+    }
+
+    if (target != Function::null()) {
+      top[0] = target;
+      return Invoke(thread, call_base, top, pc, FP, SP);
+    }
   }
 
-  // The miss handler should only fail to return a function in AOT mode,
-  // in which case we need to call DRT_InvokeNoSuchMethod, which
-  // walks the receiver appropriately in this case.
-#if defined(DART_PRECOMPILED_RUNTIME)
+  // Technically, the miss handler should only fail to return a function in AOT
+  // mode, in which case we need to call DRT_InvokeNoSuchMethod, which walks the
+  // receiver appropriately in this case.
+  //
+  // When a target is found, we may still reach this point in either AOT or JIT
+  // if the member is not dynamically-callable.
 
   // The receiver, name, and argument descriptor are already in the appropriate
   // places on the stack from the previous call.
@@ -841,9 +984,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     **SP = result;
     pp_ = InterpreterHelpers::FrameBytecode(*FP)->untag()->object_pool();
   }
-#else
-  UNREACHABLE();
-#endif
 
   return true;
 }
@@ -1263,11 +1403,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
     TypeArgumentsPtr delayed_function_type_arguments;
     if (cid == kClosureCid) {
       ClosurePtr closure = static_cast<ClosurePtr>(instance);
-      instance_type_arguments = closure->untag()->instantiator_type_arguments();
+      instance_type_arguments = Closure::instantiator_type_arguments(closure);
       parent_function_type_arguments =
-          closure->untag()->function_type_arguments();
+          Closure::function_type_arguments(closure);
       delayed_function_type_arguments =
-          closure->untag()->delayed_type_arguments();
+          Closure::delayed_type_arguments(closure);
       instance_cid_or_function =
           closure->untag()->function()->untag()->signature();
     } else {
@@ -1656,10 +1796,14 @@ bool Interpreter::AllocateContext(Thread* thread,
 // Allocate a _Closure and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateClosure(Thread* thread,
+                                  FunctionPtr function,
+                                  SmiPtr length_and_flags,
                                   const KBCInstr* pc,
                                   ObjectPtr* FP,
                                   ObjectPtr* SP) {
-  const intptr_t instance_size = Closure::InstanceSize();
+  const intptr_t length =
+      UntaggedClosure::LengthBits::decode(Smi::Value(length_and_flags));
+  const intptr_t instance_size = Closure::InstanceSize(length);
   ClosurePtr result;
   if (TryAllocate(thread, kClosureCid, instance_size,
                   reinterpret_cast<ObjectPtr*>(&result))) {
@@ -1668,15 +1812,21 @@ bool Interpreter::AllocateClosure(Thread* thread,
                              Closure::ContainsCompressedPointers(),
                              Object::from_offset<Closure>(),
                              Object::to_offset<Closure>());
+    result->untag()->set_function(function);
+    ONLY_IN_PRECOMPILED(result->untag()->entry_point_ =
+                            function->untag()->entry_point_);
+    result->untag()->set_length_and_flags(length_and_flags);
+    result->untag()->set_hash(Smi::New(0));
     SP[0] = result;
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
-    SP[1] = thread->isolate_group()->object_store()->closure_class();
-    SP[2] = Object::null();  // Type arguments.
-    Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP);
-    return InvokeRuntime(thread, this, DRT_AllocateObject, args);
+    SP[1] = function;
+    SP[2] = length_and_flags;
+    SP[3] = Object::null();  // Context.
+    Exit(thread, FP, SP + 4, pc);
+    NativeArguments args(thread, 3, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateClosure, args);
   }
 }
 
@@ -2351,8 +2501,11 @@ SwitchDispatchNoSingleStep:
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       StringPtr target_name = String::RawCast(LOAD_CONSTANT(kidx));
       argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
-      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                        &SP)) {
+
+      // TODO(b/448095881): track when caller is declared in a dynamic module.
+      bool caller_in_dynamic_module = FLAG_check_dynamic_calls;
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP, &SP,
+                        /*check_dynamic_call=*/caller_in_dynamic_module)) {
         HANDLE_EXCEPTION;
       }
       CHECK_SINGLE_STEPPING;
@@ -3371,28 +3524,89 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(AllocateClosure, 0);
-    ++SP;
-    if (!AllocateClosure(thread, pc, FP, SP)) {
-      HANDLE_EXCEPTION;
-    }
-    ClosurePtr closure = Closure::RawCast(SP[0]);
-    FunctionPtr function = Function::RawCast(SP[-3]);
-    ObjectPtr context = SP[-2];
-    TypeArgumentsPtr instantiator_type_arguments =
-        TypeArguments::RawCast(SP[-1]);
-
+    BYTECODE(AllocateClosure, D);
+    FunctionPtr function = Function::RawCast(LOAD_CONSTANT(rD));
     ASSERT((Function::KindOf(function) == UntaggedFunction::kClosureFunction) ||
            (Function::KindOf(function) ==
             UntaggedFunction::kImplicitClosureFunction));
-    closure->untag()->set_function(function);
-    ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
-                            function->untag()->entry_point_);
-    closure->untag()->set_context(context);
-    closure->untag()->set_instantiator_type_arguments(
-        instantiator_type_arguments);
-    SP -= 3;
-    SP[0] = closure;
+    SmiPtr length_and_flags = Smi::RawCast(LOAD_CONSTANT(rD + 1));
+    ++SP;
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadClosureElement, D);
+    ClosurePtr instance = Closure::RawCast(SP[0]);
+    ASSERT((0 <= rD) && (rD < UntaggedClosure::LengthBits::decode(Smi::Value(
+                                  instance->untag()->length_and_flags()))));
+    SP[0] = instance->untag()->element(rD);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreClosureElement, D);
+    ClosurePtr instance = Closure::RawCast(SP[-1]);
+    ObjectPtr value = static_cast<ObjectPtr>(SP[0]);
+    ASSERT((0 <= rD) && (rD < UntaggedClosure::LengthBits::decode(Smi::Value(
+                                  instance->untag()->length_and_flags()))));
+    instance->untag()->set_element(rD, value);
+    SP -= 2;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(RecordCoverage, A_E);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    // rA contains the type of the recorded coverage so the runtime can check
+    // if it is enabled even if the coverage array has not yet been allocated.
+    const bool is_branch = static_cast<bytecode::RecordedCoverageType>(rA) ==
+                           bytecode::RecordedCoverageType::kBranchTarget;
+    const bool coverage_enabled =
+        is_branch ? thread->isolate_group()->branch_coverage()
+                  : thread->isolate_group()->coverage();
+
+    if (coverage_enabled) {
+      TypedDataPtr coverage_array =
+          Function::GetBytecode(FrameFunction(FP))->untag()->coverage_array();
+
+      if (coverage_array == TypedData::null()) [[unlikely]] {
+        SP[1] = Object::null();  // Allocate stack space for result.
+        SP[2] = Function::GetBytecode(FrameFunction(FP));
+        Exit(thread, FP, SP + 3, pc);
+        INVOKE_RUNTIME(DRT_AllocateBytecodeCoverageArray,
+                       NativeArguments(thread, 1, SP + 2, SP + 1));
+        ASSERT(Bytecode::RawCast(SP[2])->untag()->coverage_array() ==
+               TypedData::RawCast(SP[1]));
+
+        coverage_array = TypedData::RawCast(SP[1]);
+      }
+      ASSERT(coverage_array != TypedData::null());
+      auto* const entries =
+          reinterpret_cast<uint32_t*>(coverage_array->untag()->data());
+
+      // The index in rE is a logical index into the (position, count) pairs.
+      ASSERT(Smi::Value(coverage_array->untag()->length()) % 2 == 0);
+      const intptr_t position_index = 2 * rE;
+      const intptr_t count_index = position_index + 1;
+
+#if defined(DEBUG)
+      // Double-check that the coverage type in the instruction is a branch
+      // target iff the encoded position is a branch target.
+      bool is_encoded_branch = false;
+      const intptr_t encoded = entries[position_index];
+      TokenPosition::DecodeCoveragePosition(encoded, &is_encoded_branch);
+      ASSERT_EQUAL(is_branch, is_encoded_branch);
+#else
+      USE(position_index);
+#endif
+
+      entries[count_index] = 1;
+    }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
     DISPATCH();
   }
 
@@ -3713,34 +3927,87 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(VMInternal_MethodExtractor, 0);
+    BYTECODE(VMInternal_MethodExtractorWithITA, 0);
 
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) == UntaggedFunction::kMethodExtractor);
     function = Function::RawCast(function->untag()->data());
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
-
     ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
+    const bool has_delayed_type_args =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters() != TypeParameters::null();
+    const bool has_instantiator_type_args = true;
+    const bool has_function_type_args = false;
+    const intptr_t length =
+        UntaggedClosure::ContextIndex(has_delayed_type_args,
+                                      has_instantiator_type_args,
+                                      has_function_type_args) +
+        1;
+    SmiPtr length_and_flags = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
+        has_delayed_type_args, has_instantiator_type_args,
+        has_function_type_args, length));
 
     ++SP;
-    if (!AllocateClosure(thread, pc, FP, SP)) {
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
 
+    ClosurePtr closure = Closure::RawCast(SP[0]);
     InstancePtr instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    intptr_t index = 0;
+    if (has_delayed_type_args) {
+      closure->untag()->set_element(index++,
+                                    Object::empty_type_arguments().ptr());
+    }
+    closure->untag()->set_element(
+        index++, InterpreterHelpers::GetTypeArguments(thread, instance));
+    closure->untag()->set_element(index++, instance);
+    ASSERT(index == length);
 
-    ClosurePtr closure = Closure::RawCast(*SP);
-    closure->untag()->set_instantiator_type_arguments(
-        InterpreterHelpers::GetTypeArguments(thread, instance));
-    // function_type_arguments is already null
-    closure->untag()->set_delayed_type_arguments(
-        Object::empty_type_arguments().ptr());
-    closure->untag()->set_function(function);
-    ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
-                            function->untag()->entry_point_);
-    closure->untag()->set_context(instance);
-    // hash is already null
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_MethodExtractorWithoutITA, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kMethodExtractor);
+    function = Function::RawCast(function->untag()->data());
+    ASSERT(Function::KindOf(function) ==
+           UntaggedFunction::kImplicitClosureFunction);
+    ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
+    const bool has_delayed_type_args =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters() != TypeParameters::null();
+    const bool has_instantiator_type_args = false;
+    const bool has_function_type_args = false;
+    const intptr_t length =
+        UntaggedClosure::ContextIndex(has_delayed_type_args,
+                                      has_instantiator_type_args,
+                                      has_function_type_args) +
+        1;
+    SmiPtr length_and_flags = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
+        has_delayed_type_args, has_instantiator_type_args,
+        has_function_type_args, length));
+
+    ++SP;
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    ClosurePtr closure = Closure::RawCast(SP[0]);
+    InstancePtr instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    intptr_t index = 0;
+    if (has_delayed_type_args) {
+      closure->untag()->set_element(index++,
+                                    Object::empty_type_arguments().ptr());
+    }
+    closure->untag()->set_element(index++, instance);
+    ASSERT(index == length);
 
     DISPATCH();
   }
@@ -4016,9 +4283,7 @@ SwitchDispatchNoSingleStep:
       }
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          Closure::RawCast(argv[receiver_idx])
-              ->untag()
-              ->delayed_type_arguments();
+          Closure::delayed_type_arguments(Closure::RawCast(argv[receiver_idx]));
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;
@@ -4080,7 +4345,7 @@ SwitchDispatchNoSingleStep:
       }
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          closure->untag()->delayed_type_arguments();
+          Closure::delayed_type_arguments(closure);
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;
@@ -4091,7 +4356,7 @@ SwitchDispatchNoSingleStep:
         *++SP = delayed_type_arguments;
         ObjectPtr* call_base = SP;
         // Captured receiver.
-        *++SP = closure->untag()->context();
+        *++SP = Closure::RawContextOf(closure);
         // Copy the rest of the arguments.
         for (intptr_t i = receiver_idx + 1; i < argc; i++) {
           *++SP = argv[i];
@@ -4121,7 +4386,7 @@ SwitchDispatchNoSingleStep:
 
     // Replace closure receiver with captured receiver
     // and call target function.
-    argv[receiver_idx] = closure->untag()->context();
+    argv[receiver_idx] = Closure::RawContextOf(closure);
     SP[1] = target;
 
     goto TailCallSP1;
@@ -4167,9 +4432,7 @@ SwitchDispatchNoSingleStep:
       type_args = TypeArguments::null();
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          Closure::RawCast(argv[receiver_idx])
-              ->untag()
-              ->delayed_type_arguments();
+          Closure::delayed_type_arguments(Closure::RawCast(argv[receiver_idx]));
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;

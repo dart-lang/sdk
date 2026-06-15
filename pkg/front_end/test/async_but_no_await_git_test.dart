@@ -107,7 +107,7 @@ api.CompilerOptions getOptions() {
 }
 
 class TestVmTarget extends VmTarget with NoTransformationsMixin {
-  TestVmTarget(TargetFlags flags) : super(flags);
+  new(TargetFlags flags) : super(flags);
 }
 
 mixin NoTransformationsMixin on Target {

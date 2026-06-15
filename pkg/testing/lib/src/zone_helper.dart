@@ -75,8 +75,9 @@ Future runGuarded(
       errorPort.close();
       Isolate.current.setErrorsFatal(true);
       Isolate.current.removeErrorListener(errorPort.sendPort);
-      return acknowledgeControlMessages(Isolate.current)
-          .then((_) => errorFuture);
+      return acknowledgeControlMessages(
+        Isolate.current,
+      ).then((_) => errorFuture);
     });
   });
 }

@@ -18,44 +18,35 @@ class OmitObviousLocalVariableTypesTest extends LintRuleTest {
   String get lintRule => LintNames.omit_obvious_local_variable_types;
 
   test_as() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  int i = n as int;
+  [!int!] i = n as int;
 }
 
 num n = 1;
-''',
-      [lint(8, 3)],
-    );
+''');
   }
 
   test_as_dynamic() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  dynamic i = n as dynamic;
+  [!dynamic!] i = n as dynamic;
 }
 
 num n = 1;
-''',
-      [lint(8, 7)],
-    );
+''');
   }
 
   test_cascade() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  A a = A()..x..x..x;
+  [!A!] a = A()..x..x..x;
 }
 
 class A {
   final x = 0;
 }
-''',
-      [lint(8, 1)],
-    );
+''');
   }
 
   test_cascade_dotShorthand() async {
@@ -79,14 +70,11 @@ f() {
   }
 
   test_forEach_inferredList() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  for (String s in ['a', 'b', 'c']) { }
+  for ([!String!] s in ['a', 'b', 'c']) { }
 }
-''',
-      [lint(13, 6)],
-    );
+''');
   }
 
   test_forEach_inferredList_dotShorthands() async {
@@ -126,14 +114,11 @@ var list = [1, -2, 3];
   }
 
   test_forEach_typedList() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  for (int i in <int>[1, -2, 3]) { }
+  for ([!int!] i in <int>[1, -2, 3]) { }
 }
-''',
-      [lint(13, 3)],
-    );
+''');
   }
 
   test_genericInvocation_paramIsType() async {
@@ -170,16 +155,13 @@ String f() {
   }
 
   test_instanceCreation_generic() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  A<int> a = A<int>();
+  [!A<int>!] a = A<int>();
 }
 
 class A<X> {}
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_instanceCreation_generic_ok() async {
@@ -193,16 +175,13 @@ class A<X> {}
   }
 
   test_instanceCreation_nonGeneric() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  A a = A();
+  [!A!] a = A();
 }
 
 class A {}
-''',
-      [lint(8, 1)],
-    );
+''');
   }
 
   test_instanceCreation_nonGeneric_dotShorthand() async {
@@ -216,14 +195,11 @@ class A {}
   }
 
   test_list() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  List<String> a = ['a', 'b', ('c' as dynamic) as String];
+  [!List<String>!] a = ['a', 'b', ('c' as dynamic) as String];
 }
-''',
-      [lint(8, 12)],
-    );
+''');
   }
 
   test_list_dotShorthand() async {
@@ -256,25 +232,19 @@ List<X> foo<X>(X x) => [x];
   }
 
   test_literal_bool() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  bool b = true;
+  [!bool!] b = true;
 }
-''',
-      [lint(8, 4)],
-    );
+''');
   }
 
   test_literal_double() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  double d = 1.5;
+  [!double!] d = 1.5;
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   // The type is not obvious.
@@ -287,14 +257,11 @@ f() {
   }
 
   test_literal_int() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  int i = 1;
+  [!int!] i = 1;
 }
-''',
-      [lint(8, 3)],
-    );
+''');
   }
 
   // `Null` is not obvious, the inferred type is `dynamic`.
@@ -307,36 +274,27 @@ f() {
   }
 
   test_literal_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  String s = "A string";
+  [!String!] s = "A string";
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_literal_symbol() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  Symbol s = #print;
+  [!Symbol!] s = #print;
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_local_multiple() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  String a = 'a', b = 'b';
+  [!String!] a = 'a', b = 'b';
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_local_multiple_ok() async {
@@ -348,14 +306,11 @@ f() {
   }
 
   test_map() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  Map<double, String> a = {1.5: 'a'};
+  [!Map<double, String>!] a = {1.5: 'a'};
 }
-''',
-      [lint(8, 19)],
-    );
+''');
   }
 
   test_map_ok1() async {
@@ -395,27 +350,21 @@ var b = 'b';
   }
 
   test_parameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int parameter) {
-  int i = parameter;
+  [!int!] i = parameter;
 }
-''',
-      [lint(26, 3)],
-    );
+''');
   }
 
   test_parameter_of_literal() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Function f() {
   return (int parameter) {
-    int i = parameter;
+    [!int!] i = parameter;
   };
 }
-''',
-      [lint(46, 3)],
-    );
+''');
   }
 
   /// Types are considered an important part of the pattern so we
@@ -454,6 +403,22 @@ f(Object o) {
   switch (o) {
     case (int x, String s):
   }
+}
+''');
+  }
+
+  test_recordLiteral_namedFields() async {
+    await assertNoDiagnostics(r'''
+f() {
+  ({String path}) main = (path: 'main.dart');
+}
+''');
+  }
+
+  test_recordLiteral_positionalFields() async {
+    await assertDiagnosticsFromMarkdown(r'''
+f() {
+  [!(int, String)!] main = (1, 'a');
 }
 ''');
   }

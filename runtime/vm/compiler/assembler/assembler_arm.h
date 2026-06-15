@@ -1098,6 +1098,13 @@ class Assembler : public AssemblerBase {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
 
+  void ExtractBitField(Register dst,
+                       Register src,
+                       intptr_t low_bit,
+                       intptr_t width) override {
+    ubfx(dst, src, low_bit, width);
+  }
+
   void ExtractClassIdFromTags(Register result,
                               Register tags,
                               Condition cond = AL);

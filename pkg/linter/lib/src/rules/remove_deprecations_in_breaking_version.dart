@@ -24,7 +24,7 @@ bool isBreakingVersion(Version version) =>
         (version.major == 0 && version.patch == 0));
 
 class RemoveDeprecationsInBreakingVersion extends AnalysisRule {
-  RemoveDeprecationsInBreakingVersion()
+  new()
     : super(
         name: LintNames.remove_deprecations_in_breaking_versions,
         description: _desc,
@@ -63,7 +63,7 @@ class RemoveDeprecationsInBreakingVersion extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitAnnotation(Annotation node) {

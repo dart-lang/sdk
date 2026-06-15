@@ -220,7 +220,6 @@ Future<void> runTests<T>(
 
 void checkHeader(StackTraceHeader header) {
   // These should be all available.
-  expect(header.vmStart, isNotNull);
   expect(header.isolateStart, isNotNull);
   expect(header.isolateDsoBase, isNotNull);
   expect(header.buildId, isNotNull);
@@ -325,7 +324,7 @@ void checkAllocateObjectOffset(
       callInfo != null &&
       callInfo.length == 1 &&
       callInfo.single is StubCallInfo &&
-      (callInfo.single as StubCallInfo).name.endsWith('AllocateObjectStub');
+      (callInfo.single as StubCallInfo).name.endsWith('stub AllocateObject');
   expect(
     got,
     equals(expectedValue),

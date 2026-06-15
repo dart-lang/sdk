@@ -30,7 +30,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   final List<ClassMember> _delayedMemberComputations = <ClassMember>[];
 
-  ClassMembersBuilder(this.hierarchyBuilder);
+  new(this.hierarchyBuilder);
 
   void clear() {
     classNodes.clear();
@@ -293,6 +293,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 }
 
-int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
+int compareNamedParameters(Variable a, Variable b) {
   return a.name!.compareTo(b.name!);
 }

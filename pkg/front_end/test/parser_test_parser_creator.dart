@@ -73,7 +73,7 @@ class TestParser extends Parser {
   final bool trace;
   bool _inhibitPrinting = false;
 
-  TestParser(Listener listener, this.trace,
+  new(Listener listener, this.trace,
       {required ExperimentalFeatures experimentalFeatures})
       : super(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -135,13 +135,12 @@ class ParserCreatorListener extends Listener {
   List<String> parameters = [];
   List<String?> parametersNamed = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,

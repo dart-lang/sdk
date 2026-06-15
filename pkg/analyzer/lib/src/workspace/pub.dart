@@ -212,9 +212,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     this.packageConfigFile,
   ) {
     _packageConfigContent = packageConfigFile.readAsStringSync();
-    var pubspecFile = provider
-        .getFolder(root)
-        .getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = provider.getFolder(root).getFile(file_paths.pubspecYaml);
     if (pubspecFile.exists) {
       var pubspec = Pubspec.parse(
         pubspecFile.readAsStringSync(),
@@ -340,7 +338,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
         }
         return package;
       }
-      var pubspec = current.getChildAssumingFile(file_paths.pubspecYaml);
+      var pubspec = current.getFile(file_paths.pubspecYaml);
       if (pubspec.exists) {
         if (_isInThirdPartyDart(pubspec)) {
           return null;
@@ -385,8 +383,8 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     var start = provider.getFolder(filePath);
     for (var current in start.withAncestors) {
       var packageConfigFile = current
-          .getChildAssumingFolder(file_paths.dotDartTool)
-          .getChildAssumingFile(file_paths.packageConfigJson);
+          .getFolder(file_paths.dotDartTool)
+          .getFile(file_paths.packageConfigJson);
       if (packageConfigFile.exists) {
         var root = current.path;
         return PackageConfigWorkspace(
@@ -493,6 +491,19 @@ class PubPackage extends WorkspacePackageImpl {
     return _sdkVersionConstraint;
   }
 
+  Folder? get _generatedPackageRoot {
+    var packageName = _name;
+    if (packageName == null) {
+      return null;
+    }
+
+    var generatedRoot = _generatedPathParts.fold(root, (current, segment) {
+      return current.getFolder(segment);
+    });
+
+    return generatedRoot.getFolder(packageName);
+  }
+
   @override
   bool contains(Source source) {
     var uri = source.uri;
@@ -513,7 +524,13 @@ class PubPackage extends WorkspacePackageImpl {
 
   @override
   bool isInTestDirectory(File file) {
-    return root.getChildAssumingFolder('test').contains(file.path);
+    if (super.isInTestDirectory(file)) {
+      return true;
+    }
+
+    var generatedPackageRoot = _generatedPackageRoot;
+    return generatedPackageRoot != null &&
+        isInTestDirectoryUnder(generatedPackageRoot, file);
   }
 
   @override
@@ -530,27 +547,24 @@ class PubPackage extends WorkspacePackageImpl {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = root.getChildAssumingFolder('lib');
-    if (libFolder.contains(filePath)) {
+
+    bool sourceIsInPublicApiUnder(Folder root, String filePath) {
+      var libFolder = root.getFolder('lib');
+      if (!libFolder.contains(filePath)) {
+        return false;
+      }
+
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      var libSrcFolder = libFolder.getFolder('src');
       return !libSrcFolder.contains(filePath);
     }
 
-    Folder intermediateFolder = root;
-    for (String part in _generatedPathParts) {
-      intermediateFolder = intermediateFolder.getChildAssumingFolder(part);
+    if (sourceIsInPublicApiUnder(root, filePath)) {
+      return true;
     }
-    libFolder = intermediateFolder
-        .getChildAssumingFolder('test')
-        .getChildAssumingFolder('lib');
 
-    if (libFolder.contains(filePath)) {
-      // A file in "$generated/lib" is public iff it is not in
-      // "$generated/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
-      return !libSrcFolder.contains(filePath);
-    }
-    return false;
+    var generatedPackageRoot = _generatedPackageRoot;
+    return generatedPackageRoot != null &&
+        sourceIsInPublicApiUnder(generatedPackageRoot, filePath);
   }
 }

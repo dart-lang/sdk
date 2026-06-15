@@ -863,11 +863,11 @@ class BitsContainer : public ElfSection {
 
   // Returns the hash for the portion corresponding to symbol_name.
   // Returns 0 if the portion has no bytes or no portions have that name.
-  uint32_t Hash(const char* symbol_name) const {
+  uint64_t Hash(const char* symbol_name) const {
     for (const auto& portion : portions_) {
       if (strcmp(symbol_name, portion.symbol_name) == 0) {
         if (portion.bytes == nullptr) return 0;
-        const uint32_t hash = Utils::StringHash(portion.bytes, portion.size);
+        const uint64_t hash = Utils::StringHash64(portion.bytes, portion.size);
         // Ensure a non-zero return.
         return hash == 0 ? 1 : hash;
       }
@@ -1162,14 +1162,9 @@ void ElfWriter::CreateBSS() {
     const char* symbol_name;
     intptr_t label;
     // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kVmSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kVmEntryCount * compiler::target::kWordSize;
-      symbol_name = kVmSnapshotBssAsmSymbol;
-      label = kVmBssLabel;
-    } else if (strcmp(portion.symbol_name,
-                      kIsolateSnapshotInstructionsAsmSymbol) == 0) {
+    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
       size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kIsolateSnapshotBssAsmSymbol;
+      symbol_name = kSnapshotBssAsmSymbol;
       label = kIsolateBssLabel;
     } else {
       // Not VM or isolate text.
@@ -1711,15 +1706,13 @@ void ElfWriter::AssertConsistency(const ElfWriter* snapshot,
   FATAL("Mismatch between snapshot and debug info ELF was detected");
 }
 
-// For the build ID, we generate a 128-bit hash, where each 32 bits is a hash of
+// For the build ID, we generate a 128-bit hash, where each 64 bits is a hash of
 // the contents of the following segments in order:
 //
-// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
+// .text(Isolate) | .rodata(Isolate)
 static constexpr const char* kBuildIdSegmentNames[]{
-    kVmSnapshotInstructionsAsmSymbol,
-    kIsolateSnapshotInstructionsAsmSymbol,
-    kVmSnapshotDataAsmSymbol,
-    kIsolateSnapshotDataAsmSymbol,
+    kSnapshotTextAsmSymbol,
+    kSnapshotDataAsmSymbol,
 };
 static constexpr intptr_t kBuildIdSegmentNamesLength =
     ARRAY_SIZE(kBuildIdSegmentNames);
@@ -1730,7 +1723,7 @@ static constexpr intptr_t kBuildIdHeaderSize =
 void ElfWriter::GenerateBuildId() {
   // Not idempotent.
   ASSERT(section_table_->Find(kBuildIdNoteName) == nullptr);
-  uint32_t hashes[kBuildIdSegmentNamesLength];
+  uint64_t hashes[kBuildIdSegmentNamesLength];
   // Currently, we construct the build ID out of data from two different
   // sections: the .text section and the .rodata section.
   //

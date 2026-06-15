@@ -47,8 +47,7 @@ def BuildOptions():
                              default=200 if sys.platform == 'win32' else 400)
     other_group.add_argument("-l",
                              type=int,
-                             help='Ninja -l option for RBE builds.',
-                             default=64)
+                             help='Ninja -l option for RBE builds.')
     other_group.add_argument("--no-start-rbe",
                              help="Don't try to start rbe",
                              default=False,
@@ -177,7 +176,8 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
         if options.no_start_rbe or StartRBE(out_dir, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
-            command += [('-l%s' % str(options.l))]
+            if options.l:
+                command += [('-l%s' % str(options.l))]
         else:
             exit(1)
     command += targets
@@ -198,10 +198,10 @@ def RunOneBuildCommand(build_config, args, env):
     return 0
 
 
-def CheckCleanBuild(build_config, args, env):
-    args = args + ['-n', '-d', 'explain']
-    print(' '.join(args))
-    process = subprocess.Popen(args,
+def CheckCleanBuild(build_config, args, rbe, targets, env):
+    explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
+    print(' '.join(explain_args))
+    process = subprocess.Popen(explain_args,
                                env=env,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE,
@@ -209,10 +209,43 @@ def CheckCleanBuild(build_config, args, env):
     out, err = process.communicate()
     process.wait()
     if process.returncode != 0:
-        return 1
-    if 'ninja: no work to do' not in out.decode('utf-8'):
+        print(out.decode('utf-8'))
         print(err.decode('utf-8'))
         return 1
+    if 'ninja: no work to do' not in out.decode('utf-8'):
+        print(out.decode('utf-8'))
+        print(err.decode('utf-8'))
+        return 1
+
+    if rbe:
+        list_args = args[0:3] + ['-t', 'commands'] + targets
+        print(' '.join(list_args))
+        process = subprocess.Popen(list_args,
+                                   env=env,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   stdin=None)
+        out, err = process.communicate()
+        process.wait()
+        if process.returncode != 0:
+            print(out.decode('utf-8'))
+            print(err.decode('utf-8'))
+            return 1
+        bad_commands = []
+        working_dir = os.getcwd()
+        for command in out.decode('utf-8').splitlines():
+            if working_dir in command:
+                bad_commands.append(command)
+        if len(bad_commands) != 0:
+            print("""\
+
+error: Working directory found in build commands.
+Usually this means you forgot to use rebase_path(arg, root_build_dir) when passing arguments to a command.
+
+bad commands:""")
+            for command in bad_commands:
+                print(command)
+            return 1
 
     return 0
 
@@ -265,7 +298,11 @@ def Build(configs, env, options):
 
     if options.check_clean:
         for (build_config, args, rbe) in configs:
-            if CheckCleanBuild(build_config, args, env=env) != 0:
+            if CheckCleanBuild(build_config,
+                               args,
+                               rbe,
+                               options.build_targets,
+                               env=env) != 0:
                 return 1
 
     return 0

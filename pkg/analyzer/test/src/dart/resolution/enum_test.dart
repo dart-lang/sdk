@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,15 +17,234 @@ main() {
 
 @reflectiveTest
 class EnumDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_constant_argumentList_functionExpression_flowAnalysis() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v(() {
+// [diag.constWithNonConstantArgument][column 5][length 69] Arguments of a constant creation must be constant expressions.
+    Object? x = 0;
+    if (x is int) {
+      x.isEven;
+    }
+  });
+
+  final void Function() f;
+  const E(this.f);
+}
+''');
+  }
+
+  test_constant_augmentation_add() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v1
+}
+
+augment enum A {
+  v2
+}
+
+void f() {
+  A.v2;
+}
+''');
+
+    assertResolvedNodeText(result.unit, r'''
+CompilationUnit
+  declarations
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@36
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A
+                    element: <testLibrary>::@enum::A
+                    staticType: null
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: v2
+                    element: <testLibrary>::@enum::A::@getter::v2
+                    staticType: A
+                  element: <testLibrary>::@enum::A::@getter::v2
+                  staticType: A
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> f@47
+          element: <testLibrary>::@function::f
+            type: void Function()
+        staticType: void Function()
+      declaredFragment: <testLibraryFragment> f@47
+        element: <testLibrary>::@function::f
+          type: void Function()
+''');
+  }
+
+  test_constant_augmentation_valuesGetter_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v1
+}
+
+augment enum A {;
+  static int get values => 0;
+//               ^^^^^^
+// [diag.valuesDeclarationInEnum] A member named 'values' can't be declared in an enum.
+}
+
+augment enum A {
+  v2
+}
+
+void f() {
+  A.values;
+}
+''');
+
+    assertResolvedNodeText(result.unit, r'''
+CompilationUnit
+  declarations
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        semicolon: ;
+        members
+          MethodDeclaration
+            modifierKeyword: static
+            returnType: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            propertyKeyword: get
+            name: values
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+                staticType: int
+              semicolon: ;
+            declaredFragment: <testLibraryFragment> values@52
+              element: <testLibrary>::@enum::A::@getter::values#1
+                type: int Function()
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@87
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@81
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A
+                    element: <testLibrary>::@enum::A
+                    staticType: null
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: values
+                    element: <testLibrary>::@enum::A::@getter::values
+                    staticType: List<A>
+                  element: <testLibrary>::@enum::A::@getter::values
+                  staticType: List<A>
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> f@98
+          element: <testLibrary>::@function::f
+            type: void Function()
+        staticType: void Function()
+      declaredFragment: <testLibraryFragment> f@98
+        element: <testLibrary>::@function::f
+          type: void Function()
+''');
+  }
+
   test_constructor_argumentList_contextType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v([]);
   const E(List<int> a);
 }
 ''');
 
-    var node = findNode.listLiteral('[]');
+    var node = result.findNode.listLiteral('[]');
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -37,14 +255,14 @@ ListLiteral
   }
 
   test_constructor_argumentList_namedType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(<void Function(double)>[]);
   const E(Object a);
 }
 ''');
 
-    var node = findNode.genericFunctionType('Function');
+    var node = result.findNode.genericFunctionType('Function');
     assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
@@ -76,14 +294,14 @@ GenericFunctionType
   }
 
   test_constructor_generic_noTypeArguments_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v.named(42);
   const E.named(T a);
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v.');
+    var node = result.findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -112,14 +330,14 @@ EnumConstantDeclaration
   }
 
   test_constructor_generic_noTypeArguments_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v(42);
   const E(T a);
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v(');
+    var node = result.findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -142,14 +360,14 @@ EnumConstantDeclaration
   }
 
   test_constructor_generic_typeArguments_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v<double>.named(42);
   const E.named(T a);
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v<');
+    var node = result.findNode.enumConstantDeclaration('v<');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -185,15 +403,62 @@ EnumConstantDeclaration
 ''');
   }
 
+  test_constructor_newHead_unnamed() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+
+    var node = result.findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+
+    var node = result.findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+''');
+  }
+
   test_constructor_notGeneric_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named(42);
   const E.named(int a);
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v.');
+    var node = result.findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -218,14 +483,14 @@ EnumConstantDeclaration
   }
 
   test_constructor_notGeneric_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(42);
   const E(int a);
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v(');
+    var node = result.findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -244,13 +509,13 @@ EnumConstantDeclaration
   }
 
   test_constructor_notGeneric_unnamed_implicit() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v
 }
 ''');
 
-    var node = findNode.enumConstantDeclaration('v\n');
+    var node = result.findNode.enumConstantDeclaration('v\n');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -260,17 +525,16 @@ EnumConstantDeclaration
   }
 
   test_constructor_unresolved_named() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named(42);
+//  ^^^^^
+// [diag.undefinedEnumConstructorNamed] The enum doesn't have a constructor named 'named'.
   const E(int a);
 }
-''',
-      [error(diag.undefinedEnumConstructorNamed, 13, 5)],
-    );
+''');
 
-    var node = findNode.enumConstantDeclaration('v.');
+    var node = result.findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -295,17 +559,16 @@ EnumConstantDeclaration
   }
 
   test_constructor_unresolved_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(42);
+//^
+// [diag.undefinedEnumConstructorUnnamed] The enum doesn't have an unnamed constructor.
   const E.named(int a);
 }
-''',
-      [error(diag.undefinedEnumConstructorUnnamed, 11, 1)],
-    );
+''');
 
-    var node = findNode.enumConstantDeclaration('v(');
+    var node = result.findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -324,14 +587,13 @@ EnumConstantDeclaration
   }
 
   test_emptyBody() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E;
-''',
-      [error(diag.enumWithoutConstants, 5, 1)],
-    );
+//   ^
+// [diag.enumWithoutConstants] The enum must have at least one enum constant.
+''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -344,17 +606,16 @@ EnumDeclaration
   }
 
   test_emptyBody_language310() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 enum E;
-''';
+//   ^
+// [diag.enumWithoutConstants] The enum must have at least one enum constant.
+//    ^
+// [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
+''');
 
-    await assertErrorsInCode(code, [
-      error(diag.enumWithoutConstants, 21, 1),
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
-    ]);
-
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -367,14 +628,14 @@ EnumDeclaration
   }
 
   test_field() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final foo = 42;
 }
 ''');
 
-    var node = findNode.fieldDeclaration('foo =');
+    var node = result.findNode.fieldDeclaration('foo =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -393,14 +654,14 @@ FieldDeclaration
   }
 
   test_getter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v;
   T get foo => throw 0;
 }
 ''');
 
-    var node = findNode.methodDeclaration('get foo');
+    var node = result.findNode.methodDeclaration('get foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -425,26 +686,26 @@ MethodDeclaration
   }
 
   test_inference_listLiteral() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E1 {a, b}
 enum E2 {a, b}
 
 var v = [E1.a, E2.b];
 ''');
 
-    var v = findElement2.topVar('v');
+    var v = result.findElement.topVar('v');
     assertType(v.type, 'List<Enum>');
   }
 
   test_interfaces() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {}
 enum E implements I {
   v;
 }
 ''');
 
-    var node = findNode.implementsClause('implements');
+    var node = result.findNode.implementsClause('implements');
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -457,27 +718,27 @@ ImplementsClause
   }
 
   test_isEnumConstant() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
 ''');
 
-    expect(findElement2.field('a').isEnumConstant, isTrue);
-    expect(findElement2.field('b').isEnumConstant, isTrue);
+    expect(result.findElement.field('a').isEnumConstant, isTrue);
+    expect(result.findElement.field('b').isEnumConstant, isTrue);
 
-    expect(findElement2.field('values').isEnumConstant, isFalse);
+    expect(result.findElement.field('values').isEnumConstant, isFalse);
   }
 
   test_method() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v;
   int foo<U>(T t, U u) => 0;
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -527,14 +788,14 @@ MethodDeclaration
   }
 
   test_method_toString() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   String toString() => 'E';
 }
 ''');
 
-    var node = findNode.methodDeclaration('toString()');
+    var node = result.findNode.methodDeclaration('toString()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -557,14 +818,14 @@ MethodDeclaration
   }
 
   test_mixins() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 enum E with M {
   v;
 }
 ''');
 
-    var node = findNode.withClause('with M');
+    var node = result.findNode.withClause('with M');
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -577,7 +838,7 @@ WithClause
   }
 
   test_mixins_inference() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M1<T> {}
 mixin M2<T> on M1<T> {}
 enum E with M1<int>, M2 {
@@ -585,7 +846,7 @@ enum E with M1<int>, M2 {
 }
 ''');
 
-    var node = findNode.withClause('with');
+    var node = result.findNode.withClause('with');
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -610,13 +871,11 @@ WithClause
   }
 
   test_nameWithTypeParameters_hasTypeParameters() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A<T extends int> {v}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -650,13 +909,11 @@ EnumDeclaration
   }
 
   test_nameWithTypeParameters_noTypeParameters() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A {v}
-''';
+''');
 
-    await assertNoErrorsInCode(code);
-
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -675,11 +932,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A({final int a = 0}) { v(a: 1) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -718,14 +975,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 1
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -738,11 +991,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A({required final int a}) { v(a: 0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -777,14 +1030,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 0
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -797,12 +1046,12 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(final int a(String x)) { v(foo) }
 int foo(String _) => 0;
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -861,11 +1110,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(final int a) { v(0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -910,14 +1159,14 @@ EnumDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int this.a) {
   v(0);
   final int a;
 }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -978,7 +1227,7 @@ EnumDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 enum A(@foo int x) {
   v(0);
@@ -986,7 +1235,7 @@ enum A(@foo int x) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -1017,17 +1266,16 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_type() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int x) {
+//     ^^^
+// [diag.notAType] int isn't a type.
   v(0);
   static const String int = '';
 }
-''',
-      [error(diag.notAType, 7, 3)],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -1050,11 +1298,11 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A<T>.named(T t) { v.named(0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -1118,11 +1366,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A<T>(T t) { v(0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -1177,11 +1425,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A.named(int a) { v.named(0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -1233,11 +1481,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int a) { v(0) }
 ''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -1280,7 +1528,7 @@ EnumDeclaration
   }
 
   test_primaryConstructor_scopes() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 enum A<@foo T>([@foo int x = foo]) {
   v;
@@ -1288,7 +1536,7 @@ enum A<@foo T>([@foo int x = foo]) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -1343,13 +1591,13 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T extends U, U extends num>(T t, U u) {
   v(0, 0);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: E
@@ -1403,25 +1651,23 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(bool x, bool y) {
   v(true, true);
   this : assert(x) {
+//                 ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
     y;
   }
   this : assert(!x) {
+//^^^^
+// [diag.multiplePrimaryConstructorBodyDeclarations] Only one primary constructor body declaration is allowed.
     !y;
   }
 }
-''',
-      [
-        error(diag.constPrimaryConstructorWithBlockBody, 61, 1),
-        error(diag.multiplePrimaryConstructorBodyDeclarations, 76, 4),
-      ],
-    );
+''');
 
-    var node = findNode.singleEnumDeclaration;
+    var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
@@ -1533,7 +1779,7 @@ EnumDeclaration
   }
 
   test_primaryConstructorBody_metadata() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E(int a) {
   v(0);
   @deprecated
@@ -1541,7 +1787,7 @@ enum E(int a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1559,18 +1805,17 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_metadata_noDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   @deprecated
   this;
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 }
-''',
-      [error(diag.primaryConstructorBodyWithoutDeclaration, 30, 4)],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1588,23 +1833,22 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_noDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A/*(bool x, int y)*/ {
   v();
   this : assert(x) {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+//              ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
     y;
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'y'.
   }
 }
-''',
-      [
-        error(diag.primaryConstructorBodyWithoutDeclaration, 37, 4),
-        error(diag.undefinedIdentifier, 51, 1),
-        error(diag.undefinedIdentifier, 60, 1),
-      ],
-    );
+''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1633,14 +1877,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_optionalNamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A({final x = false}) {
   v(x: true);
   this : assert(x);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1660,14 +1904,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_requiredPositional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(final bool a) {
   v(true);
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1687,7 +1931,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(this.x) {
   v(true);
   final bool x;
@@ -1695,7 +1939,7 @@ enum A(this.x) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1715,14 +1959,14 @@ PrimaryConstructorBody
   }
 
   test_primaryInitializerScope_fieldInitializer_instance() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {
   v(0);
   final bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1742,14 +1986,14 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(final int foo) {
   v(0);
   final bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1769,21 +2013,20 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {
+//   ^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'bar' is initialized with a non-constant value.
   v(0);
   late final bar = foo;
+//^^^^
+// [diag.lateFinalFieldWithConstConstructor] Can't have a late final field in a class with a generative const constructor.
+//                 ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
-''',
-      [
-        error(diag.constConstructorWithFieldInitializedByNonConst, 5, 1),
-        error(diag.lateFinalFieldWithConstConstructor, 28, 4),
-        error(diag.undefinedIdentifier, 45, 3),
-      ],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1804,17 +2047,16 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_static() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {
   v(0);
   static var bar = foo;
+//                 ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
-''',
-      [error(diag.undefinedIdentifier, 45, 3)],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   staticKeyword: static
@@ -1835,14 +2077,14 @@ FieldDeclaration
   }
 
   test_setter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E<T> {
   v;
   set foo(T a) {}
 }
 ''');
 
-    var node = findNode.methodDeclaration('set foo');
+    var node = result.findNode.methodDeclaration('set foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   propertyKeyword: set
@@ -1870,7 +2112,7 @@ MethodDeclaration
   }
 
   test_value_underscore() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { _ }
 
 void f() {
@@ -1878,7 +2120,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: PrefixedIdentifier

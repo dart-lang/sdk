@@ -21,18 +21,15 @@ class SortChildPropertiesLastTest extends LintRuleTest {
   String get lintRule => LintNames.sort_child_properties_last;
 
   test_childArgumentBeforeKeyArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
-    child: Column(),
+    [!child: Column()!],
     key: Key(''),
   );
 }
-''',
-      [lint(66, 15)],
-    );
+''');
   }
 
   test_childArgumentOnly() async {
@@ -47,23 +44,20 @@ void f() {
   }
 
   test_childrenArgumentBeforeKeyArgument_insideOtherChildArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
     key: Key(''),
     child: SizedBox(
       child: Column(
-        children: [],
+        [!children: []!],
         key: Key(''),
       ),
     ),
   );
 }
-''',
-      [lint(130, 12)],
-    );
+''');
   }
 
   test_keyArgumentBeforeChildArgument() async {
@@ -115,27 +109,24 @@ void f() {
 
   test_nestedChildren() async {
     // See https://dart-review.googlesource.com/c/sdk/+/161624.
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   Column(
-    children: [
+    /*[0*/children: [
       Column(
-        children: [
+        /*[1*/children: [
           Text('a'),
-        ],
+        ]/*1]*/,
         key: Key(''),
       ),
       Text('b'),
       Text('c'),
       Text('d'),
-    ],
+    ]/*0]*/,
     key: Key(''),
   );
 }
-''',
-      [lint(64, 165), lint(98, 42)],
-    );
+''');
   }
 }

@@ -73,8 +73,7 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 /// reference that could be done with the cascade operator.
 class CascadeInvocations extends AnalysisRule {
   /// Default constructor.
-  CascadeInvocations()
-    : super(name: LintNames.cascade_invocations, description: _desc);
+  new() : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.cascadeInvocations;
@@ -86,16 +85,16 @@ class CascadeInvocations extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
+    registry.addSwitchCase(this, visitor);
+    registry.addSwitchDefault(this, visitor);
+    registry.addSwitchPatternCase(this, visitor);
   }
 }
 
 /// A CascadableExpression is an object that is built from an expression and
 /// knows if it is able to join to another CascadableExpression.
 class _CascadableExpression {
-  static final nullCascadableExpression = _CascadableExpression._internal(
-    null,
-    [],
-  );
+  static final nullCascadableExpression = _CascadableExpression._(null, []);
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
@@ -137,9 +136,7 @@ class _CascadableExpression {
   final Element? element;
   final List<AstNode> criticalNodes;
 
-  factory _CascadableExpression.fromExpressionStatement(
-    ExpressionStatement statement,
-  ) {
+  factory fromExpressionStatement(ExpressionStatement statement) {
     var expression = statement.expression.unParenthesized;
     if (expression is AssignmentExpression) {
       return _CascadableExpression._fromAssignmentExpression(expression);
@@ -160,24 +157,29 @@ class _CascadableExpression {
     return nullCascadableExpression;
   }
 
-  factory _CascadableExpression.fromVariableDeclarationStatement(
-    VariableDeclarationStatement node,
-  ) {
+  factory fromVariableDeclarationStatement(VariableDeclarationStatement node) {
     var element = _getElementFromVariableDeclarationStatement(node);
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       element,
-      [],
-      canReceive: true,
+      node.variables.variables.map((v) => v.initializer).nonNulls.toList(),
+      canReceive: !node.variables.isConst,
       isCritical: true,
     );
   }
 
-  factory _CascadableExpression._fromAssignmentExpression(
-    AssignmentExpression node,
-  ) {
+  new _(
+    this.element,
+    this.criticalNodes, {
+    this.canJoin = false,
+    this.canReceive = false,
+    this.canBeCascaded = false,
+    this.isCritical = false,
+  });
+
+  factory _fromAssignmentExpression(AssignmentExpression node) {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
-      return _CascadableExpression._internal(
+      return _CascadableExpression._(
         leftExpression.element,
         [node.rightHandSide],
         canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
@@ -190,7 +192,7 @@ class _CascadableExpression {
         node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
         variable is VariableElement &&
         !variable.isStatic;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       variable,
       [node.rightHandSide],
       canJoin: true,
@@ -199,9 +201,9 @@ class _CascadableExpression {
     );
   }
 
-  factory _CascadableExpression._fromCascadeExpression(CascadeExpression node) {
+  factory _fromCascadeExpression(CascadeExpression node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       _getTargetElementFromCascadeExpression(node),
       node.cascadeSections,
       canJoin: targetIsSimple,
@@ -210,14 +212,14 @@ class _CascadableExpression {
     );
   }
 
-  factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
+  factory _fromMethodInvocation(MethodInvocation node) {
     var executableElement = _getExecutableElementFromMethodInvocation(node);
     var isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
       var targetIsSimple = node.target is SimpleIdentifier;
-      return _CascadableExpression._internal(
+      return _CascadableExpression._(
         _getTargetElementFromMethodInvocation(node),
-        [node.argumentList],
+        [node.methodName, node.argumentList],
         canJoin: targetIsSimple,
         canReceive: targetIsSimple,
         canBeCascaded: true,
@@ -226,35 +228,25 @@ class _CascadableExpression {
     return nullCascadableExpression;
   }
 
-  factory _CascadableExpression._fromPrefixedIdentifier(
-    PrefixedIdentifier node,
-  ) => _CascadableExpression._internal(
-    node.prefix.canonicalElement,
-    [],
-    canJoin: true,
-    canReceive: true,
-    canBeCascaded: true,
-  );
+  factory _fromPrefixedIdentifier(PrefixedIdentifier node) =>
+      _CascadableExpression._(
+        node.prefix.canonicalElement,
+        [node.identifier],
+        canJoin: true,
+        canReceive: true,
+        canBeCascaded: true,
+      );
 
-  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
+  factory _fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       node.target.canonicalElement,
-      [],
+      [node.propertyName],
       canJoin: targetIsSimple,
       canReceive: targetIsSimple,
       canBeCascaded: true,
     );
   }
-
-  _CascadableExpression._internal(
-    this.element,
-    this.criticalNodes, {
-    this.canJoin = false,
-    this.canReceive = false,
-    this.canBeCascaded = false,
-    this.isCritical = false,
-  });
 
   /// Whether `this` is compatible to be joined with [expressionBox] with a
   /// cascade operation.
@@ -267,26 +259,23 @@ class _CascadableExpression {
       !_hasCriticalDependencies(expressionBox);
 
   bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
-    if (!expressionBox.isCritical) return false;
-
+    var dependencyVisitor = _CriticalDependencyVisitor(expressionBox);
     for (var node in criticalNodes) {
-      if (_NodeVisitor(expressionBox).isOrHasCriticalNode(node)) {
-        return true;
-      }
+      if (dependencyVisitor.isOrHasCriticalNode(node)) return true;
     }
 
-    return false;
+    return expressionBox.criticalNodes.any(
+      (node) => dependencyVisitor.isOrHasCriticalNode(node),
+    );
   }
 }
 
-class _NodeVisitor extends UnifyingAstVisitor<void> {
+class _CriticalDependencyVisitor extends UnifyingAstVisitor<void> {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;
-  _NodeVisitor(this.expressionBox);
 
-  bool isCriticalNode(AstNode node) =>
-      node.canonicalElement == expressionBox.element;
+  new(this.expressionBox);
 
   bool isOrHasCriticalNode(AstNode node) {
     node.accept(this);
@@ -296,26 +285,79 @@ class _NodeVisitor extends UnifyingAstVisitor<void> {
   @override
   visitNode(AstNode node) {
     if (foundCriticalNode) return;
-    foundCriticalNode = isCriticalNode(node);
 
-    if (!foundCriticalNode) {
-      super.visitNode(node);
+    var targetElement = expressionBox.element;
+    if (node.canonicalElement == targetElement) {
+      foundCriticalNode = true;
+      return;
     }
+
+    if (targetElement is PropertyAccessorElement) {
+      if (node.canonicalElement == targetElement.variable) {
+        foundCriticalNode = true;
+        return;
+      }
+    }
+
+    var variable = switch (targetElement) {
+      PropertyAccessorElement() => targetElement.variable,
+      PropertyInducingElement() => targetElement,
+      _ => null,
+    };
+
+    if (variable is PropertyInducingElement) {
+      if (node is FunctionExpression) {
+        foundCriticalNode = true;
+        return;
+      }
+
+      var nodeElement = node.canonicalElement;
+      if (nodeElement is ExecutableElement) {
+        if (nodeElement.enclosingElement == variable.enclosingElement) {
+          foundCriticalNode = true;
+          return;
+        }
+      }
+    }
+
+    super.visitNode(node);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBlock(Block node) {
-    if (node.statements.length < 2) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _checkStatements(node.statements);
+  }
+
+  void _checkStatements(List<Statement> statements) {
+    if (statements.length < 2) {
       return;
     }
     var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
-    for (var statement in node.statements) {
+    Statement? previousStatement;
+    Statement? firstStatementInCascade;
+
+    for (var statement in statements) {
       var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
         currentExpressionBox =
@@ -327,9 +369,23 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
       }
       if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
-        rule.reportAtNode(statement);
+        firstStatementInCascade ??= statement;
+      } else {
+        if (firstStatementInCascade != null && previousStatement != null) {
+          var offset = firstStatementInCascade.offset;
+          var length = previousStatement.end - offset;
+          rule.reportAtOffset(offset, length);
+          firstStatementInCascade = null;
+        }
       }
       previousExpressionBox = currentExpressionBox;
+      previousStatement = statement;
+    }
+
+    if (firstStatementInCascade != null && previousStatement != null) {
+      var offset = firstStatementInCascade.offset;
+      var length = previousStatement.end - offset;
+      rule.reportAtOffset(offset, length);
     }
   }
 }

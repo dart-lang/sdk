@@ -111,7 +111,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   late final MemberEntity _currentMember;
   final EntityDataMap<JLocal, LocalData> _locals = EntityDataMap();
-  Map<ir.VariableDeclaration, JLocal>? _variableMap;
+  Map<ir.Variable, JLocal>? _variableMap;
   Map<ir.TreeNode, JJumpTarget>? _jumpTargetMap;
   Iterable<ir.BreakStatement>? _breaksAsContinue;
 
@@ -126,7 +126,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       final variableMap = _variableMap = {};
       for (int i = 0; i < localsCount; i++) {
         final local = source.readLocal() as JLocal;
-        final node = source.readTreeNode() as ir.VariableDeclaration;
+        final node = source.readTreeNode() as ir.Variable;
         LocalData data = LocalData(node);
         _locals.register<JLocal, LocalData>(local, data);
         variableMap[node] = local;
@@ -264,7 +264,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  Local getLocalVariable(ir.VariableDeclaration node) {
+  Local getLocalVariable(ir.Variable node) {
     final variableMap = _variableMap ??= {};
     return variableMap.putIfAbsent(node, () {
       JLocal local = JLocal(
@@ -686,7 +686,7 @@ class JLocal with EntityMapKey implements Local {
 }
 
 class LocalData {
-  final ir.VariableDeclaration node;
+  final ir.Variable node;
 
   DartType? _type;
 
@@ -709,7 +709,7 @@ void forEachOrderedParameterAsLocal(
 ) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
   forEachOrderedParameter(elementMap, function, (
-    ir.VariableDeclaration variable, {
+    ir.Variable variable, {
     required bool isElided,
   }) {
     f(localsMap.getLocalVariable(variable), isElided: isElided);

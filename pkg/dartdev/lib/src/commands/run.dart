@@ -348,7 +348,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         'print-dtd',
         hide: !verbose,
         help:
-            'Prints connection details for the Dart Tooling Daemon (DTD).'
+            'Prints connection details for the Dart Tooling Daemon (DTD). '
             'Useful for Dart DevTools extension authors working with DTD in the '
             'extension development environment.',
       )
@@ -550,6 +550,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       log.stderr(e.message);
       return errorExitCode;
     }
+    DartExecutableWithPackageConfig executableOriginal = executable;
 
     if (useResidentCompiler) {
       final File? residentCompilerInfoFile =
@@ -616,6 +617,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       packageConfigOverride:
           args.option('packages') ?? executable.packageConfig,
       useExecProcess: true,
+      scriptUriOverride: identical(executable, executableOriginal)
+          ? null
+          : executableOriginal.executable,
     );
     return 0;
   }

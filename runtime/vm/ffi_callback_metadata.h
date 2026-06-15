@@ -4,6 +4,12 @@
 #ifndef RUNTIME_VM_FFI_CALLBACK_METADATA_H_
 #define RUNTIME_VM_FFI_CALLBACK_METADATA_H_
 
+#include "platform/globals.h"
+
+#if defined(DART_HOST_OS_FUCHSIA)
+#include <zircon/types.h>
+#endif
+
 #include "platform/growable_array.h"
 #include "platform/utils.h"
 #include "vm/hash_map.h"
@@ -62,18 +68,16 @@ class FfiCallbackMetadata {
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
-    kExitTemporaryIsolate,
-    kExitIsolateGroupBoundIsolate,
-    kExitSyncCallbackTargetIsolate,
-    kExitSyncCallback,
+    kDoRedirectedFfiCallback,
+    kGroupFfiCallbackMetadata,
     kNumRuntimeFunctions,
   };
 
-  static void Init();
-  static void Cleanup();
+  FfiCallbackMetadata();
+  ~FfiCallbackMetadata();
 
   // Returns the FfiCallbackMetadata singleton.
-  static FfiCallbackMetadata* Instance();
+  static FfiCallbackMetadata* Instance(Trampoline trampoline);
 
   // Creates an async callback trampoline for the given function and associates
   // it with the send_port.
@@ -287,10 +291,6 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kPageSize = 64 * KB;
 #elif defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kPageSize = 16 * KB;
-#elif defined(DART_TARGET_OS_FUCHSIA)
-  // Fuchsia only gets one page, so make it big.
-  // TODO(https://dartbug.com/52579): Remove.
-  static constexpr intptr_t kPageSize = 64 * KB;
 #else
   static constexpr intptr_t kPageSize = 4 * KB;
 #endif
@@ -367,8 +367,6 @@ class FfiCallbackMetadata {
   Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;
 
  private:
-  FfiCallbackMetadata();
-  ~FfiCallbackMetadata();
   void EnsureStubPageLocked();
   void AddToFreeListLocked(MetadataEntry* entry);
   void DeleteCallbackLocked(MetadataEntry* entry);
@@ -400,19 +398,9 @@ class FfiCallbackMetadata {
   uword offset_of_first_trampoline_in_page_ = 0;
   MetadataEntry* free_list_head_ = nullptr;
   MetadataEntry* free_list_tail_ = nullptr;
-
-#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
-    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
-  // TODO(https://dartbug.com/52579): Remove.
-  // On Fuchsia, we cannot duplicate the page containing the trampoline stub
-  // unless we plumb through from the embedder the VMO handle that was used to
-  // load the VM isolate snapshot.
-  // On simulator FFI, SimulatorFfiCallbackTrampoline cannot be duplicated
-  // because it contains a PC-relative call. It would need to be replaced with
-  // something like normal stub's PC-relative loading to a corresponding data
-  // page, or if we can assume the initial-exec code model a TLS load.
-  VirtualMemory* original_metadata_page_ = nullptr;
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
+  zx_handle_t rx_vmo_ = ZX_HANDLE_INVALID;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallbackMetadata);
 };

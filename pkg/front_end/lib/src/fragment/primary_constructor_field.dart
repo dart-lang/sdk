@@ -20,7 +20,7 @@ class PrimaryConstructorFieldDeclaration
   @override
   bool hasBodyBeenBuilt = false;
 
-  PrimaryConstructorFieldDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -109,10 +109,18 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
-    _encoding.createBodies(coreTypes, initializer);
+    _encoding.createBodies(
+      coreTypes,
+      initializer,
+      scopeProviderInfo: scopeProviderInfo,
+    );
   }
 
   @override
@@ -332,6 +340,7 @@ class PrimaryConstructorFieldDeclaration
       _encoding = new PrimaryConstructorFieldEncoding(_fragment);
     }
 
+    Token? defaultValueToken = _fragment.takeDefaultValueToken();
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
       // A field with no type and initializer or an instance field without
@@ -345,7 +354,7 @@ class PrimaryConstructorFieldDeclaration
         name: _fragment.name,
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
-        token: _fragment.takeDefaultValueToken(),
+        token: defaultValueToken,
       );
       type.registerInferable(this);
     }
@@ -394,8 +403,10 @@ class PrimaryConstructorFieldDeclaration
   ) {
     if (getterOverrideDependencies != null ||
         setterOverrideDependencies != null) {
+      SourceClassBuilder classBuilder =
+          builder.declarationBuilder as SourceClassBuilder;
       membersBuilder.inferFieldType(
-        builder.declarationBuilder as SourceClassBuilder,
+        classBuilder,
         type,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
@@ -440,15 +451,14 @@ class PrimaryConstructorFieldDeclaration
     _encoding.setCovariantByClass();
   }
 
-  (DartType, Expression?) _computeInferredType(
+  (DartType, Expression?, ScopeProviderInfo?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
   ) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
     if (token != null) {
       LookupScope scope = _fragment.enclosingScope;
-      ExpressionInferenceResult expressionInferenceResult = libraryBuilder
-          .loader
+      InferredFieldInitializer inferredFieldInitializer = libraryBuilder.loader
           .createResolver()
           .buildFieldInitializer(
             libraryBuilder: libraryBuilder,
@@ -465,12 +475,13 @@ class PrimaryConstructorFieldDeclaration
             inferenceDefaultType: inferenceDefaultType,
           );
       return (
-        expressionInferenceResult.inferredType,
-        expressionInferenceResult.expression,
+        inferredFieldInitializer.expressionInferenceResult.inferredType,
+        inferredFieldInitializer.expressionInferenceResult.expression,
+        inferredFieldInitializer.scopeProviderInfo,
       );
     } else {
       assert(inferenceDefaultType == InferenceDefaultType.NullableObject);
-      return (classHierarchy.coreTypes.objectNullableRawType, null);
+      return (classHierarchy.coreTypes.objectNullableRawType, null, null);
     }
   }
 
@@ -517,7 +528,7 @@ class PrimaryConstructorFieldFragment implements Fragment {
     name.length,
   );
 
-  PrimaryConstructorFieldFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.nameOffset,

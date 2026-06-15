@@ -75,21 +75,24 @@ import 'a.dart';
   }
 
   test_getElementDeclaration_class() async {
-    await resolveTestCode(r'''
+    var unitResult = await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findElement2.class_('A');
+    var element = unitResult.findElement.class_('A');
     var result = (await helper.getFragmentDeclaration(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
     expect(node.namePart.typeName.lexeme, 'A');
   }
 
   test_getResolvedUnitByElement() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {}
 class B {}
 ''');
-    var element = findNode.classDeclaration('A').declaredFragment!.element;
+    var element = result.findNode
+        .classDeclaration('A')
+        .declaredFragment!
+        .element;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
     expect(resolvedUnit.unit.declarations, hasLength(2));
   }

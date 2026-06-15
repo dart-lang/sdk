@@ -8,9 +8,9 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/kernel/dart_scope_calculator.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/dart_scope_calculator.dart';
 import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
 
 Future<void> main(List<String> args) async {
@@ -39,7 +39,7 @@ class Tags {
 }
 
 class ScopeDataComputer extends CfeDataComputer<Features> {
-  const ScopeDataComputer();
+  const new();
 
   @override
   void computeMemberData(
@@ -67,12 +67,7 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
   final Library library;
   final Class? cls;
 
-  ScopeDataExtractor(
-    this.library,
-    this.cls,
-    super.compilerResult,
-    super.actualMap,
-  );
+  new(this.library, this.cls, super.compilerResult, super.actualMap);
 
   Component get component => compilerResult.component!;
 

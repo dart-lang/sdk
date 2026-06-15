@@ -47,7 +47,7 @@ class CompletionBudget {
   final Duration _budget;
   final Stopwatch _timer = Stopwatch()..start();
 
-  CompletionBudget(this._budget);
+  new(this._budget);
 
   bool get isEmpty {
     return _timer.elapsed > _budget;
@@ -84,7 +84,7 @@ class DartCompletionManager {
   /// `maxSuggestions` for a given request, and they were truncated to fit.
   bool isTruncated = false;
 
-  DartCompletionManager({
+  new({
     required this.budget,
     this.listener,
     this.skipImports = false,
@@ -299,7 +299,7 @@ class DartCompletionRequest {
     return entity is Expression && entity.inConstantContext;
   }();
 
-  factory DartCompletionRequest({
+  factory({
     required AnalysisSession analysisSession,
     required FileState fileState,
     required String filePath,
@@ -355,7 +355,7 @@ class DartCompletionRequest {
     );
   }
 
-  factory DartCompletionRequest.forResolvedUnit({
+  factory forResolvedUnit({
     required ResolvedUnitResult resolvedUnit,
     required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
@@ -375,7 +375,7 @@ class DartCompletionRequest {
     );
   }
 
-  DartCompletionRequest._({
+  new _({
     required this.analysisSession,
     required this.completionPreference,
     required this.content,
@@ -543,7 +543,7 @@ class TokenData {
   /// keyword, or if the selection offset is at the beginning of the token.
   final String prefix;
 
-  TokenData._(this.token, this.prefix);
+  new _(this.token, this.prefix);
 
   /// Returns token data representing the token containing the offset of the
   /// [selection], or `null` if the offset isn't within any token.

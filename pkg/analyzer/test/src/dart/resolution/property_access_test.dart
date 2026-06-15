@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class PropertyAccessResolutionTest extends PubPackageResolutionTest {
   test_extensionOverride_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -30,7 +29,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -57,7 +56,7 @@ PropertyAccess
   }
 
   test_extensionOverride_readWrite_assignment() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -70,8 +69,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -109,7 +108,7 @@ AssignmentExpression
   }
 
   test_extensionOverride_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -121,8 +120,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -160,13 +159,13 @@ AssignmentExpression
   }
 
   test_functionType_call_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int Function(String) a) {
   (a).call;
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -187,8 +186,7 @@ PropertyAccess
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int call() => 0;
 }
@@ -199,13 +197,13 @@ class B {
 
 int Function() foo() {
   return B().a; // ref
+//       ^^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'A?' can't be returned from the function 'foo' because it has a return type of 'int Function()'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 85, 5)],
-    );
+''');
 
-    var identifier = findNode.simple('a; // ref');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a; // ref');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@getter::a
@@ -214,7 +212,7 @@ SimpleIdentifier
   }
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo;
 
@@ -228,7 +226,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -244,7 +242,7 @@ PropertyAccess
   }
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 
 class A {
@@ -258,7 +256,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -274,7 +272,7 @@ PropertyAccess
   }
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 
 class A {
@@ -288,7 +286,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -304,20 +302,19 @@ PropertyAccess
   }
 
   test_inClass_superExpression_identifier_setter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 
   void f() {
     super.foo;
+//        ^^^
+// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'A'.
   }
 }
-''',
-      [error(diag.undefinedSuperGetter, 54, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -333,7 +330,7 @@ PropertyAccess
   }
 
   test_inClass_superQualifier_identifier_getter() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -347,7 +344,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -363,7 +360,7 @@ PropertyAccess
   }
 
   test_inClass_superQualifier_identifier_method() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void foo(int _) {}
 }
@@ -377,7 +374,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -393,8 +390,7 @@ PropertyAccess
   }
 
   test_inClass_superQualifier_identifier_setter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
@@ -404,13 +400,13 @@ class B extends A {
 
   void f() {
     super.foo;
+//        ^^^
+// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'B'.
   }
 }
-''',
-      [error(diag.undefinedSuperGetter, 97, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -426,7 +422,7 @@ PropertyAccess
   }
 
   test_inClass_thisExpression_identifier_getter() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 
@@ -436,7 +432,7 @@ class A {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -452,7 +448,7 @@ PropertyAccess
   }
 
   test_inClass_thisExpression_identifier_method() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void foo(int _) {}
 
@@ -462,7 +458,7 @@ class A {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -478,7 +474,7 @@ PropertyAccess
   }
 
   test_inExtensionType_explicitThis_declared() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 
@@ -488,7 +484,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -504,7 +500,7 @@ PropertyAccess
   }
 
   test_inExtensionType_explicitThis_exposed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -518,7 +514,7 @@ extension type X(B it) implements A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -534,7 +530,7 @@ PropertyAccess
   }
 
   test_instanceCreation_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -544,7 +540,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: InstanceCreationExpression
@@ -568,7 +564,7 @@ PropertyAccess
   }
 
   test_instanceCreation_readWrite_assignment() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -578,8 +574,8 @@ void f() {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -614,7 +610,7 @@ AssignmentExpression
   }
 
   test_instanceCreation_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -624,8 +620,8 @@ void f() {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -660,11 +656,13 @@ AssignmentExpression
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -681,11 +679,15 @@ PropertyAccess
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef void F({a = b?.foo});
+//                ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -702,11 +704,13 @@ PropertyAccess
   }
 
   test_invalid_inDefaultValue_nullAware_cascade() async {
-    await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?..foo}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = findNode.defaultParameter('a =');
+    var node = result.findNode.singleFormalParameter;
     assertResolvedNodeText(node, r'''
 RegularFormalParameter
   name: a
@@ -733,7 +737,7 @@ RegularFormalParameter
   }
 
   test_nullShorting_cascade() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
   int get bar => 0;
@@ -744,7 +748,7 @@ void f(A? a) {
 }
 ''');
 
-    var node = findNode.singleCascadeExpression;
+    var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: SimpleIdentifier
@@ -771,7 +775,7 @@ CascadeExpression
   }
 
   test_nullShorting_cascade2() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? get foo => 0;
 }
@@ -782,7 +786,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleCascadeExpression;
+    var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: InstanceCreationExpression
@@ -816,7 +820,7 @@ CascadeExpression
   }
 
   test_nullShorting_cascade3() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A? get foo => this;
   A? get bar => this;
@@ -829,7 +833,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleCascadeExpression;
+    var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: InstanceCreationExpression
@@ -870,7 +874,7 @@ CascadeExpression
   }
 
   test_nullShorting_cascade4() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 A? get foo => A();
 
 class A {
@@ -884,7 +888,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleCascadeExpression;
+    var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: PropertyAccess
@@ -918,7 +922,7 @@ CascadeExpression
   }
 
   test_ofClass_augmentationAugments() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo;
 }
@@ -932,7 +936,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -953,7 +957,7 @@ PropertyAccess
   }
 
   test_ofClass_augmentationDeclares() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f(A a) {
@@ -965,7 +969,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -986,7 +990,7 @@ PropertyAccess
   }
 
   test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T get foo => throw 0;
 }
@@ -998,7 +1002,7 @@ void f(B b) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1021,7 +1025,7 @@ PropertyAccess
   }
 
   test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameterNot() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   double get foo => throw 0;
 }
@@ -1033,7 +1037,7 @@ void f(B b) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1054,13 +1058,13 @@ PropertyAccess
   }
 
   test_ofDynamic_read_hash() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   (a).hash;
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1081,13 +1085,13 @@ PropertyAccess
   }
 
   test_ofDynamic_read_hashCode() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   (a).hashCode;
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1108,13 +1112,13 @@ PropertyAccess
   }
 
   test_ofDynamic_read_runtimeType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   (a).runtimeType;
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1135,13 +1139,13 @@ PropertyAccess
   }
 
   test_ofDynamic_read_toString() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   (a).toString;
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1162,7 +1166,7 @@ PropertyAccess
   }
 
   test_ofEnum_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E {
   v;
   int get foo => 0;
@@ -1173,7 +1177,7 @@ void f(E e) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1194,7 +1198,7 @@ PropertyAccess
   }
 
   test_ofEnum_read_fromMixin() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 mixin M on Enum {
   int get foo => 0;
 }
@@ -1208,7 +1212,7 @@ void f(E e) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1229,7 +1233,7 @@ PropertyAccess
   }
 
   test_ofEnum_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E {
   v;
   set foo(int _) {}
@@ -1240,8 +1244,8 @@ void f(E e) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -1273,7 +1277,7 @@ AssignmentExpression
   }
 
   test_ofExtension_augmentation_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {}
@@ -1287,7 +1291,7 @@ augment extension E {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1308,7 +1312,7 @@ PropertyAccess
   }
 
   test_ofExtension_augmentation_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {}
@@ -1322,7 +1326,7 @@ augment extension E {
 }
 ''');
 
-    var node = findNode.singleAssignmentExpression;
+    var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1355,7 +1359,7 @@ AssignmentExpression
   }
 
   test_ofExtension_augmentationGeneric_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {}
 
 extension E<U> on A<U> {}
@@ -1369,7 +1373,7 @@ augment extension E<U> {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1392,7 +1396,7 @@ PropertyAccess
   }
 
   test_ofExtension_onRecordType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension IntStringRecordExtension on (int, String) {
   int get foo => 0;
 }
@@ -1402,7 +1406,7 @@ void f((int, String) r) {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1419,7 +1423,7 @@ PropertyAccess
   }
 
   test_ofExtension_onRecordType_generic() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension BiRecordExtension<T, U> on (T, U) {
   Map<T, U> get foo => {};
 }
@@ -1429,7 +1433,7 @@ void f((int, String) r) {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1448,7 +1452,7 @@ PropertyAccess
   }
 
   test_ofExtension_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -1460,7 +1464,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: InstanceCreationExpression
@@ -1484,7 +1488,7 @@ PropertyAccess
   }
 
   test_ofExtension_readWrite_assignment() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -1497,8 +1501,8 @@ void f() {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -1533,7 +1537,7 @@ AssignmentExpression
   }
 
   test_ofExtension_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -1545,8 +1549,8 @@ void f() {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -1581,7 +1585,7 @@ AssignmentExpression
   }
 
   test_ofExtensionType_read() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -1591,7 +1595,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1612,7 +1616,7 @@ PropertyAccess
   }
 
   test_ofExtensionType_read_ofObject() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
 void f(A a) {
@@ -1620,7 +1624,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1641,7 +1645,7 @@ PropertyAccess
   }
 
   test_ofExtensionType_read_ofObjectQuestion() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int? it) {}
 
 void f(A a) {
@@ -1649,7 +1653,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1670,18 +1674,17 @@ PropertyAccess
   }
 
   test_ofExtensionType_read_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
 void f(A a) {
   (a).foo;
+//    ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
 }
-''',
-      [error(diag.undefinedGetter, 49, 3)],
-    );
+''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1702,7 +1705,7 @@ PropertyAccess
   }
 
   test_ofExtensionType_write() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(int _) {}
 }
@@ -1712,7 +1715,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singleAssignmentExpression;
+    var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1745,7 +1748,7 @@ AssignmentExpression
   }
 
   test_ofMixin_augmentationAugments() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   int get foo;
 }
@@ -1759,7 +1762,7 @@ augment mixin A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1780,7 +1783,7 @@ PropertyAccess
   }
 
   test_ofMixin_augmentationDeclares() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 
 void f(A a) {
@@ -1792,7 +1795,7 @@ augment mixin A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1813,13 +1816,13 @@ PropertyAccess
   }
 
   test_ofRecordType_namedField() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(({int foo}) r) {
   r.foo;
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1836,7 +1839,7 @@ PropertyAccess
   }
 
   test_ofRecordType_namedField_hasExtension() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   bool get foo => false;
 }
@@ -1846,7 +1849,7 @@ void f(({int foo}) r) {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1867,7 +1870,7 @@ PropertyAccess
 final r = (foo: 42);
 ''');
 
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 import 'a.dart';
 void f() {
@@ -1875,7 +1878,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1892,13 +1895,13 @@ PropertyAccess
   }
 
   test_ofRecordType_namedField_nullAware() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(({int foo})? r) {
   r?.foo;
 }
 ''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1915,13 +1918,13 @@ PropertyAccess
   }
 
   test_ofRecordType_namedField_ofTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T extends ({int foo})>(T r) {
   r.foo;
 }
 ''');
 
-    var node = findNode.propertyAccess(r'foo;');
+    var node = result.findNode.propertyAccess(r'foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1938,13 +1941,13 @@ PropertyAccess
   }
 
   test_ofRecordType_Object_hashCode() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(({int foo}) r) {
   r.hashCode;
 }
 ''');
 
-    var node = findNode.propertyAccess('hashCode;');
+    var node = result.findNode.propertyAccess('hashCode;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1961,13 +1964,13 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_0() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$1;
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$1;');
+    var node = result.findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1984,7 +1987,7 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_0_hasExtension() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   bool get $1 => false;
 }
@@ -1994,7 +1997,7 @@ void f((int, String) r) {
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$1;');
+    var node = result.findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2011,13 +2014,13 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_1() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$2;
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$2;');
+    var node = result.findNode.propertyAccess(r'$2;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2034,7 +2037,7 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_2_fromExtension() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension on (int, String) {
   bool get $3 => false;
 }
@@ -2044,7 +2047,7 @@ void f((int, String) r) {
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$3;');
+    var node = result.findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2054,23 +2057,22 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: $3
-    element: <testLibrary>::@extension::0::@getter::$3
+    element: <testLibrary>::@extension::#0::@getter::$3
     staticType: bool
   staticType: bool
 ''');
   }
 
   test_ofRecordType_positionalField_2_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$3;
+//  ^^
+// [diag.undefinedGetter] The getter '$3' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 30, 2)],
-    );
+''');
 
-    var node = findNode.propertyAccess(r'$3;');
+    var node = result.findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2087,16 +2089,15 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_dollarDigitLetter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$0a;
+//  ^^^
+// [diag.undefinedGetter] The getter '$0a' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 30, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess(r'$0a;');
+    var node = result.findNode.propertyAccess(r'$0a;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2113,16 +2114,15 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_dollarName() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.$zero;
+//  ^^^^^
+// [diag.undefinedGetter] The getter '$zero' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 30, 5)],
-    );
+''');
 
-    var node = findNode.propertyAccess(r'$zero;');
+    var node = result.findNode.propertyAccess(r'$zero;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2143,7 +2143,7 @@ PropertyAccess
 final r = (0, 'bar');
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 import 'a.dart';
 void f() {
@@ -2151,7 +2151,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$1;');
+    var node = result.findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2168,16 +2168,15 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_letterDollarZero() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   r.a$0;
+//  ^^^
+// [diag.undefinedGetter] The getter 'a$0' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 30, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess(r'a$0;');
+    var node = result.findNode.propertyAccess(r'a$0;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2194,13 +2193,13 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_ofTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T extends (int, String)>(T r) {
   r.$1;
 }
 ''');
 
-    var node = findNode.propertyAccess(r'$1;');
+    var node = result.findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2217,16 +2216,15 @@ PropertyAccess
   }
 
   test_ofRecordType_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(({int foo}) r) {
   r.bar;
+//  ^^^
+// [diag.undefinedGetter] The getter 'bar' isn't defined for the type '({int foo})'.
 }
-''',
-      [error(diag.undefinedGetter, 28, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess('bar;');
+    var node = result.findNode.propertyAccess('bar;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2245,16 +2243,15 @@ PropertyAccess
   /// Even though positional fields can have names, these names cannot be
   /// used to access these fields.
   test_ofRecordType_unresolved_positionalField() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f((int foo, String) r) {
   r.foo;
+//  ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '(int, String)'.
 }
-''',
-      [error(diag.undefinedGetter, 34, 3)],
-    );
+''');
 
-    var node = findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2271,7 +2268,7 @@ PropertyAccess
   }
 
   test_ofSwitchExpression() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
@@ -2279,7 +2276,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.propertyAccess('.isEven');
+    var node = result.findNode.propertyAccess('.isEven');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SwitchExpression
@@ -2313,7 +2310,7 @@ PropertyAccess
   }
 
   test_rewrite_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   T Function<T>(T) get f;
 }
@@ -2323,7 +2320,7 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a.f;
 ''');
 
-    var node = findNode.functionReference('b?.a.f');
+    var node = result.findNode.functionReference('b?.a.f');
     assertResolvedNodeText(node, r'''FunctionReference
   function: PropertyAccess
     target: PropertyAccess
@@ -2350,7 +2347,7 @@ int Function(int)? f(B? b) => b?.a.f;
   }
 
   test_super_read() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -2362,7 +2359,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.propertyAccess('super.foo');
+    var node = result.findNode.propertyAccess('super.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -2378,7 +2375,7 @@ PropertyAccess
   }
 
   test_super_readWrite_assignment() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -2390,8 +2387,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -2418,7 +2415,7 @@ AssignmentExpression
   }
 
   test_super_write() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -2430,8 +2427,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -2458,7 +2455,7 @@ AssignmentExpression
   }
 
   test_targetTypeParameter_dynamicBounded() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T extends dynamic> {
   void f(T t) {
     (t).foo;
@@ -2466,7 +2463,7 @@ class A<T extends dynamic> {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -2487,18 +2484,17 @@ PropertyAccess
   }
 
   test_targetTypeParameter_noBound() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void f(T t) {
     (t).foo;
+//      ^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
   }
 }
-''',
-      [error(diag.uncheckedPropertyAccessOfNullableValue, 37, 3)],
-    );
+''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -2519,7 +2515,7 @@ PropertyAccess
   }
 
   test_tearOff_method() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void foo(int a) {}
 }
@@ -2529,8 +2525,8 @@ bar() {
 }
 ''');
 
-    var identifier = findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@method::foo
@@ -2539,16 +2535,15 @@ SimpleIdentifier
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   (a).foo;
+// ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
 }
-''',
-      [error(diag.undefinedIdentifier, 14, 1)],
-    );
+''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

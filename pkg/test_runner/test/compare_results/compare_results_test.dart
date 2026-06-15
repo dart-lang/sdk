@@ -15,91 +15,111 @@ void main() {
 void testEvent() {
   var passingResult = _result();
   var sameResult = Event(passingResult, passingResult);
-  _expectEvent(sameResult,
-      isNew: false,
-      isNewPassing: false,
-      isNewFailing: false,
-      changed: false,
-      unchanged: true,
-      remainedPassing: true,
-      remainedFailing: false,
-      fixed: false,
-      broke: false,
-      description: 'succeeded again');
+  _expectEvent(
+    sameResult,
+    isNew: false,
+    isNewPassing: false,
+    isNewFailing: false,
+    changed: false,
+    unchanged: true,
+    remainedPassing: true,
+    remainedFailing: false,
+    fixed: false,
+    broke: false,
+    description: 'succeeded again',
+  );
 
-  var failingResult =
-      _result(matches: false, outcome: 'Fail', previousOutcome: 'Fail');
+  var failingResult = _result(
+    matches: false,
+    outcome: 'Fail',
+    previousOutcome: 'Fail',
+  );
   var sameFailingResult = Event(failingResult, failingResult);
-  _expectEvent(sameFailingResult,
-      isNew: false,
-      isNewPassing: false,
-      isNewFailing: false,
-      changed: false,
-      unchanged: true,
-      remainedPassing: false,
-      remainedFailing: true,
-      fixed: false,
-      broke: false,
-      description: 'failed again');
+  _expectEvent(
+    sameFailingResult,
+    isNew: false,
+    isNewPassing: false,
+    isNewFailing: false,
+    changed: false,
+    unchanged: true,
+    remainedPassing: false,
+    remainedFailing: true,
+    fixed: false,
+    broke: false,
+    description: 'failed again',
+  );
 
   var regression = Event(passingResult, failingResult);
-  _expectEvent(regression,
-      isNew: false,
-      isNewPassing: false,
-      isNewFailing: false,
-      changed: true,
-      unchanged: false,
-      remainedPassing: false,
-      remainedFailing: false,
-      fixed: false,
-      broke: true,
-      description: 'broke');
+  _expectEvent(
+    regression,
+    isNew: false,
+    isNewPassing: false,
+    isNewFailing: false,
+    changed: true,
+    unchanged: false,
+    remainedPassing: false,
+    remainedFailing: false,
+    fixed: false,
+    broke: true,
+    description: 'broke',
+  );
 
-  var differentFailingResult =
-      _result(matches: false, outcome: 'Error', previousOutcome: 'Error');
+  var differentFailingResult = _result(
+    matches: false,
+    outcome: 'Error',
+    previousOutcome: 'Error',
+  );
   var differentFailure = Event(failingResult, differentFailingResult);
-  _expectEvent(differentFailure,
-      isNew: false,
-      isNewPassing: false,
-      isNewFailing: false,
-      changed: true,
-      unchanged: false,
-      remainedPassing: false,
-      remainedFailing: true,
-      fixed: false,
-      broke: false,
-      description: 'failed again');
+  _expectEvent(
+    differentFailure,
+    isNew: false,
+    isNewPassing: false,
+    isNewFailing: false,
+    changed: true,
+    unchanged: false,
+    remainedPassing: false,
+    remainedFailing: true,
+    fixed: false,
+    broke: false,
+    description: 'failed again',
+  );
 
   var fixed = Event(failingResult, passingResult);
-  _expectEvent(fixed,
-      isNew: false,
-      isNewPassing: false,
-      isNewFailing: false,
-      changed: true,
-      unchanged: false,
-      remainedPassing: false,
-      remainedFailing: false,
-      fixed: true,
-      broke: false,
-      description: 'was fixed');
+  _expectEvent(
+    fixed,
+    isNew: false,
+    isNewPassing: false,
+    isNewFailing: false,
+    changed: true,
+    unchanged: false,
+    remainedPassing: false,
+    remainedFailing: false,
+    fixed: true,
+    broke: false,
+    description: 'was fixed',
+  );
 
   var newPass = Event(null, passingResult);
-  _expectEvent(newPass,
-      isNew: true,
-      isNewPassing: true,
-      isNewFailing: false,
-      changed: true,
-      unchanged: false,
-      description: 'is new and succeeded');
+  _expectEvent(
+    newPass,
+    isNew: true,
+    isNewPassing: true,
+    isNewFailing: false,
+    changed: true,
+    unchanged: false,
+    description: 'is new and succeeded',
+  );
 
   var newFailure = Event(null, failingResult);
-  _expectEvent(newFailure,
-      isNew: true,
-      isNewPassing: false,
-      isNewFailing: true,
-      changed: true,
-      unchanged: false,
-      description: 'is new and failed');
+  _expectEvent(
+    newFailure,
+    isNew: true,
+    isNewPassing: false,
+    isNewFailing: true,
+    changed: true,
+    unchanged: false,
+    description: 'is new and failed',
+  );
 
   var flakyResult = _result(flaked: true);
   var becameFlaky = Event(passingResult, flakyResult);
@@ -109,47 +129,57 @@ void testEvent() {
   _expectEvent(noLongerFlaky, flaked: false);
 
   var failingExpectedToFailResult = _result(
-      matches: true,
-      outcome: 'Fail',
-      previousOutcome: 'Fail',
-      expectation: 'Fail');
+    matches: true,
+    outcome: 'Fail',
+    previousOutcome: 'Fail',
+    expectation: 'Fail',
+  );
   var nowMeetingExpectation = Event(failingResult, failingExpectedToFailResult);
-  _expectEvent(nowMeetingExpectation,
-      changed: true,
-      unchanged: false,
-      remainedPassing: false,
-      remainedFailing: false,
-      broke: false,
-      description: 'was fixed');
+  _expectEvent(
+    nowMeetingExpectation,
+    changed: true,
+    unchanged: false,
+    remainedPassing: false,
+    remainedFailing: false,
+    broke: false,
+    description: 'was fixed',
+  );
 
   var passingExpectedToFailResult = _result(
-      matches: false,
-      outcome: 'Pass',
-      previousOutcome: 'Pass',
-      expectation: 'Fail');
-  var noLongerMeetingExpectation =
-      Event(passingResult, passingExpectedToFailResult);
-  _expectEvent(noLongerMeetingExpectation,
-      changed: true,
-      unchanged: false,
-      remainedPassing: false,
-      remainedFailing: false,
-      broke: true,
-      description: 'broke');
+    matches: false,
+    outcome: 'Pass',
+    previousOutcome: 'Pass',
+    expectation: 'Fail',
+  );
+  var noLongerMeetingExpectation = Event(
+    passingResult,
+    passingExpectedToFailResult,
+  );
+  _expectEvent(
+    noLongerMeetingExpectation,
+    changed: true,
+    unchanged: false,
+    remainedPassing: false,
+    remainedFailing: false,
+    broke: true,
+    description: 'broke',
+  );
 }
 
-void _expectEvent(Event actual,
-    {bool? isNew,
-    bool? isNewPassing,
-    bool? isNewFailing,
-    bool? changed,
-    bool? unchanged,
-    bool? remainedPassing,
-    bool? remainedFailing,
-    bool? flaked,
-    bool? fixed,
-    bool? broke,
-    String? description}) {
+void _expectEvent(
+  Event actual, {
+  bool? isNew,
+  bool? isNewPassing,
+  bool? isNewFailing,
+  bool? changed,
+  bool? unchanged,
+  bool? remainedPassing,
+  bool? remainedFailing,
+  bool? flaked,
+  bool? fixed,
+  bool? broke,
+  String? description,
+}) {
   if (isNew != null) {
     Expect.equals(isNew, actual.isNew, 'isNew mismatch');
   }
@@ -167,11 +197,17 @@ void _expectEvent(Event actual,
   }
   if (remainedPassing != null) {
     Expect.equals(
-        remainedPassing, actual.remainedPassing, 'remainedPassing mismatch');
+      remainedPassing,
+      actual.remainedPassing,
+      'remainedPassing mismatch',
+    );
   }
   if (remainedFailing != null) {
     Expect.equals(
-        remainedFailing, actual.remainedFailing, 'remainedFailing mismatch');
+      remainedFailing,
+      actual.remainedFailing,
+      'remainedFailing mismatch',
+    );
   }
   if (flaked != null) {
     Expect.equals(flaked, actual.flaked, 'flaked mismatch');
@@ -187,18 +223,19 @@ void _expectEvent(Event actual,
   }
 }
 
-Result _result(
-    {String configuration = 'config',
-    String expectation = 'Pass',
-    bool matches = true,
-    String name = 'test1',
-    String outcome = 'Pass',
-    bool changed = false,
-    String commitHash = 'abcdabcd',
-    bool flaked = false,
-    bool isFlaky = false,
-    String previousOutcome = 'Pass',
-    int timeMs = -1}) {
+Result _result({
+  String configuration = 'config',
+  String expectation = 'Pass',
+  bool matches = true,
+  String name = 'test1',
+  String outcome = 'Pass',
+  bool changed = false,
+  String commitHash = 'abcdabcd',
+  bool flaked = false,
+  bool isFlaky = false,
+  String previousOutcome = 'Pass',
+  int timeMs = -1,
+}) {
   return Result(
     configuration,
     name,

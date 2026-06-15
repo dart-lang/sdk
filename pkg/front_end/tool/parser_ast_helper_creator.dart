@@ -71,7 +71,7 @@ abstract class ParserAstNode {
   List<ParserAstNode>? children;
   ParserAstNode? parent;
 
-  ParserAstNode(this.what, this.type);
+  new(this.what, this.type);
 
   R accept<R>(ParserAstVisitor<R> v);
 
@@ -195,13 +195,12 @@ class ParserCreatorListener extends Listener {
   final StringBuffer newClasses = new StringBuffer();
   final List<String> visitNames = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -380,7 +379,7 @@ class ParserCreatorListener extends Listener {
         }
         newClasses.write('\n');
         newClasses.write(
-          "  ${name}${typeStringCamel}"
+          "  new"
           "(ParserAstType type",
         );
         String separator = ", {";
@@ -465,5 +464,5 @@ class Parameter {
   final String type;
   final bool hasQuestion;
 
-  Parameter(this.name, this.type, this.hasQuestion);
+  new(this.name, this.type, this.hasQuestion);
 }

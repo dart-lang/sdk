@@ -2,38 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnreachableSwitchDefaultTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnreachableSwitchDefaultTest extends PubPackageResolutionTest {
   test_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
     case false:
     case true:
     default:
+//  ^^^^^^^
+// [diag.unreachableSwitchDefault] This default clause is covered by the previous cases.
       break;
   }
 }
-''',
-      [error(diag.unreachableSwitchDefault, 67, 7)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { e1, e2 }
 
 String f(E e) {
@@ -43,12 +42,12 @@ String f(E e) {
     case E.e2:
       return 'e2';
     default:
+//  ^^^^^^^
+// [diag.unreachableSwitchDefault] This default clause is covered by the previous cases.
       return 'Some other value of E (impossible)';
   }
 }
-''',
-      [error(diag.unreachableSwitchDefault, 122, 7)],
-    );
+''');
   }
 
   test_not_always_exhaustive() async {
@@ -56,7 +55,7 @@ String f(E e) {
     // isn't reported, because flow analysis might not understand that the
     // switch cases fully exhaust the switch, so removing the default clause
     // might result in spurious errors.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 String f(List x) {
   switch (x) {
     case []:
@@ -71,8 +70,7 @@ String f(List x) {
   }
 
   test_sealed_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -84,11 +82,11 @@ String f(A x) {
     case C():
       return 'C';
     default:
+//  ^^^^^^^
+// [diag.unreachableSwitchDefault] This default clause is covered by the previous cases.
       return 'Some other subclass of A (impossible)';
   }
 }
-''',
-      [error(diag.unreachableSwitchDefault, 160, 7)],
-    );
+''');
   }
 }

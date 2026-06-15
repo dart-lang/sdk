@@ -29,7 +29,7 @@ void main() {
 class _VerifyTests {
   final String testDirPath;
 
-  _VerifyTests(this.testDirPath);
+  new(this.testDirPath);
 
   String get testAllFileName => 'all.dart';
 
@@ -65,7 +65,7 @@ class _VerifyTests {
     );
     for (var child in children) {
       if (child is Folder) {
-        if (child.getChildAssumingFile(testAllFileName).exists) {
+        if (child.getFile(testAllFileName).exists) {
           testFileNames.add('${child.shortName}/$testAllFileName');
         }
         _buildTestsIn(session, testDirPath, child);

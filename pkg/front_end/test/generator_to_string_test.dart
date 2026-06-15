@@ -50,9 +50,10 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         StringLiteral,
         TypeParameter,
-        VariableDeclaration,
         VariableGet,
-        defaultLanguageVersion;
+        defaultLanguageVersion,
+        SyntheticVariable,
+        LocalVariable;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -83,9 +84,11 @@ Future<void> main() async {
       positionalCount: 1,
     );
     Expression expression = new VariableGet(
-      new VariableDeclaration("expression"),
+      new LocalVariable(cosmeticName: "expression", type: const DynamicType()),
     );
-    Expression index = new VariableGet(new VariableDeclaration("index"));
+    Expression index = new VariableGet(
+      new LocalVariable(cosmeticName: "index", type: const DynamicType()),
+    );
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(
       c,
@@ -179,9 +182,10 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    VariableDeclaration variable = new VariableDeclaration(
-      null,
-      isSynthesized: true,
+    InternalVariable variable = new InternalSyntheticVariable(
+      astVariable: new SyntheticVariable(type: const DynamicType()),
+      isImplicitlyTyped: false,
+      fileOffset: -1,
     );
 
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
@@ -247,7 +251,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #0;)",
+      "VariableUseGenerator(offset: 4, variable: dynamic #0)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(
@@ -257,7 +261,12 @@ Future<void> main() async {
     );
     check(
       "ThisPropertyAccessGenerator(offset: 4, name: bar)",
-      new ThisPropertyAccessGenerator(helper, token, name),
+      new ThisPropertyAccessGenerator(
+        helper,
+        token,
+        name,
+        isThisExplicit: false,
+      ),
     );
     check(
       "NullAwarePropertyAccessGenerator(offset: 4,"
@@ -300,6 +309,7 @@ Future<void> main() async {
         getter,
         null,
         setter,
+        isQualifiedAccess: true,
       ),
     );
     check(

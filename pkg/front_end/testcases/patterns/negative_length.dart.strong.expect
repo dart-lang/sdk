@@ -8,7 +8,7 @@ import "dart:collection";
 
 class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
   final field core::List<self::NegativeLengthList::E%> _list;
-  constructor •(core::List<self::NegativeLengthList::E%> _list) → self::NegativeLengthList<self::NegativeLengthList::E%>
+  constructor •(initializing-formal core::List<self::NegativeLengthList::E%> _list) → self::NegativeLengthList<self::NegativeLengthList::E%>
     : self::NegativeLengthList::_list = _list, super self::_NegativeLengthList&Object&ListMixin::•()
     ;
   get length() → core::int

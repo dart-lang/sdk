@@ -32,10 +32,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -60,12 +60,12 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
@@ -97,10 +97,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isOriginDeclaration m (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F3 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::m
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
@@ -128,19 +128,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F1 isOriginGetterSetter isStatic g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::g
       getters
-        #F2 isOriginDeclaration g (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::g
   topLevelVariables
-    isOriginGetterSetter g
+    isOriginGetterSetter isStatic g
       reference: <testLibrary>::@topLevelVariable::g
       firstFragment: #F1
       type: dynamic
       getter: <testLibrary>::@getter::g
   getters
-    static isOriginDeclaration g
+    isOriginDeclaration isStatic g
       reference: <testLibrary>::@getter::g
       firstFragment: #F2
       returnType: dynamic
@@ -152,9 +152,12 @@ library
     var library = await buildLibrary(r'''
 class C {
   C() {
-    aaa: while (true) {}
-    bbb: switch (42) {
-      ccc: case 0:
+    aaa:
+    while (true) {}
+    bbb:
+    switch (42) {
+      ccc:
+      case 0:
         break;
     }
   }
@@ -170,12 +173,12 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 12
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
@@ -189,9 +192,12 @@ library
     var library = await buildLibrary(r'''
 class C {
   m() {
-    aaa: while (true) {}
-    bbb: switch (42) {
-      ccc: case 0:
+    aaa:
+    while (true) {}
+    bbb:
+    switch (42) {
+      ccc:
+      case 0:
         break;
     }
   }
@@ -211,10 +217,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isOriginDeclaration m (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F3 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::m
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
@@ -232,9 +238,12 @@ library
   test_localLabels_inTopLevelFunction() async {
     var library = await buildLibrary(r'''
 main() {
-  aaa: while (true) {}
-  bbb: switch (42) {
-    ccc: case 0:
+  aaa:
+  while (true) {}
+  bbb:
+  switch (42) {
+    ccc:
+    case 0:
       break;
   }
 }
@@ -246,10 +255,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
   functions
-    isOriginDeclaration main
+    isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F1
       returnType: dynamic

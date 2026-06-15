@@ -7,6 +7,8 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -18,7 +20,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   final List<_Command> _commands = [];
 
-  RemoveUnusedLocalVariable({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -230,9 +232,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
         // Remove completely `var A(:notUsed) = x;`
         if (fields.length == 1) {
           var patternDeclaration = objectPattern.parent;
-          if (patternDeclaration is PatternVariableDeclaration) {
+          if (patternDeclaration is PatternVariableDeclarationImpl) {
             var patternStatement = patternDeclaration.parent;
-            if (patternStatement is PatternVariableDeclarationStatement) {
+            if (patternStatement is PatternVariableDeclarationStatementImpl) {
               _commands.add(
                 _DeleteStatementCommand(
                   utils: utils,
@@ -352,28 +354,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   /// In the case of an [AssignmentExpression], [element] is used to determine
   /// whether [node] has side effects _other than_ assigning to [element].
   bool _hasSideEffect(Expression node, LocalVariableElement element) {
-    node = node.unParenthesized;
-    if (node is MethodInvocation ||
-        node is FunctionExpressionInvocation ||
-        node is AwaitExpression) {
-      return true;
-    }
-    if (node is AssignmentExpression) {
-      var lhs = node.leftHandSide.unParenthesized;
-      if (lhs is Identifier) {
-        if (lhs.element != element) return true;
-      } else {
-        return true;
-      }
-      return _hasSideEffect(node.rightHandSide, element);
-    }
-    if (node is AsExpression) {
-      return _hasSideEffect(node.expression, element);
-    }
-    if (node is PostfixExpression || node is PrefixExpression) {
-      return true;
-    }
-    return false;
+    var visitor = _SideEffectVisitor(element);
+    node.accept(visitor);
+    return visitor.hasSideEffect;
   }
 
   LocalVariableElement? _localVariableElement() {
@@ -406,10 +389,7 @@ class _AddExplicitFieldNameCommand extends _Command {
   final DeclaredVariablePattern declaredVariable;
   final PatternFieldName nameNode;
 
-  _AddExplicitFieldNameCommand({
-    required this.declaredVariable,
-    required this.nameNode,
-  });
+  new({required this.declaredVariable, required this.nameNode});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -428,7 +408,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
   final NodeList<T> nodes;
   final T node;
 
-  _DeleteNodeInListCommand({required this.nodes, required this.node});
+  new({required this.nodes, required this.node});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -440,7 +420,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
 class _DeleteSourceRangeCommand extends _Command {
   final SourceRange sourceRange;
 
-  _DeleteSourceRangeCommand({required this.sourceRange});
+  new({required this.sourceRange});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -452,7 +432,7 @@ class _DeleteStatementCommand extends _Command {
   final CorrectionUtils utils;
   final Statement statement;
 
-  _DeleteStatementCommand({required this.utils, required this.statement});
+  new({required this.utils, required this.statement});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -465,7 +445,7 @@ class _DeleteStatementCommand extends _Command {
 class _MakeItWildcardCommand extends _Command {
   final DeclaredVariablePattern declaredVariable;
 
-  _MakeItWildcardCommand({required this.declaredVariable});
+  new({required this.declaredVariable});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -478,13 +458,75 @@ class _ReplaceSourceRangeCommand extends _Command {
   final SourceRange sourceRange;
   final String replacement;
 
-  _ReplaceSourceRangeCommand({
-    required this.sourceRange,
-    required this.replacement,
-  });
+  new({required this.sourceRange, required this.replacement});
 
   @override
   void execute(DartFileEditBuilder builder) {
     builder.addSimpleReplacement(sourceRange, replacement);
+  }
+}
+
+class _SideEffectVisitor extends RecursiveAstVisitor<void> {
+  final LocalVariableElement element;
+  bool hasSideEffect = false;
+
+  new(this.element);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (hasSideEffect) return;
+    var lhs = node.leftHandSide.unParenthesized;
+    if (lhs is Identifier && lhs.element == element) {
+      node.rightHandSide.accept(this);
+    } else {
+      hasSideEffect = true;
+    }
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    if (hasSideEffect) return;
+    if (node.operator.type == TokenType.PLUS_PLUS ||
+        node.operator.type == TokenType.MINUS_MINUS) {
+      var operand = node.operand.unParenthesized;
+      if (operand is Identifier && operand.element == element) {
+        // Not a side effect.
+      } else {
+        hasSideEffect = true;
+      }
+    } else {
+      super.visitPostfixExpression(node);
+    }
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    if (hasSideEffect) return;
+    if (node.operator.type == TokenType.PLUS_PLUS ||
+        node.operator.type == TokenType.MINUS_MINUS) {
+      var operand = node.operand.unParenthesized;
+      if (operand is Identifier && operand.element == element) {
+        // Not a side effect.
+      } else {
+        hasSideEffect = true;
+      }
+    } else {
+      super.visitPrefixExpression(node);
+    }
   }
 }

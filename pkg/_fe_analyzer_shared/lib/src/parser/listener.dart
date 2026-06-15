@@ -150,7 +150,6 @@ abstract class Listener implements UnescapeErrorListener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -353,6 +352,7 @@ abstract class Listener implements UnescapeErrorListener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -542,6 +542,7 @@ abstract class Listener implements UnescapeErrorListener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {}
@@ -881,7 +882,6 @@ abstract class Listener implements UnescapeErrorListener {
   void beginNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -977,7 +977,7 @@ abstract class Listener implements UnescapeErrorListener {
   /// - conditional uris
   /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     logEvent("Import");
   }
 
@@ -1452,8 +1452,8 @@ abstract class Listener implements UnescapeErrorListener {
   /// Note that this is ended with [endTopLevelFields] or [endFields].
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1472,6 +1472,7 @@ abstract class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1790,7 +1791,7 @@ abstract class Listener implements UnescapeErrorListener {
 
   /// Called when the parser has consumed a binary pattern, consisting of a LHS
   /// pattern, `&&` or `||` operator, and a RHS pattern.
-  void endBinaryPattern(Token token) {
+  void endBinaryPattern(Token operatorToken) {
     logEvent("BinaryPattern");
   }
 
@@ -2241,14 +2242,6 @@ abstract class Listener implements UnescapeErrorListener {
 
   void handleSuperExpression(Token token, IdentifierContext context) {
     logEvent("SuperExpression");
-  }
-
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    logEvent("AugmentSuperExpression");
   }
 
   void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {}

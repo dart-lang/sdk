@@ -141,7 +141,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, ir.Node node) {
-    if (node is ir.VariableDeclaration) {
+    if (node is ir.Variable) {
       Local local = _localsMap.getLocalVariable(node);
       return computeLocalValue(local);
     } else if (node is ir.FunctionDeclaration) {

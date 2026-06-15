@@ -13,8 +13,10 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 
+/// A handler that validates arguments for legacy refactors such as
+/// EXTRACT_WIDGET.
 class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
-  ValidateRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Validate Refactor';
@@ -27,6 +29,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
   @override
   FutureOr<ErrorOr<ValidateRefactorResult>> execute(
+    MessageInfo message,
     String path,
     String kind,
     int offset,
@@ -69,7 +72,9 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
           reporter.begin('Preparing Refactor…');
           var status = await refactoring.checkInitialConditions();
 
-          if (status.hasError) {
+          // Only reject fatal errors, since we now support "Refactor Anyway"
+          // for non-fatal errors.
+          if (status.hasFatalError) {
             return success(
               ValidateRefactorResult(valid: false, message: status.message!),
             );

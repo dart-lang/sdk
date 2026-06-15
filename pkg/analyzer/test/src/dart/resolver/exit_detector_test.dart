@@ -9,6 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,6 +17,7 @@ main() {
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest_Language219);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -116,12 +118,11 @@ class ExitDetectorForCodeAsUiTest extends ParserDiagnosticsTest {
   }
 
   void _assertHasReturn(String expressionCode, bool expected) {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() { // ref
   $expressionCode;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var findNode = parseResult.findNode;
 
@@ -163,7 +164,7 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertFalse('v = 1;');
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   test_assignmentExpression_compound_lazy() async {
     _assertFalse('v ||= false;');
   }
@@ -918,12 +919,11 @@ on String catch (e, s) { return 1; }
   }
 
   void _assertHasReturn(String statementCode, bool expected) {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() { // ref
   $statementCode
 }
 ''');
-    parseResult.assertNoErrors();
 
     var findNode = parseResult.findNode;
 
@@ -1217,7 +1217,7 @@ void f() sync* {
   }
 
   Future<void> _assertHasReturn(String code, int n, bool expected) async {
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
 
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;

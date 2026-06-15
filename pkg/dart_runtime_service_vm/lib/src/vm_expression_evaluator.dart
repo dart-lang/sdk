@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    as frontend_server;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../dart_runtime_service_vm.dart';
@@ -29,8 +31,8 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
   static const kScope = 'scope';
   static const kDisableBreakpoints = 'disableBreakpoints';
 
-  // TODO(bkonyi): add ID zone support.
-  // static const kIdZoneId = 'idZoneId';
+  // ID zone support.
+  static const kIdZoneId = 'idZoneId';
 
   // `evaluate` specific parameters.
   static const kTargetId = 'targetId';
@@ -51,6 +53,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
   static const kKlass = 'klass';
   static const kMethod = 'method';
   static const kScriptUri = 'scriptUri';
+  static const kRootLibraryUri = 'rootLibraryUri';
 
   // Keys for scope response.
   static const kParamNames = 'param_names';
@@ -74,6 +77,9 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       disableBreakpoints: parameters[kDisableBreakpoints].exists
           ? parameters[kDisableBreakpoints].asBool
           : null,
+      idZoneId: parameters[kIdZoneId].exists
+          ? parameters[kIdZoneId].asString
+          : null,
     );
   }
 
@@ -90,6 +96,9 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       disableBreakpoints: parameters[kDisableBreakpoints].exists
           ? parameters[kDisableBreakpoints].asBool
           : null,
+      idZoneId: parameters[kIdZoneId].exists
+          ? parameters[kIdZoneId].asString
+          : null,
     );
   }
 
@@ -105,6 +114,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     required String? targetId,
     required Map<String, String>? scope,
     required bool? disableBreakpoints,
+    required String? idZoneId,
   }) async {
     final buildScopeResponse = await _buildScope(
       isolateId: isolateId,
@@ -124,6 +134,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       targetId: targetId,
       scope: scope,
       disableBreakpoints: disableBreakpoints,
+      idZoneId: idZoneId,
       kernelBase64: kernelBase64,
     );
   }
@@ -154,8 +165,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     String expression,
     ExpressionEvaluationScope scope,
   ) async {
-    final compileParams = <String, Object?>{
-      kIsolateId: isolateId,
+    final commonParams = <String, Object?>{
       kExpression: expression,
       kDefinitions: scope[kParamNames],
       kDefinitionTypes: scope[kParamTypes],
@@ -163,11 +173,15 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       kTypeBounds: scope[kTypeParamsBounds],
       kTypeDefaults: scope[kTypeParamsDefaults],
       kLibraryUri: scope[kLibraryUri],
-      kTokenPos: scope[kTokenPos],
       kIsStatic: scope[kIsStatic],
-      kKlass: ?scope[kKlass],
       kMethod: ?scope[kMethod],
       kScriptUri: ?scope[kScriptUri],
+    };
+    final compileParams = <String, Object?>{
+      kIsolateId: isolateId,
+      kTokenPos: scope[kTokenPos],
+      kKlass: ?scope[kKlass],
+      ...commonParams,
     };
 
     final externalClient = clients.findFirstClientThatHandlesService(
@@ -184,6 +198,12 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
           method: kExternalCompileExpressionRpc,
           parameters: compileParams,
         );
+      } else if (backend.residentCompilerInfoFile?.existsSync() ?? false) {
+        logger.info('Using resident frontend server for compilation.');
+        result = await _compileExpressionWithResidentFrontendServer(
+          commonParams: commonParams,
+          scope: scope,
+        );
       } else {
         result = await backend.sendToRuntime(
           json_rpc.Parameters(kInternalCompileExpressionRpc, compileParams),
@@ -199,6 +219,49 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     }
   }
 
+  Future<RpcResponse> _compileExpressionWithResidentFrontendServer({
+    required Map<String, Object?> commonParams,
+    required Map<String, Object?> scope,
+  }) async {
+    final {
+      kExpression: expression as String,
+      kDefinitions: definitions as List<Object?>,
+      kDefinitionTypes: definitionTypes as List<Object?>,
+      kTypeDefinitions: typeDefinitions as List<Object?>,
+      kTypeBounds: typeBounds as List<Object?>,
+      kTypeDefaults: typeDefaults as List<Object?>,
+      kLibraryUri: libraryUri as String,
+      kIsStatic: isStatic as bool,
+    } = commonParams;
+
+    final method = commonParams[kMethod] as String?;
+    final scriptUri = commonParams[kScriptUri] as String?;
+
+    try {
+      final result = await frontend_server.invokeCompileExpression(
+        expression: expression,
+        definitions: definitions.cast<String>(),
+        definitionTypes: definitionTypes.cast<String>(),
+        typeDefinitions: typeDefinitions.cast<String>(),
+        typeBounds: typeBounds.cast<String>(),
+        typeDefaults: typeDefaults.cast<String>(),
+        libraryUri: libraryUri,
+        klass: scope[kKlass] as String?,
+        method: method,
+        offset: scope[kTokenPos] as int,
+        scriptUri: scriptUri,
+        isStatic: isStatic,
+        rootLibraryUri: scope[kRootLibraryUri] as String?,
+        serverInfoFile: backend.residentCompilerInfoFile!,
+      );
+      return {kKernelBytes: result.kernelBytes};
+    } on frontend_server.CompileException catch (e) {
+      RpcException.expressionCompilationError.throwExceptionWithDetails(
+        details: e.message,
+      );
+    }
+  }
+
   Future<RpcResponse> _evaluateCompiledExpression({
     required String isolateId,
     required String expression,
@@ -206,6 +269,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     required int? frameIndex,
     required String? targetId,
     required bool? disableBreakpoints,
+    required String? idZoneId,
     required String kernelBase64,
   }) {
     final params = <String, Object?>{
@@ -215,6 +279,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       kFrameIndex: ?frameIndex,
       kTargetId: ?targetId,
       kDisableBreakpoints: ?disableBreakpoints,
+      kIdZoneId: ?idZoneId,
       kKernelBytes: kernelBase64,
     };
     return backend.sendToRuntime(

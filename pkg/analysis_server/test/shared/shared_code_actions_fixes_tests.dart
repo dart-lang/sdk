@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
@@ -193,7 +194,7 @@ Future foo;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
-      title: 'Remove unused import',
+      title: DartFixKind.removeUnusedImport.message,
     );
   }
 
@@ -217,7 +218,7 @@ Future foo;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
-      title: 'Remove unused import',
+      title: DartFixKind.removeUnusedImport.message,
     );
   }
 
@@ -234,7 +235,7 @@ void f(String a) => print(a);
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
     );
   }
 
@@ -253,7 +254,7 @@ void f(String a) => print(a);
       content,
       expectedContent,
       command: Commands.applyCodeAction,
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
     );
   }
 
@@ -299,7 +300,9 @@ Future foo;
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.remove.foo')), isEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
-    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.add')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.remove')), isEmpty);
   }
 
   Future<void> test_fixAll_logsExecution() async {
@@ -313,7 +316,7 @@ void f(String a) {
     var action = await expectCodeActionLiteral(
       content,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
 
     await executeCommand(action.command!);
@@ -352,7 +355,7 @@ void f(String a) {
     await expectNoAction(
       content,
       kind: CodeActionKind('quickfix'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
   }
 
@@ -408,7 +411,7 @@ void f(String a) {
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
   }
 
@@ -581,7 +584,7 @@ void f() {
     );
     var removeNnaAction = findCodeActionLiteral(
       codeActions,
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
     )!;
 
@@ -665,7 +668,7 @@ ProcessInfo b;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.organize.imports'),
-      title: 'Organize Imports',
+      title: DartFixKind.organizeImports.message,
     );
   }
 
@@ -893,7 +896,7 @@ class _DeprecatedCamelCaseTypes extends AnalysisRule {
     uniqueName: 'LintCode.camel_case_types',
   );
 
-  _DeprecatedCamelCaseTypes()
+  new()
     : super(
         name: 'camel_case_types',
         state: RuleState.deprecated(),

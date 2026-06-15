@@ -12,10 +12,10 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(GrowableList_allocate, 0, 2) {
+DEFINE_NATIVE_ENTRY(GrowableList_allocate, 1, 1) {
   const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
+      TypeArguments::CheckedHandle(zone, arguments->NativeTypeArgs());
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(0));
   if (data.Length() < 0) {
     Exceptions::ThrowRangeError("length",
                                 Integer::Handle(Integer::New(data.Length())),

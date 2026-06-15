@@ -133,8 +133,16 @@ final class ConstantPropagation extends Pass
     }
   }
 
-  Definition _unwrapRedundantPhi(Definition def) =>
-      def is Phi ? (_redundantPhis[def] ?? def) : def;
+  Definition _unwrapRedundantPhi(Definition def) {
+    while (def is Phi) {
+      final unwrapped = _redundantPhis[def];
+      if (unwrapped == null) {
+        return def;
+      }
+      def = unwrapped;
+    }
+    return def;
+  }
 
   bool _sameDefinitions(Definition a, Definition b) =>
       _unwrapRedundantPhi(a) == _unwrapRedundantPhi(b);
@@ -272,6 +280,9 @@ final class ConstantPropagation extends Pass
   void visitReturn(Return instr) {}
 
   @override
+  void visitUnreachable(Unreachable instr) {}
+
+  @override
   void visitConstant(Constant instr) {
     // There is no need to flood _constantValues map with Constant
     // instructions as they are handled in _getConstantValue directly
@@ -403,12 +414,22 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitAllocateContext(AllocateContext instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
     _setNonConstant(instr);
   }
 
   @override
   void visitAllocateMapLiteral(AllocateMapLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {
     _setNonConstant(instr);
   }
 
@@ -434,6 +455,14 @@ final class ConstantPropagation extends Pass
     } else {
       _setNonConstant(instr);
     }
+  }
+
+  @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {}
+
+  @override
+  void visitSuspend(Suspend instr) {
+    _setNonConstant(instr);
   }
 
   @override
@@ -551,6 +580,11 @@ final class ConstantPropagation extends Pass
   void visitSetListElement(SetListElement instr) {}
 
   @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitBoxInt(BoxInt instr) {
     _setNonConstant(instr);
   }
@@ -580,10 +614,10 @@ final class ConstantPropagation extends Pass
       instr.replaceUsesWith(graph.getConstant(constantValue));
       instr.removeFromGraph();
     }
-    for (final entry in _redundantPhis.entries) {
-      final instr = entry.key;
-      final input = entry.value;
+    for (final instr in _redundantPhis.keys) {
       if (!_constantValues.containsKey(instr)) {
+        final input = _unwrapRedundantPhi(instr);
+        assert(input != instr);
         assert(!_constantValues.containsKey(input));
         instr.replaceUsesWith(input);
         instr.removeFromGraph();
@@ -673,7 +707,7 @@ final class ConstantPropagation extends Pass
           return last.tryBody;
         }
         return null;
-      case Return() || Throw():
+      case Return() || Throw() || Unreachable():
         return null;
       default:
         throw 'Unexpected block end ${last.runtimeType}';

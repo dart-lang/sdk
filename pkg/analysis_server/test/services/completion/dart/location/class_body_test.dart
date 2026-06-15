@@ -1638,7 +1638,7 @@ class _Context {
   final bool isExtensionType;
   final bool isMixin;
 
-  _Context({
+  new({
     this.isClass = false,
     this.isEnum = false,
     this.isExtension = false,

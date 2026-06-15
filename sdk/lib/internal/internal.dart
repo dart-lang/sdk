@@ -33,8 +33,7 @@ part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
 
-// Returns true iff `null as T` will succeed based on the
-// execution mode.
+// Whether `null as T` will succeed based on the execution mode.
 external bool typeAcceptsNull<T>();
 
 /// Unsafely treats [value] as type [T].
@@ -134,7 +133,9 @@ int parseHexByte(String source, int index) {
   assert(index + 2 <= source.length);
   int digit1 = hexDigitValue(source.codeUnitAt(index));
   int digit2 = hexDigitValue(source.codeUnitAt(index + 1));
-  return digit1 * 16 + digit2 - (digit2 & 256);
+  return digit1 * 16 +
+      digit2 -
+      (digit2 & 256); // Could use `| digit2` on native.
 }
 
 /// A reusable `null`-valued future used by `dart:async`.
@@ -736,10 +737,7 @@ abstract final class SystemHash {
 }
 
 /// Sentinel values that should never be exposed outside of platform libraries.
-class SentinelValue {
-  final int id;
-  const SentinelValue(this.id);
-}
+class const SentinelValue(final int id);
 
 /// A default value to use when only one sentinel is needed.
 const Object sentinelValue = SentinelValue(0);
@@ -752,7 +750,7 @@ const Object sentinelValue = SentinelValue(0);
 /// Example:
 ///
 /// ```dart template:top
-/// class Two<A, B> {}
+/// class Two<A, B>();
 ///
 /// print(extractTypeArguments<List>(<int>[], <T>() => new Set<T>()));
 /// // Prints: Instance of 'Set<int>'.
@@ -766,12 +764,12 @@ const Object sentinelValue = SentinelValue(0);
 /// list in [instance]'s type hierarchy is being extracted. Consider:
 ///
 /// ```dart template:top
-/// class A<T> {}
-/// class B<T> {}
+/// class A<T>();
+/// class B<T>();
 ///
-/// class C implements A<int>, B<String> {}
+/// class C() implements A<int>, B<String>;
 ///
-/// main() {
+/// void main() {
 ///   var c = new C();
 ///   print(extractTypeArguments<A>(c, <T>() => <T>[]));
 ///   // Prints: Instance of 'List<int>'.
@@ -829,10 +827,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// or the first two numbers of a semantic version (like `1.0` or `2.2`),
 /// representing a stable release, and equivalent to the semantic version
 /// you get by appending a `.0`.
-class Since {
-  final String version;
-  const Since(this.version);
-}
+class const Since(final String version);
 
 /// A null-check function for function parameters in Null Safety enabled code.
 ///
@@ -852,9 +847,9 @@ T checkNotNullable<T extends Object>(T value, String name) {
 }
 
 /// A [TypeError] thrown by [checkNotNullable].
-class NotNullableError<T> extends Error implements TypeError {
-  final String _name;
-  NotNullableError(this._name);
+class NotNullableError<T>(final String _name)
+    extends Error
+    implements TypeError {
   String toString() => "Null is not a valid value for '$_name' of type '$T'";
 }
 
@@ -879,7 +874,7 @@ T valueOfNonNullableParamWithDefault<T extends Object>(T value, T defaultVal) {
 /**
  * HTTP status codes.  Exported in dart:io and dart:html.
  */
-abstract class HttpStatus {
+abstract interface class HttpStatus {
   static const int continue_ = 100;
   static const int switchingProtocols = 101;
   static const int processing = 102;
@@ -1057,15 +1052,15 @@ abstract class HttpStatus {
 // this publicly visible type.
 //
 // TODO: @Deprecated("Will be removed in a future release")
-class DoubleLinkedQueueEntry<E> {
+class DoubleLinkedQueueEntry<E>(
+  /// The element of the entry in the queue.
+  var E element,
+) {
   DoubleLinkedQueueEntry<E>? _previousLink;
   DoubleLinkedQueueEntry<E>? _nextLink;
 
-  /// The element of the entry in the queue.
-  E element;
-
   /// Creates a new entry with the given [element].
-  DoubleLinkedQueueEntry(this.element);
+  this;
 
   void _link(
     DoubleLinkedQueueEntry<E>? previous,
@@ -1150,14 +1145,14 @@ external Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes});
 /// perform an `v is T` type test.
 ///
 /// Intended use: `TypeTest<T>().test`.
-class TypeTest<T> {
+final class const TypeTest<T>() {
   bool test(Object? v) => v is T;
 }
 
 /// Should be moved to dart:isolate when --experimental-shared-data
 /// flag is removed.
 abstract interface class IsolateGroup {
-  external static Object _runSync(Object computation);
+  external static Object? _runSync(Object computation);
 
   /// Runs [computation] in isolate-group bound context.
   static R runSync<R>(R computation()) => _runSync(computation) as R;

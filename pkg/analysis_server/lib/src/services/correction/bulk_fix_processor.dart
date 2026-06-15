@@ -32,6 +32,9 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -158,6 +161,10 @@ class BulkFixProcessor {
   /// If `null`, fixes are computed for all codes.
   final List<String>? _codes;
 
+  final List<AbstractAnalysisRule>? _additionalLintRules;
+
+  final ByteStore _byteStore;
+
   /// The [ChangeBuilder] used to build the changes required to fix the
   /// diagnostics.
   @visibleForTesting
@@ -174,13 +181,20 @@ class BulkFixProcessor {
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
-  BulkFixProcessor(
+  new(
     this._instrumentationService,
     this._workspace, {
+    required this._byteStore,
+    ChangeBuilder? builder,
     List<String>? codes,
+    List<String>? additionalEnabledCodes,
     this._cancellationToken,
-  }) : builder = ChangeBuilder(workspace: _workspace),
-       _codes = codes?.map((e) => e.toLowerCase()).toList();
+  }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
+       _codes = codes?.map((e) => e.toLowerCase()).toList(),
+       _additionalLintRules = additionalEnabledCodes
+           ?.map((e) => Registry.ruleRegistry.getRule(e.toLowerCase()))
+           .nonNulls
+           .toList();
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -210,12 +224,14 @@ class BulkFixProcessor {
     String path, {
     required bool autoTriggered,
   }) async {
-    var pathContext = context.contextRoot.resourceProvider.pathContext;
+    var analysisContext = _contextWithAdditionalCodes(context);
+    var pathContext = analysisContext.contextRoot.resourceProvider.pathContext;
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
       var libraryResult = await performance.runAsync(
         'getResolvedLibrary',
-        (_) => context.currentSession.getResolvedContainingLibrary(path),
+        (_) =>
+            analysisContext.currentSession.getResolvedContainingLibrary(path),
       );
       var unitResult = libraryResult?.unitWithPath(path);
       if (!isCancelled && libraryResult != null && unitResult != null) {
@@ -384,8 +400,8 @@ class BulkFixProcessor {
           continue;
         }
 
-        var libPath = package.root.getChildAssumingFolder('lib');
-        var binPath = package.root.getChildAssumingFolder('bin');
+        var libPath = package.root.getFolder('lib');
+        var binPath = package.root.getFolder('bin');
 
         var pubspecDeps = packageToDeps.putIfAbsent(
           package,
@@ -423,7 +439,7 @@ class BulkFixProcessor {
         var result = await _runPubspecValidatorAndFixGenerator(
           FileSource(pubspecFile),
           pubspecDeps.packages,
-          pubspecDeps.devPackages,
+          pubspecDeps.devPackages.difference(pubspecDeps.packages),
           context.contextRoot.resourceProvider,
         );
         if (result.isNotEmpty) {
@@ -474,18 +490,20 @@ class BulkFixProcessor {
     }
 
     for (var context in contexts) {
-      var pathContext = context.contextRoot.resourceProvider.pathContext;
-      for (var path in context.contextRoot.analyzedFiles()) {
+      var analysisContext = _contextWithAdditionalCodes(context);
+      var pathContext =
+          analysisContext.contextRoot.resourceProvider.pathContext;
+      for (var path in analysisContext.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
             file_paths.isGenerated(path)) {
           continue;
         }
 
-        if (!await _hasFixableDiagnostics(context, path)) {
+        if (!await _hasFixableDiagnostics(analysisContext, path)) {
           continue;
         }
 
-        var resolvedLibrary = await context.currentSession
+        var resolvedLibrary = await analysisContext.currentSession
             .getResolvedLibraryContaining(path);
 
         if (isCancelled) {
@@ -528,6 +546,30 @@ class BulkFixProcessor {
     // Run lints that handle specific node types.
     context.currentUnit = currentUnit;
     currentUnit.unit.accept(AnalysisRuleVisitor(nodeRegistry));
+  }
+
+  /// Builds a temporary [AnalysisContext] that has the lint rules in
+  /// [_additionalLintRules] enabled in its analysis options.
+  AnalysisContext _contextWithAdditionalCodes(AnalysisContext originalContext) {
+    if (_additionalLintRules == null || _additionalLintRules.isEmpty) {
+      return originalContext;
+    }
+
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [originalContext.contextRoot.root.path],
+      resourceProvider: _workspace.resourceProvider,
+      byteStore: _byteStore,
+      sdkPath: originalContext.sdkRoot?.path,
+      updateAnalysisOptions4: ({required AnalysisOptionsImpl analysisOptions}) {
+        analysisOptions.lint = true;
+        analysisOptions.lintRules = [
+          ...analysisOptions.lintRules,
+          ..._additionalLintRules,
+        ];
+      },
+    );
+
+    return collection.contextFor(originalContext.contextRoot.root.path);
   }
 
   /// Filters errors to only those that are in [_codes] and are not filtered out
@@ -1008,9 +1050,9 @@ class BulkFixRequestResult {
   final ChangeBuilder? builder;
   final String? errorMessage;
 
-  BulkFixRequestResult(this.builder) : errorMessage = null;
+  new(this.builder) : errorMessage = null;
 
-  BulkFixRequestResult.error(this.errorMessage) : builder = null;
+  new error(this.errorMessage) : builder = null;
 }
 
 /// Maps changes to library paths.
@@ -1045,6 +1087,8 @@ class IterativeBulkFixProcessor {
   final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
   final Future<void> Function() _applyOverlays;
 
+  final ByteStore _byteStore;
+
   int _passesWithEdits = 0;
 
   /// A token used to signal that the caller is no longer interested in the
@@ -1052,8 +1096,9 @@ class IterativeBulkFixProcessor {
   /// invalid).
   final CancellationToken? _cancellationToken;
 
-  IterativeBulkFixProcessor({
+  new({
     required this._instrumentationService,
+    required this._byteStore,
     required this._context,
     required this._applyTemporaryOverlayEdits,
     required this._applyOverlays,
@@ -1081,6 +1126,7 @@ class IterativeBulkFixProcessor {
         var processor = BulkFixProcessor(
           _instrumentationService,
           workspace,
+          byteStore: _byteStore,
           cancellationToken: _cancellationToken,
         );
 

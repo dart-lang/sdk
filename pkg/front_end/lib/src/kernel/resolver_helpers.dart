@@ -4,28 +4,27 @@
 
 part of 'resolver.dart';
 
-typedef BodyBuilderCreator =
-    BodyBuilder Function({
-      required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext context,
-      required ExtensionScope extensionScope,
-      required LookupScope enclosingScope,
-      LocalScope? formalParameterScope,
-      required ClassHierarchy hierarchy,
-      required CoreTypes coreTypes,
-      VariableDeclaration? thisVariable,
-      List<TypeParameter>? thisTypeParameters,
-      required Uri uri,
-      required AssignedVariablesImpl assignedVariables,
-      required TypeEnvironment typeEnvironment,
-      required ConstantContext constantContext,
-    });
+typedef BodyBuilderCreator = BodyBuilder Function({
+  required SourceLibraryBuilder libraryBuilder,
+  required BodyBuilderContext context,
+  required ExtensionScope extensionScope,
+  required LookupScope enclosingScope,
+  LocalScope? formalParameterScope,
+  required ClassHierarchy hierarchy,
+  required CoreTypes coreTypes,
+  InternalVariable? thisVariable,
+  List<TypeParameter>? thisTypeParameters,
+  required Uri uri,
+  required AssignedVariablesImpl assignedVariables,
+  required TypeEnvironment typeEnvironment,
+  required ConstantContext constantContext,
+});
 
 // Coverage-ignore(suite): Not run.
 class ResolverForTesting extends Resolver {
   final BodyBuilderCreator bodyBuilderCreator;
 
-  ResolverForTesting({
+  new({
     required super.classHierarchy,
     required super.coreTypes,
     required super.typeInferenceEngine,
@@ -39,10 +38,10 @@ class ResolverForTesting extends Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required LocalScope? formalParameterScope,
-    required VariableDeclaration? thisVariable,
+    required InternalVariable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     return bodyBuilderCreator(
       libraryBuilder: context.libraryBuilder,
@@ -73,7 +72,7 @@ class _ResolverContext {
   late final CloneVisitorNotMembers _simpleCloner =
       new CloneVisitorNotMembers();
 
-  _ResolverContext._({
+  new _({
     required this.libraryBuilder,
     required this.typeInferrer,
     required this.typeEnvironment,
@@ -82,7 +81,7 @@ class _ResolverContext {
     required this.fileUri,
   });
 
-  factory _ResolverContext({
+  factory({
     required TypeInferenceEngineImpl typeInferenceEngine,
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
@@ -126,8 +125,9 @@ class _ResolverContext {
   void inferSingleTargetAnnotation({
     required SingleTargetAnnotations singleTarget,
   }) {
+    Annotatable target = singleTarget.target;
     _inferAnnotations(
-      annotatable: singleTarget.target,
+      annotatable: target,
       indices: singleTarget.indicesOfAnnotationsToBeInferred,
     );
   }
@@ -196,7 +196,7 @@ class _InitializerBuilder {
   ///    initializer. This avoids cascading errors.
   bool _needsImplicitSuperInitializer;
 
-  _InitializerBuilder({
+  new({
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required BodyBuilderContext bodyBuilderContext,
@@ -211,25 +211,42 @@ class _InitializerBuilder {
        this._needsImplicitSuperInitializer = bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
-  void _inferInitializer(Initializer initializer) {
-    InitializerInferenceResult result = _bodyBuilderContext.inferInitializer(
-      typeInferrer: _typeInferrer,
+  ScopeProviderInfo? _inferInitializers(
+    List<Initializer> initializers, {
+    required List<InternalVariable> parameters,
+    required InternalThisVariable? internalThisVariable,
+    required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isConstructorWithoutBody,
+  }) {
+    InferredConstructorInitializers result = _typeInferrer.inferInitializers(
       fileUri: _fileUri,
-      initializer: initializer,
+      constructorContext: _bodyBuilderContext.constructorContext!,
+      initializers: initializers,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      contextAllocationStrategy: contextAllocationStrategy,
+      isConstructorWithoutBody: isConstructorWithoutBody,
     );
     if (!_bodyBuilderContext.isExternalConstructor) {
-      _addInferredInitializer(result);
+      for (InitializerInferenceResult initializerInferenceResult
+          in result.initializersInferenceResult) {
+        _addInferredInitializer(initializerInferenceResult);
+      }
     }
+    return result.scopeProviderInfo;
   }
 
-  void processInitializers({
+  ScopeProviderInfo? processInitializers({
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required _SuperParameterArguments? superParameterArguments,
     required List<Initializer> initializers,
-    required AsyncMarker asyncMarker,
-    required int? asyncModifierFileOffset,
+    required AsyncModifier asyncModifier,
     required bool forPrimaryConstructor,
+    required List<InternalVariable> parameters,
+    required InternalThisVariable? internalThisVariable,
+    required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isConstructorWithoutBody,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -252,6 +269,8 @@ class _InitializerBuilder {
       }
     }
 
+    ScopeProviderInfo? scopeProviderInfo;
+    List<Initializer> initializersToBeInferred = [];
     for (Initializer initializer in initializers) {
       switch (initializer) {
         case AuxiliaryInitializer():
@@ -259,9 +278,9 @@ class _InitializerBuilder {
             switch (initializer) {
               case ExtensionTypeRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
-                _inferInitializer(initializer);
+                initializersToBeInferred.add(initializer);
               case ExtensionTypeRepresentationFieldInitializer():
-                _inferInitializer(initializer);
+                initializersToBeInferred.add(initializer);
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -269,17 +288,21 @@ class _InitializerBuilder {
                       _bodyBuilderContext.formals!;
                   ActualArguments arguments = initializer.arguments;
                   List<Expression> enumSyntheticArguments = [
-                    new VariableGet(formals[0].variable)
-                      ..parent = initializer.arguments,
-                    new VariableGet(formals[1].variable)
-                      ..parent = initializer.arguments,
+                    intern.createVariableGet(
+                      formals[0].variable,
+                      fileOffset: formals[0].fileOffset,
+                    )..parent = initializer.arguments,
+                    intern.createVariableGet(
+                      formals[1].variable,
+                      fileOffset: formals[1].fileOffset,
+                    )..parent = initializer.arguments,
                   ];
                   arguments.prependArguments([
                     new PositionalArgument(enumSyntheticArguments[0]),
                     new PositionalArgument(enumSyntheticArguments[1]),
                   ], positionalCount: 2);
                 }
-                _inferInitializer(initializer);
+                initializersToBeInferred.add(initializer);
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -330,16 +353,16 @@ class _InitializerBuilder {
                     );
                   }
                 }
-                _inferInitializer(initializer);
+                initializersToBeInferred.add(initializer);
             }
           }
         case InvalidInitializer():
           _needsImplicitSuperInitializer = false;
-          _inferInitializer(initializer);
+          initializersToBeInferred.add(initializer);
         case FieldInitializer():
         case LocalInitializer():
         case AssertInitializer():
-          _inferInitializer(initializer);
+          initializersToBeInferred.add(initializer);
         // Coverage-ignore(suite): Not run.
         case SuperInitializer():
         case RedirectingInitializer():
@@ -350,33 +373,48 @@ class _InitializerBuilder {
       }
     }
 
-    if (asyncMarker != AsyncMarker.Sync) {
-      _inferInitializer(
-        extern.createInvalidInitializer(
-          _problemReporting.buildProblem(
-            compilerContext: _compilerContext,
-            message: diag.constructorNotSync,
-            fileUri: _fileUri,
-            fileOffset: asyncModifierFileOffset!,
-            length: noLength,
-          ),
+    if (asyncModifier.kind != AsyncMarker.Sync) {
+      InvalidInitializer invalidInitializer = extern.createInvalidInitializer(
+        _problemReporting.buildProblem(
+          compilerContext: _compilerContext,
+          message: diag.constructorNotSync,
+          fileUri: _fileUri,
+          fileOffset: asyncModifier.fileOffset,
+          length: noLength,
         ),
       );
+      initializersToBeInferred.add(invalidInitializer);
       _needsImplicitSuperInitializer = false;
     }
 
     if (_needsImplicitSuperInitializer) {
-      _addImplicitSuperInitializer(
+      Initializer initializer = _createImplicitSuperInitializer(
         libraryBuilder: libraryBuilder,
         typeInferrer: _typeInferrer,
         superParameterArguments: superParameterArguments,
+        parameters: parameters,
+        internalThisVariable: internalThisVariable,
+        scopeProviderInfo: scopeProviderInfo,
+        contextAllocationStrategy: contextAllocationStrategy,
+        isFirstInitializer: initializers.isEmpty,
+        isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
+      initializersToBeInferred.add(initializer);
     }
+    scopeProviderInfo = _inferInitializers(
+      initializersToBeInferred,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      contextAllocationStrategy: contextAllocationStrategy,
+      isConstructorWithoutBody: isConstructorWithoutBody,
+    );
     _bodyBuilderContext.registerInitializers([
       ..._regularInitializers,
       ?_redirectingInitializer,
       ?_superInitializer,
     ], isErroneous: _isErroneous);
+
+    return scopeProviderInfo;
   }
 
   void _addSuperInitializer(
@@ -515,25 +553,30 @@ class _InitializerBuilder {
     }
   }
 
-  void _addInferredInitializer(InitializerInferenceResult inferenceResult) {
-    Initializer initializer = inferenceResult.initializer;
+  void _addInferredInitializer(
+    InitializerInferenceResult initializerInferenceResult,
+  ) {
+    Initializer initializer = initializerInferenceResult.initializer;
     switch (initializer) {
       case SuperInitializer():
-        _addSuperInitializer(inferenceResult, initializer);
+        _addSuperInitializer(initializerInferenceResult, initializer);
       case RedirectingInitializer():
-        _addRedirectingInitializer(inferenceResult, initializer);
+        _addRedirectingInitializer(initializerInferenceResult, initializer);
       case LocalInitializer():
       case AssertInitializer():
       case InvalidInitializer():
       case FieldInitializer():
-        _addRegularInitializer(inferenceResult, initializer);
+        _addRegularInitializer(initializerInferenceResult, initializer);
       case AuxiliaryInitializer():
         if (initializer is InternalInitializer) {
           switch (initializer) {
             case ExtensionTypeRedirectingInitializer():
-              _addRedirectingInitializer(inferenceResult, initializer);
+              _addRedirectingInitializer(
+                initializerInferenceResult,
+                initializer,
+              );
             case ExtensionTypeRepresentationFieldInitializer():
-              _addRegularInitializer(inferenceResult, initializer);
+              _addRegularInitializer(initializerInferenceResult, initializer);
             // Coverage-ignore(suite): Not run.
             case InternalRedirectingInitializer():
             case InternalSuperInitializer():
@@ -551,10 +594,16 @@ class _InitializerBuilder {
     }
   }
 
-  void _addImplicitSuperInitializer({
+  Initializer _createImplicitSuperInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
+    required List<InternalVariable> parameters,
+    required InternalThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     /// >If no superinitializer is provided, an implicit superinitializer
     /// >of the form super() is added at the end of the constructor's
@@ -574,8 +623,14 @@ class _InitializerBuilder {
             formals[0].name == "#index" &&
             formals[1].name == "#name",
       );
-      Expression indexExpression = new VariableGet(formals[0].variable);
-      Expression nameExpression = new VariableGet(formals[1].variable);
+      Expression indexExpression = intern.createVariableGet(
+        formals[0].variable,
+        fileOffset: formals[0].fileOffset,
+      );
+      Expression nameExpression = intern.createVariableGet(
+        formals[1].variable,
+        fileOffset: formals[1].fileOffset,
+      );
       (argumentsOriginalOrder ??= []).insertAll(0, [
         new PositionalArgument(indexExpression),
         new PositionalArgument(nameExpression),
@@ -670,7 +725,7 @@ class _InitializerBuilder {
           int positionalSuperParameterCount =
               superTarget.function.positionalParameters.length;
           Set<String> superTargetNamedParameterNames = {
-            for (VariableDeclaration namedParameter
+            for (Variable namedParameter
                 in superTarget.function.namedParameters)
               ?namedParameter // Coverage-ignore(suite): Not run.
                   .name,
@@ -743,7 +798,7 @@ class _InitializerBuilder {
         )..fileOffset = _bodyBuilderContext.memberNameOffset;
       }
     }
-    _inferInitializer(initializer);
+    return initializer;
   }
 }
 
@@ -752,7 +807,7 @@ class _SuperParameterArguments {
   final int positionalCount;
   final int firstPositionalOffset;
 
-  _SuperParameterArguments(
+  new(
     this.arguments, {
     required this.positionalCount,
     required this.firstPositionalOffset,

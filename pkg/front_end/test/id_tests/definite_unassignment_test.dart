@@ -6,7 +6,6 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -32,7 +31,7 @@ Future<void> main(List<String> args) async {
 }
 
 class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
-  const DefiniteUnassignmentDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -66,22 +65,18 @@ class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
 }
 
 class DefiniteUnassignmentDataExtractor extends CfeDataExtractor<String> {
-  final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final FlowAnalysisResult _flowResult;
 
-  DefiniteUnassignmentDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
     this._flowResult,
-  ) : _sourceLoaderDataForTesting =
-          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-      super(compilerResult, actualMap);
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
-      TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-      if (_flowResult.definitelyUnassignedNodes.contains(alias)) {
+      if (_flowResult.definitelyUnassignedNodes.contains(node)) {
         return 'unassigned';
       }
     }

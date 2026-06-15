@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -560,6 +561,11 @@ class FileState {
   @override
   int get hashCode => uri.hashCode;
 
+  /// Whether this file is in a "test" directory of its workspace package.
+  bool get isInTestDirectory {
+    return workspacePackage?.isInTestDirectory(resource) ?? false;
+  }
+
   FileKind get kind => _kind!;
 
   /// Return information about line in the file.
@@ -619,13 +625,14 @@ class FileState {
       performance.getDataInt('length').add(code.length);
 
       var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-      Scanner scanner = Scanner(code, diagnosticReporter)
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet.restrictToVersion(packageLanguageVersion),
-        );
+      Scanner scanner =
+          Scanner(inputText: code, reportError: diagnosticReporter.report)
+            ..configureFeatures(
+              featureSetForOverriding: featureSet,
+              featureSet: featureSet.restrictToVersion(packageLanguageVersion),
+            );
       scanner.preserveComments = scanComments;
-      Token token = scanner.tokenize(reportScannerErrors: false);
+      Token token = scanner.tokenize();
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
       var languageVersion = LibraryLanguageVersion(
         package: packageLanguageVersion,
@@ -1023,9 +1030,7 @@ class FileState {
           topLevelDeclarations.add(name.lexeme);
         }
       } else if (declaration is ExtensionTypeDeclaration) {
-        topLevelDeclarations.add(
-          declaration.primaryConstructor.typeName.lexeme,
-        );
+        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
       } else if (declaration is FunctionDeclaration) {
         topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is MixinDeclaration) {

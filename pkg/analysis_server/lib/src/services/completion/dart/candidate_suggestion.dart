@@ -37,7 +37,7 @@ sealed class CandidateSuggestion {
   /// suggestions has been completed.
   int relevanceScore = -1;
 
-  CandidateSuggestion({required this.matcherScore}) : assert(matcherScore >= 0);
+  new({required this.matcherScore}) : assert(matcherScore >= 0);
 
   /// The text to be inserted by the completion suggestion.
   String get completion;
@@ -55,7 +55,7 @@ final class ClassSuggestion extends ImportableSuggestion
   final ClassElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ClassSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -90,7 +90,7 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
   ///
   /// If [includeTrailingComma] is `true`, then the replacement will include a
   /// trailing comma.
-  ClosureSuggestion({
+  new({
     required this.functionType,
     required this.includeTrailingComma,
     required super.matcherScore,
@@ -177,7 +177,7 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
   final bool isRedirect;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ConstructorSuggestion({
+  new({
     required super.importData,
     required this.element,
     required this.alias,
@@ -244,7 +244,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion
   final bool includeEnumName;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumConstantSuggestion({
+  new({
     required super.importData,
     required this.element,
     this.includeEnumName = true,
@@ -269,7 +269,7 @@ final class EnumSuggestion extends ImportableSuggestion
   final EnumElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -289,7 +289,7 @@ sealed class ExecutableSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created suggestion to use the given [kind] of
   /// suggestion.
-  ExecutableSuggestion({
+  new({
     required super.importData,
     required this.kind,
     required super.matcherScore,
@@ -306,7 +306,7 @@ final class ExtensionSuggestion extends ExecutableSuggestion
   final ExtensionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -324,7 +324,7 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion
   final ExtensionTypeElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionTypeSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -349,7 +349,7 @@ final class FieldSuggestion extends TypedSuggestion with MemberSuggestion {
   final bool isInDeclaration;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  FieldSuggestion({
+  new({
     required this.element,
     required this.referencingInterface,
     required this.isInDeclaration,
@@ -392,7 +392,7 @@ final class FormalParameterSuggestion extends CandidateSuggestion
   final int distance;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  FormalParameterSuggestion({
+  new({
     required this.element,
     required this.distance,
     required super.matcherScore,
@@ -412,7 +412,7 @@ final class FunctionCall extends TypedExecutableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the method
   /// `call` defined on the class `Function`.
-  FunctionCall({
+  new({
     required super.matcherScore,
     required this.type,
     required super.replacementRange,
@@ -448,7 +448,7 @@ final class GetterSuggestion extends TypedImportableSuggestion
   final bool addTypeName;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  GetterSuggestion({
+  new({
     required this.element,
     required this.referencingInterface,
     required super.importData,
@@ -522,7 +522,7 @@ final class IdentifierSuggestion extends CandidateSuggestion {
   ///
   /// If [includeBody] is `true`, then empty curly braces will be included in
   /// the suggestion.
-  IdentifierSuggestion({
+  new({
     required this.identifier,
     required this.includeBody,
     required super.matcherScore,
@@ -542,7 +542,7 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
   /// Information about the import used to make this suggestion visible.
   final ImportData? importData;
 
-  ImportableSuggestion({required this.importData, required super.matcherScore});
+  new({required this.importData, required super.matcherScore});
 
   /// The text to add before the name of the element when it is being imported
   /// using an import prefix.
@@ -578,7 +578,7 @@ final class ImportData {
 
   /// Initialize data representing an import of a library, using the
   /// [libraryUri], with the [prefix].
-  ImportData({
+  new({
     required this.libraryUri,
     required this.prefix,
     required this.isNotImported,
@@ -592,7 +592,7 @@ final class ImportPrefixSuggestion extends CandidateSuggestion
 
   final PrefixElement prefixElement;
 
-  ImportPrefixSuggestion({
+  new({
     required this.libraryElement,
     required this.prefixElement,
     required super.matcherScore,
@@ -626,7 +626,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromKeyword({
+  factory fromKeyword({
     required Keyword keyword,
     required String? annotatedText,
     required double matcherScore,
@@ -652,10 +652,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromText(
-    String annotatedText, {
-    required double matcherScore,
-  }) {
+  factory fromText(String annotatedText, {required double matcherScore}) {
     var (rawText, caretIndex) = annotatedText.withoutCaret;
     return KeywordSuggestion._(
       completion: rawText,
@@ -665,7 +662,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
   }
 
   /// Initialize a newly created candidate suggestion to suggest a keyword.
-  KeywordSuggestion._({
+  new _({
     required this.completion,
     required this.selectionOffset,
     required super.matcherScore,
@@ -678,10 +675,10 @@ final class LabelSuggestion extends CandidateSuggestion {
   final Label label;
 
   /// Initialize a newly created candidate suggestion to suggest the [label].
-  LabelSuggestion({required this.label, required super.matcherScore});
+  new({required this.label, required super.matcherScore});
 
   @override
-  String get completion => label.label.name;
+  String get completion => label.name.lexeme;
 }
 
 /// The suggestion for `loadLibrary()`.
@@ -690,11 +687,8 @@ final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion
   @override
   final TopLevelFunctionElement element;
 
-  LoadLibraryFunctionSuggestion({
-    required super.kind,
-    required this.element,
-    required super.matcherScore,
-  }) : super(importData: null);
+  new({required super.kind, required this.element, required super.matcherScore})
+    : super(importData: null);
 
   @override
   String get completion => element.displayName;
@@ -707,11 +701,8 @@ final class LocalFunctionSuggestion extends ExecutableSuggestion
   final LocalFunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalFunctionSuggestion({
-    required super.kind,
-    required this.element,
-    required super.matcherScore,
-  }) : super(importData: null);
+  new({required super.kind, required this.element, required super.matcherScore})
+    : super(importData: null);
 
   @override
   String get completion => element.displayName;
@@ -728,7 +719,7 @@ final class LocalVariableSuggestion extends CandidateSuggestion
   final int distance;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalVariableSuggestion({
+  new({
     required this.element,
     required this.distance,
     required super.matcherScore,
@@ -778,7 +769,7 @@ final class MethodSuggestion extends TypedExecutableSuggestion
   final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  MethodSuggestion({
+  new({
     required super.kind,
     required this.element,
     required this.referencingInterface,
@@ -808,7 +799,7 @@ final class MixinSuggestion extends ImportableSuggestion
   final MixinElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  MixinSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -838,7 +829,7 @@ final class NamedArgumentSuggestion extends CandidateSuggestion
 
   String preferredQuoteForStrings;
 
-  NamedArgumentSuggestion({
+  new({
     required this.parameter,
     required this.appendColon,
     required this.appendComma,
@@ -899,7 +890,7 @@ final class NameSuggestion extends CandidateSuggestion {
   final String name;
 
   /// Initialize a newly created candidate suggestion to suggest the [name].
-  NameSuggestion({required this.name, required super.matcherScore});
+  new({required this.name, required super.matcherScore});
 
   @override
   String get completion => name;
@@ -928,7 +919,7 @@ final class OverrideSuggestion extends CandidateSuggestion
 
   /// Initialize a newly created candidate suggestion to suggest the [element]
   /// by inserting the [shouldInvokeSuper].
-  OverrideSuggestion({
+  new({
     required this.element,
     required this.shouldInvokeSuper,
     required this.skipAt,
@@ -952,7 +943,7 @@ final class RecordFieldSuggestion extends TypedSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [field] by
   /// inserting the [name].
-  RecordFieldSuggestion({
+  new({
     required this.field,
     required this.name,
     required super.replacementRange,
@@ -979,17 +970,15 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion
   final bool appendColon;
   final bool appendComma;
 
-  RecordLiteralNamedFieldSuggestion.newField({
+  new newField({
     required this.field,
     required this.appendComma,
     required super.matcherScore,
   }) : appendColon = true;
 
-  RecordLiteralNamedFieldSuggestion.onlyName({
-    required this.field,
-    required super.matcherScore,
-  }) : appendColon = false,
-       appendComma = false;
+  new onlyName({required this.field, required super.matcherScore})
+    : appendColon = false,
+      appendComma = false;
 
   @override
   String get completion {
@@ -1022,10 +1011,7 @@ sealed class ReplacementSuggestion extends CandidateSuggestion {
   /// The source range that should be replaced by the suggestion.
   final SourceRange replacementRange;
 
-  ReplacementSuggestion({
-    required super.matcherScore,
-    required this.replacementRange,
-  });
+  new({required super.matcherScore, required this.replacementRange});
 }
 
 /// The information about a candidate suggestion for Flutter's `setState` method.
@@ -1047,7 +1033,7 @@ final class SetStateMethodSuggestion extends TypedExecutableSuggestion
   final String endOfLine;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  SetStateMethodSuggestion({
+  new({
     required this.element,
     required this.referencingInterface,
     required this.indent,
@@ -1106,7 +1092,7 @@ final class SetterSuggestion extends ImportableSuggestion
   final bool withEnclosingName;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  SetterSuggestion({
+  new({
     required this.element,
     required super.importData,
     required this.referencingInterface,
@@ -1157,7 +1143,7 @@ final class StaticFieldSuggestion extends ImportableSuggestion
   final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  StaticFieldSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -1199,10 +1185,7 @@ final class SuperParameterSuggestion extends CandidateSuggestion
   final FormalParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  SuperParameterSuggestion({
-    required this.element,
-    required super.matcherScore,
-  });
+  new({required this.element, required super.matcherScore});
 
   @override
   String get completion => element.displayName;
@@ -1216,7 +1199,7 @@ final class TopLevelFunctionSuggestion extends ExecutableSuggestion
   final TopLevelFunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelFunctionSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.kind,
@@ -1234,7 +1217,7 @@ final class TopLevelGetterSuggestion extends ImportableSuggestion
   final GetterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelGetterSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -1251,7 +1234,7 @@ final class TopLevelSetterSuggestion extends ImportableSuggestion
   final SetterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelSetterSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -1268,7 +1251,7 @@ final class TopLevelVariableSuggestion extends ImportableSuggestion
   final TopLevelVariableElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelVariableSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -1285,7 +1268,7 @@ final class TypeAliasSuggestion extends ImportableSuggestion
   final TypeAliasElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeAliasSuggestion({
+  new({
     required super.importData,
     required this.element,
     required super.matcherScore,
@@ -1312,7 +1295,7 @@ sealed class TypedExecutableSuggestion extends ExecutableSuggestion
   @override
   final bool addTypeName;
 
-  TypedExecutableSuggestion({
+  new({
     required this.replacementRange,
     required super.importData,
     required super.kind,
@@ -1344,7 +1327,7 @@ sealed class TypedImportableSuggestion extends ImportableSuggestion
   @override
   TypeImportData? data;
 
-  TypedImportableSuggestion({
+  new({
     required super.importData,
     required super.matcherScore,
     required this.replacementRange,
@@ -1377,7 +1360,7 @@ sealed class TypedSuggestion extends ReplacementSuggestion {
   /// not enabled, the completion for `a` would replace `.` and insert `E.a`.
   final bool addTypeName;
 
-  TypedSuggestion({
+  new({
     required super.matcherScore,
     required super.replacementRange,
     required this.addTypeName,
@@ -1422,7 +1405,7 @@ class TypeImportData {
 
   final int? selectionLength;
 
-  TypeImportData(
+  new(
     this.completion,
     this.displayText,
     this.imports,
@@ -1438,7 +1421,7 @@ final class TypeParameterSuggestion extends CandidateSuggestion
   final TypeParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeParameterSuggestion({required this.element, required super.matcherScore});
+  new({required this.element, required super.matcherScore});
 
   @override
   String get completion => element.displayName;
@@ -1448,7 +1431,7 @@ final class TypeParameterSuggestion extends CandidateSuggestion
 final class UriSuggestion extends CandidateSuggestion {
   final String uriStr;
 
-  UriSuggestion({required this.uriStr, required super.matcherScore});
+  new({required this.uriStr, required super.matcherScore});
 
   @override
   String get completion => uriStr;
@@ -1462,7 +1445,7 @@ class _Data {
 
   String completion;
 
-  _Data(this.completion, this.selectionOffset, {this.displayText = ''});
+  new(this.completion, this.selectionOffset, {this.displayText = ''});
 }
 
 extension on String {

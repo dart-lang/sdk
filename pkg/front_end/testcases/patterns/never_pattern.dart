@@ -5,5 +5,6 @@
 method(Never n) {
   switch (n) {
     case == 0:
+    case Never(:var hashCode):
   }
 }

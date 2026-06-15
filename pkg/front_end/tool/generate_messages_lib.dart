@@ -16,7 +16,7 @@ class MessageAccumulator {
   /// The buffer in which generated code will be accumulated.
   final StringBuffer _newBuffer = new StringBuffer();
 
-  MessageAccumulator() {
+  new() {
     const String preamble1 = """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -91,11 +91,7 @@ class Messages {
   /// The string to write to the generated file.
   final String contents;
 
-  Messages({
-    required this.packageName,
-    required this.path,
-    required this.contents,
-  });
+  new({required this.packageName, required this.path, required this.contents});
 
   /// Computes the absolute file URI to the generated file.
   ///
@@ -194,18 +190,16 @@ class _TemplateCompiler {
   final List<String> withArgumentsStatements = [];
   bool hasLabeler = false;
 
-  _TemplateCompiler({
-    required this.message,
-    required this.pseudoSharedCodeValues,
-  }) : pascalCaseName = message.frontEndCode.pascalCaseName,
-       camelCaseName = message.frontEndCode.camelCaseName,
-       problemMessage = message.problemMessage,
-       correctionMessage = message.correctionMessage,
-       severity = message.cfeSeverity,
-       parameters = message.parameters,
-       pseudoSharedCode = message is FrontEndMessage
-           ? message.pseudoSharedCode
-           : null;
+  new({required this.message, required this.pseudoSharedCodeValues})
+    : pascalCaseName = message.frontEndCode.pascalCaseName,
+      camelCaseName = message.frontEndCode.camelCaseName,
+      problemMessage = message.problemMessage,
+      correctionMessage = message.correctionMessage,
+      severity = message.cfeSeverity,
+      parameters = message.parameters,
+      pseudoSharedCode = message is FrontEndMessage
+          ? message.pseudoSharedCode
+          : null;
 
   void compile(MessageAccumulator messageAccumulator) {
     var codeArguments = <String>[

@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryFinal extends ResolvedCorrectionProducer {
-  RemoveUnnecessaryFinal({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -28,9 +28,9 @@ class RemoveUnnecessaryFinal extends ResolvedCorrectionProducer {
     var node = this.node;
     Token? keyword;
     if (node is FieldFormalParameter) {
-      keyword = node.keyword;
+      keyword = node.constFinalOrVarKeyword;
     } else if (node is SuperFormalParameter) {
-      keyword = node.keyword;
+      keyword = node.constFinalOrVarKeyword;
     }
     if (keyword == null) return;
 

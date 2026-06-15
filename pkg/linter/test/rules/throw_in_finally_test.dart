@@ -47,22 +47,19 @@ class C {}
   }
 
   test_throwInFinally() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
   void f() {
   try {
   } catch (e) {
   } finally {
     if (1 > 0) {
-      throw '';
+      [!throw ''!];
     } else {
       print('should catch nested throws!');
     }
   }
 }
-''',
-      [lint(74, 8)],
-    );
+''');
   }
 
   test_throwInInnerClosureInFinally() async {

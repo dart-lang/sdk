@@ -17,10 +17,14 @@ final class VmRunningIsolate extends RunningIsolate {
     required super.id,
     required super.name,
     required this.sendPort,
+    required this.isSystemIsolate,
   });
 
   /// The port used to send service requests to the isolate within the VM.
   final SendPort sendPort;
+
+  /// Whether this is a system isolate.
+  final bool isSystemIsolate;
 
   /// The set of ports for outstanding requests that are used by the VM to send
   /// responses.
@@ -64,16 +68,22 @@ final class VmIsolateManager extends IsolateManager {
     required int id,
     required SendPort sendPort,
     required String name,
+    required bool isSystemIsolate,
   }) {
-    final isolate = VmRunningIsolate(id: id, name: name, sendPort: sendPort);
+    final isolate = VmRunningIsolate(
+      id: id,
+      name: name,
+      sendPort: sendPort,
+      isSystemIsolate: isSystemIsolate,
+    );
     _logger.info('Isolate startup message received for $isolate');
-    isolateStarted(isolate: isolate);
+    isolateStarted(isolate: isolate, isSystemIsolate: isSystemIsolate);
   }
 
   /// Reports that an isolate is shutting down based on a message over the
   /// service's control port.
   void onIsolateShutdownMessage({required int id}) {
-    _logger.info('Isolate startup message received for isolate ID $id');
+    _logger.info('Received isolate shutdown message for isolate $id');
     isolateExited(id: id);
   }
 

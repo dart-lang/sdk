@@ -251,8 +251,7 @@ void s(Subclassed e) {
 @reflectiveTest
 class ExhaustiveCasesTest extends BaseExhaustiveCasesTest {
   Future<void> test_dotShorthands_enumLike() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class E {
   final int i;
   const E._(this.i);
@@ -263,15 +262,13 @@ class E {
 }
 
 void fn(E e) {
-  switch (e) {
+  [!switch (e)!] {
     case .e:
       break;
     case .f:
   }
 }
-''',
-      [lint(148, 10)],
-    );
+''');
   }
 
   Future<void> test_dotShorthands_enumLike_default_ok() async {

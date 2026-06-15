@@ -29,16 +29,13 @@ extension type E(IOSink _s) implements IOSink {}
   }
 
   test_extensionType_implementsSink_notClosed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(IOSink sink) {
-  E e = E(sink);
+  E [!e = E(sink)!];
 }
 extension type E(IOSink _s) implements IOSink {}
-''',
-      [lint(44, 11)],
-    );
+''');
   }
 
   test_field_closed() async {
@@ -159,50 +156,41 @@ class C {
   }
 
   test_field_initializedInMethod_notClosed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 class C {
   // ignore: unused_field
-  late IOSink _sink;
+  late IOSink [!_sink!];
   void init() {
     _sink = File('').openWrite();
   }
 }
-''',
-      [lint(68, 5)],
-    );
+''');
   }
 
   test_field_initializedInMethod_originPrimaryConstructor_notClosed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 // ignore: unused_field_from_primary_constructor
-class C(var IOSink _sink) {
+class C([!var IOSink _sink!]) {
   void init() {
     _sink = File('').openWrite();
   }
 }
-''',
-      [lint(75, 16)],
-    );
+''');
   }
 
   test_field_initializedInMethod_withPrimaryConstructor_notClosed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 class C() {
   // ignore: unused_field
-  late IOSink _sink;
+  late IOSink [!_sink!];
   void init() {
     _sink = File('').openWrite();
   }
 }
-''',
-      [lint(70, 5)],
-    );
+''');
   }
 
   test_field_originPrimaryConstructor_closed() async {
@@ -231,15 +219,12 @@ void f() {
   }
 
   test_localVariable_inFunction_notInitialized() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void someFunction() {
-  IOSink sink;
+  IOSink [!sink!];
 }
-''',
-      [lint(49, 4)],
-    );
+''');
   }
 
   test_localVariable_inMethod_returned_notClosed() async {

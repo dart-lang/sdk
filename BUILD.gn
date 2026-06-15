@@ -5,23 +5,12 @@
 import("build/config/gclient_args.gni")
 import("sdk_args.gni")
 
-targeting_fuchsia = target_os == "fuchsia"
-
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
   deps = [ ":runtime" ]
 }
 
 group("most") {
-  import("runtime/runtime_args.gni")
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
   deps = [
     ":analysis_server",
     ":create_sdk",
@@ -35,11 +24,6 @@ group("most") {
 group("runtime") {
   import("runtime/runtime_args.gni")
 
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
-
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dartvm",
@@ -51,7 +35,6 @@ group("runtime") {
     "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
     "samples/ffi/httpIG:fake_httpIG",
-    "utils/dartdev",
     "utils/kernel-service",
   ]
 
@@ -71,6 +54,7 @@ group("runtime") {
   } else {
     deps += [
       "utils/dart_runtime_service_vm",
+      "utils/dartdev",
       "utils/dds",
       "utils/dtd",
       "utils/kernel-service:frontend_server",
@@ -141,10 +125,6 @@ group("create_sdk") {
   public_deps = [ "sdk:create_sdk" ]
 }
 
-group("create_platform_sdk") {
-  public_deps = [ "sdk:create_platform_sdk" ]
-}
-
 group("dart2js") {
   import("runtime/runtime_args.gni")
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
@@ -160,10 +140,10 @@ group("dart2js") {
 group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
-    "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:compile_dart2wasm_standalone_platform",
+    "utils/dart2wasm:dart2wasm_js_compatibility_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
+    "utils/dart2wasm:dart2wasm_standalone_platform",
   ]
   if (defined(is_product)) {
     if (is_product) {
@@ -208,14 +188,18 @@ group("ddc") {
   }
 }
 
+group("dartpad") {
+  deps = [ "utils/dartpad" ]
+}
+
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }
 
 group("tools") {
   deps = [
-    "utils:compile_platform.exe",
-    "utils:gen_kernel.exe",
+    "utils:bootstrap_compile_platform.exe",
+    "utils:bootstrap_gen_kernel.exe",
   ]
 }
 
@@ -223,9 +207,67 @@ group("tools") {
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("dart2wasm_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dart2wasm:test_wasm_modules",
+  ]
+}
+
+group("front-end_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("analyzer_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dartanalyzer",
+  ]
+}
+
+group("benchmark_bot") {
+  deps = [
+    ":dart2wasm_benchmark",
+    "runtime/bin:run_vm_tests",
+    "sdk:create_most_sdk",
+    "utils/ddc:ddc_canary_test",
+    "utils/ddc:ddc_stable_test",
+    "utils/kernel-service",
+  ]
+}
+
+group("pkg_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform",
+    ":dartpad",
+  ]
+}
+
+group("android_bot") {
+  deps = [
+    "runtime/bin:abstract_socket_test",
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
+    "runtime/bin:gen_snapshot($host_toolchain)",
+    "runtime/bin:process_test",
+    "runtime/bin:run_vm_tests",
+    "samples/ffi/http:fake_http",
+    "samples/ffi/httpIG:fake_httpIG",
+  ]
+}
+
+group("dartfuzz") {
+  deps = [
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "utils/compiler:dart2js_platform",
+    "utils/dart2wasm:dart2wasm_platform",
+    "utils/kernel-service",
   ]
 }
 
@@ -235,7 +277,8 @@ if (is_fuchsia) {
   import("utils/aot_snapshot.gni")
   import("utils/application_snapshot.gni")
 
-  # TODO(b/399714829): Test packages should be created at test-time, not build-time.
+  # TODO(b/399714829): Test packages should be created at test-time, not
+  # build-time.
 
   # tests/ffi/**_test.dart except those with compile-time errors
   test_sources = [
@@ -262,6 +305,7 @@ if (is_fuchsia) {
     "tests/ffi/dylib_close_test.dart",
     "tests/ffi/dylib_isolates_test.dart",
     "tests/ffi/dylib_open_test.dart",
+    "tests/ffi/exceptional_return_const_test.dart",
     "tests/ffi/expando_test.dart",
     "tests/ffi/extension_methods_test.dart",
     "tests/ffi/external_typed_data_finalizer_test.dart",
@@ -309,7 +353,9 @@ if (is_fuchsia) {
     "tests/ffi/inline_array_test.dart",
     "tests/ffi/inline_array_variable_length_test.dart",
     "tests/ffi/invoke_callback_after_suspension_test.dart",
+    "tests/ffi/isolate_group_bound_lazy_deopt_test.dart",
     "tests/ffi/isolate_local_function_callbacks_test.dart",
+    "tests/ffi/many_listener_callbacks_test.dart",
     "tests/ffi/msan_test.dart",
     "tests/ffi/native_assets/asset_absolute_test.dart",
     "tests/ffi/native_assets/asset_executable_test.dart",
@@ -409,11 +455,11 @@ if (is_fuchsia) {
       dart_snapshot_kind = "kernel"
       main_dart = test_source
       training_args = []  # Not used
-      output = "$target_gen_dir/$test_source.dill"
+      output = "$target_out_dir/$test_source.dill"
     }
     aot_snapshot(aot_label) {
       main_dart = test_source
-      output = "$target_gen_dir/$test_source.elf"
+      output = "$target_out_dir/$test_source.elf"
     }
 
     test_deps += [
@@ -422,11 +468,11 @@ if (is_fuchsia) {
     ]
     test_resources += [
       {
-        path = rebase_path("$target_gen_dir/$test_source.dill")
+        path = "$target_out_dir/$test_source.dill"
         dest = "data/$test_source"
       },
       {
-        path = rebase_path("$target_gen_dir/$test_source.elf")
+        path = "$target_out_dir/$test_source.elf"
         dest = "data/$test_source.elf"
       },
     ]
@@ -435,15 +481,14 @@ if (is_fuchsia) {
   test_binaries = [
     "dartvm",
     "dartaotruntime",
-    "run_vm_tests",
   ]
 
   foreach(binary, test_binaries) {
     fuchsia_component("${binary}_test_component") {
-      testonly = true
       manifest = "runtime/bin/${binary}_test_component.cml"
       data_deps = [
         "runtime/bin:${binary}",
+        "runtime/bin:ffi_callback_stub_bin",
         "runtime/bin:ffi_test_dynamic_library",
         "runtime/bin:ffi_test_functions",
       ]
@@ -451,10 +496,7 @@ if (is_fuchsia) {
         "libffi_test_dynamic_library.so",
         "libffi_test_functions.so",
       ]
-      resource_files = [
-        ".dart_tool/package_config.json",
-        "tools/addlatexhash.dart",
-      ]
+      resource_files = [ ".dart_tool/package_config.json" ]
       resources = []
       foreach(file, library_files) {
         resources += [
@@ -464,6 +506,13 @@ if (is_fuchsia) {
           },
         ]
       }
+      resources += [
+        {
+          path = get_label_info("runtime/bin:ffi_callback_stub_bin",
+                                "target_out_dir") + "/ffi_callback_stub.bin"
+          dest = "lib/ffi_callback_stub.bin"
+        },
+      ]
       foreach(file, resource_files) {
         resources += [
           {
@@ -478,14 +527,7 @@ if (is_fuchsia) {
   }
 
   fuchsia_package("fuchsia_test_package") {
-    testonly = true
-    if (is_debug) {
-      package_name = "dart_test_debug"
-    } else if (is_release) {
-      package_name = "dart_test_release"
-    } else if (is_product) {
-      package_name = "dart_test_product"
-    }
+    package_name = "dart_test"
     deps = []
     foreach(binary, test_binaries) {
       deps += [ ":${binary}_test_component" ]

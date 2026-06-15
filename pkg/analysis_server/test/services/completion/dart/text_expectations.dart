@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -131,13 +130,14 @@ sealed class _Argument {
 final class _ArgumentIndex extends _Argument {
   final int index;
 
-  _ArgumentIndex(this.index);
+  new(this.index);
 
   @override
   Expression get(ArgumentList argumentList) {
-    return argumentList.arguments.whereNotType<NamedExpression>().elementAt(
-      index,
-    );
+    return argumentList.arguments
+        .where((argument) => argument is! NamedArgument)
+        .map((argument) => argument.argumentExpression)
+        .elementAt(index);
   }
 }
 
@@ -146,7 +146,7 @@ class _AssertMethod {
   final String stackTracePattern;
   final _Argument argument;
 
-  const _AssertMethod({
+  const new({
     required String className,
     required this.methodName,
     required this.argument,
@@ -160,7 +160,7 @@ class _File {
   final CompilationUnit unit;
   final List<_Replacement> replacements = [];
 
-  factory _File(String path) {
+  factory(String path) {
     var content = io.File(path).readAsStringSync();
 
     var collection = AnalysisContextCollection(
@@ -180,7 +180,7 @@ class _File {
     );
   }
 
-  _File._({
+  new _({
     required this.path,
     required this.content,
     required this.lineInfo,
@@ -242,7 +242,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
   final int requestedLine;
   MethodInvocation? result;
 
-  _InvocationVisitor({required this.lineInfo, required this.requestedLine});
+  new({required this.lineInfo, required this.requestedLine});
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -264,7 +264,7 @@ class _Replacement {
   final int end;
   final String text;
 
-  _Replacement(this.offset, this.end, this.text);
+  new(this.offset, this.end, this.text);
 }
 
 extension on AstNode {

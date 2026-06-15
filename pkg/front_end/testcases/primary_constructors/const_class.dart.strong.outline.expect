@@ -47,10 +47,6 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:45:9: Error: Generative enum constructors must be marked as 'const'.
-//   const E0(this.v) {}
-//         ^
-//
 // pkg/front_end/testcases/primary_constructors/const_class.dart:50:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
@@ -66,16 +62,12 @@ library;
 //   this: v = v {}
 //               ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   e0(0);
-//   ^
-//
 import self as self;
 import "dart:core" as core;
 
-class C0 extends core::Object {
-  constructor •() → self::C0
+class C0 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C0
+    : super core::Object::•()
     ;
 }
 class C1 extends core::Object /*hasConstConstructor*/  {
@@ -86,40 +78,38 @@ class C1 extends core::Object /*hasConstConstructor*/  {
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
   const constructor •(final core::int x) → self::C2
-    : super core::Object::•()
+    : self::C2::x = x, super core::Object::•()
     ;
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C3
+  const constructor •(final initializing-formal core::int x) → self::C3
     : self::C3::x = x, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C4
+  const constructor •(final initializing-formal core::int x) → self::C4
     : self::C4::x = x, super core::Object::•()
     ;
 }
 class A extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::A
+  const constructor •(final initializing-formal core::int x) → self::A
     : self::A::x = x, super core::Object::•()
     ;
 }
 class C5 extends self::A /*hasConstConstructor*/  {
-  const constructor •(final core::int x) → self::C5
+  const constructor •(final super-initializing-formal core::int x) → self::C5
     : super self::A::•(x)
     ;
 }
 class E0 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  e0(0);
-  ^";
+  enum-element static const field self::E0 e0 = const self::E0::•(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E0> values = const <self::E0>[self::E0::e0];
-  constructor •(core::int #index, core::String #name, core::int v) → self::E0
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
+    : self::E0::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";
@@ -128,7 +118,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   final field core::int v;
   enum-element static const field self::E1 e0 = const self::E1::•(0, "e0", 0);
   static const field core::List<self::E1> values = const <self::E1>[self::E1::e0];
-  const constructor •(core::int #index, core::String #name, final core::int v) → self::E1
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int v) → self::E1
     : self::E1::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -138,7 +128,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = const self::E2::someName(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E2> values = const <self::E2>[self::E2::e0];
-  const constructor someName(core::int #index, core::String #name, final core::int v) → self::E2
+  const constructor someName(core::int #index, core::String #name, final initializing-formal core::int v) → self::E2
     : self::E2::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -149,7 +139,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   final field core::int v;
   static const field core::List<self::E3> values = const <self::E3>[self::E3::e0];
   const constructor •(core::int #index, core::String #name, final core::int v) → self::E3
-    : super core::_Enum::•(#index, #name)
+    : self::E3::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -164,13 +154,13 @@ extension type ET2(core::int v) {
   constructor someName = self::ET2|constructor#someName;
   constructor tearoff someName = self::ET2|constructor#_#someName#tearOff;
 }
-static extension-type-member const method ET1|constructor#(core::int v) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET1|constructor#(initializing-formal core::int v) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = v;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(v);
-static extension-type-member const method ET2|constructor#someName(core::int v) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET2|constructor#someName(initializing-formal core::int v) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = v;
   return #this;
 }
@@ -179,10 +169,12 @@ static extension-type-member synthetic method ET2|constructor#_#someName#tearOff
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:42:3 -> InstanceConstant(const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:41:6 -> ListConstant(const <E0>[const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:49:3 -> InstanceConstant(const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:48:6 -> ListConstant(const <E1>[const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:54:6 -> InstanceConstant(const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:53:12 -> ListConstant(const <E2>[const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"}])
-Extra constant evaluation: evaluated: 40, effectively constant: 6
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Extra constant evaluation: evaluated: 45, effectively constant: 8

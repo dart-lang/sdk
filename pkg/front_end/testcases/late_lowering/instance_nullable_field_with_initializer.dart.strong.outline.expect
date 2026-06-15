@@ -7,11 +7,11 @@ class Class extends core::Object {
   field core::bool _#Class#field#isSet;
   constructor constructor1() → self::Class
     ;
-  constructor constructor2(core::int? field) → self::Class
+  constructor constructor2(initializing-formal core::int? field) → self::Class
     ;
   constructor constructor3(core::int value) → self::Class
     ;
-  constructor constructor4([core::int? field = 42]) → self::Class
+  constructor constructor4([initializing-formal core::int? field = 42]) → self::Class
     ;
   get field() → core::int?;
   set field(core::int? field#param) → void;

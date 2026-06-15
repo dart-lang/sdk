@@ -37,6 +37,10 @@ method<T>(o) {
     case 1 + 2 + 3: // Error
     case prefix.value as T: // Ok
     case prefix.Class.value as T: // Ok
+    case value + 1: // Error
+    case Class.value + 1: // Error
+    case prefix.value + 1: // Error
+    case prefix.Class.value + 1: // Error
     case const 1 as int: // Error
     case const 1 + 2: // Error
     case const 1 - 2: // Error

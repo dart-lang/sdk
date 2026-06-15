@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +32,7 @@ mixin SwitchCaseCompletesNormallyTestCases on PubPackageResolutionTest {
   bool get _patternsEnabled;
 
   test_break() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -46,8 +45,8 @@ void f(int a) {
   }
 
   test_completes() async {
-    await assertErrorsInCode(
-      '''
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -55,13 +54,24 @@ void f(int a) {
     default:
       return;
   }
-}''',
-      [if (!_patternsEnabled) error(diag.switchCaseCompletesNormally, 35, 4)],
-    );
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
   }
 
   test_continue_loop() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   while (true) {
     switch (a) {
@@ -76,7 +86,7 @@ void f(int a) {
   }
 
   test_for_whatever() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -91,7 +101,7 @@ void f(int a) {
   }
 
   test_lastCase() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   switch (a) {
     case 0:
@@ -102,7 +112,7 @@ f(int a) {
   }
 
   test_methodInvocation_never() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -119,8 +129,8 @@ Never neverCompletes() {
   }
 
   test_multiple_cases_sharing_a_body() async {
-    await assertErrorsInCode(
-      '''
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -129,13 +139,25 @@ void f(int a) {
     default:
       return;
   }
-}''',
-      [if (!_patternsEnabled) error(diag.switchCaseCompletesNormally, 35, 4)],
-    );
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+    case 1:
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
   }
 
   test_return() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -148,7 +170,7 @@ void f(int a) {
   }
 
   test_return2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -162,7 +184,7 @@ void f(int a) {
   }
 
   test_throw() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -175,7 +197,7 @@ void f(int a) {
   }
 
   test_while_true() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:

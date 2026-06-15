@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Property getter recursively returns itself.';
 
 class RecursiveGetters extends AnalysisRule {
-  RecursiveGetters()
-    : super(name: LintNames.recursive_getters, description: _desc);
+  new() : super(name: LintNames.recursive_getters, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.recursiveGetters;
@@ -36,7 +35,7 @@ class RecursiveGetters extends AnalysisRule {
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final AnalysisRule rule;
   final ExecutableElement element;
-  _BodyVisitor(this.element, this.rule);
+  new(this.element, this.rule);
 
   bool isSelfReference(SimpleIdentifier node) {
     if (node.element != element) return false;
@@ -73,7 +72,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {

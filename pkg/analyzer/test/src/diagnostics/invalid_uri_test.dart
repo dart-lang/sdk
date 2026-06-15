@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class InvalidUriTest extends PubPackageResolutionTest {
   test_libraryImport_emptyUri() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import '' as top;
 int x = 1;
 class C {
@@ -24,7 +24,7 @@ class C {
 }
 ''');
 
-    var node = findNode.simple('x; // ref');
+    var node = result.findNode.simple('x; // ref');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: x

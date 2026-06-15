@@ -76,10 +76,20 @@ class VirtualMemory {
 #endif
   }
 
+  DART_FORCE_INLINE static bool ExecutesGeneratedCode() {
+#if defined(DART_PRECOMPILER) && !defined(TESTING)
+    return false;  // I.e., gen_snapshot.
+#else
+    return true;
+#endif
+  }
+
   // Write protect a chunk of machine code which is currently writable.
   DART_FORCE_INLINE static void WriteProtectCode(void* address, intptr_t size) {
     Protect(address, size,
-            ShouldDualMapExecutablePages() ? kReadOnly : kReadExecute);
+            ShouldDualMapExecutablePages() || !ExecutesGeneratedCode()
+                ? kReadOnly
+                : kReadExecute);
   }
   DART_FORCE_INLINE void WriteProtectCode() const {
     WriteProtectCode(address(), size());
@@ -142,6 +152,7 @@ class VirtualMemory {
   bool vm_owns_region() const { return reserved_.pointer() != nullptr; }
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
+  static VirtualMemory* Adopt(void* pointer, uword size);
 
  private:
   static intptr_t CalculatePageSize();

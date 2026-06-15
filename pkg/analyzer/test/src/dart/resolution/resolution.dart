@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -23,11 +22,10 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
 import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/resolved_ast_printer.dart';
@@ -46,60 +44,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final ResolvedNodeTextConfiguration nodeTextConfiguration =
       ResolvedNodeTextConfiguration();
 
-  late ResolvedUnitResultImpl result;
-  late FindNode findNode;
-  late FindElement2 findElement2;
-
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  ClassElement get boolElement => typeProvider.boolElement;
-
-  ClassElement get doubleElement => typeProvider.doubleElement;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  Element get dynamicElement =>
-      (typeProvider.dynamicType as DynamicTypeImpl).element;
-
-  FeatureSet get featureSet => result.libraryElement.featureSet;
-
-  ClassElement get futureElement => typeProvider.futureElement;
-
-  InheritanceManager3 get inheritanceManager {
-    var library = result.libraryElement;
-    return library.session.inheritanceManager;
-  }
-
-  ClassElement get intElement => typeProvider.intElement;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  ClassElement get listElement => typeProvider.listElement;
-
-  ClassElement get mapElement => typeProvider.mapElement;
-
-  NeverElementImpl get neverElement => NeverElementImpl.instance;
-
-  ClassElement get numElement => typeProvider.numElement;
-
-  ClassElement get objectElement => typeProvider.objectElement;
-
-  bool get strictCasts {
-    var analysisOptions = result.session.analysisContext
-        .getAnalysisOptionsForFile(result.file);
-    return analysisOptions.strictCasts;
-  }
-
-  ClassElement get stringElement => typeProvider.stringElement;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
   File get testFile;
-
-  TypeProviderImpl get typeProvider => result.typeProvider;
-
-  TypeSystemImpl get typeSystem => result.typeSystem;
 
   void addTestFile(String content) {
     newFile(testFile.path, content);
@@ -168,77 +116,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  Future<void> assertErrorsInCode(
-    String code,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-  }
-
-  Future<ResolvedUnitResult> assertErrorsInFile(
-    String path,
-    String content,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var file = newFile(path, content);
-    var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-
-    return result;
-  }
-
-  Future<void> assertErrorsInFile2(
-    File file,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-  }
-
-  void assertErrorsInList(
-    List<Diagnostic> diagnostics,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    GatheringDiagnosticListener diagnosticListener =
-        GatheringDiagnosticListener();
-    diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
-  }
-
-  void assertErrorsInResolvedUnit(
-    ResolvedUnitResult result,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    assertErrorsInList(result.diagnostics, expectedDiagnostics);
-  }
-
-  void assertErrorsInResult(List<ExpectedDiagnostic> expectedDiagnostics) {
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-  }
-
-  void assertHasTestErrors() {
+  void assertHasTestErrors(TestResolvedUnitResult result) {
     expect(result.diagnostics, isNotEmpty);
-  }
-
-  /// Resolve the [code], and ensure that it can be resolved without a crash,
-  /// and is invalid, i.e. produces a diagnostic.
-  Future<void> assertInvalidTestCode(String code) async {
-    await resolveTestCode(code);
-    assertHasTestErrors();
-  }
-
-  Future<void> assertNoErrorsInCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    assertErrorsInResolvedUnit(result, const []);
-  }
-
-  void assertNoErrorsInResult() {
-    assertErrorsInResult(const []);
   }
 
   void assertParsedNodeText(AstNode node, String expected) {
@@ -361,31 +240,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(
-    DiagnosticCode code,
-    int offset,
-    int length, {
-    Pattern? correctionContains,
-    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
-    String? text,
-    List<Pattern> messageContains = const [],
-    List<ExpectedContextMessage> contextMessages =
-        const <ExpectedContextMessage>[],
-  }) {
-    assert(
-      text == null || messageContains.isEmpty,
-      'Only use one of text or messageContains',
-    );
-    return ExpectedError(
-      code,
-      offset,
-      length,
-      correctionContains: correctionContains,
-      messageContainsAll: text != null ? [text] : messageContains,
-      contextMessages: contextMessages,
-    );
-  }
-
   Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
       return node.element;
@@ -437,32 +291,94 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  ExpectedContextMessage message(File file, int offset, int length) =>
-      ExpectedContextMessage(file, offset, length);
-
   Future<ResolvedUnitResultImpl> resolveFile(File file);
 
-  /// Resolve [file] into [result].
-  Future<void> resolveFile2(File file) async {
-    result = await resolveFile(file);
-
-    findNode = FindNode(result.content, result.unit);
-    findElement2 = FindElement2(result.unit);
+  /// Resolve [file] and return a test view of it.
+  Future<TestResolvedUnitResult> resolveFile2(File file) async {
+    var result = await resolveFile(file);
+    return TestResolvedUnitResult(result);
   }
 
-  /// Create a new file with the [path] and [content], resolve it into [result].
-  Future<void> resolveFileCode(String path, String content) {
+  /// Create a new file with the [path] and [content], and resolve it.
+  Future<TestResolvedUnitResult> resolveFileCode(String path, String content) {
     var file = newFile(path, content);
     return resolveFile2(file);
   }
 
+  /// Writes all [filesToCode], resolves each file, and checks that each file's
+  /// inline diagnostic markers match its diagnostics.
+  ///
+  /// All files are written before any file is resolved. This supports tests
+  /// where resolving one file cleanly requires related files to already exist,
+  /// such as a library with its parts.
+  Future<Map<File, TestResolvedUnitResult>> resolveFilesWithDiagnostics(
+    Map<File, String> filesToCode,
+  ) async {
+    var files = <({File file, String code, String cleanCode})>[];
+
+    for (var entry in filesToCode.entries) {
+      var cleanCode = removeDiagnosticExpectations(entry.value);
+      modifyFile2(entry.key, cleanCode);
+      files.add((file: entry.key, code: entry.value, cleanCode: cleanCode));
+    }
+
+    var results = <File, TestResolvedUnitResult>{};
+    var diagnosticsByFile = <File, List<Diagnostic>>{};
+
+    for (var file in files) {
+      var result = await resolveFile2(file.file);
+      results[file.file] = result;
+      diagnosticsByFile[file.file] = result.diagnostics;
+    }
+
+    var actualCodeByFile = updateExpectedDiagnosticsForFiles(
+      contentByFile: {for (var file in files) file.file: file.cleanCode},
+      actualDiagnosticsByFile: diagnosticsByFile,
+    );
+
+    var hasMismatch = false;
+    for (var index = 0; index < files.length; index++) {
+      var file = files[index];
+      var actual = actualCodeByFile[file.file]!;
+      if (actual != file.code) {
+        NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
+        print('-------- ${file.file.path} --------');
+        printPrettyDiff(file.code, actual);
+        hasMismatch = true;
+      }
+    }
+
+    if (hasMismatch) {
+      fail('See the difference above.');
+    }
+
+    return results;
+  }
+
+  /// Writes [code] to [file], resolves it, and checks that its inline
+  /// diagnostic markers match its diagnostics.
+  Future<TestResolvedUnitResult> resolveFileWithDiagnostics(
+    File file,
+    String code,
+  ) async {
+    return await _resolveFileWithDiagnostics(file, code);
+  }
+
   /// Put the [code] into the test file, and resolve it.
-  Future<void> resolveTestCode(String code) {
+  Future<TestResolvedUnitResult> resolveTestCode(String code) {
     addTestFile(code);
     return resolveTestFile();
   }
 
-  Future<void> resolveTestFile() {
+  /// Resolves [code] and checks that its inline diagnostic markers match the
+  /// diagnostics. Unmarked code is expected to have no diagnostics.
+  Future<TestResolvedUnitResult> resolveTestCodeWithDiagnostics(
+    String code,
+  ) async {
+    return await _resolveFileWithDiagnostics(testFile, code);
+  }
+
+  Future<TestResolvedUnitResult> resolveTestFile() {
     return resolveFile2(testFile);
   }
 
@@ -489,8 +405,85 @@ mixin ResolutionTest implements ResourceProviderMixin {
         configuration: nodeTextConfiguration,
       ),
     );
+
+    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    if (unit != null) {
+      sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
+        var range = '[${node.offset}, ${node.end})';
+        sink.writelnWithIndent('${node.runtimeType} $range');
+      });
+    }
+
     return buffer.toString();
   }
+
+  Future<TestResolvedUnitResult> _resolveFileWithDiagnostics(
+    File file,
+    String code,
+  ) async {
+    var cleanCode = removeDiagnosticExpectations(code);
+    modifyFile2(file, cleanCode);
+    var result = await resolveFile2(file);
+
+    var actual = updateExpectedDiagnostics(
+      content: cleanCode,
+      actualDiagnostics: result.diagnostics,
+    );
+    if (actual != code) {
+      NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(code, actual);
+      fail('See the difference above.');
+    }
+
+    return result;
+  }
+}
+
+/// A test-facing view of a resolved unit, with utilities derived from it.
+final class TestResolvedUnitResult {
+  final ResolvedUnitResultImpl analysisResult;
+
+  late final FindElement2 findElement = FindElement2(unit);
+
+  late final FindNode findNode = FindNode(content, unit);
+
+  TestResolvedUnitResult(this.analysisResult);
+
+  String get content => analysisResult.content;
+
+  List<Diagnostic> get diagnostics => analysisResult.diagnostics;
+
+  List<Diagnostic> get errors => analysisResult.errors;
+
+  bool get exists => analysisResult.exists;
+
+  File get file => analysisResult.file;
+
+  InheritanceManager3 get inheritanceManager {
+    return libraryElement.session.inheritanceManager;
+  }
+
+  bool get isLibrary => analysisResult.isLibrary;
+
+  bool get isPart => analysisResult.isPart;
+
+  LibraryElementImpl get libraryElement => analysisResult.libraryElement;
+
+  LibraryFragmentImpl get libraryFragment => analysisResult.libraryFragment;
+
+  String get path => analysisResult.path;
+
+  AnalysisSession get session => analysisResult.session;
+
+  TypeProviderImpl get typeProvider => analysisResult.typeProvider;
+
+  TypeSystemImpl get typeSystem => analysisResult.typeSystem;
+
+  CompilationUnitImpl get unit => analysisResult.unit;
+
+  Uri get uri => analysisResult.uri;
+
+  String get uriStr => '$uri';
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
@@ -500,6 +493,11 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
 
   FindNode get findNode {
     return FindNode(content, unit);
+  }
+
+  InheritanceManager3 get inheritanceManager {
+    var library = libraryElement as LibraryElementImpl;
+    return library.session.inheritanceManager;
   }
 
   String get uriStr => '$uri';

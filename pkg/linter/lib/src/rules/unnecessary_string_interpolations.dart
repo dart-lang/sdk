@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Unnecessary string interpolation.';
 
 class UnnecessaryStringInterpolations extends AnalysisRule {
-  UnnecessaryStringInterpolations()
+  new()
     : super(
         name: LintNames.unnecessary_string_interpolations,
         description: _desc,
@@ -38,7 +38,7 @@ class UnnecessaryStringInterpolations extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitStringInterpolation(StringInterpolation node) {

@@ -2,26 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExportDirectiveResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ExportDirectiveResolutionTest extends PubPackageResolutionTest {
   test_inLibrary_combinators_hide() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'dart:math' hide Random;
 ''');
 
-    var node = findNode.singleExportDirective;
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -43,14 +44,13 @@ ExportDirective
   }
 
   test_inLibrary_combinators_hide_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'dart:math' hide Unresolved;
-''',
-      [error(diag.undefinedHiddenName, 24, 10)],
-    );
+//                      ^^^^^^^^^^
+// [diag.undefinedHiddenName] The library 'dart:math' doesn't export a member with the hidden name 'Unresolved'.
+''');
 
-    var node = findNode.singleExportDirective;
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -72,11 +72,11 @@ ExportDirective
   }
 
   test_inLibrary_combinators_show() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'dart:math' show Random;
 ''');
 
-    var node = findNode.singleExportDirective;
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -98,14 +98,13 @@ ExportDirective
   }
 
   test_inLibrary_combinators_show_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'dart:math' show Unresolved;
-''',
-      [error(diag.undefinedShownName, 24, 10)],
-    );
+//                      ^^^^^^^^^^
+// [diag.undefinedShownName] The library 'dart:math' doesn't export a member with the shown name 'Unresolved'.
+''');
 
-    var node = findNode.singleExportDirective;
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -136,13 +135,13 @@ ExportDirective
       'dart.library.io': 'false',
     };
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -196,13 +195,13 @@ ExportDirective
       'dart.library.io': 'false',
     };
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -256,13 +255,13 @@ ExportDirective
       'dart.library.io': 'true',
     };
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -309,11 +308,11 @@ ExportDirective
   test_inLibrary_library() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -327,14 +326,13 @@ ExportDirective
   }
 
   test_inLibrary_library_fileDoesNotExist() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
-''',
-      [error(diag.uriDoesNotExist, 7, 8)],
-    );
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -348,16 +346,17 @@ ExportDirective
   }
 
   test_inLibrary_library_inSummary() async {
+    enableIndex = false;
     librarySummaryFiles = [
       await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'package:foo/foo.dart';
 ''');
 
-    var node = findNode.export('package:foo');
+    var node = result.findNode.export('package:foo');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -376,7 +375,7 @@ ExportDirective
 get f => null;
 set f(_) {}
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
     var exportNamespace = result.libraryElement.exportNamespace;
@@ -385,14 +384,13 @@ export 'a.dart';
   }
 
   test_inLibrary_noRelativeUri() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export ':net';
-''',
-      [error(diag.invalidUri, 7, 6)],
-    );
+//     ^^^^^^
+// [diag.invalidUri] Invalid URI syntax: ':net'.
+''');
 
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -406,14 +404,13 @@ ExportDirective
   }
 
   test_inLibrary_noRelativeUriStr() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export '${'foo'}.dart';
-''',
-      [error(diag.uriWithInterpolation, 7, 15)],
-    );
+//     ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''');
 
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -437,14 +434,13 @@ ExportDirective
   }
 
   test_inLibrary_noSource() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'foo:bar';
-''',
-      [error(diag.uriDoesNotExist, 7, 9)],
-    );
+//     ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''');
 
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -462,14 +458,13 @@ ExportDirective
 part of my.lib;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
-''',
-      [error(diag.exportOfNonLibrary, 7, 8)],
-    );
+//     ^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'a.dart' can't have a part-of directive.
+''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -487,14 +482,13 @@ ExportDirective
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
-''',
-      [error(diag.exportOfNonLibrary, 7, 8)],
-    );
+//     ^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'a.dart' can't have a part-of directive.
+''');
 
-    var node = findNode.export('a.dart');
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -518,14 +512,13 @@ ExportDirective
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'package:foo/foo2.dart';
-''',
-      [error(diag.exportOfNonLibrary, 7, 23)],
-    );
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'package:foo/foo2.dart' can't have a part-of directive.
+''');
 
-    var node = findNode.export('package:foo');
+    var node = result.findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -539,21 +532,22 @@ ExportDirective
   }
 
   test_inPart_library() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-export 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b);
-    assertNoErrorsInResult();
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'c.dart';
+''',
+    });
+    var result = results[b]!;
 
-    var node = findNode.export('c.dart');
+    var node = result.findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -567,19 +561,22 @@ ExportDirective
   }
 
   test_inPart_library_fileDoesNotExist() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export 'c.dart';
-''');
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'c.dart'.
+''',
+    });
+    var result = results[b]!;
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 8)]);
-
-    var node = findNode.export('c.dart');
+    var node = result.findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -593,19 +590,22 @@ ExportDirective
   }
 
   test_inPart_noRelativeUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export ':net';
-''');
+//     ^^^^^^
+// [diag.invalidUri] Invalid URI syntax: ':net'.
+''',
+    });
+    var result = results[b]!;
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.invalidUri, 25, 6)]);
-
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -619,19 +619,22 @@ ExportDirective
   }
 
   test_inPart_noRelativeUriStr() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export '${'foo'}.dart';
-''');
+//     ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''',
+    });
+    var result = results[b]!;
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriWithInterpolation, 25, 15)]);
-
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -655,19 +658,22 @@ ExportDirective
   }
 
   test_inPart_noSource() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 export 'foo:bar';
-''');
+//     ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''',
+    });
+    var result = results[b]!;
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 9)]);
-
-    var node = findNode.export('export');
+    var node = result.findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -681,23 +687,26 @@ ExportDirective
   }
 
   test_inPart_notLibrary_partOfName() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-export 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', r'''
 part of my.lib;
 ''');
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.exportOfNonLibrary, 25, 8)]);
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'c.dart';
+//     ^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'c.dart' can't have a part-of directive.
+''',
+    });
+    var result = results[b]!;
 
-    var node = findNode.export('c.dart');
+    var node = result.findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -711,23 +720,26 @@ ExportDirective
   }
 
   test_inPart_notLibrary_partOfUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-export 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', r'''
 part of 'b.dart';
 ''');
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.exportOfNonLibrary, 25, 8)]);
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'c.dart';
+//     ^^^^^^^^
+// [diag.exportOfNonLibrary] The exported library 'c.dart' can't have a part-of directive.
+''',
+    });
+    var result = results[b]!;
 
-    var node = findNode.export('c.dart');
+    var node = result.findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export

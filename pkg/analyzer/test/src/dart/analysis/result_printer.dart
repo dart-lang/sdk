@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
@@ -365,6 +366,14 @@ class DriverEventsPrinter {
     }
   }
 
+  /// Converts strings that look like Windows paths to Posix style.
+  String _toPosixIfWindowsPath(String str) {
+    if (str.startsWith(r'C:\')) {
+      return str.substring(2).replaceAll(r'\', '/');
+    }
+    return str;
+  }
+
   void _writeAnalyzeFileEvent(events.AnalyzeFile object) {
     if (!configuration.withAnalyzeFileEvents) {
       return;
@@ -557,7 +566,8 @@ class DriverEventsPrinter {
     sink.withIndent(() {
       if (event.result case var result?) {
         sink.writeElements('strings', result.strings, (str) {
-          sink.writelnWithIndent(str);
+          var displayStr = _toPosixIfWindowsPath(str);
+          sink.writelnWithIndent(displayStr);
         });
       }
     });
@@ -1294,8 +1304,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isFinal': item.flags.isFinal,
       'isLate': item.flags.isLate,
       'isStatic': item.flags.isStatic,
-      'shouldUseTypeForInitializerInference':
-          item.flags.shouldUseTypeForInitializerInference,
+      'isTypeInferredFromInitializer': item.flags.isTypeInferredFromInitializer,
     };
   }
 
@@ -1391,6 +1400,17 @@ class LibraryManifestPrinter extends ManifestPrinter {
     });
   }
 
+  void _writeFormalParameterDefaultValues(ExecutableItem item) {
+    if (configuration.withElementManifests) {
+      var indexed = item.formalParameterDefaultValues.indexed
+          .where((entry) => entry.$2 != null)
+          .toList();
+      sink.writeElements('formalParameterDefaultValues', indexed, (entry) {
+        _writeNode('[${entry.$1}]', entry.$2);
+      });
+    }
+  }
+
   void _writeGetterItem(GetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -1402,6 +1422,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('returnType', item.functionType.returnType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1476,6 +1497,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
+      _writeFormalParameterDefaultValues(item);
     });
 
     writeDeclaredItems('declaredMethods', item.declaredMethods, (item) {
@@ -1488,6 +1510,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
+      _writeFormalParameterDefaultValues(item);
       _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
     });
 
@@ -1506,6 +1529,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
         _writelnNamedElement(
           'redirectedConstructor',
           item.redirectedConstructor,
@@ -1735,6 +1759,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1749,6 +1774,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1796,6 +1822,19 @@ class LibraryManifestPrinter extends ManifestPrinter {
       }
     }
 
+    void writeParameterDeclarationForm(ManifestFunctionFormalParameter field) {
+      // TODO(scheglov): Update the manifest printer output to show the
+      // declaration form directly.
+      switch (field.declarationForm) {
+        case FormalParameterDeclarationForm.regular:
+          break;
+        case FormalParameterDeclarationForm.fieldFormal:
+          sink.write('this ');
+        case FormalParameterDeclarationForm.superFormal:
+          sink.write('super ');
+      }
+    }
+
     switch (type) {
       case ManifestDynamicType():
         sink.writeln('dynamic');
@@ -1806,22 +1845,14 @@ class LibraryManifestPrinter extends ManifestPrinter {
           sink.writeElements('positional', type.positional, (field) {
             sink.writeIndent();
             sink.writeIf(field.isRequired, 'required ');
-            sink.writeIf(field.isInitializingFormal, 'this ');
-            sink.writeIf(field.isSuperFormal, 'super ');
+            writeParameterDeclarationForm(field);
             _writeType(field.type);
-            sink.withIndent(() {
-              _writeNode('defaultValue', field.defaultValue);
-            });
           });
           sink.writeElements('named', type.named, (field) {
             sink.writeWithIndent('${field.name}: ');
             sink.writeIf(field.isRequired, 'required ');
-            sink.writeIf(field.isInitializingFormal, 'this ');
-            sink.writeIf(field.isSuperFormal, 'super ');
+            writeParameterDeclarationForm(field);
             _writeType(field.type);
-            sink.withIndent(() {
-              _writeNode('defaultValue', field.defaultValue);
-            });
           });
           _writeNamedType('returnType', type.returnType);
         });

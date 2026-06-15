@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ExtractLocalVariable extends ResolvedCorrectionProducer {
-  ExtractLocalVariable({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -179,7 +179,7 @@ class _ExpressionEncoder {
 class _FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(SimpleIdentifier)? simpleIdentifier;
 
-  _FunctionAstVisitor({this.simpleIdentifier});
+  new({this.simpleIdentifier});
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -195,7 +195,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final List<SourceRange> occurrences;
   final String searchCode;
 
-  _OccurrencesVisitor(this.encoder, this.occurrences, this.searchCode);
+  new(this.encoder, this.occurrences, this.searchCode);
 
   @override
   void visitExpression(Expression node) {

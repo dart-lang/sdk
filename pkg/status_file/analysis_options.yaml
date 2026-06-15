@@ -8,3 +8,7 @@ analyzer:
   errors:
     # Allow having TODOs in the code
     todo: ignore
+linter:
+  rules:
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

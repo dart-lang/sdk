@@ -13,7 +13,7 @@ abstract class ImportTable {
 class ComponentImportTable implements ImportTable {
   final Map<Library, int> _libraryIndex = <Library, int>{};
 
-  ComponentImportTable(Component component) {
+  new(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
       _libraryIndex[component.libraries[i]] = i;
     }
@@ -28,11 +28,11 @@ class LibraryImportTable implements ImportTable {
   final List<Library> _importedLibraries = <Library>[];
   final Map<Library, int> _libraryIndex = <Library, int>{};
 
-  factory LibraryImportTable(Library lib) {
+  factory(Library lib) {
     return new _ImportTableBuilder(lib).build();
   }
 
-  LibraryImportTable.empty();
+  new empty();
 
   List<Library> get importedLibraries => _importedLibraries;
 
@@ -67,7 +67,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
     return table;
   }
 
-  _ImportTableBuilder(this.referenceLibrary) {
+  new(this.referenceLibrary) {
     table.addImport(referenceLibrary, '');
   }
 

@@ -8,8 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add tests with non-block-bodies for the for loop. Add
-    // tests with multiple statements in the body.
     defineReflectiveTests(PreferForeachTest);
   });
 }
@@ -19,65 +17,64 @@ class PreferForeachTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_foreach;
 
-  test_blockBody_singleStatement_functionCall() async {
-    await assertDiagnostics(
-      r'''
+  test_blockBody_multipleStatements() async {
+    await assertNoDiagnostics(r'''
 void f(List<int> list, void Function(int) fn) {
   for (final a in list) {
     fn(a);
+    fn(a);
   }
 }
-''',
-      [lint(50, 38)],
-    );
+''');
+  }
+
+  test_blockBody_singleStatement_functionCall() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<int> list, void Function(int) fn) {
+  [!for (final a in list) {
+    fn(a);
+  }!]
+}
+''');
   }
 
   test_blockBody_singleStatement_functionTypedExpressionCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void Function(int) fn() => (int a) {};
 
 void f(List<int> list) {
-  for (final a in list) {
+  [!for (final a in list) {
     fn()(a);
-  }
+  }!]
 }
-''',
-      [lint(67, 40)],
-    );
+''');
   }
 
   test_blockBody_singleStatement_methodCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   void f(int o) {}
 
   void foo(List<int> list) {
-    for (final a in list) {
+    [!for (final a in list) {
       f(a);
-    }
+    }!]
   }
 }
-''',
-      [lint(63, 41)],
-    );
+''');
   }
 
   test_blockBody_singleStatement_methodCall_explicitTarget() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(D d, List<int> list) {
-  for (final a in list) {
+  [!for (final a in list) {
     d.f(a);
-  }
+  }!]
 }
 class D {
   void f(int a) {}
 }
-''',
-      [lint(32, 39)],
-    );
+''');
   }
 
   test_blockBody_singleStatement_methodCall_forVariableIsInTarget() async {
@@ -107,31 +104,33 @@ class D {
   }
 
   test_blockBody_singleStatement_parenthesizedFunctionCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list, void Function(int) fn) {
-  for (final a in list) {
+  [!for (final a in list) {
     (fn(a));
-  }
+  }!]
 }
-''',
-      [lint(50, 40)],
-    );
+''');
   }
 
   test_blockBody_singleStatement_staticMethodCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
-  for (final a in list) {
+  [!for (final a in list) {
     C.f(a);
-  }
+  }!]
 }
 class C {
   static void f(int a) {}
 }
-''',
-      [lint(27, 39)],
-    );
+''');
+  }
+
+  test_nonBlockBody_singleStatement() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<int> list, void Function(int) fn) {
+  [!for (final a in list) fn(a);!]
+}
+''');
   }
 }

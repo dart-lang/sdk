@@ -16,7 +16,7 @@ import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
     extends SimpleEditCommandHandler<LspAnalysisServer> {
-  AbstractFixAllInWorkspaceCommandHandler(super.server);
+  new(super.server);
 
   /// Whether to require confirmation from the user to apply these changes.
   ///
@@ -56,7 +56,11 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     }
 
     var workspace = DartChangeWorkspace(await server.currentSessions);
-    var processor = BulkFixProcessor(server.instrumentationService, workspace);
+    var processor = BulkFixProcessor(
+      server.instrumentationService,
+      workspace,
+      byteStore: server.byteStore,
+    );
 
     progress.begin('Computing fixes…');
     try {
@@ -83,7 +87,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
             ? ChangeAnnotations.requireConfirmation
             : ChangeAnnotations.include,
       );
-      return sendWorkspaceEditToClient(edit);
+      return await sendWorkspaceEditToClient(edit);
     } finally {
       progress.end();
     }
@@ -92,7 +96,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
 
 class FixAllInWorkspaceCommandHandler
     extends AbstractFixAllInWorkspaceCommandHandler {
-  FixAllInWorkspaceCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Apply All Fixes in Workspace';
@@ -103,7 +107,7 @@ class FixAllInWorkspaceCommandHandler
 
 class PreviewFixAllInWorkspaceCommandHandler
     extends AbstractFixAllInWorkspaceCommandHandler {
-  PreviewFixAllInWorkspaceCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Preview All Fixes in Workspace';

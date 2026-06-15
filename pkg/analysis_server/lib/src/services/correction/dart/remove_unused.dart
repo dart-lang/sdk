@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedElement extends _RemoveUnused {
-  RemoveUnusedElement({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -107,7 +107,7 @@ class RemoveUnusedElement extends _RemoveUnused {
 }
 
 class RemoveUnusedField extends _RemoveUnused {
-  RemoveUnusedField({required super.context});
+  new({required super.context});
 
   @override
   // Not predictably the correct action.
@@ -184,8 +184,7 @@ class RemoveUnusedField extends _RemoveUnused {
   }
 
   SourceRange _forFieldFormalParameter(FieldFormalParameter node) {
-    var parent = node.parent;
-    var parameter = parent is DefaultFormalParameter ? parent : node;
+    var parameter = node;
     var parameterList = parameter.parent as FormalParameterList;
 
     // (node) -> ()
@@ -259,12 +258,13 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final Element element;
   final List<AstNode> references = [];
 
-  _ElementReferenceCollector(this.element);
+  new(this.element);
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var declaredElement = node.declaredFragment!.element;
-    if (declaredElement.field == element) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement is FieldFormalParameterElement &&
+        declaredElement.field == element) {
       references.add(node);
     }
 
@@ -298,7 +298,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 }
 
 abstract class _RemoveUnused extends ResolvedCorrectionProducer {
-  _RemoveUnused({required super.context});
+  new({required super.context});
 
   List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);

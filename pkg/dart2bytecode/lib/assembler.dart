@@ -10,7 +10,8 @@ import 'dbc.dart';
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'options.dart';
-import 'source_positions.dart' show SourcePositions;
+import 'source_positions.dart'
+    show RecordedCoverageArray, RecordedCoverageType, SourcePositions;
 
 class Label {
   final bool allowsBackwardJumps;
@@ -60,13 +61,17 @@ class BytecodeAssembler {
   final ExceptionsTable exceptionsTable = new ExceptionsTable();
   final LocalVariableTable localVariableTable = new LocalVariableTable();
   final SourcePositions sourcePositions = new SourcePositions();
+  final RecordedCoverageArray recordedCoverageArray =
+      new RecordedCoverageArray();
   final bool _emitSourcePositions;
+  final bool _recordCoverage;
   bool isUnreachable = false;
   int currentSourcePosition = TreeNode.noOffset;
   int currentSourcePositionFlags = 0;
 
   BytecodeAssembler(BytecodeOptions options)
-    : _emitSourcePositions = options.emitSourcePositions;
+    : _emitSourcePositions = options.emitSourcePositions,
+      _recordCoverage = options.recordCoverage;
 
   int get offset => _length;
 
@@ -656,7 +661,6 @@ class BytecodeAssembler {
 
   @pragma('vm:prefer-inline')
   void emitStoreFieldTOS(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kStoreFieldTOS, rd);
   }
 
@@ -787,9 +791,21 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAllocateClosure() {
+  void emitAllocateClosure(int rd) {
     emitSourcePosition();
-    _emitInstruction0(Opcode.kAllocateClosure);
+    _emitInstructionD(Opcode.kAllocateClosure, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitLoadClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kLoadClosureElement, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitStoreClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kStoreClosureElement, rd);
   }
 
   @pragma('vm:prefer-inline')
@@ -822,5 +838,17 @@ class BytecodeAssembler {
   @pragma('vm:prefer-inline')
   void emitLoadRecordField(int rd) {
     _emitInstructionD(Opcode.kLoadRecordField, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void recordCoverage(RecordedCoverageType type, int fileOffset) {
+    if (!_recordCoverage) return;
+    final index = recordedCoverageArray.add(type, fileOffset);
+    _emitRecordCoverage(type.index, index);
+  }
+
+  @pragma('vm:prefer-inline')
+  void _emitRecordCoverage(int ra, int re) {
+    _emitInstructionAE(Opcode.kRecordCoverage, ra, re);
   }
 }

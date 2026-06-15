@@ -9,10 +9,12 @@
 #include "include/dart_api.h"
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -206,14 +208,54 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
   return isolate->group()->id();
 }
 
-bool PortMap::IsOwnedByCurrentThread(Dart_Port id) {
+bool PortMap::IsOwned(Dart_Port id) {
   Locker ml;
   Isolate* isolate = GetIsolateLocked(ml, id);
   if (isolate == nullptr) {
     // Either the port is invalid, or the isolate has already shut down.
     return false;
   }
-  return isolate->GetOwnerThread(&ml) == OSThread::GetCurrentThreadId();
+  return isolate->GetOwnerThread(&ml) != OSThread::kInvalidThreadId;
+}
+
+bool PortMap::IsOwnedByCurrentThread(Dart_Port id, bool require_permanent_pin) {
+  Locker ml;
+  Isolate* isolate = GetIsolateLocked(ml, id);
+  if (isolate == nullptr) {
+    // Either the port is invalid, or the isolate has already shut down.
+    return false;
+  }
+  return isolate->GetOwnerThread(&ml) == OSThread::GetCurrentThreadId() &&
+         (!require_permanent_pin || isolate->is_permanently_pinned());
+}
+
+IsolateAcquireResult PortMap::AcquireIsolateByControlPort(Dart_Port target_port,
+                                                          Isolate** p_isolate) {
+  ASSERT(p_isolate != nullptr);
+  Locker ml;  // isolates are not exiting while we hold this lock
+  if (ports_ == nullptr) {
+    return IsolateAcquireResult::ISOLATE_NOT_AVAILABLE;
+  }
+  auto it = ports_->TryLookup(target_port);
+  if (it == ports_->end()) {
+    return IsolateAcquireResult::ISOLATE_NOT_AVAILABLE;
+  }
+  auto target_handler = (*it).handler;
+  ASSERT(target_handler != nullptr);
+  auto target_isolate = target_handler->isolate();
+
+  if (!target_handler->isolate()->is_acquirable()) {
+    return IsolateAcquireResult::HAS_MESSAGE_LOOP_OR_UNAVAILABLE;
+  }
+
+  if (!target_isolate->TryAcquireOwnership()) {
+    return target_isolate->is_permanently_pinned()
+               ? IsolateAcquireResult::PINNED_TO_ANOTHER_THREAD
+               : IsolateAcquireResult::BUSY;
+  }
+
+  *p_isolate = target_isolate;
+  return IsolateAcquireResult::SUCCESS;
 }
 
 #if defined(TESTING)

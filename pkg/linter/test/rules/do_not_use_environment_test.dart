@@ -17,68 +17,50 @@ class DoNotUseEnvironmentTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.do_not_use_environment;
   test_bool() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  bool.fromEnvironment('key');
+  [!bool.fromEnvironment!]('key');
 }
-''',
-      [lint(13, 20)],
-    );
+''');
   }
 
   test_dotShorthand_fromEnvironment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  bool x = .fromEnvironment('key');
+  bool x = .[!fromEnvironment!]('key');
 }
-''',
-      [lint(23, 15)],
-    );
+''');
   }
 
   test_dotShorthand_hasEnvironment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  bool x = .hasEnvironment('key');
+  bool x = .[!hasEnvironment!]('key');
 }
-''',
-      [lint(23, 14)],
-    );
+''');
   }
 
   test_hasEnvironment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  bool.hasEnvironment('key');
+  [!bool.hasEnvironment!]('key');
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_int() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  int.fromEnvironment('key');
+  [!int.fromEnvironment!]('key');
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_string() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  String.fromEnvironment('key');
+  [!String.fromEnvironment!]('key');
 }
-''',
-      [lint(13, 22)],
-    );
+''');
   }
 }

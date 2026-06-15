@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+static extension-member method E|foo(lowered final core::int #this) → void {
+  let final synthesized core::int anonymous#this = 1 in anonymous#this;
+  let core::int p = 1 in #this;
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as{Unchecked} core::int in anonymous#this;
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as{Unchecked} core::int in #this;
+  let final core::int #t1 = 1 in block {
+    let final synthesized core::int anonymous#this = #t1 in let dynamic #t2 = anonymous#this in anonymous#this;
+  } =>#t1;
+  let final core::int #t3 = 1 in block {
+    let core::int p = #t3 in let dynamic #t4 = #this in p;
+  } =>#t3;
+  let final core::int #t5 = 1 in #t5 == null ?{core::int} #t5 : block {
+    let synthesized core::int anonymous#receiver = #t5 in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as{Unchecked} core::int in let dynamic #t6 = anonymous#this in anonymous#this;
+  } =>#t5;
+  let final core::int #t7 = 1 in #t7 == null ?{core::int} #t7 : block {
+    let synthesized core::int anonymous#receiver = #t7 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as{Unchecked} core::int in let dynamic #t8 = #this in p;
+  } =>#t7;
+}
+static extension-member method E|get#foo(lowered final core::int #this) → () → void
+  return () → void => self::E|foo(#this);
+static method main() → void {
+  self::E|foo(1);
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_extension_method.dart:7:5 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_extension_method.dart:9:5 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///expression_extension_method.dart:10:5 -> BoolConstant(false)
+Evaluated: AsExpression @ org-dartlang-testcase:///expression_extension_method.dart:10:5 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_extension_method.dart:11:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:11:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:12:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:12:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:12:5 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///expression_extension_method.dart:13:5 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:13:5 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_extension_method.dart:13:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:13:5 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> BoolConstant(false)
+Evaluated: AsExpression @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_extension_method.dart:14:5 -> IntConstant(1)
+Extra constant evaluation: evaluated: 48, effectively constant: 20

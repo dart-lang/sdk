@@ -633,7 +633,7 @@ class GCInfo {
   final double combinedTime;
   final Map<String, int> countWhat;
 
-  GCInfo(this.combinedTime, this.countWhat);
+  new(this.combinedTime, this.countWhat);
 }
 
 class Warnings {

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
   final field core::int? field;
-  const constructor _(core::int? field) → self::C
+  const constructor _(initializing-formal core::int? field) → self::C
     : self::C::field = field, super core::Object::•()
     ;
   const constructor vn() → self::C
@@ -13,12 +13,6 @@ class C extends core::Object /*hasConstConstructor*/  {
   const constructor v1() → self::C
     : this self::C::_(1)
     ;
-  static synthetic method _#_#tearOff(core::int? field) → self::C
-    return new self::C::_(field);
-  static synthetic method _#vn#tearOff() → self::C
-    return new self::C::vn();
-  static synthetic method _#v1#tearOff() → self::C
-    return new self::C::v1();
 }
 extension type E(core::int? _) {
   abstract extension-type-member representation-field get _() → core::int?;
@@ -47,7 +41,7 @@ static method main() → void {
       #t4.{core::List::add}{Invariant}(new self::C::v1()){(self::C) → void};
   } =>#t4;
 }
-static extension-type-member const method E|constructor#_(wildcard core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#_(wildcard initializing-formal core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this = _#wc0#formal;
   return #this;
 }

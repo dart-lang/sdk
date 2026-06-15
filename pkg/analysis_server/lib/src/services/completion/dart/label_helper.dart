@@ -17,7 +17,7 @@ class LabelHelper {
   final CompletionState state;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  LabelHelper({required this.collector, required this.state});
+  new({required this.collector, required this.state});
 
   /// Add the labels that are visible at the `break` or `continue` [statement].
   void addLabels(Statement statement) {
@@ -42,7 +42,7 @@ class LabelHelper {
 
   void _visitLabels(NodeList<Label> labels) {
     for (var label in labels) {
-      var matcherScore = state.matcher.score(label.label.name);
+      var matcherScore = state.matcher.score(label.name.lexeme);
       if (matcherScore != -1) {
         var suggestion = LabelSuggestion(
           label: label,

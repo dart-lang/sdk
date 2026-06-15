@@ -5,7 +5,7 @@ import "dart:_internal" as _in;
 
 class A extends core::Object {
   field core::int? _#A#x = null;
-  constructor foo(core::int x) → self::A
+  constructor foo(initializing-formal core::int x) → self::A
     : self::A::_#A#x = x, super core::Object::•()
     ;
   constructor bar() → self::A

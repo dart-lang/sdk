@@ -5,9 +5,11 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../lsp/request_helpers_mixin.dart';
+import '../../../support/interactive_forms.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -19,7 +21,70 @@ void main() {
 }
 
 @reflectiveTest
-class AddConstructorNameInClassTest extends _AddConstructorNameTest {
+class AddConstructorNameInClassTest extends _AddConstructorNameTest
+    with InteractiveFormsTestMixin {
+  Future<void> test_interactiveForm_clientModifiedValues() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C.customName() {}
+
+void f() {
+  C.customName();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer(experimentalInteractiveForms: true);
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'customName',
+    });
+
+    await verifyCommandEdits(completedCommand, expected);
+  }
+
+  Future<void> test_interactiveForm_expectedFields() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer(experimentalInteractiveForms: true);
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+    var interactiveCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(interactiveCommand.formFields, hasLength(1));
+    var field = interactiveCommand.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Constructor Name');
+    expect(field.defaultValue, 'name');
+    expect(field.error, isNull);
+    expect(field.type, isA<FormFieldTypeString>());
+  }
+
   Future<void> test_primary() async {
     var originalSource = '''
 class C^() {}
@@ -481,20 +546,17 @@ void f() {
   }
 }
 
-abstract class _AddConstructorNameTest extends RefactoringTest
-    with LspProgressNotificationsMixin {
+abstract class _AddConstructorNameTest extends RefactoringTest {
   @override
-  String get refactoringName => AddConstructorName.commandName;
+  String get refactoringCommandId => AddConstructorName.commandName;
+
+  String get refactoringTitle => AddConstructorName.constTitle;
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {
-    if (originalSource.contains('>>>>')) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-
-    await initializeServer();
-
-    await expectNoCodeActionWithTitle(AddConstructorName.constTitle);
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
   }
 
   Future<void> _assertRefactoring({
@@ -504,22 +566,13 @@ abstract class _AddConstructorNameTest extends RefactoringTest
     String? otherFileContent,
     ProgressToken? commandWorkDoneToken,
   }) async {
-    if (originalSource.contains('>>>>') ||
-        (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-    if (otherFilePath != null) {
-      newFile(otherFilePath, otherFileContent!);
-    }
-
-    await initializeServer();
-
-    var action = await expectCodeActionWithTitle(AddConstructorName.constTitle);
-    await verifyCommandEdits(
-      action.command!,
-      expected,
-      workDoneToken: commandWorkDoneToken,
+    await assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+      refactoringTitle: refactoringTitle,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+      commandWorkDoneToken: commandWorkDoneToken,
     );
   }
 }

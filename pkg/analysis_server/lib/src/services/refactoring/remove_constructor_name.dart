@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -9,7 +10,7 @@ import 'package:analysis_server/src/utilities/extensions/selection.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 
 /// The refactoring that removes a name from a named constructor.
 class RemoveConstructorName extends RefactoringProducer {
@@ -17,13 +18,13 @@ class RemoveConstructorName extends RefactoringProducer {
 
   static const String constTitle = 'Remove the name from the constructor';
 
-  RemoveConstructorName(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
 
   @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
+  CodeActionKind get kind => DartCodeActionKind.refactorRemove;
 
   @override
   String get title => constTitle;

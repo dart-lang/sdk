@@ -80,7 +80,7 @@ abstract class AuxiliaryConstant extends Constant {
 sealed class PrimitiveConstant<T> extends Constant {
   final T value;
 
-  PrimitiveConstant(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value.hashCode;
@@ -96,7 +96,7 @@ sealed class PrimitiveConstant<T> extends Constant {
 }
 
 class NullConstant extends PrimitiveConstant<Null> {
-  NullConstant() : super(null);
+  new() : super(null);
 
   @override
   void visitChildren(Visitor v) {}
@@ -124,7 +124,7 @@ class NullConstant extends PrimitiveConstant<Null> {
 }
 
 class BoolConstant extends PrimitiveConstant<bool> {
-  BoolConstant(bool value) : super(value);
+  new(bool value) : super(value);
 
   @override
   void visitChildren(Visitor v) {}
@@ -154,7 +154,7 @@ class BoolConstant extends PrimitiveConstant<bool> {
 
 /// An integer constant on a non-JS target.
 class IntConstant extends PrimitiveConstant<int> {
-  IntConstant(int value) : super(value);
+  new(int value) : super(value);
 
   @override
   void visitChildren(Visitor v) {}
@@ -184,7 +184,7 @@ class IntConstant extends PrimitiveConstant<int> {
 
 /// A double constant on a non-JS target or any numeric constant on a JS target.
 class DoubleConstant extends PrimitiveConstant<double> {
-  DoubleConstant(double value) : super(value);
+  new(double value) : super(value);
 
   @override
   void visitChildren(Visitor v) {}
@@ -220,7 +220,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 }
 
 class StringConstant extends PrimitiveConstant<String> {
-  StringConstant(String value) : super(value);
+  new(String value) : super(value);
 
   @override
   void visitChildren(Visitor v) {}
@@ -259,7 +259,7 @@ class SymbolConstant extends Constant {
   final String name;
   final Reference? libraryReference;
 
-  SymbolConstant(this.name, this.libraryReference);
+  new(this.name, this.libraryReference);
 
   @override
   void visitChildren(Visitor v) {}
@@ -312,7 +312,7 @@ class MapConstant extends Constant {
   final DartType valueType;
   final List<ConstantMapEntry> entries;
 
-  MapConstant(this.keyType, this.valueType, this.entries);
+  new(this.keyType, this.valueType, this.entries);
 
   @override
   void visitChildren(Visitor v) {
@@ -381,7 +381,7 @@ class MapConstant extends Constant {
 class ConstantMapEntry {
   final Constant key;
   final Constant value;
-  ConstantMapEntry(this.key, this.value);
+  new(this.key, this.value);
 
   @override
   String toString() => 'ConstantMapEntry(${toStringInternal()})';
@@ -412,7 +412,7 @@ class ListConstant extends Constant {
   final DartType typeArgument;
   final List<Constant> entries;
 
-  ListConstant(this.typeArgument, this.entries);
+  new(this.typeArgument, this.entries);
 
   @override
   void visitChildren(Visitor v) {
@@ -476,7 +476,7 @@ class SetConstant extends Constant {
   final DartType typeArgument;
   final List<Constant> entries;
 
-  SetConstant(this.typeArgument, this.entries);
+  new(this.typeArgument, this.entries);
 
   @override
   void visitChildren(Visitor v) {
@@ -563,7 +563,7 @@ class RecordConstant extends Constant {
   ///   }
   final RecordType recordType;
 
-  RecordConstant(this.positional, this.named, this.recordType)
+  new(this.positional, this.named, this.recordType)
     : assert(
         positional.length == recordType.positional.length &&
             named.length == recordType.named.length &&
@@ -585,7 +585,7 @@ class RecordConstant extends Constant {
         "${named.keys.join(", ")}",
       );
 
-  RecordConstant.fromTypeContext(
+  new fromTypeContext(
     this.positional,
     this.named,
     StaticTypeContext staticTypeContext,
@@ -677,7 +677,7 @@ class InstanceConstant extends Constant {
   final List<DartType> typeArguments;
   final Map<Reference, Constant> fieldValues;
 
-  InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
+  new(this.classReference, this.typeArguments, this.fieldValues);
 
   Class get classNode => classReference.asClass;
 
@@ -753,7 +753,7 @@ class InstantiationConstant extends Constant {
   final Constant tearOffConstant;
   final List<DartType> types;
 
-  InstantiationConstant(this.tearOffConstant, this.types);
+  new(this.tearOffConstant, this.types);
 
   @override
   void visitChildren(Visitor v) {
@@ -815,7 +815,7 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   final Reference targetReference;
 
-  StaticTearOffConstant(Procedure target)
+  new(Procedure target)
     : assert(target.isStatic),
       assert(
         target.kind == ProcedureKind.Method,
@@ -823,7 +823,7 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
       ),
       targetReference = target.reference;
 
-  StaticTearOffConstant.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   @override
   Procedure get target => targetReference.asProcedure;
@@ -878,14 +878,14 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   @override
   final Reference targetReference;
 
-  ConstructorTearOffConstant(Member target)
+  new(Member target)
     : assert(
         target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target",
       ),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  ConstructorTearOffConstant.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   @override
   Member get target => targetReference.asMember;
@@ -941,11 +941,11 @@ class RedirectingFactoryTearOffConstant extends Constant
   @override
   final Reference targetReference;
 
-  RedirectingFactoryTearOffConstant(Procedure target)
+  new(Procedure target)
     : assert(target.isRedirectingFactory),
       this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  RedirectingFactoryTearOffConstant.byReference(this.targetReference);
+  new byReference(this.targetReference);
 
   @override
   Procedure get target => targetReference.asProcedure;
@@ -1006,7 +1006,7 @@ class TypedefTearOffConstant extends Constant {
   @override
   late final int hashCode = _computeHashCode();
 
-  TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
+  new(this.parameters, this.tearOffConstant, this.types);
 
   @override
   void visitChildren(Visitor v) {
@@ -1107,7 +1107,7 @@ class TypedefTearOffConstant extends Constant {
 class TypeLiteralConstant extends Constant {
   final DartType type;
 
-  TypeLiteralConstant(this.type);
+  new(this.type);
 
   @override
   void visitChildren(Visitor v) {
@@ -1153,7 +1153,7 @@ class TypeLiteralConstant extends Constant {
 class UnevaluatedConstant extends Constant {
   final Expression expression;
 
-  UnevaluatedConstant(this.expression) {
+  new(this.expression) {
     expression.parent = null;
   }
 

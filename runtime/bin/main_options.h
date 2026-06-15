@@ -31,6 +31,7 @@ namespace bin {
   V(executable_name, executable_name)                                          \
   V(resolved_executable_name, resolved_executable_name)                        \
   V(load_module_snapshot, load_module_snapshot)                                \
+  V(script_uri_override, script_uri_override)                                  \
   /* The purpose of these flags is documented in */                            \
   /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
   V(resident_server_info_file, resident_server_info_file_path)                 \
@@ -150,7 +151,6 @@ class Options {
 
   static dart::SimpleHashMap* environment() { return environment_; }
 
-  static bool enable_vm_service() { return enable_vm_service_; }
 #if !defined(PRODUCT)
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
@@ -230,7 +230,6 @@ class Options {
   }
 
   // VM Service argument processing.
-  static bool enable_vm_service_;
 #if !defined(PRODUCT)
   static const char* vm_service_server_ip_;
   static int vm_service_server_port_;

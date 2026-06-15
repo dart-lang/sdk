@@ -1442,6 +1442,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           NoSanitizeThreadPragma::decode(pragma_bits));
       field.set_has_deeply_immutable_type(
           DeeplyImmutablePragma::decode(pragma_bits));
+      field.set_is_dynamically_callable(
+          DynModuleDynamicallyCallablePragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1775,6 +1777,13 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
           *pragma_bits = DynModuleCanBeOverriddenImplicitlyPragma::update(
               true, *pragma_bits);
         }
+        if (constant_reader.IsStringConstant(
+                name_index, "dyn-module:dynamically-callable") ||
+            constant_reader.IsStringConstant(
+                name_index, "dyn-module:implicitly-dynamically-callable")) {
+          *pragma_bits =
+              DynModuleDynamicallyCallablePragma::update(true, *pragma_bits);
+        }
       }
     } else {
       helper_.SkipExpression();
@@ -1835,6 +1844,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                        !native_name.IsNull() || is_ffi_native,  // is_native
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(HasPragma::decode(pragma_bits));
+  function.set_is_dynamically_callable(
+      DynModuleDynamicallyCallablePragma::decode(pragma_bits));
   function.set_end_token_pos(procedure_helper.end_position_);
   function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
                             procedure_helper.IsMemberSignature() ||
@@ -1899,7 +1910,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kRedirectingFactoryTarget);
-  function.set_is_redirecting_factory(helper_.ReadTag() == kSomething);
+  function.SetIsRedirectingFactory(helper_.ReadTag() == kSomething);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.
@@ -2070,6 +2081,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     getter.SetIsDynamicallyOverridden(
         DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
         DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
+    getter.set_is_dynamically_callable(
+        DynModuleDynamicallyCallablePragma::decode(pragma_bits));
   }
 
   if (needs_setter) {
@@ -2102,6 +2115,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.SetIsDynamicallyOverridden(
         DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
         DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
+    setter.set_is_dynamically_callable(
+        DynModuleDynamicallyCallablePragma::decode(pragma_bits));
   }
 }
 
@@ -2230,16 +2245,16 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
   const String* name;
   if (is_declaration) {
     // Read variable declaration.
-    VariableDeclarationHelper variable_helper(&helper_);
+    VariableHelper variable_helper(&helper_);
 
-    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+    variable_helper.ReadUntilExcluding(VariableHelper::kAnnotations);
     const intptr_t annotation_count = helper_.ReadListLength();
     const auto& library =
         Library::Handle(Z, Class::Handle(Z, parent_function.Owner()).library());
     ReadVMAnnotations(library, annotation_count, &pragma_bits);
-    variable_helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
+    variable_helper.SetJustRead(VariableHelper::kAnnotations);
 
-    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+    variable_helper.ReadUntilExcluding(VariableHelper::kEnd);
     name = &H.DartSymbolObfuscate(variable_helper.name_index_);
   } else {
     name = &Symbols::AnonymousClosure();

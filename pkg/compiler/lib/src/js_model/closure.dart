@@ -413,7 +413,7 @@ class ClosureDataBuilder {
     List<FunctionEntity> callMethods,
   ) {
     void processModel(MemberEntity member, ClosureScopeModel model) {
-      Map<ir.VariableDeclaration, JContextField> allBoxedVariables = _elementMap
+      Map<ir.Variable, JContextField> allBoxedVariables = _elementMap
           .makeContextContainer(model.scopeInfo!, member);
       _scopeMap[member] = JsScopeInfo.from(
         allBoxedVariables,
@@ -425,7 +425,7 @@ class ClosureDataBuilder {
         ir.Node node,
         KernelCapturedScope scope,
       ) {
-        Map<ir.VariableDeclaration, JContextField> boxedVariables = _elementMap
+        Map<ir.Variable, JContextField> boxedVariables = _elementMap
             .makeContextContainer(scope, member);
         _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
@@ -516,7 +516,7 @@ class ClosureDataBuilder {
     MemberEntity member,
     ir.FunctionNode node,
     KernelScopeInfo info,
-    Map<ir.VariableDeclaration, JContextField> boxedVariables,
+    Map<ir.Variable, JContextField> boxedVariables,
     ClosureRtiNeed rtiNeed, {
     required bool createSignatureMethod,
   }) {
@@ -552,14 +552,14 @@ class JsScopeInfo extends ScopeInfo {
   /// debugging data stream.
   static const String tag = 'scope-info';
 
-  final Iterable<ir.VariableDeclaration> _localsUsedInTryOrSync;
+  final Iterable<ir.Variable> _localsUsedInTryOrSync;
 
   Set<Local>? _localsUsedInTryOrSyncCache;
 
   @override
   final Local? thisLocal;
 
-  final Map<ir.VariableDeclaration, JContextField> _boxedVariables;
+  final Map<ir.Variable, JContextField> _boxedVariables;
 
   Map<Local, JContextField>? _boxedVariablesCache;
 
@@ -582,10 +582,7 @@ class JsScopeInfo extends ScopeInfo {
         _boxedVariablesCache = const {};
       } else {
         final cache = <Local, JContextField>{};
-        _boxedVariables.forEach((
-          ir.VariableDeclaration node,
-          JContextField field,
-        ) {
+        _boxedVariables.forEach((ir.Variable node, JContextField field) {
           cache[localsMap.getLocalVariable(node)] = field;
         });
         _boxedVariablesCache = cache;
@@ -609,7 +606,7 @@ class JsScopeInfo extends ScopeInfo {
         _localsUsedInTryOrSyncCache = const {};
       } else {
         _localsUsedInTryOrSyncCache = {};
-        for (ir.VariableDeclaration node in _localsUsedInTryOrSync) {
+        for (ir.Variable node in _localsUsedInTryOrSync) {
           _localsUsedInTryOrSyncCache!.add(localsMap.getLocalVariable(node));
         }
       }
@@ -633,11 +630,11 @@ class JsScopeInfo extends ScopeInfo {
 
   factory JsScopeInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
-        .readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.Variable> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.Variable>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JContextField> boxedVariables = source
-        .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+    Map<ir.Variable, JContextField> boxedVariables = source
+        .readTreeNodeMap<ir.Variable, JContextField>(
           () => source.readMember() as JContextField,
         );
     source.end(tag);
@@ -689,11 +686,11 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
 
   factory JsCapturedScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
-        .readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.Variable> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.Variable>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JContextField> boxedVariables = source
-        .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+    Map<ir.Variable, JContextField> boxedVariables = source
+        .readTreeNodeMap<ir.Variable, JContextField>(
           () => source.readMember() as JContextField,
         );
     Local? context = source.readLocalOrNull();
@@ -723,7 +720,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   /// debugging data stream.
   static const String tag = 'captured-loop-scope';
 
-  final List<ir.VariableDeclaration> _boxedLoopVariables;
+  final List<ir.Variable> _boxedLoopVariables;
 
   JsCapturedLoopScope.internal(
     super.localsUsedInTryOrSync,
@@ -745,16 +742,15 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
   factory JsCapturedLoopScope.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
-        .readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.Variable> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.Variable>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JContextField> boxedVariables = source
-        .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+    Map<ir.Variable, JContextField> boxedVariables = source
+        .readTreeNodeMap<ir.Variable, JContextField>(
           () => source.readMember() as JContextField,
         );
     Local? context = source.readLocalOrNull();
-    List<ir.VariableDeclaration> boxedLoopVariables = source
-        .readTreeNodes<ir.VariableDeclaration>();
+    List<ir.Variable> boxedLoopVariables = source.readTreeNodes<ir.Variable>();
     source.end(tag);
     return JsCapturedLoopScope.internal(
       localsUsedInTryOrSync,
@@ -780,7 +776,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   @override
   List<Local> getBoxedLoopVariables(KernelToLocalsMap localsMap) {
     List<Local> locals = [];
-    for (ir.VariableDeclaration boxedLoopVariable in _boxedLoopVariables) {
+    for (ir.Variable boxedLoopVariable in _boxedLoopVariables) {
       locals.add(localsMap.getLocalVariable(boxedLoopVariable));
     }
     return locals;
@@ -806,12 +802,12 @@ class JsClosureClassInfo extends JsScopeInfo
 
   /// The local variable that defines this closure, if it is a local function
   /// declaration.
-  final ir.VariableDeclaration? _closureEntityVariable;
+  final ir.Variable? _closureEntityVariable;
 
   @override
   final JClass closureClassEntity;
 
-  final Map<ir.VariableDeclaration, JField> _variableToFieldMap;
+  final Map<ir.Variable, JField> _variableToFieldMap;
   final Map<JTypeVariable, JField> _typeVariableToFieldMap;
   final Map<Local, JField> _localToFieldMap;
   Map<JField, Local>? _fieldToLocalsMap;
@@ -833,7 +829,7 @@ class JsClosureClassInfo extends JsScopeInfo
   JsClosureClassInfo.fromScopeInfo(
     this.closureClassEntity,
     ir.FunctionNode closureSourceNode,
-    Map<ir.VariableDeclaration, JContextField> boxedVariables,
+    Map<ir.Variable, JContextField> boxedVariables,
     KernelScopeInfo info,
     ClassEntity? enclosingClass,
     this._closureEntity,
@@ -845,22 +841,22 @@ class JsClosureClassInfo extends JsScopeInfo
 
   factory JsClosureClassInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync = source
-        .readTreeNodes<ir.VariableDeclaration>();
+    Iterable<ir.Variable> localsUsedInTryOrSync = source
+        .readTreeNodes<ir.Variable>();
     Local? thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JContextField> boxedVariables = source
-        .readTreeNodeMap<ir.VariableDeclaration, JContextField>(
+    Map<ir.Variable, JContextField> boxedVariables = source
+        .readTreeNodeMap<ir.Variable, JContextField>(
           () => source.readMember() as JContextField,
         );
     JFunction callMethod = source.readMember() as JFunction;
     JSignatureMethod? signatureMethod =
         source.readMemberOrNull() as JSignatureMethod?;
     Local? closureEntity = source.readLocalOrNull();
-    ir.VariableDeclaration? closureEntityVariable =
-        source.readTreeNodeOrNull() as ir.VariableDeclaration?;
+    ir.Variable? closureEntityVariable =
+        source.readTreeNodeOrNull() as ir.Variable?;
     JClass closureClassEntity = source.readClass() as JClass;
-    Map<ir.VariableDeclaration, JField> localToFieldMap = source
-        .readTreeNodeMap<ir.VariableDeclaration, JField>(
+    Map<ir.Variable, JField> localToFieldMap = source
+        .readTreeNodeMap<ir.Variable, JField>(
           () => source.readMember() as JField,
         );
     Map<JTypeVariable, JField> typeVariableToFieldMap = source
@@ -913,7 +909,7 @@ class JsClosureClassInfo extends JsScopeInfo
     _localToFieldMap[local] = field;
   }
 
-  void registerFieldForVariable(ir.VariableDeclaration node, JField field) {
+  void registerFieldForVariable(ir.Variable node, JField field) {
     assert(_fieldToLocalsMap == null);
     _variableToFieldMap[node] = field;
   }
@@ -926,10 +922,7 @@ class JsClosureClassInfo extends JsScopeInfo
     _typeVariableToFieldMap[typeVariable] = field;
   }
 
-  void registerFieldForBoxedVariable(
-    ir.VariableDeclaration node,
-    JField field,
-  ) {
+  void registerFieldForBoxedVariable(ir.Variable node, JField field) {
     assert(_boxedVariablesCache == null);
     _boxedVariables[node] = field as JContextField;
   }
@@ -937,7 +930,7 @@ class JsClosureClassInfo extends JsScopeInfo
   void _ensureFieldToLocalsMap(KernelToLocalsMap localsMap) {
     if (_fieldToLocalsMap == null) {
       _fieldToLocalsMap = {};
-      _variableToFieldMap.forEach((ir.VariableDeclaration node, JField field) {
+      _variableToFieldMap.forEach((ir.Variable node, JField field) {
         _fieldToLocalsMap![field] = localsMap.getLocalVariable(node);
       });
       _typeVariableToFieldMap.forEach((
@@ -1452,7 +1445,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
         elementMap.coreTypes,
         sourceNode.enclosingLibrary.nonNullable,
       );
-    } else if (sourceNode is ir.VariableDeclaration) {
+    } else if (sourceNode is ir.Variable) {
       type = sourceNode.type;
     } else if (sourceNode is ir.Field) {
       type = sourceNode.type;

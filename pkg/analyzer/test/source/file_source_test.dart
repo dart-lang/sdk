@@ -4,10 +4,10 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +19,9 @@ main() {
 
 @reflectiveTest
 class FileSourceTest with ResourceProviderMixin {
+  bool get _isWindowsPathContext =>
+      resourceProvider.pathContext.style == path.windows.style;
+
   void test_contents() {
     File file1 = getFile("/foo.txt");
     file1.writeAsStringSync('test');
@@ -77,7 +80,7 @@ class FileSourceTest with ResourceProviderMixin {
   }
 
   void test_resolveRelative_file_fileName() {
-    if (OSUtilities.isWindows()) {
+    if (_isWindowsPathContext) {
       // On Windows, the URI that is produced includes a drive letter,
       // which I believe is not consistent across all machines that might run
       // this test.
@@ -92,7 +95,7 @@ class FileSourceTest with ResourceProviderMixin {
   }
 
   void test_resolveRelative_file_filePath() {
-    if (OSUtilities.isWindows()) {
+    if (_isWindowsPathContext) {
       // On Windows, the URI that is produced includes a drive letter,
       // which I believe is not consistent across all machines that might run
       // this test.
@@ -107,7 +110,7 @@ class FileSourceTest with ResourceProviderMixin {
   }
 
   void test_resolveRelative_file_filePathWithParent() {
-    if (OSUtilities.isWindows()) {
+    if (_isWindowsPathContext) {
       // On Windows, the URI that is produced includes a drive letter, which I
       // believe is not consistent across all machines that might run this test.
       return;

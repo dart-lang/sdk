@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedOptionalTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DeprecatedOptionalTest extends PubPackageResolutionTest {
   test_argumentGiven() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([@Deprecated.optional() int? p]) {}
 
 void g() {
@@ -26,7 +27,7 @@ void g() {
   }
 
   test_argumentGiven_implicitSuperInvocation_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
@@ -38,7 +39,7 @@ class D extends C {
   }
 
   test_argumentGiven_implicitSuperInvocation_namedParameter_primaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
@@ -48,7 +49,7 @@ class D({super.p}) extends C;
   }
 
   test_argumentGiven_implicitSuperInvocation_withSuperParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -60,7 +61,7 @@ class D extends C {
   }
 
   test_argumentGiven_implicitSuperInvocation_withSuperParameter_primaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -70,7 +71,7 @@ class D(super.p) extends C;
   }
 
   test_argumentGiven_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({@Deprecated.optional() int? p}) {}
 
 void g() {
@@ -80,7 +81,7 @@ void g() {
   }
 
   test_argumentGiven_redirectedFromFactory_parameter_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   factory C.two({int? p}) = D;
@@ -93,7 +94,7 @@ class D extends C {
   }
 
   test_argumentGiven_redirectedFromFactory_parameter_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   factory C.two([int? p]) = D;
@@ -106,7 +107,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -118,7 +119,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation_namedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
@@ -130,7 +131,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation_namedParameter_withSuperParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
@@ -142,7 +143,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation_namedSuperConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named([@Deprecated.optional() int? p]);
 }
@@ -154,7 +155,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation_withSuperParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -166,7 +167,7 @@ class D extends C {
   }
 
   test_argumentGiven_superInvocation_withSuperParameter_primaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
@@ -178,136 +179,127 @@ class D(super.p) extends C {
   }
 
   test_argumentOmitted() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([@Deprecated.optional() int? p]) {}
 
 void g() {
   f();
+//^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 57, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_dotShorthand() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C m({@Deprecated.optional() int? p}) => C();
 }
 
 C f() {
   return .m();
+//        ^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 85, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_dotShorthandConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
 
 C f() {
   return .new();
+//        ^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 69, 3)],
-    );
+''');
   }
 
   test_argumentOmitted_implicitSuperInvocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 class D extends C {
   D();
+//^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 73, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_implicitSuperInvocation_namedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
 
 class D extends C {
   D();
+//^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 73, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_implicitSuperInvocation_primaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 class D() extends C;
-''',
-      [error(diag.deprecatedOptional, 57, 1)],
-    );
+//    ^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
+''');
   }
 
   test_argumentOmitted_instanceCreation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 void f() {
   C();
+//^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 64, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_methodInvocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void m({@Deprecated.optional() int? p}) {}
 }
 
 void f(C c) {
   c.m();
+//  ^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 76, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({@Deprecated.optional() int? p}) {}
 
 void g() {
   f();
+//^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 57, 1)],
-    );
+''');
   }
 
   test_argumentOmitted_override() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void m({@Deprecated.optional() int? p}) {}
 }
@@ -324,15 +316,14 @@ void g(D d) {
   }
 
   test_argumentOmitted_redirectedConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
   C.two() : this();
+//          ^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 60, 4)],
-    );
+''');
   }
 
   test_argumentOmitted_redirectedConstructor_indirectlyDeprecated() async {
@@ -343,60 +334,56 @@ class C {
     // `this.two()`, because `C.two` does not accept a positional parameter.)
     // Whether and how `C.three` must change depends on how `C.two` is changed
     // to handle the deprecation.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
   C.two() : this();
+//          ^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
   C.three() : this.two();
 }
-''',
-      [error(diag.deprecatedOptional, 60, 4)],
-    );
+''');
   }
 
   test_argumentOmitted_redirectedConstructor_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.one([@Deprecated.optional() int? p]);
   C.two() : this.one();
+//               ^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 69, 3)],
-    );
+''');
   }
 
   test_argumentOmitted_redirectedFromFactory_parameter_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   factory C.two() = D;
+//        ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
 
 class D extends C {
   D({@Deprecated.optional() int? p});
 }
-''',
-      [error(diag.deprecatedOptional, 27, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_redirectedFromFactory_parameter_positional() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   factory C.two() = D;
+//        ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
 
 class D extends C {
   D([@Deprecated.optional() int? p]);
 }
-''',
-      [error(diag.deprecatedOptional, 27, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_redirectedIndirectlyFromFactory_parameter_named() async {
@@ -408,8 +395,7 @@ class D extends C {
     // produce a new error or warning at `C.two` (if the signature is adjusted),
     // or will make `C.two` indirectly compliant (like if `D.two` is changed to
     // redirect differently, or not redirect, etc.).
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
   factory C.two() = D.two;
@@ -418,29 +404,28 @@ class C {
 class D extends C {
   D();
   factory D.two() = E;
+//        ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
 
 class E extends D {
   E({@Deprecated.optional() int? p});
 }
-''',
-      [error(diag.deprecatedOptional, 84, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_superInvocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 class D extends C {
   D() : super();
+//      ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 79, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_superInvocation_indirectlyDeprecated() async {
@@ -450,71 +435,67 @@ class D extends C {
     // example, we can't pass a positional argument to `super()`, because
     // `D.new` does not accept a positional parameter.) Whether and how `E.new`
     // must change depends on how `D.new` is changed to handle the deprecation.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 class D extends C {
   D() : super();
+//      ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
 
 class E extends D {
   E() : super();
 }
-''',
-      [error(diag.deprecatedOptional, 79, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_superInvocation_namedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({@Deprecated.optional() int? p});
 }
 
 class D extends C {
   D() : super();
+//      ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 79, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_superInvocation_namedSuperConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named([@Deprecated.optional() int? p]);
 }
 
 class D extends C {
   D() : super.named();
+//            ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 91, 5)],
-    );
+''');
   }
 
   test_argumentOmitted_superInvocation_primaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C([@Deprecated.optional() int? p]);
 }
 
 class D() extends C {
   this : super();
+//       ^^^^^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
 }
-''',
-      [error(diag.deprecatedOptional, 82, 5)],
-    );
+''');
   }
 
   test_noAnnotation() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f([int? p]) {}
 
 void g() {

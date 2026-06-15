@@ -97,7 +97,7 @@ class StatementCompletion {
 
   /// Initialize a newly created completion to have the given [kind] and
   /// [change].
-  StatementCompletion(this.kind, this.change);
+  new(this.kind, this.change);
 }
 
 /// The context for computing a statement completion.
@@ -105,7 +105,7 @@ class StatementCompletionContext {
   final ResolvedUnitResult resolveResult;
   final int selectionOffset;
 
-  StatementCompletionContext(this.resolveResult, this.selectionOffset);
+  new(this.resolveResult, this.selectionOffset);
 }
 
 /// A description of a class of statement completions. Instances are intended to
@@ -123,7 +123,7 @@ class StatementCompletionKind {
 
   /// Initialize a newly created kind of statement completion to have the given
   /// [name] and [message].
-  const StatementCompletionKind(this.name, this.message);
+  const new(this.name, this.message);
 
   @override
   String toString() => name;
@@ -149,7 +149,7 @@ class StatementCompletionProcessor {
       <String, LinkedEditGroup>{};
   Position? exitPosition;
 
-  StatementCompletionProcessor(this.statementContext)
+  new(this.statementContext)
     : utils = CorrectionUtils(statementContext.resolveResult);
 
   String get eol => utils.endOfLine;
@@ -1323,7 +1323,7 @@ class _KeywordConditionBlockStructure {
   final AstNode condition;
   final Statement? block;
 
-  _KeywordConditionBlockStructure(
+  new(
     this.keyword,
     this.leftParenthesis,
     this.condition,

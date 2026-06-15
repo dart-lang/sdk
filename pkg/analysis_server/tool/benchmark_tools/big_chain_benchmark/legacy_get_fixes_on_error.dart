@@ -27,12 +27,8 @@ class LegacyGetFixesOnErrorBenchmark extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LegacyGetFixesOnErrorBenchmark(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: false);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: false);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;

@@ -116,7 +116,7 @@ class WasmTarget extends Target {
   Class? _wasmDefaultSet;
   Class? _wasmImmutableMap;
   Class? _wasmImmutableSet;
-  Class? _jsString;
+  Class? _stringImpl;
   Class? _closure;
   Class? _boxedInt;
   Class? _boxedDouble;
@@ -159,8 +159,6 @@ class WasmTarget extends Target {
     'dart:_compact_hash',
     'dart:_http',
     'dart:_internal',
-    'dart:_js_helper',
-    'dart:_js_types',
     'dart:_list',
     'dart:_string',
     'dart:_wasm',
@@ -168,10 +166,16 @@ class WasmTarget extends Target {
     'dart:developer',
     'dart:ffi',
     'dart:io',
-    'dart:js_interop',
-    'dart:js_interop_unsafe',
     'dart:nativewrappers',
     'dart:typed_data',
+    if (mode == .standalone)
+      'dart:_embedder'
+    else ...[
+      'dart:_js_helper',
+      'dart:_js_types',
+      'dart:js_interop',
+      'dart:js_interop_unsafe',
+    ],
   ];
 
   @override
@@ -181,15 +185,19 @@ class WasmTarget extends Target {
     'dart:_boxed_int',
     'dart:_compact_hash',
     'dart:_error_utils',
-    'dart:_js_helper',
-    'dart:_js_types',
     'dart:_list',
     'dart:_string',
     'dart:_wasm',
     'dart:collection',
-    'dart:js_interop',
-    'dart:js_interop_unsafe',
     'dart:typed_data',
+    if (mode == .standalone)
+      'dart:_embedder'
+    else ...[
+      'dart:_js_helper',
+      'dart:_js_types',
+      'dart:js_interop',
+      'dart:js_interop_unsafe',
+    ],
   ];
 
   @override
@@ -201,14 +209,18 @@ class WasmTarget extends Target {
       return true;
     }
 
-    if (imported.toString() == 'dart:_wasm') {
+    if (imported.toString() == 'dart:_wasm' ||
+        imported.toString() == 'dart:_js_interop_wasm') {
       return enableExperimentalWasmInterop;
     }
 
     final importerString = importer.toString();
 
-    // We have some tests that import dart:js*
+    // We have some tests that import dart:*js*
     if (importerString.contains('tests/web/wasm')) return true;
+
+    // We have some IR$ tests that import dart:*js*
+    if (importerString.contains('pkg/dart2wasm/test/ir_tests')) return true;
 
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;
@@ -314,32 +326,34 @@ class WasmTarget extends Target {
       }
     }
 
-    Set<Library> transitiveImportingJSInterop = {
-      ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-        component.libraries,
-        Uri.parse("dart:js_interop"),
-      ),
-      ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-        component.libraries,
-        Uri.parse("dart:convert"),
-      ),
-      ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-        component.libraries,
-        Uri.parse("dart:_string"),
-      ),
-    };
-    if (transitiveImportingJSInterop.isEmpty) {
-      logger?.call("Skipped JS interop transformations");
-    } else {
-      _performJSInteropTransformations(
-        component,
-        coreTypes,
-        hierarchy,
-        transitiveImportingJSInterop,
-        diagnosticReporter,
-        referenceFromIndex,
-      );
-      logger?.call("Transformed JS interop classes");
+    if (mode != .standalone) {
+      Set<Library> transitiveImportingJSInterop = {
+        ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component.libraries,
+          Uri.parse("dart:js_interop"),
+        ),
+        ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component.libraries,
+          Uri.parse("dart:convert"),
+        ),
+        ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component.libraries,
+          Uri.parse("dart:_string"),
+        ),
+      };
+      if (transitiveImportingJSInterop.isEmpty) {
+        logger?.call("Skipped JS interop transformations");
+      } else {
+        _performJSInteropTransformations(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingJSInterop,
+          diagnosticReporter,
+          referenceFromIndex,
+        );
+        logger?.call("Transformed JS interop classes");
+      }
     }
 
     // If we are compiling with a null environment, skip constant resolution
@@ -439,6 +453,7 @@ class WasmTarget extends Target {
       libraries,
       coreTypes,
       diagnosticReporter,
+      mode == .standalone,
     );
 
     awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
@@ -539,7 +554,8 @@ class WasmTarget extends Target {
   int get enabledLateLowerings => LateLowering.all;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
+  int get enabledConstructorTearOffLowerings =>
+      ConstructorTearOffLowering.typedefs;
 
   @override
   bool get supportsExplicitGetterCalls => true;
@@ -600,18 +616,11 @@ class WasmTarget extends Target {
 
   @override
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
-    return _jsString ??= coreTypes.index.getClass(
+    return _stringImpl ??= coreTypes.index.getClass(
       "dart:_string",
-      "JSStringImpl",
+      mode == .standalone ? "EmbedderStringImpl" : "JSStringImpl",
     );
   }
-
-  // In dart2wasm we can't assume that `x == "hello"` means `x`'s class is
-  // `concreteStringLiteralClass("hello")`, it may also be `JSStringImpl` when
-  // it's obtained from a JS call, or `TwoByteString` when it's a substring of a
-  // `TwoByteString`.
-  @override
-  bool get canInferStringClassAfterEqualityComparison => false;
 
   @override
   Class concreteClosureClass(CoreTypes coreTypes) {

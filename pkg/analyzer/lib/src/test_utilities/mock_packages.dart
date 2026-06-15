@@ -11,8 +11,8 @@ import 'package:analyzer/file_system/file_system.dart';
 class MockPackages {
   /// Create a fake 'angular' package that can be used by tests.
   static void addAngularMetaPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-    libFolder.getChildAssumingFile('angular_meta.dart').writeAsStringSync(r'''
+    var libFolder = rootFolder.getFolder('lib');
+    libFolder.getFile('angular_meta.dart').writeAsStringSync(r'''
 library angular.meta;
 
 const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
@@ -31,8 +31,8 @@ class _VisibleOutsideTemplate {
 
   /// Create a fake 'ffi' package that can be used by tests.
   static void addFfiPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-    libFolder.getChildAssumingFile('ffi.dart').writeAsStringSync(r'''
+    var libFolder = rootFolder.getFolder('lib');
+    libFolder.getFile('ffi.dart').writeAsStringSync(r'''
 import 'dart:ffi';
 
 const Allocator calloc = _CallocAllocator();
@@ -58,8 +58,8 @@ class _CallocAllocator implements Allocator {
 
   /// Create a fake 'js' package that can be used by tests.
   static void addJsPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-    libFolder.getChildAssumingFile('js.dart').writeAsStringSync(r'''
+    var libFolder = rootFolder.getFolder('lib');
+    libFolder.getFile('js.dart').writeAsStringSync(r'''
 library js;
 
 // ignore: EXPORT_INTERNAL_LIBRARY
@@ -69,8 +69,8 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
   /// Create a fake 'kernel' package that can be used by tests.
   static void addKernelPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-    libFolder.getChildAssumingFile('ast.dart').writeAsStringSync(r'''
+    var libFolder = rootFolder.getFolder('lib');
+    libFolder.getFile('ast.dart').writeAsStringSync(r'''
 library kernel.ast;
 
 abstract class Node {}
@@ -81,9 +81,9 @@ class InterfaceType extends DartType {}
 
   /// Create a fake 'meta' package that can be used by tests.
   static void addMetaPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    var libFolder = rootFolder.getFolder('lib');
     libFolder.create();
-    libFolder.getChildAssumingFile('meta.dart').writeAsStringSync(r'''
+    libFolder.getFile('meta.dart').writeAsStringSync(r'''
 library meta;
 
 import 'meta_meta.dart';
@@ -323,7 +323,7 @@ class _VisibleForTesting {
   const _VisibleForTesting();
 }
 ''');
-    libFolder.getChildAssumingFile('meta_meta.dart').writeAsStringSync(r'''
+    libFolder.getFile('meta_meta.dart').writeAsStringSync(r'''
 library meta_meta;
 
 @Target({TargetKind.classType})
@@ -351,6 +351,8 @@ class TargetKind {
   static const function = TargetKind._('top-level functions', 'function');
   static const library = TargetKind._('libraries', 'library');
   static const getter = TargetKind._('getters', 'getter');
+  static const importDirective =
+      TargetKind._('import directives', 'importDirective');
   static const method = TargetKind._('methods', 'method');
   static const mixinType = TargetKind._('mixins', 'mixinType');
   static const optionalParameter =
@@ -378,6 +380,7 @@ class TargetKind {
     function,
     library,
     getter,
+    importDirective,
     method,
     mixinType,
     optionalParameter,

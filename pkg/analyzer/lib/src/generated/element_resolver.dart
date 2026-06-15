@@ -207,8 +207,6 @@ class ElementResolver {
 
   void visitFunctionTypeAlias(FunctionTypeAlias node) {}
 
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {}
-
   void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
@@ -312,7 +310,7 @@ class ElementResolver {
     }
   }
 
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {}
+  void visitRegularFormalParameter(RegularFormalParameter node) {}
 
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
@@ -393,6 +391,7 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
+      case SuperContext.anonymousMethod:
         _diagnosticReporter.report(diag.superInInvalidContext.at(node));
       case SuperContext.extension:
         _diagnosticReporter.report(diag.superInExtension.at(node));

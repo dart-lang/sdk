@@ -148,3 +148,12 @@ corresponding to the category the recognized method belongs to, as defined in
 The pragmas must match exactly the set of recognized methods.  This enables
 kernel-level analyses and optimizations to query whether a method is recognized
 by the VM. The correspondence is checked when running in debug mode.
+
+### Declaring an external effect method
+
+```dart
+@pragma('external-effect')
+external void effect(Object? o);
+```
+
+Declares a special static external method `effect` which the compiler will treat as live code when performing any analysis of the program. For example, a type referenced from this call that would otherwise be tree-shaken will no longer be tree-shaken. To reduce code size the call itself (and its arguments) are dropped in the compiled output though.

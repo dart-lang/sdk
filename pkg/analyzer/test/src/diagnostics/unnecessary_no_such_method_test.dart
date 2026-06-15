@@ -2,38 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryNoSuchMethodTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryNoSuchMethodTest extends PubPackageResolutionTest {
   test_blockBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 class B extends A {
   mmm();
   noSuchMethod(y) {
+//^^^^^^^^^^^^
+// [diag.unnecessaryNoSuchMethod] Unnecessary 'noSuchMethod' declaration.
     return super.noSuchMethod(y);
   }
 }
-''',
-      [error(diag.unnecessaryNoSuchMethod, 87, 12)],
-    );
+''');
   }
 
   test_blockBody_notReturnStatement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -47,7 +47,7 @@ class B extends A {
   }
 
   test_blockBody_notSingleStatement() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -62,22 +62,21 @@ class B extends A {
   }
 
   test_expressionBody() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
 class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
+//^^^^^^^^^^^^
+// [diag.unnecessaryNoSuchMethod] Unnecessary 'noSuchMethod' declaration.
 }
-''',
-      [error(diag.unnecessaryNoSuchMethod, 87, 12)],
-    );
+''');
   }
 
   test_expressionBody_notNoSuchMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -89,7 +88,7 @@ class B extends A {
   }
 
   test_expressionBody_notSuper() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }

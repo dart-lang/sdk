@@ -41,6 +41,9 @@ abstract class EntryPointsListener {
   /// Record the fact that given member is torn off.
   void recordTearOff(Member target) {}
 
+  /// Record the fact that given member is called dynamically.
+  void recordMemberCalledDynamically(Member target, {required bool isGetter});
+
   /// Artificial call method corresponding to the given [closure].
   Procedure getClosureCallMethod(Closure closure);
 
@@ -202,6 +205,22 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
             }
           }
           break;
+        case PragmaEntryPointType.DynamicallyCallable:
+          if (proc.isGetter) {
+            addSelector(CallKind.PropertyGet);
+            entryPoints.recordMemberCalledDynamically(proc, isGetter: true);
+          } else if (proc.isSetter) {
+            addSelector(CallKind.PropertySet);
+            entryPoints.recordMemberCalledDynamically(proc, isGetter: false);
+          } else {
+            addSelector(CallKind.Method);
+            entryPoints.recordMemberCalledDynamically(proc, isGetter: false);
+            if (!proc.isFactory) {
+              addSelector(CallKind.PropertyGet);
+              entryPoints.recordMemberCalledDynamically(proc, isGetter: true);
+            }
+          }
+          break;
         case PragmaEntryPointType.Extendable:
         case PragmaEntryPointType.ImplicitlyExtendable:
           throw "Error: only class can be extendable";
@@ -285,6 +304,14 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           addSelector(CallKind.PropertyGet);
           if (field.hasSetter) {
             addSelector(CallKind.PropertySet);
+          }
+          break;
+        case PragmaEntryPointType.DynamicallyCallable:
+          addSelector(CallKind.PropertyGet);
+          entryPoints.recordMemberCalledDynamically(field, isGetter: true);
+          if (field.hasSetter) {
+            addSelector(CallKind.PropertySet);
+            entryPoints.recordMemberCalledDynamically(field, isGetter: false);
           }
           break;
         case PragmaEntryPointType.CallOnly:

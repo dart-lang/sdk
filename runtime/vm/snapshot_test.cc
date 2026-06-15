@@ -357,18 +357,20 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   }
 
 ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
-  TEST_ROUND_TRIP_IDENTICAL(Object::class_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::type_arguments_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::function_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::field_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::script_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::library_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::code_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::instructions_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::pc_descriptors_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::exception_handlers_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::context_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::context_scope_class());
+  ClassTable* table = IsolateGroup::Current()->class_table();
+
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kClassCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kTypeArgumentsCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kFunctionCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kFieldCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kScriptCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kLibraryCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kCodeCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kInstructionsCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kPcDescriptorsCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kExceptionHandlersCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kContextCid));
+  TEST_ROUND_TRIP_IDENTICAL(table->At(kContextScopeCid));
 }
 
 static void TestString(const char* cstr) {
@@ -750,7 +752,6 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HandleScope scope(thread);
 
     Dart_Handle result = Api::CheckAndFinalizePendingClasses(thread);
     {
@@ -762,9 +763,8 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
-    FullSnapshotWriter writer(
-        Snapshot::kFull, /*vm_snapshot_data=*/nullptr, &isolate_snapshot_data,
-        /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
+    FullSnapshotWriter writer(Snapshot::kFull, &isolate_snapshot_data,
+                              /*image_writer=*/nullptr);
     writer.WriteFullSnapshot();
     // Take ownership so it doesn't get freed by the stream destructor.
     intptr_t unused;
@@ -1008,7 +1008,6 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
   {
     CHECK_API_SCOPE(thread);
     TransitionNativeToVM transition(thread);
-    HANDLESCOPE(thread);
     StackZone zone(thread);
     {
       // Generate a list of nulls from Dart code.
@@ -1132,7 +1131,6 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   {
     CHECK_API_SCOPE(thread);
     TransitionNativeToVM transition(thread);
-    HANDLESCOPE(thread);
     StackZone zone(thread);
     {
       // Generate a list of nulls from Dart code.
@@ -1365,7 +1363,6 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   {
     CHECK_API_SCOPE(thread);
     TransitionNativeToVM transition(thread);
-    HANDLESCOPE(thread);
     StackZone zone(thread);
     {
       // Generate a list of strings from Dart code.
@@ -1564,7 +1561,6 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   {
     CHECK_API_SCOPE(thread);
     TransitionNativeToVM transition(thread);
-    HANDLESCOPE(thread);
     StackZone zone(thread);
     {
       // Generate a list of strings from Dart code.
@@ -1805,7 +1801,6 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   {
     CHECK_API_SCOPE(thread);
     TransitionNativeToVM transition(thread);
-    HANDLESCOPE(thread);
     StackZone zone(thread);
     {
       // Generate a list of Uint8Lists from Dart code.

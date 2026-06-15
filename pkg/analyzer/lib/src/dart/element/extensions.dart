@@ -10,9 +10,9 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
@@ -114,54 +114,6 @@ extension Element2Extension on Element {
   }
 }
 
-extension ElementAnnotationExtension on ElementAnnotation {
-  static final Map<String, TargetKind> _targetKindsByName = {
-    for (var kind in TargetKind.values) kind.name: kind,
-  };
-
-  /// Return the target kinds defined for this [ElementAnnotation].
-  Set<TargetKind> get targetKinds {
-    var element = this.element;
-    InterfaceElement? interfaceElement;
-
-    if (element is GetterElement) {
-      var type = element.returnType;
-      if (type is InterfaceType) {
-        interfaceElement = type.element;
-      }
-    } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement;
-    }
-    if (interfaceElement == null) {
-      return const <TargetKind>{};
-    }
-    for (var annotation in interfaceElement.metadata.annotations) {
-      if (annotation.isTarget) {
-        var value = annotation.computeConstantValue();
-        if (value == null) {
-          return const <TargetKind>{};
-        }
-
-        var annotationKinds = value.getField('kinds')?.toSetValue();
-        if (annotationKinds == null) {
-          return const <TargetKind>{};
-        }
-
-        return annotationKinds
-            .map((e) {
-              // Support class-based and enum-based target kind implementations.
-              var field = e.getField('name') ?? e.getField('_name');
-              return field?.toStringValue();
-            })
-            .map((name) => _targetKindsByName[name])
-            .nonNulls
-            .toSet();
-      }
-    }
-    return const <TargetKind>{};
-  }
-}
-
 extension ExecutableElement2Extension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
@@ -183,6 +135,7 @@ extension FormalParameterElementMixinExtension
       name,
       type ?? this.type,
       kind ?? parameterKind,
+      baseFormalParameter: baseElement,
     );
     element.firstFragment.isExplicitlyCovariant =
         isCovariant ?? this.isCovariant;

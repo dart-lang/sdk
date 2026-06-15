@@ -1,0 +1,167 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type JsonMap1<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _) implements core::Map<core::String, core::Object?> {
+  abstract extension-type-member representation-field get _() → core::Map<core::String, core::Object?>;
+  operator [] = self::JsonMap1|[];
+  constructor • = self::JsonMap1|constructor#;
+  constructor tearoff • = self::JsonMap1|constructor#_#new#tearOff;
+}
+extension type JsonMap2<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _) implements core::Map<core::String, core::Object?> {
+  abstract extension-type-member representation-field get _() → core::Map<core::String, core::Object?>;
+  method containsKey = self::JsonMap2|containsKey;
+  method tearoff containsKey = self::JsonMap2|get#containsKey;
+  constructor • = self::JsonMap2|constructor#;
+  constructor tearoff • = self::JsonMap2|constructor#_#new#tearOff;
+}
+extension type JsonMap3<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _) implements core::Map<core::String, core::Object?> {
+  abstract extension-type-member representation-field get _() → core::Map<core::String, core::Object?>;
+  get length = self::JsonMap3|get#length;
+  constructor • = self::JsonMap3|constructor#;
+  constructor tearoff • = self::JsonMap3|constructor#_#new#tearOff;
+}
+extension type JsonList1<T extends core::Object? = dynamic>(core::List<core::Object?> _) implements core::List<core::Object?> {
+  abstract extension-type-member representation-field get _() → core::List<core::Object?>;
+  operator [] = self::JsonList1|[];
+  constructor • = self::JsonList1|constructor#;
+  constructor tearoff • = self::JsonList1|constructor#_#new#tearOff;
+}
+extension type JsonList2<T extends core::Object? = dynamic>(core::List<core::Object?> _) implements core::List<core::Object?> {
+  abstract extension-type-member representation-field get _() → core::List<core::Object?>;
+  get length = self::JsonList2|get#length;
+  constructor • = self::JsonList2|constructor#;
+  constructor tearoff • = self::JsonList2|constructor#_#new#tearOff;
+}
+extension type JsonList3<T extends core::Object? = dynamic>(core::List<core::Object?> _) implements core::List<core::Object?> {
+  abstract extension-type-member representation-field get _() → core::List<core::Object?>;
+  method sublist = self::JsonList3|sublist;
+  method tearoff sublist = self::JsonList3|get#sublist;
+  constructor • = self::JsonList3|constructor#;
+  constructor tearoff • = self::JsonList3|constructor#_#new#tearOff;
+}
+static extension-type-member method JsonMap1|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::Map<core::String, core::Object?> _#wc0#formal) → self::JsonMap1<self::JsonMap1|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ {
+  lowered final self::JsonMap1<self::JsonMap1|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ #this = _#wc0#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonMap1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _#wc0#formal) → self::JsonMap1<self::JsonMap1|constructor#_#new#tearOff::T%> /* erasure=core::Map<core::String, core::Object?> */
+  return self::JsonMap1|constructor#<self::JsonMap1|constructor#_#new#tearOff::T%>(_#wc0#formal);
+static extension-type-member method JsonMap1|[]<T extends core::Object? = dynamic>(lowered final self::JsonMap1<self::JsonMap1|[]::T%> /* erasure=core::Map<core::String, core::Object?> */ #this, core::String key) → self::JsonMap1|[]::T%
+  return (#this as{Unchecked} core::Map<core::String, core::Object?>).{core::Map::[]}(key){(core::Object?) → core::Object?} as self::JsonMap1|[]::T%;
+static method parseJson1(self::JsonMap1<dynamic> /* erasure=core::Map<core::String, core::Object?> */ map) → void {
+  {
+    final synthesized self::JsonMap1<dynamic> /* erasure=core::Map<core::String, core::Object?> */ #0#0 = map;
+    synthesized core::Object? #0#3;
+    synthesized core::bool #0#3#isSet = false;
+    final const synthesized core::String #0#1 = #C1;
+    final const synthesized core::String #0#4 = #C2;
+    if((!((#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t1 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object? && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t2 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}))
+      core::print("ok");
+  }
+}
+static extension-type-member method JsonMap2|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::Map<core::String, core::Object?> _#wc1#formal) → self::JsonMap2<self::JsonMap2|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ {
+  lowered final self::JsonMap2<self::JsonMap2|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ #this = _#wc1#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonMap2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _#wc1#formal) → self::JsonMap2<self::JsonMap2|constructor#_#new#tearOff::T%> /* erasure=core::Map<core::String, core::Object?> */
+  return self::JsonMap2|constructor#<self::JsonMap2|constructor#_#new#tearOff::T%>(_#wc1#formal);
+static extension-type-member method JsonMap2|containsKey<T extends core::Object? = dynamic>(lowered final self::JsonMap2<self::JsonMap2|containsKey::T%> /* erasure=core::Map<core::String, core::Object?> */ #this, core::String key) → core::bool
+  return (#this as{Unchecked} core::Map<core::String, core::Object?>).{core::Map::containsKey}(key){(core::Object?) → core::bool};
+static extension-type-member method JsonMap2|get#containsKey<T extends core::Object? = dynamic>(lowered final self::JsonMap2<self::JsonMap2|get#containsKey::T%> /* erasure=core::Map<core::String, core::Object?> */ #this) → (core::String) → core::bool
+  return (core::String key) → core::bool => self::JsonMap2|containsKey<self::JsonMap2|get#containsKey::T%>(#this, key);
+static method parseJson2(self::JsonMap2<dynamic> /* erasure=core::Map<core::String, core::Object?> */ map) → void {
+  {
+    final synthesized self::JsonMap2<dynamic> /* erasure=core::Map<core::String, core::Object?> */ #0#0 = map;
+    synthesized core::Object? #0#3;
+    synthesized core::bool #0#3#isSet = false;
+    final const synthesized core::String #0#1 = #C1;
+    final const synthesized core::String #0#4 = #C2;
+    if((!((#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t3 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object? && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t4 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}))
+      core::print("ok");
+  }
+}
+static extension-type-member method JsonMap3|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::Map<core::String, core::Object?> _#wc2#formal) → self::JsonMap3<self::JsonMap3|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ {
+  lowered final self::JsonMap3<self::JsonMap3|constructor#::T%> /* erasure=core::Map<core::String, core::Object?> */ #this = _#wc2#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonMap3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Map<core::String, core::Object?> _#wc2#formal) → self::JsonMap3<self::JsonMap3|constructor#_#new#tearOff::T%> /* erasure=core::Map<core::String, core::Object?> */
+  return self::JsonMap3|constructor#<self::JsonMap3|constructor#_#new#tearOff::T%>(_#wc2#formal);
+static extension-type-member method JsonMap3|get#length<T extends core::Object? = dynamic>(lowered final self::JsonMap3<self::JsonMap3|get#length::T%> /* erasure=core::Map<core::String, core::Object?> */ #this) → core::int
+  return (#this as{Unchecked} core::Map<core::String, core::Object?>).{core::Map::length}{core::int};
+static method parseJson3(self::JsonMap3<dynamic> /* erasure=core::Map<core::String, core::Object?> */ map) → void {
+  {
+    final synthesized self::JsonMap3<dynamic> /* erasure=core::Map<core::String, core::Object?> */ #0#0 = map;
+    synthesized core::Object? #0#3;
+    synthesized core::bool #0#3#isSet = false;
+    final const synthesized core::String #0#1 = #C1;
+    final const synthesized core::String #0#4 = #C2;
+    if((!((#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t5 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object? && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::Object?} #0#3 : let final dynamic #t6 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::Object?}))
+      core::print("ok");
+  }
+}
+static extension-type-member method JsonList1|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::List<core::Object?> _#wc3#formal) → self::JsonList1<self::JsonList1|constructor#::T%> /* erasure=core::List<core::Object?> */ {
+  lowered final self::JsonList1<self::JsonList1|constructor#::T%> /* erasure=core::List<core::Object?> */ #this = _#wc3#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonList1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<core::Object?> _#wc3#formal) → self::JsonList1<self::JsonList1|constructor#_#new#tearOff::T%> /* erasure=core::List<core::Object?> */
+  return self::JsonList1|constructor#<self::JsonList1|constructor#_#new#tearOff::T%>(_#wc3#formal);
+static extension-type-member method JsonList1|[]<T extends core::Object? = dynamic>(lowered final self::JsonList1<self::JsonList1|[]::T%> /* erasure=core::List<core::Object?> */ #this, core::int index) → self::JsonList1|[]::T%
+  return (#this as{Unchecked} core::List<core::Object?>).{core::List::[]}(index){(core::int) → core::Object?} as self::JsonList1|[]::T%;
+static method parseJson4(self::JsonList1<dynamic> /* erasure=core::List<core::Object?> */ list) → void {
+  {
+    final synthesized self::JsonList1<dynamic> /* erasure=core::List<core::Object?> */ #0#0 = list;
+    final const synthesized core::int #0#2 = #C3;
+    final const synthesized core::String #0#5 = #C2;
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3 && #C2 =={core::String::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::Object?})
+      core::print("ok");
+  }
+}
+static extension-type-member method JsonList2|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::List<core::Object?> _#wc4#formal) → self::JsonList2<self::JsonList2|constructor#::T%> /* erasure=core::List<core::Object?> */ {
+  lowered final self::JsonList2<self::JsonList2|constructor#::T%> /* erasure=core::List<core::Object?> */ #this = _#wc4#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonList2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<core::Object?> _#wc4#formal) → self::JsonList2<self::JsonList2|constructor#_#new#tearOff::T%> /* erasure=core::List<core::Object?> */
+  return self::JsonList2|constructor#<self::JsonList2|constructor#_#new#tearOff::T%>(_#wc4#formal);
+static extension-type-member method JsonList2|get#length<T extends core::Object? = dynamic>(lowered final self::JsonList2<self::JsonList2|get#length::T%> /* erasure=core::List<core::Object?> */ #this) → core::int
+  return (#this as{Unchecked} core::List<core::Object?>).{core::List::length}{core::int};
+static method parseJson5(self::JsonList2<dynamic> /* erasure=core::List<core::Object?> */ list) → void {
+  {
+    final synthesized self::JsonList2<dynamic> /* erasure=core::List<core::Object?> */ #0#0 = list;
+    final const synthesized core::int #0#2 = #C3;
+    final const synthesized core::String #0#5 = #C2;
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3 && #C2 =={core::String::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::Object?})
+      core::print("ok");
+  }
+}
+static extension-type-member method JsonList3|constructor#<T extends core::Object? = dynamic>(wildcard initializing-formal core::List<core::Object?> _#wc5#formal) → self::JsonList3<self::JsonList3|constructor#::T%> /* erasure=core::List<core::Object?> */ {
+  lowered final self::JsonList3<self::JsonList3|constructor#::T%> /* erasure=core::List<core::Object?> */ #this = _#wc5#formal;
+  return #this;
+}
+static extension-type-member synthetic method JsonList3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<core::Object?> _#wc5#formal) → self::JsonList3<self::JsonList3|constructor#_#new#tearOff::T%> /* erasure=core::List<core::Object?> */
+  return self::JsonList3|constructor#<self::JsonList3|constructor#_#new#tearOff::T%>(_#wc5#formal);
+static extension-type-member method JsonList3|sublist<T extends core::Object? = dynamic>(lowered final self::JsonList3<self::JsonList3|sublist::T%> /* erasure=core::List<core::Object?> */ #this, core::int start, [core::int? end = #C4]) → core::List<self::JsonList3|sublist::T%>
+  return (#this as{Unchecked} core::List<core::Object?>).{core::List::sublist}(start, end){(core::int, [core::int?]) → core::List<core::Object?>}.{core::List::cast}<self::JsonList3|sublist::T%>(){() → core::List<self::JsonList3|sublist::T%>};
+static extension-type-member method JsonList3|get#sublist<T extends core::Object? = dynamic>(lowered final self::JsonList3<self::JsonList3|get#sublist::T%> /* erasure=core::List<core::Object?> */ #this) → (core::int, [core::int?]) → core::List<self::JsonList3|get#sublist::T%>
+  return (core::int start, [core::int? end = #C4]) → core::List<self::JsonList3|get#sublist::T%> => self::JsonList3|sublist<self::JsonList3|get#sublist::T%>(#this, start, end);
+static method parseJson6(self::JsonList3<dynamic> /* erasure=core::List<core::Object?> */ list) → void {
+  {
+    final synthesized self::JsonList3<dynamic> /* erasure=core::List<core::Object?> */ #0#0 = list;
+    final const synthesized core::int #0#2 = #C3;
+    final const synthesized core::String #0#5 = #C2;
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3 && #C2 =={core::String::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::Object?})
+      core::print("ok");
+  }
+}
+
+constants  {
+  #C1 = "key"
+  #C2 = "value"
+  #C3 = 1
+  #C4 = null
+}
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///issue63315.dart:11:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///issue63315.dart:20:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///issue63315.dart:29:22 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 167, effectively constant: 3

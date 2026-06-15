@@ -58,7 +58,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
   CorrectionUtils utils,
   AstNode contextNode,
   Expression? targetExpression,
-  List<Expression> arguments,
+  List<Argument> arguments,
   Set<String> previouslyIntroducedVariableNames,
   Map<FormalParameterElement, String> parameterToVariableName,
 ) async {
@@ -105,12 +105,9 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
       if (arg.correspondingParameter?.name == parameter.name) {
-        argument = arg;
+        argument = arg.argumentExpression;
         break;
       }
-    }
-    if (argument is NamedExpression) {
-      argument = argument.expression;
     }
     // prepare argument properties
     Precedence argumentPrecedence;
@@ -120,7 +117,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.isRequiredPositional) {
+      if (parameter.isRequired) {
         status.addError(
           'No argument for the parameter "${parameter.name}".',
           newLocation_fromNode(contextNode),
@@ -360,7 +357,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// calls into the same block.
   final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
 
-  InlineMethodRefactoringImpl(this.searchEngine, this.unitResult, this.offset)
+  new(this.searchEngine, this.unitResult, this.offset)
     : sessionHelper = AnalysisSessionHelper(unitResult.session),
       utils = CorrectionUtils(unitResult);
 
@@ -657,7 +654,7 @@ class _InlineMethodResult {
   final String source;
   final List<_VariableDeclaration> variableDeclarations;
 
-  _InlineMethodResult(this.source, this.variableDeclarations);
+  new(this.source, this.variableDeclarations);
 }
 
 class _ParameterOccurrence {
@@ -666,7 +663,7 @@ class _ParameterOccurrence {
   final Precedence parentPrecedence;
   final bool inStringInterpolation;
 
-  _ParameterOccurrence({
+  new({
     required this.baseOffset,
     required this.identifier,
     required this.parentPrecedence,
@@ -687,7 +684,7 @@ class _ReferenceProcessor {
   SourceRange? _refLineRange;
   late String _refPrefix;
 
-  _ReferenceProcessor(this.ref, this.reference);
+  new(this.ref, this.reference);
 
   Future<void> init() async {
     refElement = reference.element;
@@ -765,7 +762,7 @@ class _ReferenceProcessor {
     Expression usage,
     bool cascaded,
     Expression? target,
-    List<Expression> arguments,
+    List<Argument> arguments,
   ) async {
     // we don't support cascade
     if (cascaded) {
@@ -995,7 +992,7 @@ class _ReferenceProcessor {
     if (nodeParent is MethodInvocation) {
       var invocation = nodeParent;
       var target = invocation.target;
-      List<Expression> arguments = invocation.argumentList.arguments;
+      List<Argument> arguments = invocation.argumentList.arguments;
       await _inlineMethodInvocation(
         status,
         invocation,
@@ -1108,7 +1105,7 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   int _numReturns = 0;
 
-  _ReturnsValidatorVisitor(this.result);
+  new(this.result);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -1156,7 +1153,7 @@ class _SourcePart {
   /// The offsets of the implicit class references in static member references.
   final Map<String, List<int>> _implicitClassNameOffsets = {};
 
-  _SourcePart(this._base, this._source, this._prefix);
+  new(this._base, this._source, this._prefix);
 
   void addExplicitThisOffset(int offset) {
     _explicitThisOffsets.add(offset - _base);
@@ -1217,7 +1214,7 @@ class _VariableDeclaration {
   final String name;
   final String initializer;
 
-  _VariableDeclaration(this.name, this.initializer);
+  new(this.name, this.initializer);
 }
 
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
@@ -1234,12 +1231,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /// The body [Scope] of the method being inlined.
   final Scope? scope;
 
-  _VariablesVisitor(
-    this.methodElement,
-    this.bodyRange,
-    this.result,
-    this.scope,
-  );
+  new(this.methodElement, this.bodyRange, this.result, this.scope);
 
   @override
   void visitNode(AstNode node) {

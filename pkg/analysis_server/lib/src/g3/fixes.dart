@@ -37,7 +37,7 @@ class LintFixTester {
   /// not be allowed.
   bool _canUpdateResourceProvider = true;
 
-  LintFixTester({
+  new({
     required ResourceProvider resourceProvider,
     required this.sdkPath,
     required this.packageConfigPath,
@@ -140,7 +140,7 @@ class LintFixTesterWithFixes {
   final LintFixTester _parent;
   final List<Fix> fixes;
 
-  LintFixTesterWithFixes({required this._parent, required this.fixes});
+  new({required this._parent, required this.fixes});
 
   void assertNoFixes() {
     if (fixes.isNotEmpty) {
@@ -161,7 +161,7 @@ class LintFixTesterWithSingleFix {
   final LintFixTesterWithFixes _parent;
   final Fix fix;
 
-  LintFixTesterWithSingleFix({required this._parent, required this.fix});
+  new({required this._parent, required this.fix});
 
   void assertFixedContentOfFile({
     required String path,

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,17 +18,11 @@ void main() {
 @reflectiveTest
 class PreferFinalParametersBeforePrimaryConstructorsTest extends LintRuleTest {
   @override
-  List<String> get experiments => super.experiments
-      .where(
-        (experiment) => experiment != Feature.primary_constructors.enableString,
-      )
-      .toList();
-
-  @override
   String get lintRule => LintNames.prefer_final_parameters;
 
   test_blockBody_reassigned() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(String p) {
   p = 'Lint away!';
 }
@@ -37,18 +30,17 @@ void f(String p) {
   }
 
   test_closure() async {
-    await assertDiagnostics(
-      r'''
-var f = (Object p) {
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
+var f = ([!Object p!]) {
   print(p);
 };
-''',
-      [lint(9, 8)],
-    );
+''');
   }
 
   test_closure_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(final List<int> x) {
   x.forEach((final int e) => print(e + 4));
 }
@@ -57,6 +49,7 @@ void f(final List<int> x) {
 
   test_closure_final_untyped() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(final List<int> x) {
   x.forEach((final e) => print(e + 4));
 }
@@ -64,24 +57,24 @@ void f(final List<int> x) {
   }
 
   test_closure_untyped() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 void f(final List<int> x) {
-  x.forEach((e) => print(e + 4));
+  x.forEach(([!e!]) => print(e + 4));
 }
-''',
-      [lint(41, 1)],
-    );
+''');
   }
 
   test_closure_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 var f = (Object _) { };
 ''');
   }
 
   test_constructor_unused_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   C(String _);
 }
@@ -89,33 +82,30 @@ class C {
   }
 
   test_constructor_usedInBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 class C {
   int x = 0;
-  C(String p) {
+  C([!String p!]) {
     x = p.length;
   }
 }
-''',
-      [lint(27, 8)],
-    );
+''');
   }
 
   test_constructor_usedInInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 class C {
   String x = '';
-  C(String x): this.x = x;
+  C([!String x!]): this.x = x;
 }
-''',
-      [lint(31, 8)],
-    );
+''');
   }
 
   test_constructor_usedInInitializer_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   int x = 0;
   C(final int x): x = x;
@@ -125,12 +115,14 @@ class C {
 
   test_expressionBody_reassigned() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(int p) => p = 3;
 ''');
   }
 
   test_getter() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   int _f = 0;
   int get f => _f;
@@ -140,6 +132,7 @@ class C {
 
   test_initializingFormal_named() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   String f;
   C({required this.f});
@@ -149,6 +142,7 @@ class C {
 
   test_initializingFormal_positional() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   String f;
   C(this.f);
@@ -158,6 +152,7 @@ class C {
 
   test_listPattern_destructured() async {
     await assertNoDiagnostics('''
+// @dart=3.12
 void f(int p) {
   [_, p, _] = [1, 2, 3];
 }
@@ -165,20 +160,19 @@ void f(int p) {
   }
 
   test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 class C {
-  void m(String p) {
+  void m([!String p!]) {
     print(p);
   }
 }
-''',
-      [lint(19, 8)],
-    );
+''');
   }
 
   test_method_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   void m(final String p) {
     print(p);
@@ -189,6 +183,7 @@ class C {
 
   test_method_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   void m(String _) { }
 }
@@ -197,6 +192,7 @@ class C {
 
   test_method_wildcard_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   void m(final String _) { }
 }
@@ -204,20 +200,19 @@ class C {
   }
 
   test_operator() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 class C {
-  C operator +(C other) {
+  C operator +([!C other!]) {
     return other;
   }
 }
-''',
-      [lint(25, 7)],
-    );
+''');
   }
 
   test_operator_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   C operator +(final C other) {
     return other;
@@ -238,6 +233,7 @@ class C {
 
   test_recordPattern_destructured() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(int a, int b) {
   (a, b) = (1, 2);
 }
@@ -245,19 +241,18 @@ void f(int a, int b) {
   }
 
   test_setter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
 class C {
   int x = 0;
-  void set f(int y) => x = y;
+  void set f([!int y!]) => x = y;
 }
-''',
-      [lint(36, 5)],
-    );
+''');
   }
 
   test_setter_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   int x = 0;
   void set f(final int y) => x = y;
@@ -267,6 +262,7 @@ class C {
 
   test_setter_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 class C {
   void set f(int _) { }
 }
@@ -275,6 +271,7 @@ class C {
 
   test_superParameter() async {
     await assertNoDiagnostics('''
+// @dart=3.12
 class D {
   D(final int superParameter);
 }
@@ -287,6 +284,7 @@ class E extends D {
 
   test_superParameter_optional() async {
     await assertNoDiagnostics('''
+// @dart=3.12
 class A {
   final String? a;
   A({this.a});
@@ -299,22 +297,22 @@ class B extends A {
   }
 
   test_topLevelFunction() async {
-    await assertDiagnostics(
-      r'''
-void f(int p) => print(p);
-''',
-      [lint(7, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
+void f([!int p!]) => print(p);
+''');
   }
 
   test_topLevelFunction_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(final int p) => print(p);
 ''');
   }
 
   test_topLevelFunction_final_multiple() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(final String p, final String p2) {
   print(p);
   print(p2);
@@ -323,18 +321,17 @@ void f(final String p, final String p2) {
   }
 
   test_topLevelFunction_named() async {
-    await assertDiagnostics(
-      r'''
-void f({String? p}) {
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
+void f({[!String? p!]}) {
   print(p);
 }
-''',
-      [lint(8, 9)],
-    );
+''');
   }
 
   test_topLevelFunction_named_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f({final String? p}) {
   print(p);
 }
@@ -344,29 +341,29 @@ void f({final String? p}) {
   test_topLevelFunction_named_wildcard() async {
     await assertDiagnostics(
       r'''
+// @dart=3.12
 void f({final String? _}) { }
 ''',
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(diag.privateNamedNonFieldParameter, 22, 1),
+        error(diag.privateNamedNonFieldParameter, 36, 1),
       ],
     );
   }
 
   test_topLevelFunction_namedRequired() async {
-    await assertDiagnostics(
-      r'''
-void f({required String p}) {
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
+void f({[!required String p!]}) {
   print(p);
 }
-''',
-      [lint(8, 17)],
-    );
+''');
   }
 
   test_topLevelFunction_namedRequired_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f({required final String p}) {
   print(p);
 }
@@ -376,29 +373,29 @@ void f({required final String p}) {
   test_topLevelFunction_namedRequired_wildcard() async {
     await assertDiagnostics(
       r'''
+// @dart=3.12
 void f({required String _}) { }
 ''',
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(diag.privateNamedNonFieldParameter, 24, 1),
+        error(diag.privateNamedNonFieldParameter, 38, 1),
       ],
     );
   }
 
   test_topLevelFunction_optional() async {
-    await assertDiagnostics(
-      r'''
-void f([String? p]) {
+    await assertDiagnosticsFromMarkdown(r'''
+// @dart=3.12
+void f([[!String? p!]]) {
   print(p);
 }
-''',
-      [lint(8, 9)],
-    );
+''');
   }
 
   test_topLevelFunction_optional_final() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f([final String? p]) {
   print(p);
 }
@@ -407,12 +404,14 @@ void f([final String? p]) {
 
   test_topLevelFunction_optional_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f([String? _]) { }
 ''');
   }
 
   test_topLevelFunction_wildcard() async {
     await assertNoDiagnostics(r'''
+// @dart=3.12
 void f(int _){ }
 ''');
   }

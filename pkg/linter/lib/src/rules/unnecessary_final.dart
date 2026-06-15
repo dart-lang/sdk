@@ -18,8 +18,7 @@ import '../extensions.dart';
 const _desc = "Don't use `final` for local variables.";
 
 class UnnecessaryFinal extends MultiAnalysisRule {
-  UnnecessaryFinal()
-    : super(name: LintNames.unnecessary_final, description: _desc);
+  new() : super(name: LintNames.unnecessary_final, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -53,17 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
-
-  (Token?, AstNode?) getParameterDetails(FormalParameter node) {
-    var parameter = node is DefaultFormalParameter ? node.parameter : node;
-    return switch (parameter) {
-      FieldFormalParameter() => (parameter.keyword, parameter.type),
-      SimpleFormalParameter() => (parameter.keyword, parameter.type),
-      SuperFormalParameter() => (parameter.keyword, parameter.type),
-      _ => (null, null),
-    };
-  }
+  new(this.rule, this.context);
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
@@ -85,10 +74,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // constructors is enabled.
       if (context.isFeatureEnabled(Feature.primary_constructors)) continue;
 
-      var (keyword, type) = getParameterDetails(node);
+      var keyword = node.constFinalOrVarKeyword;
       if (keyword == null) continue;
 
-      var diagnosticCode = getDiagnosticCode(type);
+      var diagnosticCode = getDiagnosticCode(node.type);
       rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
     }
   }

@@ -12,9 +12,7 @@ part of "dart:convert";
 /// which is not incremental. It collects the entire input before
 /// decoding. Subclasses can choose to use that implementation,
 /// or implement a more efficient stream decoding.
-abstract class Encoding extends Codec<String, List<int>> {
-  const Encoding();
-
+abstract class const Encoding() extends Codec<String, List<int>> {
   /// Returns the encoder from `String` to `List<int>`.
   ///
   /// It may be stateful and should not be reused.

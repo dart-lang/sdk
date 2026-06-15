@@ -1,0 +1,117 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+target: dartdevc
+trackCreationLocations: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'foo.dart';
+        Foo newFoo = new Foo();
+        var newFooFunction = Foo.new;
+        var newFooFunctionCall = newFooFunction();
+        Foo extensionFoo = null.foo();
+        var extensionFooFunction = null.foo;
+        var extensionFooFunctionCall = extensionFooFunction();
+        Foo extensionBar = null.bar();
+        Foo extensionBaz = null.baz();
+        Foo extensionBoz = null.boz();
+        Foo extensionConstFoo = null.constFoo();
+        Foo extensionGetterFoo = null.getterFoo;
+        var extensionSetterFoo = () => null.setterFoo = null;
+        Foo extensionOperatorFoo = -null;
+        Foo extensionStaticFoo = FooExtension.staticFoo();
+      foo.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
+
+        const alias = widgetFactory;
+        const nullableAlias = false ? widgetFactory : null;
+        const nonNullableAlias = false ? widgetFactory : alias;
+
+        class Foo extends Widget {
+          factory Foo() => const Foo._();
+
+          const Foo._();
+        }
+
+        extension FooExtension on Object? {
+          @widgetFactory
+          Foo foo() => Foo._();
+
+          @alias
+          Foo bar() => Foo._();
+
+          @nullableAlias
+          Foo baz() => Foo._();
+
+          @nonNullableAlias
+          Foo boz() => Foo._();
+
+          @widgetFactory
+          Foo constFoo() => const Foo._();
+
+          @widgetFactory
+          Foo get getterFoo => new Foo._();
+
+          @widgetFactory
+          void set setterFoo(_) => new Foo._();
+
+          @widgetFactory
+          Foo operator -() => new Foo._();
+
+          @widgetFactory
+          static Foo staticFoo() => new Foo._();
+        }
+      flutter/lib/src/widgets/framework.dart: |
+        export 'widget_inspector.dart' show widgetFactory;
+
+        abstract class Bar {
+          const Bar();
+        }
+
+        @pragma('track-creation-locations')
+        abstract class Widget extends Bar {
+          const Widget();
+        }
+      flutter/lib/src/widgets/widget_inspector.dart: |
+        const widgetFactory = pragma('track-creation-locations');
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 4
+
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'foo.dart';
+        Foo extensionConstFoo = null.constFoo();
+        Foo newFoo = new Foo();
+        var newFooFunction = Foo.new;
+        var newFooFunctionCall = newFooFunction();
+        Foo extensionFoo = null.foo();
+        var extensionFooFunction = null.foo;
+        var extensionFooFunctionCall = extensionFooFunction();
+        Foo extensionBar = null.bar();
+        Foo extensionBaz = null.baz();
+        Foo extensionBoz = null.boz();
+        Foo extensionGetterFoo = null.getterFoo;
+        var extensionSetterFoo = () => null.setterFoo = null;
+        Foo extensionOperatorFoo = -null;
+        Foo extensionStaticFoo = FooExtension.staticFoo();
+    expectedLibraryCount: 4
+    advancedInvalidation: bodiesOnly

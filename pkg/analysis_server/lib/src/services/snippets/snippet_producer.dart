@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl;
@@ -29,7 +28,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// repeated searches where they may add imports for the same elements.
   final Map<Element, LibraryElement?> _elementImportCache;
 
-  DartSnippetProducer(super.request, {required this._elementImportCache})
+  new(super.request, {required this._elementImportCache})
     : sessionHelper = AnalysisSessionHelper(request.analysisSession),
       utils = CorrectionUtils.fromUnitAndContent(
         request.compilationUnit,
@@ -43,7 +42,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
       .getAnalysisOptionsForFile(request.file)
       .codeStyleOptions;
 
-  bool get isInTestDirectory => request.compilationUnit.inTestDir;
+  bool get isInTestDirectory => request.isInTestDirectory;
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {
@@ -56,7 +55,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   /// builder.
   final Set<Element> _requiredElementImports = {};
 
-  FlutterSnippetProducer(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
@@ -189,7 +188,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 abstract class SnippetProducer {
   final DartSnippetRequest request;
 
-  SnippetProducer(this.request);
+  new(this.request);
 
   /// The prefix a user types to use this snippet.
   String get snippetPrefix;

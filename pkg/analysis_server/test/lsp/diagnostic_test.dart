@@ -9,9 +9,9 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -300,7 +300,7 @@ void f() {
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'one', rootPath: onePackagePath),
+        ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -324,7 +324,7 @@ void f() {
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'one', rootPath: onePackagePath),
+        ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -646,7 +646,7 @@ linter:
     writePackageConfig(
       projectPackagePath,
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_lints', rootPath: lintsPackagePath),
+        ..add(name: 'my_lints', rootFolder: getFolder(lintsPackagePath)),
     );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml

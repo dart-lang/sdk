@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RedeclareOnNonRedeclaringMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -23,8 +24,7 @@ class RedeclareOnNonRedeclaringMemberTest extends PubPackageResolutionTest {
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {}
@@ -32,14 +32,14 @@ class C {}
 extension type E(C c) implements C {
   @redeclare
   int get i => 0;
+//        ^
+// [diag.redeclareOnNonRedeclaringMember] The getter doesn't redeclare a getter declared in a superinterface.
 }
-''',
-      [error(diag.redeclareOnNonRedeclaringMember, 106, 1)],
-    );
+''');
   }
 
   test_getter_redeclares() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -54,8 +54,7 @@ extension type E(C c) implements C {
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {}
@@ -63,33 +62,30 @@ class C {}
 extension type E(C c) implements C {
   @redeclare
   void n() {}
+//     ^
+// [diag.redeclareOnNonRedeclaringMember] The method doesn't redeclare a method declared in a superinterface.
 }
-''',
-      [error(diag.redeclareOnNonRedeclaringMember, 103, 1)],
-    );
+''');
   }
 
   test_method_inClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {}
 
 class D implements C {
+  // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   void n() {}
 }
-''',
-      [
-        // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(diag.invalidAnnotationTarget, 72, 9),
-      ],
-    );
+''');
   }
 
   test_method_redeclared() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -104,45 +100,42 @@ extension type E(C c) implements C {
   }
 
   test_method_redeclared_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
 
 extension type E(A it) implements A {
   @redeclare
   void _foo() {}
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 51, 4), error(diag.unusedElement, 122, 4)],
-    );
+''');
   }
 
   test_method_static() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {}
 
 extension type E(C c) implements C {
+  // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   static void n() {}
 }
-''',
-      [
-        // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(diag.invalidAnnotationTarget, 86, 9),
-      ],
-    );
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {}
@@ -150,14 +143,14 @@ class C {}
 extension type E(C c) implements C {
   @redeclare
   set i(int i) {}
+//    ^
+// [diag.redeclareOnNonRedeclaringMember] The setter doesn't redeclare a setter declared in a superinterface.
 }
-''',
-      [error(diag.redeclareOnNonRedeclaringMember, 102, 1)],
-    );
+''');
   }
 
   test_setter_redeclares() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {

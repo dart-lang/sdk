@@ -606,7 +606,7 @@ class C {
 ''');
   }
 
-  test_instanceOperator_parameter() async {
+  test_instanceOperator_binary_parameter() async {
     await assertDiagnostics(
       r'''
 class C {
@@ -617,7 +617,7 @@ class C {
     );
   }
 
-  test_instanceOperator_parameter_typed() async {
+  test_instanceOperator_binary_parameter_typed() async {
     await assertNoDiagnostics(r'''
 class C {
   void operator +(int p1) {}
@@ -625,7 +625,7 @@ class C {
 ''');
   }
 
-  test_instanceOperator_returnType() async {
+  test_instanceOperator_binary_returnType() async {
     await assertDiagnostics(
       r'''
 class C {
@@ -636,10 +636,34 @@ class C {
     );
   }
 
-  test_instanceOperator_returnType_typed() async {
+  test_instanceOperator_binary_returnType_typed() async {
     await assertNoDiagnostics(r'''
 class C {
   void operator +(int p1) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_parameterType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void operator []=(int i, c) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_parameterType_typed() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void operator []=(int i, C c) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_returnType() async {
+    await assertNoDiagnostics(r'''
+class C {
+  operator []=(int i, C c) {}
 }
 ''');
   }
@@ -733,17 +757,14 @@ class C(int p1);
   }
 
   test_reflectiveTest_nonTest() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 @reflectiveTest
 class ReflectiveTest {
-  foo() {}
+  [!foo!]() {}
 }
-''',
-      [lint(111, 3)],
-    );
+''');
   }
 
   test_reflectiveTest_soloTest() async {
@@ -1012,13 +1033,10 @@ void m(int p1) {}
   }
 
   test_topLevelFunction_parameter_positional_var() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.10
-void m(var p1) {}
-''',
-      [lint(27, 2)],
-    );
+void m(var [!p1!]) {}
+''');
   }
 
   test_topLevelFunction_returnType() async {
@@ -1117,16 +1135,13 @@ class C {
   }
 
   test_wildcardVariable_constructorParameter_preWildcards() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 class C {
-  C(_) {}
+  C([!_!]) {}
 }
-''',
-      [lint(57, 1)],
-    );
+''');
   }
 
   test_wildcardVariable_function() async {
@@ -1136,14 +1151,11 @@ void m(_) {}
   }
 
   test_wildcardVariable_function_preWildcards() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
-void m(_) {}
-''',
-      [lint(50, 1)],
-    );
+void m([!_!]) {}
+''');
   }
 
   test_wildcardVariable_method() async {
@@ -1155,15 +1167,12 @@ class C {
   }
 
   test_wildcardVariable_method_preWilcards() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 class C {
-  void m(_) {}
+  void m([!_!]) {}
 }
-''',
-      [lint(62, 1)],
-    );
+''');
   }
 }

@@ -35,25 +35,19 @@ condition() {
   }
 
   test_list_indexOf_greaterThan_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
-  list.indexOf(1) > -1;
+  [!list.indexOf(1) > -1!];
 }
-''',
-      [lint(27, 20)],
-    );
+''');
   }
 
   test_list_indexOf_notEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
-  list.indexOf(1) != -1;
+  [!list.indexOf(1) != -1!];
 }
-''',
-      [lint(27, 21)],
-    );
+''');
   }
 
   test_listConcatenation_indexOfWithDifferentArguments() async {
@@ -65,25 +59,19 @@ void f(List<int> list) {
   }
 
   test_listLiteral_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) == -1;
+  [![].indexOf(1) == -1!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_equalEqual_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) == -2;
+  [![].indexOf(1) == -2!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_equalEqual_zero() async {
@@ -95,58 +83,43 @@ void f() {
   }
 
   test_listLiteral_indexOf_greater_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) > -2;
+  [![].indexOf(1) > -2!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_greaterOr_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) >= -2;
+  [![].indexOf(1) >= -2!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_greaterOrEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) >= -1;
+  [![].indexOf(1) >= -1!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_greaterOrEqual_zero() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) >= 0;
+  [![].indexOf(1) >= 0!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_greaterThan_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) > -1;
+  [![].indexOf(1) > -1!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_greaterThan_one() async {
@@ -166,25 +139,19 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessOrEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) <= -1;
+  [![].indexOf(1) <= -1!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_lessOrEqual_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) <= -2;
+  [![].indexOf(1) <= -2!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_lessOrEqual_zero() async {
@@ -196,70 +163,52 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessThan_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) < -1;
+  [![].indexOf(1) < -1!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_lessThan_negativeOneConst() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 const int MINUS_ONE = -1;
 void f() {
-  [].indexOf(1) < MINUS_ONE;
+  [![].indexOf(1) < MINUS_ONE!];
 }
-''',
-      [lint(39, 25)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_lessThan_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) < -2;
+  [![].indexOf(1) < -2!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_lessThan_zero() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) < 0;
+  [![].indexOf(1) < 0!];
 }
-''',
-      [lint(13, 17)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_notEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) != -1;
+  [![].indexOf(1) != -1!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_notEqual_negativeTwo() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [].indexOf(1) != -2;
+  [![].indexOf(1) != -2!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_listLiteral_indexOf_notEqual_zero() async {
@@ -271,180 +220,132 @@ void f() {
   }
 
   test_listTypedef_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 typedef F = List<int>;
 void f(F list) {
-  list.indexOf(1) == -1;
+  [!list.indexOf(1) == -1!];
 }
-''',
-      [lint(42, 21)],
-    );
+''');
   }
 
   test_negativeOne_equalEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 == [].indexOf(1);
+  [!-1 == [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeOne_greaterOrEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 >= [].indexOf(1);
+  [!-1 >= [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeOne_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 > [].indexOf(1);
+  [!-1 > [].indexOf(1)!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_negativeOne_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 <= [].indexOf(1);
+  [!-1 <= [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeOne_lessThan_list_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
-  -1 < list.indexOf(1);
+  [!-1 < list.indexOf(1)!];
 }
-''',
-      [lint(27, 20)],
-    );
+''');
   }
 
   test_negativeOne_lessThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 < [].indexOf(1);
+  [!-1 < [].indexOf(1)!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_negativeOne_notEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -1 != [].indexOf(1);
+  [!-1 != [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeOneConst_lessThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 const int MINUS_ONE = -1;
 void f() {
-  MINUS_ONE < [].indexOf(1);
+  [!MINUS_ONE < [].indexOf(1)!];
 }
-''',
-      [lint(39, 25)],
-    );
+''');
   }
 
   test_negativeTwo_equalEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 == [].indexOf(1);
+  [!-2 == [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeTwo_greaterOrEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 >= [].indexOf(1);
+  [!-2 >= [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeTwo_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 > [].indexOf(1);
+  [!-2 > [].indexOf(1)!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_negativeTwo_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 <= [].indexOf(1);
+  [!-2 <= [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_negativeTwo_lessThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 < [].indexOf(1);
+  [!-2 < [].indexOf(1)!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_negativeTwo_notEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  -2 != [].indexOf(1);
+  [!-2 != [].indexOf(1)!];
 }
-''',
-      [lint(13, 19)],
-    );
+''');
   }
 
   test_promotedToList_indexOf_lessThan_zero() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 bool f<T>(T list) =>
-  list is List<int> && list.indexOf(1) < 0;
-''',
-      [lint(44, 19)],
-    );
+  list is List<int> && [!list.indexOf(1) < 0!];
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/3546
@@ -456,23 +357,17 @@ bool b = '11'.indexOf('2', 1) == -1;
 
   /// https://github.com/dart-lang/linter/issues/3546
   test_secondArgZero() async {
-    await assertDiagnostics(
-      r'''
-bool b = '11'.indexOf('2', 0) == -1;
-''',
-      [lint(9, 26)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool b = [!'11'.indexOf('2', 0) == -1!];
+''');
   }
 
   test_stringLiteral_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  'aaa'.indexOf('a') == -1;
+  [!'aaa'.indexOf('a') == -1!];
 }
-''',
-      [lint(13, 24)],
-    );
+''');
   }
 
   test_stringLiteral_indexOf_twoArguments() async {
@@ -484,13 +379,10 @@ void f() {
   }
 
   test_typeVariableExtendingList_indexOf_lessThan_zero() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 bool f<T extends List<int>>(T list) =>
-  list.indexOf(1) < 0;
-''',
-      [lint(41, 19)],
-    );
+  [!list.indexOf(1) < 0!];
+''');
   }
 
   test_unnecessaryCast() async {
@@ -519,25 +411,19 @@ void f() {
   }
 
   test_zero_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  0 > [].indexOf(1);
+  [!0 > [].indexOf(1)!];
 }
-''',
-      [lint(13, 17)],
-    );
+''');
   }
 
   test_zero_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  0 <= [].indexOf(1);
+  [!0 <= [].indexOf(1)!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_zero_lessThan_listLiteral_indexOf() async {

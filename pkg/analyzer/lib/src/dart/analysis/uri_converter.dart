@@ -29,7 +29,7 @@ class DriverBasedUriConverter implements UriConverter {
           from: context.dirname(containingPath),
         );
         if (context.isRelative(relativePath)) {
-          return Uri.file(relativePath);
+          return context.toUri(relativePath);
         }
       }
     }

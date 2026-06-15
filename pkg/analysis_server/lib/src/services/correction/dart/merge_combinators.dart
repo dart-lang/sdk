@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class MergeCombinators extends MultiCorrectionProducer {
-  MergeCombinators({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -78,7 +78,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
   final bool mergeWithShow;
   final NamespaceDirective directive;
 
-  _MergeCombinators(
+  new(
     this.fixKind,
     this.directive, {
     required this.mergeWithShow,

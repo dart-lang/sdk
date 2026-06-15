@@ -125,41 +125,34 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_js_type() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         void test() {
           try {
-          } on JSString catch (_) {
+          } on [!JSString!] catch (_) {
           }
         }
-      ''',
-      [lint(88, 8)],
-    );
+      ''');
   }
 
   test_catchClause_js_type_nested() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         void test<T extends JSNumber>() {
           try {
-          } on List<JSString> catch (_) {
-          } on T catch (_) {
-          } on List<T> catch (_) {
-          } on (List<T>,) catch (_) {
+          } on /*[0*/List<JSString>/*0]*/ catch (_) {
+          } on /*[1*/T/*1]*/ catch (_) {
+          } on /*[2*/List<T>/*2]*/ catch (_) {
+          } on /*[3*/(List<T>,)/*3]*/ catch (_) {
           }
         }
-      ''',
-      [lint(108, 14), lint(150, 1), lint(179, 7), lint(214, 10)],
-    );
+      ''');
   }
 
   test_catchClause_static_interop_type() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         @JS()
@@ -168,17 +161,14 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
         void test() {
           try {
-          } on Foo catch (_) {
+          } on [!Foo!] catch (_) {
           }
         }
-      ''',
-      [lint(147, 3)],
-    );
+      ''');
   }
 
   test_catchClause_static_interop_type_nested() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         @JS()
@@ -187,52 +177,44 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
         void test<T extends Foo>() {
           try {
-          } on T Function() catch (_) {
-          } on Foo Function() catch (_) {
-          } on T catch (_) {
-          } on (T Function(),) catch (_) {
+          } on /*[0*/T Function()/*0]*/ catch (_) {
+          } on /*[1*/Foo Function()/*1]*/ catch (_) {
+          } on /*[2*/T/*2]*/ catch (_) {
+          } on /*[3*/(T Function(),)/*3]*/ catch (_) {
           }
         }
-      ''',
-      [lint(162, 12), lint(202, 14), lint(244, 1), lint(273, 15)],
-    );
+      ''');
   }
 
   test_catchClause_user_interop_type() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         extension type JSError(JSObject _) implements JSObject {}
 
         void test() {
           try {
-          } on JSError catch (_) {
+          } on [!JSError!] catch (_) {
           }
         }
-      ''',
-      [lint(155, 7)],
-    );
+      ''');
   }
 
   test_catchClause_user_interop_type_nested() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
         import 'dart:js_interop';
 
         extension type JSError(JSObject _) implements JSObject {}
 
         void test<T extends JSError>() {
           try {
-          } on Map<String, T> catch (_) {
-          } on Map<String, JSError> catch (_) {
-          } on T catch (_) {
-          } on (Map<String, T>,) catch (_) {
+          } on /*[0*/Map<String, T>/*0]*/ catch (_) {
+          } on /*[1*/Map<String, JSError>/*1]*/ catch (_) {
+          } on /*[2*/T/*2]*/ catch (_) {
+          } on /*[3*/(Map<String, T>,)/*3]*/ catch (_) {
           }
         }
-      ''',
-      [lint(174, 14), lint(216, 20), lint(264, 1), lint(293, 17)],
-    );
+      ''');
   }
 
   test_cyclicGenericInterfaceType_as() async {
@@ -338,6 +320,23 @@ export 'dart:_js_annotations' show JS, staticInterop;
       _AsCast('JSArray<JSString>', 'JSArray<JSAny>', lint: false),
       _AsCast('JSArray<JSAny>', 'JSArray<JSString>', lint: false),
       _AsCast('JSArray<JSString>', 'JSArray<JSBoolean>', lint: false),
+      _AsCast('JSExportedDartFunction', 'JSFunction', lint: false),
+      _AsCast(
+        'JSExportedDartFunction<void Function()>',
+        'JSFunction<int Function()>',
+        lint: false,
+      ),
+      _AsCast(
+        'JSExportedDartFunction',
+        'JSExportedDartFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _AsCast(
+        'JSExportedDartFunction<void Function()>',
+        'JSExportedDartFunction<int Function()>',
+        lint: false,
+      ),
     ]);
   }
 
@@ -432,6 +431,28 @@ export 'dart:_js_annotations' show JS, staticInterop;
       ),
       _IsCheck('JSArray<JSAny>', 'JSArray<JSString>', lint: false),
       _IsCheck('JSArray<JSString>', 'JSArray<JSBoolean>', lint: false),
+      _IsCheck(
+        'JSExportedDartFunction',
+        'JSFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction<void Function()>',
+        'JSFunction<int Function()>',
+        lint: false,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction',
+        'JSExportedDartFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction<void Function()>',
+        'JSExportedDartFunction<int Function()>',
+        lint: false,
+      ),
     ]);
   }
 
@@ -1426,13 +1447,13 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
 /// Represents an `as` cast from a value of type [valueType] to [type].
 final class _AsCast extends _TypeTest {
-  _AsCast(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(super.valueType, super.type, {super.lint, super.unnecessary});
 }
 
 /// Represents an `is` check against [type] where the value is of type
 /// [valueType].
 final class _IsCheck extends _TypeTest {
-  _IsCheck(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(super.valueType, super.type, {super.lint, super.unnecessary});
 }
 
 /// Represents a type test using a runtime check.
@@ -1447,10 +1468,5 @@ abstract class _TypeTest {
   /// test should ignore the related warning.
   bool unnecessary;
 
-  _TypeTest(
-    this.valueType,
-    this.type, {
-    this.lint = true,
-    this.unnecessary = false,
-  });
+  new(this.valueType, this.type, {this.lint = true, this.unnecessary = false});
 }

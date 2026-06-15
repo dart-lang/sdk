@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 typedef _RefactorData = ({
@@ -19,15 +21,20 @@ typedef _RefactorData = ({
 });
 
 class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
-  ConvertToDeclaringParameter({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
-      // Not a fix.
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind? get assistKind => DartAssistKind.convertToDeclaringParameter;
+
+  @override
+  FixKind? get fixKind => DartFixKind.convertToDeclaringParameter;
+
+  @override
+  FixKind? get multiFixKind => DartFixKind.convertToDeclaringParameterMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -43,8 +50,15 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (!parameterName.sourceRange.contains(selectionOffset)) {
-      // The assist only applies if the name of the parameter is selected.
+    var inName = parameterName.sourceRange.contains(selectionOffset);
+    var inThisPrefix =
+        parameter is FieldFormalParameter &&
+        range
+            .startEnd(parameter.thisKeyword, parameter.period)
+            .contains(selectionOffset);
+    if (!inName && !inThisPrefix) {
+      // The assist only applies if the name or the `this.` prefix of the
+      // parameter is selected.
       return;
     }
 
@@ -69,25 +83,24 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     var fieldDeclaration = _getDeclaration(classMembers, fieldElement);
     if (fieldDeclaration == null) return;
 
-    // If either the parameter or the field has comments or metadata, then
-    // don't apply the assist. This is a temporary restriction until the assist
-    // supports moving the comments and metadata to the parameter.
-    if (parameter is AnnotatedNode &&
-        _hasCommentOrMetadata(parameter as AnnotatedNode)) {
-      return;
-    }
-    var fieldDeclarationList = fieldDeclaration.parent?.parent;
-    if (fieldDeclarationList is AnnotatedNode &&
-        _hasCommentOrMetadata(fieldDeclarationList)) {
-      return;
-    }
-
     // If the field has an initializer it must be a constant expression.
     // TODO(brianwilkerson): Handle the case where the initializer is a valid
     //  constant expression and can be moved to the parameter.
     if (fieldDeclaration.initializer != null) return;
 
+    var parameterElement = parameter.declaredFragment?.element;
+    if (parameterElement == null) return;
+
+    var references = findParameterReferences(
+      parameterElement: parameterElement,
+      constructorBody: constructorBody?.body,
+      initializers: constructorBody?.initializers,
+      nodesBeingRemoved: [?initializer],
+    );
+
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+
       // Move metadata and/or doc comments.
       var variableList = fieldDeclaration.parent as VariableDeclarationList;
       var member = variableList.parent;
@@ -95,12 +108,13 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         var metadata = member.metadata;
         var docComment = member.documentationComment;
         if (metadata.isNotEmpty || docComment != null) {
-          var text = _getMetadataText(member);
-          builder.addSimpleInsertion(parameter.offset, '\n$text  ');
+          var text = _getMetadataText(member, eol: eol);
+          builder.addSimpleInsertion(parameter.offset, '$eol$text  ');
         }
       }
 
-      // Insert the keyword (and renaming if needed).
+      // Insert the keyword, and a type if the parameter didn't already have a
+      // type.
       var insertedVariable = false;
       if (parameter is FieldFormalParameter) {
         if (parameter.offset == parameter.thisKeyword.offset) {
@@ -132,29 +146,31 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
           );
         }
       }
+      // Rename the parameter if it's different than the name of the field.
       if (fieldName != parameterName.lexeme) {
         builder.addSimpleReplacement(range.token(parameterName), fieldName);
+        for (var reference in references) {
+          builder.addSimpleReplacement(range.node(reference), fieldName);
+        }
       }
       if (!insertedVariable) {
-        var offset = parameter.offset;
-        if (parameter is NormalFormalParameter) {
-          if (parameter.requiredKeyword case var requiredKeyword?) {
-            offset = requiredKeyword.end;
-          }
-        }
-        var keyword = fieldElement.isFinal ? 'final' : 'var';
-        if (offset == parameter.offset) {
-          builder.addSimpleInsertion(offset, '$keyword ');
-        } else {
-          builder.addSimpleInsertion(offset, ' $keyword');
+        var offset = parameterName.offset;
+        if (parameter.type case var type?) {
+          offset = type.offset;
+        } else if (parameter is FieldFormalParameter) {
+          offset = parameter.thisKeyword.offset;
         }
 
-        TypeAnnotation? type;
-        if (parameter is SimpleFormalParameter) {
-          type = parameter.type;
-        } else if (parameter is FieldFormalParameter) {
-          type = parameter.type;
+        var keyword = fieldElement.isFinal ? 'final' : 'var';
+        var requiredKeyword = parameter.requiredKeyword;
+        if (requiredKeyword != null) {
+          offset = requiredKeyword.end;
+          builder.addSimpleInsertion(offset, ' $keyword');
+        } else {
+          builder.addSimpleInsertion(offset, '$keyword ');
         }
+
+        var type = parameter.type;
 
         if (type == null) {
           var variableList = fieldDeclaration.parent as VariableDeclarationList;
@@ -320,7 +336,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     return linesRange;
   }
 
-  String _getMetadataText(AnnotatedNode node) {
+  String _getMetadataText(AnnotatedNode node, {required String eol}) {
     // It might be better to grab all of the text in order to preserve the
     // current formatting and comments. Depends, in part, on how the formatter
     // handles wrapping primary constructor parameter lists.
@@ -328,16 +344,22 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     var docComment = node.documentationComment;
     if (docComment != null) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(docComment));
+      buffer.write(utils.getNodeText(docComment));
+      buffer.write(eol);
     }
     for (var annotation in node.metadata) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(annotation));
+      buffer.write(utils.getNodeText(annotation));
+      buffer.write(eol);
     }
     return buffer.toString();
   }
 
   _RefactorData? _getRefactorData(FormalParameter parameter) {
+    if (parameter.functionTypedSuffix != null) {
+      return null;
+    }
+
     var parameterElement = parameter.declaredFragment?.element;
     if (parameterElement == null) {
       // If the parameter hasn't been resolved, we woun't be able to find either
@@ -363,11 +385,14 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         // necessary.
         return null;
       }
-      fieldElement = parameter.declaredFragment?.element.field;
+      var element = parameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement) {
+        fieldElement = element.field;
+      }
       if (fieldElement == null || fieldElement.name != parameter.name.lexeme) {
         return null;
       }
-    } else if (parameter is SimpleFormalParameter) {
+    } else if (parameter is RegularFormalParameter) {
       var body = primaryConstructor.body;
       if (body != null) {
         for (var init in body.initializers) {
@@ -387,11 +412,6 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         return null;
       }
 
-      if (_parameterHasOtherUses(parameter, parameterElement, initializer)) {
-        // The parameter can't be converted because it's used for something
-        // else.
-        return null;
-      }
       var fieldIdentifier = initializer.fieldName;
       var element = fieldIdentifier.element;
       if (element is! FieldElement) {
@@ -421,32 +441,5 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   /// Whether the [node] has either a documentation comment or metadata.
   bool _hasCommentOrMetadata(AnnotatedNode node) {
     return node.documentationComment != null || node.metadata.isNotEmpty;
-  }
-
-  bool _parameterHasOtherUses(
-    FormalParameter parameter,
-    FormalParameterElement element,
-    ConstructorFieldInitializer initializer,
-  ) {
-    var visitor = _UsageFinder(element, initializer);
-    parameter.parent?.parent?.accept(visitor);
-    return visitor.hasUsage;
-  }
-}
-
-class _UsageFinder extends RecursiveAstVisitor<void> {
-  final FormalParameterElement element;
-  final ConstructorFieldInitializer initializer;
-  bool hasUsage = false;
-
-  _UsageFinder(this.element, this.initializer);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.element == element) {
-      if (node != initializer.expression) {
-        hasUsage = true;
-      }
-    }
   }
 }

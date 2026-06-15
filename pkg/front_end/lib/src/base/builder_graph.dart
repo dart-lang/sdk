@@ -11,7 +11,7 @@ class BuilderGraph implements Graph<Uri> {
 
   final Map<Uri, List<Uri>> _neighborsCache = {};
 
-  BuilderGraph(this.libraryBuilders);
+  new(this.libraryBuilders);
 
   @override
   Iterable<Uri> get vertices => libraryBuilders.keys;

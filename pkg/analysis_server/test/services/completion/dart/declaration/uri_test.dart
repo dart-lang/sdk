@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -77,8 +77,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 library foo;
@@ -659,8 +659,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -706,8 +706,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -737,8 +737,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -768,8 +768,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -799,7 +799,7 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     await computeSuggestions('''
 import "p^" class
@@ -828,8 +828,8 @@ suggestions
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+        ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
+        ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 

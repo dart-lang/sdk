@@ -37,7 +37,7 @@ class LspClientCodeLensConfiguration {
   final bool? _boolean;
   final Map<String, Object?>? _map;
 
-  LspClientCodeLensConfiguration(Object? userPreference)
+  new(Object? userPreference)
     : _boolean = userPreference is bool ? userPreference : null,
       _map = userPreference is Map<String, Object?> ? userPreference : null;
 
@@ -92,7 +92,7 @@ class LspClientConfiguration {
   /// client (in WorkspaceFolder URIs) for consistent comparisons.
   final _trailingSlashPattern = RegExp(r'[\/]+$');
 
-  LspClientConfiguration(this.pathContext);
+  new(this.pathContext);
 
   /// Returns the global configuration for the whole workspace.
   LspGlobalClientConfiguration get global => _globalSettings;
@@ -200,7 +200,7 @@ class LspClientInlayHintsConfiguration {
   late bool _typeArguments;
   late bool _variableTypes;
 
-  LspClientInlayHintsConfiguration(Object? userPreference) {
+  new(Object? userPreference) {
     var map = userPreference is Map<String, Object?> ? userPreference : null;
     var boolean = userPreference is bool ? userPreference : null;
 
@@ -275,8 +275,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
     _settings['inlayHints'],
   );
 
-  LspGlobalClientConfiguration(Map<String, Object?> settings)
-    : super(settings, null);
+  new(Map<String, Object?> settings) : super(settings, null);
 
   List<String> get analysisExcludedFolders {
     // This setting is documented as a string array, but because editors are
@@ -299,6 +298,16 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// A flag for including property access in Inline Values.
   bool get experimentalInlineValuesProperties =>
       _settings['experimentalInlineValuesProperties'] as bool? ?? false;
+
+  /// Whether the newer experimental Interactive Forms (that can be used by
+  /// refactors instead of the original Dart-specified mechanism for collecting
+  /// user input) are enabled by the client.
+  ///
+  /// This is a temporary flag during development that will be checked by both
+  /// server + client to allow controlling which versions of each will enable
+  /// the functionality (in case of breaking changes during dev).
+  bool get experimentalInteractiveForms =>
+      _settings['experimentalInteractiveForms'] as bool? ?? false;
 
   /// A flag for enabling interactive refactors flagged as experimental.
   ///
@@ -374,7 +383,7 @@ class LspResourceClientConfiguration {
   final Map<String, Object?> _settings;
   final LspResourceClientConfiguration? _fallback;
 
-  LspResourceClientConfiguration(this._settings, this._fallback);
+  new(this._settings, this._fallback);
 
   /// Whether to enable the SDK formatter.
   ///

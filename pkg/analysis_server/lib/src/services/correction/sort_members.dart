@@ -23,12 +23,8 @@ class MemberSorter {
 
   String code;
 
-  MemberSorter(
-    this._initialCode,
-    this._unit,
-    CodeStyleOptions codeStyle,
-    this._lineInfo,
-  ) : _priorityItems = _getPriorityItems(codeStyle),
+  new(this._initialCode, this._unit, CodeStyleOptions codeStyle, this._lineInfo)
+    : _priorityItems = _getPriorityItems(codeStyle),
       code = _initialCode;
 
   /// Returns the [SourceEdit]s that sort [_unit].
@@ -188,7 +184,7 @@ class MemberSorter {
           name = member.namePart.typeName.lexeme;
         case ExtensionTypeDeclaration():
           kind = _MemberKind.unitExtensionType;
-          name = member.primaryConstructor.typeName.lexeme;
+          name = member.namePart.typeName.lexeme;
         case ExtensionDeclaration():
           kind = _MemberKind.unitExtension;
           name = member.name?.lexeme ?? '';
@@ -276,7 +272,7 @@ class MemberSorter {
       _PriorityItem(true, _MemberKind.classAccessor, false),
       _PriorityItem(true, _MemberKind.classAccessor, true),
       _PriorityItem(false, _MemberKind.classField, false),
-      if (codeStyle.sortConstructorsFirst)
+      if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
       if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),
@@ -300,7 +296,7 @@ class _MemberInfo {
   final int end;
   final String text;
 
-  _MemberInfo(this.item, this.name, this.offset, this.length, this.text)
+  new(this.item, this.name, this.offset, this.length, this.text)
     : end = offset + length;
 
   @override
@@ -332,9 +328,9 @@ class _PriorityItem {
   final bool isPrivate;
   final bool isStatic;
 
-  _PriorityItem(this.isStatic, this.kind, this.isPrivate);
+  new(this.isStatic, this.kind, this.isPrivate);
 
-  factory _PriorityItem.forName(bool isStatic, String name, _MemberKind kind) {
+  factory forName(bool isStatic, String name, _MemberKind kind) {
     var isPrivate = Identifier.isPrivateName(name);
     return _PriorityItem(isStatic, kind, isPrivate);
   }

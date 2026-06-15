@@ -54,7 +54,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
   // clang-format off
   const char* kScript = R"(
       class Container<T> {
-        operator []=(var index, var value) {
+        operator []=(index, value) {
           return data[index] = value;
         }
 
@@ -182,10 +182,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   expected_stores_jit.insert(
       expected_stores_jit.end(),
       {"value", "Context.parent", "Context.parent", "value",
-       "Closure.function_type_arguments", "Closure.context"});
+       ":closure_element[0]", ":closure_element[0]"});
   expected_stores_aot.insert(
       expected_stores_aot.end(),
-      {"value", "Closure.function_type_arguments", "Closure.context"});
+      {"value", ":closure_element[0]", ":closure_element[0]"});
 
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
                             expected_stores_jit);
@@ -1966,8 +1966,9 @@ ISOLATE_UNIT_TEST_CASE(IL_RecordCoverageSurvivesOptimizations) {
     {
       BlockBuilder builder(H.flow_graph(),
                            H.flow_graph()->graph_entry()->normal_entry());
-      const auto& coverage_array = Array::Handle(Array::New(1));
-      coverage_array.SetAt(0, Smi::Handle(Smi::New(0)));
+      const auto& coverage_array =
+          TypedData::Handle(TypedData::New(kTypedDataUint32ArrayCid, 1));
+      coverage_array.SetUint32(0, 0);
       builder.AddInstruction(
           new RecordCoverageInstr(coverage_array, 0, InstructionSource()));
       builder.AddReturn(new Value(H.flow_graph()->constant_null()));

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,30 +15,28 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresConstructorTest extends PubPackageResolutionTest {
   test_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   E.named() : super();
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
-''',
-      [error(diag.extensionDeclaresConstructor, 26, 1)],
-    );
+''');
   }
 
   test_none() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {}
 ''');
   }
 
   test_unnamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   E() : super();
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
-''',
-      [error(diag.extensionDeclaresConstructor, 26, 1)],
-    );
+''');
   }
 }

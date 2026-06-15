@@ -55,8 +55,6 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
-      oob_message_handling_allowed_(true),
-      paused_for_messages_(false),
       paused_(0),
 #if !defined(PRODUCT)
       should_pause_on_start_(false),
@@ -68,7 +66,6 @@ MessageHandler::MessageHandler()
 #endif
       task_running_(false),
       pool_(nullptr),
-      start_callback_(nullptr),
       end_callback_(nullptr),
       callback_data_(0) {
   ASSERT(queue_ != nullptr);
@@ -92,7 +89,6 @@ void MessageHandler::MessageNotify(Message::Priority priority) {
 }
 
 bool MessageHandler::Run(ThreadPool* pool,
-                         StartCallback start_callback,
                          EndCallback end_callback,
                          CallbackData data) {
   MonitorLocker ml(&monitor_);
@@ -104,19 +100,24 @@ bool MessageHandler::Run(ThreadPool* pool,
   }
   ASSERT(pool_ == nullptr);
   pool_ = pool;
-  start_callback_ = start_callback;
+  set_is_scheduled();
   end_callback_ = end_callback;
   callback_data_ = data;
   task_running_ = true;
   bool result = pool_->Run<MessageHandlerTask>(this);
   if (!result) {
     pool_ = nullptr;
-    start_callback_ = nullptr;
     end_callback_ = nullptr;
     callback_data_ = 0;
     task_running_ = false;
   }
   return result;
+}
+
+void MessageHandler::RunSync() {
+  task_running_ = true;
+  TaskCallback();
+  task_running_ = false;
 }
 
 void MessageHandler::PostMessage(std::unique_ptr<Message> message,
@@ -151,9 +152,6 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
       oob_queue_->Enqueue(std::move(message), before_events);
     } else {
       queue_->Enqueue(std::move(message), before_events);
-    }
-    if (paused_for_messages_) {
-      ml.Notify();
     }
 
     if (pool_ != nullptr && !task_running_) {
@@ -290,9 +288,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 }
 
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
-  if (!oob_message_handling_allowed_) {
-    return kOK;
-  }
   MonitorLocker ml(&monitor_);
 #if defined(DEBUG)
   CheckAccess();
@@ -338,6 +333,12 @@ std::unique_ptr<Message> MessageHandler::StealOOBMessage() {
 bool MessageHandler::HasMessages() {
   MonitorLocker ml(&monitor_);
   return !queue_->IsEmpty();
+}
+
+MessageHandler::MessageCount MessageHandler::GetMessageCounts() {
+  MonitorLocker ml(&monitor_);
+  return {.num_messages = queue_->Length(),
+          .num_oob_messages = queue_->Length()};
 }
 
 void MessageHandler::TaskCallback() {
@@ -391,19 +392,6 @@ void MessageHandler::TaskCallback() {
 #endif  // !defined(PRODUCT)
 
     if (status == kOK) {
-      if (start_callback_ != nullptr) {
-        // Initialize the message handler by running its start function,
-        // if we have one.  For an isolate, this will run the isolate's
-        // main() function.
-        //
-        // Release the monitor_ temporarily while we call the start callback.
-        ml.Exit();
-        status = start_callback_(callback_data_);
-        ASSERT(Isolate::Current() == nullptr);
-        start_callback_ = nullptr;
-        ml.Enter();
-      }
-
       // Handle any pending messages for this message handler.
       if (status != kShutdown) {
         status = HandleMessages(&ml, (status == kOK), true);
@@ -411,7 +399,7 @@ void MessageHandler::TaskCallback() {
     }
 
     // The isolate exits when it encounters an error or when it no
-    // longer has live ports.
+    // longer has live ports or ffi native callbacks keeping it alive.
     if (status != kOK || !KeepAliveLocked()) {
 #if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
@@ -560,16 +548,5 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   }
 }
 #endif  // !defined(PRODUCT)
-
-MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
-    : handler_(handler), ml_(&handler->monitor_) {
-  ASSERT(handler != nullptr);
-  handler_->oob_message_handling_allowed_ = false;
-}
-
-MessageHandler::AcquiredQueues::~AcquiredQueues() {
-  ASSERT(handler_ != nullptr);
-  handler_->oob_message_handling_allowed_ = true;
-}
 
 }  // namespace dart

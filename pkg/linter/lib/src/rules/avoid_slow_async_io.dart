@@ -25,8 +25,7 @@ const Set<String> _fileSystemEntityMethodNames = <String>{
 };
 
 class AvoidSlowAsyncIo extends AnalysisRule {
-  AvoidSlowAsyncIo()
-    : super(name: LintNames.avoid_slow_async_io, description: _desc);
+  new() : super(name: LintNames.avoid_slow_async_io, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidSlowAsyncIo;
@@ -44,7 +43,7 @@ class AvoidSlowAsyncIo extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

@@ -207,7 +207,7 @@ abstract class NamedBuilder implements Builder {
 }
 
 abstract class BuilderImpl implements Builder {
-  BuilderImpl();
+  new();
 
   @override
   // Coverage-ignore(suite): Not run.

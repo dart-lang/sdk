@@ -48,7 +48,7 @@ enum VerificationStage {
 
 /// Interface that defines how the AST is verified.
 class Verification {
-  const Verification();
+  const new();
 
   /// Returns `true` if [node] is allowed to have no file offset.
   bool allowNoFileOffset(VerificationStage stage, TreeNode node) {
@@ -79,7 +79,7 @@ void verifyComponent(
 }
 
 class VerificationErrorListener {
-  const VerificationErrorListener();
+  const new();
 
   void reportError(
     String details, {
@@ -100,7 +100,7 @@ class VerificationError {
 
   final String details;
 
-  VerificationError(this.context, this.node, this.details);
+  new(this.context, this.node, this.details);
 
   @override
   String toString() {
@@ -143,11 +143,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<VariableDeclaration> variableDeclarationsInScope =
-      new Set<VariableDeclaration>();
-  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
+  Set<Variable> variableDeclarationsInScope = new Set<Variable>();
+  final List<Variable> variableStack = <Variable>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
+  final List<Scope> scopeStack = [];
 
   Map<Reference, ExtensionMemberDescriptor>? _extensionsMembers;
   Map<Reference, ExtensionTypeMemberDescriptor>? _extensionTypeMembers;
@@ -200,7 +200,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     );
   }
 
-  VerifyingVisitor(
+  new(
     this.target,
     this.stage, {
     required this.skipPlatform,
@@ -223,6 +223,120 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   /// If true, constant local variables are expected to have been removed.
   bool get constantLocalsShouldBeRemoved => !target.constantsBackend.keepLocals;
+
+  bool checkVariableInScopeStack(VariableBase node) {
+    int occurrenceCount = 0;
+    for (Scope scope in scopeStack) {
+      for (VariableContext context in scope.contexts) {
+        for (VariableBase currentVariable in context.variables) {
+          if (identical(currentVariable, node)) {
+            occurrenceCount++;
+          }
+        }
+      }
+    }
+
+    switch (occurrenceCount) {
+      case 1:
+        return true;
+      case 0:
+        if (node is! SyntheticVariable && node.parent is Let) {
+          // TODO(johnniwinther,cstefantsova): Let variables are not set up
+          // correctly.
+          problem(
+            node,
+            "Variable '${node.cosmeticName}' of the kind "
+            "'${node.runtimeType}' wasn't found in the enclosing scopes.",
+          );
+        }
+        return false;
+      default:
+        problem(
+          node,
+          "Variable '${node.cosmeticName}' of the kind "
+          "'${node.runtimeType}' occurs multiple times "
+          "(x${occurrenceCount}) in the enclosing contexts.",
+        );
+        return false;
+    }
+  }
+
+  bool checkVariableIsInOwnContext(VariableBase node) {
+    VariableContext variableContext;
+    try {
+      variableContext = node.context;
+    } on Error {
+      _reportMissingVariableContext(node);
+      return false;
+    }
+
+    for (VariableBase variable in variableContext.variables) {
+      if (identical(node, variable)) {
+        return true;
+      }
+    }
+    problem(
+      node,
+      "Variable '${node.cosmeticName}' of the kind '${node.runtimeType}' "
+      "can't be found in its own context.",
+    );
+    return false;
+  }
+
+  void _reportMissingVariableContext(VariableBase node) {
+    if (node is! SyntheticVariable && node.parent is Let) {
+      // TODO(johnniwinther,cstefantsova): Let variables are not set up
+      // correctly.
+      problem(
+        node,
+        "A '${node.runtimeType}' variable with cosmetic name "
+        "'${node.cosmeticName}' doesn't have its context set.",
+      );
+    }
+  }
+
+  void enterScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      scopeStack.add(scope);
+
+      if (target.flags.isClosureContextLoweringEnabled) {
+        for (VariableContext context in scope.contexts) {
+          for (VariableBase variable in context.variables) {
+            VariableContext variableContext;
+            try {
+              variableContext = variable.context;
+            } on Error {
+              _reportMissingVariableContext(variable);
+              continue;
+            }
+
+            if (!identical(context, variableContext)) {
+              problem(
+                node,
+                "Variable '${variable.cosmeticName}' appears in a context "
+                "that's not its own.",
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void exitScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      Scope removedScope = scopeStack.removeLast();
+      if (!identical(removedScope, scope)) {
+        // TODO(cstefantsova): This looks like an internal error. Should we
+        // report it differently?
+        problem(
+          node,
+          "Top scope on the stack doesn't match the scope of the exited "
+          "ScopeProvider object ('${node.runtimeType}').",
+        );
+      }
+    }
+  }
 
   @override
   void defaultTreeNode(TreeNode node) {
@@ -270,13 +384,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is VariableDeclaration && node is! LegacyVariableDeclaration ||
+    return node is Variable && node is! LegacyVariable ||
         node is FunctionParameter;
   }
 
   TreeNode? enterParent(TreeNode node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (!_isNewModelVariable(node) && !identical(node.parent, currentParent)) {
+    if (!identical(node.parent, currentParent)) {
       problem(
         node,
         "Incorrect parent pointer on ${node}:"
@@ -322,7 +435,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(VariableDeclaration variable) {
+  void declareVariable(Variable variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -330,7 +443,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(VariableDeclaration variable) {
+  void undeclareVariable(Variable variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -390,8 +503,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     structuralParametersInScope.removeAll(parameters);
   }
 
-  void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
-    if (!variableDeclarationsInScope.contains(variable)) {
+  void checkVariableInScope(Variable variable, TreeNode where) {
+    // TODO(cstefantsova): Support new variable model.
+    if (!_isNewModelVariable(variable) &&
+        !variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
   }
@@ -723,6 +838,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitField(Field node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
@@ -779,6 +895,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _visitAnnotations(node.annotations);
     exitParent(oldParent);
     currentMember = null;
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
@@ -901,6 +1018,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitConstructor(Constructor node) {
     enterTreeNode(node);
+    enterScopeProvider(node.function);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
     currentMember = node;
     classTypeParametersAreInScope = true;
@@ -938,6 +1056,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }*/
     classTypeParametersAreInScope = false;
     currentMember = null;
+    exitScopeProvider(node.function);
     exitTreeNode(node);
   }
 
@@ -964,6 +1083,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitFunctionNode(FunctionNode node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
@@ -988,7 +1108,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           positionalIndex++
         ) {
           if (positionalIndex >= node.requiredParameterCount) {
-            VariableDeclaration positionalParameter =
+            Variable positionalParameter =
                 node.positionalParameters[positionalIndex];
             if (positionalParameter.initializer == null &&
                 // Global transformations like TFA may not maintain this
@@ -1002,7 +1122,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             }
           }
         }
-        for (VariableDeclaration namedParameter in node.namedParameters) {
+        for (Variable namedParameter in node.namedParameters) {
           if (!namedParameter.isRequired &&
               namedParameter.initializer == null &&
               // Global transformations like TFA may not maintain this
@@ -1022,6 +1142,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     inCatchBlock = savedInCatchBlock;
     currentAsyncMarker = savedAsyncMarker;
     undeclareTypeParameters(node.typeParameters);
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
@@ -1044,12 +1165,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitBlock(Block node) {
+    enterScopeProvider(node);
     visitWithLocalScope(node);
+    exitScopeProvider(node);
   }
 
   @override
   void visitForStatement(ForStatement node) {
+    enterScopeProvider(node);
     visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
   }
 
   @override
@@ -1066,6 +1205,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitBlockExpression(BlockExpression node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     int stackHeight = enterLocalScope();
     // Do not visit the block directly because the value expression needs to
     // be in its scope.
@@ -1078,15 +1218,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     node.value.accept(this);
     exitParent(oldParent);
     exitLocalScope(stackHeight);
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
   @override
   void visitCatch(Catch node) {
+    enterScopeProvider(node);
     bool savedInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+    exitScopeProvider(node);
   }
 
   @override
@@ -1137,38 +1280,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    return _verifyVariableInitialization(node);
+  void defaultVariable(Variable node) {
+    return _verifyVariableDeclaration(node);
   }
 
-  @override
-  void visitVariableInitialization(VariableInitializationBase node) {
-    return _verifyVariableInitialization(node);
-  }
-
-  void _verifyVariableInitialization(VariableInitializationBase node) {
+  void _verifyVariableDeclaration(Variable node) {
     enterTreeNode(node);
-    TreeNode? parent = node.parent;
-    if (parent is! Block &&
-        !(parent is Catch && parent.body != node) &&
-        !(parent is FunctionNode && parent.body != node) &&
-        parent is! FunctionDeclaration &&
-        !(parent is ForStatement && parent.body != node) &&
-        !(parent is ForInStatement && parent.body != node) &&
-        parent is! Let &&
-        parent is! LocalInitializer &&
-        parent is! Typedef) {
-      problem(
-        node,
-        "VariableDeclaration must be a direct child of a Block, "
-        "not ${parent.runtimeType}.",
-      );
-    }
-    TreeNode? oldParent = enterParent(node);
-    _visitAnnotations(node.annotations);
-    node.initializer?.accept(this);
-    exitParent(oldParent);
-    declareVariable(node.variable);
+    visitChildren(node);
+    declareVariable(node);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
       if (!(initializer is InvalidExpression ||
@@ -1181,16 +1300,56 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitCatchVariable(CatchVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitLocalVariable(LocalVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    _verifyVariable(node);
+  }
+
+  void _verifyVariable(Variable node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
     declareVariable(node);
+    exitTreeNode(node);
+
+    if (target.flags.isClosureContextLoweringEnabled && !isOutline) {
+      checkVariableInScopeStack(node);
+      checkVariableIsInOwnContext(node);
+    }
   }
 
   @override
   void visitVariableGet(VariableGet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -1205,10 +1364,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableSet(VariableSet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -1992,16 +2147,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    enterScopeProvider(node.function);
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOff(node);
+    exitScopeProvider(node.function);
   }
 
   @override
   void visitRedirectingFactoryTearOffConstant(
     RedirectingFactoryTearOffConstant node,
   ) {
+    enterScopeProvider(node.function);
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOffConstant(node);
+    exitScopeProvider(node.function);
   }
 
   @override
@@ -2128,7 +2287,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   Member? currentMember;
   final StatefulStaticTypeContext _staticTypeContext;
 
-  VerifyGetStaticType(this.env)
+  new(this.env)
     : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
 
   @override
@@ -2210,7 +2369,7 @@ class AllowedTypes implements DartTypeVisitor<bool> {
 
   final bool inConstant;
 
-  const AllowedTypes({required this.inConstant});
+  const new({required this.inConstant});
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) => false;

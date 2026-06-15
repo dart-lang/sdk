@@ -26,12 +26,7 @@ import 'package:kernel/util/graph.dart';
 /// On incremental updates, we completely recompute the strongly connected
 /// components, but only for the partial component produced.
 class StrongComponents {
-  StrongComponents(
-    this.component,
-    this.loadedLibraries,
-    this.mainUri, [
-    this.fileSystem,
-  ]);
+  new(this.component, this.loadedLibraries, this.mainUri, [this.fileSystem]);
 
   /// The Component that is being compiled.
   ///
@@ -68,8 +63,9 @@ class StrongComponents {
   ///
   /// Throws an [Exception] if [mainUri] cannot be located in the given
   /// component.
-  Future<void> computeLibraryBundles(
-      [Map<Uri, Library>? partialComponent]) async {
+  Future<void> computeLibraryBundles([
+    Map<Uri, Library>? partialComponent,
+  ]) async {
     assert(libraryBundleImportToLibraries.isEmpty);
     if (component.libraries.isEmpty) {
       return;
@@ -87,14 +83,17 @@ class StrongComponents {
     }
 
     final List<List<Library>> results = computeStrongComponents(
-        new _LibraryGraph(entrypoint, loadedLibraries, partialComponent));
+      new _LibraryGraph(entrypoint, loadedLibraries, partialComponent),
+    );
     for (List<Library> component in results) {
       assert(component.isNotEmpty);
       // Pick a Uri to associate this component with. We choose the entrypoint
       // if it exists or just the first library's Uri.
       final Uri componentUri = component
-          .firstWhere((lib) => lib.importUri == mainUri,
-              orElse: () => component.first)
+          .firstWhere(
+            (lib) => lib.importUri == mainUri,
+            orElse: () => component.first,
+          )
           .importUri;
       libraryBundleImportToLibraries[componentUri] = component;
       for (Library componentLibrary in component) {
@@ -106,7 +105,7 @@ class StrongComponents {
 }
 
 class _LibraryGraph implements Graph<Library> {
-  _LibraryGraph(this.library, this.loadedLibraries, [this._partialComponent]);
+  new(this.library, this.loadedLibraries, [this._partialComponent]);
 
   final Library library;
   final Set<Library> loadedLibraries;
@@ -121,7 +120,7 @@ class _LibraryGraph implements Graph<Library> {
           _partialComponent == null
               ? dependency.targetLibrary
               : _partialComponent[dependency.targetLibrary.importUri] ??
-                  dependency.targetLibrary
+                    dependency.targetLibrary,
     ];
   }
 

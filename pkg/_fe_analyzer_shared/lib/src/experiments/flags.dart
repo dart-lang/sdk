@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 12);
+const Version defaultLanguageVersion = const Version(3, 13);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -236,16 +236,16 @@ enum ExperimentalFlag {
 
   primaryConstructors(
     name: 'primary-constructors',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 13),
     experimentReleasedVersion: const Version(3, 12),
   ),
 
   privateNamedParameters(
     name: 'private-named-parameters',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 12),
     experimentReleasedVersion: const Version(3, 12),
   ),

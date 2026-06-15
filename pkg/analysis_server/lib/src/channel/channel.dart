@@ -23,7 +23,7 @@ class ChannelChunkSink<S, T> implements ChunkedConversionSink<S> {
 
   /// Initialize a newly create sink to use the given [converter] to convert
   /// chunks before adding them to the given [sink].
-  ChannelChunkSink(this.converter, this.sink);
+  new(this.converter, this.sink);
 
   @override
   void add(S chunk) {

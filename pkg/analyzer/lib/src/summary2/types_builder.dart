@@ -81,7 +81,7 @@ class TypesBuilder {
   /// Build types for all type annotations, and set types for declarations.
   void build(NodesToBuildType nodes) {
     DefaultTypesBuilder(
-      getTypeParameterNode: _linker.getLinkingNode2,
+      getTypeParameterNode: _linker.getLinkingNode,
     ).build(nodes.declarations);
 
     for (var builder in nodes.typeBuilders) {
@@ -108,19 +108,19 @@ class TypesBuilder {
     }
   }
 
-  FunctionTypeImpl _buildFunctionType(
-    TypeParameterListImpl? typeParameterList,
-    TypeAnnotationImpl? returnTypeNode,
-    FormalParameterList parameterList,
-    NullabilitySuffix nullabilitySuffix,
-  ) {
+  FunctionTypeImpl _buildFunctionType({
+    required TypeParameterListImpl? typeParameterList,
+    required TypeAnnotationImpl? returnTypeNode,
+    required FormalParameterList formalParameterList,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
     var returnType = returnTypeNode?.type ?? _dynamicType;
     var typeParameters = _typeParameters(typeParameterList);
-    var formalParameters = _formalParameters(parameterList);
+    var formalParameters = _formalParameters(formalParameterList);
 
     return FunctionTypeImpl(
       typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      parameters: formalParameters,
+      formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -137,8 +137,6 @@ class TypesBuilder {
         if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
           element.supertype = type;
         }
-      } else if (element.isDartCoreObject) {
-        fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
       }
     }
 
@@ -194,8 +192,8 @@ class TypesBuilder {
       _functionDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
-    } else if (node is FunctionTypedFormalParameterImpl) {
-      _functionTypedFormalParameter(node);
+    } else if (node is RegularFormalParameterImpl) {
+      _regularFormalParameter(node);
     } else if (node is GenericFunctionTypeImpl) {
       _genericFunctionType(node);
     } else if (node is GenericTypeAliasImpl) {
@@ -204,8 +202,6 @@ class TypesBuilder {
       _methodDeclaration(node);
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
-    } else if (node is SimpleFormalParameterImpl) {
-      _simpleFormalParameter(node);
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
@@ -256,13 +252,19 @@ class TypesBuilder {
 
   void _fieldFormalParameter(FieldFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    var parameterList = node.parameters;
-    if (parameterList != null) {
+    if (_hasPreviousFormalParameterWithType(fragment)) {
+      return;
+    }
+
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
       var type = _buildFunctionType(
-        node.typeParameters,
-        node.type,
-        parameterList,
-        _nullability(node, node.question != null),
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
       fragment.element.type = type;
     } else {
@@ -279,42 +281,32 @@ class TypesBuilder {
   }
 
   void _functionDeclaration(FunctionDeclarationImpl node) {
-    var returnType = node.returnType?.type;
-    if (returnType == null) {
-      if (node.isSetter) {
-        returnType = _voidType;
-      } else {
-        returnType = _dynamicType;
-      }
-    }
-
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+
     if (fragment.previousFragment == null) {
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
+
       element.returnType = returnType;
+      _setSyntheticVariableType(element);
     }
-    _setSyntheticVariableType(element);
   }
 
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
     fragment.element.aliasedType = _buildFunctionType(
-      null,
-      node.returnType,
-      node.parameters,
-      NullabilitySuffix.none,
+      typeParameterList: null,
+      returnTypeNode: node.returnType,
+      formalParameterList: node.parameters,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {
-    var type = _buildFunctionType(
-      node.typeParameters,
-      node.returnType,
-      node.parameters,
-      _nullability(node, node.question != null),
-    );
-    var fragment = node.declaredFragment!;
-    fragment.element.type = type;
   }
 
   void _genericFunctionType(GenericFunctionTypeImpl node) {
@@ -337,22 +329,42 @@ class TypesBuilder {
     }
   }
 
-  void _methodDeclaration(MethodDeclarationImpl node) {
-    var returnType = node.returnType?.type;
-    if (returnType == null) {
-      if (node.isSetter) {
-        returnType = _voidType;
-      } else if (node.isOperator && node.name.lexeme == '[]=') {
-        returnType = _voidType;
-      } else {
-        returnType = _dynamicType;
-      }
-    }
+  /// Whether [fragment] has an earlier fragment that defines the type.
+  ///
+  /// Augmentation linking inserts synthetic fragments so that every executable
+  /// fragment has a complete formal parameter list. These fragments don't
+  /// carry type annotations, so they should not prevent the first AST
+  /// declaration from initializing the element type. Other preceding fragments,
+  /// such as the implicit setter parameter synthesized for a variable, already
+  /// establish the variable element type and later declarations must not
+  /// overwrite it.
+  bool _hasPreviousFormalParameterWithType(
+    FormalParameterFragmentImpl fragment,
+  ) {
+    return fragment.precedingFragments.any(
+      (fragment) => !fragment.isOriginOtherFragmentOfEnclosing,
+    );
+  }
 
+  void _methodDeclaration(MethodDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    element.returnType = returnType;
-    _setSyntheticVariableType(element);
+
+    if (fragment.previousFragment == null) {
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else if (node.isOperator && node.name.lexeme == '[]=') {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
+
+      element.returnType = returnType;
+      _setSyntheticVariableType(element);
+    }
   }
 
   void _mixinDeclaration(MixinDeclarationImpl node) {
@@ -372,11 +384,36 @@ class TypesBuilder {
     ];
   }
 
-  NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
-    if (hasQuestion) {
-      return NullabilitySuffix.question;
+  void _regularFormalParameter(RegularFormalParameterImpl node) {
+    var fragment = node.declaredFragment!;
+    if (_hasPreviousFormalParameterWithType(fragment)) {
+      return;
+    }
+
+    var element = fragment.element;
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      element.type = _buildFunctionType(
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
+      );
+      return;
+    }
+
+    var typeAnnotation = node.type;
+    if (typeAnnotation == null) {
+      // For a declaring formal parameter the type will be inferred from
+      // the field type via instance inference, or from the default value.
+      if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
+        return;
+      }
+      element.type = _dynamicType;
     } else {
-      return NullabilitySuffix.none;
+      element.type = typeAnnotation.typeOrThrow;
     }
   }
 
@@ -396,36 +433,21 @@ class TypesBuilder {
     }
   }
 
-  void _simpleFormalParameter(SimpleFormalParameterImpl node) {
+  void _superFormalParameter(SuperFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment != null) {
+    if (_hasPreviousFormalParameterWithType(fragment)) {
       return;
     }
 
-    var element = fragment.element;
-
-    var typeAnnotation = node.type;
-    if (typeAnnotation == null) {
-      // For a declaring formal parameter the type will be inferred from
-      // the field type via instance inference, or from the default value.
-      if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
-        return;
-      }
-      element.type = _dynamicType;
-    } else {
-      element.type = typeAnnotation.typeOrThrow;
-    }
-  }
-
-  void _superFormalParameter(SuperFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    var parameterList = node.parameters;
-    if (parameterList != null) {
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
       var type = _buildFunctionType(
-        node.typeParameters,
-        node.type,
-        parameterList,
-        _nullability(node, node.question != null),
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
       fragment.element.type = type;
     } else {
@@ -465,7 +487,7 @@ class TypesBuilder {
   static FunctionTypeImpl _errorFunctionType() {
     return FunctionTypeImpl(
       typeParameters: const [],
-      parameters: const [],
+      formalParameters: const [],
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: NullabilitySuffix.none,
     );

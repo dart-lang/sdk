@@ -138,7 +138,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// and `isValidKey` is omitted, the resulting set is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashSet.identity].
-  external factory LinkedHashSet({
+  external factory({
     bool Function(E, E)? equals,
     int Function(E)? hashCode,
     bool Function(dynamic)? isValidKey,
@@ -150,7 +150,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// ```dart
   /// LinkedHashSet<E>(equals: identical, hashCode: identityHashCode)
   /// ```
-  external factory LinkedHashSet.identity();
+  external factory identity();
 
   /// Create a linked hash set containing all [elements].
   ///
@@ -171,7 +171,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// final setFrom = LinkedHashSet<int>.from(numbers);
   /// print(setFrom); // {10, 20, 30}
   /// ```
-  factory LinkedHashSet.from(Iterable<dynamic> elements) {
+  factory from(Iterable<dynamic> elements) {
     LinkedHashSet<E> result = LinkedHashSet<E>();
     for (final element in elements) {
       result.add(element as E);
@@ -189,8 +189,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// final setOf = LinkedHashSet<num>.of(baseSet);
   /// print(setOf); // {1, 2, 3}
   /// ```
-  factory LinkedHashSet.of(Iterable<E> elements) =>
-      LinkedHashSet<E>()..addAll(elements);
+  factory of(Iterable<E> elements) => LinkedHashSet<E>()..addAll(elements);
 
   /// Executes a function on each element of the set.
   ///

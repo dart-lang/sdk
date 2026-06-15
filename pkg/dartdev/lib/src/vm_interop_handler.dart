@@ -1,7 +1,8 @@
-// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -33,6 +34,11 @@ abstract class VmInteropHandler {
     // See https://github.com/dart-lang/sdk/issues/53576
     bool markMainIsolateAsSystemIsolate = false,
     bool useExecProcess = false,
+
+    /// When [useExecProcess] pass this path to signal that it originates from
+    /// another file. Used for launching from a dill file while behaving as if
+    /// launched directly from a dart file.
+    String? scriptUriOverride,
   }) {
     List<String> argsList;
     if (useExecProcess && Platform.isWindows) {
@@ -43,6 +49,12 @@ abstract class VmInteropHandler {
       if (script.contains(' ') && !script.contains('"')) {
         // Escape paths that may contain spaces
         script = '"$script"';
+      }
+      if (scriptUriOverride != null &&
+          scriptUriOverride.contains(' ') &&
+          !scriptUriOverride.contains('"')) {
+        // Escape paths that may contain spaces
+        scriptUriOverride = '"$scriptUriOverride"';
       }
       argsList = [
         for (int i = 0; i < args.length; i++) _windowsArgumentEscape(args[i]),
@@ -56,6 +68,7 @@ abstract class VmInteropHandler {
     final message = <dynamic>[
       useExecProcess ? _kResultRunExec : _kResultRun,
       script,
+      if (useExecProcess) scriptUriOverride,
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
       argsList,
@@ -70,6 +83,28 @@ abstract class VmInteropHandler {
     if (port == null) return;
     final message = <dynamic>[_kResultExit, exitCode];
     port.send(message);
+  }
+
+  /// Sets the environment variable [name] to [value] for the current process.
+  ///
+  /// If [value] is null, the environment variable is removed.
+  static Future<void> setEnvironmentVariable(String name, String? value) async {
+    final port = _port;
+    if (port == null) return;
+    final replyPort = RawReceivePort();
+    final completer = Completer<void>();
+    replyPort.handler = (message) {
+      completer.complete();
+      replyPort.close();
+    };
+    final message = <dynamic>[
+      _kResultSetEnvironmentVariable,
+      replyPort.sendPort,
+      name,
+      value,
+    ];
+    port.send(message);
+    await completer.future;
   }
 
   /// This code is identical to the one in process_patch.dart, please ensure
@@ -127,10 +162,11 @@ abstract class VmInteropHandler {
     return result;
   }
 
-  // Note: keep in sync with runtime/bin/dartdev_isolate.h
+  // Note: keep in sync with runtime/bin/dartdev.cc
   static const int _kResultRun = 1;
   static const int _kResultRunExec = 2;
   static const int _kResultExit = 3;
+  static const int _kResultSetEnvironmentVariable = 4;
 
   static SendPort? _port;
 }

@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
     defineReflectiveTests(ListElementTypeNotAssignableWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ListElementTypeNotAssignableTest extends PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = const <int>[if (1 < 0) a else b];
@@ -25,114 +26,107 @@ var v = const <int>[if (1 < 0) a else b];
   }
 
   test_const_ifElement_thenElseFalse_intString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>[if (1 < 0) a else b];
-''',
-      [error(diag.listElementTypeNotAssignable, 82, 1)],
-    );
+//                                    ^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+''');
   }
 
   test_const_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <int>[if (1 < 0) 'a'];
-''',
-      [error(diag.listElementTypeNotAssignable, 31, 3)],
-    );
+//                             ^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+''');
   }
 
   test_const_ifElement_thenFalse_intString_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <int>[if (1 < 0) a];
 ''');
   }
 
   test_const_ifElement_thenTrue_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = const <int>[if (true) a];
 ''');
   }
 
   test_const_ifElement_thenTrue_intString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = const <int>[if (true) a];
-''',
-      [error(diag.listElementTypeNotAssignable, 53, 1)],
-    );
+//                            ^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+''');
   }
 
   test_const_intInt() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var v1 = <int> [42];
 var v2 = const <int> [42];
 ''');
   }
 
   test_const_intNull_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const a = null;
 var v = const <int>[a];
-''',
-      [error(diag.listElementTypeNotAssignableNullability, 36, 1)],
-    );
+//                  ^
+// [diag.listElementTypeNotAssignableNullability] The element type 'Null' can't be assigned to the list type 'int'.
+''');
   }
 
   test_const_intNull_value() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <int>[null];
-''',
-      [error(diag.listElementTypeNotAssignableNullability, 20, 4)],
-    );
+//                  ^^^^
+// [diag.listElementTypeNotAssignableNullability] The element type 'Null' can't be assigned to the list type 'int'.
+''');
   }
 
   test_const_spread_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <int>[...[0, 1]];
 ''');
   }
 
   test_const_stringInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <String>[42];
-''',
-      [error(diag.listElementTypeNotAssignable, 23, 2)],
-    );
+//                     ^^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
+''');
   }
 
   test_const_stringInt_dynamic() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic x = 42;
 var v = const <String>[x];
-''',
-      [error(diag.listElementTypeNotAssignable, 45, 1)],
-    );
+//                     ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
+''');
   }
 
   test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <String?>[null];
 ''');
   }
 
   test_const_voidInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = const <void>[42];
 ''');
   }
 
   test_nonConst_genericFunction_genericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<U Function<U>(U)> foo(T Function<T>(T a) f) {
   return [f];
 }
@@ -140,18 +134,17 @@ List<U Function<U>(U)> foo(T Function<T>(T a) f) {
   }
 
   test_nonConst_genericFunction_genericContext_nonAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<U Function<U>(U, int)> foo(T Function<T>(T a) f) {
   return [f];
+//        ^
+// [diag.listElementTypeNotAssignable] The element type 'T Function<T>(T)' can't be assigned to the list type 'U Function<U>(U, int)'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 66, 1)],
-    );
+''');
   }
 
   test_nonConst_genericFunction_nonGenericContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 List<int Function(int)> foo(T Function<T>(T a) f) {
   return [f];
 }
@@ -159,18 +152,17 @@ List<int Function(int)> foo(T Function<T>(T a) f) {
   }
 
   test_nonConst_genericFunction_nonGenericContext_nonAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 List<int Function(int, int)> foo(T Function<T>(T a) f) {
   return [f];
+//        ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic Function(dynamic)' can't be assigned to the list type 'int Function(int, int)'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 67, 1)],
-    );
+''');
   }
 
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 const dynamic b = 'b';
 var v = <int>[if (1 < 0) a else b];
@@ -178,7 +170,7 @@ var v = <int>[if (1 < 0) a else b];
   }
 
   test_nonConst_ifElement_thenElseFalse_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 const dynamic b = 0;
 var v = <int>[if (1 < 0) a else b];
@@ -186,52 +178,50 @@ var v = <int>[if (1 < 0) a else b];
   }
 
   test_nonConst_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int>[if (1 < 0) 'a'];
-''',
-      [error(diag.listElementTypeNotAssignable, 25, 3)],
-    );
+//                       ^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+''');
   }
 
   test_nonConst_ifElement_thenTrue_intDynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 'a';
 var v = <int>[if (true) a];
 ''');
   }
 
   test_nonConst_ifElement_thenTrue_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic a = 0;
 var v = <int>[if (true) a];
 ''');
   }
 
   test_nonConst_spread_intInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int>[...[0, 1]];
 ''');
   }
 
   test_nonConst_stringInt() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var v = <String>[42];
-''',
-      [error(diag.listElementTypeNotAssignable, 17, 2)],
-    );
+//               ^^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
+''');
   }
 
   test_nonConst_stringInt_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const dynamic x = 42;
 var v = <String>[x];
 ''');
   }
 
   test_nonConst_voidInt() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <void>[42];
 ''');
   }
@@ -242,35 +232,32 @@ class ListElementTypeNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_ifElement_falseBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int>[if (c) 0 else a];
+//                    ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 50, 1)],
-    );
+''');
   }
 
   test_ifElement_trueBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int>[if (c) a];
+//             ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 43, 1)],
-    );
+''');
   }
 
   test_spread() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(Iterable<dynamic> a) {
   <int>[...a];
+//         ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 41, 1)],
-    );
+''');
   }
 }

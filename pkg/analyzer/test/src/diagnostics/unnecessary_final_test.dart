@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryFinalTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryFinalTest extends PubPackageResolutionTest {
   test_final() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.10
 class C {
   C(final int value);
@@ -25,21 +26,25 @@ class C {
   }
 
   test_positional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.10
 class C {
   C([final this.value = 0]);
+//   ^^^^^
+// [diag.unnecessaryFinal] The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
   int value;
 }
-''',
-      [error(diag.unnecessaryFinal, 31, 5)],
-    );
+''');
+  }
+
+  test_primaryConstructor_parameter() async {
+    await resolveTestCodeWithDiagnostics('''
+class C(final int x);
+''');
   }
 
   test_super() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.10
 class A {
   A(this.value);
@@ -48,22 +53,21 @@ class A {
 
 class B extends A {
   B(final super.value);
+//  ^^^^^
+// [diag.unnecessaryFinal] The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
 }
-''',
-      [error(diag.unnecessaryFinal, 83, 5)],
-    );
+''');
   }
 
   test_this() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.10
 class C {
   C(final this.value);
+//  ^^^^^
+// [diag.unnecessaryFinal] The keyword 'final' isn't necessary because the parameter is implicitly 'final'.
   int value;
 }
-''',
-      [error(diag.unnecessaryFinal, 30, 5)],
-    );
+''');
   }
 }

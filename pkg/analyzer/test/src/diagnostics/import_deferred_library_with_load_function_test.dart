@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,15 +21,13 @@ void loadLibrary() {}
 void f() {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as p;
+// [diag.importDeferredLibraryWithLoadFunction][column 1][length 30] The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library.
 void main() {
   p.f();
 }
-''',
-      [error(diag.importDeferredLibraryWithLoadFunction, 0, 30)],
-    );
+''');
   }
 
   test_deferredImport_withLoadLibraryFunction_hide() async {
@@ -39,7 +36,7 @@ void loadLibrary() {}
 void f() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as p hide loadLibrary;
 void main() {
   p.f();
@@ -54,15 +51,13 @@ void f() {}
 void f2() {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as p hide f2;
+// [diag.importDeferredLibraryWithLoadFunction][column 1][length 38] The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library.
 void main() {
   p.f();
 }
-''',
-      [error(diag.importDeferredLibraryWithLoadFunction, 0, 38)],
-    );
+''');
   }
 
   test_deferredImport_withLoadLibraryFunction_show() async {
@@ -71,7 +66,7 @@ void loadLibrary() {}
 void f() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as p show f;
 void main() {
   p.f();
@@ -84,7 +79,7 @@ void main() {
 void f() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as p;
 void main() {
   p.f();
@@ -98,7 +93,7 @@ void loadLibrary() {}
 void f() {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 void main() {
   p.f();

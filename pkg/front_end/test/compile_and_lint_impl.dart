@@ -323,7 +323,7 @@ class ProblemFinder extends RecursiveVisitor {
   bool inField = false;
   int foundErrors = 0;
 
-  ProblemFinder(this.wantedUris);
+  new(this.wantedUris);
 
   void reportError(TreeNode node, int squigglyLength, String messageText) {
     foundErrors++;

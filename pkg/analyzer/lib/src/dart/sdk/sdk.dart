@@ -223,8 +223,8 @@ class EmbedderSdk extends AbstractDartSdk {
       var embeddedFolder = coreFile.parent.parent;
       try {
         return embeddedFolder
-            .getChildAssumingFolder('_internal')
-            .getChildAssumingFile('allowed_experiments.json')
+            .getFolder('_internal')
+            .getFile('allowed_experiments.json')
             .readAsStringSync();
       } catch (_) {}
     }
@@ -400,9 +400,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   String get allowedExperimentsJson {
     return _sdkDirectory
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('_internal')
-        .getChildAssumingFile('allowed_experiments.json')
+        .getFolder('lib')
+        .getFolder('_internal')
+        .getFile('allowed_experiments.json')
         .readAsStringSync();
   }
 
@@ -410,14 +410,13 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   Folder get directory => _sdkDirectory;
 
   /// Return the directory containing documentation for the SDK.
-  Folder get docDirectory =>
-      _sdkDirectory.getChildAssumingFolder(_docsDirectoryName);
+  Folder get docDirectory => _sdkDirectory.getFolder(_docsDirectoryName);
 
   @override
   Version get languageVersion {
     if (_languageVersion == null) {
       var sdkVersionStr = _sdkDirectory
-          .getChildAssumingFile(_versionFileName)
+          .getFile(_versionFileName)
           .readAsStringSync();
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
@@ -427,17 +426,15 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
-    return _libraryDirectory ??= _sdkDirectory.getChildAssumingFolder(
-      _libDirectoryName,
-    );
+    return _libraryDirectory ??= _sdkDirectory.getFolder(_libDirectoryName);
   }
 
   /// Return the file containing the Pub executable, or `null` if it does not
   /// exist.
   File get pubExecutable {
     return _pubExecutable ??= _sdkDirectory
-        .getChildAssumingFolder(_binDirectoryName)
-        .getChildAssumingFile(
+        .getFolder(_binDirectoryName)
+        .getFile(
           OSUtilities.isWindows() ? _pubExecutableNameWin : _pubExecutableName,
         );
   }
@@ -447,7 +444,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   String get sdkVersion {
     if (_sdkVersion == null) {
-      File revisionFile = _sdkDirectory.getChildAssumingFile(_versionFileName);
+      File revisionFile = _sdkDirectory.getFile(_versionFileName);
       try {
         String revision = revisionFile.readAsStringSync();
         _sdkVersion = revision.trim();
@@ -461,13 +458,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Determine the search order for trying to locate the [_librariesFile].
   Iterable<File> get _libraryMapLocations sync* {
     yield libraryDirectory
-        .getChildAssumingFolder(_internalDir)
-        .getChildAssumingFolder(_sdkLibraryMetadataDir)
-        .getChildAssumingFolder(_sdkLibraryMetadataLibDir)
-        .getChildAssumingFile(_librariesFile);
-    yield libraryDirectory
-        .getChildAssumingFolder(_internalDir)
-        .getChildAssumingFile(_librariesFile);
+        .getFolder(_internalDir)
+        .getFolder(_sdkLibraryMetadataDir)
+        .getFolder(_sdkLibraryMetadataLibDir)
+        .getFile(_librariesFile);
+    yield libraryDirectory.getFolder(_internalDir).getFile(_librariesFile);
   }
 
   /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
@@ -534,9 +529,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       return null;
     }
     try {
-      File file = libraryDirectory.getChildAssumingFile(library.path);
+      File file = libraryDirectory.getFile(library.path);
       if (relativePath.isNotEmpty) {
-        File relativeFile = file.parent.getChildAssumingFile(relativePath);
+        File relativeFile = file.parent.getFile(relativePath);
         if (relativeFile.path == file.path) {
           // The relative file is the library, so return a Source for the
           // library rather than the part format.

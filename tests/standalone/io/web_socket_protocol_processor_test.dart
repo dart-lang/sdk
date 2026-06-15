@@ -261,8 +261,74 @@ void testUnmaskedMessage() {
   controller.add(frame);
 }
 
+void testMaxPayloadLengthRejectsOversizedFrame() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(false, null, 100);
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for an oversized frame");
+        },
+        onError: (e) {
+          Expect.isTrue(
+            e.toString().contains("exceeds"),
+            "expected payload-length error, got: $e",
+          );
+          asyncEnd();
+        },
+      );
+  var message = new Uint8List(200);
+  List<int> frame = createFrame(
+    true,
+    FRAME_OPCODE_BINARY,
+    null,
+    message,
+    0,
+    message.length,
+  );
+  controller.add(frame);
+}
+
+void testMaxPayloadLengthDefaultAcceptsLargeFrame() {
+  asyncStart();
+  var transformer = new _WebSocketProtocolTransformer(false, null);
+  var controller = new StreamController<List<int>>(sync: true);
+  var message = new Uint8List(70000)
+    ..[0] = 0xAB
+    ..[69999] = 0xCD;
+  int messageCount = 0;
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (buffer) {
+          Expect.listEquals(message, buffer);
+          messageCount++;
+        },
+        onDone: () {
+          Expect.equals(1, messageCount);
+          asyncEnd();
+        },
+      );
+  List<int> frame = createFrame(
+    true,
+    FRAME_OPCODE_BINARY,
+    null,
+    message,
+    0,
+    message.length,
+  );
+  controller.add(frame);
+  controller.close();
+}
+
 void main() {
+  asyncStart();
   testFullMessages();
   testFragmentedMessages();
   testUnmaskedMessage();
+  testMaxPayloadLengthRejectsOversizedFrame();
+  testMaxPayloadLengthDefaultAcceptsLargeFrame();
+  asyncEnd();
 }

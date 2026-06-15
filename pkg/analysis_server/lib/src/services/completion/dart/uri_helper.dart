@@ -24,11 +24,7 @@ class UriHelper {
   /// The state used to compute the candidate suggestions.
   final CompletionState state;
 
-  UriHelper({
-    required this.request,
-    required this.collector,
-    required this.state,
-  });
+  new({required this.request, required this.collector, required this.state});
 
   void addSuggestions(StringLiteral uri) {
     if (uri is! SimpleStringLiteral) {

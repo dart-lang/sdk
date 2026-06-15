@@ -16,7 +16,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Name source files using `lowercase_with_underscores`.';
 
 class FileNames extends AnalysisRule {
-  FileNames() : super(name: LintNames.file_names, description: _desc);
+  new() : super(name: LintNames.file_names, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.fileNames;
@@ -34,7 +34,7 @@ class FileNames extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

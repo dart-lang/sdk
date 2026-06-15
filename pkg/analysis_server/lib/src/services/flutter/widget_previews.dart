@@ -137,11 +137,9 @@ final class LibraryPreviewNode {
   /// The set of errors found in this library.
   final errors = <Diagnostic>[];
 
-  LibraryPreviewNode({
-    required LibraryElement library,
-    required this.namespaceAllocator,
-  }) : uri = library.uri,
-       path = library.firstFragment.source.fullName;
+  new({required LibraryElement library, required this.namespaceAllocator})
+    : uri = library.uri,
+      path = library.firstFragment.source.fullName;
 
   /// `true` if this library contains compile time errors.
   bool get hasErrors => errors.isNotEmpty;
@@ -250,7 +248,7 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
   final Uri _scriptUri;
   final Uri _libraryUri;
 
-  _PreviewVisitor({
+  new({
     required ResolvedUnitResult unit,
     required this.previewNode,
     required this.namespaceAllocator,
@@ -258,7 +256,7 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
            ? unit.libraryElement.uri.pathSegments.first
            : null,
        _lineInfo = unit.lineInfo,
-       _scriptUri = Uri.file(unit.path),
+       _scriptUri = unit.file.toUri(),
        _libraryUri = unit.libraryElement.uri;
 
   void findPreviewsInResolvedUnitResult(ResolvedUnitResult unit) {

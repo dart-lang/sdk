@@ -14,12 +14,11 @@ class ReplaceEmptyMapPattern extends ResolvedCorrectionProducer {
 
   /// Initializes a newly created correction producer to create an object
   /// pattern that will match any map.
-  ReplaceEmptyMapPattern.any({required super.context}) : _style = _Style.any;
+  new any({required super.context}) : _style = _Style.any;
 
   /// Initializes a newly created correction producer to create an object
   /// pattern that will match an empty map.
-  ReplaceEmptyMapPattern.empty({required super.context})
-    : _style = _Style.empty;
+  new empty({required super.context}) : _style = _Style.empty;
 
   @override
   CorrectionApplicability get applicability =>
@@ -63,5 +62,5 @@ enum _Style {
 
   final FixKind fixKind;
 
-  const _Style(this.fixKind);
+  new(this.fixKind);
 }

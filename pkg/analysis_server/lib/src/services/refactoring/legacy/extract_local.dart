@@ -59,11 +59,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   final Map<Element, int> elementIds = <Element, int>{};
   Set<String> _excludedVariableNames = <String>{};
 
-  ExtractLocalRefactoringImpl(
-    this.resolveResult,
-    this.selectionOffset,
-    this.selectionLength,
-  ) : selectionRange = SourceRange(selectionOffset, selectionLength),
+  new(this.resolveResult, this.selectionOffset, this.selectionLength)
+    : selectionRange = SourceRange(selectionOffset, selectionLength),
       utils = CorrectionUtils(resolveResult);
 
   CodeStyleOptions get codeStyleOptions => resolveResult.session.analysisContext
@@ -325,7 +322,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       // skip some nodes
       if (node is ArgumentList ||
           node is AssignmentExpression ||
-          node is NamedExpression ||
+          node is NamedArgument ||
           node is TypeArgumentList) {
         continue;
       }
@@ -565,12 +562,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final String? selectionSource;
   final FeatureSet featureSet;
 
-  _OccurrencesVisitor(
-    this.ref,
-    this.occurrences,
-    this.selectionSource,
-    this.featureSet,
-  );
+  new(this.ref, this.occurrences, this.selectionSource, this.featureSet);
 
   @override
   void visitExpression(Expression node) {
@@ -628,7 +620,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
 class _TokenLocalElementVisitor extends RecursiveAstVisitor<void> {
   final Map<Token, Element> map;
 
-  _TokenLocalElementVisitor(this.map);
+  new(this.map);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

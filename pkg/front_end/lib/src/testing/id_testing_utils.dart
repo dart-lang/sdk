@@ -497,7 +497,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   final StringBuffer sb;
   final DartTypeToTextVisitor typeToText;
 
-  ConstantToTextVisitor(this.sb, TypeRepresentation typeRepresentation)
+  new(this.sb, TypeRepresentation typeRepresentation)
     : typeToText = new DartTypeToTextVisitor(sb, typeRepresentation);
 
   void visit(Constant node) => node.accept(this);
@@ -717,7 +717,7 @@ class DartTypeToTextVisitor
   final StringBuffer sb;
   final TypeRepresentation typeRepresentation;
 
-  DartTypeToTextVisitor(this.sb, this.typeRepresentation);
+  new(this.sb, this.typeRepresentation);
 
   String get commaText {
     if (typeRepresentation == TypeRepresentation.analyzerNonNullableByDefault) {

@@ -7,14 +7,13 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-)
-    implements LocalStack<Info> {
+) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
-    ScopeProviderInfoKind scopeProviderInfoKind,
+    Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
   ) {
     for (int index = _list.length - 1; index >= 0; index--) {
       Info info = _list[index];
-      if (info.kind == scopeProviderInfoKind) {
+      if (scopeProviderInfoKinds.contains(info.kind)) {
         return info;
       }
     }
@@ -26,17 +25,20 @@ enum ScopeProviderInfoKind {
   Block,
   BlockExpression,
   Catch,
-  Loop,
   FunctionNode,
   FunctionNodeWithThis,
+  InstanceField,
+  Loop,
+  StaticField,
 }
 
 class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
+  Variable? thisVariable;
 
-  ScopeProviderInfo({required this.kind});
+  new({required this.kind});
 }
 
 abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
@@ -107,7 +109,10 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
 
   Scope _ensureScopeWithThis() {
     ScopeProviderInfo? scopeProviderInfo = _scopeProviderInfoStack
-        .topmostOfKind(ScopeProviderInfoKind.FunctionNodeWithThis);
+        .topmostOfKind(const {
+          ScopeProviderInfoKind.FunctionNodeWithThis,
+          ScopeProviderInfoKind.InstanceField,
+        });
     assert(scopeProviderInfo != null);
     return scopeProviderInfo!.scope ??= // Coverage-ignore(suite): Not run.
     new Scope(
@@ -145,18 +150,17 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   }
 
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   });
 
-  void handleVariablesCapturedByNode(
-    ContextConsumer node,
+  List<VariableContext> computeCapturedVariableContexts(
     List<VariableBase> variables,
   ) {
-    Set<VariableContext> contexts = {
-      for (VariableBase variable in variables) variable.context,
-    };
-    (node.contexts ??= []).addAll(contexts);
+    if (variables.isEmpty) {
+      return [];
+    }
+    return {for (VariableBase variable in variables) variable.context}.toList();
   }
 
   ThisVariable get thisVariable {
@@ -181,7 +185,7 @@ class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
@@ -205,7 +209,7 @@ class CollectorScopeProviderInfo extends ScopeProviderInfo {
   /// case the current scope doesn't contain captured variables yet.
   CollectorScopeProviderInfo? capturedVariableCollector;
 
-  CollectorScopeProviderInfo({required super.kind});
+  new({required super.kind});
 }
 
 class LoopDepthAllocationStrategy
@@ -230,6 +234,8 @@ class LoopDepthAllocationStrategy
       case ScopeProviderInfoKind.Loop:
       case ScopeProviderInfoKind.FunctionNode:
       case ScopeProviderInfoKind.FunctionNodeWithThis:
+      case ScopeProviderInfoKind.InstanceField:
+      case ScopeProviderInfoKind.StaticField:
         return true;
     }
   }
@@ -256,10 +262,13 @@ class LoopDepthAllocationStrategy
 
   @override
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;
+    if (variable is ThisVariable) {
+      currentScope.thisVariable = variable;
+    }
 
     // Delegation happens when the current variable is not uncaptured (that is,
     // it's either captured or assert-captured), and there's a collector to

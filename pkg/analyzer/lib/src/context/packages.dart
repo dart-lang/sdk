@@ -15,8 +15,8 @@ Packages findPackagesFrom(ResourceProvider provider, Resource start) {
   var startFolder = start is Folder ? start : start.parent;
   for (var current in startFolder.withAncestors) {
     var jsonFile = current
-        .getChildAssumingFolder('.dart_tool')
-        .getChildAssumingFile('package_config.json');
+        .getFolder('.dart_tool')
+        .getFile('package_config.json');
     if (jsonFile.exists) {
       return parsePackageConfigJsonFile(provider, jsonFile);
     }

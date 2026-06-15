@@ -15,10 +15,6 @@ void main() {
 
 @reflectiveTest
 class PreferSpreadCollectionsTest extends LintRuleTest {
-  // TODO(srawlins): These tests mostly use a `dynamic` variable, but I don't
-  // think the lint rule is specific to `dynamic` values; it seems odd to
-  // specifically rely on them.
-
   @override
   String get lintRule => LintNames.prefer_spread_collections;
 
@@ -36,53 +32,43 @@ const cc = []..addAll(thangs);
   }
 
   test_listLiteralTarget_conditional() async {
-    await assertDiagnostics(
-      r'''
-dynamic x;
-var y = ['a']..addAll(1 == 2 ? x : []);
-''',
-      [lint(26, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<String> x) {
+  var y = ['a']..[!addAll!](1 == 2 ? x : []);
+}
+''');
   }
 
   test_listLiteralTarget_conditional_constList() async {
-    await assertDiagnostics(
-      r'''
-dynamic x;
-var y = ['a']..addAll(1 == 2 ? x : const []);
-''',
-      [lint(26, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<String> x) {
+  var y = ['a']..[!addAll!](1 == 2 ? x : const []);
+}
+''');
   }
 
   test_listLiteralTarget_identifier() async {
-    await assertDiagnostics(
-      r'''
-dynamic x;
-var y = []..addAll(x);
-''',
-      [lint(23, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<int> x) {
+  var y = <int>[]..[!addAll!](x);
+}
+''');
   }
 
   test_listLiteralTarget_ifNull() async {
-    await assertDiagnostics(
-      r'''
-dynamic x;
-var y = ['a']..addAll(x ?? []);
-''',
-      [lint(26, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<String>? x) {
+  var y = ['a']..[!addAll!](x ?? []);
+}
+''');
   }
 
   test_listLiteralTarget_ifNull_constList() async {
-    await assertDiagnostics(
-      r'''
-dynamic x;
-var y = ['a']..addAll(x ?? const []);
-''',
-      [lint(26, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f(List<String>? x) {
+  var y = ['a']..[!addAll!](x ?? const []);
+}
+''');
   }
 
   test_listLiteralTarget_listLiteral() async {
@@ -93,14 +79,11 @@ var l = ['a']..addAll(['b']);
   }
 
   test_listLiteralTarget_multipleCascades() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> p) {
-  ['a']..addAll(p.map((i) => i.toString()))..addAll(['c']);
+  ['a']..[!addAll!](p.map((i) => i.toString()))..addAll(['c']);
 }
-''',
-      [lint(31, 6)],
-    );
+''');
   }
 
   test_nonCollection() async {

@@ -74,13 +74,12 @@ class MyState extends State<MyWidget> {
   }
 
   test_arrowBody_returnsState_passingArguments() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyState createState() => MyState(1);
+  MyState createState() => [!MyState(1)!];
 }
 
 class MyState extends State<MyWidget> {
@@ -91,19 +90,16 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(119, 10)],
-    );
+''');
   }
 
   test_arrowBody_returnsState_passingArguments_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyState createState() => .new(1);
+  MyState createState() => [!.new(1)!];
 }
 
 class MyState extends State<MyWidget> {
@@ -114,19 +110,16 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(119, 7)],
-    );
+''');
   }
 
   test_arrowBody_returnsState_withCascade() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyState createState() => MyState()..field = 0;
+  MyState createState() => [!MyState()..field = 0!];
 }
 
 class MyState extends State<MyWidget> {
@@ -136,19 +129,16 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(119, 20)],
-    );
+''');
   }
 
   test_arrowBody_returnsState_withCascade_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
-  MyState createState() => .new()..field = 0;
+  MyState createState() => [!.new()..field = 0!];
 }
 
 class MyState extends State<MyWidget> {
@@ -158,21 +148,18 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(119, 17)],
-    );
+''');
   }
 
   test_blockBodyWithSingleStatement_returnsInstanceField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   MyState instance = MyState();
   @override
   MyState createState() {
-    return instance;
+    return [!instance!];
   }
 }
 
@@ -183,9 +170,7 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(161, 8)],
-    );
+''');
   }
 
   test_blockBodyWithSingleStatement_returnsState() async {
@@ -231,14 +216,13 @@ class MyState extends State<MyWidget> {
   }
 
   test_blockBodyWithSingleStatement_returnsState_withCascade() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
   MyState createState() {
-    return MyState()..field = 0;
+    return [!MyState()..field = 0!];
   }
 }
 
@@ -249,20 +233,17 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(129, 20)],
-    );
+''');
   }
 
   test_blockBodyWithSingleStatement_returnsState_withCascade_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
   @override
   MyState createState() {
-    return .new()..field = 0;
+    return [!.new()..field = 0!];
   }
 }
 
@@ -273,22 +254,19 @@ class MyState extends State<MyWidget> {
   bool get mounted => false;
   Widget build(_) => MyWidget();
 }
-''',
-      [lint(129, 17)],
-    );
+''');
   }
 
   test_instantiateTopLevel_returnTopLevel() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyStatefulBad extends StatefulWidget {
   @override
-  MyState createState() {
+  MyState createState() [!{
     global = MyState();
     return global;
-  }
+  }!]
 }
 
 class MyState extends State<MyStatefulBad> {
@@ -300,22 +278,19 @@ class MyState extends State<MyStatefulBad> {
 }
 
 var global = MyState();
-''',
-      [lint(121, 48)],
-    );
+''');
   }
 
   test_instantiateTopLevel_returnTopLevel_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 class MyStatefulBad extends StatefulWidget {
   @override
-  MyState createState() {
+  MyState createState() [!{
     global = .new();
     return global;
-  }
+  }!]
 }
 
 class MyState extends State<MyStatefulBad> {
@@ -327,8 +302,6 @@ class MyState extends State<MyStatefulBad> {
 }
 
 var global = MyState();
-''',
-      [lint(121, 45)],
-    );
+''');
   }
 }

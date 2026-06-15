@@ -5,33 +5,31 @@
 // It is an error to have the `const` keyword on both the header and body
 // part of a declaring constructor.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class const C1(final int x) {
   const this : assert(1 != 2);
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'const' here.
 }
 
 sealed class const C2(final int x) {
   const this : assert(1 != 2);
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'const' here.
 }
 
 extension type const C(int x) {
   const this : assert(1 != 2);
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'const' here.
 }
 
 enum const E1(final int x) {
   one(1);
   const this : assert(x != 2);
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 3, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+  // [cfe] Can't have modifier 'const' here.
 }

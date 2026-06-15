@@ -32,6 +32,9 @@ worlds:
     invalidate:
       - main.dart
       - .dart_tool/package_config.json
+    expectedInvalidatedUri:
+      - "org-dartlang-test:///main.dart"
+      - "package:example/b.dart"
     expectInitializeFromDill: false
     sources:
       .dart_tool/package_config.json: |

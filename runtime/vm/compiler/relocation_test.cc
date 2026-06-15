@@ -179,8 +179,7 @@ struct RelocatorTestHelper {
       }
 
       GrowableArray<ImageWriterCommand> commands;
-      CodeRelocator::Relocate(thread, &raw_codes, &commands,
-                              /*is_vm_isolate=*/false);
+      CodeRelocator::Relocate(thread, &raw_codes, &commands);
 
       uword expected_offset = 0;
       fun(commands, &expected_offset);

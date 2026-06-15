@@ -9,7 +9,9 @@ import "dart:io";
 import 'expectation.dart' show Expectation, ExpectationSet;
 
 TestExpectations readTestExpectations(
-    List<String> statusFilePaths, ExpectationSet expectationSet) {
+  List<String> statusFilePaths,
+  ExpectationSet expectationSet,
+) {
   TestExpectations testExpectations = TestExpectations(expectationSet);
   for (String path in statusFilePaths) {
     readTestExpectationsInto(testExpectations, path);
@@ -18,7 +20,9 @@ TestExpectations readTestExpectations(
 }
 
 void readTestExpectationsInto(
-    TestExpectations expectations, String statusFilePath) {
+  TestExpectations expectations,
+  String statusFilePath,
+) {
   File file = File(statusFilePath);
   for (String line in file.readAsLinesSync()) {
     // Remove comments if any.
@@ -48,7 +52,7 @@ class TestExpectations {
   final ExpectationSet expectationSet;
   final Map<String, Set<Expectation>> _map = {};
 
-  TestExpectations(this.expectationSet);
+  new(this.expectationSet);
 
   void add(String name, List<String> allowedStatus) {
     Set<Expectation> expectations = (_map[name] ??= {});

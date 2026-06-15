@@ -8,10 +8,5 @@ class Configuration {
   final String condition;
   final String importUri;
 
-  Configuration(
-    this.charOffset,
-    this.dottedName,
-    this.condition,
-    this.importUri,
-  );
+  new(this.charOffset, this.dottedName, this.condition, this.importUri);
 }

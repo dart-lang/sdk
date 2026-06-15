@@ -5,7 +5,6 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -34,7 +33,7 @@ void flutterValidator(PubspecValidationContext ctx) {
 
   for (var assetField in assetsField.nodes) {
     if (assetField is YamlScalar) {
-      var entry = assetField.valueOrThrow;
+      Object? entry = assetField.value;
       if (entry is! String) {
         ctx.reportErrorForNode(assetField, diag.assetNotStringOrMap);
         return;
@@ -48,7 +47,7 @@ void flutterValidator(PubspecValidationContext ctx) {
       } else if (pathField is! YamlScalar) {
         ctx.reportErrorForNode(pathField, diag.assetPathNotString);
       } else {
-        var entry = pathField.valueOrThrow;
+        Object? entry = pathField.value;
         if (entry is! String) {
           ctx.reportErrorForNode(pathField, diag.assetNotString);
           return;
@@ -88,7 +87,7 @@ bool _assetExistsAtPath(PubspecValidationContext ctx, String assetPath) {
   }
   for (var child in assetFolder.getChildren()) {
     if (child is Folder) {
-      var innerFile = child.getChildAssumingFile(fileName);
+      var innerFile = child.getFile(fileName);
       if (innerFile.exists) {
         return true;
       }

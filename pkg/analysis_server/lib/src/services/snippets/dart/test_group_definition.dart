@@ -12,7 +12,7 @@ class TestGroupDefinition extends DartSnippetProducer with TestSnippetMixin {
   static const prefix = 'group';
   static const label = 'group';
 
-  TestGroupDefinition(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

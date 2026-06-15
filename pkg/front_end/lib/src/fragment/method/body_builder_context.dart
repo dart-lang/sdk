@@ -11,6 +11,7 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 import 'declaration.dart';
@@ -19,7 +20,7 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   final MethodFragment _fragment;
   final MethodFragmentDeclaration _declaration;
 
-  MethodFragmentBodyBuilderContext(
+  new(
     this._fragment,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,
@@ -58,27 +59,28 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) =>
+  Variable? getTearOffParameter(int index) =>
       _declaration.getTearOffParameter(index);
 
   @override
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
   }) {
     assert(
-      asyncMarker == _fragment.asyncModifier,
+      asyncModifier.kind == _fragment.asyncModifier.kind,
       "Unexpected change in async modifier on $_fragment from "
-      "${_fragment.asyncModifier} to $asyncMarker.",
+      "${_fragment.asyncModifier} to ${asyncModifier.kind}.",
     );
 
     _declaration.registerFunctionBody(
       body: body,
       scope: scopeProviderInfo?.scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
+      thisVariable: scopeProviderInfo?.thisVariable,
     );
   }
 

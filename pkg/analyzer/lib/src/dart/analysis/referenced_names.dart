@@ -109,7 +109,7 @@ class _LocalNameScope {
     ExtensionTypeDeclarationImpl node,
   ) {
     var scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.primaryConstructor.typeParameters);
+    scope.addTypeParameters(node.namePart.typeParameters);
     for (ClassMember member in node.body.members) {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
@@ -160,7 +160,7 @@ class _LocalNameScope {
         case ExtensionDeclaration():
           scope.add(declaration.name);
         case ExtensionTypeDeclaration():
-          scope.add(declaration.primaryConstructor.typeName);
+          scope.add(declaration.namePart.typeName);
         case FunctionDeclaration():
           scope.add(declaration.name);
         case MixinDeclaration():
@@ -183,9 +183,7 @@ class _LocalNameScope {
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       for (var p in parameterList.parameters) {
-        if (p is NormalFormalParameter) {
-          add(p.name);
-        }
+        add(p.name);
       }
     }
   }
@@ -214,6 +212,10 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+  static final RegExp _analyzerExpectedDiagnosticPattern = RegExp(
+    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
+  );
+
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
 
@@ -332,6 +334,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    names.add(node.name.lexeme);
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix case var prefix?) {
       // The parser doesn't know whether the prefix is an actual import prefix
@@ -357,7 +365,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     // Prepare name.
     String name = node.name;
     // Ignore names shadowed by local elements.
-    if (node.isQualified || _isNameExpressionLabel(parent)) {
+    if (node.isQualified) {
       // Cannot be local.
     } else {
       if (localScope.contains(name)) {
@@ -369,6 +377,22 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
     // Do add the name.
     names.add(name);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    var lexeme = node.literal.lexeme;
+    var matches = _analyzerExpectedDiagnosticPattern.allMatches(lexeme);
+    for (var match in matches) {
+      names.add(match.group(1)!);
+    }
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    names.add(node.name.lexeme);
+    super.visitSuperFormalParameter(node);
   }
 
   /// Adds [token] if it is not shadowed by a local element.
@@ -384,13 +408,5 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
 
     names.add(name);
-  }
-
-  static bool _isNameExpressionLabel(AstNode parent) {
-    if (parent is Label) {
-      var parent2 = parent.parent;
-      return parent2 is NamedExpression && parent2.name == parent;
-    }
-    return false;
   }
 }

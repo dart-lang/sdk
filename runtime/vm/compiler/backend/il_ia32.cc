@@ -1673,7 +1673,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register result = locs()->out(0).reg();
     ASSERT(representation() == kTagged);
     ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
-           (class_id() == kTypeArgumentsCid) || (class_id() == kRecordCid));
+           (class_id() == kTypeArgumentsCid) || (class_id() == kClosureCid) ||
+           (class_id() == kRecordCid));
     __ movl(result, element_address);
   }
 }
@@ -2348,10 +2349,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& allocate_array_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(source(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), StubCode::AllocateArray(),
                              UntaggedPcDescriptors::kOther, locs(), deopt_id(),
                              env());
   __ Bind(&done);

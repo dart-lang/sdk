@@ -63,11 +63,11 @@ class A {
 }
 
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 
 augment class A {
-  augment void [!foo!]() {}
+  augment void [!foo!]();
 }
 
 class B extends A {}

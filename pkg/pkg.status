@@ -47,13 +47,17 @@ dart2wasm/*: Slow, Pass # Tests run subprocesses.
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
 dartdev/test/smoke/*: Slow, Pass
+dartpad_worker/test/ci_test: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
 dev_compiler/test/worker/*: Skip # test needs fixes
+dwds/test/integration/*: SkipByDesign # Skip integration tests relying on build_daemon/build_runner.
+dwds_test_common/fixtures/*: SkipByDesign # Skip fixtures relying on build_daemon/build_runner.
 front_end/test/analyze_git_test: Pass, Slow
 front_end/test/bootstrap_test: Pass, Slow
+front_end/test/dart_scope_calculator_test: Slow, Pass
 front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
 front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/test/rasta/*: SkipByDesign # Anything in rasta is input to cfe unit tests and shouldn't be run as tests.
@@ -61,10 +65,10 @@ front_end/test/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
-kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
+vm/test/transformations/protobuf_aware_treeshaker/treeshaker_test: Slow, Pass
 vm/test/transformations/record_use_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
@@ -223,6 +227,7 @@ compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
 compiler/test/deferred/load_mapping_test: Slow, Pass
 compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
+dartpad_worker/test/ci_test: SkipSlow
 vm/test/kernel_front_end_test: SkipSlow
 vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
 
@@ -243,6 +248,8 @@ analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
+dds/test/devtools_server/server_connection_api_test: Slow, Pass
+dds/test/devtools_server/server_connection_vm_service_test: Slow, Pass
 test_runner/test/update_error_cmdline_test: Slow, Pass
 
 [ $runtime != vm ]
@@ -258,14 +265,15 @@ native_stack_traces/test/*: SkipByDesign # Only meant to run on vm
 vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
+[ $system == macos ]
+dartpad_worker/test/ci_test: Skip # Chrome will hang asking for keychain access.
+
 [ $system == windows ]
 front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 frontend_server_client/test/example/vm_client_test: SkipByDesign # Test is incompatible with Windows platform.
 frontend_server_client/test/example/web_client_test: SkipByDesign # Test is incompatible with Windows platform.
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
-vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
-vm_service/test/private_rpcs/dev_fs_weird_char_test: Skip # Windows disallows "\r" in paths
 
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
@@ -309,6 +317,7 @@ analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
 dart_runtime_service/test/sse_client_test: Skip # Chrome not available
+dartpad_worker/test/ci_test: Skip # Chrome not available
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
 dds/test/devtools_server/remote_control_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available

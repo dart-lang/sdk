@@ -22,8 +22,7 @@ const _desc =
     r'If-elements testing for null can be replaced with null-aware elements.';
 
 class UseNullAwareElements extends AnalysisRule {
-  UseNullAwareElements()
-    : super(name: LintNames.use_null_aware_elements, description: _desc);
+  new() : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useNullAwareElements;
@@ -42,7 +41,7 @@ class UseNullAwareElements extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIfElement(IfElement node) {

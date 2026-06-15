@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeferredImportOfExtensionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,16 +21,15 @@ class DeferredImportOfExtensionTest extends PubPackageResolutionTest {
 extension E on C {}
 class C {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart' deferred as foo;
+//     ^^^^^^^^^^
+// [diag.deferredImportOfExtension] Deferred library imports must hide all extension declarations.
 
 void f() {
   foo.C();
 }
-''',
-      [error(diag.deferredImportOfExtension, 7, 10)],
-    );
+''');
   }
 
   Future<void> test_deferredImport_withHiddenExtensions() async {
@@ -37,7 +37,7 @@ void f() {
 extension E on C {}
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart' deferred as foo hide E;
 
 void f() {
@@ -50,7 +50,7 @@ void f() {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart' deferred as foo;
 
 void f() {
@@ -64,7 +64,7 @@ void f() {
 extension E on C {}
 class C {}
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart' deferred as foo show C;
 
 void f() {

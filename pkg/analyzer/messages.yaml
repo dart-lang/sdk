@@ -986,6 +986,7 @@ CompileTimeErrorCode:
       abstract class A {
         int get a;
       }
+
       class B extends A {
         int get a => super.[!a!];
       }
@@ -1164,7 +1165,7 @@ CompileTimeErrorCode:
       import 'a.dart';
       import 'b.dart';
 
-      void f([!C!] c1, [!C!] c2) {}
+      void f(A a, [!C!] c1, [!C!] c2) {}
       ```
 
       #### Common fixes
@@ -1175,7 +1176,7 @@ CompileTimeErrorCode:
       ```dart
       import 'a.dart';
 
-      void f(C c1, C c2) {}
+      void f(A a, C c1, C c2) {}
       ```
 
       If the name is still defined by more than one library, then add a `hide`
@@ -1185,7 +1186,7 @@ CompileTimeErrorCode:
       import 'a.dart' hide C;
       import 'b.dart';
 
-      void f(C c1, C c2) {}
+      void f(A a, C c1, C c2) {}
       ```
 
       If you must be able to reference more than one of these types, then add a
@@ -1196,7 +1197,7 @@ CompileTimeErrorCode:
       import 'a.dart' as a;
       import 'b.dart' as b;
 
-      void f(a.C c1, b.C c2) {}
+      void f(a.A a, a.C c1, b.C c2) {}
       ```
   ambiguousSetOrMapLiteralBoth:
     type: compileTimeError
@@ -1226,8 +1227,11 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
-      union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-          [!{...a, ...b, ...c}!];
+      union(Map<String, String> a, List<String> b, Map<String, String> c) => [!{
+        ...a,
+        ...b,
+        ...c,
+      }!];
       ```
 
       The list `b` can only be spread into a set, and the maps `a` and `c` can
@@ -1241,8 +1245,10 @@ CompileTimeErrorCode:
       what to do about the now unused parameter:
 
       ```dart
-      union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-          {...a, ...c};
+      union(Map<String, String> a, List<String> b, Map<String, String> c) => {
+        ...a,
+        ...c,
+      };
       ```
 
       The second fix is to change the elements of one kind into elements that are
@@ -1250,8 +1256,11 @@ CompileTimeErrorCode:
       of the list as keys that map to themselves:
 
       ```dart
-      union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-          {...a, for (String s in b) s: s, ...c};
+      union(Map<String, String> a, List<String> b, Map<String, String> c) => {
+        ...a,
+        for (String s in b) s: s,
+        ...c,
+      };
       ```
   ambiguousSetOrMapLiteralEither:
     type: compileTimeError
@@ -1334,7 +1343,7 @@ CompileTimeErrorCode:
       Type receiverType: the name of the type of the receiver
       Type parameterType: the name of the declared parameter type
     experiment: anonymous-methods
-    problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' of an anonymous method.
+    problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method.
     correctionMessage: Try removing the parameter type, or make it a supertype of the receiver type.
     hasPublishedDocs: false
   argumentTypeNotAssignable:
@@ -1832,6 +1841,65 @@ CompileTimeErrorCode:
     problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
     correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
     hasPublishedDocs: false
+  augmentationNamedFormalParameterExtra:
+    type: compileTimeError
+    parameters:
+      String name: the name of the formal parameter.
+    experiment: augmentations
+    problemMessage: "The augmentation has a named formal parameter '#name', but the declaration doesn't."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationNamedFormalParameterMissing:
+    type: compileTimeError
+    parameters:
+      String name: the name of the formal parameter.
+    experiment: augmentations
+    problemMessage: "The augmentation is missing the named formal parameter '#name' from the declaration."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationOptionalPositionalFormalParameterCount:
+    type: compileTimeError
+    parameters:
+      int expectedCount: the number of optional positional formal parameters in the declaration.
+      int actualCount: the number of optional positional formal parameters in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation has #actualCount optional positional formal parameters, but the declaration has #expectedCount."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationFormalParameterModifierExtra:
+    type: compileTimeError
+    parameters:
+      String modifier: the lexeme of the modifier.
+    experiment: augmentations
+    problemMessage: "The augmentation has the '#modifier' modifier on this formal parameter, but the declaration doesn't."
+    correctionMessage: "Try removing the '#modifier' modifier, or adding it to the declaration."
+    hasPublishedDocs: false
+  augmentationFormalParameterModifierMissing:
+    type: compileTimeError
+    parameters:
+      String modifier: the lexeme of the modifier.
+    experiment: augmentations
+    problemMessage: "The augmentation is missing the '#modifier' modifier on this formal parameter that the declaration has."
+    correctionMessage: "Try adding the '#modifier' modifier, or removing it from the declaration."
+    hasPublishedDocs: false
+  augmentationFormalParameterTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the type of the formal parameter in the declaration.
+      Type actualType: the type of the formal parameter in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation's formal parameter type '#actualType' must be the same as the declaration's formal parameter type '#expectedType'."
+    correctionMessage: Try changing the augmentation's formal parameter type to match the declaration, or omit the type.
+    hasPublishedDocs: false
+  augmentationPositionalFormalParameterName:
+    type: compileTimeError
+    parameters:
+      String expectedName: the name from a preceding declaration.
+      String actualName: the name in the augmentation.
+    experiment: augmentations
+    problemMessage: "The parameter name '#actualName' must either match the name '#expectedName' from a preceding declaration or be '_'."
+    correctionMessage: "Try changing the name to '#expectedName', or changing it to '_'."
+    hasPublishedDocs: false
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
@@ -1869,6 +1937,75 @@ CompileTimeErrorCode:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
+  augmentationWithoutGetterDeclaration:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+    sharedName: augmentationWithoutDeclaration
+    experiment: augmentations
+    problemMessage: "This augmentation induces a getter, but no getter declaration named '#name' exists to augment."
+    correctionMessage: Try changing the augmentation to match an existing getter declaration.
+    hasPublishedDocs: false
+  augmentationWithoutSetterDeclaration:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+    sharedName: augmentationWithoutDeclaration
+    experiment: augmentations
+    problemMessage: "This augmentation induces a setter, but no setter declaration named '#name' exists to augment."
+    correctionMessage: Try changing the augmentation to match an existing setter declaration.
+    hasPublishedDocs: false
+  augmentationOfMixinApplicationClass:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Mixin application classes can't be augmented."
+    correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
+    hasPublishedDocs: false
+  augmentationRequiredPositionalFormalParameterCount:
+    type: compileTimeError
+    parameters:
+      int expectedCount: the number of required positional formal parameters in the declaration.
+      int actualCount: the number of required positional formal parameters in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation has #actualCount required positional formal parameters, but the declaration has #expectedCount."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationInducedGetterReturnTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the return type of the getter being augmented
+      Type actualType: the return type of the induced getter
+    sharedName: augmentationReturnTypeMismatch
+    experiment: augmentations
+    problemMessage: "The getter induced by this augmentation has return type '#actualType', but the getter being augmented has return type '#expectedType'."
+    correctionMessage: Try changing the augmentation's type to match the getter being augmented.
+    hasPublishedDocs: false
+  augmentationInducedGetterAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The getter induced by this augmentation is complete, but the getter being augmented is already complete."
+    correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
+    hasPublishedDocs: false
+  augmentationInducedSetterAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The setter induced by this augmentation is complete, but the setter being augmented is already complete."
+    correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
+    hasPublishedDocs: false
+  augmentationReturnTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the return type of the declaration
+      Type actualType: the return type of the augmentation
+    experiment: augmentations
+    problemMessage: "The augmentation's return type '#actualType' must be the same as the introductory declaration's return type '#expectedType'."
+    correctionMessage: Try changing the augmentation's return type to match the declaration.
+    hasPublishedDocs: false
   augmentedExpressionIsNotSetter:
     type: compileTimeError
     parameters: none
@@ -1890,6 +2027,13 @@ CompileTimeErrorCode:
     experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.
+    hasPublishedDocs: false
+  augmentsConstantVariable:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Const variables can't be augmented."
+    correctionMessage: "Try removing the augmentation, or changing the const variable to a final variable."
     hasPublishedDocs: false
   awaitInLateLocalVariableInitializer:
     type: compileTimeError
@@ -2038,6 +2182,7 @@ CompileTimeErrorCode:
 
       ```dart
       class B implements C {}
+
       class C {}
       ```
 
@@ -2153,7 +2298,8 @@ CompileTimeErrorCode:
       %language=2.18
       void f(int i) {
         switch (i) {
-          l: case 0:
+          l:
+          case 0:
             break;
           case 1:
             break [!l!];
@@ -2184,7 +2330,8 @@ CompileTimeErrorCode:
       %language=2.18
       void f(int i) {
         switch (i) {
-          l: case 0:
+          l:
+          case 0:
             break;
           case 1:
             continue l;
@@ -2210,7 +2357,8 @@ CompileTimeErrorCode:
       as a type because it's a built-in identifier:
 
       ```dart
-      [!import!]<int> x;
+      %ignore=undefined_class
+      [!import!]<int> x = [];
       ```
 
       #### Common fixes
@@ -2218,7 +2366,7 @@ CompileTimeErrorCode:
       Replace the built-in identifier with the name of a valid type:
 
       ```dart
-      List<int> x;
+      List<int> x = [];
       ```
   builtInIdentifierAsExtensionName:
     type: compileTimeError
@@ -2542,6 +2690,7 @@ CompileTimeErrorCode:
 
       ```dart
       class M {}
+
       class C with [!M!] {}
       ```
 
@@ -2551,6 +2700,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M {}
+
       class C with M {}
       ```
 
@@ -2558,6 +2708,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin class M {}
+
       class C with M {}
       ```
   classUsedAsMixinDeclaresGenerativeConstructor:
@@ -2574,8 +2725,8 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because the class `A`, which
-      defines a generative constructor, is being used as a mixin:
+      The following code produces the diagnostic because class `A`
+      defines a generative constructor and is used as a mixin:
 
       ```dart
       //@dart=2.19
@@ -2591,8 +2742,7 @@ CompileTimeErrorCode:
       If it's possible to convert the class to a mixin, then do so:
 
       ```dart
-      mixin A {
-      }
+      mixin A {}
 
       class B with A {}
       ```
@@ -2602,8 +2752,7 @@ CompileTimeErrorCode:
 
       ```dart
       //@dart=2.19
-      class A {
-      }
+      class A {}
 
       class B with A {}
       ```
@@ -2662,6 +2811,7 @@ CompileTimeErrorCode:
       isn't marked as being `const`:
 
       ```dart
+      %language=3.10
       enum E {
         e;
 
@@ -3067,8 +3217,11 @@ CompileTimeErrorCode:
 
       ```dart
       class I<T> {}
+
       class A implements I<int> {}
+
       class B implements I<String> {}
+
       class [!C!] extends A implements B {}
       ```
 
@@ -3080,8 +3233,11 @@ CompileTimeErrorCode:
 
       ```dart
       class I<T> {}
+
       class A<S> implements I<S> {}
+
       class B implements I<String> {}
+
       class C extends A<String> implements B {}
       ```
   conflictingInheritedMethodAndSetter:
@@ -3351,6 +3507,7 @@ CompileTimeErrorCode:
 
       ```dart
       String x = '3';
+
       class C {
         final String s = x;
         [!const!] C();
@@ -3374,6 +3531,7 @@ CompileTimeErrorCode:
 
       ```dart
       String x = '3';
+
       class C {
         final String s = x;
         C();
@@ -3562,7 +3720,7 @@ CompileTimeErrorCode:
       ```dart
       import 'dart:convert' deferred as convert;
 
-      const json2 = [!convert.JsonCodec()!];
+      const json2 = [!convert.JsonCodec!]();
       ```
 
       #### Common fixes
@@ -3864,7 +4022,7 @@ CompileTimeErrorCode:
         bool operator ==(Object other) => true;
       }
 
-      const map = {[!C()!] : 0};
+      const map = {[!C()!]: 0};
       ```
 
       The following code produces this diagnostic because the constant map
@@ -3878,7 +4036,7 @@ CompileTimeErrorCode:
         int get hashCode => 3;
       }
 
-      const map = {[!C()!] : 0};
+      const map = {[!C()!]: 0};
       ```
 
       #### Common fixes
@@ -3891,7 +4049,7 @@ CompileTimeErrorCode:
         const C();
       }
 
-      const map = {C() : 0};
+      const map = {C(): 0};
       ```
 
       If you can't remove the implementation of `==` and `hashCode` from the
@@ -3904,7 +4062,7 @@ CompileTimeErrorCode:
         bool operator ==(Object other) => true;
       }
 
-      final map = {C() : 0};
+      final map = {C(): 0};
       ```
   constNotInitialized:
     type: compileTimeError
@@ -4073,6 +4231,13 @@ CompileTimeErrorCode:
     problemMessage: "Type parameters can't be used in a constant expression."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: false
+  constantVariableAugmentation:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Variable augmentations can't be const."
+    correctionMessage: "Try replacing 'const' with 'final'."
+    hasPublishedDocs: false
   constWithNonConst:
     type: compileTimeError
     parameters: none
@@ -4140,8 +4305,10 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int i;
+
         const C(this.i);
       }
+
       C f(int i) => const C([!i!]);
       ```
 
@@ -4153,8 +4320,10 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int i;
+
         const C(this.i);
       }
+
       C f(int i) => C(i);
       ```
   constWithTypeParameters:
@@ -4309,7 +4478,8 @@ CompileTimeErrorCode:
 
       ```dart
       void f(int i) {
-        l: switch (i) {
+        l:
+        switch (i) {
           case 0:
             [!continue l;!]
         }
@@ -4387,6 +4557,14 @@ CompileTimeErrorCode:
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
+  constructorAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete."
+    correctionMessage: "Try removing the body, initializers, or initializing formal or super formal parameters from the augmentation, or removing the body, initializers, or initializing formal or super formal parameters from the preceding declaration."
+    hasPublishedDocs: false
   defaultListConstructor:
     type: compileTimeError
     parameters: none
@@ -4479,7 +4657,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-       factory A(int x) = B;
+        factory A(int x) = B;
       }
 
       class B implements A {
@@ -4525,8 +4703,8 @@ CompileTimeErrorCode:
   deferredImportOfExtension:
     type: compileTimeError
     parameters: none
-    problemMessage: Imports of deferred libraries must hide all extensions.
-    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extensions.
+    problemMessage: Deferred library imports must hide all extension declarations.
+    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extension declarations.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -4710,7 +4888,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b}
+      enum E { a, b }
       ```
 
       #### Common fixes
@@ -4724,7 +4902,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b}
+      enum E { a, b }
       ```
 
       If you don't want to add a context type, then specify the name of the
@@ -4736,7 +4914,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b}
+      enum E { a, b }
       ```
   dotShorthandUndefinedGetter:
     type: compileTimeError
@@ -4764,7 +4942,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b}
+      enum E { a, b }
       ```
 
       #### Common fixes
@@ -4778,7 +4956,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b, c}
+      enum E { a, b, c }
       ```
 
       If the name is not correct, then replace the name with the name of an
@@ -4790,7 +4968,7 @@ CompileTimeErrorCode:
         print(e);
       }
 
-      enum E {a, b}
+      enum E { a, b }
       ```
   dotShorthandUndefinedInvocation:
     type: compileTimeError
@@ -4988,6 +5166,69 @@ CompileTimeErrorCode:
         C(this.f) {}
       }
       ```
+  functionAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The augmentation can't provide a body because the function or member is already complete."
+    correctionMessage: "Try removing the body from the augmentation, or removing the body from the preceding declaration."
+    hasPublishedDocs: false
+  functionNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the function, method, getter, or setter
+    experiment: augmentations
+    problemMessage: "The function or member '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding a body to the introductory declaration, or providing an augmentation with a body."
+    hasPublishedDocs: false
+  inducedGetterWithoutBody:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the getter
+    experiment: augmentations
+    problemMessage: "The getter induced by '#name' must have a body."
+    correctionMessage: "Try removing 'abstract' and adding an initializer."
+    hasPublishedDocs: false
+  inducedSetterWithoutBody:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the setter
+    experiment: augmentations
+    problemMessage: "The setter induced by '#name' must have a body."
+    correctionMessage: "Try removing 'abstract' and adding an initializer."
+    hasPublishedDocs: false
+  inducedGetterNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the getter
+    experiment: augmentations
+    problemMessage: "The getter induced by '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding an initializer or providing an augmentation with a getter body."
+    hasPublishedDocs: false
+  inducedSetterNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the setter
+    experiment: augmentations
+    problemMessage: "The setter induced by '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding an initializer or providing an augmentation with a setter body."
+    hasPublishedDocs: false
+  factoryNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the factory constructor
+    experiment: augmentations
+    problemMessage: "The factory constructor '#name' must have a body or redirection after all augmentations are applied."
+    correctionMessage: "Try adding a body or redirection to the introductory declaration, or providing an augmentation with a body or redirection."
+    hasPublishedDocs: false
+  defaultValueAlreadySpecifiedInAugmentationChain:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "The default value for this optional parameter was already specified in the augmentation chain."
+    correctionMessage: "Try removing all but one of the default values."
+    hasPublishedDocs: false
   duplicateNamedArgument:
     type: compileTimeError
     parameters:
@@ -5165,6 +5406,7 @@ CompileTimeErrorCode:
             return;
         }
       }
+
       class C {
         int? f;
       }
@@ -5344,9 +5586,7 @@ CompileTimeErrorCode:
       the same name as the enclosing enum `E`:
 
       ```dart
-      enum E {
-        [!E!]
-      }
+      enum E { [!E!] }
       ```
 
       #### Common fixes
@@ -5354,17 +5594,13 @@ CompileTimeErrorCode:
       If the name of the enum is correct, then rename the constant:
 
       ```dart
-      enum E {
-        e
-      }
+      enum E { e }
       ```
 
       If the name of the constant is correct, then rename the enum:
 
       ```dart
-      enum F {
-        E
-      }
+      enum F { E }
       ```
   enumConstantWithNonConstConstructor:
     type: compileTimeError
@@ -5436,9 +5672,7 @@ CompileTimeErrorCode:
         int x = 0;
       }
 
-      enum E with [!M!] {
-        a
-      }
+      enum E with [!M!] { a }
       ```
 
       #### Common fixes
@@ -5451,17 +5685,13 @@ CompileTimeErrorCode:
         int get x => 0;
       }
 
-      enum E with M {
-        a
-      }
+      enum E with M { a }
       ```
 
       If you don't need to apply the mixin, then remove it:
 
       ```dart
-      enum E {
-        a
-      }
+      enum E { a }
       ```
   enumWithAbstractMember:
     type: compileTimeError
@@ -5521,9 +5751,7 @@ CompileTimeErrorCode:
       declaration that has the name `values`:
 
       ```dart
-      enum [!values!] {
-        c
-      }
+      enum [!values!] { c }
       ```
 
       #### Common fixes
@@ -5826,7 +6054,8 @@ CompileTimeErrorCode:
       internal library:
 
       ```dart
-      export [!'dart:_interceptors'!];
+      %ignore=uri_does_not_exist
+      [!export 'dart:_interceptors';!]
       ```
 
       #### Common fixes
@@ -6092,9 +6321,8 @@ CompileTimeErrorCode:
       field:
 
       ```dart
-      %language=2.9
       extension E on String {
-        String [!s!];
+        String [!s!] = '';
       }
       ```
 
@@ -6106,8 +6334,6 @@ CompileTimeErrorCode:
       ```dart
       extension E on String {
         String get s => '';
-
-        void s(String value) => print(s);
       }
       ```
 
@@ -6124,7 +6350,7 @@ CompileTimeErrorCode:
       using a getter and setter pair backed by a static `Expando`:
 
       ```dart
-      extension E on SomeType {
+      extension E on String {
         static final _s = Expando<String>();
 
         String get s => _s[this] ?? '';
@@ -6331,6 +6557,7 @@ CompileTimeErrorCode:
       extension E on int {
         void m() {}
       }
+
       f() {
         [!E!](3)..m();
       }
@@ -6344,6 +6571,7 @@ CompileTimeErrorCode:
       extension E on int {
         void m() {}
       }
+
       f() {
         E(3).m();
       }
@@ -6832,6 +7060,7 @@ CompileTimeErrorCode:
       extension type `E` is abstract:
 
       ```dart
+      %language=3.5
       extension type E(String s) {
         [!void m();!]
       }
@@ -7842,6 +8071,7 @@ CompileTimeErrorCode:
       `num` isn't a subtype of `int`:
 
       ```dart
+      // @dart = 3.8
       class C {
         num get [!x!] => 0;
 
@@ -8151,6 +8381,7 @@ CompileTimeErrorCode:
 
       ```dart
       var x;
+
       class C implements [!x!] {}
       ```
 
@@ -8187,6 +8418,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B implements A, [!A!] {}
       ```
 
@@ -8196,6 +8428,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B implements A {}
       ```
   implementsSuperClass:
@@ -8251,6 +8484,13 @@ CompileTimeErrorCode:
 
       class B implements A {}
       ```
+  implementsSuperClassConstraint:
+    type: compileTimeError
+    parameters:
+      Element superElement: the class that appears in both the "on" and "implements" clauses
+    problemMessage: "'#superElement' can't be used in both the 'on' and 'implements' clauses."
+    correctionMessage: Try removing the type from the 'implements' clause.
+    hasPublishedDocs: false
   implicitThisReferenceInInitializer:
     type: compileTimeError
     parameters:
@@ -8410,6 +8650,7 @@ CompileTimeErrorCode:
       internal library:
 
       ```dart
+      %ignore=uri_does_not_exist
       import [!'dart:_interceptors'!];
       ```
 
@@ -8493,8 +8734,7 @@ CompileTimeErrorCode:
         void m({int? b}) {}
       }
 
-      class [!C!] extends A implements B {
-      }
+      class [!C!] extends A implements B {}
       ```
 
       #### Common fixes
@@ -8727,7 +8967,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         static int? a;
-        C([!this.a!]);
+        C([!this!].a);
       }
       ```
 
@@ -9037,7 +9277,7 @@ CompileTimeErrorCode:
 
       ```dart
       // @dart = 2.16
-      enum E {a}
+      enum E { a }
 
       var e = [!E!]();
       ```
@@ -9049,7 +9289,7 @@ CompileTimeErrorCode:
 
       ```dart
       // @dart = 2.16
-      enum E {a}
+      enum E { a }
 
       var e = E.a;
       ```
@@ -9200,16 +9440,14 @@ CompileTimeErrorCode:
       var v = 0;
 
       [!@v!]
-      void f() {
-      }
+      void f() {}
       ```
 
       The following code produces this diagnostic because `f` isn't a variable:
 
       ```dart
       [!@f!]
-      void f() {
-      }
+      void f() {}
       ```
 
       The following code produces this diagnostic because `f` isn't a
@@ -9217,8 +9455,7 @@ CompileTimeErrorCode:
 
       ```dart
       [!@f()!]
-      void f() {
-      }
+      void f() {}
       ```
 
       The following code produces this diagnostic because `g` is a getter:
@@ -9237,8 +9474,7 @@ CompileTimeErrorCode:
       const v = 0;
 
       @v
-      void f() {
-      }
+      void f() {}
       ```
 
       If the annotation isn't referencing a variable, then remove it:
@@ -9246,8 +9482,7 @@ CompileTimeErrorCode:
       ```dart
       int v = 0;
 
-      void f() {
-      }
+      void f() {}
       ```
   invalidAnnotationConstantValueFromDeferredLibrary:
     type: compileTimeError
@@ -9280,7 +9515,7 @@ CompileTimeErrorCode:
       }
 
       @C(math.[!pi!])
-      void f () {}
+      void f() {}
       ```
 
       #### Common fixes
@@ -9296,7 +9531,7 @@ CompileTimeErrorCode:
       }
 
       @C(math.pi)
-      void f () {}
+      void f() {}
       ```
 
       If the import is required to be deferred and there's another constant that
@@ -10044,7 +10279,8 @@ CompileTimeErrorCode:
 
       ```dart
       enum E {
-        a(0), b(2);
+        a(0),
+        b(2);
 
         const E(int x);
       }
@@ -10566,7 +10802,8 @@ CompileTimeErrorCode:
 
       ```dart
       void f() {
-        loop: for (int i = 0; i < 10; i++) {
+        loop:
+        for (int i = 0; i < 10; i++) {
           for (int j = 0; j < 10; j++) {
             if (j != 0) {
               break loop;
@@ -10886,7 +11123,7 @@ CompileTimeErrorCode:
       entry even though it's a set literal:
 
       ```dart
-      var collection = <String>{[!'a' : 'b'!]};
+      var collection = <String>{[!'a': 'b'!]};
       ```
 
       #### Common fixes
@@ -10896,7 +11133,7 @@ CompileTimeErrorCode:
       another type argument:
 
       ```dart
-      var collection = <String, String>{'a' : 'b'};
+      var collection = <String, String>{'a': 'b'};
       ```
 
       In other cases, you might need to change the explicit type from `Set` to
@@ -10936,7 +11173,7 @@ CompileTimeErrorCode:
       the keys of the map are required to be `String`s:
 
       ```dart
-      var m = <String, String>{[!2!] : 'a'};
+      var m = <String, String>{[!2!]: 'a'};
       ```
 
       #### Common fixes
@@ -10945,13 +11182,13 @@ CompileTimeErrorCode:
       type:
 
       ```dart
-      var m = <String, String>{'2' : 'a'};
+      var m = <String, String>{'2': 'a'};
       ```
 
       If the type of the key is correct, then change the key type of the map:
 
       ```dart
-      var m = <int, String>{2 : 'a'};
+      var m = <int, String>{2: 'a'};
       ```
   mapValueTypeNotAssignableNullability:
     type: compileTimeError
@@ -10981,7 +11218,7 @@ CompileTimeErrorCode:
       the values of the map are required to be `String`s:
 
       ```dart
-      var m = <String, String>{'a' : [!2!]};
+      var m = <String, String>{'a': [!2!]};
       ```
 
       #### Common fixes
@@ -10990,13 +11227,13 @@ CompileTimeErrorCode:
       correct type:
 
       ```dart
-      var m = <String, String>{'a' : '2'};
+      var m = <String, String>{'a': '2'};
       ```
 
       If the type of the value is correct, then change the value type of the map:
 
       ```dart
-      var m = <String, int>{'a' : 2};
+      var m = <String, int>{'a': 2};
       ```
   missingConstInListLiteral:
     type: compileTimeError
@@ -11582,6 +11819,96 @@ CompileTimeErrorCode:
 
       Depending on the members of the subclass this might require adding an `on`
       clause to the mixin.
+  mixinClassDeclarationWithClause:
+    type: compileTimeError
+    parameters:
+      String name: the name of the mixin class
+    problemMessage: "The class '#name' can't be declared a mixin because it has a 'with' clause."
+    correctionMessage: Try removing the 'with' clause or removing the 'mixin' modifier from the class.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class with the `mixin`
+      modifier has a `with` clause. A mixin class declaration cannot have a
+      `with` clause because that implies it extends a class other than `Object`.
+
+      #### Example
+
+      The following code produces this diagnostic because the `mixin class` `B`
+      has a `with` clause:
+
+      ```dart
+      mixin M {}
+
+      mixin class B [!with M!] {}
+      ```
+
+      #### Common fixes
+
+      If you want to use the class as a mixin, remove the `with` clause:
+
+      ```dart
+      mixin M {}
+
+      mixin class B {}
+      ```
+
+      If you need the class to have a `with` clause, then remove the `mixin`
+      modifier:
+
+      ```dart
+      mixin M {}
+
+      class B with M {}
+      ```
+  mixinModifierMixinApplicationClassWithMultipleMixins:
+    type: compileTimeError
+    parameters:
+      String name: the name of the mixin class
+    problemMessage: "The mixin application class '#name' can only have a single mixin."
+    correctionMessage: Try removing all but one mixin.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a mixin application class
+      with the `mixin` modifier has more than one mixin. A mixin class
+      application can only have a single mixin.
+
+      #### Example
+
+      The following code produces this diagnostic because the `mixin class C`
+      has multiple mixins:
+
+      ```dart
+      mixin M1 {}
+
+      mixin M2 {}
+
+      mixin class C = Object [!with M1, M2!];
+      ```
+
+      #### Common fixes
+
+      If you need to use multiple mixins, remove the `mixin` modifier from the
+      mixin application class:
+
+      ```dart
+      mixin M1 {}
+
+      mixin M2 {}
+
+      class C = Object with M1, M2;
+      ```
+
+      If you need the class to be a `mixin class`, then only use a single mixin:
+
+      ```dart
+      mixin M1 {}
+
+      mixin class C = Object with M1;
+      ```
   mixinClassDeclaresConstructor:
     type: compileTimeError
     parameters:
@@ -11684,8 +12011,8 @@ CompileTimeErrorCode:
         A() {}
       }
 
-      mixin class AM { // A separate mixin for mixing in behavior
-      }
+      // A separate mixin for mixing in behavior
+      mixin class AM {}
       ```
   mixinInheritsFromNotObject:
     type: compileTimeError
@@ -12350,8 +12677,7 @@ CompileTimeErrorCode:
 
       ```dart
       [!@C()!]
-      void f() {
-      }
+      void f() {}
 
       class C {
         C();
@@ -12365,8 +12691,7 @@ CompileTimeErrorCode:
 
       ```dart
       @C()
-      void f() {
-      }
+      void f() {}
 
       class C {
         const C();
@@ -12665,7 +12990,7 @@ CompileTimeErrorCode:
 
       ```dart
       bool notConst = true;
-      var map = const <int, int>{if ([!notConst!]) 1 : 2};
+      var map = const <int, int>{if ([!notConst!]) 1: 2};
       ```
 
       #### Common fixes
@@ -12684,7 +13009,7 @@ CompileTimeErrorCode:
 
       ```dart
       bool notConst = true;
-      var map = <int, int>{if (notConst) 1 : 2};
+      var map = <int, int>{if (notConst) 1: 2};
       ```
   nonConstantMapKey:
     type: compileTimeError
@@ -12945,9 +13270,9 @@ CompileTimeErrorCode:
       enum E { one, two, three }
 
       String f(E e) => [!switch!] (e) {
-          E.one => 'one',
-          E.two => 'two',
-        };
+        E.one => 'one',
+        E.two => 'two',
+      };
       ```
 
       #### Common fixes
@@ -12959,10 +13284,10 @@ CompileTimeErrorCode:
       enum E { one, two, three }
 
       String f(E e) => switch (e) {
-          E.one => 'one',
-          E.two => 'two',
-          E.three => 'three',
-        };
+        E.one => 'one',
+        E.two => 'two',
+        E.three => 'three',
+      };
       ```
 
       If the missing values don't need to be matched, then add a wildcard
@@ -12972,10 +13297,10 @@ CompileTimeErrorCode:
       enum E { one, two, three }
 
       String f(E e) => switch (e) {
-          E.one => 'one',
-          E.two => 'two',
-          _ => 'unknown',
-        };
+        E.one => 'one',
+        E.two => 'two',
+        _ => 'unknown',
+      };
       ```
 
       Be aware that a wildcard pattern will handle any values added to the type
@@ -13108,9 +13433,7 @@ CompileTimeErrorCode:
       If the field can be removed, then remove it:
 
       ```dart
-      enum E {
-        c
-      }
+      enum E { c }
       ```
   nonGenerativeConstructor:
     type: compileTimeError
@@ -13188,6 +13511,7 @@ CompileTimeErrorCode:
       ```dart
       class A {
         factory A() => throw 0;
+
         A.named();
       }
 
@@ -13202,10 +13526,11 @@ CompileTimeErrorCode:
       ```dart
       class A {
         A();
+
         A.named();
       }
 
-      class B extends A { }
+      class B extends A {}
       ```
 
       If the unnamed constructor can't be a generative constructor and there are
@@ -13215,6 +13540,7 @@ CompileTimeErrorCode:
       ```dart
       class A {
         factory A() => throw 0;
+
         A.named();
       }
 
@@ -13229,6 +13555,7 @@ CompileTimeErrorCode:
       ```dart
       class A {
         factory A() => throw 0;
+
         A.named();
       }
 
@@ -13253,10 +13580,12 @@ CompileTimeErrorCode:
       constructor is marked with `async`:
 
       ```dart
+      %ignore=invalid_modifier_on_constructor
       class C {
         factory C() [!async!] {
           return C._();
         }
+
         C._();
       }
       ```
@@ -13271,6 +13600,7 @@ CompileTimeErrorCode:
         factory C() {
           return C._();
         }
+
         C._();
       }
       ```
@@ -13283,6 +13613,7 @@ CompileTimeErrorCode:
         static Future<C> m() async {
           return C._();
         }
+
         C._();
       }
       ```
@@ -13852,7 +14183,8 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `l` isn't a `Map`:
 
       ```dart
-      var l =  <String>['a', 'b'];
+      var l = <String>['a', 'b'];
+
       var m = <int, String>{...[!l!]};
       ```
 
@@ -13862,7 +14194,8 @@ CompileTimeErrorCode:
       map:
 
       ```dart
-      var l =  <String>['a', 'b'];
+      var l = <String>['a', 'b'];
+
       var m = <int, String>{...l.asMap()};
       ```
   notNullAwareNullSpread:
@@ -14059,7 +14392,7 @@ CompileTimeErrorCode:
   nullableTypeInExtendsClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class can't extend a nullable type."
+    problemMessage: "Nullable types can't be extended."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
@@ -14083,6 +14416,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B extends [!A?!] {}
       ```
 
@@ -14092,18 +14426,19 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B extends A {}
       ```
   nullableTypeInImplementsClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class, mixin, or extension type can't implement a nullable type."
+    problemMessage: "Nullable types can't be implemented."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class, mixin, or
+      The analyzer produces this diagnostic when a class, enum, mixin, or
       extension type declaration has an `implements` clause, and an
       interface is followed by a `?`.
 
@@ -14122,6 +14457,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B implements [!A?!] {}
       ```
 
@@ -14131,12 +14467,13 @@ CompileTimeErrorCode:
 
       ```dart
       class A {}
+
       class B implements A {}
       ```
   nullableTypeInOnClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A mixin can't have a nullable type as a superclass constraint."
+    problemMessage: "Nullable types can't be used as a superclass constraint."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
@@ -14161,6 +14498,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {}
+
       mixin M on [!C?!] {}
       ```
 
@@ -14170,12 +14508,13 @@ CompileTimeErrorCode:
 
       ```dart
       class C {}
+
       mixin M on C {}
       ```
   nullableTypeInWithClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class or mixin can't mix in a nullable type."
+    problemMessage: "Nullable types can't be mixed in."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
@@ -14198,6 +14537,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M {}
+
       class C with [!M?!] {}
       ```
 
@@ -14207,6 +14547,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M {}
+
       class C with M {}
       ```
   objectCannotExtendAnotherClass:
@@ -14237,7 +14578,7 @@ CompileTimeErrorCode:
       before the default value of the optional parameter `i`:
 
       ```dart
-      void f({int i [!:!] 0}) {}
+      void f({int i[!:!] 0}) {}
       ```
 
       #### Common fixes
@@ -14266,10 +14607,10 @@ CompileTimeErrorCode:
       in the superclass constraints for `M`:
 
       ```dart
-      mixin M on A, [!A!] {
-      }
+      mixin M on A, [!A!] {}
 
       class A {}
+
       class B {}
       ```
 
@@ -14279,20 +14620,20 @@ CompileTimeErrorCode:
       replace one of the occurrences with the other type:
 
       ```dart
-      mixin M on A, B {
-      }
+      mixin M on A, B {}
 
       class A {}
+
       class B {}
       ```
 
       If no other type was intended, then remove the repeated type name:
 
       ```dart
-      mixin M on A {
-      }
+      mixin M on A {}
 
       class A {}
+
       class B {}
       ```
   optionalParameterInOperator:
@@ -14411,6 +14752,7 @@ CompileTimeErrorCode:
       directive with an import directive:
 
       ```dart
+      %ignore=unused_import
       import 'a.dart';
       ```
   partOfUnnamedLibrary:
@@ -14892,9 +15234,10 @@ CompileTimeErrorCode:
       import prefix and the name of a function:
 
       ```dart
-      import 'dart:math' as f;
+      %ignore=undefined_method,unused_import
+      import 'dart:math' as [!f!];
 
-      int [!f!]() => f.min(0, 1);
+      int f() => f.min(0, 1);
       ```
 
       #### Common fixes
@@ -15922,6 +16265,7 @@ CompileTimeErrorCode:
 
       ```dart
       %language=2.9
+      %ignore=not_assigned_potentially_non_nullable_local_variable
       void f() {
         print([!i!]);
         int i = 5;
@@ -16634,6 +16978,7 @@ CompileTimeErrorCode:
 
       ```dart
       base class A {}
+
       class [!B!] extends A {}
       ```
 
@@ -16643,6 +16988,7 @@ CompileTimeErrorCode:
 
       ```dart
       base class A {}
+
       final class B extends A {}
       ```
   subtypeOfFinalIsNotBaseFinalOrSealed:
@@ -18025,6 +18371,7 @@ CompileTimeErrorCode:
       class A {
         A.n();
       }
+
       class B extends A {
         B() : [!super()!];
       }
@@ -18037,6 +18384,7 @@ CompileTimeErrorCode:
       class A {
         A.n();
       }
+
       class B extends A {
         B() : [!super.m()!];
       }
@@ -18051,6 +18399,7 @@ CompileTimeErrorCode:
       class A {
         A.n();
       }
+
       class B extends A {
         B() : super.n();
       }
@@ -18064,6 +18413,7 @@ CompileTimeErrorCode:
         A.m();
         A.n();
       }
+
       class B extends A {
         B() : super.m();
       }
@@ -18097,7 +18447,7 @@ CompileTimeErrorCode:
       constant named `c`:
 
       ```dart
-      enum E {a, b}
+      enum E { a, b }
 
       var e = E.[!c!];
       ```
@@ -18108,7 +18458,7 @@ CompileTimeErrorCode:
       enum:
 
       ```dart
-      enum E {a, b, c}
+      enum E { a, b, c }
 
       var e = E.c;
       ```
@@ -18117,7 +18467,7 @@ CompileTimeErrorCode:
       an existing constant:
 
       ```dart
-      enum E {a, b}
+      enum E { a, b }
 
       var e = E.b;
       ```
@@ -18704,7 +19054,10 @@ CompileTimeErrorCode:
       `async` keyword:
 
       ```dart
-      void f(p) { [!await!] p; }
+      %ignore=unused_local_variable
+      void f(p) {
+        [!await!] p;
+      }
       ```
 
       #### Common fixes
@@ -18712,7 +19065,9 @@ CompileTimeErrorCode:
       Add the keyword `async` to the function body:
 
       ```dart
-      void f(p) async { await p; }
+      void f(p) async {
+        await p;
+      }
       ```
   undefinedMethod:
     type: compileTimeError
@@ -19328,6 +19683,7 @@ CompileTimeErrorCode:
       ```dart
       enum E {
         v;
+
         void [!values!]() {}
       }
       ```
@@ -19339,6 +19695,7 @@ CompileTimeErrorCode:
       ```dart
       enum E {
         v;
+
         void getValues() {}
       }
       ```
@@ -19529,6 +19886,7 @@ CompileTimeErrorCode:
       class C<T> {
         C.named();
       }
+
       C f() => C.named[!<String>!]();
       ```
 
@@ -19541,6 +19899,7 @@ CompileTimeErrorCode:
       class C<T> {
         C.named();
       }
+
       C f() => C<String>.named();
       ```
 
@@ -19551,6 +19910,7 @@ CompileTimeErrorCode:
       class C<T> {
         C.named();
       }
+
       C f() => C.named();
       ```
   wrongNumberOfTypeArgumentsDotShorthandConstructor:
@@ -19585,9 +19945,7 @@ CompileTimeErrorCode:
       two type parameters:
 
       ```dart
-      enum E<T, U> {
-        c[!<int>!]()
-      }
+      enum E<T, U> { c[!<int>!]() }
       ```
 
       #### Common fixes
@@ -19596,18 +19954,14 @@ CompileTimeErrorCode:
       type arguments to match the number of type parameters:
 
       ```dart
-      enum E<T, U> {
-        c<int, String>()
-      }
+      enum E<T, U> { c<int, String>() }
       ```
 
       If the number of type arguments is correct, then change the number of type
       parameters to match the number of type arguments:
 
       ```dart
-      enum E<T> {
-        c<int>()
-      }
+      enum E<T> { c<int>() }
       ```
   wrongNumberOfTypeArgumentsExtension:
     type: compileTimeError
@@ -19782,8 +20136,9 @@ CompileTimeErrorCode:
       modifier:
 
       ```dart
+      %ignore=illegal_async_return_type
       Stream<int> get digits async {
-        yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        [!yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];!]
       }
       ```
 
@@ -19886,9 +20241,8 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      final class [!C!] extends AbiSpecificInteger {
-      }
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
+      final class [!C!] extends AbiSpecificInteger {}
       ```
 
       The following code produces this diagnostic because the constructor isn't
@@ -19897,7 +20251,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class [!C!] extends AbiSpecificInteger {
         C();
       }
@@ -19909,7 +20263,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class [!C!] extends AbiSpecificInteger {
         const C.zero();
         const C.one();
@@ -19922,7 +20276,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class [!C!] extends AbiSpecificInteger {
         final int i;
 
@@ -19936,8 +20290,9 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      final class [!C!]<T> extends AbiSpecificInteger { // type parameters
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
+      // type parameters
+      final class [!C!]<T> extends AbiSpecificInteger {
         const C();
       }
       ```
@@ -19950,7 +20305,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -19976,8 +20331,8 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
-      @[!AbiSpecificIntegerMapping!]({Abi.linuxX64 : Uint16()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
+      @[!AbiSpecificIntegerMapping!]({Abi.linuxX64: Uint16()})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -19991,7 +20346,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8(), Abi.linuxX64 : Uint16()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8(), Abi.linuxX64: Uint16()})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -20029,7 +20384,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -20064,7 +20419,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
+      @AbiSpecificIntegerMapping({Abi.macosX64: [!Array<Uint8>(4)!]})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -20077,7 +20432,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @AbiSpecificIntegerMapping({Abi.macosX64 : Int8()})
+      @AbiSpecificIntegerMapping({Abi.macosX64: Int8()})
       final class C extends AbiSpecificInteger {
         const C();
       }
@@ -20279,7 +20634,9 @@ FfiCode:
       import 'dart:ffi';
 
       int Function(int) fromPointer(
-          Pointer<NativeFunction<Int8 Function(Int8)>> p, bool isLeaf) {
+        Pointer<NativeFunction<Int8 Function(Int8)>> p,
+        bool isLeaf,
+      ) {
         return p.asFunction(isLeaf: [!isLeaf!]);
       }
       ```
@@ -20532,8 +20889,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C {
-      }
+      class C {}
 
       @Native<Int>()
       external int f;
@@ -20778,6 +21134,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       final class C extends Struct {
         @Int32()
         external int x;
@@ -20884,7 +21241,8 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class MyService { // MyService does not extend NativeFieldWrapperClass1
+      // MyService does not extend NativeFieldWrapperClass1
+      class MyService {
         @Native<Void Function(Pointer<Void>, Int8)>(symbol: 'MyService_process')
         external void [!process!](int data);
       }
@@ -22853,8 +23211,7 @@ ParserErrorCode:
       default value even though it's part of the type of the parameter `g`:
 
       ```dart
-      void f(void Function([int p [!=!] 0]) g) {
-      }
+      void f(void Function([int p [!=!] 0]) g) {}
       ```
 
       #### Common fixes
@@ -22862,8 +23219,7 @@ ParserErrorCode:
       Remove the default value from the function-type's parameter:
 
       ```dart
-      void f(void Function([int p]) g) {
-      }
+      void f(void Function([int p]) g) {}
       ```
   emptyEnumBody:
     type: syntacticError
@@ -23300,6 +23656,7 @@ ParserErrorCode:
       `_x` starts with an underscore:
 
       ```dart
+      // @dart=3.11
       class C {
         void m({int [!_x!] = 0}) {}
       }
@@ -24429,6 +24786,50 @@ ScannerErrorCode:
     removedIn: "2.6"
     problemMessage: Unable to get content of '#p0'.
     hasPublishedDocs: false
+  unawaitedReturnInTryBlock:
+    type: staticWarning
+    parameters: none
+    problemMessage: "Returning a 'Future' without 'await' inside a try block."
+    correctionMessage: "Try adding an 'await'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `Future` is returned from within
+      a `try` block, in an `async` function, without awaiting the returned `Future`.
+
+      #### Example
+
+      The following code produces this diagnostic because the `Future` returned
+      from `futureString` is returned without using `await`. This can lead to
+      unexpected behavior because exceptions thrown by the `Future` won't be
+      caught by the `catch` block.
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        try {
+          [!return!] value;
+        } catch (e) {
+          print(e);
+          return 'default';
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add `await` before the returned `Future`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        try {
+          return await value;
+        } catch (e) {
+          print(e);
+          return 'default';
+        }
+      }
+      ```
   unexpectedDollarInString:
     type: syntacticError
     parameters: none
@@ -24485,6 +24886,7 @@ StaticWarningCode:
       The following code produces this diagnostic because `x` can't be `null`:
 
       ```dart
+      %ignore=dead_code
       int f(int x) {
         return x ?? [!0!];
       }
@@ -24493,6 +24895,7 @@ StaticWarningCode:
       The following code produces this diagnostic because `f` can't be `null`:
 
       ```dart
+      %ignore=dead_code
       class C {
         int f = -1;
 
@@ -24520,8 +24923,7 @@ StaticWarningCode:
       class C {
         int f = -1;
 
-        void m(int x) {
-        }
+        void m(int x) {}
       }
       ```
 
@@ -25244,8 +25646,10 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } catch (e) {
         } [!on String {
+          // ...
         }!]
       }
       ```
@@ -25258,8 +25662,11 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } on String {
+          // ...
         } catch (e) {
+          // ...
         }
       }
       ```
@@ -25269,7 +25676,9 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } catch (e) {
+          // ...
         }
       }
       ```
@@ -25309,8 +25718,11 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } on num {
+          // ...
         } [!on int {
+          // ...
         }!]
       }
       ```
@@ -25323,8 +25735,11 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } on int {
+          // ...
         } on num {
+          // ...
         }
       }
       ```
@@ -25334,7 +25749,9 @@ WarningCode:
       ```dart
       void f() {
         try {
+          // ...
         } on num {
+          // ...
         }
       }
       ```
@@ -26176,7 +26593,8 @@ WarningCode:
       import 'package:meta/meta.dart';
       import [!'package:meta/meta.dart'!];
 
-      @sealed class C {}
+      @sealed
+      class C {}
       ```
 
       #### Common fixes
@@ -26186,7 +26604,8 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      @sealed class C {}
+      @sealed
+      class C {}
       ```
   duplicateShownName:
     type: staticWarning
@@ -27822,6 +28241,79 @@ WarningCode:
         future.catchError(callback);
       }
       ```
+  returnOfInvalidTypeFromThen:
+    type: staticWarning
+    parameters:
+      Type actualType: the return type as declared in the return statement
+      Type expectedType: the expected return type as defined by the type of the Future
+    sharedName: invalidReturnTypeForThen
+    problemMessage: "A value of type '#actualType' can't be returned by the 'onError' handler because it must be assignable to '#expectedType', as required by 'Future.then'."
+    hasPublishedDocs: false
+  returnTypeInvalidForThen:
+    type: staticWarning
+    parameters:
+      Type actualType: the return type of the function
+      Type expectedType: the expected return type as defined by the type of the Future
+    sharedName: invalidReturnTypeForThen
+    problemMessage: "The return type '#actualType' isn't assignable to '#expectedType', as required by 'Future.then'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the return type of the
+      `onError` argument in `Future.then` is incompatible with the return type
+      of the `onValue` argument. At runtime, `Future.then` attempts to return
+      the value from the `onError` handler as the future's result, which
+      throws another exception.
+
+      #### Examples
+
+      The following code produces this diagnostic because the `onError` handler
+      returns a `String` instead of an `int`:
+
+      ```dart
+      void f(Future<int> future) {
+        future.then((_) => 0, onError: (e, st) => [!'c'!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the return type of the
+      `onError` argument (`cb`) is incompatible with the return type of
+      `onValue`:
+
+      ```dart
+      void f(Future<int> future, String Function(dynamic, StackTrace) cb) {
+        future.then<int>((_) => 1, onError: [!cb!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If the `onValue` handler returns the correct type, then change the
+      `onError` handler to match:
+
+      ```dart
+      void f(Future<int> future) {
+        future.then((_) => 0, onError: (e, st) => -1);
+      }
+      ```
+
+      If the `onError` handler is correct, then change the `onValue` handler to
+      match:
+
+      ```dart
+      void f(Future<String> future) {
+        future.then((_) => 'a', onError: (e, st) => 'c');
+      }
+      ```
+
+      If both handlers are correct, then change the future type to match:
+
+      ```dart
+      void f(Future<String> future) {
+        future.then<Object>((_) => 0, onError: (e, st) => 'c');
+      }
+      ```
   invalidReopenAnnotation:
     type: staticWarning
     parameters: none
@@ -27947,7 +28439,6 @@ WarningCode:
       ```dart
       import 'package:flutter/widgets.dart';
       import 'package:flutter/widget_previews.dart';
-
 
       // Invalid application to an external function.
       @[!Preview!]()
@@ -28443,6 +28934,7 @@ WarningCode:
       function `g` isn't a constant:
 
       ```dart
+      %ignore=experimental_member_use
       import 'package:meta/meta.dart' show mustBeConst;
 
       int f(int value) => g([!value!]);
@@ -28456,6 +28948,7 @@ WarningCode:
       with a constant:
 
       ```dart
+      %ignore=experimental_member_use
       import 'package:meta/meta.dart' show mustBeConst;
 
       const v = 3;
@@ -28590,6 +29083,7 @@ WarningCode:
         try {
           // ...
         } on [!FormatException?!] {
+          // ...
         }
       }
       ```
@@ -28603,6 +29097,7 @@ WarningCode:
         try {
           // ...
         } on FormatException {
+          // ...
         }
       }
       ```
@@ -30177,6 +30672,7 @@ WarningCode:
         @override
         dynamic noSuchMethod(x) => super.noSuchMethod(x);
       }
+
       class B extends A {
         @override
         dynamic [!noSuchMethod!](y) {
@@ -30194,6 +30690,7 @@ WarningCode:
         @override
         dynamic noSuchMethod(x) => super.noSuchMethod(x);
       }
+
       class B extends A {}
       ```
   unnecessaryNullComparisonAlwaysNullFalse:
@@ -30242,6 +30739,7 @@ WarningCode:
       `null`, so the comparison always evaluates to `false`:
 
       ```dart
+      %ignore=dead_code
       void f(int x) {
         if (x [!== null!]) {
           throw ArgumentError("x can't be null");
@@ -30506,6 +31004,7 @@ WarningCode:
 
       ```dart
       enum E { e1, e2 }
+
       void f(E x) {
         switch (x) {
           case E.e1:
@@ -30809,7 +31308,8 @@ WarningCode:
 
       ```dart
       void f(int limit) {
-        [!loop:!] for (int i = 0; i < limit; i++) {
+        [!loop:!]
+        for (int i = 0; i < limit; i++) {
           print(i);
         }
       }
@@ -30831,7 +31331,8 @@ WarningCode:
 
       ```dart
       void f(int limit) {
-        loop: for (int i = 0; i < limit; i++) {
+        loop:
+        for (int i = 0; i < limit; i++) {
           print(i);
           if (i != 0) {
             break loop;

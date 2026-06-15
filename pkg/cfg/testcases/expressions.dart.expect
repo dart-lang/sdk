@@ -113,6 +113,37 @@ B40 = JoinBlock(B37, B45, B44) idom:B28
   DirectCall print(v59)
   Return(v55)
 
+--- recordLiterals
+B0 = EntryBlock()
+  v19 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(a)
+  v3 = Parameter(b)
+  v4 = Parameter(c)
+  TypeParameters(v1)
+  v8 = AllocateRecordLiteral(v2)
+  DirectCall print(v8)
+  v12 = AllocateRecordLiteral(v2, v3)
+  DirectCall print(v12)
+  v17 = AllocateRecordLiteral(v2, v3, v4)
+  DirectCall print(v17)
+  Return(v19)
+
+--- recordFields
+B0 = EntryBlock()
+  v15 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(r1)
+  v3 = Parameter(r2)
+  TypeParameters(v1)
+  v7 = LoadInstanceField(#record-field[1], v2)
+  DirectCall print(v7)
+  v10 = LoadInstanceField(#record-field[0], v3)
+  DirectCall print(v10)
+  v13 = LoadInstanceField(#record-field[1:bar], v3)
+  DirectCall print(v13)
+  Return(v15)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

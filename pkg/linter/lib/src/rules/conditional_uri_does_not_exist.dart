@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Missing conditional import.';
 
 class ConditionalUriDoesNotExist extends AnalysisRule {
-  ConditionalUriDoesNotExist()
+  new()
     : super(name: LintNames.conditional_uri_does_not_exist, description: _desc);
 
   @override
@@ -35,7 +35,7 @@ class ConditionalUriDoesNotExist extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConfiguration(Configuration configuration) {

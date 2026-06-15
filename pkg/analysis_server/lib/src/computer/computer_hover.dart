@@ -25,7 +25,7 @@ class DartUnitHoverComputer {
   final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartUnitHoverComputer(
+  new(
     DartdocDirectiveInfo dartdocInfo,
     this._unit,
     this._offset, {
@@ -47,12 +47,15 @@ class DartUnitHoverComputer {
 
     if (node is CompilationUnitMember ||
         node is CatchClauseParameter ||
+        node is EnumConstantDeclaration ||
         node is Expression ||
         node is FormalParameter ||
         node is MethodDeclaration ||
+        node is NamedArgument ||
         node is NamedType ||
         node is ConstructorDeclaration ||
         node is DeclaredIdentifier ||
+        node is RecordLiteralNamedField ||
         node is VariableDeclaration ||
         node is VariablePattern ||
         node is PatternFieldName ||
@@ -230,15 +233,17 @@ class DartUnitHoverComputer {
       ConstructorDeclaration() =>
         node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
       DeclaredIdentifier() => node.name,
+      EnumConstantDeclaration() => node.name,
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
       ExtensionDeclaration() => node.name,
-      ExtensionTypeDeclaration() => node.primaryConstructor.typeName,
+      ExtensionTypeDeclaration() => node.namePart.typeName,
       FormalParameter() => node.name,
       FunctionDeclaration() => node.name,
       ImportPrefixReference() => node.name,
       LibraryDirective() => node.libraryKeyword,
       MethodDeclaration() => node.name,
+      NamedArgument() => node.name,
       MixinDeclaration() => node.name,
       NameWithTypeParameters() => node.typeName,
       NamedType() => node.name,
@@ -247,6 +252,7 @@ class DartUnitHoverComputer {
         node.declaration?.constructorName ?? node.declaration?.typeName,
       PrimaryConstructorDeclaration() => node.constructorName ?? node.typeName,
       PrimaryConstructorName() => node.name,
+      RecordLiteralNamedField() => node.name,
       TypeAlias() => node.name,
       VariableDeclaration() => node.name,
       VariablePattern() => node.name,
@@ -257,12 +263,12 @@ class DartUnitHoverComputer {
 
   /// Gets the display string for the type of the parameter.
   ///
-  /// Returns `null` if the parameter is not an expression.
+  /// Returns `null` if the node doesn't correspond to a parameter.
   String? _parameterDisplayString(AstNode node) {
-    if (node is! Expression) {
-      return null;
+    FormalParameterElement? parameter;
+    if (node is Argument) {
+      parameter = node.correspondingParameter;
     }
-    var parameter = node.correspondingParameter;
     return switch (parameter?.enclosingElement) {
       // Expressions passed as arguments to setters and binary expressions
       // will have parameters here but we don't want them to show as such in
@@ -302,7 +308,9 @@ class DartUnitHoverComputer {
   String? _typeDisplayString(AstNode node, Element? element) {
     var parent = node.parent;
     DartType? staticType;
-    if (node is Expression &&
+    if (node is NamedArgument) {
+      staticType = node.correspondingParameter?.type;
+    } else if (node is Expression &&
         (element == null ||
             element is VariableElement ||
             element is GetterElement ||
@@ -338,10 +346,6 @@ class DartUnitHoverComputer {
       var element = node.element;
       if (element is VariableElement) {
         if (node.inDeclarationContext()) {
-          return element.type;
-        }
-        var parent2 = node.parent?.parent;
-        if (parent2 is NamedExpression && parent2.name.label == node) {
           return element.type;
         }
       }

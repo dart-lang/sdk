@@ -13,7 +13,12 @@ class NullableIndexClass {
   void operator []=(int key, int value) {}
 }
 
-errors(Class? nullableClass, Class nonNullableClass, int? nullableInt,
-    int nonNullableInt, NullableIndexClass? nullableNullableIndexClass) {}
+errors(
+  Class? nullableClass,
+  Class nonNullableClass,
+  int? nullableInt,
+  int nonNullableInt,
+  NullableIndexClass? nullableNullableIndexClass,
+) {}
 
 main() {}

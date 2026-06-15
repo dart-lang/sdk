@@ -47,7 +47,7 @@ class ConstructorElementToInfer {
   FunctionType get asType {
     return typeParameters.isEmpty
         ? element.type
-        : FunctionTypeImpl.v2(
+        : FunctionTypeImpl(
             typeParameters: typeParameters,
             formalParameters: element.formalParameters,
             returnType: element.returnType,

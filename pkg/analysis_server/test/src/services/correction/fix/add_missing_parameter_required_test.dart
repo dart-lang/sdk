@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -61,6 +61,31 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_constructor_factory_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  factory (int a) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  factory (int a, double d) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
   Future<void> test_constructor_implicitSuper() async {
     // https://github.com/dart-lang/sdk/issues/61927
     await resolveTestCode('''
@@ -87,6 +112,44 @@ class A {
 }
 void f() {
   new A.named(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_new_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  new (int a);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  new (int a, double d);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_primary_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C(int a) {}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C(int a, double d) {}
+
+void f() {
+  new C(1, 2.0);
 }
 ''');
   }
@@ -241,7 +304,7 @@ class AddMissingParameterRequiredTest_Workspace
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     _workspace = DartChangeWorkspace([await session, await sessionFor(a)]);
@@ -262,7 +325,7 @@ void f() {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+        ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb')),
     );
 
     await resolveTestCode('''

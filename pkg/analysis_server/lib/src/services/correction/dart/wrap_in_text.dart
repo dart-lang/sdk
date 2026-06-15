@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class WrapInText extends ResolvedCorrectionProducer {
-  WrapInText({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -55,9 +55,9 @@ class WrapInText extends ResolvedCorrectionProducer {
   static _Context? _extractContextInformation(AstNode node) {
     if (node is Expression) {
       var parent = node.parent;
-      if (parent is NamedExpression) {
+      if (parent is NamedArgument) {
         if (node.typeOrThrow.isDartCoreString) {
-          var parameterElement = parent.name.label.element;
+          var parameterElement = parent.correspondingParameter;
           if (parameterElement is FormalParameterElement) {
             return _Context(
               stringExpression: node,
@@ -76,5 +76,5 @@ class _Context {
   final Expression stringExpression;
   final FormalParameterElement parameterElement;
 
-  _Context({required this.stringExpression, required this.parameterElement});
+  new({required this.stringExpression, required this.parameterElement});
 }

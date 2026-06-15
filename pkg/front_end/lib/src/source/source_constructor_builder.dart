@@ -41,7 +41,7 @@ class InferableConstructor implements InferableMember {
 
   final SourceConstructorBuilder _builder;
 
-  InferableConstructor(this.member, this._builder);
+  new(this.member, this._builder);
 
   @override
   void inferMemberTypes(ClassHierarchyBase classHierarchy) {
@@ -110,7 +110,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isPrimaryConstructor;
 
-  SourceConstructorBuilder({
+  new({
     required this.name,
     required this.libraryBuilder,
     required this.declarationBuilder,
@@ -134,6 +134,31 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
+  }
+
+  /// Returns `true` if field initializers should be moved to the initializer
+  /// list of this constructor.
+  ///
+  /// This is done for primary constructors because non-late field initializers
+  /// have access to the parameters of the primary constructor.
+  ///
+  /// An exception to this is for mixin classes. In the non-erroneous cases,
+  /// these can't have parameters, so the field initializers can stay in the
+  /// field declaration. This is done to ensure that mixin transformation can
+  /// simply clone the mixin class fields, instead of having to fetch the
+  /// initializer from the initializer list of the constructor. For mixin
+  /// classes with parameters in the primary constructor, which is an erroneous
+  /// case, the initializers are moved to the constructor like for other
+  /// primary constructors to avoid generating an AST where the parameters are
+  /// accessed out of scope.
+  bool get shouldTakeFieldInitializers {
+    if (isPrimaryConstructor) {
+      if (declarationBuilder.isMixinClass && !_introductory.hasParameters) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   /// If this constructor is a primary constructor, returns the parameters
@@ -555,7 +580,7 @@ class ConstructorReferences {
   /// compilations during an incremental compilation, these are the references
   /// used for the same generative constructor and tear-off in the previous
   /// compilation.
-  ConstructorReferences._({
+  new _({
     required Reference? preExistingConstructorReference,
     required Reference? preExistingTearOffReference,
     required bool hasTearOffLowering,
@@ -569,7 +594,7 @@ class ConstructorReferences {
 
   /// Creates a [ConstructorReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
-  factory ConstructorReferences({
+  factory({
     required String name,
     required NameScheme nameScheme,
     required IndexedContainer? indexedContainer,

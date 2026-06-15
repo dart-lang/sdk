@@ -111,7 +111,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   final bool generateGetters;
   final bool generateSetters;
 
-  CodegenJavaType(
+  new(
     super.api,
     this.className,
     this.superclassName,

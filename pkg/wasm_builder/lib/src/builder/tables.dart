@@ -17,17 +17,33 @@ class TablesBuilder with Builder<ir.Tables> {
   /// Defines a new table in this module.
   TableBuilder define(ir.RefType type, int minSize, [int? maxSize]) {
     final table = TableBuilder(
-        _moduleBuilder, ir.FinalizableIndex(), type, minSize, maxSize);
+      _moduleBuilder,
+      ir.FinalizableIndex(),
+      type,
+      minSize,
+      maxSize,
+    );
     _tableBuilders.add(table);
     return table;
   }
 
   /// Imports a table into this module.
   ir.ImportedTable import(
-      String module, String name, ir.RefType type, int minSize,
-      [int? maxSize]) {
-    final table = ir.ImportedTable(_moduleBuilder.module, module, name,
-        ir.FinalizableIndex(), type, minSize, maxSize);
+    String module,
+    String name,
+    ir.RefType type,
+    int minSize, [
+    int? maxSize,
+  ]) {
+    final table = ir.ImportedTable(
+      _moduleBuilder.module,
+      module,
+      name,
+      ir.FinalizableIndex(),
+      type,
+      minSize,
+      maxSize,
+    );
     _importedTables.add(table);
     return table;
   }
@@ -35,7 +51,9 @@ class TablesBuilder with Builder<ir.Tables> {
   @override
   ir.Tables forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedTable>(
-        _importedTables, _tableBuilders);
+      _importedTables,
+      _tableBuilders,
+    );
     return ir.Tables(_importedTables, built);
   }
 

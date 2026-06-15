@@ -57,6 +57,8 @@ abstract final class LintNames {
 
   static const String annotate_redeclares = 'annotate_redeclares';
 
+  static const String async_return_with_no_await = 'async_return_with_no_await';
+
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
 
@@ -229,6 +231,8 @@ abstract final class LintNames {
 
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
 
+  static const String empty_container_bodies = 'empty_container_bodies';
+
   static const String empty_statements = 'empty_statements';
 
   static const String enable_null_safety = 'enable_null_safety';
@@ -251,6 +255,9 @@ abstract final class LintNames {
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
 
   static const String implicit_reopen = 'implicit_reopen';
+
+  static const String initialize_in_field_declaration =
+      'initialize_in_field_declaration';
 
   static const String invalid_case_patterns = 'invalid_case_patterns';
 
@@ -299,6 +306,8 @@ abstract final class LintNames {
 
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
 
+  static const String no_dynamic_casts = 'no_dynamic_casts';
+
   static const String no_leading_underscores_for_library_prefixes =
       'no_leading_underscores_for_library_prefixes';
 
@@ -309,6 +318,8 @@ abstract final class LintNames {
       'no_literal_bool_comparisons';
 
   static const String no_logic_in_create_state = 'no_logic_in_create_state';
+
+  static const String no_raw_types = 'no_raw_types';
 
   static const String no_runtimetype_tostring = 'no_runtimetype_tostring';
 
@@ -529,6 +540,9 @@ abstract final class LintNames {
 
   static const String unnecessary_const = 'unnecessary_const';
 
+  static const String unnecessary_const_in_enum_constructor =
+      'unnecessary_const_in_enum_constructor';
+
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';
 
@@ -568,6 +582,9 @@ abstract final class LintNames {
 
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
 
+  static const String unnecessary_primary_constructor_body =
+      'unnecessary_primary_constructor_body';
+
   static const String unnecessary_raw_strings = 'unnecessary_raw_strings';
 
   static const String unnecessary_statements = 'unnecessary_statements';
@@ -581,6 +598,9 @@ abstract final class LintNames {
 
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
+
+  static const String unnecessary_type_name_in_constructor =
+      'unnecessary_type_name_in_constructor';
 
   static const String unnecessary_unawaited = 'unnecessary_unawaited';
 
@@ -599,6 +619,8 @@ abstract final class LintNames {
       'use_build_context_synchronously';
 
   static const String use_colored_box = 'use_colored_box';
+
+  static const String use_declaring_parameters = 'use_declaring_parameters';
 
   static const String use_decorated_box = 'use_decorated_box';
 
@@ -625,6 +647,8 @@ abstract final class LintNames {
   static const String use_named_constants = 'use_named_constants';
 
   static const String use_null_aware_elements = 'use_null_aware_elements';
+
+  static const String use_primary_constructors = 'use_primary_constructors';
 
   static const String use_raw_strings = 'use_raw_strings';
 

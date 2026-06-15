@@ -101,11 +101,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   BestPracticesVerifier(
     this._diagnosticReporter,
     TypeProviderImpl typeProvider,
-    this._currentLibrary,
-    CompilationUnit unit, {
+    this._currentLibrary, {
     required TypeSystemImpl typeSystem,
     required AnalysisOptions analysisOptions,
     required WorkspacePackageImpl? workspacePackage,
+    required bool inTestDirectory,
   }) : _nullType = typeProvider.nullType,
        _typeSystem = typeSystem,
        _strictInference = analysisOptions.strictInference,
@@ -149,9 +149,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        ),
        _invalidAccessVerifier = _InvalidAccessVerifier(
          _diagnosticReporter,
-         unit,
          _currentLibrary,
          workspacePackage,
+         inTestDirectory: inTestDirectory,
        ),
        _mustCallSuperVerifier = MustCallSuperVerifier(_diagnosticReporter),
        _nullSafeApiVerifier = NullSafeApiVerifier(
@@ -168,6 +168,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     _annotationVerifier.checkAnnotation(node);
     _widgetPreviewVerifier.checkAnnotation(node);
+    _elementUsageFrontierDetector.annotation(node);
     super.visitAnnotation(node);
   }
 
@@ -321,34 +322,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var separator = node.separator;
-    if (node.isNamed &&
-        separator != null &&
-        separator.type == TokenType.COLON) {
-      // This is a warning in code whose language version is < 3.0, but an error
-      // in code whose language version is >= 3.0.
-      if (_currentLibrary.languageVersion.effective.major < 3) {
-        _diagnosticReporter.report(
-          diag.deprecatedColonForDefaultValue.at(separator),
-        );
-      } else {
-        _diagnosticReporter.report(
-          diag.obsoleteColonForDefaultValue.at(separator),
-        );
-      }
-    }
-    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
-    _elementUsageFrontierDetector.formalParameter(node);
-
-    try {
-      super.visitDefaultFormalParameter(node);
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -476,8 +449,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    _checkFinalParameter(node, node.keyword);
-    super.visitFieldFormalParameter(node);
+    _checkForColonDefaultValue(node);
+    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
+    _elementUsageFrontierDetector.formalParameter(node);
+    _checkFinalParameter(node);
+    try {
+      super.visitFieldFormalParameter(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+    }
   }
 
   @override
@@ -542,13 +522,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
-    _checkStrictInferenceInParameters(node.parameters);
-    super.visitFunctionTypedFormalParameter(node);
   }
 
   @override
@@ -736,6 +709,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    _invalidAccessVerifier.verifyNamedArgument(node);
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     _elementUsageFrontierDetector.namedType(node);
     _invalidAccessVerifier.verifyNamedType(node);
@@ -805,6 +784,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _checkForColonDefaultValue(node);
+
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      _checkStrictInferenceReturnType(node.type, node, node.name?.lexeme ?? '');
+      _checkStrictInferenceInParameters(functionTypedSuffix.formalParameters);
+    }
+
+    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
+    _elementUsageFrontierDetector.formalParameter(node);
+
+    try {
+      super.visitRegularFormalParameter(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+    }
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (!_invalidAccessVerifier._inTestDirectory) {
       _checkForReturnOfDoNotStore(node.expression);
@@ -816,18 +814,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _checkForDuplications(node);
     super.visitSetOrMapLiteral(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
-    _elementUsageFrontierDetector.formalParameter(node);
-
-    try {
-      super.visitSimpleFormalParameter(node);
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-    }
   }
 
   @override
@@ -846,9 +832,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkForColonDefaultValue(node);
+    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
     _elementUsageFrontierDetector.superFormalParameter(node);
-    _checkFinalParameter(node, node.keyword);
-    super.visitSuperFormalParameter(node);
+    _checkFinalParameter(node);
+    try {
+      super.visitSuperFormalParameter(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+    }
   }
 
   @override
@@ -932,9 +924,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  void _checkFinalParameter(FormalParameter node, Token? keyword) {
-    if (node.isFinal) {
-      _diagnosticReporter.report(diag.unnecessaryFinal.at(keyword!));
+  void _checkFinalParameter(FormalParameter node) {
+    if (node.finalKeyword case var finalKeyword?) {
+      _diagnosticReporter.report(diag.unnecessaryFinal.at(finalKeyword));
     }
   }
 
@@ -949,6 +941,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             .withArguments(name: entry.value.name!)
             .at(entry.key),
       );
+    }
+  }
+
+  void _checkForColonDefaultValue(FormalParameter node) {
+    if (node.defaultClause case var defaultClause?) {
+      var separator = defaultClause.separator;
+      if (node.isNamed && separator.type == TokenType.COLON) {
+        // This is a warning in code whose language version is < 3.0, but an
+        // error in code whose language version is >= 3.0.
+        if (_currentLibrary.languageVersion.effective.major < 3) {
+          _diagnosticReporter.report(
+            diag.deprecatedColonForDefaultValue.at(separator),
+          );
+        } else {
+          _diagnosticReporter.report(
+            diag.obsoleteColonForDefaultValue.at(separator),
+          );
+        }
+      }
     }
   }
 
@@ -1390,9 +1401,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     var implicitlyTypedParameters = parameterList.parameters
-        .map((p) => p.notDefault)
-        .whereType<SimpleFormalParameter>()
-        .where((p) => p.type == null)
+        .whereType<RegularFormalParameter>()
+        .where((p) => p.functionTypedSuffix == null && p.type == null)
         .toList();
 
     if (implicitlyTypedParameters.isEmpty) return;
@@ -1425,7 +1435,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _diagnosticReporter.report(
         diag.inferenceFailureOnUntypedParameter
             .withArguments(parameter: element.displayName)
-            .at(parameter),
+            .at(parameter.name ?? parameter),
       );
     }
   }
@@ -1592,13 +1602,13 @@ class _InvalidAccessVerifier {
 
   _InvalidAccessVerifier(
     this._diagnosticReporter,
-    CompilationUnit unit,
     this._library,
-    this._workspacePackage,
-  ) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
-        _templateExtension,
-      ),
-      _inTestDirectory = unit.inTestDir;
+    this._workspacePackage, {
+    required bool inTestDirectory,
+  }) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
+         _templateExtension,
+       ),
+       _inTestDirectory = inTestDirectory;
 
   /// Produces a warning if [identifier] is accessed from an invalid location.
   ///
@@ -1686,6 +1696,25 @@ class _InvalidAccessVerifier {
             .at(node),
       );
     }
+  }
+
+  void verifyNamedArgument(NamedArgument node) {
+    var element = node.correspondingParameter;
+    if (element == null) {
+      return;
+    }
+
+    if (_inCurrentLibrary(element)) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: node,
+      nameToken: node.name,
+      element: element,
+    );
+
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyNamedType(NamedType node) {
@@ -1981,6 +2010,9 @@ class _InvalidAccessVerifier {
       } else {
         name = node.name.lexeme;
       }
+    } else if (node is NamedArgument) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
       name = element.displayName;
       errorEntity = node.errorEntity;

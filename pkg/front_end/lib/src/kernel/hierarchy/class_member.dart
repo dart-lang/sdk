@@ -60,15 +60,12 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   @override
   final bool isDeclaredAsField;
 
-  TypeDeclarationInstanceMemberResult(
-    this.member,
-    this.kind, {
-    required this.isDeclaredAsField,
-  }) : assert(
-         member.enclosingTypeDeclaration != null,
-         "Type declaration member without enclosing type "
-         "declaration $member.",
-       );
+  new(this.member, this.kind, {required this.isDeclaredAsField})
+    : assert(
+        member.enclosingTypeDeclaration != null,
+        "Type declaration member without enclosing type "
+        "declaration $member.",
+      );
 
   @override
   String get fullName {
@@ -121,7 +118,7 @@ class StaticMemberResult implements MemberResult {
   @override
   final String fullName;
 
-  StaticMemberResult(
+  new(
     this.member,
     this.kind, {
     required this.isDeclaredAsField,
@@ -162,7 +159,7 @@ class ExtensionTypeMemberResult implements MemberResult {
   @override
   final bool isDeclaredAsField;
 
-  ExtensionTypeMemberResult(
+  new(
     this.extensionTypeDeclaration,
     this.member,
     this.kind,
@@ -368,7 +365,7 @@ abstract class SynthesizedMember extends ClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  SynthesizedMember(this.name, this.memberKind);
+  new(this.name, this.memberKind);
 
   @override
   bool get forSetter => memberKind == ClassMemberKind.Setter;
@@ -534,7 +531,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
   ClassMember? _noSuchMethodTarget;
 
-  SynthesizedInterfaceMember(
+  new(
     this.classBuilder,
     Name name,
     this.declarations, {
@@ -772,7 +769,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   Member? _member;
   Covariance? _covariance;
 
-  InheritedClassMemberImplementsInterface(
+  new(
     this.classBuilder,
     Name name, {
     required this.inheritedClassMember,
@@ -980,7 +977,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   /// If `true`, a stub should be inserted, if needed.
   final bool _shouldModifyKernel;
 
-  SynthesizedNonExtensionTypeMember(
+  new(
     this.extensionTypeDeclarationBuilder,
     Name name,
     this.declarations, {

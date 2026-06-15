@@ -1,0 +1,693 @@
+--- A.foo47
+B0 = EntryBlock() dominates:(B14)
+  v8 = Constant(<int>)
+  v9 = Constant(0)
+  v17 = Constant(10)
+  v29 = Constant(1)
+  v37 = Constant(null)
+  v1 = Parameter(this)
+  TypeParameters(v1)
+  v4 = AllocateContext()
+  StoreInstanceField(#context-field:this, v4, v1)
+  v10 = DirectCall _GrowableList.(v8, v9)
+  v12 = AllocateContext()
+  StoreInstanceField(#context-field:i, v12, v9)
+  Goto(B14)
+B14 = JoinBlock(B0, B19) idom:B0 dominates:(B20, B19) loop-header (depth:1 body:(B14, B19) back-edges:(B19))
+  v16 = LoadInstanceField(#context-field:i, v12)
+  v18 = Comparison int <(v16, v17)
+  Branch(v18, true: B19, false: B20)
+B19 = TargetBlock() idom:B14 in-loop:B14
+  v23 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v23, v4)
+  StoreInstanceField(#closure-field[1], v23, v12)
+  v39 = DirectCall closure FunctionExpression(int () {
+  print(A.T%);
+  print(i);
+  i = i.{num.+}(2);
+  return i;
+}) at A.foo47(v23)
+  InterfaceCall List.add(v10, v39)
+  v28 = LoadInstanceField(#context-field:i, v12)
+  v30 = BinaryIntOp +(v28, v29)
+  StoreInstanceField(#context-field:i, v12, v30)
+  Goto(B14)
+B20 = TargetBlock() idom:B14
+  StoreInstanceField(A.aField, v1, v10)
+  v35 = LoadInstanceField(#context-field:this, v4)
+  DirectCall Object.(v35)
+  Return(v37)
+
+--- closure FunctionExpression(int () {
+  print(A.T%);
+  print(i);
+  i = i.{num.+}(2);
+  return i;
+}) at A.foo47
+B0 = EntryBlock()
+  v10 = Constant(null)
+  v16 = Constant(2)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:this, v3)
+  v5 = TypeParameters(v4)
+  LoadInstanceField(#closure-field[0], v1)
+  v9 = LoadInstanceField(#closure-field[1], v1)
+  v11 = TypeLiteral(A.T%, v5, v10)
+  DirectCall print(v11)
+  v13 = LoadInstanceField(#context-field:i, v9)
+  DirectCall print(v13)
+  v15 = LoadInstanceField(#context-field:i, v9)
+  v17 = BinaryIntOp +(v15, v16)
+  StoreInstanceField(#context-field:i, v9, v17)
+  v19 = LoadInstanceField(#context-field:i, v9)
+  Return(v19)
+
+--- getter A.aField
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  TypeParameters(v1)
+  v5 = LoadInstanceField(A.aField, v1)
+  Return(v5)
+
+--- setter A.aField
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  TypeParameters(v1)
+  StoreInstanceField(A.aField, v1, v2)
+  Return(v8)
+
+--- opaqueVal
+B0 = EntryBlock()
+  v1 = Constant("42")
+  v2 = DirectCall int.parse(v1)
+  Return(v2)
+
+--- callClosure
+B0 = EntryBlock() dominates:(B6, B8, B5)
+  v3 = Constant(1)
+  v13 = Constant(null)
+  v1 = Parameter(func)
+  v2 = DirectCall opaqueVal()
+  v4 = Comparison int ==(v2, v3)
+  Branch(v4, true: B5, false: B6)
+B5 = TargetBlock() idom:B0
+  ClosureCall(v1)
+  Goto(B8)
+B6 = TargetBlock() idom:B0
+  Goto(B8)
+B8 = JoinBlock(B6, B5) idom:B0
+  Return(v13)
+
+--- foo42
+B0 = EntryBlock() dominates:(B16)
+  Constant(true)
+  v23 = Constant(50)
+  v25 = Constant(60)
+  v27 = Constant(70)
+  v47 = Constant(1)
+  v59 = Constant(0)
+  v64 = Constant(10)
+  v83 = Constant(90)
+  v98 = Constant(null)
+  v1 = AllocateContext()
+  v2 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:a, v1, v2)
+  v4 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:b, v1, v4)
+  v6 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:c, v1, v6)
+  v8 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:d, v1, v8)
+  v10 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v10, v1)
+  DirectCall callClosure(v10)
+  v13 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v13, v1)
+  DirectCall callClosure(v13)
+  Goto(B16)
+B16 = JoinBlock(B0, B50) idom:B0 dominates:(B50, B49) loop-header (depth:1 body:(B16, B50) back-edges:(B50))
+  v22 = AllocateContext()
+  StoreInstanceField(#context-field:e, v22, v23)
+  StoreInstanceField(#context-field:f, v22, v25)
+  StoreInstanceField(#context-field:g, v22, v27)
+  v29 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v29, v1)
+  DirectCall callClosure(v29)
+  v32 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v32, v22)
+  DirectCall callClosure(v32)
+  v35 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v35, v22)
+  DirectCall callClosure(v35)
+  v38 = LoadInstanceField(#context-field:d, v1)
+  DirectCall print(v38)
+  v40 = LoadInstanceField(#context-field:e, v22)
+  DirectCall print(v40)
+  v42 = LoadInstanceField(#context-field:f, v22)
+  DirectCall print(v42)
+  v44 = LoadInstanceField(#context-field:g, v22)
+  DirectCall print(v44)
+  v46 = DirectCall opaqueVal()
+  v48 = Comparison int ==(v46, v47)
+  Branch(v48, true: B49, false: B50)
+B49 = TargetBlock() idom:B16 dominates:(B61)
+  v58 = AllocateContext()
+  StoreInstanceField(#context-field:i, v58, v59)
+  Goto(B61)
+B61 = JoinBlock(B49, B81) idom:B49 dominates:(B67, B66) loop-header (depth:1 body:(B61, B66, B76, B81, B80) back-edges:(B81))
+  v63 = LoadInstanceField(#context-field:i, v58)
+  v65 = Comparison int <(v63, v64)
+  Branch(v65, true: B66, false: B67)
+B66 = TargetBlock() idom:B61 dominates:(B76) in-loop:B61
+  v69 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:h, v58, v69)
+  v71 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v71, v58)
+  DirectCall callClosure(v71)
+  v74 = AllocateContext()
+  StoreInstanceField(#context-field:j, v74, v59)
+  Goto(B76)
+B76 = JoinBlock(B66, B80) idom:B66 dominates:(B81, B80) loop-header (depth:2 body:(B76, B80) back-edges:(B80))
+  v78 = LoadInstanceField(#context-field:j, v74)
+  v79 = Comparison int <(v78, v64)
+  Branch(v79, true: B80, false: B81)
+B80 = TargetBlock() idom:B76 in-loop:B76
+  StoreInstanceField(#context-field:k, v74, v83)
+  v85 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v85, v74)
+  DirectCall callClosure(v85)
+  v88 = LoadInstanceField(#context-field:k, v74)
+  DirectCall print(v88)
+  v90 = LoadInstanceField(#context-field:j, v74)
+  v91 = BinaryIntOp +(v90, v47)
+  StoreInstanceField(#context-field:j, v74, v91)
+  Goto(B76)
+B81 = TargetBlock() idom:B76 in-loop:B61
+  v94 = LoadInstanceField(#context-field:i, v58)
+  v95 = BinaryIntOp +(v94, v47)
+  StoreInstanceField(#context-field:i, v58, v95)
+  Goto(B61)
+B67 = TargetBlock() idom:B61
+  Return(v98)
+B50 = TargetBlock() idom:B16 in-loop:B16
+  Goto(B16)
+
+--- closure FunctionExpression(void () {
+  print(a);
+  print(b);
+  print(d);
+}) at foo42
+B0 = EntryBlock()
+  v10 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  DirectCall print(v4)
+  v6 = LoadInstanceField(#context-field:b, v3)
+  DirectCall print(v6)
+  v8 = LoadInstanceField(#context-field:d, v3)
+  DirectCall print(v8)
+  Return(v10)
+
+--- closure FunctionExpression(void () {
+  print(b);
+  print(c);
+}) at foo42
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:b, v3)
+  DirectCall print(v4)
+  v6 = LoadInstanceField(#context-field:c, v3)
+  DirectCall print(v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  d = d.{num.+}(41);
+}) at foo42
+B0 = EntryBlock()
+  v5 = Constant(41)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:d, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:d, v3, v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  e = e.{num.+}(51);
+  f = f.{num.+}(61);
+}) at foo42
+B0 = EntryBlock()
+  v5 = Constant(51)
+  v9 = Constant(61)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:e, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:e, v3, v6)
+  v8 = LoadInstanceField(#context-field:f, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:f, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  f = f.{num.+}(62);
+  g = g.{num.+}(72);
+}) at foo42
+B0 = EntryBlock()
+  v5 = Constant(62)
+  v9 = Constant(72)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:f, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:f, v3, v6)
+  v8 = LoadInstanceField(#context-field:g, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:g, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  print(h);
+  print(i);
+}) at foo42
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:h, v3)
+  DirectCall print(v4)
+  v6 = LoadInstanceField(#context-field:i, v3)
+  DirectCall print(v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  j = j.{num.+}(2);
+  k = k.{num.+}(91);
+}) at foo42
+B0 = EntryBlock()
+  v5 = Constant(2)
+  v9 = Constant(91)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:j, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:j, v3, v6)
+  v8 = LoadInstanceField(#context-field:k, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:k, v3, v10)
+  Return(v12)
+
+--- foo43
+B0 = EntryBlock()
+  v2 = Constant(10)
+  v4 = Constant(20)
+  v6 = Constant(30)
+  v8 = Constant(40)
+  v22 = Constant(null)
+  v1 = AllocateContext()
+  StoreInstanceField(#context-field:a, v1, v2)
+  StoreInstanceField(#context-field:b, v1, v4)
+  StoreInstanceField(#context-field:c, v1, v6)
+  StoreInstanceField(#context-field:d, v1, v8)
+  v10 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v10, v1)
+  DirectCall callClosure(v10)
+  v13 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v13, v1)
+  DirectCall callClosure(v13)
+  v16 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v16, v1)
+  DirectCall callClosure(v16)
+  v19 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v19, v1)
+  DirectCall callClosure(v19)
+  Return(v22)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(11);
+  b = b.{num.+}(21);
+}) at foo43
+B0 = EntryBlock()
+  v5 = Constant(11)
+  v9 = Constant(21)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  v8 = LoadInstanceField(#context-field:b, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:b, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(12);
+  c = c.{num.+}(32);
+}) at foo43
+B0 = EntryBlock()
+  v5 = Constant(12)
+  v9 = Constant(32)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  v8 = LoadInstanceField(#context-field:c, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:c, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  b = b.{num.+}(23);
+  c = c.{num.+}(33);
+}) at foo43
+B0 = EntryBlock()
+  v5 = Constant(23)
+  v9 = Constant(33)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:b, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:b, v3, v6)
+  v8 = LoadInstanceField(#context-field:c, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:c, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  d = d.{num.+}(44);
+}) at foo43
+B0 = EntryBlock()
+  v5 = Constant(44)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:d, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:d, v3, v6)
+  Return(v8)
+
+--- foo45
+B0 = EntryBlock() dominates:(B11, B13, B10)
+  v2 = Constant(10)
+  v8 = Constant(1)
+  v15 = Constant(20)
+  v28 = Constant(30)
+  v34 = Constant(null)
+  v1 = AllocateContext()
+  StoreInstanceField(#context-field:a, v1, v2)
+  v4 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v4, v1)
+  DirectCall callClosure(v4)
+  v7 = DirectCall opaqueVal()
+  v9 = Comparison int ==(v7, v8)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock() idom:B0
+  StoreInstanceField(#context-field:b, v1, v15)
+  v17 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v17, v1)
+  DirectCall callClosure(v17)
+  Goto(B13)
+B11 = TargetBlock() idom:B0
+  Goto(B13)
+B13 = JoinBlock(B11, B10) idom:B0 dominates:(B24, B26, B23)
+  v21 = DirectCall opaqueVal()
+  v22 = Comparison int ==(v21, v8)
+  Branch(v22, true: B23, false: B24)
+B23 = TargetBlock() idom:B13
+  StoreInstanceField(#context-field:c, v1, v28)
+  v30 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v30, v1)
+  DirectCall callClosure(v30)
+  Goto(B26)
+B24 = TargetBlock() idom:B13
+  Goto(B26)
+B26 = JoinBlock(B24, B23) idom:B13
+  Return(v34)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(11);
+}) at foo45
+B0 = EntryBlock()
+  v5 = Constant(11)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(12);
+  b = b.{num.+}(22);
+}) at foo45
+B0 = EntryBlock()
+  v5 = Constant(12)
+  v9 = Constant(22)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  v8 = LoadInstanceField(#context-field:b, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:b, v3, v10)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(13);
+  c = c.{num.+}(33);
+}) at foo45
+B0 = EntryBlock()
+  v5 = Constant(13)
+  v9 = Constant(33)
+  v12 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  v8 = LoadInstanceField(#context-field:c, v3)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreInstanceField(#context-field:c, v3, v10)
+  Return(v12)
+
+--- foo46
+B0 = EntryBlock()
+  v12 = Constant(null)
+  v1 = AllocateContext()
+  v2 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:a, v1, v2)
+  v4 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:b, v1, v4)
+  v6 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v6, v1)
+  DirectCall callClosure(v6)
+  v9 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v9, v1)
+  DirectCall callClosure(v9)
+  Return(v12)
+
+--- closure FunctionExpression(void () {
+  callClosure(void () {
+    print(a);
+  });
+}) at foo46
+B0 = EntryBlock()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v4, v3)
+  DirectCall callClosure(v4)
+  Return(v7)
+
+--- closure FunctionExpression(void () {
+  print(a);
+}) at foo46
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  DirectCall print(v4)
+  Return(v6)
+
+--- closure FunctionExpression(void () {
+  callClosure(void () {
+    b = b.{num.+}(11);
+  });
+}) at foo46
+B0 = EntryBlock()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v4, v3)
+  DirectCall callClosure(v4)
+  Return(v7)
+
+--- closure FunctionExpression(void () {
+  b = b.{num.+}(11);
+}) at foo46
+B0 = EntryBlock()
+  v5 = Constant(11)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:b, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:b, v3, v6)
+  Return(v8)
+
+--- foo48
+B0 = EntryBlock() dominates:(B5, B7, B4)
+  v2 = Constant(1)
+  v10 = Constant(10)
+  v24 = Constant(20)
+  v30 = Constant(null)
+  v1 = DirectCall opaqueVal()
+  v3 = Comparison int ==(v1, v2)
+  Branch(v3, true: B4, false: B5)
+B4 = TargetBlock() idom:B0
+  v9 = AllocateContext()
+  StoreInstanceField(#context-field:a, v9, v10)
+  v12 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v12, v9)
+  DirectCall callClosure(v12)
+  Goto(B7)
+B5 = TargetBlock() idom:B0
+  Goto(B7)
+B7 = JoinBlock(B5, B4) idom:B0 dominates:(B19, B21, B18)
+  v16 = DirectCall opaqueVal()
+  v17 = Comparison int ==(v16, v2)
+  Branch(v17, true: B18, false: B19)
+B18 = TargetBlock() idom:B7
+  v23 = AllocateContext()
+  StoreInstanceField(#context-field:b, v23, v24)
+  v26 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v26, v23)
+  DirectCall callClosure(v26)
+  Goto(B21)
+B19 = TargetBlock() idom:B7
+  Goto(B21)
+B21 = JoinBlock(B19, B18) idom:B7
+  Return(v30)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(11);
+}) at foo48
+B0 = EntryBlock()
+  v5 = Constant(11)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  b = b.{num.+}(22);
+}) at foo48
+B0 = EntryBlock()
+  v5 = Constant(22)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:b, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:b, v3, v6)
+  Return(v8)
+
+--- foo49
+B0 = EntryBlock() dominates:(B9)
+  v7 = Constant(0)
+  v12 = Constant(4)
+  v21 = Constant(1)
+  v25 = Constant(null)
+  v1 = AllocateContext()
+  v2 = DirectCall opaqueVal()
+  StoreInstanceField(#context-field:a, v1, v2)
+  v4 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v4, v1)
+  DirectCall callClosure(v4)
+  Goto(B9)
+B9 = JoinBlock(B0, B14) idom:B0 dominates:(B15, B14) loop-header (depth:1 body:(B9, B14) back-edges:(B14))
+  v27 = Phi(v7, v22)
+  v13 = Comparison int <(v27, v12)
+  Branch(v13, true: B14, false: B15)
+B14 = TargetBlock() idom:B9 in-loop:B9
+  v17 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v17, v1)
+  DirectCall callClosure(v17)
+  v22 = BinaryIntOp +(v27, v21)
+  Goto(B9)
+B15 = TargetBlock() idom:B9
+  Return(v25)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(10);
+}) at foo49
+B0 = EntryBlock()
+  v5 = Constant(10)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  Return(v8)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(20);
+  callClosure(void () {
+    a = a.{num.+}(30);
+  });
+}) at foo49
+B0 = EntryBlock()
+  v5 = Constant(20)
+  v11 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  v8 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v8, v3)
+  DirectCall callClosure(v8)
+  Return(v11)
+
+--- closure FunctionExpression(void () {
+  a = a.{num.+}(30);
+}) at foo49
+B0 = EntryBlock()
+  v5 = Constant(30)
+  v8 = Constant(null)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = LoadInstanceField(#context-field:a, v3)
+  v6 = BinaryIntOp +(v4, v5)
+  StoreInstanceField(#context-field:a, v3, v6)
+  Return(v8)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

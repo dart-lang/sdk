@@ -5,7 +5,7 @@
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
+    show LanguageVersionToken, Scanner, scan;
 import 'package:kernel/ast.dart' show Version;
 import 'package:package_config/package_config.dart'
     show InvalidLanguageVersion, Package;
@@ -14,7 +14,6 @@ import '../base/compiler_context.dart' show CompilerContext;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/uri_translator.dart' show UriTranslator;
 import 'compiler_options.dart' show CompilerOptions;
-import 'experimental_flags.dart' show ExperimentalFlag;
 import 'file_system.dart' show FileSystem, FileSystemException;
 
 export 'package:kernel/ast.dart' show Version;
@@ -73,43 +72,29 @@ Future<VersionAndPackageUri> languageVersionForUri(
       int? major;
       int? minor;
       if (fileUri != null) {
-        Uint8List? rawBytes;
-        try {
-          FileSystem fileSystem = context.options.fileSystem;
-          rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
-        } on FileSystemException catch (_) {
-          rawBytes = null;
-        }
-        if (rawBytes != null) {
-          scan(
-            rawBytes,
-            includeComments: false,
-            configuration: new ScannerConfiguration(),
-            languageVersionChanged:
-                (Scanner scanner, LanguageVersionToken version) {
-                  if (major != null || minor != null) return;
-                  major = version.major;
-                  minor = version.minor;
-                },
-          );
+        LanguageVersionToken? version =
+            await scanBytesForLanguageVersionAnnotation(
+              context.options.fileSystem,
+              fileUri,
+            );
+        if (version != null) {
+          major = version.major;
+          minor = version.minor;
         }
       }
 
       if (major != null && minor != null) {
         // Verify OK.
-        if (major! > currentSdkVersionMajor ||
+        if (major > currentSdkVersionMajor ||
             (major == currentSdkVersionMajor &&
-                minor! > currentSdkVersionMinor)) {
+                minor > currentSdkVersionMinor)) {
           major = null;
           minor = null;
         }
       }
       if (major != null && minor != null) {
         // The file decided. Return result.
-        return new VersionAndPackageUri(
-          new Version(major!, minor!),
-          packageUri,
-        );
+        return new VersionAndPackageUri(new Version(major, minor), packageUri);
       }
 
       // Check package.
@@ -118,19 +103,16 @@ Future<VersionAndPackageUri> languageVersionForUri(
           package.languageVersion is! InvalidLanguageVersion) {
         major = package.languageVersion!.major;
         minor = package.languageVersion!.minor;
-        if (major! > currentSdkVersionMajor ||
+        if (major > currentSdkVersionMajor ||
             (major == currentSdkVersionMajor &&
-                minor! > currentSdkVersionMinor)) {
+                minor > currentSdkVersionMinor)) {
           major = null;
           minor = null;
         }
       }
       if (major != null && minor != null) {
         // The package decided. Return result.
-        return new VersionAndPackageUri(
-          new Version(major!, minor!),
-          packageUri,
-        );
+        return new VersionAndPackageUri(new Version(major, minor), packageUri);
       }
 
       // Return default.
@@ -143,23 +125,29 @@ Future<VersionAndPackageUri> languageVersionForUri(
 }
 
 // Coverage-ignore(suite): Not run.
-/// Returns `true` if the language version of [uri] does not support null
-/// safety.
-Future<bool> uriUsesLegacyLanguageVersion(
-  Uri uri,
-  CompilerOptions options,
+Future<LanguageVersionToken?> scanBytesForLanguageVersionAnnotation(
+  FileSystem fileSystem,
+  Uri fileUri,
 ) async {
-  // This method is here in order to use the opt out hack here for test
-  // sources.
-  VersionAndPackageUri versionAndLibraryUri = await languageVersionForUri(
-    uri,
-    options,
-  );
-  return !options.isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag.nonNullable,
-    versionAndLibraryUri.packageUri,
-    versionAndLibraryUri.version,
-  );
+  Uint8List? rawBytes;
+  try {
+    rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
+  } on FileSystemException catch (_) {
+    rawBytes = null;
+  }
+  if (rawBytes != null) {
+    LanguageVersionToken? firstVersionSeen;
+    scan(
+      rawBytes,
+      includeComments: false,
+      languageVersionChanged: (Scanner scanner, LanguageVersionToken version) {
+        if (firstVersionSeen != null) return;
+        firstVersionSeen = version;
+      },
+    );
+    return firstVersionSeen;
+  }
+  return null;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -167,5 +155,5 @@ class VersionAndPackageUri {
   final Version version;
   final Uri packageUri;
 
-  VersionAndPackageUri(this.version, this.packageUri);
+  new(this.version, this.packageUri);
 }

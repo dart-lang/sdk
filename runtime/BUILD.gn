@@ -44,13 +44,6 @@ config("dart_product_config") {
   cflags = []
   if (!dart_debug) {
     defines += [ "PRODUCT" ]
-    if (is_posix) {
-      cflags = [
-        # This is the equivalent from `build/config/BUILDCONFIG.gn` which includes
-        # `build/config/gcc:symbol_visibility_hidden` in product mode.
-        "-fvisibility=hidden",
-      ]
-    }
     if (dart_runtime_mode == "release" && target_os == "linux") {
       defines += [ "DART_DISABLE_TIMELINE" ]
     }
@@ -74,13 +67,6 @@ config("dartdev_config") {
   ]
   if (!dart_debug) {
     defines += [ "PRODUCT" ]
-    if (is_posix) {
-      cflags = [
-        # This is the equivalent from `build/config/BUILDCONFIG.gn` which includes
-        # `build/config/gcc:symbol_visibility_hidden` in product mode.
-        "-fvisibility=hidden",
-      ]
-    }
   }
 }
 

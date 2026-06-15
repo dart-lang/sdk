@@ -328,7 +328,7 @@ final closureCallbackThroughHandle = testLibrary
 final returnHandleInCallback = testLibrary
     .lookupFunction<
       Handle Function(Pointer<NativeFunction<Handle Function()>>),
-      Object Function(Pointer<NativeFunction<Handle Function()>>)
+      Object? Function(Pointer<NativeFunction<Handle Function()>>)
     >("ReturnHandleInCallback");
 
 final handleRecursion = testLibrary

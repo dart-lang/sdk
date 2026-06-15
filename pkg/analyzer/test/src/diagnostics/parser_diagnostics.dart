@@ -6,14 +6,13 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart'
+    as expected_diagnostics;
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
-import '../../generated/test_support.dart';
 import '../../util/diff.dart';
 import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
@@ -42,31 +41,12 @@ class ParserDiagnosticsTest {
     }
   }
 
-  ExpectedError error(
-    DiagnosticCode code,
-    int offset,
-    int length, {
-    Pattern? correctionContains,
-    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
-    String? text,
-    List<Pattern> messageContains = const [],
-    List<ExpectedContextMessage> contextMessages = const [],
-  }) {
-    assert(
-      text == null || messageContains.isEmpty,
-      'Only use one of text or messageContains',
-    );
-    return ExpectedError(
-      code,
-      offset,
-      length,
-      correctionContains: correctionContains,
-      messageContainsAll: text != null ? [text] : messageContains,
-      contextMessages: contextMessages,
-    );
-  }
-
-  ParseStringResult parseStringWithErrors(
+  /// Parses [content] without checking diagnostics.
+  ///
+  /// Use this only for parser smoke tests where diagnostics are intentionally
+  /// irrelevant, for example when verifying that a broad set of inputs does not
+  /// crash or loop.
+  ParseStringResult parseTestCodeIgnoringDiagnostics(
     String content, {
     FeatureSet? featureSet,
   }) {
@@ -75,6 +55,38 @@ class ParserDiagnosticsTest {
       featureSet: featureSet ?? testFeatureSet,
       throwIfDiagnostics: false,
     );
+  }
+
+  /// Parses [content] and checks that its inline diagnostic markers match the
+  /// diagnostics. Marker lines are test metadata and are removed before
+  /// parsing, so they cannot influence parser recovery.
+  ParseStringResult parseTestCodeWithDiagnostics(
+    String content, {
+    FeatureSet? featureSet,
+  }) {
+    var cleanContent = expected_diagnostics.removeDiagnosticExpectations(
+      content,
+    );
+    var parseContent = expected_diagnostics.removeTrailingLineTerminator(
+      cleanContent,
+    );
+    var result = parseString(
+      content: parseContent,
+      featureSet: featureSet ?? testFeatureSet,
+      throwIfDiagnostics: false,
+    );
+
+    var actual = expected_diagnostics.updateExpectedDiagnostics(
+      content: cleanContent,
+      actualDiagnostics: result.errors,
+    );
+    if (actual != content) {
+      NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(content, actual);
+      fail('See the difference above.');
+    }
+
+    return result;
   }
 
   String _parsedNodeText(
@@ -105,15 +117,5 @@ class ParserDiagnosticsTest {
 extension ParseStringResultExtension on ParseStringResult {
   FindNode get findNode {
     return FindNode(content, unit);
-  }
-
-  void assertErrors(List<ExpectedDiagnostic> expectedDiagnostics) {
-    var diagnosticListener = GatheringDiagnosticListener();
-    diagnosticListener.addAll(errors);
-    diagnosticListener.assertErrors(expectedDiagnostics);
-  }
-
-  void assertNoErrors() {
-    assertErrors(const []);
   }
 }

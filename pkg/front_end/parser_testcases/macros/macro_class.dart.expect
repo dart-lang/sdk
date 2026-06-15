@@ -1,42 +1,118 @@
+Problems reported:
+
+parser/macros/macro_class:1:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+macro class Class {}
+^^^^^
+
+parser/macros/macro_class:1:1: Expected ';' after this.
+macro class Class {}
+^^^^^
+
+parser/macros/macro_class:2:1: Can't have modifier 'abstract' here.
+abstract macro class Class {}
+^^^^^^^^
+
+parser/macros/macro_class:2:10: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+abstract macro class Class {}
+         ^^^^^
+
+parser/macros/macro_class:2:10: Expected ';' after this.
+abstract macro class Class {}
+         ^^^^^
+
+parser/macros/macro_class:3:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+macro class Class = Object with Mixin;
+^^^^^
+
+parser/macros/macro_class:3:1: Expected ';' after this.
+macro class Class = Object with Mixin;
+^^^^^
+
+parser/macros/macro_class:4:1: Can't have modifier 'abstract' here.
+abstract macro class Class = Object with Mixin;
+^^^^^^^^
+
+parser/macros/macro_class:4:10: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+abstract macro class Class = Object with Mixin;
+         ^^^^^
+
+parser/macros/macro_class:4:10: Expected ';' after this.
+abstract macro class Class = Object with Mixin;
+         ^^^^^
+
 beginCompilationUnit(macro)
   beginMetadataStar(macro)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(macro)
+  beginTopLevelMember(macro)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      handleRecoverableError(MissingConstFinalVarOrType, macro, macro)
+      handleNoType()
+      handleIdentifier(macro, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], macro, macro)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, macro, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables({)
-    beginClassDeclaration(macro, null, macro, null, null, null, null, null, null, Class)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, Class)
       handleNoPrimaryConstructor(DeclarationKind.Class, Class, null)
       handleNoType(Class)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
       handleImplements(null, 0)
-      handleClassHeader(macro, class, null)
+      handleClassHeader(class, class, null)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
-    endClassDeclaration(macro, })
+    endClassDeclaration(class, })
   endTopLevelDeclaration(})
   beginMetadataStar(abstract)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(abstract)
+  beginTopLevelMember(abstract)
+    handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'abstract' here., Try removing 'abstract'., {lexeme: abstract}], abstract, abstract)
+    beginFields(DeclarationKind.TopLevel, null, abstract, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, macro, macro)
+      handleNoType(abstract)
+      handleIdentifier(macro, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], macro, macro)
+    endTopLevelFields(null, abstract, null, null, null, null, null, 1, abstract, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables({)
-    beginClassDeclaration(abstract, abstract, macro, null, null, null, null, null, null, Class)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, Class)
       handleNoPrimaryConstructor(DeclarationKind.Class, Class, null)
       handleNoType(Class)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
       handleImplements(null, 0)
-      handleClassHeader(abstract, class, null)
+      handleClassHeader(class, class, null)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
-    endClassDeclaration(abstract, })
+    endClassDeclaration(class, })
   endTopLevelDeclaration(})
   beginMetadataStar(macro)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(macro)
+  beginTopLevelMember(macro)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, macro, macro)
+      handleNoType(})
+      handleIdentifier(macro, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], macro, macro)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, macro, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables(=)
-    beginNamedMixinApplication(macro, null, macro, null, null, null, null, null, null, Class)
+    beginNamedMixinApplication(class, null, null, null, null, null, null, null, Class)
       handleIdentifier(Object, typeReference)
       handleNoTypeArguments(with)
       handleType(Object, null)
@@ -46,14 +122,26 @@ beginCompilationUnit(macro)
         handleType(Mixin, null)
       endTypeList(1)
       handleNamedMixinApplicationWithClause(with)
-    endNamedMixinApplication(macro, class, =, null, ;)
+    endNamedMixinApplication(class, class, =, null, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(abstract)
   endMetadataStar(0)
-  beginClassOrMixinOrNamedMixinApplicationPrelude(abstract)
+  beginTopLevelMember(abstract)
+    handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'abstract' here., Try removing 'abstract'., {lexeme: abstract}], abstract, abstract)
+    beginFields(DeclarationKind.TopLevel, null, abstract, null, null, null, null, null, ;)
+      handleRecoverableError(MissingConstFinalVarOrType, macro, macro)
+      handleNoType(abstract)
+      handleIdentifier(macro, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], macro, macro)
+    endTopLevelFields(null, abstract, null, null, null, null, null, 1, abstract, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables(=)
-    beginNamedMixinApplication(abstract, abstract, macro, null, null, null, null, null, null, Class)
+    beginNamedMixinApplication(class, null, null, null, null, null, null, null, Class)
       handleIdentifier(Object, typeReference)
       handleNoTypeArguments(with)
       handleType(Object, null)
@@ -63,6 +151,6 @@ beginCompilationUnit(macro)
         handleType(Mixin, null)
       endTypeList(1)
       handleNamedMixinApplicationWithClause(with)
-    endNamedMixinApplication(abstract, class, =, null, ;)
+    endNamedMixinApplication(class, class, =, null, ;)
   endTopLevelDeclaration(;)
-endCompilationUnit(4, )
+endCompilationUnit(8, )

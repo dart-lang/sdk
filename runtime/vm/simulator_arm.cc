@@ -256,14 +256,10 @@ static const char* ImageName(uword vm_instructions,
                              uword isolate_instructions,
                              uword pc,
                              intptr_t* offset) {
-  const Image vm_image(vm_instructions);
   const Image isolate_image(isolate_instructions);
-  if (vm_image.contains(pc)) {
-    *offset = pc - vm_instructions;
-    return kVmSnapshotInstructionsAsmSymbol;
-  } else if (isolate_image.contains(pc)) {
+  if (isolate_image.contains(pc)) {
     *offset = pc - isolate_instructions;
-    return kIsolateSnapshotInstructionsAsmSymbol;
+    return kSnapshotTextAsmSymbol;
   } else {
     *offset = 0;
     return "<unknown>";
@@ -308,10 +304,9 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const T = Thread::Current();
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate_group()->source()->snapshot_instructions);
-  auto const isolate_instructions = reinterpret_cast<uword>(
-      T->isolate_group()->source()->snapshot_instructions);
+  const uword vm_instructions = 0;
+  const uword isolate_instructions =
+      reinterpret_cast<uword>(T->isolate_group()->source()->snapshot_text);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
                vm_instructions, isolate_instructions);
 #else
@@ -1349,17 +1344,26 @@ void Simulator::HandleRList(Instr* instr, bool load) {
       set_register(rn, rn_val);
     }
 
-    if (rlist == ((1 << FP) | (1 << PC))) {
-      // Special case `ldmia {fp, pc}` for LeaveDartFrame so that the profiler
-      // does not get confused by observing the update to fp before pc when our
-      // caller is the entry stub, i.e., failing to identify the entry frame. On
-      // real hardware, the profiler's signal handler cannot observe a partially
-      // executued load-multiple instruction.
+    // Special case `ldmia {fp, lr/pc}` for LeaveDartFrame[AndReturn] so that
+    // the profiler does not get confused by observing the update to fp before
+    // lr/pc when our caller is the entry stub, i.e., failing to identify the
+    // entry frame. On real hardware, the profiler's signal handler cannot
+    // observe a partially executued load-multiple instruction.
+    if (load && rlist == ((1 << FP) | (1 << PC))) {
+      COMPILE_ASSERT(FP < PC);
       int32_t new_fp = ReadW(address, instr);
       address += 4;
       int32_t new_pc = ReadW(address, instr);
       address += 4;
       set_register(PC, new_pc);
+      set_register(FP, new_fp);
+    } else if (load && rlist == ((1 << FP) | (1 << LR))) {
+      COMPILE_ASSERT(FP < LR);
+      int32_t new_fp = ReadW(address, instr);
+      address += 4;
+      int32_t new_lr = ReadW(address, instr);
+      address += 4;
+      set_register(LR, new_lr);
       set_register(FP, new_fp);
     } else {
       int reg = 0;
@@ -1592,6 +1596,11 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           Register rm = instr->RmField();
           int32_t rm_val = get_register(rm);
           intptr_t pc = get_pc();
+          // Set LR first so that the profiler does not get confused by
+          // observing the update to PC without the update to LR when we are
+          // calling out of the entry stub, i.e., failing to indentify the entry
+          // stub. On real hardware, the profiler's signal handler cannot
+          // observe a partially execute BLR.
           set_register(LR, pc + Instr::kInstrSize);
           set_pc(rm_val);
           break;
@@ -3416,6 +3425,9 @@ DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
     } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISH)) {
       // Format(instr, "dmb ish");
       memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
       std::atomic_thread_fence(std::memory_order_seq_cst);
     } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISHST)) {
       // Format(instr, "dmb ishst");

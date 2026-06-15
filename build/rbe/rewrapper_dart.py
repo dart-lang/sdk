@@ -122,23 +122,6 @@ def find_inputs(uris, exec_root, package_config):
     return inputs
 
 
-# Rewrite absolute paths in an argument to be relative.
-def rewrite_absolute(arg, exec_root, working_directory):
-    # The file:// schema does not work with relative paths as they are parsed as
-    # the authority by the dart Uri class.
-    arg = arg.replace('file:///' + exec_root, '../../')
-    arg = arg.replace('file://' + exec_root, '../../')
-    # Replace the absolute exec root by a relative path to the exec root.
-    arg = arg.replace(exec_root, '../../')
-    # Simplify paths going to the exec root and back into the out directory.
-    # Carefully ensure the whole path isn't optimized away.
-    if arg.endswith(f'../../{working_directory}/'):
-        arg = arg.replace(f'../../{working_directory}/', '.')
-    else:
-        arg = arg.replace(f'../../{working_directory}/', '')
-    return arg
-
-
 # Parse the command line execution to recognize well known programs during the
 # Dart SDK build, so the inputs and output files can be determined, and the
 # command can be offloaded to RBE.
@@ -318,19 +301,19 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/compiler/lib/src/dart2js.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dart2js()
-            elif arg == 'gen/utils/compiler/dart2js.dart.dill':
+            elif arg == 'obj/utils/compiler/dart2js.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dart2js()
             elif arg == '../../pkg/dev_compiler/bin/dartdevc.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'gen/utils/ddc/dartdevc.dart.dill':
+            elif arg == 'obj/utils/ddc/dartdevc.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'gen/utils/dartanalyzer/dartanalyzer.dart.dill':
+            elif arg == 'obj/utils/dartanalyzer/dartanalyzer.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartanalyzer()
-            elif arg == 'gen/utils/analysis_server/analysis_server.dart.dill':
+            elif arg == 'obj/utils/analysis_server/analysis_server.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_analysis_server()
             elif arg == '../../pkg/front_end/tool/compile_platform.dart':
@@ -348,35 +331,53 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/vm/bin/gen_kernel.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_gen_kernel()
-            elif arg == 'gen/utils/kernel-service/frontend_server.dart.dill':
+            elif arg == 'obj/utils/kernel-service/frontend_server.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_frontend_server()
-            elif arg == 'gen/utils/dtd/generate_dtd_snapshot.dart.dill':
+            elif arg == 'obj/utils/dtd/generate_dtd_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dtd_snapshot()
-            elif arg == 'gen/utils/dds/generate_dds_snapshot.dart.dill':
+            elif arg == 'obj/utils/dds/generate_dds_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dds_snapshot()
-            elif arg == 'gen/utils/bazel/kernel_worker.dart.dill':
+            elif arg == 'obj/utils/bazel/kernel_worker.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_kernel_worker()
-            elif arg == 'gen/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.dart.dill':
+            elif arg == 'obj/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dart_runtime_service_vm_snapshot()
-            elif arg == 'gen/utils/dartdev/generate_dartdev_snapshot.dart.dill':
+            elif arg == 'obj/utils/dartdev/generate_dartdev_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dartdev_snapshot()
-            elif arg == 'gen/utils/gen_kernel/bootstrap_gen_kernel.dill':
+            elif arg.endswith('obj/utils/bootstrap_gen_kernel.dill'):
                 self.extra_paths.add(self.rebase(arg))
-                return self.parse_bootstrap_gen_kernel()
-            elif arg == 'gen/utils/kernel-service/kernel-service_snapshot.dart.dill':
+                return self.parse_gen_kernel()
+            elif arg.endswith('obj/utils/bootstrap_compile_platform.dill'):
+                self.extra_paths.add(self.rebase(arg))
+                return self.parse_compile_platform()
+            elif arg == 'obj/utils/kernel-service/kernel-service_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 self.extra_paths.add(
                     self.rebase(
                         os.path.join(self.dart_subdir, 'vm_platform.dill')))
                 return self.parse_kernel_service_snapshot()
+            elif arg == '../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart':
+                self.entry_points.add(self.rebase(arg))
+                # This step is cheap, just bundle a few files into a tar
+                self.no_remote = True
+                return self.parse_build_dart_sdk_tar()
             else:
                 self.unsupported('dart', arg)
+
+    def parse_build_dart_sdk_tar(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['--output']):
+                self.outputs.append(self.rebase(self.optarg))
+            elif self.get_option(['--sdk-root']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            else:
+                self.unsupported('build_dart_sdk_tar', arg)
 
     def parse_dartaotruntime(self):
         while self.has_next_arg:
@@ -387,8 +388,41 @@ trace to find the place to insert the appropriate support.
                         os.path.join(self.dart_subdir,
                                      'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
+            elif arg == 'dart2wasm.snapshot' or arg.endswith(
+                    '/dart2wasm.snapshot'):
+                self.extra_paths.add(self.rebase(arg))
+                return self.parse_dart2wasm()
             else:
                 self.unsupported('dartaotruntime', arg)
+
+    def parse_dart2wasm(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['--packages', '--platform', '--wasm-opt']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--depfile']):
+                self.depfiles = [self.rebase(self.optarg)]
+            elif self.get_option(['--phases']):
+                pass
+            elif arg in [
+                    '-O0',
+                    '-O1',
+                    '-O2',
+                    '-O3',
+                    '-O4',
+                    '--minify',
+                    '--no-source-maps',
+            ]:
+                pass
+            else:
+                if arg.endswith('.dart'):
+                    self.entry_points.add(self.rebase(arg))
+                elif arg.endswith('.wasm'):
+                    output = self.rebase(arg)
+                    self.outputs.append(output)
+                    self.outputs.append(output.replace('.wasm', '.mjs'))
+                    self.outputs.append(output.replace('.wasm', '.support.js'))
+                    self.outputs.append(output + '.map')
 
     def parse_compile(self):
         while self.has_next_arg:
@@ -402,6 +436,27 @@ trace to find the place to insert the appropriate support.
                         os.path.join(self.dart_subdir,
                                      'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
+            if arg == 'exe':
+                self.extra_paths.add(
+                    self.rebase(os.path.join(self.dart_subdir,
+                                             'dartaotruntime')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'snapshots',
+                                     'dartdev_aot.dart.snapshot')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'snapshots',
+                                     'gen_kernel_aot.dart.snapshot')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, '..', 'lib', '_internal',
+                                     'vm_platform_product.dill')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'utils',
+                                     'gen_snapshot')))
+                return self.parse_compile_exe()
             else:
                 self.unsupported('compile', arg)
 
@@ -465,6 +520,18 @@ trace to find the place to insert the appropriate support.
                     self.extra_paths.add(self.rebase(arg))
             else:
                 self.unsupported('dartdevc', arg)
+
+    def parse_compile_exe(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['-o', '--output', '--depfile']):
+                self.outputs.append(self.rebase(self.optarg))
+            elif self.get_option(['--packages']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif not arg.startswith('-'):
+                self.entry_points.add(self.rebase(arg))
+            else:
+                self.unsupported('compile exe', arg)
 
     def parse_dartanalyzer(self):
         while self.has_next_arg:
@@ -580,28 +647,12 @@ trace to find the place to insert the appropriate support.
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option(['--platform']):
                 self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--dynamic-interface']):
+                self.extra_paths.add(self.rebase(self.optarg))
             elif self.get_option([
                     '--packages', '-D', '--filesystem-root',
                     '--filesystem-scheme'
             ]):
-                pass
-            elif arg in ['--no-aot', '--no-embed-sources']:
-                pass
-            elif not arg.startswith('-'):
-                self.entry_points.add(self.rebase(arg))
-            else:
-                self.unsupported('gen_kernel', arg)
-
-    def parse_bootstrap_gen_kernel(self):
-        while self.has_next_arg:
-            arg = self.next_arg()
-            if self.get_option(['-o', '--output']):
-                self.outputs.append(self.rebase(self.optarg))
-            elif self.get_option(['--platform']):
-                self.extra_paths.add(self.rebase(self.optarg))
-            elif self.get_option(['--dynamic-interface']):
-                self.extra_paths.add(self.rebase(self.optarg))
-            elif self.get_option(['--packages', '-D']):
                 pass
             elif arg in [
                     '--aot',
@@ -617,7 +668,7 @@ trace to find the place to insert the appropriate support.
             elif not arg.startswith('-'):
                 self.entry_points.add(self.rebase(arg))
             else:
-                self.unsupported('bootstrap_gen_kernel', arg)
+                self.unsupported('gen_kernel', arg)
 
     def parse_kernel_service_snapshot(self):
         while self.has_next_arg:
@@ -703,11 +754,11 @@ trace to find the place to insert the appropriate support.
             if self.get_option(['-o', '--output']):
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option([
-                    '--vm_snapshot_data',
-                    '--vm_snapshot_instructions',
-                    '--isolate_snapshot_data',
-                    '--isolate_snapshot_instructions',
+                    '--snapshot_data',
+                    '--snapshot_text',
                     '--elf',
+                    '--macho',
+                    '--ffi_callback_stub',
             ]):
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option([
@@ -777,21 +828,14 @@ def main(argv):
     command.append('--labels=type=tool')
     command.append('--inputs=' + ','.join(paths))
     command.append('--output_files=' + ','.join(output_files))
-    # Absolute paths must not be used with RBE, but since the build currently
-    # heavily relies on them, work around this issue by rewriting the command
-    # to instead use relative paths. The Dart SDK build rules needs to be fixed
-    # rather than doing this, but this is an initial step towards that goal
-    # which will land in subsequent follow up changes.
-    command += argv[2:rewrapper_end] + [
-        rewrite_absolute(arg, rewrapper.exec_root, working_directory)
-        for arg in argv[rewrapper_end:]
-    ]
+    command += argv[2:]
 
     # Finally execute the command remotely.
     run_command(command, rewrapper.exec_strategy)
 
     # Until the depfiles are fixed so they don't contain absoiute paths, we need
     # to rewrite the absoute paths appropriately.
+    # TODO(63495, 63546): Remove this and treat depfiles like ordinary outputs.
     for depfile in rewrapper.depfiles:
         lines = []
         try:

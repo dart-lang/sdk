@@ -19,7 +19,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -63,7 +62,7 @@ sealed class Availability {}
 sealed class Available extends Availability {
   final AbstractRefactoringContext refactoringContext;
 
-  Available({required this.refactoringContext});
+  new({required this.refactoringContext});
 
   /// Whether there are any positional parameters and, if so, if all of them
   /// can be converted to named parameters.
@@ -127,9 +126,7 @@ final class ChangeStatusFailureSuperFormalParameter
     extends ChangeStatusFailure {
   final ConstructorDeclaration constructorDeclaration;
 
-  ChangeStatusFailureSuperFormalParameter({
-    required this.constructorDeclaration,
-  });
+  new({required this.constructorDeclaration});
 }
 
 /// The result that signals the success.
@@ -137,7 +134,7 @@ final class ChangeStatusSuccess extends ChangeStatus {}
 
 /// The supertype for any failure inside [analyzeSelection].
 sealed class ErrorSelectionState extends SelectionState {
-  const ErrorSelectionState();
+  const new();
 }
 
 /// The description of a formal parameter, returned by [analyzeSelection].
@@ -173,7 +170,7 @@ final class FormalParameterState {
   /// If `true`, the selection covers this formal parameter.
   final bool isSelected;
 
-  FormalParameterState({
+  new({
     required this.id,
     required this.element,
     required this.kind,
@@ -199,11 +196,7 @@ class FormalParameterUpdate {
   /// Whether the formal parameter should be made `super`.
   final bool withSuper;
 
-  FormalParameterUpdate({
-    required this.id,
-    required this.kind,
-    this.withSuper = false,
-  });
+  new({required this.id, required this.kind, this.withSuper = false});
 }
 
 /// The description of a method signature update.
@@ -228,7 +221,7 @@ class MethodSignatureUpdate {
   /// Specifies whether to add the trailing comma after arguments.
   final ArgumentsTrailingComma argumentsTrailingComma;
 
-  MethodSignatureUpdate({
+  new({
     required this.formalParameters,
     this.removedNamedFormalParameters = const {},
     required this.formalParametersTrailingComma,
@@ -249,7 +242,7 @@ final class NotAvailableNoExecutableElement extends NotAvailable {}
 
 /// The supertype for all results of [analyzeSelection].
 sealed class SelectionState {
-  const SelectionState();
+  const new();
 }
 
 /// The strategy for trailing comma after formal parameters.
@@ -270,7 +263,7 @@ enum TrailingComma {
 /// 2. The kind of a formal parameter that we don't understand.
 /// 3. A formal parameter without the type annotation.
 final class UnexpectedSelectionState extends ErrorSelectionState {
-  const UnexpectedSelectionState();
+  const new();
 }
 
 /// The valid result of [analyzeSelection].
@@ -286,7 +279,7 @@ final class ValidSelectionState extends SelectionState {
   /// The current formal parameters.
   final List<FormalParameterState> formalParameters;
 
-  ValidSelectionState({
+  new({
     required this.refactoringContext,
     required this.element,
     required this.formalParameters,
@@ -296,7 +289,7 @@ final class ValidSelectionState extends SelectionState {
 class _AvailabilityAnalyzer {
   final AbstractRefactoringContext refactoringContext;
 
-  _AvailabilityAnalyzer({required this.refactoringContext});
+  new({required this.refactoringContext});
 
   Availability analyze() {
     var declaration = _declaration();
@@ -378,13 +371,7 @@ class _AvailabilityAnalyzer {
   }
 
   _Declaration? _declarationFormalParameter(FormalParameter node) {
-    FormalParameter formalParameter;
-    if (node.parent case DefaultFormalParameter result) {
-      formalParameter = result;
-    } else {
-      formalParameter = node;
-    }
-
+    var formalParameter = node;
     var formalParameterList = formalParameter.parent;
     if (formalParameterList is! FormalParameterList) {
       return null;
@@ -447,10 +434,7 @@ class _AvailabilityAnalyzer {
 final class _AvailableWithDeclaration extends Available {
   final _Declaration declaration;
 
-  _AvailableWithDeclaration({
-    required super.refactoringContext,
-    required this.declaration,
-  });
+  new({required super.refactoringContext, required this.declaration});
 
   @override
   bool get hasSelectedFormalParametersToConvertToNamed {
@@ -540,10 +524,7 @@ final class _AvailableWithDeclaration extends Available {
 final class _AvailableWithExecutableElement extends Available {
   final ExecutableElement element;
 
-  _AvailableWithExecutableElement({
-    required super.refactoringContext,
-    required this.element,
-  });
+  new({required super.refactoringContext, required this.element});
 
   @override
   List<FormalParameterElement> get _formalParameters =>
@@ -556,11 +537,7 @@ class _Declaration {
   final AstNode node;
   final List<FormalParameter> selected;
 
-  _Declaration({
-    required this.element,
-    required this.node,
-    required this.selected,
-  });
+  new({required this.element, required this.node, required this.selected});
 }
 
 /// Formal parameters of a declaration that match the selection.
@@ -568,14 +545,14 @@ final class _DeclarationFormalParameters {
   final List<FormalParameter> positional;
   final Map<String, FormalParameter> named;
 
-  _DeclarationFormalParameters({required this.positional, required this.named});
+  new({required this.positional, required this.named});
 }
 
 /// The class that implements [analyzeSelection].
 class _SelectionAnalyzer {
   final Available available;
 
-  _SelectionAnalyzer({required this.available});
+  new({required this.available});
 
   AbstractRefactoringContext get refactoringContext {
     return available.refactoringContext;
@@ -669,10 +646,7 @@ class _SignatureUpdater {
   final ValidSelectionState selectionState;
   final MethodSignatureUpdate signatureUpdate;
 
-  _SignatureUpdater({
-    required this.selectionState,
-    required this.signatureUpdate,
-  });
+  new({required this.selectionState, required this.signatureUpdate});
 
   AbstractRefactoringContext get refactoringContext {
     return selectionState.refactoringContext;
@@ -818,9 +792,18 @@ class _SignatureUpdater {
     String withoutRequired(
       FormalParameter existing, {
       required bool withSuper,
+      required bool withoutDefaultClause,
     }) {
-      var notDefault = existing.notDefault;
-      var requiredToken = notDefault.requiredKeyword;
+      var requiredToken = existing.requiredKeyword;
+      String textWithoutDefaultClause(FormalParameter parameter) {
+        if (parameter.defaultClause case var defaultClause?) {
+          return utils
+              .getRangeText(range.startStart(parameter, defaultClause))
+              .trimRight();
+        }
+        return utils.getNodeText(parameter);
+      }
+
       if (requiredToken != null) {
         var before = utils.getRangeText(
           range.startStart(existing, requiredToken),
@@ -831,25 +814,38 @@ class _SignatureUpdater {
         return '$before $after';
       } else {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
             range.startStart(existing, nameToken),
           );
           var after = utils.getRangeText(range.startEnd(nameToken, existing));
+          if (withoutDefaultClause && existing.defaultClause != null) {
+            after = '';
+          }
           return '${before}super.$after';
         } else {
-          return utils.getNodeText(existing);
+          return withoutDefaultClause
+              ? textWithoutDefaultClause(existing)
+              : utils.getNodeText(existing);
         }
       }
     }
 
     /// Returns the code with the `required` modifier.
     String withRequired(FormalParameter existing, {required bool withSuper}) {
-      var notDefault = existing.notDefault;
-      var requiredToken = notDefault.requiredKeyword;
+      var requiredToken = existing.requiredKeyword;
+      String textWithoutDefaultClause(FormalParameter parameter) {
+        if (parameter.defaultClause case var defaultClause?) {
+          return utils
+              .getRangeText(range.startStart(parameter, defaultClause))
+              .trimRight();
+        }
+        return utils.getNodeText(parameter);
+      }
+
       if (requiredToken != null) {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
             range.startStart(requiredToken.next!, nameToken),
           );
@@ -859,13 +855,16 @@ class _SignatureUpdater {
         }
       } else {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
-            range.startStart(notDefault, nameToken),
+            range.startStart(existing, nameToken),
           );
           return 'required ${before}super.${nameToken.lexeme}';
         } else {
-          var after = utils.getNodeText(notDefault);
+          var after = utils.getNodeText(existing);
+          if (existing.defaultClause != null) {
+            after = textWithoutDefaultClause(existing);
+          }
           return 'required $after';
         }
       }
@@ -915,19 +914,31 @@ class _SignatureUpdater {
         }
       }
 
-      var notDefault = existing.notDefault;
+      var notDefault = existing;
       switch (update.kind) {
         case FormalParameterKind.requiredPositional:
-          var text = withoutRequired(notDefault, withSuper: update.withSuper);
+          var text = withoutRequired(
+            notDefault,
+            withSuper: update.withSuper,
+            withoutDefaultClause: true,
+          );
           requiredPositionalWrites.add(text);
         case FormalParameterKind.optionalPositional:
-          var text = withoutRequired(existing, withSuper: update.withSuper);
+          var text = withoutRequired(
+            existing,
+            withSuper: update.withSuper,
+            withoutDefaultClause: false,
+          );
           optionalPositionalWrites.add(text);
         case FormalParameterKind.requiredNamed:
           var text = withRequired(existing, withSuper: update.withSuper);
           namedWrites.add(text);
         case FormalParameterKind.optionalNamed:
-          var text = withoutRequired(existing, withSuper: update.withSuper);
+          var text = withoutRequired(
+            existing,
+            withSuper: update.withSuper,
+            withoutDefaultClause: false,
+          );
           namedWrites.add(text);
       }
     }

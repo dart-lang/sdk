@@ -13,8 +13,7 @@ import '../../diagnostic.dart' as diag;
 const _desc = r'Sort pub dependencies alphabetically.';
 
 class SortPubDependencies extends AnalysisRule {
-  SortPubDependencies()
-    : super(name: LintNames.sort_pub_dependencies, description: _desc);
+  new() : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.sortPubDependencies;
@@ -26,7 +25,7 @@ class SortPubDependencies extends AnalysisRule {
 class Visitor extends PubspecVisitor<void> {
   final AnalysisRule rule;
 
-  Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitPackageDependencies(PubspecDependencyList dependencies) {

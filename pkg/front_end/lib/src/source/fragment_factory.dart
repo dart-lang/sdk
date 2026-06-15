@@ -24,6 +24,7 @@ import '../fragment/fragment.dart';
 import '../util/helpers.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
+import 'stack_listener_impl.dart';
 import 'type_parameter_factory.dart';
 
 abstract class FragmentFactory {
@@ -198,7 +199,6 @@ abstract class FragmentFactory {
     OffsetMap? offsetMap,
     Token? importKeyword,
     required List<MetadataBuilder>? metadata,
-    required bool isAugmentationImport,
     required String uri,
     required List<Configuration>? configurations,
     required String? prefix,
@@ -329,7 +329,7 @@ abstract class FragmentFactory {
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
   });
@@ -345,7 +345,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasNewKeyword,
     required bool forAbstractClassOrEnumOrMixin,
   });
@@ -356,6 +356,7 @@ abstract class FragmentFactory {
     required String? name,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
+    required int endOffset,
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
@@ -367,7 +368,7 @@ abstract class FragmentFactory {
     required Token beginToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasBody,
     required int bodyOffset,
   });
@@ -393,7 +394,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
   });
 
   ConstructorName computeAndValidateConstructorName(
@@ -417,7 +418,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -438,7 +439,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -458,7 +459,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -545,12 +546,9 @@ class SynthesizedExtensionSignature {
   final List<SourceNominalParameterBuilder>? clonedDeclarationTypeParameters;
   final FormalParameterBuilder thisFormal;
 
-  SynthesizedExtensionSignature._(
-    this.clonedDeclarationTypeParameters,
-    this.thisFormal,
-  );
+  new _(this.clonedDeclarationTypeParameters, this.thisFormal);
 
-  factory SynthesizedExtensionSignature({
+  factory({
     required ExtensionBuilder declarationBuilder,
     required List<TypeParameterFragment>? extensionTypeParameterFragments,
     required TypeBuilder onTypeBuilder,
@@ -600,12 +598,9 @@ class SynthesizedExtensionTypeSignature {
   final List<SourceNominalParameterBuilder>? clonedDeclarationTypeParameters;
   final FormalParameterBuilder thisFormal;
 
-  SynthesizedExtensionTypeSignature._(
-    this.clonedDeclarationTypeParameters,
-    this.thisFormal,
-  );
+  new _(this.clonedDeclarationTypeParameters, this.thisFormal);
 
-  factory SynthesizedExtensionTypeSignature({
+  factory({
     required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
     required List<TypeParameterFragment>? extensionTypeTypeParameters,
     required TypeParameterFactory typeParameterFactory,
@@ -672,7 +667,7 @@ class FieldInfo {
   final Token? beforeLast;
   final int endOffset;
 
-  const FieldInfo(
+  const new(
     this.identifier,
     this.initializerToken,
     this.beforeLast,

@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SealedClassSubtypeOutsideOfLibraryTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SealedClassSubtypeOutsideOfLibraryTest extends PubPackageResolutionTest {
   test_extends_sealed_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class Foo {}
 class Bar extends Foo {}
 ''');
@@ -27,13 +28,12 @@ class Bar extends Foo {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 3)],
-    );
+//                ^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_extends_sealed_outside_viaTypedef_inside() async {
@@ -42,13 +42,12 @@ sealed class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends FooTypedef {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 10)],
-    );
+//                ^^^^^^^^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_extends_sealed_outside_viaTypedef_outside() async {
@@ -56,14 +55,13 @@ class Bar extends FooTypedef {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar extends FooTypedef {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 63, 10)],
-    );
+//                ^^^^^^^^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_extends_subtypeOfSealed_outside() async {
@@ -72,14 +70,14 @@ sealed class Foo {}
 class Bar extends Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar2 extends Bar {}
 ''');
   }
 
   test_implements_sealed_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class Foo {}
 class Bar implements Foo {}
 ''');
@@ -90,13 +88,12 @@ class Bar implements Foo {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar implements Foo {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
-    );
+//                   ^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_implements_sealed_outside_mixin() async {
@@ -104,13 +101,12 @@ class Bar implements Foo {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 mixin Bar implements Foo {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 3)],
-    );
+//                   ^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_implements_sealed_outside_viaTypedef_inside() async {
@@ -119,13 +115,12 @@ sealed class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar implements FooTypedef {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 40, 10)],
-    );
+//                   ^^^^^^^^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_implements_sealed_outside_viaTypedef_outside() async {
@@ -133,14 +128,13 @@ class Bar implements FooTypedef {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar implements FooTypedef {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 66, 10)],
-    );
+//                   ^^^^^^^^^^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_implements_subtypeOfSealed_outside() async {
@@ -149,7 +143,7 @@ sealed class Foo {}
 class Bar implements Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar2 implements Bar {}
 ''');
@@ -161,13 +155,12 @@ base class Foo {}
 sealed class B extends Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 base class Bar extends B {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 42, 1)],
-    );
+//                     ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'B' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_induced_final_extends() async {
@@ -176,13 +169,12 @@ final class Foo {}
 sealed class B extends Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar extends B {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 43, 1)],
-    );
+//                      ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'B' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_induced_final_implements() async {
@@ -191,13 +183,12 @@ final class Foo {}
 sealed class B extends Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar implements B {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 46, 1)],
-    );
+//                         ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'B' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_induced_interface_extends() async {
@@ -206,13 +197,12 @@ interface class Foo {}
 sealed class B extends Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends B {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 37, 1)],
-    );
+//                ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'B' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_mixinOutside_rawClass() async {
@@ -220,27 +210,24 @@ class Bar extends B {}
 sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [
-        error(diag.classUsedAsMixin, 34, 3),
-        error(diag.sealedClassSubtypeOutsideOfLibrary, 34, 3),
-      ],
-    );
+//             ^^^
+// [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'Foo' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_on_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 mixin B on A {}
 ''');
   }
 
   test_on_inside_multiple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 sealed class B {}
 mixin C on A, B {}
@@ -252,13 +239,12 @@ mixin C on A, B {}
 sealed class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 mixin B on A {}
-''',
-      [error(diag.sealedClassSubtypeOutsideOfLibrary, 28, 1)],
-    );
+//         ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'A' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 
   test_on_outside_multiple() async {
@@ -267,15 +253,13 @@ sealed class A {}
 sealed class B {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 mixin C on A, B {}
-''',
-      [
-        error(diag.sealedClassSubtypeOutsideOfLibrary, 28, 1),
-        error(diag.sealedClassSubtypeOutsideOfLibrary, 31, 1),
-      ],
-    );
+//         ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'A' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+//            ^
+// [diag.sealedClassSubtypeOutsideOfLibrary] The class 'B' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.
+''');
   }
 }

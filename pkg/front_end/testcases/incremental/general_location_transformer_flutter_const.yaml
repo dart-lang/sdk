@@ -1,0 +1,100 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+target: dartdevc
+trackCreationLocations: true
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'foo.dart';
+        Foo newFoo = new Foo();
+        Bar newBar = new Bar();
+        Bar constBar = const Bar();
+        Baz newBaz = new Baz();
+        Boz newBoz = new Boz(createNew: true);
+        Boz constBoz = new Boz(createNew: false);
+      foo.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
+
+        class Foo extends Widget {
+          factory Foo() => const Foo._();
+
+          const Foo._();
+        }
+
+        class Bar extends Widget {
+          const factory Bar() = Bar._;
+
+          const Bar._();
+        }
+
+        class Baz extends Widget {
+          factory Baz() => const Baz._();
+
+          const factory Baz._() = Baz.__;
+
+          const Baz.__();
+        }
+
+        class Boz extends Widget {
+          factory Boz({required bool createNew}) {
+            if (createNew) {
+              return new Boz._();
+            } else {
+              return const Boz._();
+            }
+          }
+
+          const Boz._();
+        }
+      flutter/lib/src/widgets/framework.dart: |
+        abstract class Bar {
+          const Bar();
+        }
+        @pragma('track-creation-locations')
+        abstract class Widget extends Bar {
+          const Widget();
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'foo.dart';
+    expectedLibraryCount: 3
+    advancedInvalidation: outlineChange
+
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'foo.dart';
+        Foo newFoo = new Foo();
+        Bar newBar = new Bar();
+        Bar constBar = const Bar();
+        Baz newBaz = new Baz();
+        Boz newBoz = new Boz(createNew: true);
+        Boz constBoz = new Boz(createNew: false);
+    expectedLibraryCount: 3
+    advancedInvalidation: outlineChange

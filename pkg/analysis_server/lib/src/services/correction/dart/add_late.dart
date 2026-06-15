@@ -17,9 +17,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddLate extends ResolvedCorrectionProducer {
   final _Type _type;
 
-  AddLate({required super.context}) : _type = _Type.base;
+  new({required super.context}) : _type = _Type.base;
 
-  AddLate.this_({required super.context}) : _type = _Type.this_;
+  new this_({required super.context}) : _type = _Type.this_;
 
   @override
   CorrectionApplicability get applicability =>

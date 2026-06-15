@@ -381,7 +381,7 @@ class Configuration {
 
   final bool useQemu;
 
-  Configuration(this.name, this.architecture, this.compiler, this.mode,
+  new(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
       {NnbdMode? nnbdMode,
       Sanitizer? sanitizer,
@@ -439,7 +439,7 @@ class Configuration {
   ///
   /// NOTE: All parameters should be required to ensure that cloning factories
   /// are updated when new class fields are added.
-  Configuration._cloneHelper(
+  new _cloneHelper(
     this.name,
     this.architecture,
     this.compiler,
@@ -475,7 +475,7 @@ class Configuration {
   ///
   /// NOTE: This calls [_cloneHelper] instead of the default constructor to
   /// ensure it gets updated whenever new fields are added to the class.
-  factory Configuration.detectHost(Configuration source) =>
+  factory detectHost(Configuration source) =>
       Configuration._cloneHelper(
         '${source.name}-detect-host-${_detectHostNumber++}',
         Architecture.host,
@@ -740,7 +740,7 @@ enum Architecture {
 
   final String name;
   final bool isSimulator;
-  const Architecture._(this.name, {this.isSimulator = false});
+  new _(this.name, {this.isSimulator = false});
 
   static final List<String> names = _all.keys.toList();
 
@@ -819,7 +819,7 @@ enum GenSnapshotFormat {
   final String name;
   final String fileOption;
 
-  const GenSnapshotFormat(this.name, this.fileOption);
+  new(this.name, this.fileOption);
 
   static final _all = Map<String, GenSnapshotFormat>.fromIterable(
     values,
@@ -903,7 +903,7 @@ enum Compiler {
   final String name;
   final List<Runtime> supportedRuntimes;
   final Mode defaultMode;
-  const Compiler._(this.name,
+  new _(this.name,
       {this.supportedRuntimes = const [Runtime.none],
       this.defaultMode = Mode.debug});
 
@@ -948,7 +948,7 @@ enum Mode {
   }
 
   final String name;
-  const Mode._(this.name);
+  new _(this.name);
 
   bool get isDebug => this == debug;
 
@@ -978,7 +978,7 @@ enum Sanitizer {
   }
 
   final String name;
-  const Sanitizer._(this.name);
+  new _(this.name);
 
   @override
   String toString() => name;
@@ -1015,7 +1015,7 @@ enum Runtime {
 
   /// Whether this runtime is a command-line JavaScript environment.
   final bool isJSCommandLine;
-  const Runtime._(this.name,
+  new _(this.name,
       {this.isBrowser = false, this.isJSCommandLine = false});
 
   bool get isSafari => name.startsWith("safari");
@@ -1089,7 +1089,7 @@ enum System {
 
   /// The root directory name for build outputs on this system.
   final String outputDirectory;
-  const System._(this.name, {this.outputDirectory = 'out/'});
+  new _(this.name, {this.outputDirectory = 'out/'});
 
   @override
   String toString() => name;
@@ -1123,7 +1123,7 @@ enum NnbdMode {
   }
 
   final String name;
-  const NnbdMode._(this.name);
+  new _(this.name);
 
   @override
   String toString() => name;

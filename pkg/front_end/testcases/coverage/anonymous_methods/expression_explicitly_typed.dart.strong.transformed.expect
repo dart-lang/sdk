@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let core::int p = 1 in p;
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as{Unchecked} core::int in p;
+  let final core::int #t1 = 1 in block {
+    let core::int p = #t1 in let dynamic #t2 = p in p;
+  } =>#t1;
+  let final core::int #t3 = 1 in #t3 == null ?{core::int} #t3 : block {
+    let synthesized core::int anonymous#receiver = #t3 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as{Unchecked} core::int in let dynamic #t4 = p in p;
+  } =>#t3;
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_explicitly_typed.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_explicitly_typed.dart:7:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_explicitly_typed.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_explicitly_typed.dart:8:3 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///expression_explicitly_typed.dart:9:3 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_explicitly_typed.dart:9:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_explicitly_typed.dart:9:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_explicitly_typed.dart:9:3 -> IntConstant(1)
+Extra constant evaluation: evaluated: 13, effectively constant: 8

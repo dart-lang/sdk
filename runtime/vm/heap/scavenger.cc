@@ -1744,8 +1744,6 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 void Scavenger::TryAllocateNewTLAB(Thread* thread,
                                    intptr_t min_size,
                                    bool can_safepoint) {
-  ASSERT(heap_ != Dart::vm_isolate_group()->heap());
-
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   // Find the remaining space available in the TLAB before abandoning it so we
   // can reset the heap sampling offset in the new TLAB.

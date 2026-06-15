@@ -84,6 +84,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/platform_info.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
@@ -108,6 +109,7 @@ typedef UserPromptSender =
       MessageType type,
       String message,
       List<String> actionLabels,
+      lsp.CancellationToken cancellationToken,
     );
 
 /// Implementations of [AnalysisServer] implement a server that listens
@@ -291,7 +293,7 @@ abstract class AnalysisServer {
   /// temporary content.
   bool suppressAnalysisResults = false;
 
-  AnalysisServer(
+  new(
     this.options,
     this.sdkManager,
     this.diagnosticServer,
@@ -556,7 +558,9 @@ abstract class AnalysisServer {
     }
 
     unawaited(
-      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
+      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, [
+        lsp.UserPromptActions.ok,
+      ], NotCancelableToken()),
     );
     unifiedAnalytics.clientShowedMessage();
   }
@@ -906,12 +910,6 @@ abstract class AnalysisServer {
     );
   }
 
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    analysisDriverScheduler.notify();
-  }
-
   /// Notify the flutter widget properties support that the file with the
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
@@ -1146,6 +1144,7 @@ abstract class AnalysisServer {
     MessageType type,
     String message,
     List<String> actionLabels,
+    lsp.CancellationToken cancellationToken,
   );
 
   @mustCallSuper
@@ -1170,6 +1169,7 @@ abstract class AnalysisServer {
     await contextManager.dispose();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
+    await sessionLogger.shutdown();
   }
 
   ResolvedForCompletionResultImpl?
@@ -1211,7 +1211,7 @@ abstract class CommonServerContextManagerCallbacks
   /// The set of files for which notifications were sent.
   final Set<String> filesToFlush = {};
 
-  CommonServerContextManagerCallbacks(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   @mustCallSuper
@@ -1250,7 +1250,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }
@@ -1324,7 +1323,7 @@ enum MessageType {
   final lsp.MessageType forLsp;
   final legacy.MessageType forLegacy;
 
-  const MessageType(this.forLsp, this.forLegacy);
+  new(this.forLsp, this.forLegacy);
 }
 
 class ServerRecentPerformance {

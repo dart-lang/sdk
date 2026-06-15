@@ -2,32 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   void f() {
     super is T;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 30, 5)],
-    );
+''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SuperExpression
@@ -43,7 +43,7 @@ IsExpression
   }
 
   test_expression_switchExpression() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
@@ -51,7 +51,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.isExpression('is double');
+    var node = result.findNode.isExpression('is double');
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SwitchExpression
@@ -85,13 +85,13 @@ IsExpression
   }
 
   test_is() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? a) {
   a is int;
 }
 ''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier
@@ -108,13 +108,13 @@ IsExpression
   }
 
   test_isNot() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? a) {
   a is! int;
 }
 ''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier

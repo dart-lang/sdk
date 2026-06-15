@@ -12,11 +12,8 @@ import 'type_builder.dart';
 
 // Coverage-ignore(suite): Not run.
 class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  FutureOrTypeDeclarationBuilder(
-    DartType type,
-    LibraryBuilder compilationUnit,
-    int charOffset,
-  ) : super("FutureOr", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
+    : super("FutureOr", type, compilationUnit, charOffset);
 
   @override
   DartType buildAliasedType(

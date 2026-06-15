@@ -73,6 +73,9 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordTearOff(Member target) {}
 
   @override
+  void recordMemberCalledDynamically(Member target, {required bool isGetter}) {}
+
+  @override
   Procedure getClosureCallMethod(Closure closure) => closure.createCallMethod();
 
   @override
@@ -99,11 +102,11 @@ class FakeSharedVariable implements SharedVariable {
 }
 
 class FakeSharedVariableBuilder implements SharedVariableBuilder {
-  final Map<VariableDeclaration, SharedVariable> _sharedVariables = {};
+  final Map<Variable, SharedVariable> _sharedVariables = {};
   final Map<Member, SharedVariable> _sharedCapturedThisVariables = {};
 
   @override
-  SharedVariable getSharedVariable(VariableDeclaration variable) =>
+  SharedVariable getSharedVariable(Variable variable) =>
       _sharedVariables[variable] ??= FakeSharedVariable(
         variable.name ?? '__tmp',
       );

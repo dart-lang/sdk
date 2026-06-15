@@ -2,31 +2,30 @@
   (type $#Top <...>)
   (type $Array<WasmI16> <...>)
   (type $Array<WasmI32> <...>)
-  (type $Array<_ModuleRtt> <...>)
   (type $JSExternWrapper <...>)
   (type $JavaScriptStack <...>)
-  (type $_ModuleRtt <...>)
   (tag $tag0 (param (ref $#Top) (ref $#Top)))
-  (global $"WasmArray<WasmI16>[701]" (ref $Array<WasmI16>) <...>)
-  (global $"WasmArray<WasmI32>[229]" (ref $Array<WasmI32>) <...>)
-  (global $"WasmArray<WasmI32>[701]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI16>[688]" (ref $Array<WasmI16>) <...>)
+  (global $"WasmArray<WasmI32>[225]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI32>[688]" (ref $Array<WasmI32>) <...>)
   (global $"\"Caught Error\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught JSAny\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught Object\"" (ref $JSExternWrapper) <...>)
-  (global $_ModuleRtt (ref $_ModuleRtt) <...>)
-  (global $_rttInfoForModule (mut (ref null $Array<_ModuleRtt>)) <...>)
-  (func $f <noInline>  <...>)
-  (func $"tryBlocks1 <noInline>"
+  (func $boxJsException (param $var0 externref) (result (ref $#Top)) <...>)
+  (func $f  <...>)
+  (func $jsExceptionStackTrace (param $var0 externref) (result (ref $JavaScriptStack)) <...>)
+  (func $print (param $var0 (ref $#Top)) <...>)
+  (@binaryen.inline 0)
+  (func $tryBlocks1
     (local $var0 i32)
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
     (local $var3 (ref $#Top))
-    (local $var4 (ref $Array<_ModuleRtt>))
-    (local $var5 externref)
+    (local $var4 externref)
     block $label0
       block $label1 (result (ref $#Top)) (result (ref $#Top))
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var3
@@ -37,40 +36,30 @@
           local.get $var1
           struct.get $#Top $field0
           local.tee $var0
-          i32.const 85
+          i32.const 59
           i32.eq
           if (result i32)
             i32.const 0
           else
             block $label3 (result i32)
-              block $label4 (result (ref $Array<_ModuleRtt>))
-                global.get $_rttInfoForModule
-                br_on_non_null $label4
-                global.get $_ModuleRtt
-                array.new_fixed $Array<_ModuleRtt> 1
-                local.tee $var4
-                global.set $_rttInfoForModule
-                local.get $var4
-              end $label4
-              drop
               i32.const -1
-              global.get $"WasmArray<WasmI32>[229]"
-              i32.const 85
+              global.get $"WasmArray<WasmI32>[225]"
+              i32.const 59
               array.get $Array<WasmI32>
               local.get $var0
               i32.add
               local.tee $var0
-              i32.const 701
+              i32.const 688
               i32.ge_u
               br_if $label3
               drop
-              global.get $"WasmArray<WasmI32>[701]"
+              global.get $"WasmArray<WasmI32>[688]"
               local.get $var0
               array.get $Array<WasmI32>
-              i32.const 85
+              i32.const 59
               i32.eq
               if
-                global.get $"WasmArray<WasmI16>[701]"
+                global.get $"WasmArray<WasmI16>[688]"
                 local.get $var0
                 array.get_u $Array<WasmI16>
                 br $label3
@@ -85,9 +74,9 @@
           drop
           rethrow $label2
         catch $WebAssembly.JSTag
-          local.tee $var5
+          local.tee $var4
           call $boxJsException
-          local.get $var5
+          local.get $var4
           call $jsExceptionStackTrace
           br $label1
         end $label2
@@ -99,7 +88,8 @@
       call $print
     end $label0
   )
-  (func $"tryBlocks2 <noInline>"
+  (@binaryen.inline 0)
+  (func $tryBlocks2
     (local $var0 (ref $#Top))
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
@@ -107,7 +97,7 @@
     block $label0
       block $label1 (result (ref $#Top)) (result (ref $#Top))
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var1
@@ -130,14 +120,15 @@
       call $print
     end $label0
   )
-  (func $"tryBlocks3 <noInline>"
+  (@binaryen.inline 0)
+  (func $tryBlocks3
     (local $var0 i32)
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
     block $label0
       block $label1
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var2
@@ -147,36 +138,36 @@
               local.get $var1
               struct.get $#Top $field0
               local.tee $var0
-              i32.const 53
+              i32.const 54
               i32.le_u
               if
                 local.get $var0
-                i32.const 44
+                i32.const 40
                 i32.le_u
                 if
                   i32.const 1
                   local.get $var0
-                  i32.const 33
-                  i32.ge_u
+                  i32.const 40
+                  i32.eq
                   br_if $label3
                   drop
                   br $label4
                 end
                 i32.const 1
                 local.get $var0
-                i32.const 53
-                i32.eq
+                i32.const 43
+                i32.ge_u
                 br_if $label3
                 drop
                 br $label4
               end
               local.get $var0
-              i32.const 79
+              i32.const 101
               i32.le_u
               if
                 i32.const 1
                 local.get $var0
-                i32.const 79
+                i32.const 101
                 i32.eq
                 br_if $label3
                 drop
@@ -184,7 +175,7 @@
               end
               i32.const 1
               local.get $var0
-              i32.const 83
+              i32.const 105
               i32.eq
               br_if $label3
               drop
@@ -200,7 +191,4 @@
       call $print
     end $label0
   )
-  (func $boxJsException (param $var0 externref) (result (ref $#Top)) <...>)
-  (func $jsExceptionStackTrace (param $var0 externref) (result (ref $JavaScriptStack)) <...>)
-  (func $print (param $var0 (ref $#Top)) <...>)
 )

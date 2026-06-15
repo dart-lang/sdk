@@ -3,7 +3,7 @@
   (type $Array<String?> <...>)
   (type $Array<WasmI16> <...>)
   (type $JSExternWrapper <...>)
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 20 funcref)
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 18 funcref)
   (global $"\"hello\"" (ref $JSExternWrapper) <...>)
   (global $JSStringImpl._stringFromCodePointBuffer (mut (ref $Array<WasmI16>)) <...>)
   (global $array (mut (ref $Array<String?>))
@@ -20,19 +20,19 @@
     array.new_default $Array<String?>
     global.set $array
   )
-  (func $Expect.equals (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $Expect.equals (param $var0 (ref null $#Top)) <...>)
   (func $read (result (ref $JSExternWrapper))
     block $label0 (result (ref $JSExternWrapper))
       global.get $array
       i32.const 0
       array.get $Array<String?>
       br_on_non_null $label0
-      i32.const 19
-      call_indirect $module0.cross-module-funcs-0 (result (ref none))
+      i32.const 17
+      call_indirect $module0.cross-module-funcs-0 
       unreachable
     end $label0
   )
-  (func $write (result (ref null $#Top))
+  (func $write (result (ref $JSExternWrapper))
     (local $var0 (ref $JSExternWrapper))
     global.get $array
     i32.const 0

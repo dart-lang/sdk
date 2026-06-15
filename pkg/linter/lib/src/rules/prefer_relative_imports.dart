@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
-import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -18,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
 class PreferRelativeImports extends AnalysisRule {
-  PreferRelativeImports()
-    : super(name: LintNames.prefer_relative_imports, description: _desc);
+  new() : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferRelativeImports;
@@ -49,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final Uri sourceUri;
   final RuleContext context;
 
-  _Visitor(this.rule, this.sourceUri, this.context);
+  new(this.rule, this.sourceUri, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
     if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {
@@ -60,9 +58,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       // TODO(pq): `context.package.contains(source)` should work (but does
       // not).
-      var packageRoot = context.package?.root.path;
-      return packageRoot != null &&
-          path.isWithin(packageRoot, importedLibrary.source.fullName);
+      return context.package?.root.contains(importedLibrary.source.fullName) ??
+          false;
     }
 
     return false;

@@ -913,7 +913,7 @@ class ExpectException {
   final String message;
   final String name;
 
-  ExpectException(this.message) : name = _getTestName();
+  new(this.message) : name = _getTestName();
 
   @override
   String toString() {

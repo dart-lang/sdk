@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonTypeInCatchClauseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonTypeInCatchClauseTest extends PubPackageResolutionTest {
   test_isClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   try {
   } on String catch (e) {
@@ -27,7 +28,7 @@ f() {
   }
 
   test_isFunctionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F();
 f() {
   try {
@@ -39,7 +40,7 @@ f() {
   }
 
   test_isGenericFunctionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F<T> = void Function(T);
 f() {
   try {
@@ -51,7 +52,7 @@ f() {
   }
 
   test_isInterfaceTypeTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = String;
 f() {
   try {
@@ -63,7 +64,7 @@ f() {
   }
 
   test_isTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T extends Object> {
   f() {
     try {
@@ -76,36 +77,34 @@ class A<T extends Object> {
   }
 
   test_notDefined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   try {
   } on T catch (e) {
+//     ^
+// [diag.nonTypeInCatchClause] The name 'T' isn't a type and can't be used in an on-catch clause.
     e;
   }
 }
-''',
-      [error(diag.nonTypeInCatchClause, 21, 1)],
-    );
+''');
   }
 
   test_notType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var T = 0;
 f() {
   try {
   } on T catch (e) {
+//     ^
+// [diag.nonTypeInCatchClause] The name 'T' isn't a type and can't be used in an on-catch clause.
     e;
   }
 }
-''',
-      [error(diag.nonTypeInCatchClause, 32, 1)],
-    );
+''');
   }
 
   test_noType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   try {
   } catch (e) {

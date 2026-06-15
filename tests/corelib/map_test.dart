@@ -1115,6 +1115,7 @@ void testUnmodifiableMaps() {
 
   checkUnmodifiable(const {1: 1});
   checkUnmodifiable(Map.unmodifiable({1: 1}));
+  checkUnmodifiable(Map.unmodifiableOf({1: 1}));
   checkUnmodifiable(UnmodifiableMapView({1: 1}));
   checkUnmodifiable(const MapView({1: 1}));
 }

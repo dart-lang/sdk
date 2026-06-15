@@ -21,7 +21,7 @@ class InitializedCompilerState {
   final Set<String>? tags;
   final Map<Uri, Uri>? libraryToInputDill;
 
-  InitializedCompilerState(
+  new(
     this.options,
     this.processedOpts, {
     this.workerInputCache,
@@ -40,7 +40,7 @@ class InitializedCompilerState {
 class WorkerInputComponent {
   final List<int> digest;
   final Component component;
-  WorkerInputComponent(this.digest, this.component);
+  new(this.digest, this.component);
 }
 
 // Coverage-ignore(suite): Not run.

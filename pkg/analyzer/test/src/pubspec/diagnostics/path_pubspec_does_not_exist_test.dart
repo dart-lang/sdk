@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PathPubspecDoesNotExistTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,15 +18,14 @@ main() {
 class PathPubspecDoesNotExistTest extends PubspecDiagnosticTest {
   test_dependencyPath_pubspecDoesNotExist() {
     newFolder('/foo');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:
     path: /foo
-''',
-      [diag.pathPubspecDoesNotExist],
-    );
+//        ^^^^
+// [diag.pathPubspecDoesNotExist] The directory '/foo' doesn't contain a pubspec.
+''');
   }
 
   test_dependencyPath_pubspecExists() {
@@ -33,7 +33,7 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 dependencies:
   foo:

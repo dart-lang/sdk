@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,18 +27,17 @@ class InferenceFailureOnUninitializedVariableTest
   }
 
   test_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   var a;
+//    ^
+// [diag.inferenceFailureOnUninitializedVariable] The type of 'a' can't be inferred without either a type or initializer.
 }
-''',
-      [error(diag.inferenceFailureOnUninitializedVariable, 16, 1)],
-    );
+''');
   }
 
   test_field_withInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static var c = 3;
   static final d = 5;
@@ -51,7 +49,7 @@ class C {
   }
 
   test_field_withType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static int c = 0;
   static final int d = 5;
@@ -65,89 +63,82 @@ class C {
   }
 
   test_finalField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final a;
+//      ^
+// [diag.inferenceFailureOnUninitializedVariable] The type of 'a' can't be inferred without either a type or initializer.
   C(this.a);
 }
-''',
-      [error(diag.inferenceFailureOnUninitializedVariable, 18, 1)],
-    );
+''');
   }
 
   test_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var a;
+//    ^
+// [diag.inferenceFailureOnUninitializedVariable] The type of 'a' can't be inferred without either a type or initializer.
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.inferenceFailureOnUninitializedVariable, 17, 1),
-      ],
-    );
+''');
   }
 
   test_localVariable_withInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var a = 7;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
   }
 
   test_localVariable_withType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int a = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   dynamic b;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   Object c = Object();
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
   Null d;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 17, 1),
-        error(diag.unusedLocalVariable, 34, 1),
-        error(diag.unusedLocalVariable, 46, 1),
-        error(diag.unusedLocalVariable, 67, 1),
-      ],
-    );
+''');
   }
 
   test_staticField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static var a;
+//           ^
+// [diag.inferenceFailureOnUninitializedVariable] The type of 'a' can't be inferred without either a type or initializer.
 }
-''',
-      [error(diag.inferenceFailureOnUninitializedVariable, 23, 1)],
-    );
+''');
   }
 
   test_topLevelVariable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a;
-''',
-      [error(diag.inferenceFailureOnUninitializedVariable, 4, 1)],
-    );
+//  ^
+// [diag.inferenceFailureOnUninitializedVariable] The type of 'a' can't be inferred without either a type or initializer.
+''');
   }
 
   test_topLevelVariable_withInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 var a = 7;
 ''');
   }
 
   test_topLevelVariable_withType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 dynamic b;
 Object c = Object();

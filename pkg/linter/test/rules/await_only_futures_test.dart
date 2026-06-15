@@ -106,14 +106,11 @@ abstract class MyFuture<T> implements Future<T> {}
   }
 
   test_int() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  await 23;
+  [!await!] 23;
 }
-''',
-      [lint(19, 5)],
-    );
+''');
   }
 
   test_intersectionType_subtypeOfFuture() async {
@@ -135,14 +132,11 @@ void f() async {
   }
 
   test_typeVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f<T>(T f) async {
-  await f;
+  [!await!] f;
 }
-''',
-      [lint(25, 5)],
-    );
+''');
   }
 
   test_typeVariable_boundToFuture() async {

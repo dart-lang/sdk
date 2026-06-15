@@ -33,19 +33,16 @@ Widget f() {
   }
 
   test_hasHeight_andChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
-  return Container(
+  return [!Container!](
     height: 10,
     child: Row(),
   );
 }
-''',
-      [lint(62, 9)],
-    );
+''');
   }
 
   test_hasHeight_noChild() async {
@@ -61,19 +58,16 @@ Widget f() {
   }
 
   test_hasWidth_andChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
-  return Container(
+  return [!Container!](
     width: 10,
     child: Row(),
   );
 }
-''',
-      [lint(62, 9)],
-    );
+''');
   }
 
   test_hasWidth_noChild() async {
@@ -89,53 +83,44 @@ Widget f() {
   }
 
   test_hasWidthAndHeight_andChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
-  return Container(
+  return [!Container!](
     width: 10,
     height: 10,
     child: Row(),
   );
 }
-''',
-      [lint(62, 9)],
-    );
+''');
   }
 
   test_hasWidthAndHeight_andKey_noChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
-  return Container(
+  return [!Container!](
     key: Key(''),
     width: 10,
     height: 10,
   );
 }
-''',
-      [lint(62, 9)],
-    );
+''');
   }
 
   test_hasWidthAndHeight_noChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
-  return Container(
+  return [!Container!](
     width: 10,
     height: 10,
   );
 }
-''',
-      [lint(62, 9)],
-    );
+''');
   }
 
   test_noArguments() async {

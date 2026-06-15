@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeForCatchErrorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ReturnOfInvalidTypeForCatchErrorTest extends PubPackageResolutionTest {
   test_async_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) async => 0);
 }
@@ -24,20 +25,19 @@ void f(Future<int> future) {
   }
 
   test_blockFunctionBody_async_emptyReturn_nonVoid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) async {
     return;
+//  ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
   });
 }
-''',
-      [error(diag.returnWithoutValue, 69, 6)],
-    );
+''');
   }
 
   test_blockFunctionBody_async_emptyReturn_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<void> future) {
   future.catchError((e, st) async {
     return;
@@ -47,7 +47,7 @@ void f(Future<void> future) {
   }
 
   test_blockFunctionBody_emptyReturn_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<dynamic> future) {
   future.catchError((e, st) {
     return;
@@ -57,20 +57,29 @@ void f(Future<dynamic> future) {
   }
 
   test_blockFunctionBody_emptyReturn_nonVoid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
+  future.catchError((e, st) {
+    return;
+//  ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
+  });
+}
+''');
+  }
+
+  test_blockFunctionBody_emptyReturn_Null() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Future<Null> future) {
   future.catchError((e, st) {
     return;
   });
 }
-''',
-      [error(diag.returnWithoutValue, 63, 6)],
-    );
+''');
   }
 
   test_blockFunctionBody_emptyReturn_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<void> future) {
   future.catchError((e, st) {
     return;
@@ -80,24 +89,23 @@ void f(Future<void> future) {
   }
 
   test_blockFunctionBody_invalidReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) {
     if (1 == 2) {
       return 7;
     } else {
       return 0.5;
+//           ^^^
+// [diag.returnOfInvalidTypeFromCatchError] A value of type 'double' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<int>'.
     }
   });
 }
-''',
-      [error(diag.returnOfInvalidTypeFromCatchError, 119, 3)],
-    );
+''');
   }
 
   test_blockFunctionBody_withLocalFunction_expression_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) {
     double g() => 0.5;
@@ -109,7 +117,7 @@ void f(Future<int> future) {
   }
 
   test_blockFunctionBody_withLocalFunction_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) {
     double g() {
@@ -123,50 +131,55 @@ void f(Future<int> future) {
   }
 
   test_expressionFunctionBody_invalidReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) => 'c');
+//                             ^^^
+// [diag.returnOfInvalidTypeFromCatchError] A value of type 'String' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromCatchError, 60, 3)],
-    );
+''');
   }
 
   test_Null_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<Null> future) {
   future.catchError((e, st) => null);
 }
 ''');
   }
 
+  test_Null_voidReturnType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Future<Null> future, void Function() g) {
+  future.catchError((e, st) => g());
+}
+''');
+  }
+
   test_nullableType_emptyReturn() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int?> future) {
   future.catchError((e, st) {
     return;
+//  ^^^^^^
+// [diag.returnWithoutValue] The return value is missing after 'return'.
   });
 }
-''',
-      [error(diag.returnWithoutValue, 64, 6)],
-    );
+''');
   }
 
   test_nullableType_invalidReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int?> future) {
   future.catchError((e, st) => '');
+//                             ^^
+// [diag.returnOfInvalidTypeFromCatchError] A value of type 'String' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<int?>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromCatchError, 61, 2)],
-    );
+''');
   }
 
   test_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future) {
   future.catchError((e, st) => 0);
 }
@@ -174,7 +187,7 @@ void f(Future<int> future) {
   }
 
   test_void_okReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<void> future) {
   future.catchError((e, st) => 0);
 }
@@ -182,13 +195,12 @@ void f(Future<void> future) {
   }
 
   test_voidReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Future<int> future, void Function() g) {
   future.catchError((e, st) => g());
+//                             ^^^
+// [diag.returnOfInvalidTypeFromCatchError] A value of type 'void' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromCatchError, 79, 3)],
-    );
+''');
   }
 }

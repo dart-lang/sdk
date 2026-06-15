@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -80,6 +81,59 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_add_configuration() async {
+    await indexTestUnit('''
+import 'dart:async'
+    if (dart.library.io) 'dart:async';
+FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' as newName
+    if (dart.library.io) 'dart:async';
+newName.FutureOr<void> a;
+''');
+  }
+
+  Future<void> test_createChange_add_deferred() async {
+    await indexTestUnit(
+      '''
+import 'dart:async' deferred;
+x() => Completer<void>();
+''',
+      ignore: [diag.missingPrefixInDeferredImport],
+    );
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' deferred as newName;
+x() => newName.Completer<void>();
+''');
+  }
+
+  Future<void> test_createChange_add_hide() async {
+    await indexTestUnit('''
+import 'dart:async' hide Completer;
+FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' as newName hide Completer;
+newName.FutureOr<void> a;
+''');
+  }
+
   Future<void>
   test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
     await indexTestUnit(r'''
@@ -126,6 +180,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_add_show() async {
+    await indexTestUnit('''
+import 'dart:async' show FutureOr;
+FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' as newName show FutureOr;
+newName.FutureOr<void> a;
+''');
+  }
+
   Future<void> test_createChange_change_className() async {
     await indexTestUnit('''
 import 'dart:math' as test;
@@ -146,6 +216,22 @@ import 'dart:async' as newName;
 void f() {
   newName.Future f;
 }
+''');
+  }
+
+  Future<void> test_createChange_change_deferred() async {
+    await indexTestUnit('''
+import 'dart:async' deferred as oldName;
+x() => oldName.Completer<void>();
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' deferred as newName;
+x() => newName.Completer<void>();
 ''');
   }
 
@@ -171,6 +257,22 @@ void f() {
   newName.max(1, 2);
   test.Future f;
 }
+''');
+  }
+
+  Future<void> test_createChange_change_hide() async {
+    await indexTestUnit('''
+import 'dart:async' as oldName hide Completer;
+oldName.FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' as newName hide Completer;
+newName.FutureOr<void> a;
 ''');
   }
 
@@ -201,6 +303,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_change_show() async {
+    await indexTestUnit('''
+import 'dart:async' as oldName show FutureOr;
+oldName.FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' as newName show FutureOr;
+newName.FutureOr<void> a;
+''');
+  }
+
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
 import 'dart:math' as test;
@@ -221,6 +339,55 @@ import 'dart:async';
 void f() {
   Future f;
 }
+''');
+  }
+
+  Future<void> test_createChange_remove_deferred_disallowed() async {
+    await indexTestUnit('''
+import 'dart:async' deferred as oldName;
+x() => oldName.Completer<void>();
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = '';
+    // validate change
+    assertRefactoringStatus(
+      await refactoring.checkFinalConditions(),
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'Deferred imports require a prefix',
+    );
+  }
+
+  Future<void> test_createChange_remove_hide() async {
+    await indexTestUnit('''
+import 'dart:async' as oldName hide Completer;
+oldName.FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = '';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' hide Completer;
+FutureOr<void> a;
+''');
+  }
+
+  Future<void> test_createChange_remove_show() async {
+    await indexTestUnit('''
+import 'dart:async' as oldName show FutureOr;
+oldName.FutureOr<void> a;
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = '';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import 'dart:async' show FutureOr;
+FutureOr<void> a;
 ''');
   }
 

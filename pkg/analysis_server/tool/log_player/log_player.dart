@@ -50,7 +50,15 @@ class LogPlayer {
 
   final Logger logger = Logger.standard();
 
-  LogPlayer({required this.log, this.timeout = const Duration(seconds: 5)});
+  /// Whether to print verbose output, for example full messages when there are
+  /// mismatches.
+  final bool verbose;
+
+  new({
+    required this.log,
+    this.timeout = const Duration(seconds: 5),
+    this.verbose = false,
+  });
 
   /// Plays the log.
   Future<void> play() async {
@@ -246,11 +254,17 @@ class LogPlayer {
       } else {
         if (!_shouldSkip(message)) {
           stderr.writeln(
-            'Unexpected message from analysis server: ${message.preview}',
+            'Unexpected message from analysis server: ${_preview(message)}',
           );
         }
       }
     }
+  }
+
+  /// Returns a preview of the message, or if in verbose mode, the whole
+  /// JSON payload.
+  String _preview(Message message) {
+    return verbose ? jsonEncode(message.map) : message.preview;
   }
 
   /// Sends the message in the [entry] to the server.
@@ -313,9 +327,9 @@ class LogPlayer {
       }
       throw TimeoutException(
         'Timed out waiting for analysis server messages:\n\n'
-        '${pendingServerMessageExpectations.map((m) => m.preview).join('\n\n')}'
+        '${pendingServerMessageExpectations.map(_preview).join('\n\n')}'
         '\n\nUnmatched analysis server messages:\n\n'
-        '${extraServerMessages.map((m) => m.preview).join('\n\n')}',
+        '${extraServerMessages.map(_preview).join('\n\n')}',
       );
     } finally {
       progress.finish(showTiming: true);
@@ -324,7 +338,16 @@ class LogPlayer {
 }
 
 extension MessageExtension on Message {
-  static final _messageEquality = MessageEquality(ignoredKeys: {'version'});
+  static final _messageEquality = MessageEquality(
+    ignoredKeys: {
+      // Ignore commands because they change on the server and the log we're
+      // replaying might have been captured with a slightly older SDK.
+      'result.capabilities.executeCommandProvider.commands',
+      // The SDK version is in this field which can include hashes when using
+      // local/bleeding-edge builds.
+      'serverInfo.version',
+    },
+  );
 
   // A preview of the message, first 100 chars followed by "..."
   String get preview {

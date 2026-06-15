@@ -208,5 +208,5 @@ class _Group {
 class _Expectation {
   final _ExpectationFunction function;
 
-  _Expectation(this.function);
+  new(this.function);
 }

@@ -26,6 +26,7 @@ import '../../dill/dill_member_builder.dart';
 import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/redirecting_factory_body.dart';
@@ -35,6 +36,7 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
@@ -45,7 +47,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   final FactoryFragment _fragment;
 
-  AsyncMarker _asyncModifier;
+  AsyncModifier _asyncModifier;
 
   final List<SourceNominalParameterBuilder>? typeParameters;
 
@@ -59,14 +61,14 @@ class FactoryEncoding implements InferredTypeListener {
 
   final ConstructorReferenceBuilder? _redirectionTarget;
 
-  FactoryEncoding(
+  new(
     this._fragment, {
     required this.typeParameters,
     required this.returnType,
     required ConstructorReferenceBuilder? redirectionTarget,
   }) : _redirectionTarget = redirectionTarget,
        _asyncModifier = redirectionTarget != null
-           ? AsyncMarker.Sync
+           ? AsyncModifier.implicitSync
            : _fragment.asyncModifier;
 
   Procedure get procedure => _procedure;
@@ -97,16 +99,24 @@ class FactoryEncoding implements InferredTypeListener {
     required bool isConst,
   }) {
     _procedure =
-        new Procedure(
+        extern.createProcedure(
             dummyName,
             nameScheme.isExtensionTypeMember
                 ? ProcedureKind.Method
                 : ProcedureKind.Factory,
-            new FunctionNode(null)
-              ..asyncMarker = _asyncModifier
-              ..dartAsyncMarker = _asyncModifier,
+            extern.createFunctionNode(
+              null,
+              asyncMarker: _asyncModifier.kind,
+              dartAsyncMarker: _asyncModifier.kind,
+              fileOffset: _fragment.fullNameOffset,
+              fileEndOffset: _fragment.endOffset,
+            ),
             fileUri: _fragment.fileUri,
             reference: factoryReferences?.factoryReference,
+            fileStartOffset: _fragment.startOffset,
+            fileOffset: _fragment.fullNameOffset,
+            fileEndOffset: _fragment.endOffset,
+            isExtensionTypeMember: nameScheme.isExtensionTypeMember,
           )
           ..fileStartOffset = _fragment.startOffset
           ..fileOffset = _fragment.fullNameOffset
@@ -125,11 +135,11 @@ class FactoryEncoding implements InferredTypeListener {
     )?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     returnType.registerInferredTypeListener(this);
 
-    _procedure.function.asyncMarker = _asyncModifier;
+    _procedure.function.asyncMarker = _asyncModifier.kind;
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
-      _procedure.function.registerFunctionBody(new EmptyStatement());
+      _procedure.function.registerFunctionBody(extern.createEmptyStatement());
     }
     buildTypeParametersAndFormals(
       libraryBuilder,
@@ -530,8 +540,9 @@ class FactoryEncoding implements InferredTypeListener {
       body: createRedirectingFactoryErrorBody(message),
       // TODO(cstefantsova): Pass a scope here.
       scope: null,
-      asyncMarker: AsyncMarker.Sync,
+      asyncModifier: AsyncModifier.implicitSync,
       emittedValueType: null,
+      thisVariable: null,
     );
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
@@ -824,12 +835,13 @@ class FactoryEncoding implements InferredTypeListener {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
+    required Variable? thisVariable,
   }) {
     assert(
-      asyncMarker == AsyncMarker.Sync,
-      "Unexpected async marker $asyncMarker for factory.",
+      asyncModifier.kind == AsyncMarker.Sync,
+      "Unexpected async marker $asyncModifier for factory.",
     );
     assert(
       emittedValueType == null,
@@ -838,11 +850,12 @@ class FactoryEncoding implements InferredTypeListener {
     if (body != null) {
       _procedure.function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
     _procedure.function.scope = scope;
+    _procedure.function.thisVariable = thisVariable;
   }
 
   void becomeNative(SourceLoader loader) {
@@ -855,7 +868,7 @@ class FactoryEncoding implements InferredTypeListener {
   FunctionSignature get signature =>
       new FunctionNodeSignature(_procedure.function);
 
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     if (_tearOff != null) {
       if (index < _tearOff.function.positionalParameters.length) {
         return _tearOff.function.positionalParameters[index];
@@ -873,7 +886,7 @@ class FactoryEncoding implements InferredTypeListener {
 }
 
 abstract class FactoryEncodingStrategy {
-  factory FactoryEncodingStrategy(DeclarationBuilder declarationBuilder) {
+  factory(DeclarationBuilder declarationBuilder) {
     switch (declarationBuilder) {
       case ClassBuilder():
       case ExtensionTypeDeclarationBuilder():
@@ -896,7 +909,7 @@ abstract class FactoryEncodingStrategy {
 }
 
 class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
-  const RegularFactoryEncodingStrategy();
+  const new();
 
   @override
   (List<SourceNominalParameterBuilder>?, TypeBuilder)
@@ -932,7 +945,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
 }
 
 class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
-  const ExtensionFactoryEncodingStrategy();
+  const new();
 
   @override
   (List<SourceNominalParameterBuilder>?, TypeBuilder)

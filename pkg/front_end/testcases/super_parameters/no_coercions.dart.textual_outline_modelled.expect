@@ -27,13 +27,14 @@ class A6 {
 }
 
 class A7 {
-  A7(
-      {required int x1,
-      required int x2,
-      required bool Function(Object) f1,
-      required bool Function(Object) f2,
-      required void Function(dynamic) g1,
-      required void Function(dynamic) g2});
+  A7({
+    required int x1,
+    required int x2,
+    required bool Function(Object) f1,
+    required bool Function(Object) f2,
+    required void Function(dynamic) g1,
+    required void Function(dynamic) g2,
+  });
 }
 
 class B1 extends A1 {
@@ -67,14 +68,14 @@ class B6 extends A6 {
 }
 
 class B7 extends A7 {
-  B7(
-      {required dynamic super.x1,
-      required dynamic x2,
-      required X Function<X>(Object) super.f1,
-      required X Function<X>(Object) f2,
-      required void Function<X>(X) super.g1,
-      required void Function<X>(X) g2})
-      : super(x2: x2, f2: f2, g2: g2);
+  B7({
+    required dynamic super.x1,
+    required dynamic x2,
+    required X Function<X>(Object) super.f1,
+    required X Function<X>(Object) f2,
+    required void Function<X>(X) super.g1,
+    required void Function<X>(X) g2,
+  }) : super(x2: x2, f2: f2, g2: g2);
 }
 
 main() {}

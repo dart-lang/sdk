@@ -610,15 +610,7 @@ void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
 void GCCompactor::SetupImagePageBoundaries() {
   MallocGrowableArray<ImagePageRange> ranges(4);
 
-  Page* image_page =
-      Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
-  while (image_page != nullptr) {
-    ImagePageRange range = {image_page->object_start(),
-                            image_page->object_end()};
-    ranges.Add(range);
-    image_page = image_page->next();
-  }
-  image_page = heap_->old_space()->image_pages_;
+  Page* image_page = heap_->old_space()->image_pages_;
   while (image_page != nullptr) {
     ImagePageRange range = {image_page->object_start(),
                             image_page->object_end()};
@@ -658,7 +650,7 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   Page* page = Page::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
   if (forwarding_page == nullptr) {
-    return;  // Not moved (VM isolate, large page, code page).
+    return;  // Not moved (large page or code page).
   }
   if (page->is_never_evacuate()) {
     // Forwarding page is non-NULL since one is still reserved for use as a
@@ -699,7 +691,7 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
   Page* page = Page::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
   if (forwarding_page == nullptr) {
-    return;  // Not moved (VM isolate, large page, code page).
+    return;  // Not moved (large page or code page).
   }
   if (page->is_never_evacuate()) {
     // Forwarding page is non-NULL since one is still reserved for use as a

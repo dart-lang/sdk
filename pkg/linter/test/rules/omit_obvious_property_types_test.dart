@@ -18,77 +18,59 @@ class OmitObviousPropertyTypesTest extends LintRuleTest {
   String get lintRule => 'omit_obvious_property_types';
 
   test_as_dynamic_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static dynamic i = n as dynamic;
+  static [!dynamic!] i = n as dynamic;
 }
 
 num n = 1;
-''',
-      [lint(19, 7)],
-    );
+''');
   }
 
   test_as_dynamic_topLevel() async {
-    await assertDiagnostics(
-      r'''
-dynamic i = n as dynamic;
+    await assertDiagnosticsFromMarkdown(r'''
+[!dynamic!] i = n as dynamic;
 num n = 1;
-''',
-      [lint(0, 7)],
-    );
+''');
   }
 
   test_as_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static int i = n as int;
+  static [!int!] i = n as int;
 }
 
 num n = 1;
-''',
-      [lint(19, 3)],
-    );
+''');
   }
 
   test_as_topLevel() async {
-    await assertDiagnostics(
-      r'''
-int i = n as int;
+    await assertDiagnosticsFromMarkdown(r'''
+[!int!] i = n as int;
 num n = 1;
-''',
-      [lint(0, 3)],
-    );
+''');
   }
 
   test_cascade_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static C c = C()..x..x..x;
+  static [!C!] c = C()..x..x..x;
 }
 
 class C {
   final x = 0;
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_cascade_topLevel() async {
-    await assertDiagnostics(
-      r'''
-C c = C()..x..x..x;
+    await assertDiagnosticsFromMarkdown(r'''
+[!C!] c = C()..x..x..x;
 
 class C {
   final x = 0;
 }
-''',
-      [lint(0, 1)],
-    );
+''');
   }
 
   test_dot_shorthand() async {
@@ -167,40 +149,31 @@ class C<X> {}
   }
 
   test_instanceCreation_generic_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static C<int> c = C<int>();
+  static [!C<int>!] c = C<int>();
 }
 
 class C<X> {}
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_instanceCreation_generic_topLevel() async {
-    await assertDiagnostics(
-      r'''
-C<int> c = C<int>();
+    await assertDiagnosticsFromMarkdown(r'''
+[!C<int>!] c = C<int>();
 
 class C<X> {}
-''',
-      [lint(0, 6)],
-    );
+''');
   }
 
   test_instanceCreation_nonGeneric_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static C c = C();
+  static [!C!] c = C();
 }
 
 class C {}
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_instanceCreation_nonGeneric_static_dotShorthand() async {
@@ -214,14 +187,11 @@ class C {}
   }
 
   test_instanceCreation_nonGeneric_topLevel() async {
-    await assertDiagnostics(
-      r'''
-C c = C();
+    await assertDiagnosticsFromMarkdown(r'''
+[!C!] c = C();
 
 class C {}
-''',
-      [lint(0, 1)],
-    );
+''');
   }
 
   test_instanceCreation_nonGeneric_topLevel_dotShorthand() async {
@@ -265,63 +235,45 @@ List<X> foo<X>(X x) => [x];
   }
 
   test_list_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static List<String> a = ['a', 'b', ('c' as dynamic) as String];
+  static [!List<String>!] a = ['a', 'b', ('c' as dynamic) as String];
 }
-''',
-      [lint(19, 12)],
-    );
+''');
   }
 
   test_list_topLevel() async {
-    await assertDiagnostics(
-      r'''
-List<String> a = ['a', 'b', ('c' as dynamic) as String];
-''',
-      [lint(0, 12)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!List<String>!] a = ['a', 'b', ('c' as dynamic) as String];
+''');
   }
 
   test_literal_bool_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static bool b = true;
+  static [!bool!] b = true;
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_literal_bool_topLevel() async {
-    await assertDiagnostics(
-      r'''
-bool b = true;
-''',
-      [lint(0, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!bool!] b = true;
+''');
   }
 
   test_literal_double_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static double d = 1.5;
+  static [!double!] d = 1.5;
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_literal_double_topLevel() async {
-    await assertDiagnostics(
-      r'''
-double d = 1.5;
-''',
-      [lint(0, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!double!] d = 1.5;
+''');
   }
 
   // The type is not obvious.
@@ -341,23 +293,17 @@ double d = 1;
   }
 
   test_literal_int_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static int i = 1;
+  static [!int!] i = 1;
 }
-''',
-      [lint(19, 3)],
-    );
+''');
   }
 
   test_literal_int_topLevel() async {
-    await assertDiagnostics(
-      r'''
-int i = 1;
-''',
-      [lint(0, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!int!] i = 1;
+''');
   }
 
   // `Null` is not obvious, the inferred type is `dynamic`.
@@ -377,43 +323,31 @@ Null nil = null;
   }
 
   test_literal_string_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static String s = "A string";
+  static [!String!] s = "A string";
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_literal_string_topLevel() async {
-    await assertDiagnostics(
-      r'''
-String s = "A string";
-''',
-      [lint(0, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!String!] s = "A string";
+''');
   }
 
   test_literal_symbol_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static Symbol s = #print;
+  static [!Symbol!] s = #print;
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_literal_symbol_topLevel() async {
-    await assertDiagnostics(
-      r'''
-Symbol s = #print;
-''',
-      [lint(0, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!Symbol!] s = #print;
+''');
   }
 
   test_local_multiple_ok_static() async {
@@ -493,42 +427,30 @@ var b = 'b';
   }
 
   test_map_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static Map<double, String> a = {1.5: 'a'};
+  static [!Map<double, String>!] a = {1.5: 'a'};
 }
-''',
-      [lint(19, 19)],
-    );
+''');
   }
 
   test_map_topLevel() async {
-    await assertDiagnostics(
-      r'''
-Map<double, String> a = {1.5: 'a'};
-''',
-      [lint(0, 19)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!Map<double, String>!] a = {1.5: 'a'};
+''');
   }
 
   test_multiple_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static String a = 'a', b = 'b';
+  static [!String!] a = 'a', b = 'b';
 }
-''',
-      [lint(19, 6)],
-    );
+''');
   }
 
   test_multiple_topLevel() async {
-    await assertDiagnostics(
-      r'''
-String a = 'a', b = 'b';
-''',
-      [lint(0, 6)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!String!] a = 'a', b = 'b';
+''');
   }
 }

@@ -5,6 +5,7 @@
 import 'dart:math' show min;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/table_selector.dart';
 import 'package:vm/metadata/unreachable.dart';
@@ -12,11 +13,8 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
 import 'code_generator.dart';
-import 'dynamic_module_kernel_metadata.dart';
-import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'reference_extensions.dart';
-import 'serialization.dart';
 import 'translator.dart';
 
 /// Information for a dispatch table selector.
@@ -55,10 +53,6 @@ class SelectorInfo {
   /// performs type checks on the passed arguments.
   late bool useMultipleEntryPoints;
 
-  late bool isDynamicSubmoduleOverridable;
-  late bool isDynamicSubmoduleCallable;
-  late bool isDynamicSubmoduleInheritable;
-
   /// Whether the computation of [paramInfo] should enforce usage of sentinels
   /// for optional parameters.
   late bool _useSentinelForOptionalParameters;
@@ -67,6 +61,17 @@ class SelectorInfo {
   ///
   /// This should be read after all targets have been added to the selector.
   late final w.FunctionType signature = _computeSignature();
+
+  /// Whether callers should synthesize a `null` return value.
+  ///
+  /// Will be set during `_computeSignature`.
+  late final bool synthesizeNullReturnValue;
+
+  /// Whether the call will never return and callers can emit an
+  /// `unreachable()` after the call.
+  ///
+  /// Will be set during `_computeSignature`.
+  late final bool synthesizeNoReturn;
 
   /// The selector's member's name.
   final String name;
@@ -98,79 +103,6 @@ class SelectorInfo {
     required this.isIndexSetter,
   });
 
-  void serialize(DataSerializer sink) {
-    sink.writeInt(id);
-    sink.writeString(name);
-    sink.writeInt(callCount);
-    sink.writeBoolList([
-      isSetter,
-      isIndexSetter,
-      useMultipleEntryPoints,
-      isDynamicSubmoduleOverridable,
-      isDynamicSubmoduleCallable,
-      isDynamicSubmoduleInheritable,
-      _useSentinelForOptionalParameters,
-    ]);
-    sink.writeNullable(_checked, (targets) => targets.serialize(sink));
-    sink.writeNullable(_unchecked, (targets) => targets.serialize(sink));
-    sink.writeNullable(_normal, (targets) => targets.serialize(sink));
-    sink.writeList(_references, sink.writeReference);
-  }
-
-  factory SelectorInfo.deserialize(
-    DataDeserializer source,
-    DispatchTable dispatchTable,
-  ) {
-    final id = source.readInt();
-    final name = source.readString();
-    final callCount = source.readInt();
-    final [
-      isSetter,
-      isIndexSetter,
-      useMultipleEntryPoints,
-      isDynamicSubmoduleOverridable,
-      isDynamicSubmoduleCallable,
-      isDynamicSubmoduleInheritable,
-      useSentinelForOptionalParameters,
-    ] = source
-        .readBoolList();
-    final checked = source.readNullable(
-      () => SelectorTargets.deserialize(source),
-    );
-    final unchecked = source.readNullable(
-      () => SelectorTargets.deserialize(source),
-    );
-    final normal = source.readNullable(
-      () => SelectorTargets.deserialize(source),
-    );
-    final references = source.readList(source.readReference);
-
-    final paramInfo = _parameterInfoFromReferences(
-      source.component.metadata[UnreachableNodeMetadataRepository.repositoryTag]
-          as UnreachableNodeMetadataRepository,
-      references,
-      useSentinelForOptionalParameters,
-    );
-    return SelectorInfo._(
-        dispatchTable,
-        id,
-        name,
-        callCount,
-        isSetter: isSetter,
-        isIndexSetter: isIndexSetter,
-      )
-      ..useMultipleEntryPoints = useMultipleEntryPoints
-      ..isDynamicSubmoduleCallable = isDynamicSubmoduleCallable
-      ..isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable
-      ..isDynamicSubmoduleInheritable = isDynamicSubmoduleInheritable
-      .._useSentinelForOptionalParameters = useSentinelForOptionalParameters
-      .._checked = checked
-      .._unchecked = unchecked
-      .._normal = normal
-      .._references.addAll(references)
-      ..paramInfo = paramInfo;
-  }
-
   String entryPointName(bool unchecked) {
     if (!useMultipleEntryPoints) return name;
     return '$name (${unchecked ? 'unchecked' : 'checked'})';
@@ -185,7 +117,8 @@ class SelectorInfo {
   /// returns are subtypes (resp. supertypes) of the types in the signature.
   w.FunctionType _computeSignature() {
     var nameIndex = paramInfo.nameIndex;
-    final int returnCount = (isSetter || isIndexSetter) ? 0 : 1;
+    final bool isSetterOrIndexSetter = (isSetter || isIndexSetter);
+    final int returnCount = isSetterOrIndexSetter ? 0 : 1;
     List<Set<w.ValueType>> inputSets = List.generate(
       1 + paramInfo.paramCount,
       (_) => {},
@@ -230,7 +163,7 @@ class SelectorInfo {
               ),
           ];
           named = {
-            for (VariableDeclaration param in function.namedParameters)
+            for (Variable param in function.namedParameters)
               param.name!: typeForParam(param, param.isRequired),
           };
           returns = returnCount == 0
@@ -239,11 +172,7 @@ class SelectorInfo {
         }
       }
       assert(returns.length <= outputSets.length);
-      inputSets[0].add(
-        isDynamicSubmoduleOverridable
-            ? translator.topTypeNonNullable
-            : translator.translateType(receiver),
-      );
+      inputSets[0].add(translator.translateType(receiver));
       for (int i = 0; i < positional.length; i++) {
         DartType type = positional[i];
         inputSets[1 + i].add(translator.translateType(type));
@@ -287,6 +216,19 @@ class SelectorInfo {
       outputSets.length,
       (i) => _upperBound(outputSets[i], ensureBoxed: false),
     );
+    if (outputs case [
+      w.RefType(heapType: w.HeapType.none, nullable: final nullable),
+    ]) {
+      // All functions are guaranteed to return null or are unreachable.
+      // => Prune signature to not return anything
+      // => Tell callers to synthesize `null` or emit `unreachable`.
+      outputs.clear();
+      synthesizeNullReturnValue = nullable;
+      synthesizeNoReturn = !nullable;
+    } else {
+      synthesizeNullReturnValue = isSetterOrIndexSetter;
+      synthesizeNoReturn = false;
+    }
     return translator.typesBuilder.defineFunction([
       inputs[0],
       ...typeParameters,
@@ -303,10 +245,8 @@ class SelectorInfo {
       // This happens if the selector doesn't have any targets. Any call site of
       // such a selector is unreachable. Though such call sites still have to
       // evaluate receiver and arguments. Doing so requires the signature. So we
-      // create a dummy signature with top types. Receivers specifically should
-      // be non-nullable since we must be invoking a selector on some object.
-      assert(!isReceiver || isDynamicSubmoduleOverridable);
-      return isReceiver ? translator.topTypeNonNullable : translator.topType;
+      // create a dummy signature with top types.
+      return translator.topType;
     }
     if (!ensureBoxed && types.length == 1 && types.single.isPrimitive) {
       // Unboxed primitive.
@@ -450,100 +390,17 @@ class SelectorTargets {
   late final Set<Reference> _targetSet = allTargetRanges
       .map((e) => e.target)
       .toSet();
-
-  void serialize(DataSerializer sink) {
-    sink.writeInt(offset == null ? 0 : offset! + 1);
-    sink.writeInt(_dispatchTableRanges.length);
-    for (final (:range, :target) in _dispatchTableRanges) {
-      range.serialize(sink);
-      sink.writeReference(target);
-    }
-    sink.writeInt(staticDispatchRanges.length);
-    for (final (:range, :target) in staticDispatchRanges) {
-      range.serialize(sink);
-      sink.writeReference(target);
-    }
-  }
-
-  factory SelectorTargets.deserialize(DataDeserializer source) {
-    final offset = source.readInt();
-    final dispatchTableRangesLength = source.readInt();
-    final dispatchTableRanges = <({Range range, Reference target})>[];
-    for (int i = 0; i < dispatchTableRangesLength; i++) {
-      final range = Range.deserialize(source);
-      final target = source.readReference();
-      dispatchTableRanges.add((range: range, target: target));
-    }
-    final staticDispatchRangesLength = source.readInt();
-    final staticDispatchRanges = <({Range range, Reference target})>[];
-    for (int i = 0; i < staticDispatchRangesLength; i++) {
-      final range = Range.deserialize(source);
-      final target = source.readReference();
-      staticDispatchRanges.add((range: range, target: target));
-    }
-    final allTargetRanges = <({Range range, Reference target})>[];
-    int s = 0;
-    int d = 0;
-    while (s < staticDispatchRangesLength || d < dispatchTableRangesLength) {
-      final se = (s < staticDispatchRangesLength)
-          ? staticDispatchRanges[s]
-          : null;
-      final de = (d < dispatchTableRangesLength)
-          ? dispatchTableRanges[d]
-          : null;
-      if (se != null) {
-        if (de == null || se.range.start < de.range.start) {
-          allTargetRanges.add(se);
-          s++;
-          continue;
-        }
-      }
-      assert(de != null && (se == null || de.range.start < se.range.start));
-      allTargetRanges.add(de!);
-      d++;
-    }
-    return SelectorTargets(
-      allTargetRanges,
-      dispatchTableRanges,
-      staticDispatchRanges,
-    )..offset = offset == 0 ? null : offset - 1;
-  }
 }
 
 /// Builds the dispatch table for member calls.
 class DispatchTable {
   static const _functionType = w.RefType.func(nullable: true);
-  final bool isDynamicSubmoduleTable;
 
-  late final Map<TreeNode, ProcedureAttributesMetadata>
-  procedureAttributeMetadata =
-      translator.isDynamicSubmodule && !isDynamicSubmoduleTable
-      ? (translator
-                    .component
-                    .metadata[dynamicMainModuleProcedureAttributeMetadataTag]
-                as ProcedureAttributesMetadataRepository)
-            .mapping
-      : translator.procedureAttributeMetadata;
+  final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
 
-  late final Translator translator;
+  final Translator translator;
 
-  late final List<TableSelectorInfo> _selectorMetadata =
-      translator.isDynamicSubmodule && !isDynamicSubmoduleTable
-      ? (translator.component.metadata[dynamicMainModuleSelectorMetadataTag]
-                as TableSelectorMetadataRepository)
-            .mapping[translator.component]!
-            .selectors
-      : (translator.component.metadata[TableSelectorMetadataRepository
-                    .repositoryTag]
-                as TableSelectorMetadataRepository)
-            .mapping[translator.component]!
-            .selectors;
-  late final int minClassId = isDynamicSubmoduleTable
-      ? translator.classIdNumbering.firstDynamicSubmoduleClassId
-      : 0;
-  late final int maxClassId = isDynamicSubmoduleTable
-      ? translator.classIdNumbering.maxDynamicSubmoduleConcreteClassId!
-      : translator.classIdNumbering.maxConcreteClassId;
+  final List<TableSelectorInfo> _selectorMetadata;
 
   /// Maps selector IDs to selectors.
   final Map<int, SelectorInfo> _selectorInfo = {};
@@ -552,6 +409,10 @@ class DispatchTable {
   /// class of the selector with ID C, `table[S + C]` gives the reference to the
   /// class member for the selector.
   late final List<Reference?> _table;
+
+  /// For direct calls across modules one can also use the existing table slots
+  /// in the dispatch table (instead of adding more slots to static call table).
+  late final Map<Reference, int> _tableIndexForReference;
 
   late final w.TableBuilder _definedWasmTable;
   late final WasmTableImporter _importedWasmTables = WasmTableImporter(
@@ -563,30 +424,14 @@ class DispatchTable {
   w.Table getWasmTable(w.ModuleBuilder module) =>
       _importedWasmTables.get(_definedWasmTable, module);
 
-  DispatchTable({this.isDynamicSubmoduleTable = false});
-
-  void serialize(DataSerializer sink) {
-    sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
-    sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
-  }
-
-  factory DispatchTable.deserialize(DataDeserializer source) {
-    final dispatchTable = DispatchTable();
-
-    final selectors = source.readList(
-      () => SelectorInfo.deserialize(source, dispatchTable),
-    );
-    final table = source.readList(
-      () => source.readNullable(() => source.readReference()),
-    );
-
-    for (final selector in selectors) {
-      dispatchTable._selectorInfo[selector.id] = selector;
-    }
-    dispatchTable._table = table;
-
-    return dispatchTable;
-  }
+  DispatchTable(this.translator)
+    : procedureAttributeMetadata = translator.procedureAttributeMetadata,
+      _selectorMetadata =
+          (translator.component.metadata[TableSelectorMetadataRepository
+                      .repositoryTag]
+                  as TableSelectorMetadataRepository)
+              .mapping[translator.component]!
+              .selectors;
 
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
@@ -598,11 +443,18 @@ class DispatchTable {
     return _selectorInfo[selectorId]!;
   }
 
+  /// Returns a dispatch table index if the [target] is going to be in the
+  /// dispatch table.
+  ///
+  /// NOTE: The [target] can occur in multiple slots in the dispatch table and
+  /// we return the first such index.
+  int? indexForTarget(Reference target) => _tableIndexForReference[target];
+
   SelectorInfo _createSelectorForTarget(Reference target) {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
-    bool isIndexSetter = member.name.text == '[]=';
+    bool isIndexSetter = member.name == indexSetName;
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
@@ -635,24 +487,18 @@ class DispatchTable {
   }
 
   void _initializeWasmTable() {
-    final module = isDynamicSubmoduleTable
-        ? translator.dynamicSubmodule
-        : translator.mainModule;
-    _definedWasmTable = module.tables.define(_functionType, _table.length);
-    if (!isDynamicSubmoduleTable) {
-      for (final module in translator.modules) {
-        // Ensure the dispatch table is imported into every module as the first
-        // table.
-        getWasmTable(module);
-      }
+    _definedWasmTable = translator.mainModule.tables.define(
+      _functionType,
+      _table.length,
+    );
+    for (final module in translator.modules) {
+      // Ensure the dispatch table is imported into every module as the first
+      // table.
+      getWasmTable(module);
     }
   }
 
   void build() {
-    if (!isDynamicSubmoduleTable && translator.isDynamicSubmodule) {
-      _initializeWasmTable();
-      return;
-    }
     // Collect class/selector combinations
 
     // Maps class to selector IDs of the class
@@ -683,9 +529,6 @@ class DispatchTable {
             superInfo.cls ?? translator.coreTypes.objectClass;
         selectors = Map.of(selectorsInClass[superCls]!);
       }
-
-      final classIsDynamicSubmoduleExtendable = cls
-          .isDynamicSubmoduleExtendable(translator.coreTypes);
 
       /// Add a method (or getter, setter) of the current class ([info]) to
       /// [reference]'s selector's targets.
@@ -732,11 +575,7 @@ class DispatchTable {
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
           if (member.kind == ProcedureKind.Method &&
-              (procedureMetadata.hasTearOffUses ||
-                  // If the member can be invoked from a dynamic submodule then
-                  // we need to include the tearoff too.
-                  member.isDynamicSubmoduleCallable(translator.coreTypes) ||
-                  classIsDynamicSubmoduleExtendable)) {
+              procedureMetadata.hasTearOffUses) {
             addMember(member.tearOffReference, staticDispatch);
           }
         }
@@ -745,7 +584,11 @@ class DispatchTable {
     }
 
     final selectorTargets = <SelectorInfo, Map<int, Reference>>{};
-    for (int classId = minClassId; classId <= maxClassId; ++classId) {
+    for (
+      int classId = 0;
+      classId <= translator.classIdNumbering.maxConcreteClassId;
+      ++classId
+    ) {
       final cls = translator.classes[classId].cls;
       if (cls != null) {
         selectorsInClass[cls]!.forEach((selectorInfo, target) {
@@ -758,25 +601,6 @@ class DispatchTable {
     }
 
     _selectorInfo.forEach((_, selector) {
-      bool isDynamicSubmoduleCallable = false;
-      bool isDynamicSubmoduleOverridable = false;
-      bool isDynamicSubmoduleInheritable = false;
-      for (final target in selector._references) {
-        final member = target.asMember;
-        isDynamicSubmoduleOverridable |= member.isDynamicSubmoduleOverridable(
-          translator.coreTypes,
-        );
-        isDynamicSubmoduleCallable |= member.isDynamicSubmoduleCallable(
-          translator.coreTypes,
-        );
-        isDynamicSubmoduleInheritable |= member.isDynamicSubmoduleInheritable(
-          translator.coreTypes,
-        );
-      }
-      selector.isDynamicSubmoduleOverridable = isDynamicSubmoduleOverridable;
-      selector.isDynamicSubmoduleCallable = isDynamicSubmoduleCallable;
-      selector.isDynamicSubmoduleInheritable = isDynamicSubmoduleInheritable;
-
       if (!selectorTargets.containsKey(selector)) {
         // There are no concrete implementations for the given [selector].
         selector._normal = SelectorTargets([], [], []);
@@ -839,22 +663,18 @@ class DispatchTable {
       }
       selector.useMultipleEntryPoints = useMultipleEntryPoints;
 
-      if (!selector.isDynamicSubmoduleOverridable &&
-          implementationReferences.isNotEmpty) {
+      if (implementationReferences.isNotEmpty) {
         // We have global knowledge of all targets of the selector. We can use
         // this global knowledge to compute the [ParameterInfo].
         selector._references.clear();
         selector._references.addAll(implementationReferences);
         selector._useSentinelForOptionalParameters = false;
       } else {
-        // Case 1) We may have no targets for the selector, but there may
+        // We may have no targets for the selector, but there may
         // still be calls to it (see e.g. https://dartbug.com/60733).
         //
-        // Case 2) We may have 3rd party implementations of the selector
-        // in a dynamic module with unknown default values for optionals.
-        //
-        // => We make caller pass sentinel if the optional parameter is not
-        // provided.
+        // In this case make caller pass sentinel if the optional parameter is
+        // not provided.
         selector._useSentinelForOptionalParameters = true;
       }
       selector.paramInfo = _parameterInfoFromReferences(
@@ -867,19 +687,15 @@ class DispatchTable {
       // those are used via dispatch table.
       final tableDispatchRanges = <({Range range, Reference target})>[];
       final staticDispatchRanges = <({Range range, Reference target})>[];
-      if (selector.isDynamicSubmoduleOverridable) {
-        tableDispatchRanges.addAll(ranges);
+      if (ranges.length == 1) {
+        staticDispatchRanges.add(ranges.single);
       } else {
-        if (ranges.length == 1) {
-          staticDispatchRanges.add(ranges.single);
-        } else {
-          for (final range in ranges) {
-            if (translator.options.polymorphicSpecialization ||
-                staticDispatchPragmas.contains(range.target)) {
-              staticDispatchRanges.add(range);
-            } else {
-              tableDispatchRanges.add(range);
-            }
+        for (final range in ranges) {
+          if (translator.options.polymorphicSpecialization ||
+              staticDispatchPragmas.contains(range.target)) {
+            staticDispatchRanges.add(range);
+          } else {
+            tableDispatchRanges.add(range);
           }
         }
       }
@@ -944,7 +760,7 @@ class DispatchTable {
         final rowValues = <({int index, Reference value})>[];
         for (final (:range, :target) in targetRanges) {
           for (int classId = range.start; classId <= range.end; ++classId) {
-            final adjustedClassId = classId - minClassId;
+            final adjustedClassId = classId;
             rowValues.add((index: adjustedClassId, value: target));
           }
         }
@@ -961,6 +777,12 @@ class DispatchTable {
     }
 
     _table = buildRowDisplacementTable<Reference>(rows);
+    _tableIndexForReference = {};
+    for (int i = 0; i < _table.length; ++i) {
+      final entry = _table[i];
+      if (entry == null) continue;
+      _tableIndexForReference[entry] ??= i;
+    }
 
     int rowIndex = 0;
     for (final selector in selectors) {
@@ -976,137 +798,126 @@ class DispatchTable {
   }
 
   void output() {
-    final Map<w.BaseFunction, w.BaseFunction> wrappedDynamicSubmoduleImports =
-        {};
-    int start = 0;
-    while (start < _table.length) {
-      Reference? target = _table[start];
-      if (target == null) {
-        start++;
-        continue;
-      }
-      w.BaseFunction? fun = translator.functions.getExistingFunction(target);
-      if (fun == null) {
-        start++;
-        continue;
-      }
+    final mainModule = translator.mainModule.module;
 
-      // Any call to the dispatch table is guaranteed to hit a target.
-      //
-      // If a target is in a deferred module and that deferred module hasn't
-      // been loaded yet, then the entry is `null`.
-      //
-      // Though we can only hit a target if that target's class has been
-      // allocated. In order for the class to be allocated, the deferred
-      // module must've been loaded to call the constructor.
+    int calculateStrideWidthHelper(
+      Reference target,
+      int start, {
+      required bool includeNull,
+      required bool includeArbitraryNonMainEntries,
+    }) {
+      final width = calculateStrideWith(start, target, _table, (
+        Reference? next,
+      ) {
+        // If the entry is the same as before we can extend the stride.
+        if (next == target) return true;
 
-      final targetModule = fun.enclosingModule;
-      final targetModuleBuilder =
-          translator.moduleToBuilder[fun.enclosingModule]!;
-      if (targetModule == _definedWasmTable.enclosingModule) {
-        if (isDynamicSubmoduleTable &&
-            targetModuleBuilder == translator.dynamicSubmodule &&
-            fun is w.ImportedFunction) {
-          // Functions imported into submodules may need to be wrapped to
-          // match the updated dispatch table signature.
-          fun = wrappedDynamicSubmoduleImports[fun] ??=
-              _wrapDynamicSubmoduleFunction(target, fun, targetModuleBuilder);
+        // Any call to the dispatch table will succeed. If there's an empty slot
+        // in the table, we are guaranteed no calls will invoke it. That in
+        // return means its safe to put any entry in there, as it will not be
+        // used.
+        //
+        // => If putting an entry in there makes the stride larger and allows us
+        //    to use `table.fill` we'll do so.
+        if (next == null) return includeNull;
+        final nextFunction = translator.functions.getExistingFunction(next);
+        if (nextFunction == null) return includeNull;
+
+        final nextIsInMainModule = nextFunction.enclosingModule == mainModule;
+        if (includeArbitraryNonMainEntries && !nextIsInMainModule) {
+          return true;
+        }
+
+        return false;
+      });
+      int lastIncluding = start + width - 1;
+      while (_table[lastIncluding] != target) {
+        lastIncluding--;
+      }
+      return lastIncluding - start + 1;
+    }
+
+    void processTableRange(int start, int end, bool includeMainModuleEntries) {
+      while (start < end) {
+        final Reference? target = _table[start];
+        if (target == null) {
+          start++;
+          continue;
+        }
+        final targetFunction = translator.functions.getExistingFunction(target);
+        if (targetFunction == null) {
+          start++;
+          continue;
+        }
+
+        final targetInMain = targetFunction.enclosingModule == mainModule;
+        if (targetInMain && !includeMainModuleEntries) {
+          start++;
+          continue;
+        }
+
+        final includeArbitraryNonMainEntries = targetInMain;
+        final strideWidth = calculateStrideWidthHelper(
+          target,
+          start,
+          includeNull: true,
+          includeArbitraryNonMainEntries: includeArbitraryNonMainEntries,
+        );
+        final strideWidthOnlyTarget = calculateStrideWidthHelper(
+          target,
+          start,
+          includeNull: false,
+          includeArbitraryNonMainEntries: false,
+        );
+
+        final targetModuleBuilder =
+            translator.moduleToBuilder[targetFunction.enclosingModule]!;
+        final targetTable = getWasmTable(targetModuleBuilder);
+        if (strideWidth >= strideElementTableLimit) {
+          targetModuleBuilder.elements.declarativeSegmentBuilder.declare(
+            targetFunction,
+          );
+          final b = targetModuleBuilder.startFunction.body;
+
+          // This may fill entries
+          //   - which should be [target]
+          //
+          //   - which should be null (unused entries)
+          //
+          //   - which should be 3rd party targets
+          //     (iff [includeArbitraryNonMainEntries])
+          //     => Those incorrect entries are not used until the deferred
+          //     units containing them are loaded, and those deferred units
+          //     should override those slots (see below)
+          b.fillTableRange(targetTable, start, strideWidth, targetFunction);
+
+          if (includeArbitraryNonMainEntries) {
+            // We wrote the `target` to table slots which should contain targets
+            // from deferred modules. Ensure the deferred modules override those
+            // slots when loaded.
+            processTableRange(start, start + strideWidth, false);
+          }
+
+          start += strideWidth;
+        } else {
+          // We don't issue a `table.fill` instruction, so only fill in the
+          // slots that are exactly `target`.
+          for (int i = 0; i < strideWidthOnlyTarget; ++i) {
+            targetModuleBuilder.elements
+                .activeFunctionSegmentBuilderFor(targetTable)
+                .setFunctionAt(start + i, targetFunction);
+          }
+          start += strideWidthOnlyTarget;
         }
       }
-
-      final strideWidth = calculateStrideWith(
-        start,
-        target,
-        _table,
-        (Reference a, Reference b) => a == b,
-      );
-
-      final table = getWasmTable(targetModuleBuilder);
-      if (strideWidth < strideElementTableLimit) {
-        for (int i = 0; i < strideWidth; ++i) {
-          targetModuleBuilder.elements
-              .activeFunctionSegmentBuilderFor(table)
-              .setFunctionAt(start + i, fun);
-        }
-      } else {
-        targetModuleBuilder.elements.declarativeSegmentBuilder.declare(fun);
-        final b = targetModuleBuilder.startFunction.body;
-        b.fillTableRange(table, start, strideWidth, fun);
-      }
-      start += strideWidth;
-    }
-  }
-
-  w.BaseFunction _wrapDynamicSubmoduleFunction(
-    Reference target,
-    w.BaseFunction importedFunction,
-    w.ModuleBuilder moduleBuilder,
-  ) {
-    final mainSelector = translator.dynamicMainModuleDispatchTable!
-        .selectorForTarget(target);
-    final mainSignature = translator.signatureForMainModule(target);
-    final localSelector = translator.dispatchTable.selectorForTarget(target);
-    final localSignature = localSelector.signature;
-
-    // If the type is the same in both the main module and the submodule, use
-    // the imported function itself.
-    if (mainSignature.isStructurallyEqualTo(localSignature)) {
-      return importedFunction;
     }
 
-    // Otherwise we need to create a wrapper to handle the differing types.
-    // The local signature should include all the parameters necessary to call
-    // the target in main since the local signature must include the target
-    // member itself and any other members in the main module's selector range.
-    final wrapper = moduleBuilder.functions.define(
-      localSignature,
-      '${target.asMember} wrapper',
-    );
-
-    final ib = wrapper.body;
-
-    assert(mainSignature.inputs.length <= localSignature.inputs.length);
-
-    final mainModulePreParamCount =
-        (mainSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
-        mainSelector.paramInfo.typeParamCount;
-    final mainModuleBeforeNamedCount =
-        mainModulePreParamCount + mainSelector.paramInfo.positional.length;
-    int mainIndex = 0;
-    for (; mainIndex < mainModuleBeforeNamedCount; mainIndex++) {
-      final local = ib.locals[mainIndex];
-      ib.local_get(local);
-      translator.convertType(ib, local.type, mainSignature.inputs[mainIndex]);
-    }
-
-    final localPreParamCount =
-        (localSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
-        localSelector.paramInfo.typeParamCount;
-
-    for (final name in mainSelector.paramInfo.names) {
-      final namedIndex = localSelector.paramInfo.nameIndex[name]!;
-      final local = ib.locals[localPreParamCount + namedIndex];
-      ib.local_get(local);
-      translator.convertType(ib, local.type, mainSignature.inputs[mainIndex++]);
-    }
-    ib.call(importedFunction);
-    translator.convertType(
-      ib,
-      mainSignature.outputs.single,
-      localSignature.outputs.single,
-    );
-    ib.end();
-
-    return wrapper;
+    processTableRange(0, _table.length, true);
   }
 }
 
 bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
-  // If there's no callers in this module and no callers in dynamic modules then
-  // there's no need for us to create a dispatch table entry.
-  if (selector.callCount == 0 && !selector.isDynamicSubmoduleCallable) {
-    return false;
-  }
+  if (selector.callCount == 0) return false;
 
   final targets = selector.targets(unchecked: false);
   return targets._dispatchTableRanges.isNotEmpty;
@@ -1208,13 +1019,11 @@ int calculateStrideWith<T>(
   int start,
   T startEntry,
   List<T?> table,
-  bool Function(T, T) equals,
+  bool Function(T?) matches,
 ) {
   int end = start + 1;
   while (end < table.length) {
-    final endEntry = table[end];
-    if (endEntry == null) break;
-    if (!equals(startEntry, endEntry)) break;
+    if (!matches(table[end])) break;
     end++;
   }
   return end - start;

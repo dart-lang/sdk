@@ -223,7 +223,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function() bodyWriter,
     bool isStatic = false,
     String nameGroupName,
-    DartType returnType,
+    DartType? returnType,
     String returnTypeGroupName,
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
@@ -373,6 +373,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
+    String parameterName = 'value',
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,
@@ -516,6 +517,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     required TypeProvider typeProvider,
   });
 
+  /// Deletes the given [member] from its declaring class or enum.
+  ///
+  /// Throws a [StateError] if the parent of the [member] is neither a
+  /// [ClassBody] nor an [EnumBody].
+  void deleteClassMember(ClassMember member);
+
   /// Formats the code covered by the [range].
   ///
   /// If there are any edits that are in the [range], these edits are applied
@@ -632,6 +639,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
+    bool indent = true,
   });
 
   /// Inserts the code for a method.

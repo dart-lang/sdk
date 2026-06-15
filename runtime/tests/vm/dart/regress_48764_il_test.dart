@@ -34,7 +34,7 @@ void matchIL$main_testForIn(FlowGraph graph) {
     match.block('Graph'),
     match.block('Function', [
       'v2' << match.Parameter(index: 0),
-      'v3' << match.LoadField('v2', slot: 'Closure.context'),
+      'v3' << match.LoadField('v2', slot: ':closure_element[0]'),
       'v4' << match.LoadField('v3', slot: 'list'),
       'v92' << match.LoadField('v4', slot: 'GrowableObjectArray.length'),
       if (!is32BitConfiguration) 'v112' << match.UnboxInt64('v92'),

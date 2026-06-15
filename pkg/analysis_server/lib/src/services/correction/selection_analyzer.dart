@@ -14,7 +14,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
   AstNode? _coveringNode;
   List<AstNode> _selectedNodes = [];
 
-  SelectionAnalyzer(this.selection);
+  new(this.selection);
 
   /// Return the [AstNode] with the shortest length which completely covers the
   /// specified selection.

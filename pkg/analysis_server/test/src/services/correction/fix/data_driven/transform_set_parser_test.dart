@@ -704,6 +704,94 @@ transforms:
     expect(result, null);
   }
 
+  void test_library() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  library: 'package:myPackage/test.dart'
+  changes:
+   - kind: 'replacedBy'
+     newLibrary: 'package:p2/material.dart'
+''');
+    var transforms = _transforms(
+      'package:myPackage/test.dart',
+      kinds: [ElementKind.libraryKind],
+      importedUris: [],
+    );
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(_changes(transform), hasLength(1));
+  }
+
+  void test_library_invalidChangeField() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  library: 'package:myPackage/test.dart'
+  changes:
+   - kind: 'replacedBy'
+     newName: 'f'
+     newLibrary: 'g'
+''',
+      [error(diag.unsupportedKey, 143, 7)],
+    );
+  }
+
+  void test_library_invalidChangeKind() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  library: 'package:myPackage/test.dart'
+  changes:
+   - kind: 'rename'
+     newLibrary: 'f'
+''',
+      [error(diag.invalidChangeForKind, 125, 8)],
+    );
+  }
+
+  void test_library_multipleChanges() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  library: 'package:myPackage/test.dart'
+  changes:
+   - kind: 'replacedBy'
+     newLibrary: 'package:p2/material.dart'
+   - kind: 'replacedBy'
+     newLibrary: 'package:p3/material.dart'
+''',
+      [error(diag.invalidChangeForKind, 117, 133)],
+    );
+  }
+
+  void test_noElementOrLibrary() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  changes: []
+''',
+      [error(diag.missingOneOfMultipleKeys, 25, 51)],
+    );
+    var transforms = _transforms('g');
+    expect(transforms, hasLength(0));
+  }
+
   void test_removeParameter_named() {
     assertNoErrors('''
 version: 1
@@ -933,9 +1021,22 @@ transforms:
   List<Change<Object>> _changes(Transform transform) =>
       (transform.changesSelector as UnconditionalChangesSelector).changes;
 
-  ElementMatcher _matcher(String name) =>
-      ElementMatcher(importedUris: uris, components: [name], kinds: const []);
+  ElementMatcher _matcher(
+    String name, {
+    List<ElementKind> kinds = const [],
+    List<Uri>? importedUris,
+  }) => ElementMatcher(
+    importedUris: importedUris ?? uris,
+    components: [name],
+    kinds: kinds,
+  );
 
-  List<Transform> _transforms(String name) =>
-      result!.transformsFor(_matcher(name), applyingBulkFixes: false);
+  List<Transform> _transforms(
+    String name, {
+    List<ElementKind> kinds = const [],
+    List<Uri>? importedUris,
+  }) => result!.transformsFor(
+    _matcher(name, kinds: kinds, importedUris: importedUris),
+    applyingBulkFixes: false,
+  );
 }

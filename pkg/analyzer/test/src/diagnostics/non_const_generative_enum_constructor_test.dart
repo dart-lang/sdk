@@ -2,21 +2,50 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstGenerativeEnumConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonConstGenerativeEnumConstructorTest extends PubPackageResolutionTest {
-  test_generative_const() async {
-    await assertNoErrorsInCode(r'''
+  test_factoryHead_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v.named();
+  const E.named();
+  factory () => v;
+}
+''');
+  }
+
+  test_generative_const_newHead_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v.named();
+  const new named();
+}
+''');
+  }
+
+  test_generative_const_newHead_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+  }
+
+  test_generative_const_typeName() async {
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E();
@@ -24,27 +53,63 @@ enum E {
 ''');
   }
 
-  test_generative_nonConst_named() async {
-    await assertErrorsInCode(
-      r'''
+  test_generative_nonConst_newHead_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+  }
+
+  test_generative_nonConst_typeName_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
   E.named();
 }
-''',
-      [error(diag.nonConstGenerativeEnumConstructor, 24, 7)],
-    );
+''');
   }
 
-  test_generative_nonConst_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+  test_generative_nonConst_typeName_named_language310() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.10
+enum E {
+  v.named();
+  E.named();
+//^^^^^^^
+// [diag.nonConstGenerativeEnumConstructor] Generative enum constructors must be 'const'.
+}
+''');
+  }
+
+  test_generative_nonConst_typeName_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   E();
 }
-''',
-      [error(diag.nonConstGenerativeEnumConstructor, 16, 1)],
-    );
+''');
+  }
+
+  test_generative_nonConst_typeName_unnamed_language310() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.10
+enum E {
+  v;
+  E();
+//^
+// [diag.nonConstGenerativeEnumConstructor] Generative enum constructors must be 'const'.
+}
+''');
+  }
+
+  test_typeName_factory_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  factory E.foo() => v;
+}
+''');
   }
 }

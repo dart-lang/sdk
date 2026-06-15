@@ -46,23 +46,23 @@ typedef Fn2<T> = void Function<U>(T);
   }
 
   test_functionType_shadowingTypedef() async {
-    await assertDiagnostics(
-      r'''
-typedef Fn1<T> = void Function<T>(T);
-''',
-      [lint(31, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef Fn1<T> = void Function<[!T!]>(T);
+''');
   }
 
-  @FailingTest(reason: '')
   test_functionTypedParameter_shadowingFunction() async {
-    // TODO(srawlins): Report lint here.
-    await assertDiagnostics(
-      r'''
-void fn2<T>(void Function<T>()) {}
-''',
-      [lint(26, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void fn2<T>(void Function<[!T!]>()) {}
+''');
+  }
+
+  test_genericFunctionType_shadowingFunction() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f<T>() {
+  void Function<[!T!]>(T) g;
+}
+''');
   }
 
   test_localFunction_noShadowing() async {
@@ -74,55 +74,43 @@ void f<T>() {
   }
 
   test_localFunction_shadowingClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C<T> {
   void f() {
-    void g<T>() {}
+    void g<[!T!]>() {}
   }
 }
-''',
-      [lint(37, 1)],
-    );
+''');
   }
 
   test_localFunction_shadowingFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f<T>() {
-  void g<T>() {}
+  void g<[!T!]>() {}
 }
-''',
-      [lint(23, 1)],
-    );
+''');
   }
 
   test_localFunction_shadowingLocalFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   void f() {
     void g<T>() {
-      void h<T>() {}
+      void h<[!T!]>() {}
     }
   }
 }
-''',
-      [lint(54, 1)],
-    );
+''');
   }
 
   test_localFunction_shadowingMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C<T> {
   void fn1<U>() {
-    void fn3<U>() {}
+    void fn3<[!U!]>() {}
   }
 }
-''',
-      [lint(44, 1)],
-    );
+''');
   }
 
   test_method_noShadowing() async {
@@ -134,59 +122,44 @@ class C<T> {
   }
 
   test_method_shadowingClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C<T> {
-  void f<T>() {}
+  void f<[!T!]>() {}
 }
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   test_method_shadowingEnum() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E<T> {
   a, b, c;
-  void fn<T>() {}
+  void fn<[!T!]>() {}
 }
-''',
-      [lint(33, 1)],
-    );
+''');
   }
 
   test_method_shadowingExtension() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E<T> on List<T> {
-  void f<T>() {}
+  void f<[!T!]>() {}
 }
-''',
-      [lint(37, 1)],
-    );
+''');
   }
 
   test_method_shadowingExtensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E<T>(int i) {
-  void m<T>() {}
+  void m<[!T!]>() {}
 }
-''',
-      [lint(38, 1)],
-    );
+''');
   }
 
   test_method_shadowingMixin() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin M<T> {
-  void f<T>() {}
+  void f<[!T!]>() {}
 }
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   test_staticMethod_shadowingClass() async {

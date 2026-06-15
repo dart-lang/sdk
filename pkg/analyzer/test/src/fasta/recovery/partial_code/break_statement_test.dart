@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,13 +17,12 @@ main() {
 @reflectiveTest
 class BreakStatementTest extends ParserDiagnosticsTest {
   void test_break_statement_keyword_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break assert (true); }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -54,13 +52,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -86,14 +83,14 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break break; }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-      error(diag.breakOutsideOfLoop, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -119,14 +116,14 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break continue; }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
+//          ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-      error(diag.continueOutsideOfLoop, 12, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -152,13 +149,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break do {} while (true); }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -192,13 +188,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -221,13 +216,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break for (var x in y) {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -264,13 +258,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break if (true) {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -302,14 +295,14 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break l: {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.missingIdentifier, 13, 1),
-      error(diag.unexpectedToken, 13, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -326,8 +319,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: l
+                label: LabelReference
+                  name: l
                 semicolon: ; <synthetic>
               ExpressionStatement
                 expression: SimpleIdentifier
@@ -341,10 +334,11 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break int f() {} }
+//          ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -361,8 +355,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: int
+                label: LabelReference
+                  name: int
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -380,13 +374,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break void f() {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -422,13 +415,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break var x; }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -458,13 +450,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break return; }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -490,13 +481,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break switch (x) {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -527,13 +517,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break try {} finally {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -565,13 +554,12 @@ CompilationUnit
   }
 
   void test_break_statement_keyword_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break while (true) {} }
+//    ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.breakOutsideOfLoop, 6, 5),
-      error(diag.expectedToken, 6, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -603,10 +591,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a assert (true); }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -623,8 +612,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
@@ -638,10 +627,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -658,8 +648,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               Block
                 leftBracket: {
@@ -669,13 +659,13 @@ CompilationUnit
   }
 
   void test_break_statement_label_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a break; }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
+//            ^^^^^
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.breakOutsideOfLoop, 14, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -692,8 +682,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               BreakStatement
                 breakKeyword: break
@@ -703,13 +693,13 @@ CompilationUnit
   }
 
   void test_break_statement_label_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a continue; }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
+//            ^^^^^^^^
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 12, 1),
-      error(diag.continueOutsideOfLoop, 14, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -726,8 +716,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ContinueStatement
                 continueKeyword: continue
@@ -737,10 +727,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a do {} while (true); }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -757,8 +748,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               DoStatement
                 doKeyword: do
@@ -776,10 +767,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -796,18 +788,19 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
             rightBracket: }
 ''');
   }
 
   void test_break_statement_label_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a for (var x in y) {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -824,8 +817,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ForStatement
                 forKeyword: for
@@ -846,10 +839,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a if (true) {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -866,8 +860,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
@@ -883,10 +877,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a l: {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -903,14 +898,13 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -920,10 +914,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a int f() {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -940,8 +935,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -961,10 +956,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a void f() {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -981,8 +977,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -1002,10 +998,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a var x; }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1022,8 +1019,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
                 variables: VariableDeclarationList
@@ -1037,10 +1034,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a return; }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1057,8 +1055,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
@@ -1068,10 +1066,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a switch (x) {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1088,8 +1087,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
@@ -1104,10 +1103,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a try {} finally {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1124,8 +1124,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               TryStatement
                 tryKeyword: try
@@ -1141,10 +1141,11 @@ CompilationUnit
   }
 
   void test_break_statement_label_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { break a while (true) {} }
+//          ^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1161,8 +1162,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while

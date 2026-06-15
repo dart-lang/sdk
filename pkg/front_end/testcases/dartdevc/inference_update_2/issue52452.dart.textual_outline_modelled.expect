@@ -1,7 +1,5 @@
 abstract class D extends A with M3 {
-  D(int? i)
-      : _f4 = i,
-        super(i);
+  D(int? i) : _f4 = i, super(i);
   final int? _f4;
 }
 
@@ -14,10 +12,7 @@ class B {
 }
 
 class C {
-  C(int? i)
-      : _f2 = i,
-        _f3 = i,
-        _f4 = i;
+  C(int? i) : _f2 = i, _f3 = i, _f4 = i;
   final int? _f2;
   final int? _f3;
   final int? _f4;

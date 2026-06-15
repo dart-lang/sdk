@@ -49,7 +49,8 @@ ir.StructType _getBrandType(int index) {
     final useMutable = index & 1 == 1;
     final digitIndex = (index >> 1) % numDigits;
     fields.add(
-        ir.FieldType(_brandTypeFieldValues[digitIndex], mutable: useMutable));
+      ir.FieldType(_brandTypeFieldValues[digitIndex], mutable: useMutable),
+    );
     index = index ~/ (numDigits * 2);
   }
   return ir.StructType(brandName, fields: fields);
@@ -76,7 +77,7 @@ class _RecGroupBuilder {
   late final List<List<ir.DefType>> _allRecursiveGroups =
       _createAllRecursiveGroups();
   final List<ir.DefType> _allDefinedTypes = [];
-  final Map<ir.DefType, int> _brandTypeAssignments = {};
+  final Set<ir.StructType> _brandedStructs = {};
 
   _RecGroupBuilder();
 
@@ -103,7 +104,9 @@ class _RecGroupBuilder {
   ///
   /// Assumes both groups are the same size.
   static bool _areGroupsStructurallyEqual(
-      List<ir.DefType> group1, List<ir.DefType> group2) {
+    List<ir.DefType> group1,
+    List<ir.DefType> group2,
+  ) {
     for (int i = 0; i < group1.length; i++) {
       final type1 = group1[i];
       final type2 = group2[i];
@@ -129,27 +132,100 @@ class _RecGroupBuilder {
     // (2) length of first struct
     // (3) group structural equality
     final equivalenceGroups = <_RecursionGroupKey, List<List<ir.DefType>>>{};
-
     for (final group in groups) {
       final structIndex = group.indexWhere((g) => g is ir.StructType);
       // Skip groups with no struct types.
       if (structIndex == -1) continue;
       final structType = group[structIndex] as ir.StructType;
-      final key =
-          _RecursionGroupKey(group.length, structType.fields.length, group);
+      final key = _RecursionGroupKey(
+        group.length,
+        structType.fields.length,
+        group,
+      );
       equivalenceGroups.putIfAbsent(key, () => []).add(group);
     }
 
     for (final equalGroups in equivalenceGroups.values) {
       // All the groups in `equalGroups` are structurally equivalent.
-      // Skip the first group since we can leave one group as-is.
-      for (int i = 1; i < equalGroups.length; i++) {
-        // Key the assignment on the first element in the group. If a user is
-        // trying to use the brand index to restore the group, then all other
-        // elements are implicitly the same.
-        final typeIndex = _brandTypeAssignments[equalGroups[i].first] ??= i - 1;
-        final brandType = _getBrandType(typeIndex);
-        equalGroups[i].insert(0, brandType);
+      final toBrand = <List<ir.DefType>>[];
+      final noBrand = <List<ir.DefType>>[];
+
+      for (final group in equalGroups) {
+        final hasBrandedStruct = group.any(
+          (t) => t is ir.StructType && _brandedStructs.contains(t),
+        );
+        (hasBrandedStruct ? toBrand : noBrand).add(group);
+      }
+
+      final int startIdx = noBrand.isNotEmpty ? 0 : 1;
+      for (int i = startIdx; i < toBrand.length; i++) {
+        final brandTypeIndex = i - startIdx;
+        final brandType = _getBrandType(brandTypeIndex);
+        toBrand[i].insert(0, brandType);
+      }
+
+      // Rename the types and fields of wasm structs that will not get branded
+      // with a union name.
+      if (noBrand.length > 1) {
+        final groupCount = noBrand.length;
+        final dotDotDotLimit = 10;
+        final typesCount = noBrand.first.length;
+
+        // Equivalent groups must have the same length.
+        assert(noBrand.every((types) => types.length == typesCount));
+
+        for (int typeIndex = 0; typeIndex < typesCount; ++typeIndex) {
+          final structType = noBrand[0][typeIndex];
+          if (structType is! ir.StructType) {
+            continue;
+          }
+
+          // Build new struct names & field names by |-ing the ones from the
+          // individual groups, adding trailing '|...' if it's more than
+          // [dotDotDotLimit].
+          final structNameBuilder = StringBuffer();
+          final List<StringBuffer?> fieldNameBuilder = List.filled(
+            structType.fields.length,
+            null,
+          );
+          for (int group = 0; group < groupCount; ++group) {
+            if (group == dotDotDotLimit) {
+              structNameBuilder.write('|...');
+              for (int field = 0; field < fieldNameBuilder.length; ++field) {
+                if (fieldNameBuilder[field] case final StringBuffer buffer?) {
+                  buffer.write('|...');
+                }
+              }
+              break;
+            }
+
+            final structType = noBrand[group][typeIndex] as ir.StructType;
+            if (structType.name case final String? name) {
+              if (structNameBuilder.isNotEmpty) structNameBuilder.write('|');
+              structNameBuilder.write(name);
+            }
+            structType.fieldNames.forEach((fieldIndex, name) {
+              final buffer = fieldNameBuilder[fieldIndex] ??= StringBuffer();
+              if (buffer.isNotEmpty) buffer.write('|');
+              buffer.write(structType.name ?? '');
+              buffer.write('.');
+              buffer.write(name);
+            });
+          }
+          final newStructName = structNameBuilder.toString();
+          final List<String?> newFieldNames = fieldNameBuilder
+              .map((buffer) => buffer?.toString())
+              .toList();
+          for (int group = 0; group < groupCount; ++group) {
+            final structType = noBrand[group][typeIndex] as ir.StructType;
+            structType.name = newStructName;
+            for (int field = 0; field < structType.fields.length; ++field) {
+              if (newFieldNames[field] case final String name?) {
+                structType.fieldNames[field] = name;
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -208,7 +284,8 @@ class _RecGroupBuilder {
   /// The returned list includes all rec groups that contain a directly or
   /// indirectly used type.
   List<List<ir.DefType>> createGroupsForModule(
-      Set<ir.DefType> directlyUsedTypes) {
+    Set<ir.DefType> directlyUsedTypes,
+  ) {
     final allUsedTypes = {...directlyUsedTypes};
 
     void addUsedType(ir.DefType type) {
@@ -240,13 +317,7 @@ class TypesBuilder with Builder<ir.Types> {
   final _RecGroupBuilder _recGroupBuilder;
 
   TypesBuilder(this._module, {TypesBuilder? parent})
-      : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
-
-  Map<ir.DefType, int> get brandTypeAssignments =>
-      _recGroupBuilder._brandTypeAssignments;
-
-  void addBrandTypeAssignment(ir.DefType type, int brandIndex) =>
-      _recGroupBuilder._brandTypeAssignments[type] = brandIndex;
+    : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
   /// Add a new function type to the module.
   ///
@@ -258,8 +329,10 @@ class TypesBuilder with Builder<ir.Types> {
   /// This means that recursive function types (without any non-function types
   /// on the recursion path) are not supported.
   ir.FunctionType defineFunction(
-      Iterable<ir.ValueType> inputs, Iterable<ir.ValueType> outputs,
-      {ir.DefType? superType}) {
+    Iterable<ir.ValueType> inputs,
+    Iterable<ir.ValueType> outputs, {
+    ir.DefType? superType,
+  }) {
     final List<ir.ValueType> inputList = List.unmodifiable(inputs);
     final List<ir.ValueType> outputList = List.unmodifiable(outputs);
     final _FunctionTypeKey key = _FunctionTypeKey(inputList, outputList);
@@ -274,10 +347,17 @@ class TypesBuilder with Builder<ir.Types> {
   ///
   /// Fields can be added later, by adding to the [fields] list. This enables
   /// struct types to be recursive.
-  ir.StructType defineStruct(String name,
-      {Iterable<ir.FieldType>? fields, ir.DefType? superType}) {
+  ir.StructType defineStruct(
+    String name, {
+    Iterable<ir.FieldType>? fields,
+    ir.DefType? superType,
+    required bool brand,
+  }) {
     final type = ir.StructType(name, fields: fields, superType: superType);
     _recGroupBuilder.addDefinedType(type);
+    if (brand) {
+      _recGroupBuilder._brandedStructs.add(type);
+    }
     return type;
   }
 
@@ -285,10 +365,16 @@ class TypesBuilder with Builder<ir.Types> {
   ///
   /// The element type can be specified later. This enables array types to be
   /// recursive.
-  ir.ArrayType defineArray(String name,
-      {ir.FieldType? elementType, ir.DefType? superType}) {
-    final type =
-        ir.ArrayType(name, elementType: elementType, superType: superType);
+  ir.ArrayType defineArray(
+    String name, {
+    ir.FieldType? elementType,
+    ir.DefType? superType,
+  }) {
+    final type = ir.ArrayType(
+      name,
+      elementType: elementType,
+      superType: superType,
+    );
     _recGroupBuilder.addDefinedType(type);
     return type;
   }

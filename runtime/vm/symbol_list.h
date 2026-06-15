@@ -97,7 +97,11 @@ namespace dart {
   V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
   V(DynamicCallCurrentTypeParamVar, ":dyn_call_current_type_param")            \
+  V(DynamicCallDelayedTypeArgsVar, ":dyn_call_delayed_type_args")              \
   V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
+  V(DynamicCallInstantiatorTypeArgsVar, ":dyn_call_instantiator_type_args")    \
+  V(DynamicCallParentFunctionTypeArgsVar,                                      \
+    ":dyn_call_parent_function_type_args")                                     \
   V(DynamicImplicitCall, "dyn:implicit:call")                                  \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
@@ -345,6 +349,7 @@ namespace dart {
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
+  V(_LinkedHashBase, "_LinkedHashBase")                                        \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -519,7 +524,11 @@ namespace dart {
   V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
+  V(dyn_module_dynamically_callable, "dyn-module:dynamically-callable")        \
+  V(dyn_module_implicitly_dynamically_callable,                                \
+    "dyn-module:implicitly-dynamically-callable")                              \
   V(executable, "executable")                                                  \
+  V(external_effect, "external-effect")                                        \
   V(get, "get")                                                                \
   V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \

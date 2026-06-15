@@ -132,7 +132,12 @@ Future<void> copyTestProjects(
             .resolve('third_party/pkg/native/pkgs/$package/')
             .toFilePath(),
       },
-    'meta': {'path': sdkRoot.resolve('pkg/meta/').toFilePath()},
+    for (final package in [
+      '_fe_analyzer_shared',
+      'analyzer', // package:analyzer depends on package:meta.
+      'meta',
+    ])
+      package: {'path': sdkRoot.resolve('pkg/$package/').toFilePath()},
   };
   final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {

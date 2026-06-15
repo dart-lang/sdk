@@ -5,7 +5,7 @@
 # Reproduce a crash.
 
 type: newworld
-trackWidgetCreation: true
+trackCreationLocations: true
 target: vm
 worlds:
   - entry: main.dart

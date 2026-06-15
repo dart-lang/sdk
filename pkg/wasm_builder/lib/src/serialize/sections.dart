@@ -2,9 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../ir/ir.dart' as ir;
 import 'deserializer.dart';
+import 'printer.dart' show IndentPrinter;
 import 'serializer.dart';
+
+const Set<String> _reservedCustomSectionNames = {
+  NameSection.customSectionName,
+  SourceMapSection.customSectionName,
+  BinaryenRemovableIfUnusedSection.customSectionName,
+  BinaryenInlineHintSection.customSectionName,
+  BinaryenJSCalledSection.customSectionName,
+};
 
 abstract class Section implements Serializable {
   final List<int> watchPoints;
@@ -19,8 +30,10 @@ abstract class Section implements Serializable {
     if (data.isNotEmpty) {
       s.writeByte(id);
       s.writeUnsigned(data.length);
-      s.sourceMapSerializer
-          .copyMappings(contents.sourceMapSerializer, s.offset);
+      s.sourceMapSerializer.copyMappings(
+        contents.sourceMapSerializer,
+        s.offset,
+      );
       s.writeData(contents, watchPoints);
     }
   }
@@ -65,15 +78,17 @@ class TypeSection extends Section {
       }
       for (final type in group) {
         assert(
-            type.superType == null || type.superType!.index <= group.last.index,
-            "Type '$type' has a supertype in a later recursion group");
+          type.superType == null || type.superType!.index <= group.last.index,
+          "Type '$type' has a supertype in a later recursion group",
+        );
         assert(
-            type.constituentTypes
-                .whereType<ir.RefType>()
-                .map((t) => t.heapType)
-                .whereType<ir.DefType>()
-                .every((d) => d.index <= group.last.index),
-            "Type '$type' depends on a type in a later recursion group");
+          type.constituentTypes
+              .whereType<ir.RefType>()
+              .map((t) => t.heapType)
+              .whereType<ir.DefType>()
+              .every((d) => d.index <= group.last.index),
+          "Type '$type' depends on a type in a later recursion group",
+        );
         type.serializeDefinition(s);
       }
     }
@@ -144,7 +159,10 @@ class ImportSection extends Section {
   }
 
   static ir.Imports deserialize(
-      Deserializer? d, ir.Module module, ir.Types types) {
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+  ) {
     final imports = <ir.Import>[];
     final importedMemories = <ir.ImportedMemory>[];
     final importedGlobals = <ir.ImportedGlobal>[];
@@ -163,7 +181,12 @@ class ImportSection extends Section {
             final typeIndex = d.readUnsigned();
             final type = types[typeIndex] as ir.FunctionType;
             final import = ir.ImportedFunction(
-                module, moduleName, name, ir.FinalizableIndex(), type);
+              module,
+              moduleName,
+              name,
+              ir.FinalizableIndex(),
+              type,
+            );
             import.finalizableIndex.value = importedFunctions.length;
             importedFunctions.add(import);
             imports.add(import);
@@ -173,8 +196,15 @@ class ImportSection extends Section {
             final limits = d.readByte();
             final minSize = d.readUnsigned();
             final maxSize = limits == 0x01 ? d.readUnsigned() : null;
-            final import = ir.ImportedTable(module, moduleName, name,
-                ir.FinalizableIndex(), type, minSize, maxSize);
+            final import = ir.ImportedTable(
+              module,
+              moduleName,
+              name,
+              ir.FinalizableIndex(),
+              type,
+              minSize,
+              maxSize,
+            );
             import.finalizableIndex.value = importedTables.length;
             importedTables.add(import);
             imports.add(import);
@@ -183,10 +213,18 @@ class ImportSection extends Section {
             final limits = d.readByte();
             final shared = limits == 0x03;
             final minSize = d.readUnsigned();
-            final maxSize =
-                limits == 0x01 || limits == 0x03 ? d.readUnsigned() : null;
-            final import = ir.ImportedMemory(module, moduleName, name,
-                ir.FinalizableIndex(), shared, minSize, maxSize);
+            final maxSize = limits == 0x01 || limits == 0x03
+                ? d.readUnsigned()
+                : null;
+            final import = ir.ImportedMemory(
+              module,
+              moduleName,
+              name,
+              ir.FinalizableIndex(),
+              shared,
+              minSize,
+              maxSize,
+            );
             import.finalizableIndex.value = importedMemories.length;
             importedMemories.add(import);
             imports.add(import);
@@ -194,7 +232,12 @@ class ImportSection extends Section {
           case 0x03: // Global
             final type = ir.GlobalType.deserialize(d, types.defined);
             final import = ir.ImportedGlobal(
-                module, moduleName, name, ir.FinalizableIndex(), type);
+              module,
+              moduleName,
+              name,
+              ir.FinalizableIndex(),
+              type,
+            );
             import.finalizableIndex.value = importedGlobals.length;
             importedGlobals.add(import);
             imports.add(import);
@@ -204,7 +247,12 @@ class ImportSection extends Section {
             if (exceptionByte != 0x00) throw 'unexpected';
             final type = types[d.readUnsigned()] as ir.FunctionType;
             final tag = ir.ImportedTag(
-                module, moduleName, name, ir.FinalizableIndex(), type);
+              module,
+              moduleName,
+              name,
+              ir.FinalizableIndex(),
+              type,
+            );
             tag.finalizableIndex.value = importedTags.length;
             importedTags.add(tag);
             imports.add(tag);
@@ -213,8 +261,14 @@ class ImportSection extends Section {
         }
       }
     }
-    return ir.Imports.deserialized(imports, importedFunctions, importedTags,
-        importedGlobals, importedTables, importedMemories);
+    return ir.Imports.deserialized(
+      imports,
+      importedFunctions,
+      importedTags,
+      importedGlobals,
+      importedTables,
+      importedMemories,
+    );
   }
 }
 
@@ -238,8 +292,12 @@ class FunctionSection extends Section {
     }
   }
 
-  static ir.Functions deserialize(Deserializer? d, ir.Module module,
-      ir.Types types, List<ir.ImportedFunction> imported) {
+  static ir.Functions deserialize(
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+    List<ir.ImportedFunction> imported,
+  ) {
     if (d == null) {
       return ir.Functions(imported, []);
     }
@@ -250,7 +308,10 @@ class FunctionSection extends Section {
       final typeIndex = d.readUnsigned();
       final type = types[typeIndex] as ir.FunctionType;
       final function = ir.DefinedFunction.withoutBody(
-          module, ir.FinalizableIndex()..value = imported.length + i, type);
+        module,
+        ir.FinalizableIndex()..value = imported.length + i,
+        type,
+      );
       defined.add(function);
     }
     return ir.Functions(imported, defined);
@@ -274,8 +335,12 @@ class TableSection extends Section {
     }
   }
 
-  static ir.Tables deserialize(Deserializer? d, ir.Module module,
-      ir.Types types, List<ir.ImportedTable> imported) {
+  static ir.Tables deserialize(
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+    List<ir.ImportedTable> imported,
+  ) {
     if (d == null) return ir.Tables(imported, []);
 
     final defined = <ir.DefinedTable>[];
@@ -286,11 +351,12 @@ class TableSection extends Section {
       final minSize = d.readUnsigned();
       final maxSize = limits == 0x01 ? d.readUnsigned() : null;
       final table = ir.DefinedTable(
-          module,
-          ir.FinalizableIndex()..value = imported.length + i,
-          type,
-          minSize,
-          maxSize);
+        module,
+        ir.FinalizableIndex()..value = imported.length + i,
+        type,
+        minSize,
+        maxSize,
+      );
       defined.add(table);
     }
     return ir.Tables(imported, defined);
@@ -315,7 +381,10 @@ class MemorySection extends Section {
   }
 
   static ir.Memories deserialize(
-      Deserializer? d, ir.Module module, List<ir.ImportedMemory> imported) {
+    Deserializer? d,
+    ir.Module module,
+    List<ir.ImportedMemory> imported,
+  ) {
     if (d == null) return ir.Memories(imported, []);
 
     final defined = <ir.DefinedMemory>[];
@@ -324,14 +393,16 @@ class MemorySection extends Section {
       final limits = d.readByte();
       final shared = limits == 0x03;
       final minSize = d.readUnsigned();
-      final maxSize =
-          limits == 0x01 || limits == 0x03 ? d.readUnsigned() : null;
+      final maxSize = limits == 0x01 || limits == 0x03
+          ? d.readUnsigned()
+          : null;
       final memory = ir.DefinedMemory(
-          module,
-          ir.FinalizableIndex()..value = imported.length + i,
-          shared,
-          minSize,
-          maxSize);
+        module,
+        ir.FinalizableIndex()..value = imported.length + i,
+        shared,
+        minSize,
+        maxSize,
+      );
       defined.add(memory);
     }
     return ir.Memories(imported, defined);
@@ -355,8 +426,12 @@ class TagSection extends Section {
     }
   }
 
-  static ir.Tags deserialize(Deserializer? d, ir.Module module, ir.Types types,
-      List<ir.ImportedTag> imported) {
+  static ir.Tags deserialize(
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+    List<ir.ImportedTag> imported,
+  ) {
     if (d == null) return ir.Tags(imported, []);
 
     final defined = <ir.DefinedTag>[];
@@ -368,7 +443,10 @@ class TagSection extends Section {
       }
       final type = types[d.readUnsigned()] as ir.FunctionType;
       final tag = ir.DefinedTag(
-          module, ir.FinalizableIndex()..value = imported.length + i, type);
+        module,
+        ir.FinalizableIndex()..value = imported.length + i,
+        type,
+      );
       defined.add(tag);
     }
     return ir.Tags(imported, defined);
@@ -393,11 +471,12 @@ class GlobalSection extends Section {
   }
 
   static ir.Globals deserialize(
-      Deserializer? d,
-      ir.Module module,
-      ir.Types types,
-      ir.Functions functions,
-      List<ir.ImportedGlobal> imported) {
+    Deserializer? d,
+    ir.Module module,
+    ir.Types types,
+    ir.Functions functions,
+    List<ir.ImportedGlobal> imported,
+  ) {
     if (d == null) {
       return ir.Globals(imported, []);
     }
@@ -407,10 +486,18 @@ class GlobalSection extends Section {
     final count = d.readUnsigned();
     for (int i = 0; i < count; i++) {
       final type = ir.GlobalType.deserialize(d, types.defined);
-      final initializer =
-          ir.Instructions.deserializeConst(d, types, functions, globals);
-      final global = ir.DefinedGlobal(module, initializer,
-          ir.FinalizableIndex()..value = globals.length, type);
+      final initializer = ir.Instructions.deserializeConst(
+        d,
+        types,
+        functions,
+        globals,
+      );
+      final global = ir.DefinedGlobal(
+        module,
+        initializer,
+        ir.FinalizableIndex()..value = globals.length,
+        type,
+      );
       globals.defined.add(global);
     }
     return globals;
@@ -435,12 +522,13 @@ class ExportSection extends Section {
   }
 
   static ir.Exports deserialize(
-      Deserializer? d,
-      ir.Functions functions,
-      ir.Tables tables,
-      ir.Memories memories,
-      ir.Globals globals,
-      ir.Tags tags) {
+    Deserializer? d,
+    ir.Functions functions,
+    ir.Tables tables,
+    ir.Memories memories,
+    ir.Globals globals,
+    ir.Tags tags,
+  ) {
     if (d == null) {
       return ir.Exports([]);
     }
@@ -532,14 +620,26 @@ class ElementSection extends Section {
       if (byte == 0x00 || byte == 0x02) {
         // Active element, table values are function indices.
         final es = ir.ActiveFunctionElementSegment.deserialize(
-            d, module, types, functions, tables, globals);
+          d,
+          module,
+          types,
+          functions,
+          tables,
+          globals,
+        );
         segments.add(es);
         continue;
       }
       if (byte == 0x04 || byte == 0x06) {
         // Active element, table values are expressions.
         final es = ir.ActiveExpressionElementSegment.deserialize(
-            d, module, types, functions, tables, globals);
+          d,
+          module,
+          types,
+          functions,
+          tables,
+          globals,
+        );
         segments.add(es);
         continue;
       }
@@ -572,7 +672,7 @@ class DataCountSection extends Section {
     }
     final count = d.readUnsigned();
     final uninitializedSegments = [
-      for (int i = 0; i < count; ++i) ir.DataSegment.uninitialized()
+      for (int i = 0; i < count; ++i) ir.DataSegment.uninitialized(),
     ];
     return ir.DataSegments(uninitializedSegments);
   }
@@ -638,8 +738,16 @@ class CodeSection extends Section {
         }
       }
       while (!bodyDeserializer.isAtEnd) {
-        final instruction = ir.Instruction.deserialize(bodyDeserializer, types,
-            tables, tags, globals, dataSegments, memories, functions);
+        final instruction = ir.Instruction.deserialize(
+          bodyDeserializer,
+          types,
+          tables,
+          tags,
+          globals,
+          dataSegments,
+          memories,
+          functions,
+        );
         instructions.add(instruction);
       }
 
@@ -666,7 +774,10 @@ class DataSection extends Section {
   }
 
   static void deserialize(
-      Deserializer? d, ir.DataSegments dataSegments, ir.Memories memories) {
+    Deserializer? d,
+    ir.DataSegments dataSegments,
+    ir.Memories memories,
+  ) {
     final defined = dataSegments.defined;
     if (d == null) {
       assert(defined.isEmpty);
@@ -830,47 +941,61 @@ class NameSection extends CustomSection {
 
     if (functionNameCount > 0) {
       s.writeByte(1); // Function names subsection
-      s.writeUnsigned(functionNames.data.length +
-          Serializer.writeUnsignedByteCount(functionNameCount));
+      s.writeUnsigned(
+        functionNames.data.length +
+            Serializer.writeUnsignedByteCount(functionNameCount),
+      );
       s.writeUnsigned(functionNameCount);
       s.writeData(functionNames);
     }
 
     if (functionsWithLocalNamesCount > 0) {
       s.writeByte(2); // Local names substion
-      s.writeUnsigned(localNames.data.length +
-          Serializer.writeUnsignedByteCount(functionsWithLocalNamesCount));
+      s.writeUnsigned(
+        localNames.data.length +
+            Serializer.writeUnsignedByteCount(functionsWithLocalNamesCount),
+      );
       s.writeUnsigned(functionsWithLocalNamesCount);
       s.writeData(localNames);
     }
 
     if (typeNameCount > 0) {
       s.writeByte(4); // Type names subsection
-      s.writeUnsigned(typeNames.data.length +
-          Serializer.writeUnsignedByteCount(typeNameCount));
+      s.writeUnsigned(
+        typeNames.data.length +
+            Serializer.writeUnsignedByteCount(typeNameCount),
+      );
       s.writeUnsigned(typeNameCount);
       s.writeData(typeNames);
     }
 
     if (globalNameCount > 0) {
       s.writeByte(7); // Global names subsection
-      s.writeUnsigned(globalNames.data.length +
-          Serializer.writeUnsignedByteCount(globalNameCount));
+      s.writeUnsigned(
+        globalNames.data.length +
+            Serializer.writeUnsignedByteCount(globalNameCount),
+      );
       s.writeUnsigned(globalNameCount);
       s.writeData(globalNames);
     }
 
     if (typesWithNamedFieldsCount > 0) {
       s.writeByte(10); // Field names subsection
-      s.writeUnsigned(fieldNames.data.length +
-          Serializer.writeUnsignedByteCount(typesWithNamedFieldsCount));
+      s.writeUnsigned(
+        fieldNames.data.length +
+            Serializer.writeUnsignedByteCount(typesWithNamedFieldsCount),
+      );
       s.writeUnsigned(typesWithNamedFieldsCount);
       s.writeData(fieldNames);
     }
   }
 
-  static String? deserialize(Deserializer? d, ir.Functions functions,
-      ir.Types types, ir.Globals globals) {
+  static String? deserialize(
+    Deserializer? d,
+    ir.Functions functions,
+    ir.Types types,
+    ir.Globals globals,
+  ) {
     String? moduleName;
 
     if (d == null) {
@@ -980,12 +1105,12 @@ class SourceMapSection extends CustomSection {
   }
 }
 
-class RemovableIfUnusedSection extends CustomSection {
+class BinaryenRemovableIfUnusedSection extends CustomSection {
   static const String customSectionName = 'binaryen.removable.if.unused';
 
   final ir.Functions functions;
 
-  RemovableIfUnusedSection(this.functions) : super([]);
+  BinaryenRemovableIfUnusedSection(this.functions) : super([]);
 
   @override
   void serializeContents(Serializer s) {
@@ -1000,7 +1125,7 @@ class RemovableIfUnusedSection extends CustomSection {
         s.writeUnsigned(function.index);
         s.writeUnsigned(1); // Number of hints
         s.writeUnsigned(0); // Offset (0 == function-level)
-        s.writeUnsigned(0); // always 0
+        s.writeUnsigned(0); // hint length (always 0)
       }
     }
   }
@@ -1016,7 +1141,8 @@ class RemovableIfUnusedSection extends CustomSection {
         final offset = d.readUnsigned(); // Offset (0 == function-level)
         if (offset != 0) {
           throw UnsupportedError(
-              'Only function-level ($customSectionName) annotation supported.');
+            'Only function-level ($customSectionName) annotation supported.',
+          );
         }
         final data = d.readUnsigned(); // always 0
         if (data != 0) {
@@ -1025,5 +1151,134 @@ class RemovableIfUnusedSection extends CustomSection {
         functions[functionIndex].isPure = true;
       }
     }
+  }
+}
+
+class BinaryenInlineHintSection extends CustomSection {
+  static const String customSectionName = 'binaryen.inline';
+
+  final ir.Functions functions;
+
+  BinaryenInlineHintSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.inlineHint != null),
+      ...functions.defined.where((f) => f.inlineHint != null),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        final hint = function.inlineHint!;
+        assert(hint >= 0 && hint <= 127);
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(1); // hint length (always 1 for inline hint)
+        s.writeByte(hint);
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+            'Only function-level ($customSectionName) annotation supported.',
+          );
+        }
+        final hintLength = d.readUnsigned();
+        if (hintLength != 1) {
+          throw StateError('Expected hint length 1 but got $hintLength');
+        }
+        final hint = d.readByte();
+        if (hint < 0 || hint > 127) {
+          throw StateError('Expected hint in range [0..127] but got $hint');
+        }
+        functions[functionIndex].inlineHint = hint;
+      }
+    }
+  }
+}
+
+class BinaryenJSCalledSection extends CustomSection {
+  static const String customSectionName = 'binaryen.js.called';
+
+  final ir.Functions functions;
+
+  BinaryenJSCalledSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.isJSCalled),
+      ...functions.defined.where((f) => f.isJSCalled),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(0); // hint length (always 0)
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+            'Only function-level ($customSectionName) annotation supported.',
+          );
+        }
+        final data = d.readUnsigned(); // always 0
+        if (data != 0) {
+          throw StateError('Expected 0 but got $data');
+        }
+        functions[functionIndex].isJSCalled = true;
+      }
+    }
+  }
+}
+
+class ExtraCustomSection extends CustomSection {
+  final String name;
+  final Uint8List bytes;
+
+  ExtraCustomSection(this.name, this.bytes)
+    : assert(!_reservedCustomSectionNames.contains(name)),
+      super([]);
+
+  factory ExtraCustomSection.deserialize(Deserializer d, String name) {
+    final bytes = d.readBytes(d.length - d.offset);
+    return ExtraCustomSection(name, bytes);
+  }
+
+  @override
+  void serializeContents(Serializer s) {
+    s.writeName(name);
+    s.writeBytes(bytes);
+  }
+
+  void printTo(IndentPrinter ip) {
+    ip.writeln('(custom "$name" (${bytes.length} bytes data))');
   }
 }

@@ -23,7 +23,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   @override
   final int charOffset;
 
-  InvalidTypeBuilderImpl(this.fileUri, this.charOffset);
+  new(this.fileUri, this.charOffset);
 
   @override
   DartType build(

@@ -27,7 +27,7 @@ class NormalEnum extends core::_Enum /*isEnum*/  {
     return "NormalEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_SomeEnum&_Enum&HasSomeField
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_SomeEnum&_Enum&HasSomeField
     : super core::_Enum::•(index, _name)
     ;
   abstract synthetic mixin-stub get someField() → core::String; -> self::HasSomeField::someField

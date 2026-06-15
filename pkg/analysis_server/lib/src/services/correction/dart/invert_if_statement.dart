@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InvertIfStatement extends ResolvedCorrectionProducer {
-  InvertIfStatement({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -21,7 +21,7 @@ class RecentBuffer<T> {
 
   final Queue<T> _buffer;
 
-  RecentBuffer(this.capacity) : _buffer = Queue();
+  new(this.capacity) : _buffer = Queue();
 
   Iterable<T> get items => _buffer;
 

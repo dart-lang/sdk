@@ -16,7 +16,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Avoid unnecessary containers.';
 
 class AvoidUnnecessaryContainers extends AnalysisRule {
-  AvoidUnnecessaryContainers()
+  new()
     : super(name: LintNames.avoid_unnecessary_containers, description: _desc);
 
   @override
@@ -36,14 +36,14 @@ class AvoidUnnecessaryContainers extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.staticType.isWidgetType) return;
 
     var parent = node.parent;
-    if (parent is NamedExpression && parent.name.label.name == 'child') {
+    if (parent is NamedArgument && parent.name.lexeme == 'child') {
       var args = parent.thisOrAncestorOfType<ArgumentList>();
       if (args?.arguments.length == 1) {
         var parentCreation = parent

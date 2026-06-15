@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
-#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/ffi/native_location.h"
@@ -194,8 +193,15 @@ bool BaseMarshaller::IsTypedDataPointer(intptr_t arg_index) const {
   }
 
   const auto& type = AbstractType::Handle(zone_, DartType(arg_index));
-  return type.type_class() ==
-         Thread::Current()->compiler_state().TypedDataClass().ptr();
+  auto* const object_store = Thread::Current()->isolate_group()->object_store();
+  auto& typed_data_cls = Class::Handle(zone_, object_store->typed_data_class());
+  if (typed_data_cls.IsNull()) {
+    const auto& lib = Library::Handle(zone_, Library::TypedDataLibrary());
+    typed_data_cls = lib.LookupClass(Symbols::TypedData());
+    ASSERT(!typed_data_cls.IsNull());
+    object_store->set_typed_data_class(typed_data_cls);
+  }
+  return type.type_class() == typed_data_cls.ptr();
 }
 
 static bool IsCompound(Zone* zone, const AbstractType& type) {

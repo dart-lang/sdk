@@ -9,16 +9,16 @@ class LateVarInitTransformer {
   const LateVarInitTransformer();
 
   bool _shouldApplyTransform(Statement s) {
-    if (s is VariableDeclaration) {
+    if (s is VariableStatement) {
       // This transform only applies to late variables.
-      if (!s.isLate) return false;
+      if (!s.declaration.variable.isLate) return false;
 
       // Const variables are ignored.
-      if (s.isConst) return false;
+      if (s.declaration.variable.isConst) return false;
 
       // Variables with no initializer or a trivial initializer are ignored.
-      if (s.initializer == null) return false;
-      final Expression? init = s.initializer;
+      if (s.declaration.variable.initializer == null) return false;
+      final Expression? init = s.declaration.variable.initializer;
       if (init is StringLiteral) return false;
       if (init is BoolLiteral) return false;
       if (init is IntLiteral) return false;
@@ -34,29 +34,29 @@ class LateVarInitTransformer {
   }
 
   List<Statement> _transformVariableDeclaration(
-    VariableDeclaration node,
+    VariableStatement node,
     LocalFunctionIdGenerator localFunctionIdGenerator,
   ) {
     final fnNode = FunctionNode(
-      ReturnStatement(node.initializer),
-      returnType: node.type,
+      ReturnStatement(node.declaration.variable.initializer),
+      returnType: node.declaration.variable.type,
     );
     final functionType = fnNode.computeThisFunctionType(
       Nullability.nonNullable,
     );
     final fn = FunctionDeclaration(
-      VariableDeclaration(
-        "#${node.name}#initializer",
+      Variable(
+        "#${node.declaration.variable.name}#initializer",
         type: functionType,
         isSynthesized: true,
       ),
       fnNode,
     )..id = localFunctionIdGenerator.allocateId();
-    node.initializer = LocalFunctionInvocation(
+    node.declaration.variable.initializer = LocalFunctionInvocation(
       fn.variable,
       Arguments([]),
       functionType: functionType,
-    )..parent = node;
+    )..parent = node.declaration.variable;
 
     return [fn, node];
   }
@@ -71,7 +71,7 @@ class LateVarInitTransformer {
       if (_shouldApplyTransform(s)) {
         newStatements.addAll(
           _transformVariableDeclaration(
-            s as VariableDeclaration,
+            s as VariableStatement,
             localFunctionIdGenerator,
           ),
         );

@@ -29,7 +29,7 @@ class C2<T extends core::Object? = dynamic> extends core::Object implements self
 }
 class Indexable<ReadType extends core::Object? = dynamic, WriteType extends core::Object? = dynamic> extends core::Object {
   final field self::Indexable::ReadType% _value;
-  constructor •(self::Indexable::ReadType% _value) → self::Indexable<self::Indexable::ReadType%, self::Indexable::WriteType%>
+  constructor •(initializing-formal self::Indexable::ReadType% _value) → self::Indexable<self::Indexable::ReadType%, self::Indexable::WriteType%>
     : self::Indexable::_value = _value, super core::Object::•()
     ;
 }

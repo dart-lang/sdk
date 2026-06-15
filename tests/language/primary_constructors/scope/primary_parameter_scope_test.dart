@@ -6,8 +6,6 @@
 // Instance variables are accessable in this scope, but not any declaring
 // parameters, super parameters, or initializing formals.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import "package:expect/expect.dart";
 
 class C1(var int x) {

@@ -66,7 +66,7 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
   late String content;
   late final TestCode code = TestCode.parseNormalized(content);
 
-  AbstractCompletionTest() {
+  new() {
     defaultInitializationOptions = {
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
@@ -5497,7 +5497,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -5540,7 +5540,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatefulWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   State<\${1:MyWidget}> createState() => _\${1:MyWidget}State();
@@ -5598,7 +5598,7 @@ import 'package:flutter/widgets.dart';
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -5634,7 +5634,7 @@ $expectedImports
 class A {}
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -5664,7 +5664,7 @@ stless^
 $expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {
@@ -5692,7 +5692,7 @@ class \${1:MyWidget} extends StatelessWidget {
 $expectedImports
 
 class \${1:MyWidget} extends StatelessWidget {
-  const \${1:MyWidget}$expectedWidgetConstructorParams;
+  const new$expectedWidgetConstructorParams;
 
   @override
   Widget build(BuildContext context) {

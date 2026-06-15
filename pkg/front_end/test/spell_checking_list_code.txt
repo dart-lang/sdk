@@ -135,6 +135,7 @@ backping
 backstop
 badly
 bail
+bailing
 balance
 bang
 bar
@@ -320,6 +321,7 @@ compilations
 compiler's
 complement
 complementary
+complements
 completers
 completes
 complexity
@@ -353,6 +355,7 @@ considerable
 consideration
 considering
 constant's
+constitute
 constness
 constraining
 consult
@@ -1161,6 +1164,7 @@ mocking
 mockito
 modelled
 modelling
+modularly
 modulename
 momentarily
 monomorphic
@@ -1677,6 +1681,7 @@ selectively
 selectors
 semantically
 semver
+sensitive
 separation
 separators
 sequencing
@@ -1809,6 +1814,7 @@ stdin
 stdio
 stdlib
 stdout
+stepping
 sticks
 sticky
 stmt

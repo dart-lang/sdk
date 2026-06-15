@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  62 "needsEvaluation"
+# -  85 "needsEvaluation"
 # - 302 "needsFix"
-# - 500 "hasFix"
-# - 498 "noFix"
+# - 525 "hasFix"
+# - 487 "noFix"
 
 included_file_parse_error:
   status: noFix
@@ -235,12 +235,38 @@ async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
   status: needsEvaluation
+augmentation_formal_parameter_modifier_extra:
+  status: needsEvaluation
+augmentation_formal_parameter_modifier_missing:
+  status: needsEvaluation
+augmentation_formal_parameter_type_mismatch:
+  status: needsEvaluation
+augmentation_induced_getter_already_complete:
+  status: needsEvaluation
+augmentation_induced_getter_return_type_mismatch:
+  status: needsEvaluation
+augmentation_induced_setter_already_complete:
+  status: needsEvaluation
 augmentation_modifier_extra:
   status: hasFix
 augmentation_modifier_missing:
   status: needsFix
+augmentation_named_formal_parameter_extra:
+  status: needsEvaluation
+augmentation_named_formal_parameter_missing:
+  status: needsEvaluation
 augmentation_of_different_declaration_kind:
   status: noFix
+augmentation_of_mixin_application_class:
+  status: needsEvaluation
+augmentation_optional_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_positional_formal_parameter_name:
+  status: needsEvaluation
+augmentation_required_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_return_type_mismatch:
+  status: needsEvaluation
 augmentation_type_parameter_bound:
   status: noFix
 augmentation_type_parameter_count:
@@ -251,12 +277,18 @@ augmentation_type_parameter_name:
     We could rename the type parameter, this is purely local operation.
 augmentation_without_declaration:
   status: noFix
+augmentation_without_getter_declaration:
+  status: needsEvaluation
+augmentation_without_setter_declaration:
+  status: needsEvaluation
 augmented_expression_is_not_setter:
   status: noFix
 augmented_expression_is_setter:
   status: noFix
 augmented_expression_not_operator:
   status: noFix
+augments_constant_variable:
+  status: needsEvaluation
 await_in_late_local_variable_initializer:
   status: hasFix
 await_in_wrong_context:
@@ -365,6 +397,12 @@ conflicting_constructor_and_static_setter:
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+constructor_already_complete:
+  status: needsEvaluation
+function_not_complete_after_augmentations:
+  status: needsEvaluation
+factory_not_complete_after_augmentations:
+  status: needsEvaluation
 conflicting_field_and_method:
   status: noFix
   notes: |-
@@ -442,9 +480,15 @@ const_constructor_with_mixin_with_fields:
 const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is making the non-final fields `final`.
 const_primary_constructor_with_block_body:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is removing the block body entirely.
 const_primary_constructor_with_expression_body:
   status: needsEvaluation
 const_deferred_class:
@@ -532,10 +576,14 @@ constant_pattern_with_non_constant_expression:
   notes: |-
     Has fix for expression that can be made constant. More cases to be
     implemented as per the tests.
+constant_variable_augmentation:
+  status: needsEvaluation
 continue_label_invalid:
   status: noFix
 could_not_infer:
   status: noFix
+default_value_already_specified_in_augmentation_chain:
+  status: needsEvaluation
 default_value_in_redirecting_factory_constructor:
   status: needsFix
   notes: |-
@@ -706,6 +754,10 @@ extension_override_with_cascade:
   status: hasFix
 extension_override_without_access:
   status: noFix
+extension_primary_constructor:
+  status: hasFix
+extension_type_augmentation_specifies_representation_field:
+  status: needsEvaluation
 extension_type_constructor_with_super_formal_parameter:
   status: needsFix
   notes: |-
@@ -813,6 +865,8 @@ for_in_of_invalid_type:
   status: hasFix
 for_in_with_const_variable:
   status: noFix
+function_already_complete:
+  status: needsEvaluation
 generic_function_type_cannot_be_bound:
   status: noFix
 generic_function_type_cannot_be_type_argument:
@@ -874,12 +928,22 @@ implements_repeated:
   status: hasFix
 implements_super_class:
   status: hasFix
+implements_super_class_constraint:
+  status: needsEvaluation
 implements_type_alias_expands_to_type_parameter:
   status: hasFix
 implicit_this_reference_in_initializer:
   status: hasFix
 implicit_super_initializer_missing_arguments:
   status: hasFix
+induced_getter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_getter_without_body:
+  status: needsEvaluation
+induced_setter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_setter_without_body:
+  status: needsEvaluation
 import_internal_library:
   status: hasFix
 import_of_non_library:
@@ -1104,6 +1168,8 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
+mixin_class_declaration_with_clause:
+  status: needsEvaluation
 mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
@@ -1118,6 +1184,8 @@ mixin_inherits_from_not_object:
     Remove the extends clause.
 mixin_instantiate:
   status: noFix
+mixin_modifier_mixin_application_class_with_multiple_mixins:
+  status: needsEvaluation
 mixin_of_disallowed_class:
   status: hasFix
 mixin_of_non_class:
@@ -1126,6 +1194,8 @@ mixin_of_type_alias_expands_to_type_parameter:
   status: noFix
 mixin_on_type_alias_expands_to_type_parameter:
   status: noFix
+mixin_primary_constructor:
+  status: hasFix
 mixin_subtype_of_base_is_not_base:
   status: hasFix
 mixin_subtype_of_final_is_not_base:
@@ -1386,7 +1456,7 @@ prefix_identifier_not_followed_by_dot:
 prefix_shadowed_by_local_declaration:
   status: noFix
 primary_constructor_body_with_expression_body:
-  status: needsEvaluation
+  status: hasFix
 primary_constructor_body_with_modifier:
   status: needsEvaluation
 primary_constructor_body_without_declaration:
@@ -1585,6 +1655,8 @@ unchecked_use_of_nullable_value_in_spread:
   status: hasFix
 unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
+unawaited_return_in_try_block:
+  status: hasFix
 undefined_annotation:
   status: hasFix
 undefined_class:
@@ -1674,6 +1746,8 @@ use_of_private_parameter_name:
   status: hasFix
 use_of_void_result:
   status: noFix
+use_primary_constructors:
+  status: hasFix
 values_declaration_in_enum:
   status: noFix
   since: 2.17
@@ -1901,6 +1975,8 @@ annotate_overrides:
   status: hasFix
 annotate_redeclares:
   status: hasFix
+async_return_with_no_await:
+  status: hasFix
 avoid_annotating_with_dynamic:
   status: hasFix
 avoid_bool_literals_in_conditional_expressions:
@@ -2110,6 +2186,8 @@ empty_catches:
   status: hasFix
 empty_constructor_bodies:
   status: hasFix
+empty_container_bodies:
+  status: hasFix
 empty_statements:
   status: hasFix
 eol_at_end_of_file:
@@ -2135,6 +2213,8 @@ implementation_imports:
 implicit_call_tearoffs:
   status: hasFix
 implicit_reopen:
+  status: hasFix
+initialize_in_field_declaration:
   status: hasFix
 invalid_case_patterns:
   status: hasFix
@@ -2208,6 +2288,9 @@ no_default_cases:
     values that the default would have matched.
 no_duplicate_case_values:
   status: hasFix
+no_dynamic_casts:
+  status: needsFix
+  notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
 no_leading_underscores_for_local_identifiers:
@@ -2216,6 +2299,11 @@ no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
   status: noFix
+no_raw_types:
+  status: needsFix
+  notes: |-
+    There are a few basic cases where we can look at another expression's type
+    in order to find a replacement, like `C c = C<int>()`.
 no_runtimetype_tostring:
   status: noFix
 no_self_assignments:
@@ -2457,6 +2545,8 @@ unnecessary_breaks:
   status: hasFix
 unnecessary_const:
   status: hasFix
+unnecessary_const_in_enum_constructor:
+  status: hasFix
 unnecessary_constructor_name:
   status: hasFix
 unnecessary_final_with_type:
@@ -2499,6 +2589,8 @@ unnecessary_overrides:
   status: hasFix
 unnecessary_parenthesis:
   status: hasFix
+unnecessary_primary_constructor_body:
+  status: hasFix
 unnecessary_raw_strings:
   status: hasFix
 unnecessary_statements:
@@ -2510,6 +2602,8 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_to_list_in_spreads:
+  status: hasFix
+unnecessary_type_name_in_constructor:
   status: hasFix
 unnecessary_unawaited:
   status: hasFix
@@ -2536,6 +2630,8 @@ use_build_context_synchronously_wrong_mounted:
     We could have a fix that would replace a mounted check on the wrong element
     to a mounted check on the right element.
 use_colored_box:
+  status: hasFix
+use_declaring_parameters:
   status: hasFix
 use_decorated_box:
   status: hasFix
@@ -2812,8 +2908,9 @@ expected_try_statement_body:
 expected_type_name:
   status: noFix
 experiment_not_enabled:
-  status: needsFix
+  status: hasFix
   notes: |-
+    Currently only for dot-shorthands.
     Update the sdk constraints.
 experiment_not_enabled_off_by_default:
   status: needsFix
@@ -3769,7 +3866,11 @@ return_of_do_not_store:
     The fix is to add the annotation to the enclosing function.
 return_of_invalid_type_from_catch_error:
   status: noFix
+return_of_invalid_type_from_then:
+  status: noFix
 return_type_invalid_for_catch_error:
+  status: noFix
+return_type_invalid_for_then:
   status: noFix
 sdk_version_constructor_tearoffs:
   status: needsFix

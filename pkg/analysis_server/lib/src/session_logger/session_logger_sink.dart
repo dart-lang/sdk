@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/log_normalizer.dart';
@@ -13,25 +13,23 @@ import 'package:language_server_protocol/protocol_special.dart' show Either2;
 /// A sink for a session logger that will write entries to a file.
 final class SessionLoggerFileSink extends SessionLoggerSink {
   /// The sink used to write to the file.
-  final IOSink _sink;
+  late final io.IOSink _sink;
 
   @override
   final LogNormalizer _normalizer;
 
   /// Initializes a newly created sink to write to the file at the given
   /// [filePath].
-  SessionLoggerFileSink(String filePath, {required this._normalizer})
-    : _sink = File(filePath).openWrite();
-
-  @override
-  Future<void> close() async {
-    await _sink.close();
+  new(String filePath, {required this._normalizer}) {
+    _sink = io.File(filePath).openWrite();
   }
 
   @override
+  Future<void> close() => _sink.close();
+
+  @override
   void writeLogEntry(JsonMap entry) {
-    var jsonString = json.encode(entry);
-    jsonString = _normalizer.normalize(jsonString);
+    var jsonString = _normalizer.normalize(entry);
     _sink.writeln(jsonString);
   }
 }
@@ -75,14 +73,14 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
   final LogNormalizer _normalizer;
 
   /// Initialize a newly created sink to store up to [maxBufferLength] entries.
-  SessionLoggerInMemorySink({
+  new({
     required this.maxBufferLength,
     required LogNormalizer normalizer,
-    String? filePath,
+    String? sessionLogFilePath,
   }) : _normalizer = normalizer,
-       _nextLogger = filePath == null
+       _nextLogger = sessionLogFilePath == null
            ? null
-           : SessionLoggerFileSink(filePath, normalizer: normalizer);
+           : SessionLoggerFileSink(sessionLogFilePath, normalizer: normalizer);
 
   /// Returns a list of the entries that have been captured.
   ///
@@ -94,7 +92,7 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
       ..._configurationBuffer,
       ..._textDocumentBuffer,
       ..._sessionBuffer,
-    ];
+    ].map((entry) => LogEntry(_normalize(entry.map))).toList();
   }
 
   /// Whether entries are currently being captured in the buffer.
@@ -102,11 +100,6 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
 
   /// Returns the session logger to which requests should be forwarded.
   SessionLoggerSink? get nextLogger => _nextLogger;
-
-  @override
-  Future<void> close() async {
-    await _nextLogger?.close();
-  }
 
   /// Stops the capturing of entries.
   void startCapture() {
@@ -121,9 +114,8 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
 
   @override
   void writeLogEntry(JsonMap entry) {
-    var normalizedEntry = _normalize(entry);
-    _nextLogger?.writeLogEntry(normalizedEntry);
-    var logEntry = LogEntry(normalizedEntry);
+    _nextLogger?.writeLogEntry(entry);
+    var logEntry = LogEntry(entry);
     if (_isInitializationEntry(logEntry)) {
       _initializationBuffer.add(logEntry);
       return;
@@ -222,15 +214,14 @@ sealed class SessionLoggerSink {
   /// The normalizer used to normalize paths in log entries.
   LogNormalizer get _normalizer;
 
-  /// Closes any resources being held by this sink.
-  Future<void> close();
+  Future<void> close() async {}
 
   /// Writes the given log [entry] to this sink.
   void writeLogEntry(JsonMap entry);
 
   /// Returns the given [entry] after normalizing any paths in it.
   JsonMap _normalize(JsonMap entry) {
-    var normalizedJsonString = _normalizer.normalize(json.encode(entry));
+    var normalizedJsonString = _normalizer.normalize(entry);
     return json.decode(normalizedJsonString) as JsonMap;
   }
 }

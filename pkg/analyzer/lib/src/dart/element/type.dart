@@ -139,7 +139,7 @@ class FunctionTypeImpl extends TypeImpl
 
   factory FunctionTypeImpl({
     required List<TypeParameterElementImpl> typeParameters,
-    required List<InternalFormalParameterElement> parameters,
+    required List<InternalFormalParameterElement> formalParameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
@@ -152,8 +152,8 @@ class FunctionTypeImpl extends TypeImpl
     // Check if already sorted.
     var namedParametersAlreadySorted = true;
     var lastNamedParameterName = '';
-    for (var i = 0; i < parameters.length; ++i) {
-      var parameter = parameters[i];
+    for (var i = 0; i < formalParameters.length; ++i) {
+      var parameter = formalParameters[i];
       if (parameter.isNamed) {
         firstNamedParameterIndex ??= i;
         var name = parameter.name ?? '';
@@ -171,7 +171,10 @@ class FunctionTypeImpl extends TypeImpl
     }
     sortedNamedParameters = firstNamedParameterIndex == null
         ? const []
-        : parameters.sublist(firstNamedParameterIndex, parameters.length);
+        : formalParameters.sublist(
+            firstNamedParameterIndex,
+            formalParameters.length,
+          );
     if (!namedParametersAlreadySorted) {
       // Sort named parameters.
       sortedNamedParameters.sort(
@@ -179,37 +182,21 @@ class FunctionTypeImpl extends TypeImpl
       );
 
       // Combine into a new list, with sorted named parameters.
-      parameters = parameters.toList();
-      parameters.replaceRange(
+      formalParameters = formalParameters.toList();
+      formalParameters.replaceRange(
         firstNamedParameterIndex!,
-        parameters.length,
+        formalParameters.length,
         sortedNamedParameters,
       );
     }
     return FunctionTypeImpl._(
       typeParameters: typeParameters,
-      parameters: parameters,
+      parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
       positionalParameterTypes: positionalParameterTypes,
       requiredPositionalParameterCount: requiredPositionalParameterCount,
       sortedNamedParameters: sortedNamedParameters,
-      alias: alias,
-    );
-  }
-
-  factory FunctionTypeImpl.v2({
-    required List<TypeParameterElementImpl> typeParameters,
-    required List<InternalFormalParameterElement> formalParameters,
-    required TypeImpl returnType,
-    required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElementImpl? alias,
-  }) {
-    return FunctionTypeImpl(
-      typeParameters: typeParameters,
-      parameters: formalParameters,
-      returnType: returnType,
-      nullabilitySuffix: nullabilitySuffix,
       alias: alias,
     );
   }
@@ -335,15 +322,12 @@ class FunctionTypeImpl extends TypeImpl
         ? const <InternalFormalParameterElement>[]
         : List.generate(
             length,
-            (index) => SubstitutedFormalParameterElementImpl.from(
-              parameters[index],
-              substitution,
-            ),
+            (index) => parameters[index].substitute(substitution),
           );
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeParameters: const [],
-      parameters: newParameters,
+      formalParameters: newParameters,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -376,7 +360,7 @@ class FunctionTypeImpl extends TypeImpl
 
   @override
   FunctionTypeImpl withAlias(InstantiatedTypeAliasElementImpl alias) {
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: typeParameters,
       formalParameters: parameters,
       returnType: returnType,
@@ -413,7 +397,7 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeParameters.length; i++)
           TypeParameterTypeImpl(
-            element: TypeParameterFragmentImpl.synthetic(name: 'T$i').element,
+            element: TypeParameterElementImpl.synthetic(name: 'T$i'),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
       ]).hashCode;
@@ -598,6 +582,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
+  late final MapSubstitution _substitution = Substitution.fromInterfaceType(
+    this,
+  );
+
   /// Cached [InternalConstructorElement]s - members or raw elements.
   List<InternalConstructorElement>? _constructors;
 
@@ -683,13 +671,35 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalGetterElement> get getters {
     element.getters; // record requirements
     return _getters ??= element.getters.map((e) {
-      return SubstitutedGetterElementImpl.forTargetType(e, this);
+      return e.substitute(_substitution);
     }).toFixedList();
   }
 
   @override
   int get hashCode {
     return element.hashCode;
+  }
+
+  @override
+  Map<Name, ExecutableElement> get inheritedConcreteMembers {
+    var substitution = Substitution.fromInterfaceType(this);
+    if (substitution.map.isEmpty) {
+      return element.inheritedConcreteMembers;
+    }
+    return element.inheritedConcreteMembers.mapValue((member) {
+      return member.substitute(substitution);
+    });
+  }
+
+  @override
+  Map<Name, ExecutableElement> get interfaceMembers {
+    var substitution = Substitution.fromInterfaceType(this);
+    if (substitution.map.isEmpty) {
+      return element.interfaceMembers;
+    }
+    return element.interfaceMembers.mapValue((member) {
+      return member.substitute(substitution);
+    });
   }
 
   @override
@@ -787,7 +797,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalMethodElement> get methods {
     element.methods; // record requirements
     return _methods ??= element.methods.map((e) {
-      return SubstitutedMethodElementImpl.forTargetType(e, this);
+      return e.substitute(_substitution);
     }).toFixedList();
   }
 
@@ -814,7 +824,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalSetterElement> get setters {
     element.setters; // record requirements
     return _setters ??= element.setters.map((e) {
-      return SubstitutedSetterElementImpl.forTargetType(e, this);
+      return e.substitute(_substitution);
     }).toFixedList();
   }
 
@@ -899,17 +909,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalGetterElement? getGetter(String getterName) {
     var element = this.element.getGetter(getterName);
-    return element != null
-        ? SubstitutedGetterElementImpl.forTargetType(element, this)
-        : null;
+    return element?.substitute(_substitution);
   }
 
   @override
   InternalMethodElement? getMethod(String methodName) {
     var element = this.element.getMethod(methodName);
-    return element != null
-        ? SubstitutedMethodElementImpl.forTargetType(element, this)
-        : null;
+    return element?.substitute(_substitution);
   }
 
   InternalConstructorElement? getNamedConstructor(String name) {
@@ -922,9 +928,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalSetterElement? getSetter(String setterName) {
     var element = this.element.getSetter(setterName);
-    return element != null
-        ? SubstitutedSetterElementImpl.forTargetType(element, this)
-        : null;
+    return element?.substitute(_substitution);
   }
 
   @override
@@ -968,7 +972,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalGetterElement) {
-          return SubstitutedGetterElementImpl.forTargetType(rawElement, this);
+          return rawElement.substitute(_substitution);
         }
       }
       return null;
@@ -1006,7 +1010,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalMethodElement) {
-          return SubstitutedMethodElementImpl.forTargetType(rawElement, this);
+          return rawElement.substitute(_substitution);
         }
       }
       return null;
@@ -1044,7 +1048,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalSetterElement) {
-          return SubstitutedSetterElementImpl.forTargetType(rawElement, this);
+          return rawElement.substitute(_substitution);
         }
       }
       return null;

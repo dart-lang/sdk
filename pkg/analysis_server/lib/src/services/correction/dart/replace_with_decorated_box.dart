@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
-  ReplaceWithDecoratedBox({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -66,18 +66,16 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
         canBeConst = true;
         var childrenConstMap = <InstanceCreationExpression, bool>{};
         for (var argument in expression.argumentList.arguments) {
-          if (argument is NamedExpression) {
-            var child = argument.expression;
-            var canChildBeConst = canExpressionBeConst(
-              child,
-              isReplace: applyingBulkFixes,
-            );
-            canBeConst &= canChildBeConst;
-            if (child is InstanceCreationExpression) {
-              childrenConstMap[child] = canChildBeConst;
-            }
-          } else {
-            canBeConst &= canExpressionBeConst(argument, isReplace: isReplace);
+          var child = argument.argumentExpression;
+          var canChildBeConst = canExpressionBeConst(
+            child,
+            isReplace: argument is NamedArgument
+                ? applyingBulkFixes
+                : isReplace,
+          );
+          canBeConst &= canChildBeConst;
+          if (child is InstanceCreationExpression) {
+            childrenConstMap[child] = canChildBeConst;
           }
         }
 

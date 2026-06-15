@@ -70,7 +70,7 @@ class D extends core::Object {
 class _E1 extends core::Object /*hasConstConstructor*/  {
   @#C7
   final field core::int _x;
-  const constructor •(core::int _x) → self::_E1
+  const constructor •(initializing-formal core::int _x) → self::_E1
     : self::_E1::_x = _x, super core::Object::•()
     ;
 }
@@ -78,7 +78,7 @@ class _E1 extends core::Object /*hasConstConstructor*/  {
 class _E2 extends self::_E1 /*hasConstConstructor*/  {
   @#C7
   final field core::int _y;
-  const constructor •(core::int _x, core::int _y) → self::_E2
+  const constructor •(super-initializing-formal core::int _x, initializing-formal core::int _y) → self::_E2
     : self::_E2::_y = _y, super self::_E1::•(_x)
     ;
 }

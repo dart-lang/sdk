@@ -46,10 +46,9 @@ class A {
   }
 
   test_asx_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
-  A asa() {
+  A [!asa!]() {
     return A.from(this);
   }
 }
@@ -57,9 +56,7 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(14, 3)],
-    );
+''');
   }
 
   test_asX_private_argumentIsThis() async {
@@ -78,11 +75,10 @@ class A {
   }
 
   test_asx_private_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
   // ignore: unused_element
-  A _asa() {
+  A [!_asa!]() {
     return A.from(this);
   }
 }
@@ -90,9 +86,7 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(42, 4)],
-    );
+''');
   }
 
   test_getX_argumentIsOther_extends() async {
@@ -144,10 +138,9 @@ class B {}
   }
 
   test_namedOtherwise_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
-  A foo() {
+  A [!foo!]() {
     return A.from(this);
   }
 }
@@ -155,17 +148,14 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(14, 3)],
-    );
+''');
   }
 
   test_namedOtherwise_private_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
   // ignore: unused_element
-  A _foo() {
+  A [!_foo!]() {
     return A.from(this);
   }
 }
@@ -173,9 +163,7 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(42, 4)],
-    );
+''');
   }
 
   test_namedOtherwise_private_hasParameters_argumentIsThis() async {
@@ -222,10 +210,9 @@ class A {
   }
 
   test_tox_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
-  A toa() {
+  A [!toa!]() {
     return A.from(this);
   }
 }
@@ -233,9 +220,7 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(14, 3)],
-    );
+''');
   }
 
   test_toX_private_argumentIsThis() async {
@@ -254,11 +239,10 @@ class A {
   }
 
   test_tox_private_argumentIsThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
   // ignore: unused_element
-  A _toa() {
+  A [!_toa!]() {
     return A.from(this);
   }
 }
@@ -266,8 +250,6 @@ class B {
 class A {
   A.from(B _);
 }
-''',
-      [lint(42, 4)],
-    );
+''');
   }
 }

@@ -27,12 +27,12 @@ import "dart:core" as core;
 
 mixin class ErrorMixinClass extends core::Object {
   final field core::int foo;
-  constructor •(core::int foo) → self::ErrorMixinClass
+  constructor •(initializing-formal core::int foo) → self::ErrorMixinClass
     ;
 }
 mixin class ErrorMixinClassNamed extends core::Object {
   final field core::int foo;
-  constructor named(core::int foo) → self::ErrorMixinClassNamed
+  constructor named(initializing-formal core::int foo) → self::ErrorMixinClassNamed
     ;
 }
 mixin class ErrorMixinClassRedirect extends core::Object {

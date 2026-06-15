@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,43 +16,41 @@ main() {
 class ExtensionTypeRepresentationTypeBottomTest
     extends PubPackageResolutionTest {
   test_never() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(Never it) {}
-''',
-      [error(diag.extensionTypeRepresentationTypeBottom, 17, 5)],
-    );
+//               ^^^^^
+// [diag.extensionTypeRepresentationTypeBottom] The representation type can't be a bottom type.
+''');
   }
 
   test_neverQuestion() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(Never? it) {}
 ''');
   }
 
   test_typeParameter_never_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends Never>(T it) {}
-''',
-      [error(diag.extensionTypeRepresentationTypeBottom, 34, 1)],
-    );
+//                                ^
+// [diag.extensionTypeRepresentationTypeBottom] The representation type can't be a bottom type.
+''');
   }
 
   test_typeParameter_never_question() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends Never>(T? it) {}
 ''');
   }
 
   test_typeParameter_never_question2() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends Never, S extends T>(S? it) {}
 ''');
   }
 
   test_typeParameter_never_question3() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends Never, S extends T?>(S it) {}
 ''');
   }

@@ -34,8 +34,9 @@ class TestResult {
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
   var res = Process.runSync('timeout', [
-    '-s',
+    '--signal',
     '$sigkill',
+    '--preserve-status',
     '$timeout',
     ...cmd,
   ], environment: env);
@@ -116,7 +117,7 @@ class TestRunnerJIT implements TestRunner {
     List<String> extraFlags,
   ) {
     description = '$prefix-$tag';
-    dart = '$top/out/$tag/dart';
+    dart = '$top/out/$tag/dartvm';
     cmd = [dart, ...extraFlags, '--old_gen_heap_size=$dartHeapSize', fileName];
   }
 

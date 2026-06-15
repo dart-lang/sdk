@@ -32,7 +32,7 @@ class CompletionDriver with ExpectMixin {
   late int replacementOffset;
   late int replacementLength;
 
-  CompletionDriver({required this.server}) {
+  new({required this.server}) {
     server.serverChannel.notifications.listen(processNotification);
   }
 

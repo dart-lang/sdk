@@ -50,12 +50,9 @@ var s = "foo ${x == 'x'} bar";
   }
 
   test_singleQuote() async {
-    await assertDiagnostics(
-      r'''
-var s = 'no quote';
-''',
-      [lint(8, 10)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = [!'no quote'!];
+''');
   }
 
   test_singleQuote_hasDoubleQuote_withInterpolation() async {
@@ -72,12 +69,9 @@ var s = 'has double quote "';
   }
 
   test_singleQuote_raw() async {
-    await assertDiagnostics(
-      r'''
-var s = r'no double quote';
-''',
-      [lint(8, 18)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = [!r'no double quote'!];
+''');
   }
 
   test_singleQuote_raw_hasDoubleQuotes() async {
@@ -87,12 +81,9 @@ var s = r'has double quote "';
   }
 
   test_singleQuote_triple_raw() async {
-    await assertDiagnostics(
-      r"""
-var s = r'''no double quote''';
-""",
-      [lint(8, 22)],
-    );
+    await assertDiagnosticsFromMarkdown(r"""
+var s = [!r'''no double quote'''!];
+""");
   }
 
   test_singleQuote_triple_raw_hasDouble() async {
@@ -102,13 +93,10 @@ var s = r'''has double quote "''';
   }
 
   test_singleQuote_withInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var x = "x";
-var s = 'no double quote $x';
-''',
-      [lint(21, 20)],
-    );
+var s = [!'no double quote $x'!];
+''');
   }
 
   test_singleQuote_withInterpolationWithDoubleQuotes() async {

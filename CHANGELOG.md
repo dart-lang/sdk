@@ -1,6 +1,234 @@
-## 3.12.0
+## 3.13.0
 
 **Released on:** Unreleased
+
+### Language
+
+Dart 3.13 adds [primary constructors][primary-constructor-spec] to the language.
+To use this feature, set your package's [SDK constraint][language version] lower
+bound to 3.13 or greater (`sdk: '^3.13.0'`).
+
+#### Primary constructors
+
+The primary constructors feature is a brevity feature. There are no new
+semantics, but it lets you express declarations in a less verbose way.
+
+This feature lets you specify one constructor and a set of instance variables
+in the header of a declaration.
+
+Currently, you write a declaration with a constructor and some fields as:
+
+```dart
+// Current syntax.
+class Point {
+  int x;
+  int y;
+  Point(this.x, this.y);
+}
+```
+
+Now you can write:
+
+```dart
+class Point(var int x, var int y);
+```
+
+If a primary constructor needs an initializer list, a body, or both,
+you can specify them inside the class using the `this` body syntax:
+
+```dart
+class Point(var int x, var int y) {
+  this : assert(x >= 0) {
+    print('Point created at $x, $y');
+  }
+}
+```
+
+As part of this feature, you can also use the `new` and `factory` keywords to
+declare constructors in the class body without repeating the class name:
+
+```dart
+class Point {
+  int x, y;
+
+  // Equivalent to `Point(this.x, this.y)`:
+  new(this.x, this.y);
+
+  // Equivalent to `Point.origin()`:
+  new origin() : x = 0, y = 0;
+
+  // Equivalent to `factory Point.clone(Point other)`:
+  factory clone(Point other) => Point(other.x, other.y);
+}
+```
+
+To learn more about the feature, check out the
+[feature specification][primary-constructor-spec].
+
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+
+### Libraries
+
+#### `dart:async`
+
+- Added `Future.pause` as an alternative to `Future.delayed` with no callback.
+
+#### `dart:core`
+
+- Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
+- Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
+- Added two getters on `int` for efficient bit-counting:
+  `trailingZeroBitCount` (ctz) and `oneBitCount` (popcount). On native
+  platforms they operate on the full 64-bit two's-complement
+  representation; on the web they operate on the least-significant 32 bits.
+  For more details, see SDK issue [#52673][].
+
+[#52673]: https://github.com/dart-lang/sdk/issues/52673
+
+#### `dart:io`
+
+- The cookie-date parser now uses the correct algorithm again.
+  A change to the parsing made it only accept the formats that
+  cookie dates _should_ have, but the RFC specifies a very
+  permissive algorithm for what should be accepted.
+
+- **Breaking change**:
+  Added `InterfaceAddress`, a subtype of `InternetAddress` that exposes a
+  `prefixLength` field and a `broadcast` getter for network interface addresses.
+  `NetworkInterface.addresses` now returns `List<InterfaceAddress>`
+  instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
+  and overrides `addresses` will need to update the return type.
+  For more details, see SDK issue [#63216][].
+
+[#63216]: https://github.com/dart-lang/sdk/issues/63216
+
+#### `dart:js_interop`
+
+- `JSFunction` and `JSExportedDartFunction` are now generic.
+  `JSExportedDartFunction<T>.toDart` now casts the original wrapped function to
+  the type argument `T`. Calls to `isA<JSExportedDartFunction<T>>` now also
+  check that the wrapped function is a `T`. Otherwise, this type argument is
+  purely descriptive and intended for increased static type safety. Importantly,
+  the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
+  For more details, see SDK issue [#54557][].
+
+[#54557]: https://github.com/dart-lang/sdk/issues/54557
+
+### Tools
+
+#### Analyzer
+
+- A `no_raw_types` lint rule is introduced, which replaces the
+  `strict-raw-types` analysis option, offering a more consistent approach.
+- A `no_dynamic_casts` lint rule is introduced, which replaces the
+  `strict-casts` analysis option, offering a more consistent approach.
+- The following lint rules have been determined to be low value, and are
+  deprecated: `avoid_private_typedef_functions`, and `one_member_abstracts`.
+  If there is desire to keep using these, they can be re-implemented with
+  [analyzer plugins][].
+
+[analyzer plugins]: https://dart.dev/tools/analyzer-plugins
+
+These changes are not language versioned and affect formatting all code:
+
+- Fix a bug where some collections or arguments might split unnecessarily.
+
+- Don't add a blank line before a comment at the end of a compilation unit or
+  braced body.
+
+- Format extension type representation clauses the same way primary constructor
+  formal parameter lists are formatted:
+
+  ```dart
+  // Before:
+  extension type JSExportedDartFunction._(
+    JSExportedDartFunctionRepType _jsExportedDartFunction
+  )
+      implements JSFunction {}
+
+  // After:
+  extension type JSExportedDartFunction._(
+    JSExportedDartFunctionRepType _jsExportedDartFunction
+  ) implements JSFunction {}
+  ```
+
+- When trailing commas are preserved, don't insert a newline before the `;` in
+  an enum with members unless there actually is a trailing comma.
+  (Fix by @Barbirosha.)
+
+These changes are [language versioned][] and only affect code at 3.13 or higher:
+
+- Support block formatting parameter lists:
+
+  ```dart
+  // Before:
+  typedef DataViewBuilder<T> =
+      Widget Function(
+        BuildContext context,
+        PagingState<int, T> state,
+        NextPageCallback fetchNextPage,
+      );
+
+  // After:
+  typedef DataViewBuilder<T> = Widget Function(
+    BuildContext context,
+    PagingState<int, T> state,
+    NextPageCallback fetchNextPage,
+  );
+  ```
+
+- Allow `as`, `is`, and `is!` expressions to be block formatted:
+
+  ```dart
+  // Before:
+  variable =
+      function(
+            argument,
+            argument,
+            argument,
+          )
+          as Type;
+
+  // After:
+  variable = function(
+    argument,
+    argument,
+    argument,
+  ) as Type;
+  ```
+
+- Force blank lines around a mixin or extension type declaration if it doesn't
+  have a `;` body:
+
+  ```dart
+  // Before:
+  int above;
+  extension type Inches(int x) {}
+  mixin M {}
+  int below;
+
+  // After:
+  int above;
+
+  extension type Inches(int x) {}
+
+  mixin M {}
+
+  int below;
+  ```
+
+[language versioned]: https://dart.dev/to/language-version
+
+### Dart Runtime
+
+- Built-in fallback root certificates used if the system certificates cannot be
+found are no longer included. The existing `--root-certs-file` and
+`--root-certs-cache` options to the standalone VM may be used to provide
+certificates if the system certificates cannot be found.
+
+## 3.12.0
+
+**Released on:** 2026-05-20
 
 ### Language
 
@@ -9,7 +237,7 @@
 Dart now supports [private named parameters][]. Before 3.12, it was an error to
 have a named parameter that starts with an underscore:
 
-[private named parameters]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/2509-private-named-parameters/feature-specification.md
+[private named parameters]: https://dart.dev/to/private-named-parameters
 
 ```dart
 class Point {
@@ -19,20 +247,20 @@ class Point {
 }
 ```
 
-That means that when you wanted to initialize a *private* field from a named
-parameter, you had to write an explicit initializer list:
+This means that, before 3.12, initializing a _private_ field from
+a named parameter required an explicit initializer list:
 
 ```dart
 class Point {
   final int _x, _y;
   Point({required int x, required int y})
-    : x = _x,
-      y = _y;
+    : _x = x,
+      _y = y;
 }
 ```
 
-All the initializer list is doing is scraping off the `_`. In Dart 3.12, the
-language will do that for you. Now you can write:
+All the initializer list is doing is removing the leading `_`.
+In Dart 3.12, the language does that for you. Now you can write:
 
 ```dart
 class Point {
@@ -41,11 +269,11 @@ class Point {
 }
 ```
 
-It behaves exactly like the previous example. The initialized fields are
+This code behaves exactly like the previous example. The initialized fields are
 private, but the argument names written at the call site are public:
 
 ```dart
-main() {
+void main() {
   print(Point(x: 1, y: 2));
 }
 ```
@@ -54,12 +282,12 @@ main() {
 
 #### `dart:core`
 
-- The Dart VM's implementation of `RegExp` has been updated to include support
-  for modifier spans and duplicate named capture groups.
+- The Dart VM's `RegExp` implementation now supports
+  modifier spans and duplicate named capture groups.
 
 #### `dart:js_interop`
 
-- **Breaking Change in extension name of `isA`**: `isA` is moved from
+- **Breaking change in extension name of `isA`**: `isA` is moved from
   `JSAnyUtilityExtension` to `NullableObjectUtilExtension` to support
   type-checking any `Object?`. `isA<JSObject>()` also now handles JS objects
   with no prototypes correctly and `isA<JSAny>()` does a non-trivial check to
@@ -68,12 +296,13 @@ main() {
   the supertype `Object?`, this change is only breaking if users referred to the
   extension name directly, either through applying the extension directly or
   through using `show`/`hide` directives.
-- `isA<JSExportedDartFunction>()` now checks if the function is actually a JS
-  wrapper function that is returned from `Function.toJS` or
-  `Function.toJSCaptureThis`.
+
+- `isA<JSExportedDartFunction>()` now checks whether the function is
+  actually a JS wrapper function that is returned from
+  `Function.toJS` or `Function.toJSCaptureThis`.
 
 - Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
-  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols][].
   `JSArray` and `JSString` now implement `JSIterable`.
 
 - Added extension types to provide `Iterable.toJSIterable`,
@@ -87,23 +316,47 @@ main() {
 
 #### Analyzer
 
-- The new `simple_directive_paths` lint and its associated fix
+- The new [`simple_directive_paths`][] lint and its associated fix
   flag and simplify unnecessarily complex `import` and `export` paths,
   such as those containing redundant `./` or backtracking `../` segments.
-- The analyzer now warns when a function which contains a parameter which is
-  annotated with `@mustBeConst` is torn off.
+
+  Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `prefer_initializing_formals` lint rule highlights named parameters
+  that could be private named parameters.
+
+  Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- Violations of the `avoid_final_parameters` lint can now be
+  fixed with `dart fix --code=avoid_final_parameters`.
+- The analyzer now warns when a function that contains a
+  parameter annotated with `@mustBeConst` is torn off.
 - The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
-  interop types in the type in a catch clause and instructs users to use `isA`
-  for type checks instead.
+  interop types used in a catch clause's on-type and instructs users to
+  use `isA` for type checks instead.
+- Analyzer plugins: Initial support for 'print debugging' via new sections in
+  the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
+  and warning diagnostics, `print` calls are now redirected to the analysis
+  server, which presents the messages in the appropriate plugin's section on
+  the Plugins page.
+- Improved support for extension types in many existing lint rules.
+- Improved support for null-aware elements in existing lint rules.
+- The analysis server starts up faster with the help of improved analysis
+  options file caching. The improvement depends on the number of analysis
+  options files in the workspace, and the number of `include`d analysis options
+  files. The improvement is greater for systems with slower disk access.
+- Various other improvements to analysis performance.
+
+[`simple_directive_paths`]: https://dart.dev/lints/simple_directive_paths
 
 #### Pub
 
-- `dart pub cache repair` now by default only repairs the packages referenced
-  by the current projects pubspec.lock. For the old behavior of repairing all
-  packages use the `--all` flag.
+- `dart pub cache repair` now, by default, only repairs the
+  packages referenced by the current project's `pubspec.lock` file.
+  For the old behavior of repairing all packages, use the `--all` flag.
 - `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
-  for seperating a package name from its version constraint.
-- Git dependencies now support LFS.
+  for separating a package name from its version constraint.
+- Git dependencies now support Git Large File Storage (LFS).
 
 #### dart2wasm
 
@@ -122,9 +375,74 @@ main() {
   it now throws if the wrapper JS function wasn't a result of `Function.toJS` or
   `Function.toJSCaptureThis`.
 
+## 3.11.6
+
+**Released on:** 2026-05-05
+
+This is a patch release that:
+
+- Fixes a bug causing network profiling to stop working in certain situations.
+  (issue [dart-lang/sdk#63156]).
+
+## 3.11.5
+
+**Released on:** 2026-04-15
+
+This is a patch release that:
+
+- Fixes an issue with the Dart MCP server and latest AntiGravity. (issue
+  [dart-lang/ai#439])
+
+[dart-lang/ai#439]: https://github.com/dart-lang/ai/issues/439
+
+## 3.11.4
+
+**Released on:** 2026-03-24
+
+This is a patch release that:
+
+- Fixes a bug causing the analyzer and analysis server to crash when calling a
+  dot shorthand function expression invocation. (issue [dart-lang/sdk#62595])
+
+[dart-lang/sdk#62595]: https://github.com/dart-lang/sdk/issues/62595
+
+## 3.11.3
+
+**Released on:** 2026-03-17
+
+This is a patch release that:
+
+- Fixes a bug causing Dart & Flutter DevTools to crash when using the skwasm renderer.
+  (issue [flutter/devtools#9701]).
+
+[flutter/devtools#9701]: https://github.com/flutter/devtools/issues/9701
+
+## 3.11.2
+
+**Released on:** 2026-03-10
+
+This is a patch release that:
+
+- Fixes a bug in pub's support tag_pattern git dependencies that prevented it to
+  load lightweight tags (as opposed to annotated tags).
+  (issue [dart-lang/pub#4756]).
+
+[dart-lang/pub#4756]: https://github.com/dart-lang/pub/issues/4756
+
+## 3.11.1
+
+**Released on:** 2026-02-24
+
+This is a patch release that:
+
+- Fixes a performance issue in the Dart Analysis Server when analyzing a workspace with many files (issue [#62456])
+- Fixes a performance issue in the Dart Analysis Server when analyzing a workspace with many directories (issue [#62456])
+
+[#62456]: https://github.com/dart-lang/sdk/issues/62456
+
 ## 3.11.0
 
-**Released on:** Unreleased
+**Released on:** 2026-02-11
 
 ### Language
 
@@ -212,7 +530,7 @@ There are no language changes in this release.
   Supported if the Dart SDK constraint of the containing package is 3.11.0 or
   higher.
 
-- New commmand `dart pub cache gc` for reclaiming disk space from your pub
+- New command `dart pub cache gc` for reclaiming disk space from your pub
   cache.
 
   It works by removing packages from your pub cache that are not referenced by
@@ -222,6 +540,10 @@ There are no language changes in this release.
 
   Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
   project validation has errors.
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
 
 ## 3.10.9
 
@@ -308,7 +630,7 @@ This is a patch release that:
    [Dart-Code/Dart-Code#61978])
 - Enables hiding `Running build hooks` in `dart run` with `--verbosity=error`.
   (issue [dart-lang/sdk#61996])
-- Fixes an issue with test_with_coverage and build hooks in dev depencencies.
+- Fixes an issue with `test_with_coverage` and build hooks in dev dependencies.
   (issue [dart-lang/tools#2237])
 - Fixes an issue where a crash could occur when evaluating expressions
   after a recompilation (issue [flutter/flutter#178740]).

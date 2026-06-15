@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
@@ -41,6 +40,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/fragment.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
@@ -51,6 +51,7 @@ import 'nominal_parameter_name_space.dart';
 import 'offset_map.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
+import 'stack_listener_impl.dart' show AsyncModifier;
 import 'type_parameter_factory.dart';
 import 'type_scope.dart';
 
@@ -102,7 +103,7 @@ class FragmentFactoryImpl implements FragmentFactory {
 
   final NativeMethodRegistry _nativeMethodRegistry;
 
-  FragmentFactoryImpl({
+  new({
     required SourceCompilationUnit compilationUnit,
     required SourceCompilationUnit augmentationRoot,
     required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
@@ -920,7 +921,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     OffsetMap? offsetMap,
     Token? importKeyword,
     required List<MetadataBuilder>? metadata,
-    required bool isAugmentationImport,
     required String uri,
     required List<Configuration>? configurations,
     required String? prefix,
@@ -970,31 +970,22 @@ class FragmentFactoryImpl implements FragmentFactory {
       compilationUnit = loader.read(
         resolvedUri,
         uriOffset,
-        origin: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _augmentationRoot
-            : null,
+        origin: null,
         accessor: _compilationUnit,
-        referencesFromIndex: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _indexedLibrary
-            : null,
+        referencesFromIndex: null,
       );
     }
 
     Import import = new Import(
-      _compilationUnit,
-      compilationUnit,
-      isAugmentationImport,
-      deferred,
-      prefix,
-      combinators,
-      configurations,
-      _compilationUnit.fileUri,
-      charOffset,
-      prefixCharOffset,
+      importer: _compilationUnit,
+      importedCompilationUnit: compilationUnit,
+      deferred: deferred,
+      prefix: prefix,
+      combinators: combinators,
+      configurations: configurations,
+      fileUri: _compilationUnit.fileUri,
+      importOffset: charOffset,
+      prefixOffset: prefixCharOffset,
       nativeImportPath: nativePath,
     );
     _compilationUnitRegistry.registerImport(import);
@@ -1323,7 +1314,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
   }) {
@@ -1403,6 +1394,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? name,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
+    required int endOffset,
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
@@ -1481,6 +1473,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
       startOffset: startOffset,
+      endOffset: endOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
       returnType: addInferableType(InferenceDefaultType.Dynamic),
@@ -1490,15 +1483,8 @@ class FragmentFactoryImpl implements FragmentFactory {
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
-      beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
-          // const constructors will have their initializers compiled and
-          // written into the outline. In case of super-parameters language
-          // feature, the super initializers are required to infer the types
-          // of super parameters.
-          // TODO(johnniwinther): Avoid using a dummy token to ensure building
-          // of constant constructors in the outline phase.
-          ? new Token.eof(-1)
-          : null,
+      buildInitializersForOutline:
+          isConst || libraryFeatures.superParameters.isEnabled,
     );
 
     _addFragment(fragment);
@@ -1521,7 +1507,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasNewKeyword,
     required bool forAbstractClassOrEnumOrMixin,
   }) {
@@ -1579,16 +1565,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
-      beginInitializers:
-          modifiers.isConst || libraryFeatures.superParameters.isEnabled
-          // const constructors will have their initializers compiled and
-          // written into the outline. In case of super-parameters language
-          // feature, the super initializers are required to infer the types
-          // of super parameters.
-          // TODO(johnniwinther): Avoid using a dummy token to ensure building
-          // of constant constructors in the outline phase.
-          ? (beginInitializers ?? new Token.eof(-1))
-          : null,
+      buildInitializersForOutline:
+          modifiers.isConst || libraryFeatures.superParameters.isEnabled,
+      beginInitializers: initializersStartToken,
     );
 
     _addFragment(fragment);
@@ -1607,7 +1586,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required Token beginToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasBody,
     required int bodyOffset,
   }) {
@@ -1623,6 +1602,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingCompilationUnit: _compilationUnit,
           hasBody: hasBody,
           bodyOffset: bodyOffset,
+          initializersStartToken: initializersStartToken,
         );
     _addFragment(fragment);
     offsetMap.registerPrimaryConstructorBody(beginToken, fragment);
@@ -1662,7 +1642,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1911,7 +1891,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -1986,7 +1966,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -2065,7 +2045,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -2251,7 +2231,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
     int? wildcardIndex;
     if (isWildcard) {
       wildcardIndex = wildcardVariableIndex++;
@@ -2268,12 +2250,8 @@ class FragmentFactoryImpl implements FragmentFactory {
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       wildcardIndex: wildcardIndex,
       publicName: publicName,
-      isClosureContextLoweringEnabled: _compilationUnit
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          _compilationUnit.loader.isClosureContextLoweringEnabled,
     );
     return formal;
   }

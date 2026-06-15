@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-// Only needed so that [TestFile] can be referenced in doc comments.
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:path/path.dart' as p;
 
 import 'test_file.dart';
@@ -14,6 +12,7 @@ import 'test_file.dart';
 class ErrorSource {
   static const analyzer = ErrorSource._("analyzer");
   static const cfe = ErrorSource._("CFE", marker: "cfe");
+  static const specParser = ErrorSource._("spec_parser");
   static const web = ErrorSource._("web");
 
   /// Pseudo-front end for context messages.
@@ -23,7 +22,7 @@ class ErrorSource {
   ///
   /// The order is significant here. In static error tests, error expectations
   /// must be in this order for consistency.
-  static const all = [analyzer, cfe, web];
+  static const all = [analyzer, cfe, specParser, web];
 
   /// Gets the source whose lowercase name is [name] or `null` if no source
   /// with that name could be found.
@@ -109,9 +108,103 @@ class StaticError implements Comparable<StaticError> {
 
   /// Parses the set of static error expectations defined in the Dart source
   /// file [source].
-  static List<StaticError> parseExpectations(
-          {required String path, required String source}) =>
-      _ErrorExpectationParser(path: path, source: source)._parse();
+  static List<StaticError> parseExpectations({
+    required String path,
+    required String source,
+  }) {
+    var parsed = parseExpectationsUnattached(path: path, source: source);
+    return attachContextExpectations([parsed], rootPath: path);
+  }
+
+  /// Parses static error expectations without attaching context messages.
+  ///
+  /// This is used by [TestFile] to parse a root test and its helper files
+  /// before resolving cross-file context relationships.
+  static ParsedStaticErrorExpectations parseExpectationsUnattached({
+    required String path,
+    required String source,
+  }) => _ErrorExpectationParser(path: path, source: source)._parse();
+
+  /// Normalizes [path] the same way [StaticError] stores paths, so callers can
+  /// compare raw file paths with [path], [contextPaths], and [contextOwnerPath].
+  static String normalizePath(String path) =>
+      p.relative(path, from: Directory.current.path);
+
+  /// Attaches parsed context messages to their owning errors.
+  static List<StaticError> attachContextExpectations(
+    Iterable<ParsedStaticErrorExpectations> parsedFiles, {
+    required String rootPath,
+  }) {
+    var parsedByPath = {for (var parsed in parsedFiles) parsed.path: parsed};
+
+    // Go through the errors in each file and attach their contexts.
+    var root = normalizePath(rootPath);
+    var errors = <StaticError>[];
+    var attachedContexts = Set<StaticError>.identity();
+
+    for (var parsed in parsedFiles) {
+      errors.addAll(parsed.errors);
+      for (var error in parsed.errors) {
+        var number = parsed.numberOf(error);
+        if (number == null) continue;
+
+        var hasContext = false;
+        var expectedContextPaths = [error.path, ...error.contextPaths];
+        for (var contextPath in expectedContextPaths) {
+          var contextFile = parsedByPath[contextPath];
+          if (contextFile == null) {
+            throw FormatException(
+              "Context file $contextPath was not parsed for numbered "
+              "error $number '${error.message}'.",
+            );
+          }
+
+          var contexts = contextFile.contextMessages.where((context) {
+            return contextFile.numberOf(context) == number &&
+                context.contextOwnerPath == error.path;
+          }).toList();
+
+          if (contextPath != error.path && contexts.isEmpty) {
+            throw FormatException(
+              "No context with number $number in "
+              "$contextPath for '${error.message}'.",
+            );
+          }
+
+          for (var context in contexts) {
+            error.contextMessages.add(context);
+            attachedContexts.add(context);
+            hasContext = true;
+          }
+        }
+
+        if (!hasContext) {
+          throw FormatException(
+            "Missing context for numbered error $number "
+            "'${error.message}'.",
+          );
+        }
+      }
+    }
+
+    // Make sure every context ended up associated with an error.
+    for (var parsed in parsedFiles) {
+      for (var context in parsed.contextMessages) {
+        if (attachedContexts.contains(context)) continue;
+
+        var ownerPath = context.contextOwnerPath;
+        if (ownerPath == root || parsedByPath.containsKey(ownerPath)) {
+          var number = parsed.numberOf(context);
+          throw FormatException(
+            "No error with number $number for context "
+            "message '${context.message}'.",
+          );
+        }
+      }
+    }
+
+    return errors;
+  }
 
   /// Determines whether all [actualErrors] match the given [expectedErrors].
   ///
@@ -136,8 +229,10 @@ class StaticError implements Comparable<StaticError> {
   ///
   /// Also describes any mismatches between the context messages in the expected
   /// and actual errors.
-  static String? validateExpectations(Iterable<StaticError> expectedErrors,
-      Iterable<StaticError> actualErrors) {
+  static String? validateExpectations(
+    Iterable<StaticError> expectedErrors,
+    Iterable<StaticError> actualErrors,
+  ) {
     var expected = <StaticError?>[...expectedErrors];
     var actual = <StaticError?>[...actualErrors];
 
@@ -177,8 +272,12 @@ class StaticError implements Comparable<StaticError> {
     // If every error was paired up, and the contexts matched, we're done.
     if (expected.isEmpty && actual.isEmpty && buffer.isEmpty) return null;
 
-    void fail(StaticError error, String label, String contextLabel,
-        [String? secondary]) {
+    void fail(
+      StaticError error,
+      String label,
+      String contextLabel, [
+      String? secondary,
+    ]) {
       if (error.isContext) label = contextLabel;
 
       if (error.isSpecified) {
@@ -200,8 +299,12 @@ class StaticError implements Comparable<StaticError> {
         if (actual[j] == null) continue;
 
         if (expected[i]!.message == actual[j]!.message) {
-          fail(expected[i]!, "Wrong error location", "Wrong context location",
-              expected[i]!._locationError(actual[j]!));
+          fail(
+            expected[i]!,
+            "Wrong error location",
+            "Wrong context location",
+            expected[i]!._locationError(actual[j]!),
+          );
           // Report any mismatches in the context messages.
           expected[i]!._validateContext(actual[j], buffer);
 
@@ -220,8 +323,12 @@ class StaticError implements Comparable<StaticError> {
         if (actual[j] == null) continue;
 
         if (expected[i]!._matchLocation(actual[j]!)) {
-          fail(actual[j]!, "Wrong message at", "Wrong context message at",
-              "Expected: ${expected[i]!.message}");
+          fail(
+            actual[j]!,
+            "Wrong message at",
+            "Wrong context message at",
+            "Expected: ${expected[i]!.message}",
+          );
           // Report any mismatches in the context messages.
           expected[i]!._validateContext(actual[j], buffer);
 
@@ -236,8 +343,11 @@ class StaticError implements Comparable<StaticError> {
     // Any remaining expected errors are missing.
     for (var i = 0; i < expected.length; i++) {
       if (expected[i] == null) continue;
-      fail(expected[i]!, "Missing expected error at",
-          "Missing expected context message at");
+      fail(
+        expected[i]!,
+        "Missing expected error at",
+        "Missing expected context message at",
+      );
     }
 
     // Any remaining actual errors are unexpected.
@@ -272,6 +382,15 @@ class StaticError implements Comparable<StaticError> {
   /// Additional context messages associated with this error.
   final List<StaticError> contextMessages = [];
 
+  /// Additional files to search for context messages owned by this error.
+  final List<String> contextPaths;
+
+  /// The path of the error that owns this context message.
+  ///
+  /// For same-file context messages this defaults to [path]. For cross-file
+  /// context messages this comes from the `for` clause.
+  final String contextOwnerPath;
+
   /// The zero-based numbers of the lines in the [TestFile] containing comments
   /// that were parsed to produce this error.
   ///
@@ -289,14 +408,20 @@ class StaticError implements Comparable<StaticError> {
   /// code or message be the special string "unspecified". When an unspecified
   /// error is tested, a front end is expected to report *some* error on that
   /// error's line, but it can be any location, error code, or message.
-  StaticError(this.source, this.message,
-      {required String path,
-      required this.line,
-      required this.column,
-      this.length = 0,
-      Set<int>? sourceLines})
-      : path = p.relative(path, from: Directory.current.path),
-        sourceLines = {...?sourceLines};
+  StaticError(
+    this.source,
+    this.message, {
+    required String path,
+    required this.line,
+    required this.column,
+    this.length = 0,
+    Set<int>? sourceLines,
+    Iterable<String> contextPaths = const [],
+    String? contextOwnerPath,
+  }) : path = normalizePath(path),
+       contextPaths = [for (var path in contextPaths) normalizePath(path)],
+       contextOwnerPath = normalizePath(contextOwnerPath ?? path),
+       sourceLines = {...?sourceLines};
 
   /// A textual description of this error's location.
   String get location {
@@ -328,6 +453,9 @@ class StaticError implements Comparable<StaticError> {
       case ErrorSource.web:
         // TODO(rnystrom): If the web compilers report warnings, encode that in
         // the message somehow and then look for it here.
+        return false;
+      case ErrorSource.specParser:
+        // The spec parser does not report warnings.
         return false;
       default:
         break;
@@ -363,12 +491,12 @@ class StaticError implements Comparable<StaticError> {
     if (length == 0 && other.length > 0) return 1;
     if (length > 0 && other.length == 0) return -1;
     if (length != other.length) return length.compareTo(other.length);
-
     if (source != other.source) {
       return source.marker.compareTo(other.source.marker);
     }
 
-    return message.compareTo(other.message);
+    if (message != other.message) return message.compareTo(other.message);
+    return path.compareTo(other.path);
   }
 
   @override
@@ -388,12 +516,7 @@ class StaticError implements Comparable<StaticError> {
   }
 
   @override
-  int get hashCode =>
-      3 * line.hashCode +
-      5 * column.hashCode +
-      7 * length.hashCode +
-      11 * source.hashCode +
-      13 * message.hashCode;
+  int get hashCode => Object.hash(line, column, length, source, message, path);
 
   /// Returns true if [actual]'s message matches this one.
   ///
@@ -468,6 +591,43 @@ class StaticError implements Comparable<StaticError> {
   }
 }
 
+/// Static error markers parsed from one file before context attachment.
+class ParsedStaticErrorExpectations {
+  final String path;
+  final List<StaticError> errors;
+  final List<StaticError> contextMessages;
+  final Map<StaticError, int> _numbers;
+
+  ParsedStaticErrorExpectations._({
+    required String path,
+    required this.errors,
+    required this.contextMessages,
+    required this._numbers,
+  }) : path = StaticError.normalizePath(path);
+
+  int? numberOf(StaticError error) => _numbers[error];
+}
+
+
+
+String _resolveMarkerPath(String containingPath, String markerPath) {
+  return p.normalize(p.join(p.dirname(containingPath), markerPath));
+}
+
+class _ErrorMarker {
+  final ErrorSource source;
+  final int? number;
+  final List<String> seePaths;
+  final String? forPath;
+
+  _ErrorMarker({
+    required this.source,
+    required this.number,
+    required this.seePaths,
+    required this.forPath,
+  });
+}
+
 class _ErrorExpectationParser {
   /// Marks the location of an expected error, like so:
   ///
@@ -493,14 +653,29 @@ class _ErrorExpectationParser {
   ///
   ///  Only used on single lines.
   static final _explicitLocationRegExp = RegExp(
-      r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*(?:,\s*"
-      r"length\s+(\d+)\s*)?\]\s*$");
+    r"^\s*//\s*\[\s*error (?:line\s+(\d+)\s*,)?\s*column\s+(\d+)\s*(?:,\s*"
+    r"length\s+(\d+)\s*)?\]\s*$",
+  );
 
   /// Matches the beginning of an error message, like `// [analyzer]`.
+  static final _errorMessageRegExp = RegExp(r"^\s*// \[([^\]]+)\]\s*(.*)");
+
+  /// Matches the content inside the brackets of an error message marker.
   ///
-  /// May have an optional number like `// [cfe 32]`.
-  static final _errorMessageRegExp =
-      RegExp(r"^\s*// \[(\w+)(?:\s+(\d+))?\]\s*(.*)");
+  /// Examples:
+  /// - `analyzer`
+  /// - `cfe 1`
+  /// - `analyzer 1 see helper.dart`
+  /// - `context 1 for helper.dart`
+  ///
+  /// Captures:
+  /// 1. The source name (`analyzer`, `cfe`, `web`, `context`).
+  /// 2. The optional error or context number.
+  /// 3. The optional clause type (`see` or `for`).
+  /// 4. The optional path or paths in the clause.
+  static final _markerBodyRegExp = RegExp(
+    r"^(\w+)(?:\s+(\d+)(?:\s+(see|for)\s+(.+))?)?$",
+  );
 
   /// An analyzer error code is a dotted identifier or the magic string
   /// "unspecified".
@@ -531,9 +706,9 @@ class _ErrorExpectationParser {
   int _lastRealLine = -1;
 
   _ErrorExpectationParser({required this.path, required String source})
-      : _lines = source.split("\n");
+    : _lines = source.split("\n");
 
-  List<StaticError> _parse() {
+  ParsedStaticErrorExpectations _parse() {
     // Read all the lines.
     while (_canPeek(0)) {
       var sourceLine = _peek(0);
@@ -544,10 +719,11 @@ class _ErrorExpectationParser {
         }
         var markerMatch = match[1]!;
         _parseErrors(
-            path: path,
-            line: _lastRealLine,
-            column: sourceLine.indexOf("^") + 1,
-            length: markerMatch.length);
+          path: path,
+          line: _lastRealLine,
+          column: sourceLine.indexOf("^") + 1,
+          length: markerMatch.length,
+        );
         _advance();
         continue;
       }
@@ -557,10 +733,11 @@ class _ErrorExpectationParser {
         var columnCapture = match[2]!;
         var lengthCapture = match[3];
         _parseErrors(
-            path: path,
-            line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
-            column: int.parse(columnCapture),
-            length: lengthCapture == null ? 0 : int.parse(lengthCapture));
+          path: path,
+          line: lineCapture == null ? _lastRealLine : int.parse(lineCapture),
+          column: int.parse(columnCapture),
+          length: lengthCapture == null ? 0 : int.parse(lengthCapture),
+        );
         _advance();
         continue;
       }
@@ -569,34 +746,52 @@ class _ErrorExpectationParser {
       _advance();
     }
 
-    _attachContext();
-    return _errors;
+    return ParsedStaticErrorExpectations._(
+      path: path,
+      errors: _errors,
+      contextMessages: _contextMessages,
+      numbers: _errorNumbers,
+    );
   }
 
   /// Finishes parsing a series of error expectations after parsing a location.
-  void _parseErrors(
-      {required String path,
-      required int line,
-      required int column,
-      int length = 0}) {
+  void _parseErrors({
+    required String path,
+    required int line,
+    required int column,
+    int length = 0,
+  }) {
     var locationLine = _currentLine;
     var parsedError = false;
 
     // Allow errors for multiple front-ends to share the same location marker.
     while (_canPeek(1)) {
-      var match = _errorMessageRegExp.firstMatch(_peek(1));
+      var nextLine = _peek(1);
+      if (_explicitLocationRegExp.hasMatch(nextLine)) break;
+
+      var match = _errorMessageRegExp.firstMatch(nextLine);
       if (match == null) break;
 
-      var number = match[2] != null ? int.parse(match[2]!) : null;
+      var marker = _parseMarker(match[1]!);
+      var number = marker.number;
+      var source = marker.source;
 
-      var sourceName = match[1]!;
-      var source = ErrorSource.find(sourceName) ??
-          _fail("Unknown front end '[$sourceName]'.");
       if (source == ErrorSource.context && number == null) {
         _fail("Context messages must have an error number.");
       }
+      if (source == ErrorSource.context && marker.seePaths.isNotEmpty) {
+        _fail("Context messages cannot have a 'see' clause.");
+      }
+      if (source != ErrorSource.context && marker.forPath != null) {
+        _fail("Only context messages can have a 'for' clause.");
+      }
+      if (source != ErrorSource.context &&
+          marker.seePaths.isNotEmpty &&
+          number == null) {
+        _fail("Only numbered errors can have a 'see' clause.");
+      }
 
-      var message = StringBuffer(match[3]!);
+      var message = StringBuffer(match[2]!);
       _advance();
       var sourceLines = {locationLine, _currentLine};
 
@@ -616,18 +811,28 @@ class _ErrorExpectationParser {
         errorLength = 0;
       }
 
-      var error = StaticError(source, message.toString(),
-          path: path,
-          line: line,
-          column: column,
-          length: errorLength,
-          sourceLines: sourceLines);
+      var error = StaticError(
+        source,
+        message.toString(),
+        path: path,
+        line: line,
+        column: column,
+        length: errorLength,
+        sourceLines: sourceLines,
+        contextPaths: marker.seePaths.map(
+          (path) => _resolveMarkerPath(this.path, path),
+        ),
+        contextOwnerPath: marker.forPath == null
+            ? null
+            : _resolveMarkerPath(this.path, marker.forPath!),
+      );
 
       if (number != null) {
         // Make sure two errors don't claim the same number.
         if (source != ErrorSource.context) {
-          var existingError =
-              _errors.any((error) => _errorNumbers[error] == number);
+          var existingError = _errors.any(
+            (error) => _errorNumbers[error] == number,
+          );
           if (existingError) {
             _fail("Already have an error with number $number.");
           }
@@ -650,35 +855,27 @@ class _ErrorExpectationParser {
     }
   }
 
-  /// Attach context messages to their errors and validate that everything lines
-  /// up.
-  void _attachContext() {
-    for (var contextMessage in _contextMessages) {
-      var number = _errorNumbers[contextMessage];
+  /// Parses the content inside the brackets of an error message marker.
+  ///
+  /// See [_markerBodyRegExp] for the expected format and examples.
+  _ErrorMarker _parseMarker(String body) {
+    var match = _markerBodyRegExp.firstMatch(body.trim());
+    if (match == null) _fail("Invalid error marker '[$body]'.");
 
-      var error =
-          _errors.firstWhereOrNull((error) => _errorNumbers[error] == number);
-      if (error == null) {
-        throw FormatException("No error with number $number for context "
-            "message '${contextMessage.message}'.");
-      }
-
-      error.contextMessages.add(contextMessage);
-    }
-
-    // Make sure every numbered error does have some context, otherwise the
-    // number is pointless.
-    for (var error in _errors) {
-      var number = _errorNumbers[error];
-      if (number == null) continue;
-
-      var hasContext =
-          _contextMessages.any((context) => _errorNumbers[context] == number);
-      if (!hasContext) {
-        throw FormatException("Missing context for numbered error $number "
-            "'${error.message}'.");
-      }
-    }
+    var sourceName = match[1]!;
+    var source =
+        ErrorSource.find(sourceName) ??
+        _fail("Unknown front end '[$sourceName]'.");
+    var clause = match[3];
+    var clauseValue = match[4];
+    return _ErrorMarker(
+      source: source,
+      number: match[2] == null ? null : int.parse(match[2]!),
+      seePaths: clause == 'see'
+          ? clauseValue!.split(',').map((path) => path.trim()).toList()
+          : const [],
+      forPath: clause == 'for' ? clauseValue!.trim() : null,
+    );
   }
 
   bool _canPeek(int offset) => _currentLine + offset < _lines.length;

@@ -21,11 +21,6 @@ import 'experimental_flags.dart'
         ExperimentalFlag,
         GlobalFeatures,
         parseExperimentalFlag;
-import 'experimental_flags.dart'
-    as flags
-    show
-        getExperimentEnabledVersionInLibrary,
-        isExperimentEnabledInLibraryByVersion;
 import 'file_system.dart' show FileSystem;
 import 'standard_file_system.dart' show StandardFileSystem;
 
@@ -68,14 +63,14 @@ class CompilerOptions {
   /// If an old ".packages" file is given an error is issued.
   Uri? packagesFileUri;
 
-  /// URIs of additional dill files.
+  /// URIs of additional dill files used as modules.
   ///
   /// These will be loaded and linked into the output.
   ///
   /// The components provided here should be closed: any libraries that they
-  /// reference should be defined in a component in [additionalDills] or
+  /// reference should be defined in a component in [additionalDillModules] or
   /// [sdkSummary].
-  List<Uri> additionalDills = [];
+  List<Uri> additionalDillModules = [];
 
   /// URI of the SDK summary file (typically a "file:" URI).
   ///
@@ -84,6 +79,8 @@ class CompilerOptions {
   ///
   /// If `null` and [compileSdk] is false, the SDK summary will be searched for
   /// at a default location within [sdkRoot].
+  // TODO(jensj): Rename to `platformDill`. See also the discussion at
+  // https://dart-review.googlesource.com/c/sdk/+/495981.
   Uri? sdkSummary;
 
   /// Uri to a dynamic interface specification file.
@@ -96,9 +93,11 @@ class CompilerOptions {
   /// restrictions.
   Uri? dynamicInterfaceSpecificationUri;
 
-  /// The declared variables for use by configurable imports and constant
-  /// evaluation.
-  Map<String, String>? declaredVariables;
+  /// Whether to allow dynamic calls in dynamic modules.
+  bool allowDynamicCallsInDynamicModules = false;
+
+  /// List of names that are allowed in dynamic calls in dynamic modules.
+  List<String> dynamicCallsSelectorAllowList = [];
 
   /// The [FileSystem] which should be used by the front end to access files.
   ///
@@ -124,8 +123,6 @@ class CompilerOptions {
   AllowedExperimentalFlags? allowedExperimentalFlagsForTesting;
   Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
-
-  bool enableUnscheduledExperiments = false;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -257,46 +254,6 @@ class CompilerOptions {
     allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
   );
 
-  // Coverage-ignore(suite): Not run.
-  /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt into the experiment with the given [flag].
-  ///
-  /// Note that the experiment might not be enabled at all for the library, as
-  /// computed by [isExperimentEnabledInLibrary].
-  Version getExperimentEnabledVersionInLibrary(
-    ExperimentalFlag flag,
-    Uri importUri,
-  ) {
-    return flags.getExperimentEnabledVersionInLibrary(
-      flag,
-      importUri,
-      explicitExperimentalFlags,
-      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
-    );
-  }
-
-  /// Return `true` if the experiment with the given [flag] is enabled for the
-  /// library with the given [importUri] and language [version].
-  bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return flags.isExperimentEnabledInLibraryByVersion(
-      flag,
-      importUri,
-      version,
-      explicitExperimentalFlags: explicitExperimentalFlags,
-      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
-    );
-  }
-
   bool equivalent(
     CompilerOptions other, {
     bool ignoreOnDiagnostic = true,
@@ -314,13 +271,14 @@ class CompilerOptions {
     }
     if (packagesFileUri != other.packagesFileUri) return false;
     // Coverage-ignore-block(suite): Not run.
-    if (!equalLists(additionalDills, other.additionalDills)) return false;
+    if (!equalLists(additionalDillModules, other.additionalDillModules)) {
+      return false;
+    }
     if (sdkSummary != other.sdkSummary) return false;
     if (dynamicInterfaceSpecificationUri !=
         other.dynamicInterfaceSpecificationUri) {
       return false;
     }
-    if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
     if (fileSystem != other.fileSystem) return false;
     if (compileSdk != other.compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
@@ -368,9 +326,6 @@ class CompilerOptions {
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;
-    if (enableUnscheduledExperiments != other.enableUnscheduledExperiments) {
-      return false;
-    }
 
     return true;
   }
@@ -482,7 +437,7 @@ class InvocationMode {
 
   final String name;
 
-  const InvocationMode(this.name);
+  const new(this.name);
 
   /// Returns the set of information modes from a comma-separated list of
   /// invocation mode names.
@@ -643,7 +598,7 @@ class Verbosity {
   final String name;
   final String help;
 
-  const Verbosity(this.name, this.help);
+  const new(this.name, this.help);
 
   @override
   String toString() => 'Verbosity($name)';

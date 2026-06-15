@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -12,34 +13,41 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
+import 'package:analyzer/src/generated/source.dart'
+    show SourceFactory, UriResolver;
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 
 class TestAnalysisContext implements AnalysisContext {
-  final Reference rootReference = Reference.root();
+  final RootReference rootReference = RootReference();
 
   @override
-  final SourceFactory sourceFactory = _MockSourceFactory();
+  final SourceFactory sourceFactory;
 
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
+  late final LibraryElementImpl coreLibrary;
+  late final LibraryElementImpl asyncLibrary;
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
 
-  TestAnalysisContext() {
+  TestAnalysisContext(ResourceProviderMixin resources)
+    : sourceFactory = SourceFactory([_TestUriResolver(resources)]) {
     var sdkElements = MockSdkElements(this, rootReference, _analysisSession);
+    coreLibrary = sdkElements.coreLibrary;
+    asyncLibrary = sdkElements.asyncLibrary;
 
     _typeProvider = TypeProviderImpl(
-      coreLibrary: sdkElements.coreLibrary,
-      asyncLibrary: sdkElements.asyncLibrary,
+      coreLibrary: coreLibrary,
+      asyncLibrary: asyncLibrary,
     );
 
     _typeSystem = TypeSystemImpl(typeProvider: _typeProvider);
 
-    _setLibraryTypeSystem(sdkElements.coreLibrary);
-    _setLibraryTypeSystem(sdkElements.asyncLibrary);
+    _setLibraryTypeSystem(coreLibrary);
+    _setLibraryTypeSystem(asyncLibrary);
   }
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
@@ -72,23 +80,36 @@ class _MockAnalysisSession implements AnalysisSessionImpl {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _MockSource implements Source {
-  @override
-  final Uri uri;
+class _TestUriResolver implements UriResolver {
+  final ResourceProviderMixin resources;
 
-  _MockSource(this.uri);
+  _TestUriResolver(this.resources);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+  Uri? pathToUri(String path) => null;
 
-class _MockSourceFactory implements SourceFactory {
   @override
-  Source forUri(String uriStr) {
-    var uri = Uri.parse(uriStr);
-    return _MockSource(uri);
+  Source? resolveAbsolute(Uri uri) {
+    var pathSegments = uri.pathSegments;
+    if (uri.isScheme('dart')) {
+      if (pathSegments case [var name]) {
+        var path = '/sdk/$name/$name.dart';
+        var file = resources.getFile(path);
+        return FileSource(file, uri);
+      } else {
+        var path = '/sdk/${pathSegments.join('/')}';
+        var file = resources.getFile(path);
+        return FileSource(file, uri);
+      }
+    } else if (uri.isScheme('package')) {
+      if (pathSegments.length >= 2) {
+        var packageName = pathSegments[0];
+        var rest = pathSegments.sublist(1).join('/');
+        var path = '/home/$packageName/lib/$rest';
+        var file = resources.getFile(path);
+        return FileSource(file, uri);
+      }
+    }
+    throw UnimplementedError('Unsupported URI: $uri');
   }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

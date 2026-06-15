@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 
@@ -16,6 +17,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'src/dart_runtime_service_vm_rpcs.dart';
 import 'src/native_bindings.dart';
+import 'src/vm_clients.dart';
 import 'src/vm_dev_fs.dart';
 import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
@@ -31,6 +33,9 @@ class DartRuntimeServiceVMBackend
     required super.frontend,
     required this.signalWatch,
     required Stream<VmRunningIsolate> runningIsolatesStream,
+    required this.residentCompilerInfoFile,
+    required this._ddsManager,
+    this.serviceInfoFilename,
   }) : isolateManager = VmIsolateManager(
          runningIsolatesStream: runningIsolatesStream,
        );
@@ -77,11 +82,23 @@ class DartRuntimeServiceVMBackend
   @override
   late final VmExpressionEvaluator expressionEvaluator;
 
-  final _vmServiceRpcs = DartRuntimeServiceVmRpcs();
+  late final _vmServiceRpcs = DartRuntimeServiceVmRpcs(backend: this);
+
+  final File? residentCompilerInfoFile;
+
+  /// Adds support for launching and accepting connections from the
+  /// Dart Development Service.
+  final DartDevelopmentServiceManager _ddsManager;
+
+  /// The path to the file where VM service connection info should be written.
+  final String? serviceInfoFilename;
 
   @override
-  UnmodifiableListView<ServiceRpcHandler> get rpcs =>
-      UnmodifiableListView([..._vmServiceRpcs.rpcs, ..._devFs.rpcs]);
+  UnmodifiableListView<ServiceRpcHandler> get rpcs => UnmodifiableListView([
+    ..._vmServiceRpcs.rpcs,
+    ..._devFs.rpcs,
+    ..._ddsManager.rpcs,
+  ]);
 
   @override
   UnmodifiableListView<RpcHandlerWithParameters>
@@ -93,6 +110,10 @@ class DartRuntimeServiceVMBackend
 
   @override
   OptionalHandler get httpHandler => _devFs.handlePutStreamRequest;
+
+  @override
+  VmClientManager clientManagerBuilder() =>
+      VmClientManager(backend: this, eventStreamMethods: frontend.eventStreams);
 
   @override
   Future<void> initialize() async {
@@ -118,6 +139,7 @@ class DartRuntimeServiceVMBackend
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down...');
+    await _ddsManager.shutdown();
     await Future.wait([
       _sigquitSubscription?.cancel() ?? Future<void>.value(),
       _nativeRpcClientStreamChannelController.local.sink.close(),
@@ -145,9 +167,47 @@ class DartRuntimeServiceVMBackend
     required Uri httpUri,
     required Uri wsUri,
   }) async {
-    // TODO(bkonyi): handle DDS connection case.
-    stdout.writeln('The Dart VM service is listening on $httpUri/');
+    if (_ddsManager.launchOnStart) {
+      await _ddsManager.start(vmServiceUri: httpUri);
+      httpUri = await _ddsManager.ddsConnected;
+    }
+    frontend.printServiceOutput('The Dart VM service is listening on $httpUri');
+    final devToolsUri = _ddsManager.devToolsUri;
+    if (devToolsUri != null) {
+      frontend.printServiceOutput(
+        'The Dart DevTools debugger and profiler is available at: $devToolsUri',
+      );
+    }
+    final dtdUri = _ddsManager.dtdUri;
+    if (dtdUri != null) {
+      frontend.printServiceOutput(
+        'The Dart Tooling Daemon (DTD) is available at: $dtdUri',
+      );
+    }
     _nativeBindings.onServerAddressChange(httpUri.toString());
+
+    final serviceInfoFilenameLocal = serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal, httpUri);
+    }
+  }
+
+  Future<void> _dumpServiceInfoToFile(String filename, Uri httpUri) async {
+    final serviceInfo = <String, String>{'uri': httpUri.toString()};
+    const kFileScheme = 'file://';
+    final uri = filename.startsWith(kFileScheme)
+        ? Uri.parse(filename)
+        : Uri.file(filename);
+    final file = File.fromUri(uri);
+    await file.writeAsString(json.encode(serviceInfo));
+  }
+
+  @override
+  Future<void> onServerShutdown() async {
+    // Cleanup DDS state so it can be reinitialized if the server is started
+    // again.
+    await _ddsManager.shutdown();
   }
 
   @override
@@ -173,7 +233,12 @@ class DartRuntimeServiceVMBackend
   /// Sends service requests to the Dart VM runtime for processing.
   Future<RpcResponse> sendToRuntime(json_rpc.Parameters request) async {
     final method = request.method;
-    final params = request.asMap.cast<String, Object?>();
+    // It's possible that a client will omit the parameters map for RPCs with
+    // no parameters. Don't try and cast the request unless the value is
+    // actually a map, otherwise assume there's no arugments.
+    final params = request.value is Map
+        ? request.asMap.cast<String, Object?>()
+        : const <String, Object?>{};
     if (params case {'isolateId': final String _}) {
       _logger.info(
         'Sending request to isolate. Method: $method Params: $params',
@@ -194,14 +259,11 @@ class DartRuntimeServiceVMBackend
   ///     Service.toggleWebServer())
   ///   - Isolate startup and shutdown notifications
   void _vmMessageHandler(List<Object?> message) {
-    _logger.info('VM message: $message');
+    _logger.fine('VM message: $message');
     switch (message) {
-      case [final String streamId, final String eventJsonString]:
+      case [final String streamId, final Object event]:
         // This is an event.
-        _eventMessageHandler(
-          streamId,
-          json.decode(eventJsonString) as Map<String, Object?>,
-        );
+        _eventMessageHandler(streamId, event);
       case [final int opcode]:
         // This is a control message directing the vm service to exit.
         assert(opcode == _kServiceExitMessageId);
@@ -229,20 +291,50 @@ class DartRuntimeServiceVMBackend
             final SendPort sendPort,
             final String name,
           ]
-          when opcode == _kIsolateStartupMessageId ||
-              opcode == _kIsolateShutdownMessageId:
-        // This is a message informing us of the birth or death of an
-        // isolate.
+          when opcode == _kIsolateShutdownMessageId:
         _isolateControlMessageHandler(opcode, portId, sendPort, name);
+      case [
+            final int opcode,
+            final int portId,
+            final SendPort sendPort,
+            final String name,
+            final bool isSystemIsolate,
+          ]
+          when opcode == _kIsolateStartupMessageId:
+        _isolateControlMessageHandler(
+          opcode,
+          portId,
+          sendPort,
+          name,
+          isSystemIsolate: isSystemIsolate,
+        );
       default:
-        print('Internal vm-service error: ignoring illegal message: $message');
+        _logger.warning(
+          'Internal vm-service error: ignoring illegal message: $message',
+        );
     }
   }
 
   /// Forward VM service events sent from the VM.
-  void _eventMessageHandler(String streamId, Map<String, Object?> event) {
+  void _eventMessageHandler(String streamId, Object event) {
     frontend.sendEvent(
-      event: ForwardingStreamEvent(streamId: streamId, event: event),
+      event: switch (event) {
+        final String jsonString => ForwardingStreamEvent(
+          streamId: streamId,
+          event: json.decode(jsonString) as Map<String, Object?>,
+        ),
+        [final Uint8List utf8String] => ForwardingStreamEvent(
+          streamId: streamId,
+          event: json.decode(utf8.decode(utf8String)) as Map<String, Object?>,
+        ),
+        final Uint8List binaryData => BinaryStreamEvent(
+          streamId: streamId,
+          data: binaryData,
+        ),
+        _ => throw UnimplementedError(
+          'Unexpected event type: ${event.runtimeType}.',
+        ),
+      },
     );
   }
 
@@ -251,14 +343,16 @@ class DartRuntimeServiceVMBackend
     int code,
     int portId,
     SendPort sp,
-    String name,
-  ) {
+    String name, {
+    bool isSystemIsolate = false,
+  }) {
     switch (code) {
       case _kIsolateStartupMessageId:
         isolateManager.onIsolateStartupMessage(
           id: portId,
           sendPort: sp,
           name: name,
+          isSystemIsolate: isSystemIsolate,
         );
       case _kIsolateShutdownMessageId:
         isolateManager.onIsolateShutdownMessage(id: portId);
@@ -299,22 +393,15 @@ class DartRuntimeServiceVMBackend
     List<int> message,
     SendPort replyPort,
   ) async {
+    // The original VM service implementation could, in theory, handle binary
+    // and "UTF8String" responses. However, no binary or "UTF8String" responses
+    // are sent in response to service RPCs so we should be able to assume that
+    // `message` can be converted to a `String`.
+    //
+    // If this decode throws an exception, we'll need to revisit this.
     final messageStr = utf8.decode(message);
     _logger.info('Native RPC request: $messageStr');
     _nativeRpcClientStreamChannelController.local.sink.add(messageStr);
-
-    // TODO(bkonyi): handle non-string results
-    /*
-    late List<int> bytes;
-    switch (response.kind) {
-      case ResponsePayloadKind.String:
-        bytes = utf8.encode(response.payload as String);
-        bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
-      case ResponsePayloadKind.Binary:
-      case ResponsePayloadKind.Utf8String:
-        bytes = response.payload as Uint8List;
-    }
-    */
 
     if (!await _nativeRpcClientResponseStream.moveNext()) {
       _logger.warning('Native RPC client stream has closed.');

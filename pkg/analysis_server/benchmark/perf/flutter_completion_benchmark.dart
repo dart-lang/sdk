@@ -25,7 +25,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
 
   late final String flutterRepositoryPath;
 
-  FlutterCompletionBenchmark(String protocolName, this.testConstructor)
+  new(String protocolName, this.testConstructor)
     : super(
         '$protocolName-flutter',
         'Completion benchmarks with Flutter.',

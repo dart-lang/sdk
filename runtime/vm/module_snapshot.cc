@@ -58,6 +58,7 @@ class ModuleSnapshot : public AllStatic {
     kClosureFunctionRefs,
     kClosureRefs,
     kArgumentsDescriptorRefs,
+    kRecordShapeRefs,
     kInts,
     kDoubles,
     kLists,
@@ -75,6 +76,10 @@ class ModuleSnapshot : public AllStatic {
     kICDatas,
     kSubtypeTestCaches,
     kObjectPools,
+    kExceptionHandlers,
+    kPcDescriptors,
+    kCatchEntryMoves,
+    kCodeSourceMap,
     kInstances,
   };
 
@@ -90,6 +95,7 @@ class ModuleSnapshot : public AllStatic {
     kImplicitGetter,
     kImplicitSetter,
     kFieldInitializer,
+    kMethodExtractor,
   };
 
   // Object pool entry kinds in the module snapshots.
@@ -155,7 +161,7 @@ class Deserializer : public ThreadStackResource {
                const uint8_t* instructions_buffer);
   ~Deserializer();
 
-  ApiErrorPtr VerifyVersionAndFeatures();
+  char* VerifyVersionAndFeatures();
 
   ObjectPtr Allocate(intptr_t size);
   static void InitializeHeader(ObjectPtr raw,
@@ -485,6 +491,7 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
       function_name_ = static_cast<StringPtr>(d->ReadRef());
       switch (kind) {
         case ModuleSnapshot::kRegular:
+        case ModuleSnapshot::kMethodExtractor:
           break;
         case ModuleSnapshot::kGetter:
         case ModuleSnapshot::kImplicitGetter:
@@ -519,6 +526,10 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
         if (function_.IsNull()) {
           FATAL("Unable to find function %s in %s", function_name_.ToCString(),
                 owner_.ToCString());
+        }
+        if (kind == ModuleSnapshot::kMethodExtractor) {
+          function_name_ = Field::GetterName(function_name_);
+          function_ = function_.GetMethodExtractor(function_name_);
         }
       }
       d->AssignRefPreLoad(function_);
@@ -623,6 +634,42 @@ class ArgumentsDescriptorRefDeserializationCluster
   Array& args_descriptor_;
 };
 
+class RecordShapeRefDeserializationCluster : public DeserializationCluster {
+ public:
+  explicit RecordShapeRefDeserializationCluster(Zone* zone)
+      : DeserializationCluster("RecordShapeRef"),
+        name_(String::Handle(zone)),
+        named_(Array::Handle(zone)),
+        shape_(Smi::Handle(zone)) {}
+  ~RecordShapeRefDeserializationCluster() {}
+
+  void PreLoad(Deserializer* d) override {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t num_positional = d->ReadUnsigned();
+      const intptr_t num_named = d->ReadUnsigned();
+      const intptr_t num_fields = num_positional + num_named;
+      const Array* field_names = &Array::empty_array();
+      if (num_named > 0) {
+        named_ = Array::New(num_named, Heap::kOld);
+        for (intptr_t i = 0; i < num_named; ++i) {
+          name_ ^= d->ReadRef();
+          named_.SetAt(i, name_);
+        }
+        named_.MakeImmutable();
+        field_names = &named_;
+      }
+      shape_ =
+          RecordShape::Register(d->thread(), num_fields, *field_names).AsSmi();
+      d->AssignRefPreLoad(shape_);
+    }
+  }
+
+ private:
+  String& name_;
+  Array& named_;
+  Smi& shape_;
+};
 class IntDeserializationCluster : public DeserializationCluster {
  public:
   IntDeserializationCluster()
@@ -796,6 +843,42 @@ class SetDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class RecordDeserializationCluster : public DeserializationCluster {
+ public:
+  RecordDeserializationCluster()
+      : DeserializationCluster(
+            "Record",
+            Object::ShouldHaveDeeplyImmutabilityBitSet(kRecordCid)) {}
+  ~RecordDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(Record::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      RecordPtr record = static_cast<RecordPtr>(d.Ref(id));
+      SmiPtr shape = static_cast<SmiPtr>(d.ReadRef());
+      const intptr_t num_fields = RecordShape(shape).num_fields();
+      Deserializer::InitializeHeader(record, kRecordCid,
+                                     Record::InstanceSize(num_fields),
+                                     is_deeply_immutable());
+      record->untag()->shape_ = shape;
+      for (intptr_t j = 0; j < num_fields; j++) {
+        record->untag()->data()[j] = d.ReadRef();
+      }
+    }
+  }
+};
+
 class InstanceDeserializationCluster : public DeserializationCluster {
  public:
   explicit InstanceDeserializationCluster(const Class& cls)
@@ -850,6 +933,31 @@ class InstanceDeserializationCluster : public DeserializationCluster {
   const Class& class_;
   intptr_t next_field_offset_ = 0;
   intptr_t instance_size_ = 0;
+};
+
+class TypeParametersDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeParametersDeserializationCluster()
+      : DeserializationCluster("TypeParameters") {}
+  ~TypeParametersDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, TypeParameters::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypeParametersPtr tps = static_cast<TypeParametersPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(tps, kTypeParametersCid,
+                                     TypeParameters::InstanceSize());
+      tps->untag()->names_ = static_cast<ArrayPtr>(d.ReadRef());
+      tps->untag()->flags_ = static_cast<ArrayPtr>(d.null());
+      tps->untag()->bounds_ = static_cast<TypeArgumentsPtr>(d.ReadRef());
+      tps->untag()->defaults_ = static_cast<TypeArgumentsPtr>(d.ReadRef());
+    }
+  }
 };
 
 class TypeArgumentsDeserializationCluster : public DeserializationCluster {
@@ -914,9 +1022,11 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
                                      is_deeply_immutable());
       type->untag()->type_test_stub_entry_point_.store(
           0, std::memory_order_relaxed);
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       const intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
-          is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
                            UntaggedAbstractType::kAllocated));
       type->untag()->set_flags(flags);
       type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
@@ -951,12 +1061,62 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
       const intptr_t num_fixed_params = type.num_fixed_parameters();
       type.set_num_implicit_parameters(1);  // Implicit closure parameter.
       if (num_named_params != 0) {
-        type.SetNumOptionalParameters(num_params - num_named_params,
+        ASSERT(num_params - num_named_params == num_fixed_params);
+        type.SetNumOptionalParameters(num_named_params,
                                       /* are_optional_positional=*/false);
       } else if (num_fixed_params != num_params) {
         type.SetNumOptionalParameters(num_params - num_fixed_params,
                                       /* are_optional_positional=*/true);
       }
+      ASSERT(type.NumParameters() == num_params);
+      type.SetIsFinalized();
+    }
+  }
+};
+
+class RecordTypeDeserializationCluster : public DeserializationCluster {
+ public:
+  RecordTypeDeserializationCluster()
+      : DeserializationCluster(
+            "RecordType",
+            Object::ShouldHaveDeeplyImmutabilityBitSet(kRecordTypeCid)) {}
+  ~RecordTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, RecordType::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      RecordTypePtr type = static_cast<RecordTypePtr>(d.Ref(id));
+      Deserializer::InitializeHeader(type, kRecordTypeCid,
+                                     RecordType::InstanceSize(),
+                                     is_deeply_immutable());
+      type->untag()->type_test_stub_entry_point_.store(
+          0, std::memory_order_relaxed);
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
+      const intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
+                           UntaggedAbstractType::kAllocated));
+      type->untag()->set_flags(flags);
+      type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
+      type->untag()->hash_ = Smi::New(0);
+      type->untag()->shape_ = static_cast<SmiPtr>(d.ReadRef());
+      type->untag()->field_types_ = static_cast<ArrayPtr>(d.ReadRef());
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    RecordType& type = RecordType::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      type ^= refs.At(id);
+      stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.InitializeTypeTestingStubNonAtomic(stub);
       type.SetIsFinalized();
     }
   }
@@ -984,11 +1144,13 @@ class InterfaceTypeDeserializationCluster : public DeserializationCluster {
       type->untag()->type_test_stub_entry_point_.store(
           0, std::memory_order_relaxed);
       ClassPtr type_class = static_cast<ClassPtr>(d.ReadRef());
-      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
       const intptr_t flags = UntaggedType::TypeClassIdBits::update(
           type_class->untag()->id(),
           UntaggedAbstractType::NullabilityBit::update(
-              is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+              nullability, UntaggedAbstractType::TypeStateBits::encode(
                                UntaggedAbstractType::kAllocated)));
       type->untag()->set_flags(flags);
       type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
@@ -1009,11 +1171,69 @@ class InterfaceTypeDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeParameterTypeDeserializationCluster()
+      : DeserializationCluster(
+            "TypeParameterType",
+            Object::ShouldHaveDeeplyImmutabilityBitSet(kTypeParameterCid)) {}
+  ~TypeParameterTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, TypeParameter::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypeParameterPtr tp = static_cast<TypeParameterPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(tp, kTypeParameterCid,
+                                     TypeParameter::InstanceSize(),
+                                     is_deeply_immutable());
+      tp->untag()->type_test_stub_entry_point_.store(0,
+                                                     std::memory_order_relaxed);
+      const intptr_t nullability = static_cast<intptr_t>(
+          (d.ReadUnsigned() != 0) ? Nullability::kNullable
+                                  : Nullability::kNonNullable);
+      ObjectPtr owner = d.ReadRef();
+      intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
+          nullability, UntaggedAbstractType::TypeStateBits::encode(
+                           UntaggedAbstractType::kAllocated));
+      if (owner->IsClass()) {
+        owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
+      } else {
+        if (owner->IsFunction()) {
+          owner = Function::RawCast(owner)->untag()->signature();
+        }
+        flags =
+            UntaggedTypeParameter::IsFunctionTypeParameter::update(true, flags);
+      }
+      tp->untag()->set_flags(flags);
+      tp->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
+      tp->untag()->hash_ = Smi::New(0);
+      tp->untag()->owner_ = owner;
+      tp->untag()->base_ = 0;
+      tp->untag()->index_ = d.ReadUnsigned();
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    TypeParameter& type = TypeParameter::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      type ^= refs.At(id);
+      stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.InitializeTypeTestingStubNonAtomic(stub);
+      type.SetIsFinalized();
+    }
+  }
+};
+
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
   explicit CodeDeserializationCluster(Zone* zone)
-      : DeserializationCluster("Code"),
-        code_source_map_(CodeSourceMap::Handle(zone, CodeSourceMap::New(0))) {}
+      : DeserializationCluster("Code") {}
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1036,12 +1256,14 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->instructions_ = Instructions::null();
       code->untag()->owner_ = d->ReadRef();
       code->untag()->exception_handlers_ =
-          Object::empty_exception_handlers().ptr();
-      code->untag()->pc_descriptors_ = Object::empty_descriptors().ptr();
-      code->untag()->catch_entry_ = Object::null();
+          static_cast<ExceptionHandlersPtr>(d->ReadRef());
+      code->untag()->pc_descriptors_ =
+          static_cast<PcDescriptorsPtr>(d->ReadRef());
+      code->untag()->catch_entry_ = static_cast<TypedDataPtr>(d->ReadRef());
       code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
       code->untag()->inlined_id_to_function_ = Array::null();
-      code->untag()->code_source_map_ = code_source_map_.ptr();
+      code->untag()->code_source_map_ =
+          static_cast<CodeSourceMapPtr>(d->ReadRef());
       code->untag()->active_instructions_ = Instructions::null();
       code->untag()->deopt_info_array_ = Array::null();
       code->untag()->static_calls_target_table_ = Array::null();
@@ -1095,9 +1317,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
     }
   }
-
- private:
-  const CodeSourceMap& code_source_map_;
 };
 
 class ICDataDeserializationCluster : public DeserializationCluster {
@@ -1254,11 +1473,149 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance() && !obj.InVMIsolateHeap()) {
+        if (obj.IsInstance() && !obj.IsSmi()) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
       }
+    }
+  }
+};
+
+class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
+ public:
+  ExceptionHandlersDeserializationCluster()
+      : DeserializationCluster("ExceptionHandlers") {}
+  ~ExceptionHandlersDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(ExceptionHandlers::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      ExceptionHandlersPtr handlers =
+          static_cast<ExceptionHandlersPtr>(d.Ref(id));
+      const intptr_t length = d.ReadUnsigned();
+      const bool has_async_handler = (d.ReadUnsigned() != 0);
+      Deserializer::InitializeHeader(handlers, kExceptionHandlersCid,
+                                     ExceptionHandlers::InstanceSize(length));
+      handlers->untag()->packed_fields_ =
+          UntaggedExceptionHandlers::AsyncHandlerBit::update(
+              has_async_handler,
+              UntaggedExceptionHandlers::NumEntriesBits::encode(length));
+      handlers->untag()->handled_types_data_ =
+          static_cast<ArrayPtr>(d.ReadRef());
+      for (intptr_t j = 0; j < length; j++) {
+        ExceptionHandlerInfo& info = handlers->untag()->data()[j];
+        info.handler_pc_offset = static_cast<uint32_t>(d.ReadUnsigned());
+        info.outer_try_index = static_cast<int16_t>(d.ReadUnsigned() - 1);
+        info.needs_stacktrace = static_cast<int8_t>(d.ReadUnsigned());
+        info.has_catch_all = static_cast<int8_t>(d.ReadUnsigned());
+        info.is_generated = static_cast<int8_t>(d.ReadUnsigned());
+      }
+    }
+  }
+};
+
+class PcDescriptorsDeserializationCluster : public DeserializationCluster {
+ public:
+  PcDescriptorsDeserializationCluster()
+      : DeserializationCluster("PcDescriptors") {}
+  ~PcDescriptorsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(PcDescriptors::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      PcDescriptorsPtr desc = static_cast<PcDescriptorsPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(desc, kPcDescriptorsCid,
+                                     PcDescriptors::InstanceSize(length));
+      desc->untag()->length_ = length;
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(desc->untag()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
+class CatchEntryMovesDeserializationCluster : public DeserializationCluster {
+ public:
+  CatchEntryMovesDeserializationCluster()
+      : DeserializationCluster("CatchEntryMoves") {}
+  ~CatchEntryMovesDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(TypedData::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      TypedDataPtr data = static_cast<TypedDataPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(data, kTypedDataInt8ArrayCid,
+                                     TypedData::InstanceSize(length));
+      data->untag()->length_ = Smi::New(length);
+      data->untag()->RecomputeDataField();
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(data->untag()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
+class CodeSourceMapDeserializationCluster : public DeserializationCluster {
+ public:
+  CodeSourceMapDeserializationCluster()
+      : DeserializationCluster("CodeSourceMap") {}
+  ~CodeSourceMapDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(CodeSourceMap::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      CodeSourceMapPtr map = static_cast<CodeSourceMapPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, kCodeSourceMapCid,
+                                     CodeSourceMap::InstanceSize(length));
+      map->untag()->length_ = length;
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      d.ReadBytes(cdata, length);
     }
   }
 };
@@ -1281,14 +1638,15 @@ Deserializer::~Deserializer() {
   delete[] clusters_;
 }
 
-ApiErrorPtr Deserializer::VerifyVersionAndFeatures() {
+char* Deserializer::VerifyVersionAndFeatures() {
   stream_.SetPosition(Snapshot::kHeaderSize);
 
   const intptr_t format_version = stream_.ReadUnsigned();
   if (format_version != ModuleSnapshot::kFormatVersion) {
-    return ApiError::New(String::Handle(String::NewFormatted(
-        "Invalid module snapshot format version %" Pd " (expected %" Pd ")",
-        format_version, ModuleSnapshot::kFormatVersion)));
+    return OS::SCreate(nullptr,
+                       "Invalid module snapshot format version %" Pd
+                       " (expected %" Pd ")",
+                       format_version, ModuleSnapshot::kFormatVersion);
   }
 
   const char* features =
@@ -1296,19 +1654,18 @@ ApiErrorPtr Deserializer::VerifyVersionAndFeatures() {
   const intptr_t features_length =
       Utils::StrNLen(features, stream_.PendingBytes());
   if (features_length == stream_.PendingBytes()) {
-    return ApiError::New(
-        String::Handle(String::New("The features string in the module snapshot "
-                                   "was not zero-terminated.")));
+    return Utils::StrDup(
+        "The features string in the module snapshot was not zero-terminated.");
   }
   stream_.Advance(features_length + 1);
 
   const char* expected_features = kHostArchitectureName;
   if (strcmp(expected_features, features) != 0) {
-    return ApiError::New(String::Handle(String::NewFormatted(
-        "Invalid module snapshot configuration '%s' (expected '%s')", features,
-        expected_features)));
+    return OS::SCreate(
+        nullptr, "Invalid module snapshot configuration '%s' (expected '%s')",
+        features, expected_features);
   }
-  return ApiError::null();
+  return nullptr;
 }
 
 DeserializationCluster* Deserializer::ReadCluster() {
@@ -1335,6 +1692,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ClosureRefDeserializationCluster(Z);
     case ModuleSnapshot::kArgumentsDescriptorRefs:
       return new (Z) ArgumentsDescriptorRefDeserializationCluster(Z);
+    case ModuleSnapshot::kRecordShapeRefs:
+      return new (Z) RecordShapeRefDeserializationCluster(Z);
     case ModuleSnapshot::kInts:
       return new (Z) IntDeserializationCluster();
     case ModuleSnapshot::kDoubles:
@@ -1346,29 +1705,21 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case ModuleSnapshot::kSets:
       return new (Z) SetDeserializationCluster();
     case ModuleSnapshot::kRecords:
-      // return new (Z) RecordDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) RecordDeserializationCluster();
     case ModuleSnapshot::kInstantiatedClosures:
       // return new (Z) InstantiatedClosureDeserializationCluster();
       UNIMPLEMENTED();
       return nullptr;
     case ModuleSnapshot::kTypeParameters:
-      // return new (Z) TypeParametersDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) TypeParametersDeserializationCluster();
     case ModuleSnapshot::kInterfaceTypes:
       return new (Z) InterfaceTypeDeserializationCluster();
     case ModuleSnapshot::kFunctionTypes:
       return new (Z) FunctionTypeDeserializationCluster();
     case ModuleSnapshot::kRecordTypes:
-      // return new (Z) RecordTypeDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) RecordTypeDeserializationCluster();
     case ModuleSnapshot::kTypeParameterTypes:
-      // return new (Z) TypeParameterTypeDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) TypeParameterTypeDeserializationCluster();
     case ModuleSnapshot::kTypeArguments:
       return new (Z) TypeArgumentsDeserializationCluster();
     case ModuleSnapshot::kCodes:
@@ -1379,6 +1730,14 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
       return new (Z) ObjectPoolDeserializationCluster();
+    case ModuleSnapshot::kExceptionHandlers:
+      return new (Z) ExceptionHandlersDeserializationCluster();
+    case ModuleSnapshot::kPcDescriptors:
+      return new (Z) PcDescriptorsDeserializationCluster();
+    case ModuleSnapshot::kCatchEntryMoves:
+      return new (Z) CatchEntryMovesDeserializationCluster();
+    case ModuleSnapshot::kCodeSourceMap:
+      return new (Z) CodeSourceMapDeserializationCluster();
     case ModuleSnapshot::kInstances: {
       const auto& cls = Class::Handle(Z, static_cast<ClassPtr>(ReadRef()));
       return new (Z) InstanceDeserializationCluster(cls);
@@ -1433,11 +1792,27 @@ void Deserializer::Deserialize() {
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));
   AddBaseObject(Type::Handle(zone(), object_store->never_type()));
   AddBaseObject(Object::empty_array());
+  AddBaseObject(Object::optimized_out());
+  AddBaseObject(Object::empty_exception_handlers());
+  AddBaseObject(Object::empty_async_exception_handlers());
+  AddBaseObject(Object::empty_descriptors());
   AddBaseObject(StubCode::Subtype1TestCache());
   AddBaseObject(StubCode::Subtype2TestCache());
   AddBaseObject(StubCode::Subtype3TestCache());
   AddBaseObject(StubCode::Subtype4TestCache());
   AddBaseObject(StubCode::Subtype6TestCache());
+  AddBaseObject(StubCode::InstantiateTypeArguments());
+  AddBaseObject(StubCode::InitAsync());
+  AddBaseObject(StubCode::InitAsyncStar());
+  AddBaseObject(StubCode::InitSyncStar());
+  AddBaseObject(StubCode::Await());
+  AddBaseObject(StubCode::AwaitWithTypeCheck());
+  AddBaseObject(StubCode::YieldAsyncStar());
+  AddBaseObject(StubCode::SuspendSyncStarAtStart());
+  AddBaseObject(StubCode::SuspendSyncStarAtYield());
+  AddBaseObject(StubCode::ReturnAsync());
+  AddBaseObject(StubCode::ReturnAsyncNotFuture());
+  AddBaseObject(StubCode::ReturnAsyncStar());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd
@@ -1510,22 +1885,22 @@ void Deserializer::Deserialize() {
   }
 }
 
-ApiErrorPtr ReadModuleSnapshot(Thread* thread,
-                               const Snapshot* snapshot,
-                               const uint8_t* instructions_buffer) {
+char* ReadModuleSnapshot(Thread* thread,
+                         const Snapshot* snapshot,
+                         const uint8_t* instructions_buffer) {
   ASSERT(snapshot->kind() == Snapshot::kModule);
 
   Deserializer deserializer(thread, snapshot->Addr(), snapshot->length(),
                             instructions_buffer);
 
-  ApiErrorPtr api_error = deserializer.VerifyVersionAndFeatures();
-  if (api_error != ApiError::null()) {
-    return api_error;
+  char* error = deserializer.VerifyVersionAndFeatures();
+  if (error != nullptr) {
+    return error;
   }
 
   deserializer.Deserialize();
 
-  return ApiError::null();
+  return nullptr;
 }
 
 }  // namespace module_snapshot

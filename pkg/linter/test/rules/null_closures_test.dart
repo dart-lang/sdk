@@ -27,25 +27,19 @@ void f() {
   }
 
   test_futureWait_cleanUp_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Future.wait([], cleanUp: null);
+  Future.wait([], [!cleanUp: null!]);
 }
-''',
-      [lint(29, 13)],
-    );
+''');
   }
 
   test_iterableFirstWhere_orElse_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
-  list.firstWhere((e) => e.isEven, orElse: null);
+  list.firstWhere((e) => e.isEven, [!orElse: null!]);
 }
-''',
-      [lint(60, 12)],
-    );
+''');
   }
 
   test_iterableSingleWhere_orElse_closure() async {
@@ -57,14 +51,11 @@ void f(List<int?> list) {
   }
 
   test_iterableSingleWhere_orElse_null() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Set<int> set) {
-  set.singleWhere((e) => e.isEven, orElse: null);
+  set.singleWhere((e) => e.isEven, [!orElse: null!]);
 }
-''',
-      [lint(58, 12)],
-    );
+''');
   }
 
   test_iterableWhere_noOrElse() async {

@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
-  ConvertMapFromIterableToForLiteral({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -52,7 +52,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     if (arguments.length != 3) {
       return;
     }
-    var iterator = arguments[0].unParenthesized;
+    var iterator = arguments[0].argumentExpression.unParenthesized;
     var secondArg = arguments[1];
     var thirdArg = arguments[2];
 
@@ -176,16 +176,16 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     return null;
   }
 
-  static _Closure? _extractClosure(String name, Expression argument) {
-    if (argument is NamedExpression && argument.name.label.name == name) {
-      var expression = argument.expression.unParenthesized;
+  static _Closure? _extractClosure(String name, Argument argument) {
+    if (argument is NamedArgument && argument.name.lexeme == name) {
+      var expression = argument.argumentExpression.unParenthesized;
       if (expression is FunctionExpression) {
         var parameterList = expression.parameters;
         if (parameterList != null) {
           var parameters = parameterList.parameters;
           if (parameters.length == 1) {
             var parameter = parameters[0];
-            if (parameter is SimpleFormalParameter &&
+            if (parameter is RegularFormalParameter &&
                 parameter.isRequiredPositional) {
               var parameterIdentifier = parameter.name;
               if (parameterIdentifier != null) {
@@ -204,11 +204,11 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
 }
 
 class _Closure {
-  final SimpleFormalParameter parameter;
+  final RegularFormalParameter parameter;
   final Token parameterIdentifier;
   final Expression body;
 
-  _Closure(this.parameter, this.parameterIdentifier, this.body);
+  new(this.parameter, this.parameterIdentifier, this.body);
 }
 
 /// A visitor that can be used to find references to a parameter.
@@ -226,7 +226,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   final Set<String> otherNames = <String>{};
 
   /// Initialize a newly created finder to find references to the [parameter].
-  _ParameterReferenceFinder(this.parameter);
+  new(this.parameter);
 
   /// Return `true` if the parameter is unreferenced in the nodes that have been
   /// visited.

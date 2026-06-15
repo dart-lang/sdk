@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PartOfNonPartTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,13 +20,12 @@ class PartOfNonPartTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/l2.dart', '''
 library l2;
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library l1;
 part 'l2.dart';
-''',
-      [error(diag.partOfNonPart, 17, 9)],
-    );
+//   ^^^^^^^^^
+// [diag.partOfNonPart] The included part 'package:test/l2.dart' must have a part-of directive.
+''');
   }
 
   test_partOf_dotted() async {
@@ -34,19 +34,18 @@ part of foo.bar;
 ''');
 
     // No error reported in the library, only in the part.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library foo.bar;
 part 'a.dart';
 ''');
   }
 
   test_self() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 part 'test.dart';
-''',
-      [error(diag.partOfNonPart, 18, 11)],
-    );
+//   ^^^^^^^^^^^
+// [diag.partOfNonPart] The included part 'package:test/test.dart' must have a part-of directive.
+''');
   }
 }

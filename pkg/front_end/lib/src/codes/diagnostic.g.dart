@@ -210,6 +210,37 @@ const MessageCode anonymousContinueTargetOutsideFunction = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({
+    required DartType receiverType,
+    required DartType parameterType,
+  })
+>
+anonymousMethodWrongParameterTypeCfe = const Template(
+  "AnonymousMethodWrongParameterTypeCfe",
+  withArguments: _withArgumentsAnonymousMethodWrongParameterTypeCfe,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAnonymousMethodWrongParameterTypeCfe({
+  required DartType receiverType,
+  required DartType parameterType,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var receiverType_0 = labeler.labelType(receiverType);
+  var parameterType_0 = labeler.labelType(parameterType);
+  return new Message(
+    anonymousMethodWrongParameterTypeCfe,
+    problemMessage:
+        """The receiver type '${receiverType_0}' must be assignable to the formal parameter type '${parameterType_0}' in an anonymous method.""" +
+        labeler.originMessages,
+    correctionMessage:
+        """Try removing the parameter type, or make it a supertype of the receiver type.""",
+    arguments: {'receiverType': receiverType, 'parameterType': parameterType},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
     required DartType actualType,
     required DartType expectedType,
   })
@@ -828,6 +859,25 @@ Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface({
         """Cannot extend, implement or mix-in class '${name_0}' in a dynamic module.""",
     correctionMessage:
         """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as extendable.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+classWithNoSuchMethodSubtypeCause = const Template(
+  "ClassWithNoSuchMethodSubtypeCause",
+  withArguments: _withArgumentsClassWithNoSuchMethodSubtypeCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassWithNoSuchMethodSubtypeCause({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    classWithNoSuchMethodSubtypeCause,
+    problemMessage: """Subtype '${name_0}' implements 'noSuchMethod' here.""",
     arguments: {'name': name},
   );
 }
@@ -1997,6 +2047,47 @@ Message _withArgumentsCyclicTypedef({required String name}) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectIncorrectType = const MessageCode(
+  "DartExternalEffectIncorrectType",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'""",
+  correctionMessage: """Try correcting the type of the function.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectMalformedPragma = const MessageCode(
+  "DartExternalEffectMalformedPragma",
+  problemMessage:
+      """The 'external-effect' pragma must be applied as a String literal.""",
+  correctionMessage:
+      """Try inlining the 'external-string' argument to the pragma.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotExternal = const MessageCode(
+  "DartExternalEffectNotExternal",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must be external.""",
+  correctionMessage: """Try making the function external.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotMethod = const MessageCode(
+  "DartExternalEffectNotMethod",
+  problemMessage:
+      """The 'external-effect' pragma can only be applied to methods.""",
+  correctionMessage: """Try removing the pragma or applying it to a method.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotStatic = const MessageCode(
+  "DartExternalEffectNotStatic",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must be static.""",
+  correctionMessage: """Try making the function static.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dartFfiLibraryInDart2Wasm = const MessageCode(
   "DartFfiLibraryInDart2Wasm",
   problemMessage: """'dart:ffi' can't be imported when compiling to Wasm.""",
@@ -2684,10 +2775,117 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode dynamicCallsAreNotAllowedInDynamicModule = const MessageCode(
-  "DynamicCallsAreNotAllowedInDynamicModule",
-  problemMessage: """Dynamic calls are not allowed in a dynamic module.""",
+const MessageCode dynamicCallsAreDisallowedByDefault = const MessageCode(
+  "DynamicCallsAreDisallowedByDefault",
+  problemMessage:
+      """Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications.""",
+  correctionMessage:
+      """You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+dynamicCallsAreDiscouragedInDynamicModules = const MessageCode(
+  "DynamicCallsAreDiscouragedInDynamicModules",
+  severity: CfeSeverity.warning,
+  problemMessage:
+      """Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'.""",
+  correctionMessage:
+      """Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicCallsAreNotAllowedInDynamicModule = const Template(
+  "DynamicCallsAreNotAllowedInDynamicModule",
+  withArguments: _withArgumentsDynamicCallsAreNotAllowedInDynamicModule,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicCallsAreNotAllowedInDynamicModule({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicCallsAreNotAllowedInDynamicModule,
+    problemMessage:
+        """Dynamic call to selector '${name_0}' is not allowed in a dynamic module.""",
+    correctionMessage:
+        """Try listing '${name_0}' as 'dynamically-callable' in the dynamic interface specification.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicallyCallableWithNoSuchMethod = const Template(
+  "DynamicallyCallableWithNoSuchMethod",
+  withArguments: _withArgumentsDynamicallyCallableWithNoSuchMethod,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethod({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethod,
+    problemMessage:
+        """Cannot expose class '${name_0}' because it declares or inherits a 'noSuchMethod' declaration.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration or not exposing the class.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({required String name, required String subtype})
+>
+dynamicallyCallableWithNoSuchMethodDynamicSubtype = const Template(
+  "DynamicallyCallableWithNoSuchMethodDynamicSubtype",
+  withArguments:
+      _withArgumentsDynamicallyCallableWithNoSuchMethodDynamicSubtype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethodDynamicSubtype({
+  required String name,
+  required String subtype,
+}) {
+  var subtype_0 = conversions.validateString(subtype);
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethodDynamicSubtype,
+    problemMessage:
+        """Cannot define 'noSuchMethod' on '${subtype_0}' because it is a subtype of '${name_0}', which was exposed as dynamically-callable.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration or no longer expose '${name_0}' as dynamically-callable.""",
+    arguments: {'name': name, 'subtype': subtype},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicallyCallableWithNoSuchMethodHostSubtype = const Template(
+  "DynamicallyCallableWithNoSuchMethodHostSubtype",
+  withArguments: _withArgumentsDynamicallyCallableWithNoSuchMethodHostSubtype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethodHostSubtype({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethodHostSubtype,
+    problemMessage:
+        """Cannot expose class '${name_0}' because it has a subtype with a 'noSuchMethod' declaration.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode emptyMapPattern = const MessageCode(
@@ -5215,6 +5413,13 @@ Message _withArgumentsImplicitSuperInitializerMissingArguments({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode implicitlyConstEnumConstructorWithBody = const MessageCode(
+  "ImplicitlyConstEnumConstructorWithBody",
+  problemMessage: """A generative enum constructor can't have a body.""",
+  correctionMessage: """Try removing the constructor body.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({
     required Uri uri,
@@ -6491,13 +6696,6 @@ Message _withArgumentsInvalidAssignmentError({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode invalidAugmentSuper = const MessageCode(
-  "InvalidAugmentSuper",
-  problemMessage:
-      """'augment super' is only allowed in member augmentations.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String label})> invalidBreakTarget =
     const Template(
       "InvalidBreakTarget",
@@ -6511,254 +6709,6 @@ Message _withArgumentsInvalidBreakTarget({required String label}) {
     invalidBreakTarget,
     problemMessage: """Can't break to '${label_0}'.""",
     arguments: {'label': label},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastFunctionExpr = const Template(
-  "InvalidCastFunctionExpr",
-  withArguments: _withArgumentsInvalidCastFunctionExpr,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastFunctionExpr({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastFunctionExpr,
-    problemMessage:
-        """The function expression type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function expression or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastLiteralList = const Template(
-  "InvalidCastLiteralList",
-  withArguments: _withArgumentsInvalidCastLiteralList,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralList({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastLiteralList,
-    problemMessage:
-        """The list literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the list literal or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastLiteralMap = const Template(
-  "InvalidCastLiteralMap",
-  withArguments: _withArgumentsInvalidCastLiteralMap,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralMap({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastLiteralMap,
-    problemMessage:
-        """The map literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the map literal or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastLiteralSet = const Template(
-  "InvalidCastLiteralSet",
-  withArguments: _withArgumentsInvalidCastLiteralSet,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralSet({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastLiteralSet,
-    problemMessage:
-        """The set literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the set literal or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastLocalFunction = const Template(
-  "InvalidCastLocalFunction",
-  withArguments: _withArgumentsInvalidCastLocalFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLocalFunction({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastLocalFunction,
-    problemMessage:
-        """The local function has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastNewExpr = const Template(
-  "InvalidCastNewExpr",
-  withArguments: _withArgumentsInvalidCastNewExpr,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastNewExpr({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastNewExpr,
-    problemMessage:
-        """The constructor returns type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the object being constructed or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastStaticMethod = const Template(
-  "InvalidCastStaticMethod",
-  withArguments: _withArgumentsInvalidCastStaticMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastStaticMethod({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastStaticMethod,
-    problemMessage:
-        """The static method has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the method or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function({
-    required DartType actualType,
-    required DartType expectedType,
-  })
->
-invalidCastTopLevelFunction = const Template(
-  "InvalidCastTopLevelFunction",
-  withArguments: _withArgumentsInvalidCastTopLevelFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastTopLevelFunction({
-  required DartType actualType,
-  required DartType expectedType,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var actualType_0 = labeler.labelType(actualType);
-  var expectedType_0 = labeler.labelType(expectedType);
-  return new Message(
-    invalidCastTopLevelFunction,
-    problemMessage:
-        """The top level function has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function or the context in which it is used.""",
-    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
@@ -9566,24 +9516,6 @@ const MessageCode newAsSelector = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperInvokeTarget = const MessageCode(
-  "NoAugmentSuperInvokeTarget",
-  problemMessage: """Cannot call 'augment super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperReadTarget = const MessageCode(
-  "NoAugmentSuperReadTarget",
-  problemMessage: """Cannot read from 'augment super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperWriteTarget = const MessageCode(
-  "NoAugmentSuperWriteTarget",
-  problemMessage: """Cannot write to 'augment super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})> noSuchNamedParameter =
     const Template(
       "NoSuchNamedParameter",
@@ -9742,6 +9674,15 @@ const MessageCode nonExtensionTypeMemberOneOfContext = const MessageCode(
   severity: CfeSeverity.context,
   problemMessage:
       """This is one of the inherited non-extension type members.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode nonIdentifierForInElement = const MessageCode(
+  "NonIdentifierForInElement",
+  problemMessage:
+      """The element in a for-in loop must be an identifier or a local variable declaration.""",
+  correctionMessage:
+      """Try using an existing variable or a variable declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

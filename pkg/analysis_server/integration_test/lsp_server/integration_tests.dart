@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
@@ -28,6 +27,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         LspReverseRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
+        LspNotificationsMixin,
         LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient? client;
@@ -185,7 +185,7 @@ class LspServerClient {
   /// these whole line is used for this completer.
   final Completer<String> _devToolsLineCompleter = Completer<String>();
 
-  LspServerClient(this.instrumentationService);
+  new(this.instrumentationService);
 
   /// Completes with the DevTools URI line, maybe never.
   Future<String> get devToolsLine => _devToolsLineCompleter.future;
@@ -241,7 +241,6 @@ class LspServerClient {
       inputStream,
       outputStream,
       instrumentationService ?? InstrumentationLogAdapter(PrintableLogger()),
-      sessionLogger: SessionLogger(),
     )..listen(_serverToClient.add);
   }
 

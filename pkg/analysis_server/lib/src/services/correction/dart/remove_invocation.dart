@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveInvocation extends ResolvedCorrectionProducer {
   String _methodName = '';
 
-  RemoveInvocation({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

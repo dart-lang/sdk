@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.12.0-0
+  sdk: ^3.13.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -36,6 +36,8 @@ workspace:
   - pkg/dart2native
   - pkg/dart2wasm
   - pkg/dartdev
+  - pkg/dartpad
+  - pkg/dartpad_worker
   - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_runtime_service
@@ -46,6 +48,8 @@ workspace:
   - pkg/dev_compiler
   - pkg/dtd
   - pkg/dtd_impl
+  - pkg/dwds
+  - pkg/dwds_test_common
   - pkg/dynamic_modules
   - pkg/expect
   - pkg/_fe_analyzer_shared
@@ -101,6 +105,8 @@ workspace:
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
+  api_summary:
+    path: third_party/pkg/tools/pkgs/api_summary
   args:
     path: third_party/pkg/core/pkgs/args
   async:
@@ -137,10 +143,6 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/csslib
   dart_flutter_team_lints:
     path: third_party/pkg/ecosystem/pkgs/dart_flutter_team_lints
-  dart_mcp:
-    path: third_party/pkg/ai/pkgs/dart_mcp
-  dart_mcp_server:
-    path: third_party/pkg/ai/pkgs/dart_mcp_server
   dart_style:
     path: third_party/pkg/dart_style
   dartdoc:
@@ -277,6 +279,8 @@ dependency_overrides:
     path: third_party/pkg/test/pkgs/test
   test_api:
     path: third_party/pkg/test/pkgs/test_api
+  test_case_selector:
+    path: third_party/pkg/native/pkgs/test_case_selector
   test_core:
     path: third_party/pkg/test/pkgs/test_core
   test_descriptor:
@@ -285,8 +289,6 @@ dependency_overrides:
     path: third_party/pkg/test/pkgs/test_process
   test_reflective_loader:
     path: third_party/pkg/tools/pkgs/test_reflective_loader
-  tool:
-    path: third_party/pkg/webdev/tool
   typed_data:
     path: third_party/pkg/core/pkgs/typed_data
   unified_analytics:

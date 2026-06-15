@@ -13,6 +13,7 @@ front_end/CantInferPackagesFromPackageUri/example: missingExample # We don't con
 front_end/ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassWithNoSuchMethodSubtypeCause/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
 front_end/ConstEvalGetterNotFound/example: missingExample # Not covered.
 front_end/ConstEvalInvalidPropertyGet/example: missingExample # Uncovered, at least outside of constant stress testing.
@@ -30,7 +31,12 @@ front_end/DillOutlineSummary/example: missingExample # Used for verbose output.
 front_end/DuplicatedDeclarationUse/part_wrapped_script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/DuplicatedDeclarationUse/script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DynamicCallsAreDisallowedByDefault/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicCallsAreDiscouragedInDynamicModules/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethod/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodDynamicSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodHostSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
 front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
 front_end/ExpectedButGot2/example: missingExample # Only used in experimental code.
@@ -57,15 +63,6 @@ front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expressi
 front_end/IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
 front_end/IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
 front_end/InputFileNotFound/example: missingExample # Issued for additional dills that doesn't exist.
-front_end/InvalidAugmentSuper/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-front_end/InvalidCastFunctionExpr/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastLiteralList/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastLiteralMap/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastLiteralSet/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastLocalFunction/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastNewExpr/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastStaticMethod/example: missingExample # Seemingly not actually issued in any tests.
-front_end/InvalidCastTopLevelFunction/example: missingExample # Not covered.
 _fe_analyzer_shared/InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
 _fe_analyzer_shared/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
 front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
@@ -131,9 +128,7 @@ front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably on
 front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
 front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
 front_end/NeverValueError/example: missingExample # No coverage.
-front_end/NoAugmentSuperInvokeTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-front_end/NoAugmentSuperReadTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-front_end/NoAugmentSuperWriteTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/NonIdentifierForInElement/example: missingExample # TODO(johnniwinther): Use this error in the parser.
 front_end/NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
 front_end/NoUnnamedConstructorInObject/example: missingExample # No coverage.
 front_end/PatchClassTypeParametersMismatch/example: missingExample # Patching.
@@ -172,8 +167,6 @@ front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm 
 front_end/WasmIntrinsicTearOff/example: missingExample # only issued by wasm build
 front_end/WasmExternMemoryMissingAnnotation/example: missingExample # only issued by wasm build
 front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
-_fe_analyzer_shared/AnonymousMethodWrongParameterList/statement1: noMessageReported # Only issued in analyzer
-_fe_analyzer_shared/AnonymousMethodWrongParameterList/part_wrapped_statement1: noMessageReported # Only issued in analyzer
 
 # Can we do better?
 _fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?

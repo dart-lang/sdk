@@ -48,11 +48,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
         );
   }
 
-  SynthesizedTypeBuilder(
-    this._typeBuilder,
-    this._newToOldVariableMap,
-    this._substitutionMap,
-  );
+  new(this._typeBuilder, this._newToOldVariableMap, this._substitutionMap);
 
   @override
   TypeDeclarationBuilder? get declaration => _typeBuilder.declaration;

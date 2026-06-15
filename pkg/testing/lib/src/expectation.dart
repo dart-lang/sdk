@@ -17,8 +17,10 @@ class Expectation {
 
   static const Expectation crash = Expectation("Crash", ExpectationGroup.crash);
 
-  static const Expectation timeout =
-      Expectation("Timeout", ExpectationGroup.timeout);
+  static const Expectation timeout = Expectation(
+    "Timeout",
+    ExpectationGroup.timeout,
+  );
 
   static const Expectation fail = Expectation("Fail", ExpectationGroup.fail);
 
@@ -28,7 +30,7 @@ class Expectation {
 
   final ExpectationGroup group;
 
-  const Expectation(this.name, this.group);
+  const new(this.name, this.group);
 
   /// Returns the canonical expectation representing [group]. That is, one of
   /// the above expectations (except for `Meta` which returns `this`).
@@ -56,33 +58,37 @@ class Expectation {
 }
 
 class ExpectationSet {
-  static const ExpectationSet defaultExpectations = ExpectationSet(
-    <String, Expectation>{
-      "pass": Expectation.pass,
-      "crash": Expectation.crash,
-      "timeout": Expectation.timeout,
-      "fail": Expectation.fail,
-      "skip": Expectation.skip,
-      "missingcompiletimeerror":
-          Expectation("MissingCompileTimeError", ExpectationGroup.fail),
-      "missingruntimeerror":
-          Expectation("MissingRuntimeError", ExpectationGroup.fail),
-      "runtimeerror": Expectation("RuntimeError", ExpectationGroup.fail),
-    },
-  );
+  static const ExpectationSet defaultExpectations =
+      ExpectationSet(<String, Expectation>{
+        "pass": Expectation.pass,
+        "crash": Expectation.crash,
+        "timeout": Expectation.timeout,
+        "fail": Expectation.fail,
+        "skip": Expectation.skip,
+        "missingcompiletimeerror": Expectation(
+          "MissingCompileTimeError",
+          ExpectationGroup.fail,
+        ),
+        "missingruntimeerror": Expectation(
+          "MissingRuntimeError",
+          ExpectationGroup.fail,
+        ),
+        "runtimeerror": Expectation("RuntimeError", ExpectationGroup.fail),
+      });
 
   final Map<String, Expectation> internalMap;
 
-  const ExpectationSet(this.internalMap);
+  const new(this.internalMap);
 
   Expectation operator [](String name) {
     return internalMap[name.toLowerCase()] ??
         (throw "No expectation named: '$name'.");
   }
 
-  factory ExpectationSet.fromJsonList(List data) {
-    Map<String, Expectation> internalMap =
-        Map<String, Expectation>.from(defaultExpectations.internalMap);
+  factory fromJsonList(List data) {
+    Map<String, Expectation> internalMap = Map<String, Expectation>.from(
+      defaultExpectations.internalMap,
+    );
     for (Map map in data) {
       String? name;
       String? group;
@@ -115,14 +121,7 @@ class ExpectationSet {
   }
 }
 
-enum ExpectationGroup {
-  crash,
-  fail,
-  meta,
-  pass,
-  skip,
-  timeout,
-}
+enum ExpectationGroup { crash, fail, meta, pass, skip, timeout }
 
 ExpectationGroup groupFromString(String name) {
   switch (name) {

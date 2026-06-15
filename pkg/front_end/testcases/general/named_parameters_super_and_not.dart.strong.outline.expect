@@ -7,7 +7,7 @@ class Super extends core::Object {
     ;
 }
 class SubNamed extends self::Super {
-  constructor namedAnywhere(core::double x, core::String z, {core::bool y = false}) → self::SubNamed
+  constructor namedAnywhere(core::double x, core::String z, {super-initializing-formal core::bool y = false}) → self::SubNamed
     ;
 }
 static method main() → dynamic

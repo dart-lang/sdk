@@ -41,7 +41,7 @@ bool _isParameterWithQuestionQuestion(
     _isParameter(node.leftOperand, parameter);
 
 class AvoidNullChecksInEqualityOperators extends AnalysisRule {
-  AvoidNullChecksInEqualityOperators()
+  new()
     : super(
         name: LintNames.avoid_null_checks_in_equality_operators,
         description: _desc,
@@ -65,7 +65,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   final Element? parameter;
   final AnalysisRule rule;
 
-  _BodyVisitor(this.parameter, this.rule);
+  new(this.parameter, this.rule);
 
   @override
   visitBinaryExpression(BinaryExpression node) {
@@ -98,7 +98,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

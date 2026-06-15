@@ -2,72 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedClassTest extends PubPackageResolutionTest {
   test_const() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   return const A();
+//             ^
+// [diag.constWithNonType] The name 'A' isn't a class.
 }
-''',
-      [error(diag.constWithNonType, 21, 1)],
-    );
+''');
   }
 
   test_dynamic_coreWithPrefix() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 
 dynamic x;
-''',
-      [error(diag.undefinedClass, 29, 7)],
-    );
+// [diag.undefinedClass][column 1][length 7] Undefined class 'dynamic'.
+''');
   }
 
   test_ignore_libraryImport_prefix() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 p.A a;
-''',
-      [error(diag.uriDoesNotExist, 7, 8)],
-    );
+''');
   }
 
   test_ignore_libraryImport_show_it() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show A;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 A a;
-''',
-      [error(diag.uriDoesNotExist, 7, 8)],
-    );
+''');
   }
 
   test_ignore_libraryImport_show_other() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' show B;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 
 A a;
-''',
-      [error(diag.uriDoesNotExist, 7, 8), error(diag.undefinedClass, 25, 1)],
-    );
+// [diag.undefinedClass][column 1][length 1] Undefined class 'A'.
+''');
   }
 
   test_ignore_part_exists_uriGenerated_nameIgnorable() async {
@@ -75,108 +71,97 @@ A a;
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
 
 _$A a;
-''',
-      [error(diag.undefinedClass, 18, 3)],
-    );
+// [diag.undefinedClass][column 1][length 3] Undefined class '_$A'.
+''');
   }
 
   test_ignore_part_notExist_uriGenerated2_nameIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.template.dart';
+//   ^^^^^^^^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/a.template.dart'.
 
 _$A a;
-''',
-      [error(diag.uriHasNotBeenGenerated, 5, 17)],
-    );
+''');
   }
 
   test_ignore_part_notExist_uriGenerated_nameIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
+//   ^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/a.g.dart'.
 
 _$A a;
-''',
-      [error(diag.uriHasNotBeenGenerated, 5, 10)],
-    );
+''');
   }
 
   test_ignore_part_notExist_uriGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.g.dart';
+//   ^^^^^^^^^^
+// [diag.uriHasNotBeenGenerated] Target of URI hasn't been generated: 'package:test/a.g.dart'.
 
 A a;
-''',
-      [
-        error(diag.uriHasNotBeenGenerated, 5, 10),
-        error(diag.undefinedClass, 18, 1),
-      ],
-    );
+// [diag.undefinedClass][column 1][length 1] Undefined class 'A'.
+''');
   }
 
   test_ignore_part_notExist_uriNotGenerated_nameIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
 
 _$A a;
-''',
-      [error(diag.uriDoesNotExist, 5, 8), error(diag.undefinedClass, 16, 3)],
-    );
+// [diag.undefinedClass][column 1][length 3] Undefined class '_$A'.
+''');
   }
 
   test_ignore_part_notExist_uriNotGenerated_nameNotIgnorable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
 
 A a;
-''',
-      [error(diag.uriDoesNotExist, 5, 8), error(diag.undefinedClass, 16, 1)],
-    );
+// [diag.undefinedClass][column 1][length 1] Undefined class 'A'.
+''');
   }
 
   test_import_exists_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 p.A a;
-''',
-      [error(diag.undefinedClass, 26, 3)],
-    );
+// [diag.undefinedClass][column 1][length 3] Undefined class 'A'.
+''');
   }
 
   test_instanceCreation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() { new C(); }
-''',
-      [error(diag.newWithNonType, 10, 1)],
-    );
+//        ^
+// [diag.newWithNonType] The name 'C' isn't a class.
+''');
   }
 
   test_Record() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f(Record r) {}
 ''');
   }
 
   test_Record_language219() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 void f(Record r) {}
-''',
-      [error(diag.undefinedClass, 23, 6)],
-    );
+//     ^^^^^^
+// [diag.undefinedClass] Undefined class 'Record'.
+''');
   }
 
   test_Record_language219_exported() async {
@@ -184,7 +169,7 @@ void f(Record r) {}
 export 'dart:core' show Record;
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 import 'a.dart';
 void f(Record r) {}
@@ -192,11 +177,12 @@ void f(Record r) {}
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() { C c; }
-''',
-      [error(diag.undefinedClass, 6, 1), error(diag.unusedLocalVariable, 8, 1)],
-    );
+//    ^
+// [diag.undefinedClass] Undefined class 'C'.
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+''');
   }
 }

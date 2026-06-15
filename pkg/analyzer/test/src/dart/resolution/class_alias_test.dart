@@ -2,30 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassTypeAliasResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
   //   solo_test_X() async {
-  //     await assertNoErrorsInCode(r'''
+  //     await resolveTestCodeWithDiagnostics(r'''
   // ''');
   //
-  //     final node = findNode.singleListLiteral;
+  //     final node = result.findNode.singleListLiteral;
   //     assertResolvedNodeText(node, r'''
   // ''');
   //   }
 
   test_element() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin class B {}
 class C {}
@@ -33,7 +34,7 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    var node = findNode.classTypeAlias('X =');
+    var node = result.findNode.classTypeAlias('X =');
     assertResolvedNodeText(node, r'''
 ClassTypeAlias
   typedefKeyword: class
@@ -63,45 +64,42 @@ ClassTypeAlias
   }
 
   test_element_typeFunction_extends() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 class X = Function with A;
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 27, 8)],
-    );
-    var x = findElement2.class_('X');
+//        ^^^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Function' can't be extended outside of its library because it's a final class.
+''');
+    var x = result.findElement.class_('X');
     assertType(x.supertype, 'Object');
   }
 
   test_element_typeFunction_implements() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 66, 8)],
-    );
-    var x = findElement2.class_('X');
+//                                    ^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
+''');
+    var x = result.findElement.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
   test_element_typeFunction_with() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
-''',
-      [error(diag.classUsedAsMixin, 59, 8)],
-    );
-    var x = findElement2.class_('X');
+//                       ^^^^^^^^
+// [diag.classUsedAsMixin] The class 'Function' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
+    var x = result.findElement.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
   }
 
   test_implicitConstructors_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -115,8 +113,7 @@ const x = const C();
   }
 
   test_implicitConstructors_const_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -128,16 +125,14 @@ mixin M {
 class C = A with M;
 
 const x = const C();
-''',
-      [
-        error(diag.constWithNonConst, 83, 5),
-        error(diag.constInitializedWithNonConstantValue, 83, 5),
-      ],
-    );
+//        ^^^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
   }
 
   test_implicitConstructors_const_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -153,7 +148,7 @@ const x = const C();
   }
 
   test_implicitConstructors_const_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }

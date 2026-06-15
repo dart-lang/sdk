@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ThisExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_inAugmentation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 augment class A {
@@ -27,7 +29,7 @@ augment class A {
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    var node = findNode.singleThisExpression;
+    var node = result.findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this
@@ -37,7 +39,7 @@ ThisExpression
   }
 
   test_mixin_inAugmentation() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 augment mixin M {
@@ -49,7 +51,7 @@ augment mixin M {
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    var node = findNode.singleThisExpression;
+    var node = result.findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this

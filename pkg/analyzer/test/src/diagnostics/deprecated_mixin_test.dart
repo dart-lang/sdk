@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedMixinTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,13 +23,12 @@ mixin class Foo {}
 typedef Foo2 = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [error(diag.deprecatedMixin, 34, 3)],
-    );
+//             ^^^
+// [diag.deprecatedMixin] Mixing in 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClassTypeAlias() async {
@@ -38,13 +38,12 @@ mixin M {}
 mixin class Foo = Object with M;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [error(diag.deprecatedMixin, 34, 3)],
-    );
+//             ^^^
+// [diag.deprecatedMixin] Mixing in 'Foo' is deprecated.
+''');
   }
 
   test_class() async {
@@ -53,13 +52,12 @@ class Bar with Foo {}
 mixin class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
-''',
-      [error(diag.deprecatedMixin, 34, 3)],
-    );
+//             ^^^
+// [diag.deprecatedMixin] Mixing in 'Foo' is deprecated.
+''');
   }
 
   test_classTypeAlias() async {
@@ -68,13 +66,12 @@ class Bar with Foo {}
 mixin class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar = Object with Foo;
-''',
-      [error(diag.deprecatedMixin, 43, 3)],
-    );
+//                      ^^^
+// [diag.deprecatedMixin] Mixing in 'Foo' is deprecated.
+''');
   }
 
   test_enum() async {
@@ -83,19 +80,18 @@ class Bar = Object with Foo;
 mixin class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar with Foo {
+//            ^^^
+// [diag.deprecatedMixin] Mixing in 'Foo' is deprecated.
   one, two;
 }
-''',
-      [error(diag.deprecatedMixin, 33, 3)],
-    );
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.mixin()
 mixin class Foo {}
 class Bar with Foo {}
@@ -107,7 +103,7 @@ class Bar with Foo {}
 mixin class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar with Foo {}
 ''');

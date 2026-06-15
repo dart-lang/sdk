@@ -19,6 +19,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
+import '../../kernel/internal_ast.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -26,6 +27,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
@@ -101,7 +103,7 @@ class RegularGetterDeclaration
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
 
-  RegularGetterDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -109,7 +111,7 @@ class RegularGetterDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  AsyncMarker get asyncModifier => _fragment.asyncModifier;
+  AsyncModifier get asyncModifier => _fragment.asyncModifier;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -152,7 +154,7 @@ class RegularGetterDeclaration
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _encoding.thisVariable;
+  InternalVariable? get thisVariable => _encoding.thisVariable;
 
   @override
   void becomeNative(SourceLoader loader) {
@@ -307,19 +309,21 @@ class RegularGetterDeclaration
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
+    required Variable? thisVariable,
   }) {
     assert(
-      asyncMarker == asyncModifier,
+      asyncModifier.kind == this.asyncModifier.kind,
       "Unexpected change in async modifier on $this from "
-      "${asyncModifier} to $asyncMarker.",
+      "${asyncModifier} to ${this.asyncModifier.kind}.",
     );
     _encoding.registerFunctionBody(
       body: body,
       scope: scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
+      thisVariable: thisVariable,
     );
   }
 
@@ -336,7 +340,7 @@ class RegularGetterDeclaration
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].
 abstract class GetterFragmentDeclaration {
-  AsyncMarker get asyncModifier;
+  AsyncModifier get asyncModifier;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -352,7 +356,7 @@ abstract class GetterFragmentDeclaration {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -365,8 +369,9 @@ abstract class GetterFragmentDeclaration {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
+    required Variable? thisVariable,
   });
 
   DartType get returnTypeContext;

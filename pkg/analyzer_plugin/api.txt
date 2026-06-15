@@ -206,6 +206,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     INFO (static getter: AnalysisErrorSeverity)
     WARNING (static getter: AnalysisErrorSeverity)
     values (static getter: List<AnalysisErrorSeverity>)
+    fromJson (constructor: AnalysisErrorSeverity Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisErrorType (enum):
@@ -218,6 +219,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     SYNTACTIC_ERROR (static getter: AnalysisErrorType)
     TODO (static getter: AnalysisErrorType)
     values (static getter: List<AnalysisErrorType>)
+    fromJson (constructor: AnalysisErrorType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AssistDescription (class extends Object implements HasToJson):
@@ -311,6 +313,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     PACKAGE_NAME (static getter: CompletionSuggestionKind)
     PARAMETER (static getter: CompletionSuggestionKind)
     values (static getter: List<CompletionSuggestionKind>)
+    fromJson (constructor: CompletionSuggestionKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   DiagnosticMessage@1 (class extends Object implements HasToJson):
@@ -393,6 +396,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     UNIT_TEST_TEST (static getter: ElementKind@1)
     UNKNOWN (static getter: ElementKind@1)
     values (static getter: List<ElementKind@1>)
+    fromJson (constructor: ElementKind@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FixDescription (class extends Object implements HasToJson):
@@ -421,6 +425,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     LITERAL (static getter: FoldingKind)
     PARAMETERS (static getter: FoldingKind)
     values (static getter: List<FoldingKind>)
+    fromJson (constructor: FoldingKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FoldingRegion (class extends Object implements HasToJson):
@@ -534,6 +539,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     UNRESOLVED_INSTANCE_MEMBER_REFERENCE (static getter: HighlightRegionType)
     VALID_STRING_ESCAPE (static getter: HighlightRegionType)
     values (static getter: List<HighlightRegionType>)
+    fromJson (constructor: HighlightRegionType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   LinkedEditGroup (class extends Object implements HasToJson):
@@ -569,6 +575,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     TYPE (static getter: LinkedEditSuggestionKind)
     VARIABLE (static getter: LinkedEditSuggestionKind)
     values (static getter: List<LinkedEditSuggestionKind>)
+    fromJson (constructor: LinkedEditSuggestionKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Location (class extends Object implements HasToJson):
@@ -681,6 +688,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     REQUIRED_NAMED (static getter: ParameterKind)
     REQUIRED_POSITIONAL (static getter: ParameterKind)
     values (static getter: List<ParameterKind>)
+    fromJson (constructor: ParameterKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginDetails (class extends Object implements HasToJson):
@@ -735,6 +743,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     MOVE_FILE (static getter: RefactoringKind)
     RENAME (static getter: RefactoringKind)
     values (static getter: List<RefactoringKind>)
+    fromJson (constructor: RefactoringKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringMethodParameter (class extends Object implements HasToJson):
@@ -759,6 +768,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     POSITIONAL (static getter: RefactoringMethodParameterKind)
     REQUIRED (static getter: RefactoringMethodParameterKind)
     values (static getter: List<RefactoringMethodParameterKind>)
+    fromJson (constructor: RefactoringMethodParameterKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringProblem (class extends Object implements HasToJson):
@@ -781,6 +791,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     WARNING (static getter: RefactoringProblemSeverity)
     values (static getter: List<RefactoringProblemSeverity>)
     max (static method: RefactoringProblemSeverity? Function(RefactoringProblemSeverity?, RefactoringProblemSeverity?))
+    fromJson (constructor: RefactoringProblemSeverity Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RemoveContentOverlay (class extends Object implements HasToJson):
@@ -875,6 +886,9 @@ package:analyzer_plugin/protocol/protocol_constants.dart:
   ANALYSIS_REQUEST_GET_NAVIGATION_OFFSET (static getter: String)
   ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS (static getter: String)
   ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS_EVENTS (static getter: String)
+  ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS (static getter: String)
+  ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED (static getter: String)
+  ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED (static getter: String)
   ANALYSIS_REQUEST_SET_CONTEXT_ROOTS (static getter: String)
   ANALYSIS_REQUEST_SET_CONTEXT_ROOTS_ROOTS (static getter: String)
   ANALYSIS_REQUEST_SET_PRIORITY_FILES (static getter: String)
@@ -1087,8 +1101,28 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     OCCURRENCES (static getter: AnalysisService)
     OUTLINE (static getter: AnalysisService)
     values (static getter: List<AnalysisService>)
+    fromJson (constructor: AnalysisService Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
+  AnalysisSetAnalysisRootsParams (class extends Object implements RequestParams):
+    new (constructor: AnalysisSetAnalysisRootsParams Function(List<String>, List<String>))
+    fromJson (constructor: AnalysisSetAnalysisRootsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
+    fromRequest (constructor: AnalysisSetAnalysisRootsParams Function(Request, {ClientUriConverter? clientUriConverter}))
+    excluded (getter: List<String>)
+    excluded= (setter: List<String>)
+    hashCode (getter: int)
+    included (getter: List<String>)
+    included= (setter: List<String>)
+    == (method: bool Function(Object))
+    toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
+    toRequest (method: Request Function(String, {ClientUriConverter? clientUriConverter}))
+    toString (method: String Function())
+  AnalysisSetAnalysisRootsResult (class extends Object implements ResponseResult):
+    new (constructor: AnalysisSetAnalysisRootsResult Function())
+    hashCode (getter: int)
+    == (method: bool Function(Object))
+    toJson (method: Map<String, Object> Function({ClientUriConverter? clientUriConverter}))
+    toResponse (method: Response Function(String, int, {ClientUriConverter? clientUriConverter}))
   AnalysisSetContextRootsParams (class extends Object implements RequestParams):
     new (constructor: AnalysisSetContextRootsParams Function(List<ContextRoot>))
     fromJson (constructor: AnalysisSetContextRootsParams Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
@@ -1634,6 +1668,7 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     PLUGIN_ERROR (static getter: RequestErrorCode)
     UNKNOWN_REQUEST (static getter: RequestErrorCode)
     values (static getter: List<RequestErrorCode>)
+    fromJson (constructor: RequestErrorCode Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   WatchEvent (class extends Object implements HasToJson):
@@ -1652,6 +1687,7 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     MODIFY (static getter: WatchEventType)
     REMOVE (static getter: WatchEventType)
     values (static getter: List<WatchEventType>)
+    fromJson (constructor: WatchEventType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
 package:analyzer_plugin/src/protocol/protocol_internal.dart:
@@ -1663,6 +1699,8 @@ package:analyzer_plugin/src/utilities/client_uri_converter.dart:
   ClientUriConverter (non-public)
 package:analyzer_plugin/src/utilities/completion/completion_target.dart:
   CompletionTarget (non-public)
+package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
+  ElementSuggestionBuilder (non-public)
 package:analyzer_plugin/src/utilities/completion/optype.dart:
   OpType (non-public)
 package:analyzer_plugin/starter.dart:
@@ -1759,7 +1797,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeFormalParameters (method: void Function(Iterable<FormalParameterElement>, {bool fillParameterNames, String? groupNamePrefix, bool includeDefaultValues, bool includeParentheses, bool requiredTypes, List<TypeParameterElement>? typeParametersInScope}))
     writeFunctionDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, void Function()? parameterWriter, DartType? returnType, String? returnTypeGroupName, void Function()? typeParameterWriter, List<TypeParameterElement>? typeParametersInScope}))
-    writeGetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function() bodyWriter, bool isStatic, String nameGroupName, DartType returnType, String returnTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeGetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function() bodyWriter, bool isStatic, String nameGroupName, DartType? returnType, String returnTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeImportedName (method: void Function(List<Uri>, String))
     writeIndent (method: void Function([int]))
     writeLocalVariableDeclaration (method: void Function(String, {void Function()? initializerWriter, bool isConst, bool isFinal, String? nameGroupName, DartType? type, String? typeGroupName}))
@@ -1769,7 +1807,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeParameterMatchingArgument (method: void Function(Expression, int, Set<String>, {bool isOptional, List<TypeParameterElement>? typeParametersInScope}))
     writeParametersMatchingArguments (method: void Function(ArgumentList, {List<TypeParameterElement>? typeParametersInScope}))
     writeReference (method: void Function(Element@2))
-    writeSetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? bodyWriter, bool isStatic, String? nameGroupName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeSetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? bodyWriter, bool isStatic, String? nameGroupName, String parameterName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeType (method: bool Function(DartType?, {bool addSupertypeProposals, String? groupName, bool required, bool shouldWriteDynamic, List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameter (method: void Function(TypeParameterElement, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameters (method: void Function(List<TypeParameterElement>, {List<TypeParameterElement>? typeParametersInScope}))
@@ -1783,6 +1821,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     canWriteType (method: bool Function(DartType?, {required int offset, List<TypeParameterElement>? typeParametersInScope}))
     convertFunctionFromAsyncToSync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     convertFunctionFromSyncToAsync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
+    deleteClassMember (method: void Function(ClassMember))
     format (method: void Function(SourceRange))
     importLibrary (method: String Function(Uri, {String? prefix, String? showName, bool useShow}))
     importLibraryElement (method: ImportLibraryElementResult Function(Uri, {String? prefix, String? showName, bool useShow}))
@@ -1791,7 +1830,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     insertConstructor (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     insertField (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     insertGetter (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
-    insertIntoUnitMember (method: void Function(CompilationUnitMember, void Function(DartEditBuilder), {bool Function(ClassMember)? lastMemberFilter}))
+    insertIntoUnitMember (method: void Function(CompilationUnitMember, void Function(DartEditBuilder), {bool indent, bool Function(ClassMember)? lastMemberFilter}))
     insertMethod (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     replaceTypeWithFuture (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     replaceTypeWithFutureArgument (method: void Function({required TypeAnnotation typeAnnotation, required TypeProvider typeProvider, required TypeSystem typeSystem}))
@@ -1850,7 +1889,7 @@ package:analyzer_plugin/utilities/completion/completion_core.dart:
     new (constructor: DartCompletionRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart:
-  InheritedReferenceContributor (class extends Object implements CompletionContributor):
+  InheritedReferenceContributor (class extends Object with ElementSuggestionBuilder implements CompletionContributor):
     new (constructor: InheritedReferenceContributor Function())
     containingLibrary (getter: LibraryElement?)
     containingLibrary= (setter: LibraryElement?)
@@ -2103,10 +2142,7 @@ dart:core:
   int (referenced)
 dart:isolate:
   SendPort (referenced)
-package:_fe_analyzer_shared/src/base/diagnostic_message.dart:
-  DiagnosticMessage@2 (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
-  Diagnostic (referenced)
   DiagnosticSeverity (referenced)
   DiagnosticType (referenced)
 package:_fe_analyzer_shared/src/base/source_range.dart:
@@ -2143,6 +2179,8 @@ package:analyzer/dart/element/type_provider.dart:
   TypeProvider (referenced)
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
+package:analyzer/diagnostic/diagnostic.dart:
+  Diagnostic (referenced)
 package:analyzer/file_system/file_system.dart:
   Folder (referenced)
   ResourceProvider (referenced)
@@ -2162,5 +2200,7 @@ package:analyzer/src/dart/ast/ast.dart:
   FunctionBody (referenced)
   NodeList (referenced)
   TypeAnnotation (referenced)
+package:analyzer/src/diagnostic/diagnostic.dart:
+  DiagnosticMessage@2 (referenced)
 package:pub_semver/src/version.dart:
   Version (referenced)

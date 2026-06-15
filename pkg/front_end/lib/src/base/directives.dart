@@ -15,7 +15,7 @@ class Part {
   /// The [CompilationUnit] referenced by the part directive.
   final CompilationUnit compilationUnit;
 
-  Part({
+  new({
     required this.fileUri,
     required this.fileOffset,
     required this.compilationUnit,
@@ -40,13 +40,13 @@ class PartOf {
   /// This is used for part-of directives of the form `part of 'foo.dart';`.
   final Uri? parentUri;
 
-  PartOf.withName({
+  new withName({
     required this.fileUri,
     required this.fileOffset,
     required String this.name,
   }) : parentUri = null;
 
-  PartOf.withUri({
+  new withUri({
     required this.fileUri,
     required this.fileOffset,
     required Uri this.parentUri,
@@ -64,9 +64,5 @@ class LibraryDirective {
   /// The library name provided in the library directive, if any.
   final String? name;
 
-  LibraryDirective({
-    required this.fileUri,
-    required this.fileOffset,
-    required this.name,
-  });
+  new({required this.fileUri, required this.fileOffset, required this.name});
 }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -17,13 +16,30 @@ main() {
 
 @reflectiveTest
 class EnumDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment_blockBody_empty() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E {}
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_augment_constant_add() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {
   v
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -42,12 +58,11 @@ EnumDeclaration
   }
 
   test_augment_constant_augment_noConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {
   augment v
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -67,12 +82,11 @@ EnumDeclaration
   }
 
   test_augment_constant_augment_withConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {
   augment v.foo()
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -99,11 +113,27 @@ EnumDeclaration
 ''');
   }
 
+  test_augment_emptyBody() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E;
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+''');
+  }
+
   test_augment_implementsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E implements B {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -121,13 +151,31 @@ EnumDeclaration
 ''');
   }
 
+  test_augment_noConstants_semicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E {;}
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_augment_noConstants_semicolon_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -156,10 +204,9 @@ EnumDeclaration
   }
 
   test_augment_typeParameters_withBound() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E<T extends int> {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -182,10 +229,9 @@ EnumDeclaration
   }
 
   test_augment_withClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E with M {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -204,10 +250,9 @@ EnumDeclaration
   }
 
   test_blockBody_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -221,14 +266,218 @@ EnumDeclaration
 ''');
   }
 
+  void test_constant_name_dot() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v.
+}
+// [diag.missingIdentifier][column 1][length 1] Expected an identifier.
+// [diag.expectedToken][column 1][length 1] Expected to find '('.
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_constant_name_dot_identifier_semicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v.named;
+//  ^^^^^
+// [diag.expectedToken] Expected to find '('.
+}
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: named
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_constant_name_dot_semicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v.;
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+}
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_constant_name_typeArguments_dot() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v<int>.
+}
+// [diag.missingIdentifier][column 1][length 1] Expected an identifier.
+// [diag.expectedToken][column 1][length 1] Expected to find '('.
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_constant_name_typeArguments_dot_semicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v<int>.;
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+}
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
+        token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
+  void test_constant_withoutSemicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v
+}
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  void test_constant_withSemicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+}
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  void test_constant_withTypeArgumentsWithoutArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E<T> {
+  v<int>;
+//     ^
+// [diag.expectedToken] Expected to find '('.
+}
+''');
+
+    var node = parseResult.findNode.enumConstantDeclaration('v<int>');
+    assertParsedNodeText(node, r'''
+EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+''');
+  }
+
   test_constructor_factoryHead_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory named() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -246,13 +495,12 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_named_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const factory named() = B;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -273,13 +521,12 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory () {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -296,13 +543,12 @@ ConstructorDeclaration
   }
 
   test_constructor_factoryHead_unnamed_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const factory () = B;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -322,13 +568,12 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   new named();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -344,13 +589,12 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_named_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const new named();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -367,13 +611,12 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   new ();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -388,13 +631,12 @@ ConstructorDeclaration
   }
 
   test_constructor_newHead_unnamed_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const new ();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -409,14 +651,38 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_augment_factory_unnamed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E {
+  v;
+  augment factory E() {}
+}
+''');
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_constructor_typeName_factory_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory E.named() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -437,13 +703,12 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_factory_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory E() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -462,13 +727,12 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   E.named();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -486,13 +750,12 @@ ConstructorDeclaration
   }
 
   test_constructor_typeName_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   v;
   E();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -508,10 +771,9 @@ ConstructorDeclaration
   }
 
   test_declaration_noConstants_semicolon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {;}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -527,12 +789,11 @@ EnumDeclaration
   }
 
   test_declaration_noConstants_semicolon_method() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {;
   void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -560,10 +821,9 @@ EnumDeclaration
   }
 
   test_emptyBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -577,13 +837,12 @@ EnumDeclaration
   }
 
   test_emptyBody_language310() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 enum E;
+//    ^
+// [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
 ''');
-    parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
-    ]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -597,12 +856,11 @@ EnumDeclaration
   }
 
   test_field_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -630,12 +888,11 @@ EnumDeclaration
   }
 
   test_field_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment static int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -664,12 +921,11 @@ EnumDeclaration
   }
 
   test_field_augment_static_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment static final int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -699,12 +955,11 @@ EnumDeclaration
   }
 
   test_getter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -731,12 +986,11 @@ EnumDeclaration
   }
 
   test_getter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment static int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -764,12 +1018,11 @@ EnumDeclaration
   }
 
   test_method_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -797,12 +1050,11 @@ EnumDeclaration
   }
 
   test_method_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment static void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -830,11 +1082,94 @@ EnumDeclaration
 ''');
   }
 
+  void test_modifiers_base() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+base enum E { v }
+// [diag.baseEnum][column 1][length 4] Enums can't be declared to be 'base'.
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_final() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final enum E { v }
+// [diag.finalEnum][column 1][length 5] Enums can't be declared to be 'final'.
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_interface() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+interface enum E { v }
+// [diag.interfaceEnum][column 1][length 9] Enums can't be declared to be 'interface'.
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  void test_modifiers_sealed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+sealed enum E { v }
+// [diag.sealedEnum][column 1][length 6] Enums can't be declared to be 'sealed'.
+''');
+
+    var node = parseResult.findNode.enumDeclaration('enum E');
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
   test_nameWithTypeParameters_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E<T> {}
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -854,10 +1189,9 @@ EnumDeclaration
   }
 
   test_nameWithTypeParameters_hasTypeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E<T, U> {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -883,10 +1217,9 @@ EnumDeclaration
   }
 
   test_nameWithTypeParameters_noTypeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -904,12 +1237,11 @@ EnumDeclaration
   }
 
   test_operator_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment int operator+(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -943,10 +1275,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E<T, U>.named() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -979,10 +1310,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E<T, U>() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1012,10 +1342,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E.named() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1040,10 +1369,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1065,12 +1393,34 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E {v}
+//   ^^^^^
+// [diag.constWithoutPrimaryConstructor] 'const' can only be used together with a primary constructor declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.constWithoutPrimaryConstructor, 5, 5),
-    ]);
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// @dart=3.10
+enum const E {v}
+//   ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
+''');
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1088,10 +1438,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E({required final int a = 0}) {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1125,13 +1474,12 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final_documentationComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E({
   /// aaa
   required final int a = 0,
 }) {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1168,13 +1516,12 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final_documentationComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E(
   /// aaa
   final int a(String x)
 ) {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1212,10 +1559,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E(final int a) {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1242,13 +1588,12 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final_documentationComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E(
   /// aaa
   final int a
 ) {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1278,12 +1623,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum A(covariant int it) { a(0) }
+//     ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 7, 9),
-    ]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1316,12 +1660,11 @@ EnumDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum A(covariant final int it) { a(0) }
+//     ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 7, 9),
-    ]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1355,10 +1698,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_formalParameters_keyword_covariant_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum A(covariant var int it) { a(0) }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1392,10 +1734,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E<T, U>.named() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1427,10 +1768,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E<T, U>() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1459,10 +1799,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E.named() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1486,10 +1825,9 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E() {v}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
@@ -1510,13 +1848,12 @@ EnumDeclaration
   }
 
   test_primaryConstructorBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this;
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -1528,12 +1865,11 @@ PrimaryConstructorBody
   }
 
   test_setter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment
@@ -1564,12 +1900,11 @@ EnumDeclaration
   }
 
   test_setter_augment_static() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {;
   augment static set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
 EnumDeclaration
   augmentKeyword: augment

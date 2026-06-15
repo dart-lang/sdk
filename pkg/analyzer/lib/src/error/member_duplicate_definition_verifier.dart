@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -72,7 +71,9 @@ class MemberDuplicateDefinitionVerifier {
         if (formalFragment is FieldFormalParameterFragmentImpl &&
             formalFragment.isDeclaring) {
           var fieldName = formalNode.name;
-          var fieldElement = formalFragment.element.field;
+          var fieldElement = formalFragment.element
+              .tryCast<FieldFormalParameterElementImpl>()
+              ?.field;
           if (fieldName != null && fieldElement != null) {
             _checkDuplicateIdentifier(
               instanceScope,
@@ -128,6 +129,9 @@ class MemberDuplicateDefinitionVerifier {
           for (var field in member.fields.variables) {
             var fieldFragment = field.declaredFragment!;
             fieldFragment as FieldFragmentImpl;
+            if (fieldFragment.isAugmentation) {
+              continue;
+            }
             var fieldElement = fieldFragment.element;
             _checkDuplicateIdentifier(
               member.isStatic ? staticScope : instanceScope,
@@ -431,7 +435,9 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null && baseName != 'values') {
+        if (instance != null &&
+            !instance.baseElement.isAugmentationWithoutAugmentedDeclaration &&
+            baseName != 'values') {
           _diagnosticReporter.report(
             diag.conflictingStaticAndInstance
                 .withArguments(
@@ -454,7 +460,8 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = method.displayName;
       if (method.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null) {
+        if (instance != null &&
+            !instance.baseElement.isAugmentationWithoutAugmentedDeclaration) {
           _diagnosticReporter.report(
             diag.conflictingStaticAndInstance
                 .withArguments(
@@ -518,7 +525,7 @@ class MemberDuplicateDefinitionVerifier {
     _checkClassMembers(
       node.declaredFragment!,
       node.body.members,
-      primaryConstructor: node.primaryConstructor,
+      primaryConstructor: node.namePart.tryCast(),
     );
   }
 

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class NonAbstractClassInheritsAbstractMemberTest
     extends PubPackageResolutionTest {
   test_abstract_field_final_implement_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract final int x;
 }
@@ -28,40 +29,31 @@ class B implements A {
   }
 
   test_abstract_field_final_implement_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract final int x;
 }
 class B implements A {}
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberOne,
-          51,
-          1,
-          messageContains: ["'getter A.x'"],
-        ),
-      ],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.x'.
+''');
   }
 
   test_abstract_field_implement_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
 class B implements A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.x'.
   int get x => 0;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 45, 1)],
-    );
+''');
   }
 
   test_abstract_field_implement_getter_and_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
@@ -73,47 +65,31 @@ class B implements A {
   }
 
   test_abstract_field_implement_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
 class B implements A {}
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberTwo,
-          45,
-          1,
-          messageContains: ["'getter A.x' and 'setter A.x'"],
-        ),
-      ],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberTwo] Missing concrete implementations of 'getter A.x' and 'setter A.x'.
+''');
   }
 
   test_abstract_field_implement_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
 class B implements A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.x'.
   void set x(int value) {}
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberOne,
-          45,
-          1,
-          messageContains: ["'getter A.x'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_abstractsDontOverrideConcretes_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get g => 0;
 }
@@ -125,7 +101,7 @@ class C extends B {}
   }
 
   test_abstractsDontOverrideConcretes_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m(p) {}
 }
@@ -137,7 +113,7 @@ class C extends B {}
   }
 
   test_abstractsDontOverrideConcretes_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set s(v) {}
 }
@@ -149,7 +125,11 @@ class C extends B {}
   }
 
   test_augment_withClause_crossFile_error_nonAbstractClassInheritsAbstractMember() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 mixin M {
@@ -157,60 +137,54 @@ mixin M {
 }
 
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class A with M {}
-''');
-
-    await assertErrorsInFile2(a, [
-      error(diag.nonAbstractClassInheritsAbstractMemberOne, 48, 1),
-    ]);
-    await assertErrorsInFile2(b, [
-      error(diag.nonAbstractClassInheritsAbstractMemberOne, 33, 1),
-    ]);
+//            ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
+''',
+    });
   }
 
   test_augment_withClause_sameFile_error_nonAbstractClassInheritsAbstractMember() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int foo();
 }
 
 class A {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
 
 augment class A with M {}
-''',
-      [
-        error(diag.nonAbstractClassInheritsAbstractMemberOne, 32, 1),
-        error(diag.nonAbstractClassInheritsAbstractMemberOne, 52, 1),
-      ],
-    );
+//            ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
+''');
   }
 
   test_class_notAbstract_hasConcreteSubtype_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   void foo();
 }
 
 class B extends A {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
 
 class C extends B {}
 
 class D extends C {}
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
-    );
+''');
   }
 
   test_classTypeAlias_interface() async {
     // issue 15979
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 abstract class M {}
 abstract class A {}
@@ -223,7 +197,7 @@ abstract class B = A with M implements I;
 
   test_classTypeAlias_mixin() async {
     // issue 15979
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 abstract class M {
   m();
@@ -235,7 +209,7 @@ abstract class B = A with M;
 
   test_classTypeAlias_superclass() async {
     // issue 15979
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class M {}
 abstract class A {
@@ -246,97 +220,91 @@ abstract class B = A with M;
   }
 
   test_enum_getter_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
 
 enum E implements A {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 38, 1)],
-    );
+''');
   }
 
   test_enum_getter_fromMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   int get foo;
 }
 
 enum E with M {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter M.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 33, 1)],
-    );
+''');
   }
 
   test_enum_method_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void foo() {}
 }
 
 enum E implements A {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 34, 1)],
-    );
+''');
   }
 
   test_enum_method_fromMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   void foo();
 }
 
 enum E with M {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 32, 1)],
-    );
+''');
   }
 
   test_enum_setter_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   set foo(int _) {}
 }
 
 enum E implements A {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 38, 1)],
-    );
+''');
   }
 
   test_enum_setter_fromMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   set foo(int _);
 }
 
 enum E with M {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter M.foo'.
   v;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
-    );
+''');
   }
 
   test_external_field_final_implement_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external final int x;
 }
@@ -347,33 +315,31 @@ class B implements A {
   }
 
   test_external_field_final_implement_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external final int x;
 }
 class B implements A {}
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.x'.
+''');
   }
 
   test_external_field_implement_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }
 class B implements A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.x'.
   int get x => 0;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
-    );
+''');
   }
 
   test_external_field_implement_getter_and_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }
@@ -385,41 +351,31 @@ class B implements A {
   }
 
   test_external_field_implement_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }
 class B implements A {}
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberTwo,
-          36,
-          1,
-          messageContains: ["'getter A.x' and 'setter A.x'"],
-        ),
-      ],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberTwo] Missing concrete implementations of 'getter A.x' and 'setter A.x'.
+''');
   }
 
   test_external_field_implement_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }
 class B implements A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.x'.
   void set x(int value) {}
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
-    );
+''');
   }
 
   test_fivePlus() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   m();
   n();
@@ -428,22 +384,14 @@ abstract class A {
   q();
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberFivePlus] Missing concrete implementations of 'A.m', 'A.n', 'A.o', 'A.p', and 1 more.
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberFivePlus,
-          62,
-          1,
-          messageContains: ["'A.m', 'A.n', 'A.o', 'A.p'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_four() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   m();
   n();
@@ -451,22 +399,15 @@ abstract class A {
   p();
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberFour] Missing concrete implementations of 'A.m', 'A.n', 'A.o', and 'A.p'.
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberFour,
-          55,
-          1,
-          messageContains: ["'A.m', 'A.n', 'A.o', and 'A.p'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_concreteGetter() async {
     // issue 17034
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class A {
   var a;
@@ -480,7 +421,7 @@ class C extends B {}
   }
 
   test_mixin_concreteMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class A {
   m() {}
@@ -494,7 +435,7 @@ class C extends B {}
   }
 
   test_mixin_concreteSetter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class A {
   var a;
@@ -508,7 +449,7 @@ class C extends B {}
   }
 
   test_noSuchMethod_concreteAccessor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   int get g;
 }
@@ -519,7 +460,7 @@ class B extends A {
   }
 
   test_noSuchMethod_concreteMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   m(p);
 }
@@ -530,7 +471,7 @@ class B extends A {
   }
 
   test_noSuchMethod_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class A {
   noSuchMethod(v) => '';
@@ -542,7 +483,7 @@ class B extends Object with A {
   }
 
   test_noSuchMethod_superclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   noSuchMethod(v) => '';
 }
@@ -554,8 +495,7 @@ class B extends A {
 
   test_one_classTypeAlias_interface() async {
     // issue 15979
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 abstract class M {}
 abstract class A {}
@@ -563,96 +503,90 @@ abstract class I {
   m();
 }
 class B = A with M implements I;
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 87, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'I.m'.
+''');
   }
 
   test_one_classTypeAlias_mixin() async {
     // issue 15979
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 abstract class M {
   m();
 }
 abstract class A {}
 class B = A with M;
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 67, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.m'.
+''');
   }
 
   test_one_classTypeAlias_superclass() async {
     // issue 15979
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 class M {}
 abstract class A {
   m();
 }
 class B = A with M;
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 58, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.m'.
+''');
   }
 
   test_one_getter_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   int get g {return 1;}
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter I.g'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
-    );
+''');
   }
 
   test_one_getter_fromSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int get g;
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.g'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 40, 1)],
-    );
+''');
   }
 
   test_one_method_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   m(p) {}
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'I.m'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 28, 1)],
-    );
+''');
   }
 
   test_one_method_fromInterface_abstractNSM() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   m(p) {}
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'I.m'.
   noSuchMethod(v);
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 28, 1)],
-    );
+''');
   }
 
   test_one_method_fromInterface_abstractOverrideNSM() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   m(p) {}
 }
@@ -666,36 +600,33 @@ class C extends B implements I {
   }
 
   test_one_method_fromInterface_ifcNSM() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   m(p) {}
   noSuchMethod(v) => null;
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'I.m'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 55, 1)],
-    );
+''');
   }
 
   test_one_method_fromSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   m(p);
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.m'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 35, 1)],
-    );
+''');
   }
 
   test_one_method_optionalParamCount() async {
     // issue 7640
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int x(int a);
 }
@@ -703,55 +634,51 @@ abstract class B {
   int x(int a, [int b]);
 }
 class C implements A, B {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'B.x'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 89, 1)],
-    );
+''');
   }
 
   test_one_mixinInherits_getter() async {
     // issue 15001
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 103, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.g2'.
+''');
   }
 
   test_one_mixinInherits_method() async {
     // issue 15001
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 97, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.m2'.
+''');
   }
 
   test_one_mixinInherits_setter() async {
     // issue 15001
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 //@dart=2.19
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 109, 1)],
-    );
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.s2'.
+''');
   }
 
   test_one_noSuchMethod_interface() async {
     // issue 15979
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   noSuchMethod(v) => '';
 }
@@ -759,16 +686,15 @@ abstract class A {
   m();
 }
 class B extends A implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.m'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 71, 1)],
-    );
+''');
   }
 
   test_one_setter_and_implicitSetter() async {
     // test from language/override_inheritance_abstract_test_14.dart
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   set field(_);
 }
@@ -776,43 +702,40 @@ abstract class I {
   var field;
 }
 class B extends A implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.field'.
   get field => 0;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 77, 1)],
-    );
+''');
   }
 
   test_one_setter_fromInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   set s(int i) {}
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter I.s'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
-    );
+''');
   }
 
   test_one_setter_fromSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   set s(int i);
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter A.s'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 43, 1)],
-    );
+''');
   }
 
   test_one_superclasses_interface() async {
     // issue 11154
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   get a => 'a';
 }
@@ -820,44 +743,42 @@ abstract class B implements A {
   get b => 'b';
 }
 class C extends B {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.a'.
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 84, 1)],
-    );
+''');
   }
 
   test_one_variable_fromInterface_missingGetter() async {
     // issue 16133
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   var v;
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter I.v'.
   set v(_) {}
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 27, 1)],
-    );
+''');
   }
 
   test_one_variable_fromInterface_missingSetter() async {
     // issue 16133
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   var v;
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter I.v'.
   get v => 1;
 }
-''',
-      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 27, 1)],
-    );
+''');
   }
 
   test_overridesConcreteMethodInObject() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 //@dart=2.19
 class A {
   String toString([String prefix = '']) => '${prefix}Hello';
@@ -868,66 +789,42 @@ class B extends A with C {}
   }
 
   test_three() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   m();
   n();
   o();
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberThree] Missing concrete implementations of 'A.m', 'A.n', and 'A.o'.
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberThree,
-          48,
-          1,
-          messageContains: ["'A.m', 'A.n', and 'A.o'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_two() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   m();
   n();
 }
 class C extends A {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberTwo] Missing concrete implementations of 'A.m' and 'A.n'.
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberTwo,
-          41,
-          1,
-          messageContains: ["'A.m' and 'A.n'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_two_fromInterface_missingBoth() async {
     // issue 16133
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class I {
   var v;
 }
 class C implements I {
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberTwo] Missing concrete implementations of 'getter I.v' and 'setter I.v'.
 }
-''',
-      [
-        error(
-          diag.nonAbstractClassInheritsAbstractMemberTwo,
-          27,
-          1,
-          messageContains: ["'getter I.v' and 'setter I.v'."],
-        ),
-      ],
-    );
+''');
   }
 }

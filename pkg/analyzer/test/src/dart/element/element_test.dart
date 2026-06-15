@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -26,6 +27,12 @@ main() {
 
 @reflectiveTest
 class ElementAnnotationImplTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_computeConstantValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -34,13 +41,13 @@ class A {
 }
 void f(@A('x') int p) {}
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 main() {
   f(3);
 }
 ''');
-    var argument = findNode.integerLiteral('3');
+    var argument = result.findNode.integerLiteral('3');
     var parameter = argument.correspondingParameter!;
 
     ElementAnnotation annotation = parameter.metadata.annotations[0];
@@ -48,15 +55,97 @@ main() {
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');
   }
+
+  test_isValidAtElement_declaringFormalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.field})
+class FieldOnly {
+  const FieldOnly();
+}
+
+@Target({TargetKind.parameter})
+class ParameterOnly {
+  const ParameterOnly();
+}
+
+class A {
+  @FieldOnly()
+  final int explicit = 0;
+}
+
+class B(@FieldOnly() @ParameterOnly() final int f);
+''');
+
+    var explicitField = result.findElement.field('explicit', of: 'A');
+    var declaringField = result.findElement.field('f', of: 'B');
+    var declaringParameter = result.findElement
+        .class_('B')
+        .constructors
+        .single
+        .formalParameters
+        .single;
+
+    var explicitFieldOnly = explicitField.metadata.annotations.single;
+    expect(explicitFieldOnly.isValidAtElement(explicitField), isTrue);
+    expect(explicitFieldOnly.isValidAtElement(declaringParameter), isFalse);
+
+    var declaringFieldOnly = declaringParameter.metadata.annotations[0];
+    var declaringParameterOnly = declaringParameter.metadata.annotations[1];
+    expect(declaringFieldOnly.isValidAtElement(declaringParameter), isFalse);
+    expect(declaringFieldOnly.isValidAtElement(declaringField), isTrue);
+    expect(declaringParameterOnly.isValidAtElement(declaringParameter), isTrue);
+    expect(declaringParameterOnly.isValidAtElement(declaringField), isFalse);
+  }
+
+  test_isValidAtElement_noTarget() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+@A()
+class B {}
+''');
+    var class_ = result.findElement.class_('B');
+    var annotation = class_.metadata.annotations.single;
+
+    expect(annotation.isValidAtElement(class_), isNull);
+  }
+
+  test_isValidAtElement_override() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void m() {}
+
+  void n(int p) {}
+}
+''');
+    var method = result.findElement.method('m', of: 'B');
+    var parameter = result.findElement
+        .method('n', of: 'B')
+        .formalParameters
+        .single;
+    var annotation = method.metadata.annotations.single;
+
+    expect(annotation.isValidAtElement(method), isTrue);
+    expect(annotation.isValidAtElement(parameter), isFalse);
+  }
 }
 
 @reflectiveTest
 class FieldElementImplTest extends PubPackageResolutionTest {
   test_isEnumConstant() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum B {B1, B2, B3}
 ''');
-    var B = findElement2.enum_('B');
+    var B = result.findElement.enum_('B');
 
     var b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
@@ -74,121 +163,72 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   }
 
   void test_getNamedParameterTypes_namedParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        requiredParameter(name: 'a', type: intNone),
-        namedParameter(name: 'b', type: doubleNone),
-        namedParameter(name: 'c', type: stringNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function(int a, {double b, String c})');
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(2));
-    expect(types['b'], doubleNone);
-    expect(types['c'], stringNone);
+    expect(types['b'], parseType('double'));
+    expect(types['c'], parseType('String'));
   }
 
   void test_getNamedParameterTypes_noNamedParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        requiredParameter(type: intNone),
-        requiredParameter(type: doubleNone),
-        positionalParameter(type: stringNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function(int, double, [String])');
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNamedParameterTypes_noParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function()');
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_noNormalParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        positionalParameter(type: intNone),
-        positionalParameter(type: doubleNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function([int, double])');
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_noParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function()');
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_normalParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        requiredParameter(type: intNone),
-        requiredParameter(type: doubleNone),
-        positionalParameter(type: stringNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function(int, double, [String])');
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(2));
-    expect(types[0], intNone);
-    expect(types[1], doubleNone);
+    expect(types[0], parseType('int'));
+    expect(types[1], parseType('double'));
   }
 
   void test_getOptionalParameterTypes_noOptionalParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        requiredParameter(name: 'a', type: intNone),
-        namedParameter(name: 'b', type: doubleNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function(int a, {double b})');
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getOptionalParameterTypes_noParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function()');
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getOptionalParameterTypes_optionalParameters() {
-    var type = functionTypeNone(
-      typeParameters: [],
-      formalParameters: [
-        requiredParameter(type: intNone),
-        positionalParameter(type: doubleNone),
-        positionalParameter(type: stringNone),
-      ],
-      returnType: voidNone,
-    );
+    var type = parseFunctionType('void Function(int, [double, String])');
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(2));
-    expect(types[0], doubleNone);
-    expect(types[1], stringNone);
+    expect(types[0], parseType('double'));
+    expect(types[1], parseType('String'));
+  }
+
+  void test_typeParameters_variance() {
+    var type = parseFunctionType('void Function<in T, inout U, out V>()');
+    var typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(3));
+    expect(typeParameters[0].variance, Variance.contravariant);
+    expect(typeParameters[1].variance, Variance.invariant);
+    expect(typeParameters[2].variance, Variance.covariant);
   }
 }
 
@@ -481,59 +521,89 @@ class B extends A {}
 @reflectiveTest
 class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_element() {
-    var T = typeParameter('T', bound: listNone(intNone));
-    _assert_asInstanceOf(
-      typeParameterTypeNone(T),
-      typeProvider.iterableElement,
-      'Iterable<int>',
-    );
+    withTypeParameterScope('T extends List<int>', (scope) {
+      _assert_asInstanceOf(
+        scope.parseType('T'),
+        typeProvider.iterableElement,
+        'Iterable<int>',
+      );
+    });
   }
 
   void test_asInstanceOf_hasBound_element_noMatch() {
-    var T = typeParameter('T', bound: numNone);
-    _assert_asInstanceOf(
-      typeParameterTypeNone(T),
-      typeProvider.iterableElement,
-      null,
-    );
+    withTypeParameterScope('T extends num', (scope) {
+      _assert_asInstanceOf(
+        scope.parseType('T'),
+        typeProvider.iterableElement,
+        null,
+      );
+    });
   }
 
   void test_asInstanceOf_hasBound_promoted() {
-    var T = typeParameter('T');
-    _assert_asInstanceOf(
-      typeParameterTypeNone(T, promotedBound: listNone(intNone)),
-      typeProvider.iterableElement,
-      'Iterable<int>',
-    );
+    withTypeParameterScope('T', (scope) {
+      _assert_asInstanceOf(
+        scope.parseType('T & List<int>'),
+        typeProvider.iterableElement,
+        'Iterable<int>',
+      );
+    });
   }
 
   void test_asInstanceOf_hasBound_promoted_noMatch() {
-    var T = typeParameter('T');
-    _assert_asInstanceOf(
-      typeParameterTypeNone(T, promotedBound: numNone),
-      typeProvider.iterableElement,
-      null,
-    );
+    withTypeParameterScope('T', (scope) {
+      _assert_asInstanceOf(
+        scope.parseType('T & num'),
+        typeProvider.iterableElement,
+        null,
+      );
+    });
   }
 
   void test_asInstanceOf_noBound() {
-    var T = typeParameter('T');
-    _assert_asInstanceOf(
-      typeParameterTypeNone(T),
-      typeProvider.iterableElement,
-      null,
-    );
+    withTypeParameterScope('T', (scope) {
+      _assert_asInstanceOf(
+        scope.parseType('T'),
+        typeProvider.iterableElement,
+        null,
+      );
+    });
   }
 
   void test_creation() {
-    var element = typeParameter('E');
-    expect(typeParameterTypeNone(element), isNotNull);
+    withTypeParameterScope('E', (scope) {
+      var E = scope.typeParameter('E');
+      expect(E, isNotNull);
+      expect(scope.parseTypeParameterType('E'), isNotNull);
+    });
   }
 
   void test_getElement() {
-    var element = typeParameter('E');
-    TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.element, element);
+    withTypeParameterScope('E', (scope) {
+      var E = scope.typeParameter('E');
+      TypeParameterTypeImpl type = scope.parseTypeParameterType('E');
+      expect(type.element, E);
+    });
+  }
+
+  void test_parse_promotedBound() {
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var type = scope.parseTypeParameterType('T & int');
+      expect(type.element, same(T));
+      expect(type.promotedBound, parseType('int'));
+      expect(type.getDisplayString(), 'T & int');
+    });
+  }
+
+  void test_parse_promotedBound_question() {
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var type = scope.parseTypeParameterType('(T & int)?');
+      expect(type.element, same(T));
+      expect(type.promotedBound, parseType('int'));
+      expect(type.getDisplayString(), '(T & int)?');
+    });
   }
 
   void _assert_asInstanceOf(

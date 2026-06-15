@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -146,10 +145,10 @@ var v = a?.8(b);
   }
 
   test_fuzz_01() async {
-    await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement2.typeAlias('F');
+    var alias = result.findElement.typeAlias('F');
     assertType(
       alias.instantiate(
         typeArguments: const [],
@@ -216,10 +215,10 @@ class C {
   }
 
   test_fuzz_09() async {
-    await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement2.typeAlias('F');
+    var alias = result.findElement.typeAlias('F');
     assertType(
       alias.instantiate(
         typeArguments: const [],
@@ -353,7 +352,7 @@ typedef void F([a = () { if (true) 0; }]);
   }
 
   test_invalid_unicode() async {
-    await assertErrorsInCode('\uFFFD', [error(diag.encoding, 0, 1)]);
+    await _assertCanBeAnalyzed('\uFFFD');
   }
 
   test_invalidPart_withPart() async {
@@ -471,8 +470,9 @@ class B {
 ''');
   }
 
-  Future<void> _assertCanBeAnalyzed(String text) async {
-    await resolveTestCode(text);
-    assertHasTestErrors();
+  Future<TestResolvedUnitResult> _assertCanBeAnalyzed(String text) async {
+    var result = await resolveTestCode(text);
+    assertHasTestErrors(result);
+    return result;
   }
 }

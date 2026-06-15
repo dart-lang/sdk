@@ -252,7 +252,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class RunDetails {
@@ -265,7 +265,7 @@ class RunDetails {
   final List<FileContentPair> orderedFileCopies;
   final int numFiles;
 
-  RunDetails({
+  new({
     required this.libDirUri,
     required this.mainFile,
     required this.mainFileTypingContent,

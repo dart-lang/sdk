@@ -13,7 +13,7 @@ Future<List<TimelineEvent>> runAndCollectTimeline(
   String streams,
   List<String> args,
 ) async {
-  return await withTempDir((String tmp) async {
+  return await withTempDir("timeline-test", (String tmp) async {
     final String timelinePath = path.join(tmp, 'timeline.json');
     final p = await Process.run(Platform.executable, [
       ...Platform.executableArguments,

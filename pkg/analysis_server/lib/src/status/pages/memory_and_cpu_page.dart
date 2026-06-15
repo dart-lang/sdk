@@ -13,7 +13,7 @@ import 'package:analysis_server/src/utilities/profiling.dart';
 class MemoryAndCpuPage extends DiagnosticPageWithNav {
   final ProcessProfiler profiler;
 
-  MemoryAndCpuPage(DiagnosticsSite site, this.profiler)
+  new(DiagnosticsSite site, this.profiler)
     : super(
         site,
         'memory-and-cpu-usage',

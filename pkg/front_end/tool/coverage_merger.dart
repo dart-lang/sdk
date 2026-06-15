@@ -244,13 +244,13 @@ class CoverageInfo {
   final int hitCount;
   final String visualization;
 
-  CoverageInfo.error(this.visualization)
+  new error(this.visualization)
     : error = true,
       allCovered = false,
       missCount = 0,
       hitCount = 0;
 
-  CoverageInfo({
+  new({
     required this.allCovered,
     required this.missCount,
     required this.hitCount,
@@ -444,7 +444,7 @@ CoverageInfo _process(
       }
     }
 
-    void addChunk(int from, final int to) {
+    void addChunk(int from, int to) {
       if (addAndRemoveCommentsInFiles && removeFrom.isNotEmpty) {
         int fromIndex = binarySearch(removeFrom, from);
         if (removeFrom[fromIndex] < from && removeTo[fromIndex] < from) {
@@ -909,7 +909,7 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     return collector;
   }
 
-  AstIndexerAndIgnoreCollector._(this.hitsSorted, this.allSorted) {}
+  new _(this.hitsSorted, this.allSorted) {}
 
   bool _hasIgnoreComment(
     Token tokenWithPossibleComment, {
@@ -970,9 +970,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// If there is not it will add a note to add one if that makes sense (in that
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-    final Token tokenWithPossibleComment,
-    final Token beginToken,
-    final Token endToken, {
+    Token tokenWithPossibleComment,
+    Token beginToken,
+    Token endToken, {
     required bool allowReplace,
     bool isBlock = false,
     bool allowOnBraceStart = false,
@@ -1293,7 +1293,7 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
 class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   final AstIndexerAndIgnoreCollector _collector;
 
-  _AstIndexerAndIgnoreCollectorBody(this._collector);
+  new(this._collector);
 
   bool _recordIfIsCallToNotExpectedCoverage(
     BeginAndEndTokenParserAstNode node,
@@ -1776,7 +1776,7 @@ class _CommentOn implements Comparable<_CommentOn> {
   final bool isBlock;
   final bool allowToWrapInBlock;
 
-  _CommentOn({
+  new({
     required this.commentOnToken,
     required this.beginToken,
     required this.endToken,

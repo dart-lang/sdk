@@ -61,6 +61,10 @@
 #include "vm/perfetto_utils.h"
 #endif  // defined(SUPPORT_PERFETTO)
 
+#if defined(DART_HOST_OS_WINDOWS)
+#include <psapi.h>
+#endif  // defined(DART_HOST_OS_WINDOWS)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -188,6 +192,8 @@ class NoSuchParameter : public MethodParameter {
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 #define OBJECT_PARAMETER new IdParameter("objectId", true)
+#define NATIVE_MEMORY_ADDRESS_PARAMETER new StringParameter("address", true)
+#define NATIVE_MEMORY_SIZE_PARAMETER new UIntParameter("size", true)
 
 static bool ValidateUIntParameter(const char* value) {
   if (value == nullptr) {
@@ -1751,8 +1757,8 @@ static void GetStack(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("truncated", truncated);
 
   {
-    MessageHandler::AcquiredQueues aq(isolate->message_handler());
-    jsobj.AddProperty("messages", aq.queue());
+    // Deprecated and always empty since protocol version 4.22.
+    JSONArray jsarr(&jsobj, "messages");
   }
 }
 
@@ -1882,14 +1888,13 @@ static ObjectPtr LookUpObjectByServiceId(
 
   ASSERT(thread->isolate() != nullptr);
   const Isolate& isolate = *thread->isolate();
-  if (id_zone_part_of_service_id >= isolate.NumServiceIdZones()) {
+  RingServiceIdZone* id_zone =
+      isolate.GetServiceIdZone(id_zone_part_of_service_id);
+  if (id_zone == nullptr) {
     *kind = ObjectIdRing::kInvalid;
     return Object::null();
   }
-
-  RingServiceIdZone& id_zone =
-      *isolate.GetServiceIdZone(id_zone_part_of_service_id);
-  return id_zone.GetObjectForId(object_part_of_service_id, kind);
+  return id_zone->GetObjectForId(object_part_of_service_id, kind);
 }
 
 static ObjectPtr LookupClassMembers(Thread* thread,
@@ -2205,29 +2210,6 @@ static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
   return Object::sentinel().ptr();
 }
 
-static ObjectPtr LookupHeapObjectMessage(Thread* thread,
-                                         char** parts,
-                                         int num_parts) {
-  if (num_parts != 2) {
-    return Object::sentinel().ptr();
-  }
-  uword message_id = 0;
-  if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
-    return Object::sentinel().ptr();
-  }
-  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
-  Message* message = aq.queue()->FindMessageById(message_id);
-  if (message == nullptr) {
-    // The user may try to load an expired message.
-    return Object::sentinel().ptr();
-  }
-  if (message->IsRaw()) {
-    return message->raw_obj();
-  } else {
-    return ReadMessage(thread, message);
-  }
-}
-
 static ObjectPtr LookupHeapObject(Thread* thread,
                                   const char* id_original,
                                   ObjectIdRing::LookupResult* result) {
@@ -2280,8 +2262,6 @@ static ObjectPtr LookupHeapObject(Thread* thread,
     return LookupHeapObjectTypeArguments(thread, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(parts, num_parts);
-  } else if (strcmp(parts[0], "messages") == 0) {
-    return LookupHeapObjectMessage(thread, parts, num_parts);
   }
 
   // Not found.
@@ -4031,8 +4011,6 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
   isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
                               kernel_buffer_size);
 
-  free(kernel_buffer);
-
   Service::CheckForPause(isolate, js);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -4891,7 +4869,7 @@ static void AddVMMappings(JSONArray* rss_children) {
         continue;  // Malformed input.
       }
 
-      strncpy(path, path_start, sizeof(path));
+      strncpy(path, path_start, sizeof(path) - 1);
       path[sizeof(path) - 1] = '\0';
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
@@ -4921,7 +4899,10 @@ static void AddVMMappings(JSONArray* rss_children) {
         }
         if (!updated) {
           VMMapping mapping;
-          strncpy(mapping.path, path, sizeof(mapping.path));
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+          strncpy(mapping.path, path, sizeof(mapping.path) - 1);
           mapping.path[sizeof(mapping.path) - 1] = '\0';
           mapping.size = size;
           mappings.Add(mapping);
@@ -4939,6 +4920,64 @@ static void AddVMMappings(JSONArray* rss_children) {
                         "Mapped file / shared library / executable");
     mapping.AddProperty64("size", mappings[i].size * KB);
     JSONArray(&mapping, "children");
+  }
+}
+#endif
+
+#if defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
+class VMMappingTrait {
+ public:
+  struct Pair {
+    char* path;
+    size_t size;
+  };
+  using Key = char*;
+  using Value = size_t;
+
+  static Key KeyOf(const Pair& kv) { return kv.path; }
+  static Value ValueOf(const Pair& kv) { return kv.size; }
+  static uword Hash(Key key) { return Utils::StringHash(key, strlen(key)); }
+  static bool IsKeyEqual(const Pair& kv, Key key) {
+    return strcmp(kv.path, key) == 0;
+  }
+};
+
+static void AddVMMappings(JSONArray* rss_children) {
+  MallocDirectChainedHashMap<VMMappingTrait> mappings;
+
+  MEMORY_BASIC_INFORMATION mbi;
+  uint8_t* address = nullptr;
+  while (VirtualQuery(address, &mbi, sizeof(mbi)) == sizeof(mbi)) {
+    if ((mbi.State == MEM_COMMIT) &&
+        (mbi.Type == MEM_IMAGE || mbi.Type == MEM_MAPPED)) {
+      char path_buffer[MAX_PATH];
+      if (GetMappedFileNameA(GetCurrentProcess(), address, path_buffer,
+                             MAX_PATH) != 0) {
+        auto lookup_result = mappings.Lookup(path_buffer);
+        if (lookup_result != nullptr) {
+          lookup_result->size += mbi.RegionSize;
+        } else {
+          char* path = strdup(path_buffer);
+          mappings.Insert({path, mbi.RegionSize});
+        }
+      }
+    }
+    if (address == nullptr) {
+      address = reinterpret_cast<uint8_t*>(mbi.RegionSize);
+    } else {
+      address += mbi.RegionSize;
+    }
+  }
+
+  auto it = mappings.GetIterator();
+  for (auto* pair = it.Next(); pair != nullptr; pair = it.Next()) {
+    JSONObject mapping(rss_children);
+    mapping.AddProperty("name", pair->path);
+    mapping.AddProperty("description",
+                        "Mapped file / shared library / executable");
+    mapping.AddProperty64("size", pair->size);
+    JSONArray(&mapping, "children");
+    free(pair->path);
   }
 }
 #endif
@@ -5052,6 +5091,8 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  AddVMMappings(&rss_children);
+#elif defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.
@@ -5388,7 +5429,7 @@ static void DeleteIdZone(Thread* thread, JSONStream* js) {
 
   intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
   ASSERT(id_zone_id != -1);
-  ASSERT(id_zone_id < isolate->NumServiceIdZones());
+  ASSERT(isolate->GetServiceIdZone(id_zone_id) != nullptr);
 
   isolate->DeleteServiceIdZone(id_zone_id);
 
@@ -5594,7 +5635,7 @@ class SystemServiceIsolateVisitor : public IsolateVisitor {
   virtual ~SystemServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (IsSystemIsolate(isolate) && !isolate->is_vm_isolate()) {
+    if (IsSystemIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -5647,7 +5688,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 #else
   Snapshot::Kind kind = Snapshot::kFullJIT;
 #endif
-  char* features_string = Dart::FeaturesString(nullptr, true, kind);
+  char* features_string = Dart::FeaturesString(nullptr, kind);
   jsobj.AddProperty("_features", features_string);
   free(features_string);
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
@@ -5677,10 +5718,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   {
     JSONArray jsarr_isolate_groups(&jsobj, "systemIsolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      // Don't surface the vm-isolate since it's not a "real" isolate.
-      if (isolate_group->is_vm_isolate()) {
-        return;
-      }
       if (isolate_group->is_system_isolate_group()) {
         jsarr_isolate_groups.AddValue(isolate_group);
       }
@@ -6200,6 +6237,127 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 #undef DEFINE_ADD_VALUE_F
 }
 
+static constexpr const char* kNativeMemoryAddressParam = "address";
+static constexpr const char* kNativeMemorySizeParam = "size";
+static constexpr const char* kNativeMemoryBytesKey = "bytes";
+static constexpr const char* kNativeMemoryTypeKey = "type";
+
+static void ReadNativeMemoryHelper(JSONStream* js,
+                                   uintptr_t address,
+                                   intptr_t size) {
+  if (address == 0) {
+    js->PrintError(kInvalidParams, "null pointer");
+    return;
+  }
+
+  if (address > (UINTPTR_MAX - static_cast<uintptr_t>(size))) {
+    js->PrintError(kInvalidParams, "address + size overflows address space");
+    return;
+  }
+
+  CAllocUniquePtr<uint8_t> buffer(reinterpret_cast<uint8_t*>(malloc(size)));
+
+  if (buffer.get() == nullptr) {
+    js->PrintError(kInternalError, "failed to allocate buffer");
+    return;
+  }
+
+  const char* read_error = nullptr;
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
+                               size, &read_error);
+#elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
+  bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
+                               size, &read_error);
+#elif defined(DART_HOST_OS_WINDOWS)
+  bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
+                               size, &read_error);
+#else
+  bool ok = false;  // TODO(thenourhan): implement for other platforms
+#endif
+
+  if (!ok) {
+    const char* error_msg =
+        (read_error != nullptr) ? read_error : "address not readable";
+    js->PrintError(kNativeMemoryReadError, "%s", error_msg);
+    return;
+  }
+
+  CStringUniquePtr hex(reinterpret_cast<char*>(malloc(size * 2 + 1)));
+  for (intptr_t i = 0; i < size; i++) {
+    Utils::SNPrint(hex.get() + i * 2, 3, "%02x", buffer.get()[i]);
+  }
+  hex.get()[size * 2] = '\0';
+
+  JSONObject response(js);
+  response.AddProperty(kNativeMemoryTypeKey, "NativeMemory");
+  response.AddPropertyF(kNativeMemoryAddressParam, "0x%" Px "", address);
+  response.AddProperty64(kNativeMemorySizeParam, size);
+  response.AddProperty(kNativeMemoryBytesKey, hex.get());
+}
+
+static const MethodParameter* const read_native_memory_params[] = {
+    NATIVE_MEMORY_ADDRESS_PARAMETER,
+    NATIVE_MEMORY_SIZE_PARAMETER,
+    nullptr,
+};
+
+// Parameters:
+//   address : string
+//     Hex string without '0x' prefix (e.g. "7f3a00001000").
+//
+//   size : int
+//     Number of bytes to read. Must be between 1 and 1048576 (1 MB).
+//
+// Responses:
+//
+//   On success:
+//     {
+//       "type":    "NativeMemory",
+//       "address": "0x7f3a00001000",
+//       "size":    8,
+//       "bytes":   "0102030405060708"
+//     }
+//
+//   On read failure (unmapped/invalid address):
+//     JSON-RPC error code 1004 with OS error string as details
+//          "Input/output error" (Linux EIO)
+//          "ReadProcessMemory failed (error 299)" (Windows)
+//          "mach_vm_read_overwrite failed" (macOS)
+//
+//   On invalid params (null pointer, address overflow):
+//     JSON-RPC error code -32602 "Invalid params"
+//
+static void ReadNativeMemory(Thread* thread, JSONStream* js) {
+  const char* address_str = js->LookupParam(kNativeMemoryAddressParam);
+  const char* size_str = js->LookupParam(kNativeMemorySizeParam);
+
+  if (address_str == nullptr) {
+    PrintMissingParamError(js, kNativeMemoryAddressParam);
+    return;
+  }
+  if (size_str == nullptr) {
+    PrintMissingParamError(js, kNativeMemorySizeParam);
+    return;
+  }
+
+  uintptr_t address = 0;
+  intptr_t size = 0;
+
+  if (!GetUnsignedIntegerId(address_str, &address, 16)) {
+    PrintInvalidParamError(js, kNativeMemoryAddressParam);
+    return;
+  }
+  if (!GetIntegerId(size_str, &size) || size <= 0 || size > 1 * MB) {
+    PrintInvalidParamError(js, kNativeMemorySizeParam);
+    return;
+  }
+
+  ReadNativeMemoryHelper(js, static_cast<uintptr_t>(address),
+                         static_cast<intptr_t>(size));
+}
+
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
   { "_echo", Echo,
@@ -6367,6 +6525,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     collect_all_garbage_params },
   { "_getDefaultClassesAliases", GetDefaultClassesAliases,
     get_default_classes_aliases_params },
+  { "_readNativeMemory", ReadNativeMemory, read_native_memory_params },
 };
 // clang-format on
 

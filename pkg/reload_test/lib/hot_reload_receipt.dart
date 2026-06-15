@@ -4,11 +4,7 @@
 
 import 'dart:convert';
 
-enum Status {
-  accepted,
-  rejected,
-  restarted;
-}
+enum Status { accepted, rejected, restarted }
 
 /// Reports the result of a hot reload or restart at runtime for test validation
 /// purposes only.
@@ -35,9 +31,9 @@ class HotReloadReceipt {
   String toString() => jsonEncode(toJson());
 
   HotReloadReceipt.fromJson(Map<String, dynamic> json)
-      : generation = json[_generationKey] as int,
-        status = Status.values.byName(json[_statusKey] as String),
-        rejectionMessage = json[_rejectionMessageKey] as String?;
+    : generation = json[_generationKey] as int,
+      status = Status.values.byName(json[_statusKey] as String),
+      rejectionMessage = json[_rejectionMessageKey] as String?;
 
   Map<String, dynamic> toJson() {
     return {

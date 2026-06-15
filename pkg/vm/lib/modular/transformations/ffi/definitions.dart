@@ -590,12 +590,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// #fromTypedDataBase(Object #typedDataBase, int #offsetInBytes) :
     ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
-    final VariableDeclaration typedDataBase = VariableDeclaration(
+    final Variable typedDataBase = Variable(
       "#typedDataBase",
       type: coreTypes.objectNonNullableRawType,
       isSynthesized: true,
     );
-    final VariableDeclaration offsetInBytes = VariableDeclaration(
+    final Variable offsetInBytes = Variable(
       "#offsetInBytes",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
@@ -636,7 +636,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ///   super.sizeInBytes,
       /// ) : super._fromTypedData();
       /// ```
-      final VariableDeclaration typedData = VariableDeclaration(
+      final Variable typedData = Variable(
         "#typedData",
         type: InterfaceType(
           typedDataClass,
@@ -645,12 +645,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ),
         isSynthesized: true,
       );
-      final VariableDeclaration offset = VariableDeclaration(
+      final Variable offset = Variable(
         "#offset",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
-      final VariableDeclaration sizeInBytes = VariableDeclaration(
+      final Variable sizeInBytes = Variable(
         "#sizeInBytes",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
@@ -1095,7 +1095,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         setterReference == field.setterReference,
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
-      final VariableDeclaration argument = VariableDeclaration(
+      final Variable argument = Variable(
         '#v',
         type: field.type,
         isSynthesized: true,

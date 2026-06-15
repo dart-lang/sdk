@@ -59,7 +59,7 @@ abstract class Symbol {
   /// ```
   ///
   /// The created instance overrides [Object.==].
-  const factory Symbol(String name) = internal.Symbol;
+  const factory(String name) = internal.Symbol;
 
   /// Returns a hash code compatible with [operator==].
   ///

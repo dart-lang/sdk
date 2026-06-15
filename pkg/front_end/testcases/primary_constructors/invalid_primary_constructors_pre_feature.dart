@@ -1,0 +1,41 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// @dart=3.10
+
+class const C {}
+enum const E { a }
+extension type const ET {}
+mixin M1() {}
+mixin M2(int i) {}
+mixin M3.named() {}
+mixin M4.named(int i) {}
+mixin M5<T>() {}
+mixin M6<T>(int i) {}
+mixin M7<T>.named() {}
+mixin M8<T>.named(int i) {}
+mixin const M9() {}
+mixin const M10(int i) {}
+mixin const M11.named() {}
+mixin const M12.named(int i) {}
+mixin const M13<T>() {}
+mixin const M14<T>(int i) {}
+mixin const M15<T>.named() {}
+mixin const M16<T>.named(int i) {}
+extension E1() on int {}
+extension E2(int i) on int {}
+extension E3.named() on int {}
+extension E4.named(int i) on int {}
+extension E5<T>() on int {}
+extension E6<T>(int i) on int {}
+extension E7<T>.named() on int {}
+extension E8<T>.named(int i) on int {}
+extension const E9() on int {}
+extension const E10(int i) on int {}
+extension const E11.named() on int {}
+extension const E12.named(int i) on int {}
+extension const E13<T>() on int {}
+extension const E14<T>(int i) on int {}
+extension const E15<T>.named() on int {}
+extension const E16<T>.named(int i) on int {}

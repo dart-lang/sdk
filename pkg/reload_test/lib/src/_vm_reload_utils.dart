@@ -34,8 +34,10 @@ Future<void> hotReload({bool expectRejection = false}) async {
   }
   // Write reload receipt with a leading tag to be recognized by the reload
   // suite runner and validated.
-  print('${HotReloadReceipt.hotReloadReceiptTag}'
-      '${jsonEncode(reloadReceipt.toJson())}');
+  print(
+    '${HotReloadReceipt.hotReloadReceiptTag}'
+    '${jsonEncode(reloadReceipt.toJson())}',
+  );
 }
 
 /// Helper to mediate with the vm service protocol.
@@ -70,26 +72,37 @@ class HotReloadHelper {
   /// The current generation being executed by the VM.
   int generation = 0;
 
-  HotReloadHelper._(this._vmService, this._id, this.testOutputDirUri,
-      this.dillName, this.errorDillName);
+  HotReloadHelper._(
+    this._vmService,
+    this._id,
+    this.testOutputDirUri,
+    this.dillName,
+    this.errorDillName,
+  );
 
   /// Create a helper that is bound to the current VM and isolate.
   static Future<HotReloadHelper> create() async {
-    final info =
-        await Service.controlWebServer(enable: true, silenceOutput: true);
+    final info = await Service.controlWebServer(
+      enable: true,
+      silenceOutput: true,
+    );
     final observatoryUri = info.serverUri;
     if (observatoryUri == null) {
-      print('Error: no VM service found. '
-          'Please invoke dart with `--enable-vm-service`.');
+      print(
+        'Error: no VM service found. '
+        'Please invoke dart with `--enable-vm-service`.',
+      );
       io.exit(1);
     }
     final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
     final vmService = await vm_service_io.vmServiceConnectUri(wsUri);
     final vm = await vmService.getVM();
-    final id =
-        vm.isolates!.firstWhere((isolate) => !isolate.isSystemIsolate!).id!;
-    final currentIsolateGroup = vm.isolateGroups!
-        .firstWhere((isolateGroup) => !isolateGroup.isSystemIsolateGroup!);
+    final id = vm.isolates!
+        .firstWhere((isolate) => !isolate.isSystemIsolate!)
+        .id!;
+    final currentIsolateGroup = vm.isolateGroups!.firstWhere(
+      (isolateGroup) => !isolateGroup.isSystemIsolateGroup!,
+    );
     final dillUri = Uri.file(currentIsolateGroup.name!);
     final generationPart =
         dillUri.pathSegments[dillUri.pathSegments.length - 2];
@@ -102,7 +115,12 @@ class HotReloadHelper {
     final errorDillName = dillName.replaceAll('.dill', '.error.dill');
 
     return HotReloadHelper._(
-        vmService, id, dillUri.resolve('../'), dillName, errorDillName);
+      vmService,
+      id,
+      dillUri.resolve('../'),
+      dillName,
+      errorDillName,
+    );
   }
 
   /// Trigger a hot-reload on the current isolate for the next generation.
@@ -111,14 +129,19 @@ class HotReloadHelper {
   /// is disconnected to allow the VM to complete.
   Future<HotReloadReceipt> _reloadNextGeneration() async {
     generation += 1;
-    final nextGenerationDillUri =
-        testOutputDirUri.resolve('generation$generation/$dillName');
+    final nextGenerationDillUri = testOutputDirUri.resolve(
+      'generation$generation/$dillName',
+    );
     print('Reloading: $nextGenerationDillUri');
-    var reloadReport = await _vmService.reloadSources(_id,
-        rootLibUri: nextGenerationDillUri.path);
+    var reloadReport = await _vmService.reloadSources(
+      _id,
+      rootLibUri: nextGenerationDillUri.path,
+    );
     if (!reloadReport.success!) {
-      throw Exception('Reload for generation $generation was rejected.\n'
-          '${reloadReport.reasonForCancelling}');
+      throw Exception(
+        'Reload for generation $generation was rejected.\n'
+        '${reloadReport.reasonForCancelling}',
+      );
     }
     var reloadReceipt = HotReloadReceipt(
       generation: generation,
@@ -132,24 +155,31 @@ class HotReloadHelper {
     generation += 1;
     HotReloadReceipt reloadReceipt;
     final errorDillFile = io.File.fromUri(
-        testOutputDirUri.resolve('generation$generation/$errorDillName'));
+      testOutputDirUri.resolve('generation$generation/$errorDillName'),
+    );
     if (errorDillFile.existsSync()) {
       // This generation contained a compile time error that has already been
       // validated and should be rejected.
       reloadReceipt = HotReloadReceipt(
-          generation: generation,
-          status: Status.rejected,
-          rejectionMessage: HotReloadReceipt.compileTimeErrorMessage);
+        generation: generation,
+        status: Status.rejected,
+        rejectionMessage: HotReloadReceipt.compileTimeErrorMessage,
+      );
     } else {
-      final nextGenerationDillUri =
-          testOutputDirUri.resolve('generation$generation/$dillName');
+      final nextGenerationDillUri = testOutputDirUri.resolve(
+        'generation$generation/$dillName',
+      );
       print('Reloading (expecting rejection): $nextGenerationDillUri');
-      final reloadReport = await _vmService.reloadSources(_id,
-          rootLibUri: nextGenerationDillUri.path);
+      final reloadReport = await _vmService.reloadSources(
+        _id,
+        rootLibUri: nextGenerationDillUri.path,
+      );
       if (reloadReport.success!) {
-        throw Exception('Generation $generation was not rejected. Verify the '
-            'calls of `hotReload(expectRejection: true)` in the test source '
-            'match the rejected generation files.');
+        throw Exception(
+          'Generation $generation was not rejected. Verify the '
+          'calls of `hotReload(expectRejection: true)` in the test source '
+          'match the rejected generation files.',
+        );
       }
       reloadReceipt = HotReloadReceipt(
         generation: generation,
@@ -162,8 +192,9 @@ class HotReloadHelper {
   }
 
   bool get hasNextGeneration {
-    final nextNextGenerationDirUri =
-        testOutputDirUri.resolve('generation${generation + 1}');
+    final nextNextGenerationDirUri = testOutputDirUri.resolve(
+      'generation${generation + 1}',
+    );
     return io.Directory.fromUri(nextNextGenerationDirUri).existsSync();
   }
 

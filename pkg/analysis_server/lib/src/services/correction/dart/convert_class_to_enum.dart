@@ -28,6 +28,7 @@ typedef _Constructors = Map<ConstructorElement, _Constructor>;
 /// the following changes:
 ///
 /// * changes the `class` keyword to `enum`,
+/// * removes any class modifiers,
 /// * removes the `const` keyword from the primary constructor, if there is one,
 /// * converts static fields into enum constant values,
 /// * removes an `int index` field if there is one,
@@ -38,7 +39,7 @@ typedef _Constructors = Map<ConstructorElement, _Constructor>;
 ///   one, and it no longer accepts any arguments (after removing a possible
 ///   index parameter), and it has no doc comment nor annotations.
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
-  ConvertClassToEnum({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -90,7 +91,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
   final ClassElement classElement;
 
-  _BaseVisitor(this.classElement);
+  new(this.classElement);
 
   /// Return `true` if the given [node] is an invocation of a generative
   /// constructor from the class being converted.
@@ -107,7 +108,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
 class _CannotConvertException implements Exception {
   final String message;
 
-  _CannotConvertException(this.message);
+  new(this.message);
 }
 
 /// A representation of a static field in the class being converted that will be
@@ -122,7 +123,7 @@ class _ConstantField extends _FieldDeclaredInVariableDeclaration {
   /// The value of the index field.
   final int indexValue;
 
-  _ConstantField(
+  new(
     super.element,
     super.declaration,
     super.declarationList,
@@ -145,7 +146,7 @@ class _Constructor {
   /// The element representing the constructor.
   final ConstructorElement element;
 
-  _Constructor(this.declaration, this.parameters, this.element)
+  new(this.declaration, this.parameters, this.element)
     : assert(
         declaration is ConstructorDeclaration ||
             declaration is PrimaryConstructorDeclaration,
@@ -177,7 +178,7 @@ class _EnumDescription {
   /// The indexes of primary constructor parameters that need to be deleted.
   final List<int> parametersToDelete = [];
 
-  _EnumDescription({
+  new({
     required this.classDeclaration,
     required this._constructorMap,
     required this.fieldsToConvert,
@@ -192,9 +193,12 @@ class _EnumDescription {
   /// Use the [builder] and correction [utils] to apply the change necessary to
   /// convert the class to an enum.
   void applyChanges(DartFileEditBuilder builder, CorrectionUtils utils) {
-    // Replace the keyword.
+    // Replace the class keyword and remove leading class modifiers.
     builder.addSimpleReplacement(
-      range.token(classDeclaration.classKeyword),
+      range.startEnd(
+        classDeclaration.firstTokenAfterCommentAndMetadata,
+        classDeclaration.classKeyword,
+      ),
       'enum',
     );
 
@@ -564,7 +568,7 @@ class _EnumDescription {
         return null;
       }
       var arguments = field.instanceCreation.argumentList.arguments;
-      var argument = parameterData.getArgument(arguments);
+      var argument = parameterData.getArgumentExpression(arguments);
       if (argument is! IntegerLiteral) {
         return null;
       }
@@ -788,7 +792,7 @@ class _EnumVisitor extends _BaseVisitor {
 
   /// Initialize a newly created visitor to visit the class declaration
   /// corresponding to the given [classElement].
-  _EnumVisitor(super.classElement, List<_ConstantField> fieldsToConvert)
+  new(super.classElement, List<_ConstantField> fieldsToConvert)
     : fieldsToConvert = fieldsToConvert
           .map((field) => field.declaration)
           .toList();
@@ -833,11 +837,7 @@ class _FieldDeclaredInPrimaryConstructor implements _Field {
   /// The parameter that corresponds to [element].
   final FormalParameter parameter;
 
-  _FieldDeclaredInPrimaryConstructor(
-    this.element,
-    this.parameterList,
-    this.parameter,
-  );
+  new(this.element, this.parameterList, this.parameter);
 }
 
 /// Data pertaining to a field, declared in a variable declaration.
@@ -851,11 +851,7 @@ class _FieldDeclaredInVariableDeclaration implements _Field {
   /// The field declaration containing the [declaration].
   final FieldDeclaration fieldDeclaration;
 
-  _FieldDeclaredInVariableDeclaration(
-    this.element,
-    this.declaration,
-    this.fieldDeclaration,
-  );
+  new(this.element, this.declaration, this.fieldDeclaration);
 }
 
 /// A visitor that visits everything in the library other than the class being
@@ -866,7 +862,7 @@ class _FieldDeclaredInVariableDeclaration implements _Field {
 class _NonEnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit everything except the class
   /// declaration corresponding to the given [classElement].
-  _NonEnumVisitor(super.classElement);
+  new(super.classElement);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -912,13 +908,15 @@ class _Parameter {
   /// The element associated with the parameter.
   final FormalParameterElement element;
 
-  _Parameter(this.index, this.element);
+  new(this.index, this.element);
 
   /// Return the expression representing the argument associated with this
   /// parameter, or `null` if there is no such argument.
-  Expression? getArgument(NodeList<Expression> arguments) {
-    return arguments.firstWhereOrNull(
-      (argument) => argument.correspondingParameter == element,
-    );
+  Expression? getArgumentExpression(NodeList<Argument> arguments) {
+    return arguments
+        .firstWhereOrNull(
+          (argument) => argument.correspondingParameter == element,
+        )
+        ?.argumentExpression;
   }
 }

@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../tool/lsp_spec/matchers.dart';
-import '../request_helpers_mixin.dart';
 import '../server_abstract.dart';
 
 void main() {
@@ -21,8 +20,7 @@ void main() {
 }
 
 abstract class AbstractFixAllInWorkspaceTest
-    extends AbstractLspAnalysisServerTest
-    with LspProgressNotificationsMixin {
+    extends AbstractLspAnalysisServerTest {
   String get commandId;
   String get commandName;
   bool get expectRequiresConfirmation;

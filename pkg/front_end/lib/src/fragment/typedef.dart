@@ -28,7 +28,7 @@ class TypedefFragment implements Fragment {
     name.length,
   );
 
-  TypedefFragment({
+  new({
     required this.metadata,
     required this.name,
     required this.typeParameters,

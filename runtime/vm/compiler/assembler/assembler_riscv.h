@@ -1494,6 +1494,11 @@ class Assembler : public MicroAssembler {
   }
   void CompareObject(Register reg, const Object& object);
 
+  void ExtractBitField(Register dst,
+                       Register src,
+                       intptr_t low_bit,
+                       intptr_t width) override;
+
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);
 

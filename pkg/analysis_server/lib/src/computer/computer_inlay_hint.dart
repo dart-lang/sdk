@@ -28,7 +28,7 @@ class DartInlayHintComputer {
   final List<InlayHint> _hints = [];
   final LspClientInlayHintsConfiguration _config;
 
-  DartInlayHintComputer(
+  new(
     this.pathContext,
     ResolvedUnitResult result, [
     // This parameter is optional because this class is used internally
@@ -332,12 +332,12 @@ class DartInlayHintComputer {
 class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   final DartInlayHintComputer _computer;
 
-  _DartInlayHintComputerVisitor(this._computer);
+  new(this._computer);
 
   @override
   void visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         var parameter = argument.correspondingParameter;
         if (parameter != null) {
           _computer.addParameterNamePrefix(
@@ -489,22 +489,8 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    super.visitSetOrMapLiteral(node);
-
-    // Has explicit type arguments.
-    if (node.typeArguments != null) {
-      return;
-    }
-
-    var token = node.leftBracket;
-    var type = node.staticType;
-    _computer.maybeAddTypeArguments(token, type);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    super.visitSimpleFormalParameter(node);
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    super.visitRegularFormalParameter(node);
 
     // Has explicit type.
     if (node.isExplicitlyTyped) {
@@ -517,6 +503,20 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       // `required`.
       _computer.addParameterTypePrefix(node.name ?? node, declaration.type);
     }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    super.visitSetOrMapLiteral(node);
+
+    // Has explicit type arguments.
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    var token = node.leftBracket;
+    var type = node.staticType;
+    _computer.maybeAddTypeArguments(token, type);
   }
 
   @override

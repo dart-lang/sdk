@@ -13,7 +13,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
 
   /// Initialize a newly created element writer to write the HTML representation
   /// of visited nodes on the given [buffer].
-  AstWriter(this.buffer);
+  new(this.buffer);
 
   @override
   void visitNode(AstNode node) {
@@ -61,6 +61,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
         'static keyword': ?node.staticKeyword
       else if (node is FormalParameter) ...{
         'declared fragment': ?node.declaredFragment,
+        'constFinalOrVarKeyword': ?node.constFinalOrVarKeyword,
         if (node.isRequiredPositional)
           'kind': 'required-positional'
         else if (node.isRequiredNamed)

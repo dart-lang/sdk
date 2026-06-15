@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid empty statements in else clauses.';
 
 class AvoidEmptyElse extends AnalysisRule {
-  AvoidEmptyElse()
-    : super(name: LintNames.avoid_empty_else, description: _desc);
+  new() : super(name: LintNames.avoid_empty_else, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidEmptyElse;
@@ -34,7 +33,7 @@ class AvoidEmptyElse extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIfStatement(IfStatement node) {

@@ -26,7 +26,7 @@ typedef StaticOptions =
 /// [DocumentColorPresentationHandler]).
 class DocumentColorHandler
     extends SharedMessageHandler<DocumentColorParams, List<ColorInformation>> {
-  DocumentColorHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentColor;
 
@@ -75,7 +75,7 @@ class DocumentColorHandler
 
 class DocumentColorRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  DocumentColorRegistrations(super.info);
+  new(super.info);
 
   @override
   DocumentColorRegistrationOptions get options =>

@@ -84,7 +84,7 @@ abstract class AbstractNotificationManager {
       StreamController.broadcast();
 
   /// Initialize a newly created notification manager.
-  AbstractNotificationManager(this._pathContext)
+  new(this._pathContext)
     : folding = ResultCollector<List<FoldingRegion>>(serverId),
       highlights = ResultCollector<List<HighlightRegion>>(serverId),
       _navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
@@ -352,31 +352,30 @@ abstract class AbstractNotificationManager {
     _currentSubscriptions = newSubscriptions;
   }
 
-  /// Return `true` if errors should be collected for the file with the given
+  /// Returns whether errors should be collected for the file with the given
   /// [path] (because it is being analyzed).
   bool _isIncluded(String path) {
-    bool isIncluded() {
-      for (var includedPath in _includedPaths) {
-        if (_pathContext.isWithin(includedPath, path) ||
-            _pathContext.equals(includedPath, path)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    bool isExcluded() {
-      for (var excludedPath in _excludedPaths) {
-        if (_pathContext.isWithin(excludedPath, path)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
     // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
-    return isIncluded() && !isExcluded();
+    var isIncluded = false;
+    for (var includedPath in _includedPaths) {
+      if (_pathContext.isWithin(includedPath, path) ||
+          _pathContext.equals(includedPath, path)) {
+        isIncluded = true;
+        break;
+      }
+    }
+    if (!isIncluded) {
+      return false;
+    }
+
+    for (var excludedPath in _excludedPaths) {
+      if (_pathContext.isWithin(excludedPath, path)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /// Records a print notification from the analyzer plugin.
@@ -406,7 +405,7 @@ class NotificationManager extends AbstractNotificationManager {
   final ServerCommunicationChannel _channel;
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this._channel, super.pathContext);
+  new(this._channel, super.pathContext);
 
   /// Sends errors for a file to the client.
   @override

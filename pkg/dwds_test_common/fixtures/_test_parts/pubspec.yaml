@@ -1,0 +1,15 @@
+name: _test_parts
+version: 1.0.0
+description: >-
+  A fake package used for testing parts.
+publish_to: none
+environment:
+  sdk: ^3.2.0
+
+dependencies:
+  intl: ^0.17.0
+  path: ^1.6.1
+
+dev_dependencies:
+  build_runner: ^2.5.0
+  build_web_compilers: ^4.4.12

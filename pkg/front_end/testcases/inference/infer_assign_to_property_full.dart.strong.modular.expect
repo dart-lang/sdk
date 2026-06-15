@@ -28,7 +28,7 @@ class C extends self::B {
 class Test extends core::Object {
   field self::B member;
   field self::B? member2 = null;
-  constructor •(self::B member) → self::Test
+  constructor •(initializing-formal self::B member) → self::Test
     : self::Test::member = member, super core::Object::•()
     ;
   static method test(self::Test t) → void {

@@ -9,13 +9,15 @@
 
 class C1 {
   List<int>? bad;
+  //         ^^^
+  // [context 1] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
 }
 
 test(C1 c) sync* {
   if (c.bad == null) return;
   yield* c.bad;
   //     ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [analyzer] COMPILE_TIME_ERROR.YIELD_OF_INVALID_TYPE
   //       ^
   // [cfe] A value of type 'List<int>?' can't be assigned to a variable of type 'Iterable<dynamic>'.

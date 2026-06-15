@@ -41,7 +41,7 @@ abstract class CommandHandler<P, R, S extends AnalysisServer>
   @override
   final S server;
 
-  CommandHandler(this.server);
+  new(this.server);
 
   /// Whether this command records its own analytics and should be excluded from
   /// logging by the main command handler.
@@ -342,7 +342,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 /// not supported over the legacy protocol.
 abstract class LspMessageHandler<P, R>
     extends MessageHandler<P, R, LspAnalysisServer> {
-  LspMessageHandler(super.server);
+  new(super.server);
 
   /// All strict LSP handlers implicitly require a trusted handler because they
   /// either modify state (eg. `textDocument/didOpen`) or otherwise require an
@@ -376,7 +376,7 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
   @override
   final S server;
 
-  MessageHandler(this.server);
+  new(this.server);
 
   /// The method that this handler can handle.
   Method get handlesMessage;
@@ -463,7 +463,7 @@ class MessageInfo {
   /// process (for example the editor).
   final bool isTrustedCaller;
 
-  MessageInfo({
+  new({
     required this.performance,
     // TODO(dantup): Consider a version of this that has a non-nullable
     //  `LspClientCapabilities` since the majority of handlers first check this
@@ -493,8 +493,7 @@ abstract class ServerStateMessageHandler {
   final CancelRequestHandler cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
-  ServerStateMessageHandler(this.server)
-    : cancelHandler = CancelRequestHandler(server) {
+  new(this.server) : cancelHandler = CancelRequestHandler(server) {
     registerHandler(cancelHandler);
   }
 
@@ -577,5 +576,5 @@ abstract class ServerStateMessageHandler {
 /// A base class for LSP handlers that work with any [AnalysisServer].
 abstract class SharedMessageHandler<P, R>
     extends MessageHandler<P, R, AnalysisServer> {
-  SharedMessageHandler(super.server);
+  new(super.server);
 }

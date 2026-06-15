@@ -11,7 +11,7 @@ extension type X(core::int obj) {
   constructor named = self::X|constructor#named;
   constructor tearoff named = self::X|constructor#_#named#tearOff;
 }
-static extension-type-member method X|constructor#_(core::int obj) → self::X% /* erasure=core::int, declared=! */ {
+static extension-type-member method X|constructor#_(initializing-formal core::int obj) → self::X% /* erasure=core::int, declared=! */ {
   lowered final self::X% /* erasure=core::int, declared=! */ #this = obj;
   return #this;
 }

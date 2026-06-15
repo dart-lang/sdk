@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrivateSetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,19 +22,18 @@ class A {
   static int _foo = 0;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
+//  ^^^^
+// [diag.privateSetter] The setter '_foo' is private and can't be accessed outside the library that declares it.
 }
-''',
-      [error(diag.privateSetter, 31, 4)],
-    );
+''');
 
-    var assignment = findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -62,7 +62,7 @@ AssignmentExpression
   }
 
   test_typeLiteral_privateField_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   // ignore:unused_field
   static int _foo = 0;
@@ -82,19 +82,18 @@ class A {
   static int get _foo => 0;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
+//  ^^^^
+// [diag.privateSetter] The setter '_foo' is private and can't be accessed outside the library that declares it.
 }
-''',
-      [error(diag.privateSetter, 31, 4)],
-    );
+''');
 
-    var assignment = findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -128,19 +127,18 @@ class A {
   static set _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
+//  ^^^^
+// [diag.privateSetter] The setter '_foo' is private and can't be accessed outside the library that declares it.
 }
-''',
-      [error(diag.privateSetter, 31, 4)],
-    );
+''');
 
-    var assignment = findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -169,7 +167,7 @@ AssignmentExpression
   }
 
   test_typeLiteral_privateSetter_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set _foo(int _) {}
 }

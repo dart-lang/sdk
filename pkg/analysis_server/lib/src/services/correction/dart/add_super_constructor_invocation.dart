@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
-  AddSuperConstructorInvocation({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -181,7 +181,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   /// The suffix to be added after the actual invocation.
   final List<String> _suffixParts;
 
-  _AddInvocation({
+  new({
     required super.context,
     required this._constructor,
     required this._editRange,
@@ -227,9 +227,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           :var isPositional,
         ) when isPositional) {
           positionalParameters++;
-        } else if (parameter case DefaultFormalParameter(
-          :SuperFormalParameter parameter,
-        ) when parameter.isNamed) {
+        } else if (parameter case SuperFormalParameter(
+          :var isNamed,
+        ) when isNamed) {
           namedParameters.add(parameter.name.lexeme);
         }
       }

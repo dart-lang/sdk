@@ -793,6 +793,13 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitAuxiliaryPattern(AuxiliaryPattern node) {
+    throw new UnsupportedError(
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
+  }
+
+  @override
   void visitMapPatternEntry(MapPatternEntry node) {
     visited.add(NodeKind.MapPatternEntry);
     node.visitChildren(this);
@@ -968,12 +975,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
-    visited.add(StatementKind.VariableInitialization);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     visited.add(NodeKind.SwitchExpressionCase);
     node.visitChildren(this);
@@ -986,38 +987,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitLocalVariable(LocalVariable node) {
-    visited.add(VariableDeclarationKind.LocalVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitCatchVariable(CatchVariable node) {
-    visited.add(VariableDeclarationKind.CatchVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPositionalParameter(PositionalParameter node) {
-    visited.add(VariableDeclarationKind.PositionalParameter);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitNamedParameter(NamedParameter node) {
-    visited.add(VariableDeclarationKind.NamedParameter);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitThisVariable(ThisVariable node) {
-    visited.add(VariableDeclarationKind.ThisVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSyntheticVariable(SyntheticVariable node) {
-    visited.add(VariableDeclarationKind.SyntheticVariable);
+  void visitNominalParameter(NominalParameter node) {
+    visited.add(NodeKind.NominalParameter);
     node.visitChildren(this);
   }
 
@@ -1028,20 +999,56 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitNominalParameter(NominalParameter node) {
-    visited.add(NodeKind.NominalParameter);
+  void visitLocalVariable(LocalVariable node) {
+    visited.add(VariableKind.LocalVariable);
     node.visitChildren(this);
   }
 
   @override
-  void visitVariableContext(VariableContext node) {
-    visited.add(NodeKind.VariableContext);
+  void visitLateVariable(LateVariable node) {
+    visited.add(VariableKind.LateVariable);
     node.visitChildren(this);
   }
 
   @override
-  void visitScope(Scope node) {
-    visited.add(NodeKind.Scope);
+  void visitCatchVariable(CatchVariable node) {
+    visited.add(VariableKind.CatchVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    visited.add(VariableKind.PositionalParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    visited.add(VariableKind.NamedParameter);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    visited.add(VariableKind.ThisVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    visited.add(VariableKind.SyntheticVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLegacyVariable(LegacyVariable node) {
+    visited.add(NodeKind.LegacyVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    visited.add(NodeKind.VariableDeclaration);
     node.visitChildren(this);
   }
 
@@ -1336,6 +1343,7 @@ enum NodeKind {
   Extension,
   ExtensionTypeDeclaration,
   FunctionNode,
+  LegacyVariable,
   Library,
   LibraryDependency,
   LibraryPart,
@@ -1348,14 +1356,13 @@ enum NodeKind {
   NominalParameter,
   PatternGuard,
   PatternSwitchCase,
-  Scope,
   StructuralParameter,
   Supertype,
   SwitchCase,
   SwitchExpressionCase,
   TypeVariable,
   Typedef,
-  VariableContext,
+  VariableDeclaration,
 }
 
 enum MemberKind { Constructor, Field, Procedure }
@@ -1482,14 +1489,14 @@ enum StatementKind {
   SwitchStatement,
   TryCatch,
   TryFinally,
-  VariableInitialization,
   VariableStatement,
   WhileStatement,
   YieldStatement,
 }
 
-enum VariableDeclarationKind {
+enum VariableKind {
   CatchVariable,
+  LateVariable,
   LocalVariable,
   NamedParameter,
   PositionalParameter,
@@ -1526,7 +1533,7 @@ Set<Object> missingNodes(CoverageVisitor visitor) {
     ...InitializerKind.values,
     ...PatternKind.values,
     ...StatementKind.values,
-    ...VariableDeclarationKind.values,
+    ...VariableKind.values,
     ...DartTypeKind.values,
   };
   all.removeAll(visitor.visited);
@@ -1577,13 +1584,9 @@ Set<StatementKind> missingStatements(CoverageVisitor visitor) {
   return all;
 }
 
-/// Returns the set of [VariableDeclarationKind]s not visited by [visitor].
-Set<VariableDeclarationKind> missingVariableDeclarations(
-  CoverageVisitor visitor,
-) {
-  Set<VariableDeclarationKind> all = new Set<VariableDeclarationKind>.of(
-    VariableDeclarationKind.values,
-  );
+/// Returns the set of [VariableKind]s not visited by [visitor].
+Set<VariableKind> missingVariables(CoverageVisitor visitor) {
+  Set<VariableKind> all = new Set<VariableKind>.of(VariableKind.values);
   all.removeAll(visitor.visited);
   return all;
 }

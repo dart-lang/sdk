@@ -32,8 +32,13 @@ class TagsBuilder with Builder<ir.Tags> {
 
   /// Defines a new tag in the module.
   ir.Tag import(String module, String name, ir.FunctionType type) {
-    final tag =
-        ir.ImportedTag(_module, module, name, ir.FinalizableIndex(), type);
+    final tag = ir.ImportedTag(
+      _module,
+      module,
+      name,
+      ir.FinalizableIndex(),
+      type,
+    );
     _imported.add(tag);
     return tag;
   }

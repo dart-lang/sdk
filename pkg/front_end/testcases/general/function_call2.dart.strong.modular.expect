@@ -38,7 +38,7 @@ class _Closure1 extends core::Object {
 }
 class _Closure2 extends core::Object {
   final field () → void call;
-  constructor •(() → void call) → self::_Closure2
+  constructor •(initializing-formal () → void call) → self::_Closure2
     : self::_Closure2::call = call, super core::Object::•()
     ;
 }

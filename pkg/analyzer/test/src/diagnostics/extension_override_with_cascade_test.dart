@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,47 +15,44 @@ main() {
 @reflectiveTest
 class ExtensionOverrideWithCascadeTest extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get g => 0;
 }
 f() {
   E(3)..g..g;
+//^
+// [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
-''',
-      [error(diag.extensionOverrideWithCascade, 49, 1)],
-    );
-    assertTypeDynamic(findNode.extensionOverride('E('));
+''');
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void m() {}
 }
 f() {
   E(3)..m()..m();
+//^
+// [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
-''',
-      [error(diag.extensionOverrideWithCascade, 45, 1)],
-    );
-    assertTypeDynamic(findNode.extensionOverride('E('));
+''');
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set s(int i) {}
 }
 f() {
   E(3)..s = 1..s = 2;
+//^
+// [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
-''',
-      [error(diag.extensionOverrideWithCascade, 49, 1)],
-    );
-    assertTypeDynamic(findNode.extensionOverride('E('));
+''');
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 }

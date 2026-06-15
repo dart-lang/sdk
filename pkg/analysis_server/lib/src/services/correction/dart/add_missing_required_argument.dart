@@ -20,7 +20,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// The number of the parameters missing.
   late int _missingParameters;
 
-  AddMissingRequiredArgument({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -110,7 +110,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       if (creation.isWidgetExpression) {
         // If the last argument is a `child:` or `children:` parameter in a
         // Flutter widget, insert the new parameter(s) before it.
-        if (lastArgument is NamedExpression) {
+        if (lastArgument is NamedArgument) {
           if (lastArgument.isChildArgument || lastArgument.isChildrenArgument) {
             offset = lastArgument.offset;
             insertBetweenFlutterParams = true;

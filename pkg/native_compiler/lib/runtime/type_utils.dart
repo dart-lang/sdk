@@ -91,6 +91,15 @@ List<ast.DartType>? getInstantiatorTypeArguments(
   return flatTypeArgs;
 }
 
+int getNumberOfInstantiatorTypeArguments(ast.Class cls) =>
+    flattenInstantiatorTypeArguments(
+      cls,
+      List<ast.DartType>.filled(
+        cls.typeParameters.length,
+        const ast.DynamicType(),
+      ),
+    ).length;
+
 bool isAllDynamic(List<ast.DartType> typeArgs) {
   for (var t in typeArgs) {
     if (t != const ast.DynamicType()) {
@@ -105,16 +114,34 @@ int computeIndexOfTypeParameter(ast.TypeParameter tp) {
   final decl = tp.declaration!;
   int index = decl.typeParameters.indexOf(tp);
   assert(index >= 0);
-  if (decl is ast.LocalFunction) {
-    ast.TreeNode node = decl.parent!;
-    while (node is! ast.Member) {
-      if (node is ast.FunctionNode) {
-        index += node.typeParameters.length;
+  switch (decl) {
+    case ast.Class():
+      return getNumberOfInstantiatorTypeArguments(decl) -
+          decl.typeParameters.length +
+          index;
+    case ast.LocalFunction():
+      ast.TreeNode node = decl.parent!;
+      while (node is! ast.Member) {
+        if (node is ast.FunctionNode) {
+          index += node.typeParameters.length;
+        }
+        node = node.parent!;
       }
-      node = node.parent!;
-    }
+      break;
+    case ast.Procedure():
+      break;
+    default:
+      throw 'Unexpected type parameter declaration ${decl.runtimeType} $decl';
   }
   return index;
+}
+
+/// Return enclosing member of the given [node].
+ast.Member getEnclosingMember(ast.TreeNode node) {
+  do {
+    node = node.parent!;
+  } while (node is! ast.Member);
+  return node;
 }
 
 /// Returns true if [field] has a non-trivial initializer.

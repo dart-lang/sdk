@@ -116,7 +116,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   final ClassHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
 
-  ClassMembersNodeBuilder(this._membersBuilder, this._hierarchyNode);
+  new(this._membersBuilder, this._hierarchyNode);
 
   ClassHierarchyBuilder get hierarchy => _membersBuilder.hierarchyBuilder;
 
@@ -150,10 +150,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             )) {
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
-      List<VariableDeclaration> declaredPositional =
-          declaredFunction.positionalParameters;
-      List<VariableDeclaration> declaredNamed =
-          declaredFunction.namedParameters;
+      List<Variable> declaredPositional = declaredFunction.positionalParameters;
+      List<Variable> declaredNamed = declaredFunction.namedParameters;
       declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
 
       DartType? inferredReturnType;
@@ -172,9 +170,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           );
       FunctionType? combinedMemberSignatureType =
           combinedMemberSignature.getCombinedSignatureTypeInContext(
-                declaredTypeParameters,
-              )
-              as FunctionType?;
+            declaredTypeParameters,
+          ) as FunctionType?;
 
       bool cantInferReturnType = false;
       List<FormalParameterBuilder>? cantInferParameterTypes;
@@ -1202,7 +1199,7 @@ class ClassMembersNode {
 
   final ClassHierarchyNodeDataForTesting? dataForTesting;
 
-  ClassMembersNode(
+  new(
     this.classBuilder,
     this.supernode,
     this.classMemberMap,
@@ -1316,7 +1313,7 @@ class ClassHierarchyNodeDataForTesting {
   final Map<ClassMember, Set<ClassMember>> inheritedImplements;
   final Map<ClassMember, ClassMember> aliasMap = {};
 
-  ClassHierarchyNodeDataForTesting(
+  new(
     this.abstractMembers,
     this.declaredOverrides,
     this.mixinApplicationOverrides,
@@ -1335,42 +1332,42 @@ class _Tuple {
   List<ClassMember>? _implementedGetables;
   List<ClassMember>? _implementedSetables;
 
-  _Tuple.declareMember(ClassMember declaredMember)
+  new declareMember(ClassMember declaredMember)
     : assert(!declaredMember.forSetter),
       this._declaredGetable = declaredMember,
       this.name = declaredMember.name;
 
-  _Tuple.mixInMember(ClassMember mixedInMember)
+  new mixInMember(ClassMember mixedInMember)
     : assert(!mixedInMember.forSetter),
       this._mixedInGetable = mixedInMember,
       this.name = mixedInMember.name;
 
-  _Tuple.extendMember(ClassMember extendedMember)
+  new extendMember(ClassMember extendedMember)
     : assert(!extendedMember.forSetter),
       this._extendedGetable = extendedMember,
       this.name = extendedMember.name;
 
-  _Tuple.implementMember(ClassMember implementedMember)
+  new implementMember(ClassMember implementedMember)
     : assert(!implementedMember.forSetter),
       this.name = implementedMember.name,
       _implementedGetables = <ClassMember>[implementedMember];
 
-  _Tuple.declareSetter(ClassMember declaredSetter)
+  new declareSetter(ClassMember declaredSetter)
     : assert(declaredSetter.forSetter),
       this._declaredSetable = declaredSetter,
       this.name = declaredSetter.name;
 
-  _Tuple.mixInSetter(ClassMember mixedInSetter)
+  new mixInSetter(ClassMember mixedInSetter)
     : assert(mixedInSetter.forSetter),
       this._mixedInSetable = mixedInSetter,
       this.name = mixedInSetter.name;
 
-  _Tuple.extendSetter(ClassMember extendedSetter)
+  new extendSetter(ClassMember extendedSetter)
     : assert(extendedSetter.forSetter),
       this._extendedSetable = extendedSetter,
       this.name = extendedSetter.name;
 
-  _Tuple.implementSetter(ClassMember implementedSetter)
+  new implementSetter(ClassMember implementedSetter)
     : assert(implementedSetter.forSetter),
       this.name = implementedSetter.name,
       _implementedSetables = <ClassMember>[implementedSetter];
@@ -1630,7 +1627,6 @@ class _Tuple {
         !tupleMixedInSetter.isStatic &&
         !tupleMixedInSetter.isDuplicate &&
         !tupleMixedInSetter.isSynthesized) {
-      // Coverage-ignore-block(suite): Not run.
       /// We treat
       ///
       ///   class Mixin {
@@ -1676,6 +1672,7 @@ class _Tuple {
       } else if (!definingSetable.isDuplicate) {
         if (definingSetable.isStatic ||
             definingSetable.isProperty != tupleMixedInSetter.isProperty) {
+          // Coverage-ignore-block(suite): Not run.
           builder.reportInheritanceConflict(
             definingSetable,
             tupleMixedInSetter,
@@ -1990,7 +1987,7 @@ class _SanitizedMember {
   /// The members inherited from the super interfaces, if none this is `null`.
   final List<ClassMember>? _implementedMembers;
 
-  _SanitizedMember(
+  new(
     this.name,
     this._definingMember,
     this._declaredMember,
@@ -2808,7 +2805,7 @@ class _Overrides {
   ClassMember? mixedInMethod;
   List<ClassMember>? mixedInProperties;
 
-  _Overrides({
+  new({
     required ClassBuilder classBuilder,
     required Map<ClassMember, Set<ClassMember>> inheritedImplementsMap,
     required ClassHierarchyNodeDataForTesting? dataForTesting,

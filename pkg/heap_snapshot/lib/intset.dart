@@ -26,7 +26,7 @@ class SpecializedIntSet extends SetBase<int> {
   int _length = 0;
 
   SpecializedIntSet(this.maxLength)
-      : _data = Uint32List((maxLength + 31) ~/ 32);
+    : _data = Uint32List((maxLength + 31) ~/ 32);
 
   @override
   Iterator<int> get iterator => _SpecializedIntSetIterator(this);

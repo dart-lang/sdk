@@ -2,31 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_initializer_late_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = super;
+//                ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 28, 5)],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -49,13 +49,13 @@ FieldDeclaration
   }
 
   test_initializer_late_this() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = this;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -78,17 +78,16 @@ FieldDeclaration
   }
 
   test_initializer_notLate_field() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a = 0;
   final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
-    );
+''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -112,17 +111,16 @@ FieldDeclaration
   }
 
   test_initializer_notLate_getterInvocation() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get a => 0;
   final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 44, 1)],
-    );
+''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -146,17 +144,16 @@ FieldDeclaration
   }
 
   test_initializer_notLate_methodInvocation() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int a() => 0;
   final int b = a();
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 42, 1)],
-    );
+''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -186,16 +183,15 @@ FieldDeclaration
   }
 
   test_initializer_notLate_this() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final a = this;
+//          ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 22, 4)],
-    );
+''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -214,62 +210,62 @@ FieldDeclaration
   }
 
   test_session_getterSetter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = 0;
 }
 ''');
-    var getter = findElement2.getter('f');
+    var getter = result.findElement.getter('f');
     expect(getter.session, result.session);
 
-    var setter = findElement2.setter('f');
+    var setter = result.findElement.setter('f');
     expect(setter.session, result.session);
   }
 
   test_type_inferred_int() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = 0;
 }
 ''');
-    assertType(findElement2.field('f').type, 'int');
+    assertType(result.findElement.field('f').type, 'int');
   }
 
   test_type_inferred_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = throw 42;
 }
 ''');
-    assertType(findElement2.field('f').type, 'Never');
+    assertType(result.findElement.field('f').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f;
 }
 ''');
-    assertType(findElement2.field('f').type, 'dynamic');
+    assertType(result.findElement.field('f').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = null;
 }
 ''');
-    assertType(findElement2.field('f').type, 'dynamic');
+    assertType(result.findElement.field('f').type, 'dynamic');
   }
 
   test_type_scope() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   var f = <T>[];
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList

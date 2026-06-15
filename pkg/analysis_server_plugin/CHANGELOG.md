@@ -1,7 +1,48 @@
-## 0.3.14-dev
+## 0.3.19-dev
 
-- Require version `12.1.0-dev` of the `analyzer` package.
-- Require version `0.14.8-dev` of the `analyzer_plugin` package.
+- Require version `^14.0.0-0` of the `analyzer` package.
+- Require version `0.14.13-dev` of the `analyzer_plugin` package.
+
+## 0.3.18
+
+- Require version `13.3.0` of the `analyzer` package.
+- Require version `0.14.12` of the `analyzer_plugin` package.
+
+## 0.3.17
+
+- Require version `13.2.0` of the `analyzer` package.
+- Require version `0.14.11` of the `analyzer_plugin` package.
+- Export the following classes from `analyzer_plugin` for convenience:
+  - `ChangeBuilder` (along with `ChangeWorkspace`, `EditBuilder`,
+    `FileEditBuilder`, `LinkedEditBuilder`, `DartFileEditBuilder`,
+    `DartEditBuilder`, `DartLinkedEditBuilder`, `ImportLibraryElementResult`,
+    `YamlFileEditBuilder`, `YamlEditBuilder`, `YamlLinkedEditBuilder`,
+    `LinkedEditSuggestionKind`, `Position`, and `SourceChange`, which are found
+    in `ChangeBuilder`'s public API.
+  - `AssistKind`
+  - `FixKind`
+  - `RangeFactory` (and the `range` singleton instance)
+
+## 0.3.16
+
+- Require version `13.1.0` of the `analyzer` package.
+- Require version `0.14.10` of the `analyzer_plugin` package.
+- Overhaul the plugin server which decides what files to re-analyze after
+  various events, including overlay changes (in the IDE), file watch events,
+  etc. This change results in better results caching, so that, generally
+  speaking, fewer files need to be re-analyzed while making changes in the IDE.
+
+## 0.3.15
+
+- Add "plugin shutdown" support. Override `Plugin.shutdown` to take actions
+  like cleaning up resources.
+- Require version `13.0.0` of the `analyzer` package.
+- Require version `0.14.9` of the `analyzer_plugin` package.
+
+## 0.3.14
+
+- Require version `12.1.0` of the `analyzer` package.
+- Require version `0.14.8` of the `analyzer_plugin` package.
 
 ## 0.3.13
 

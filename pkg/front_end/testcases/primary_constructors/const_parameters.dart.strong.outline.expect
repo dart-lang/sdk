@@ -1,4 +1,21 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
+//   this : a = d.length, b = c;
+//          ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:31:13: Context: 'a' was initialized here.
+//   final int a = d.length;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:24: Error: 'b' is a final instance variable that was initialized at the declaration.
+//   this : a = d.length, b = c;
+//                        ^
+// pkg/front_end/testcases/primary_constructors/const_parameters.dart:32:13: Context: 'b' was initialized here.
+//   final int b = c;
+//             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -20,21 +37,25 @@ class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
   const constructor •(final core::int c, final dynamic d) → self::C2
-    : super core::Object::•()
+    : self::C2::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C2::b = c, super core::Object::•()
     ;
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
   const constructor •(final core::int c, final dynamic d) → self::C3
-    : self::C3::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, super core::Object::•()
+    : self::C3::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C3::b = c, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
   const constructor •(final core::int c, final dynamic d) → self::C4
-    : self::C4::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C4::b = c, super core::Object::•()
+    : self::C4::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C4::b = c, invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
+  this : a = d.length, b = c;
+         ^", invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:24: Error: 'b' is a final instance variable that was initialized at the declaration.
+  this : a = d.length, b = c;
+                       ^"
     ;
 }
 class C5 extends core::Object /*hasConstConstructor*/  {

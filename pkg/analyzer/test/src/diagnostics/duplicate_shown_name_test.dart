@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DuplicateShownNameTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -20,26 +21,27 @@ class DuplicateShownNameTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 export 'lib1.dart' show A, B, A;
-''',
-      [error(diag.duplicateShownName, 30, 1)],
-    );
+//                            ^
+// [diag.duplicateShownName] Duplicate shown name.
+''');
   }
 
   test_part_shown() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 export 'dart:math' show pi, Random, pi;
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.duplicateShownName, 54, 2)]);
+//                                  ^^
+// [diag.duplicateShownName] Duplicate shown name.
+''',
+    });
   }
 }

@@ -32,14 +32,11 @@ class C {
   }
 
   test_instanceSetter_voidReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  void set f(int p) {}
+  [!void!] set f(int p) {}
 }
-''',
-      [lint(12, 4)],
-    );
+''');
   }
 
   test_staticSetter_implicitReturnType() async {
@@ -51,22 +48,16 @@ class C {
   }
 
   test_staticSetter_voidReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  static void set f(String p) {}
+  static [!void!] set f(String p) {}
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_voidReturnType() async {
-    await assertDiagnostics(
-      r'''
-void set f(int p) {}
-''',
-      [lint(0, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!void!] set f(int p) {}
+''');
   }
 }

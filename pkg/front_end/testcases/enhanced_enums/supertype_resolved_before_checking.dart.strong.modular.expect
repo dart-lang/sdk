@@ -26,12 +26,12 @@ class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<se
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&GM<S extends core::num, T extends core::num> = core::_Enum with self::GM<self::_E&_Enum&GM::T> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&GM<self::_E&_Enum&GM::S, self::_E&_Enum&GM::T>
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E&_Enum&GM<self::_E&_Enum&GM::S, self::_E&_Enum&GM::T>
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E&_Enum&GM&M<S extends core::num, T extends core::num> = self::_E&_Enum&GM<self::_E&_Enum&GM&M::S, self::_E&_Enum&GM&M::T> with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&GM&M<self::_E&_Enum&GM&M::S, self::_E&_Enum&GM&M::T>
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E&_Enum&GM&M<self::_E&_Enum&GM&M::S, self::_E&_Enum&GM&M::T>
     : super self::_E&_Enum&GM::•(index, _name)
     ;
 }

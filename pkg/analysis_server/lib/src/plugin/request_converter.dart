@@ -5,30 +5,31 @@
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/// An object used to convert between similar objects defined by both the plugin
-/// protocol and the server protocol.
-class RequestConverter {
-  plugin.AnalysisService convertAnalysisService(
-    server.AnalysisService service,
-  ) {
-    return plugin.AnalysisService.values.byName(service.name);
-  }
+extension AnalysisServiceExtension on server.AnalysisService {
+  plugin.AnalysisService get asPluginProtocol =>
+      plugin.AnalysisService.values.byName(name);
+}
 
-  plugin.AnalysisSetPriorityFilesParams convertAnalysisSetPriorityFilesParams(
-    server.AnalysisSetPriorityFilesParams params,
-  ) {
-    return plugin.AnalysisSetPriorityFilesParams(params.files);
-  }
+extension AnalysisSetAnalysisRootsParamsExtension
+    on server.AnalysisSetAnalysisRootsParams {
+  plugin.AnalysisSetAnalysisRootsParams get asPluginProtocol =>
+      plugin.AnalysisSetAnalysisRootsParams(included, excluded);
+}
 
-  plugin.AnalysisSetSubscriptionsParams convertAnalysisSetSubscriptionsParams(
-    server.AnalysisSetSubscriptionsParams params,
-  ) {
-    var serverSubscriptions = params.subscriptions;
+extension AnalysisSetPriorityFilesParamsExtension
+    on server.AnalysisSetPriorityFilesParams {
+  plugin.AnalysisSetPriorityFilesParams get asPluginProtocol =>
+      plugin.AnalysisSetPriorityFilesParams(files);
+}
+
+extension AnalysisSetSubscriptionsParamsExtension
+    on server.AnalysisSetSubscriptionsParams {
+  plugin.AnalysisSetSubscriptionsParams get asPluginProtocol {
     var pluginSubscriptions = <plugin.AnalysisService, List<String>>{};
-    for (var entry in serverSubscriptions.entries) {
+    for (var entry in subscriptions.entries) {
       var service = entry.key;
       try {
-        pluginSubscriptions[convertAnalysisService(service)] = entry.value;
+        pluginSubscriptions[service.asPluginProtocol] = entry.value;
       } catch (exception) {
         // Ignore the exception. It indicates that the service isn't one that
         // should be passed along to plugins.
@@ -36,10 +37,10 @@ class RequestConverter {
     }
     return plugin.AnalysisSetSubscriptionsParams(pluginSubscriptions);
   }
+}
 
-  plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
-    server.AnalysisUpdateContentParams params,
-  ) {
-    return plugin.AnalysisUpdateContentParams(params.files);
-  }
+extension AnalysisUpdateContentParamsExtension
+    on server.AnalysisUpdateContentParams {
+  plugin.AnalysisUpdateContentParams get asPluginProtocol =>
+      plugin.AnalysisUpdateContentParams(files);
 }

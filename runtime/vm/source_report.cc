@@ -134,10 +134,10 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.is_synthetic() || func.is_redirecting_factory()) {
+      func.is_synthetic() || func.IsRedirectingFactory()) {
     return true;
   }
-  if (func.IsNonImplicitClosureFunction() &&
+  if (func.IsNonImplicitClosureFunction() && !func.HasBytecode() &&
       (func.context_scope() == ContextScope::null())) {
     // TODO(iposva): This can arise if we attempt to compile an inner function
     // before we have compiled its enclosing function or if the enclosing
@@ -202,6 +202,16 @@ bool SourceReport::ShouldSkipField(const Field& field) {
       return true;
     }
   }
+
+  // Static const fields from compiled code will not have an initializer
+  // function, just an implicit static getter (which is skipped).
+  // Static const fields in bytecode _do_ have initializer functions,
+  // though, so skip them to ensure they aren't reported in the coverage
+  // information so as to match coverage for compile code.
+  if (field.is_static() && field.is_const()) {
+    return true;
+  }
+
   return false;
 }
 
@@ -332,13 +342,12 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
 }
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
+                                     const Script& script,
                                      intptr_t script_index,
                                      const Function& function,
                                      bool report_branch_coverage) {
   const TokenPosition& begin_pos = function.token_pos();
   const TokenPosition& end_pos = function.end_token_pos();
-
-  const Script& script = Script::Handle(zone(), function.script());
 
   bool const_constructor_hit = false;
   if (function.IsFunction() && function.is_const()) {
@@ -384,15 +393,15 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   };
 
   // Merge the coverage from coverage_array attached to the function.
-  const Array& coverage_array = Array::Handle(function.GetCoverageArray());
+  const auto& coverage_array = TypedData::Handle(function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
       bool is_branch_coverage;
       const TokenPosition token_pos = TokenPosition::DecodeCoveragePosition(
-          Smi::Value(Smi::RawCast(coverage_array.At(i))), &is_branch_coverage);
+          coverage_array.GetUint32(i * kInt32Size), &is_branch_coverage);
       if (is_branch_coverage == report_branch_coverage) {
         const bool was_executed =
-            Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+            coverage_array.GetUint32((i + 1) * kInt32Size) != 0;
         update_coverage(token_pos, was_executed || const_constructor_hit);
       }
     }
@@ -424,6 +433,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 }
 
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
+                                                const Script& script,
                                                 const Function& func,
                                                 const Code& code) {
   const TokenPosition& begin_pos = func.token_pos();
@@ -431,7 +441,6 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   intptr_t func_length = func.SourceSize() + 1;
 
   BitVector possible(zone(), func_length);
-  const Script& script = Script::Handle(zone(), func.script());
 
   if (func.HasBytecode()) {
 #if defined(DART_DYNAMIC_MODULES)
@@ -539,6 +548,37 @@ void SourceReport::PrintScriptTable(JSONArray* scripts) {
   }
 }
 
+void SourceReport::VisitCodeOrBytecode(JSONObject* jsobj,
+                                       const Script& script,
+                                       intptr_t script_index,
+                                       const Function& func,
+                                       const Code& code,
+                                       CompileMode compile_mode) {
+  ASSERT(!code.IsNull() || func.HasBytecode());
+  // TODO(sstrickl): Handle call site data for bytecode.
+  if (IsReportRequested(kCallSites) && !code.IsNull()) {
+    PrintCallSitesData(jsobj, func, code);
+  }
+  if (IsReportRequested(kCoverage)) {
+    PrintCoverageData(jsobj, script, script_index, func,
+                      /* report_branch_coverage */ false);
+  }
+  if (IsReportRequested(kBranchCoverage)) {
+    PrintCoverageData(jsobj, script, script_index, func,
+                      /* report_branch_coverage */ true);
+  }
+  if (IsReportRequested(kPossibleBreakpoints)) {
+    PrintPossibleBreakpointsData(jsobj, script, func, code);
+  }
+  if (IsReportRequested(kProfile)) {
+    if (auto* const profile_function = profile_.FindFunction(func)) {
+      if (profile_function->NumSourcePositions() > 0) {
+        PrintProfileData(jsobj, profile_function);
+      }
+    }
+  }
+}
+
 void SourceReport::VisitFunction(JSONArray* jsarr,
                                  const Function& func,
                                  CompileMode compile_mode) {
@@ -555,64 +595,35 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
     return;
   }
 
-  auto& code = Code::Handle(zone());
-  if (!func.HasBytecode()) {
-    code = func.unoptimized_code();
-    if (code.IsNull()) {
-      if (func.HasCode() || (compile_mode == kForceCompile)) {
-        const Error& err =
-            Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
-        if (!err.IsNull()) {
-          // Emit an uncompiled range for this function with error information.
-          JSONObject range(jsarr);
-          range.AddProperty("scriptIndex", script_index);
-          range.AddProperty("startPos", begin_pos);
-          range.AddProperty("endPos", end_pos);
-          range.AddProperty("compiled", false);
-          range.AddProperty("error", err);
-          return;
-        }
-        code = func.unoptimized_code();
-      } else {
-        // This function has not been compiled yet.
-        JSONObject range(jsarr);
-        range.AddProperty("scriptIndex", script_index);
-        range.AddProperty("startPos", begin_pos);
-        range.AddProperty("endPos", end_pos);
-        range.AddProperty("compiled", false);
-        return;
-      }
+  auto& code = Code::Handle(zone(), func.unoptimized_code());
+  auto& err = Error::Handle(zone());
+  bool is_compiled = !code.IsNull();
+  if (func.HasBytecode()) {
+    ASSERT(code.IsNull());
+    // We treat unexecuted bytecode as "uncompiled" unless force compilation was
+    // requested, to match the reports for compiled code.
+    is_compiled = func.WasExecuted() || compile_mode == kForceCompile;
+  } else if (code.IsNull() &&
+             (func.HasCode() || (compile_mode == kForceCompile))) {
+    err = Compiler::EnsureUnoptimizedCode(thread(), func);
+    if (err.IsNull()) {
+      is_compiled = true;
+      code = func.unoptimized_code();
+    } else {
+      // Emit an uncompiled range for this function with error information.
     }
   }
-  ASSERT(!code.IsNull() || func.HasBytecode());
 
   JSONObject range(jsarr);
   range.AddProperty("scriptIndex", script_index);
   range.AddProperty("startPos", begin_pos);
   range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);
-
-  // TODO(sstrickl): Handle call site data for bytecode.
-  if (IsReportRequested(kCallSites) && !code.IsNull()) {
-    PrintCallSitesData(&range, func, code);
+  range.AddProperty("compiled", is_compiled);
+  if (!err.IsNull()) {
+    range.AddProperty("error", err);
   }
-  if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, script_index, func,
-                      /* report_branch_coverage */ false);
-  }
-  if (IsReportRequested(kBranchCoverage)) {
-    PrintCoverageData(&range, script_index, func,
-                      /* report_branch_coverage */ true);
-  }
-  if (IsReportRequested(kPossibleBreakpoints)) {
-    PrintPossibleBreakpointsData(&range, func, code);
-  }
-  if (IsReportRequested(kProfile)) {
-    ProfileFunction* profile_function = profile_.FindFunction(func);
-    if ((profile_function != nullptr) &&
-        (profile_function->NumSourcePositions() > 0)) {
-      PrintProfileData(&range, profile_function);
-    }
+  if (is_compiled) {
+    VisitCodeOrBytecode(&range, script, script_index, func, code, compile_mode);
   }
 }
 

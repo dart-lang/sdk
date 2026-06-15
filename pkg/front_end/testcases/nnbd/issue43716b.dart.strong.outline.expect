@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C<X extends (self::C::X%) →? void = (Never) →? void> extends core::Object {
   covariant-by-class field self::C::X% x;
-  constructor •(self::C::X% x) → self::C<self::C::X%>
+  constructor •(initializing-formal self::C::X% x) → self::C<self::C::X%>
     ;
   method m() → void
     ;

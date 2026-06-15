@@ -46,28 +46,33 @@ void f(dynamic x) {
 ''');
   }
 
-  test_extension_types() async {
-    await assertDiagnostics(
-      r'''
+  test_extensionTypes_same() async {
+    await assertNoDiagnostics(r'''
 void m(A a, B b) {
   if (a == b) {}
 }
 extension type A(String value) {}
 extension type B(String value) {}
-''',
-      [lint(27, 2)],
-    );
+''');
   }
 
-  test_extension_types_ok() async {
+  test_extensionTypes_sameRepresentationType() async {
     await assertNoDiagnostics(r'''
-void m(A a1, A a2, B b) {
-  if (a1 == a2) {}
-  if (a1 == b) {}
-  if (b == a1) {}
+void m(A a, B b) {
+  if (a == b) {}
 }
 extension type A(String value) {}
-extension type B(String value) implements A {}
+extension type B(String value) {}
+''');
+  }
+
+  test_extensionTypes_unrelatedRepresentationType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void m(A a, B b) {
+  if (a [!==!] b) {}
+}
+extension type A(String value) {}
+extension type B(int value) {}
 ''');
   }
 
@@ -82,16 +87,13 @@ void f(Int32 p) {
   }
 
   test_fixnum_int32_rightSide() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:fixnum/fixnum.dart';
 
 void f(Int32 p) {
-  if (0 == p) {}
+  if (0 [!==!] p) {}
 }
-''',
-      [lint(64, 2)],
-    );
+''');
   }
 
   test_fixnum_int64_leftSide() async {
@@ -105,16 +107,13 @@ void f(Int64 p) {
   }
 
   test_fixnum_int64_rightSide() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:fixnum/fixnum.dart';
 
 void f(Int64 p) {
-  if (0 == p) {}
+  if (0 [!==!] p) {}
 }
-''',
-      [lint(64, 2)],
-    );
+''');
   }
 
   test_futureOfDynamic_andFutureOfVoid() async {
@@ -154,16 +153,13 @@ class C with M {}
   }
 
   test_mixins() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(M1 m1, M2 m2) {
-  if (m1 == m2) {}
+  if (m1 [!==!] m2) {}
 }
 mixin M1 {}
 mixin M2 {}
-''',
-      [lint(32, 2)],
-    );
+''');
   }
 
   test_mixins_ok() async {
@@ -203,16 +199,13 @@ enum E { one, two; }
   }
 
   test_oneEnum_andUnrelatedEnum() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(E x, F y) {
-  if (x == y) {}
+  if (x [!==!] y) {}
 }
 enum E { one, two; }
 enum F { three, four; }
-''',
-      [lint(27, 2)],
-    );
+''');
   }
 
   test_oneType_andSubtype() async {
@@ -234,19 +227,16 @@ void f<A, B extends A>(A a, B b) {
   }
 
   test_protobufEnum_differentEnums() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:protobuf/src/protobuf/protobuf_enum.dart';
 
 void f(E1 one, E2 two) {
-  print(one == two);
+  print(one [!==!] two);
 }
 
 class E1 extends ProtobufEnum {}
 class E2 extends ProtobufEnum {}
-''',
-      [lint(97, 2)],
-    );
+''');
   }
 
   test_protobufEnum_sameEnum() async {
@@ -262,12 +252,9 @@ class E extends ProtobufEnum {}
   }
 
   test_recordAndInterfaceType_unrelated() async {
-    await assertDiagnostics(
-      r'''
-bool f((int, int) a, String b) => a == b;
-''',
-      [lint(36, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool f((int, int) a, String b) => a [!==!] b;
+''');
   }
 
   test_records_related() async {
@@ -277,12 +264,9 @@ bool f((int, int) a, (num, num) b) => a == b;
   }
 
   test_records_unrelated() async {
-    await assertDiagnostics(
-      r'''
-bool f((int, int) a, (String, String) b) => a == b;
-''',
-      [lint(46, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool f((int, int) a, (String, String) b) => a [!==!] b;
+''');
   }
 
   test_recordsWithNamed_related() async {
@@ -292,12 +276,9 @@ bool f(({int one, int two}) a, ({num two, num one}) b) => a == b;
   }
 
   test_recordsWithNamed_unrelated() async {
-    await assertDiagnostics(
-      r'''
-bool f(({int one, int two}) a, ({String one, String two}) b) => a == b;
-''',
-      [lint(66, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool f(({int one, int two}) a, ({String one, String two}) b) => a [!==!] b;
+''');
   }
 
   test_recordsWithNamedAndPositional_related() async {
@@ -307,23 +288,17 @@ bool f((int, {int two}) a, (num one, {num two}) b) => a == b;
   }
 
   test_recordsWithNamedAndPositional_unrelated() async {
-    await assertDiagnostics(
-      r'''
-bool f((int, {int two}) a, (String one, {String two}) b) => a == b;
-''',
-      [lint(62, 2)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+bool f((int, {int two}) a, (String one, {String two}) b) => a [!==!] b;
+''');
   }
 
   test_string_andInt() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if ('foo' == 1) {}
+  if ('foo' [!==!] 1) {}
 }
-''',
-      [lint(23, 2)],
-    );
+''');
   }
 
   test_string_andNull() async {
@@ -412,14 +387,11 @@ String f(String char) {
   }
 
   test_twoListsOfTypeVariables_unrelatedBounds() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f<A extends int, B extends bool>(List<A> a, List<B> b) {
-  if (a == b) {}
+  if (a [!==!] b) {}
 }
-''',
-      [lint(70, 2)],
-    );
+''');
   }
 
   test_twoListsOfUnrelatedTypeVariables() async {
@@ -447,19 +419,16 @@ void f<A, B>(Map<int, A> a, Map<int, B> b) {
   }
 
   test_twoSubtypesOfSharedDistantSupertype() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(D2 x, E2 y) {
-  if (x == y) {}
+  if (x [!==!] y) {}
 }
 class C {}
 class D1 extends C {}
 class E1 extends C {}
 class D2 extends D1 {}
 class E2 extends E1 {}
-''',
-      [lint(29, 2)],
-    );
+''');
   }
 
   test_twoSubtypesOfSharedSupertype() async {
@@ -482,14 +451,11 @@ void f<A extends int, B extends int>(A a, B b) {
   }
 
   test_twoTypeVariables_unrelatedBounds() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f<A extends int, B extends bool>(A a, B b) {
-  if (a == b) {}
+  if (a [!==!] b) {}
 }
-''',
-      [lint(58, 2)],
-    );
+''');
   }
 
   test_twoUnrelatedTypeVariables() async {

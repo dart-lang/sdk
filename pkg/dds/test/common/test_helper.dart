@@ -56,7 +56,7 @@ Future<io.Process> spawnDartProcess(
     if (pauseOnStart) '--pause-isolates-on-start',
     if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',
-    ...io.Platform.executableArguments,
+    ...io.Platform.executableArguments.where((arg) => arg != '--mark_main_isolate_as_system_isolate'),
     resolveTestRelativePath(script).toFilePath(),
   ];
   final process = await io.Process.start(executable, arguments);
@@ -325,10 +325,12 @@ class _ServiceTesteeLauncher {
   }
 }
 
-void setupAddresses(Uri /*!*/ serverAddress) {
-  serviceWebsocketAddress =
-      'ws://${serverAddress.authority}${serverAddress.path}ws';
-  serviceHttpAddress = 'http://${serverAddress.authority}${serverAddress.path}';
+void setupAddresses(Uri serverAddress) {
+  serviceWebsocketAddress = serverAddress.replace(
+    scheme: 'ws',
+    pathSegments: [...serverAddress.pathSegments, 'ws'],
+  ).toString();
+  serviceHttpAddress = serverAddress.replace(scheme: 'http').toString();
 }
 
 class _ServiceTesterRunner {

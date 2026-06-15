@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/workspace/workspace.dart';
-import 'package:path/path.dart' as path;
 
 /// Return the compilation unit of a node
 CompilationUnit? getCompilationUnit(AstNode node) =>
@@ -86,17 +85,11 @@ SyntacticEntity getNodeToAnnotate(AstNode node) {
   } else if (node is VariableDeclaration) {
     return node.name;
   } else if (node is ExtensionTypeDeclaration) {
-    return node.primaryConstructor.typeName;
+    return node.namePart.typeName;
   }
   assert(false, "Unaccounted for node type: '${node.runtimeType}'");
   return node;
 }
-
-/// If the [node] is the finishing identifier of an assignment, return its
-/// "writeElement", otherwise return its "element", which might be
-/// thought as the "readElement".
-Element? getWriteOrReadElement(SimpleIdentifier node) =>
-    _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
     node.computeConstantValue()?.diagnostics.isNotEmpty ?? true;
@@ -120,13 +113,14 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
-  var libDir = path.join(package.root.path, 'lib');
-  var binDir = path.join(package.root.path, 'bin');
+  var pathContext = package.root.provider.pathContext;
+  var libDir = pathContext.join(package.root.path, 'lib');
+  var binDir = pathContext.join(package.root.path, 'bin');
   // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
-  var buildHookFile = path.join(package.root.path, 'hook', 'build.dart');
-  var linkHookFile = path.join(package.root.path, 'hook', 'link.dart');
-  return path.isWithin(libDir, cuPath) ||
-      path.isWithin(binDir, cuPath) ||
+  var buildHookFile = pathContext.join(package.root.path, 'hook', 'build.dart');
+  var linkHookFile = pathContext.join(package.root.path, 'hook', 'link.dart');
+  return pathContext.isWithin(libDir, cuPath) ||
+      pathContext.isWithin(binDir, cuPath) ||
       cuPath == buildHookFile ||
       cuPath == linkHookFile;
 }
@@ -217,7 +211,7 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
 
   // Look for a pubspec.yaml file.
   for (var folder in file.parent.withAncestors) {
-    var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    var pubspecFile = folder.getFile('pubspec.yaml');
     if (pubspecFile.exists) {
       return pubspecFile;
     }
@@ -291,33 +285,6 @@ int? _getIntValue(
   if (value is! int) return null;
 
   return negated ? -value : value;
-}
-
-/// If the [node] is the target of a [CompoundAssignmentExpression],
-/// return the corresponding "writeElement", which is the local variable,
-/// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
-/// or the `[]=` operator.
-Element? _getWriteElement(AstNode node) {
-  var parent = node.parent;
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement;
-  }
-  if (parent is PostfixExpression) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression) {
-    return parent.writeElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _getWriteElement(parent);
-  }
-
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _getWriteElement(parent);
-  }
-
-  return null;
 }
 
 bool _hasFieldOrMethod(ClassMember element, String name) =>

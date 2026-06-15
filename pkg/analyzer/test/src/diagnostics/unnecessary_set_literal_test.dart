@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessarySetLiteralTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessarySetLiteralTest extends PubPackageResolutionTest {
   test_blockFunctionBody() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f() {
@@ -26,7 +27,7 @@ void f() {
   }
 
   test_expressionFunctionBody_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(Function() fun) {}
 
 void f() {
@@ -36,7 +37,7 @@ void f() {
   }
 
   test_expressionFunctionBody_future() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(Future Function() fun) {}
 
 void f() {
@@ -46,7 +47,7 @@ void f() {
   }
 
   test_expressionFunctionBody_future_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(Future<Object> Function() fun) {}
 
 void f() {
@@ -56,20 +57,19 @@ void f() {
   }
 
   test_expressionFunctionBody_future_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(Future<void> Function() fun) {}
 
 void f() {
   g(() async => {1});
+//              ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 67, 3)],
-    );
+''');
   }
 
   test_expressionFunctionBody_futureOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 void g(FutureOr Function() fun) {}
@@ -81,7 +81,7 @@ void f() {
   }
 
   test_expressionFunctionBody_futureOr_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 void g(FutureOr<Object> Function() fun) {}
@@ -93,22 +93,21 @@ void f() {
   }
 
   test_expressionFunctionBody_futureOr_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 void g(FutureOr<void> Function() fun) {}
 
 void f() {
   g(() async => {1});
+//              ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 91, 3)],
-    );
+''');
   }
 
   test_expressionFunctionBody_map() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f() {
@@ -118,33 +117,31 @@ void f() {
   }
 
   test_expressionFunctionBody_multipleElements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f() {
   g(() => {1, 2});
+//        ^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 53, 6)],
-    );
+''');
   }
 
   test_expressionFunctionBody_multipleElements_statements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f(bool b) {
   g(() => {1, if (b) 2 else 3, 4, for (;;) 5},);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 59, 35)],
-    );
+''');
   }
 
   test_expressionFunctionBody_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(Object Function() fun) {}
 
 void f() {
@@ -154,33 +151,31 @@ void f() {
   }
 
   test_expressionFunctionBody_statement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function(bool) fun) {}
 
 void f() {
   g((value) => {if (value) print('')});
+//             ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 62, 22)],
-    );
+''');
   }
 
   test_expressionFunctionBody_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f() {
   g(() => {1});
+//        ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 }
-''',
-      [error(diag.unnecessarySetLiteral, 53, 3)],
-    );
+''');
   }
 
   test_expressionFunctionBody_void_empty() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void g(void Function() fun) {}
 
 void f() {
@@ -190,34 +185,33 @@ void f() {
   }
 
   test_functionDeclaration_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() => {1};
 ''');
   }
 
   test_functionDeclaration_future() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future f() async => {1};
 ''');
   }
 
   test_functionDeclaration_future_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<Object> f() async => {1};
 ''');
   }
 
   test_functionDeclaration_future_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void> f() async => {1};
-''',
-      [error(diag.unnecessarySetLiteral, 26, 3)],
-    );
+//                        ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 
   test_functionDeclaration_futureOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr f() async => {1};
@@ -225,7 +219,7 @@ FutureOr f() async => {1};
   }
 
   test_functionDeclaration_futureOr_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr<Object> f() async => {1};
@@ -233,61 +227,56 @@ FutureOr<Object> f() async => {1};
   }
 
   test_functionDeclaration_futureOr_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr<void> f() async => {1};
-''',
-      [error(diag.unnecessarySetLiteral, 50, 3)],
-    );
+//                          ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 
   test_functionDeclaration_map() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() => {1: 2};
 ''');
   }
 
   test_functionDeclaration_multipleElements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() => {1, 2};
-''',
-      [error(diag.unnecessarySetLiteral, 12, 6)],
-    );
+//          ^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 
   test_functionDeclaration_multipleElements_statements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) => {1, if (b) 2 else 3, 4, for (;;) 5};
-''',
-      [error(diag.unnecessarySetLiteral, 18, 35)],
-    );
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 
   test_functionDeclaration_object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f() => {1};
 ''');
   }
 
   test_functionDeclaration_statement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool value) => {if (value) print('')};
-''',
-      [error(diag.unnecessarySetLiteral, 22, 22)],
-    );
+//                    ^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 
   test_functionDeclaration_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() => {1};
-''',
-      [error(diag.unnecessarySetLiteral, 12, 3)],
-    );
+//          ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
   }
 }

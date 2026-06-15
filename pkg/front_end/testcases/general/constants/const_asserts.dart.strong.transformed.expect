@@ -101,16 +101,16 @@ import "dart:core" as core;
 
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(core::int x) → self::Foo
+  const constructor •(initializing-formal core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(x.{core::num::>}(0){(core::num) → core::bool}, ""), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false, #C2), assert(#C1 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
     ;
-  const constructor withMessage(core::int x) → self::Foo
+  const constructor withMessage(initializing-formal core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, #C3), super core::Object::•()
     ;
-  const constructor withInvalidMessage(core::int x) → self::Foo
+  const constructor withInvalidMessage(initializing-formal core::int x) → self::Foo
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, x), super core::Object::•()
     ;
-  const constructor withInvalidCondition(core::int x) → self::Foo
+  const constructor withInvalidCondition(initializing-formal core::int x) → self::Foo
     : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
                                                   ^" in x as{TypeError} core::bool), super core::Object::•()
@@ -118,13 +118,13 @@ class Foo extends core::Object /*hasConstConstructor*/  {
 }
 class Bar extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor withMessage(core::int x) → self::Bar
+  const constructor withMessage(initializing-formal core::int x) → self::Bar
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "x is not negative"), super core::Object::•()
     ;
-  const constructor withoutMessage(core::int x) → self::Bar
+  const constructor withoutMessage(initializing-formal core::int x) → self::Bar
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
     ;
-  const constructor withEmptyMessage(core::int x) → self::Bar
+  const constructor withEmptyMessage(initializing-formal core::int x) → self::Bar
     : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
     ;
 }

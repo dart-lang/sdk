@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 
-import 'dynamic_modules.dart' show DynamicModuleType;
 import 'translator.dart';
 
 /// Represents a discrete phase of dart2wasm's compilation process.
@@ -43,14 +42,9 @@ class WasmCompilerOptions {
   Uri mainUri;
   String outputFile;
   String? depFile;
-  DynamicModuleType? dynamicModuleType;
-  Uri? dynamicMainModuleUri;
-  Uri? dynamicInterfaceUri;
-  Uri? dynamicModuleMetadataFile;
-  Uri? loadsIdsUri;
+  Uri? deferredMapUri;
+  bool useLoadIds = false;
   Uri? programSplitConstraintsUri;
-  bool validateDynamicModules = true;
-  String? dynamicModuleLibraryPrefix;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
@@ -61,6 +55,7 @@ class WasmCompilerOptions {
   String? dumpKernelAfterTfa;
   bool dryRun = false;
   Uri? wasmOptPath;
+  bool stripToolchainAnnotations = true;
   int maxActiveWasmOptProcesses = _defaultMaxActiveWasmOptProcesses();
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};
@@ -77,19 +72,23 @@ class WasmCompilerOptions {
 
   WasmCompilerOptions({required this.mainUri, required this.outputFile});
 
-  bool get enableDynamicModules => dynamicModuleType != null;
-
   bool get useMultiModuleOpt =>
       translatorOptions.enableDeferredLoading ||
-      translatorOptions.enableMultiModuleStressTestMode ||
-      enableDynamicModules;
+      translatorOptions.enableMultiModuleStressTestMode;
 
-  String moduleNameForId(String filePath, int id, {bool emitAsMain = false}) =>
-      emitAsMain || id == mainModuleId
-      ? path.basename(filePath)
-      : path.basename(path.setExtension(filePath, '_module$id.wasm'));
+  static String moduleNameForId(
+    String filePath,
+    int id, {
+    bool emitAsMain = false,
+  }) {
+    final basename = path.basename(filePath);
+    if (emitAsMain || id == mainModuleId) {
+      return basename;
+    }
+    return '${deferredModuleFilenamePrefix(basename)}$id.wasm';
+  }
 
-  int? idForModuleName(String mainWasmFilename, String moduleFilename) {
+  static int? idForModuleName(String mainWasmFilename, String moduleFilename) {
     assert(
       mainWasmFilename.endsWith('.wasm') &&
           !mainWasmFilename.contains(path.separator),
@@ -102,13 +101,27 @@ class WasmCompilerOptions {
         !moduleFilename.endsWith('.wasm')) {
       return null;
     }
-    return int.tryParse(
-      moduleFilename.substring(
-        prefix.length,
-        moduleFilename.length - '.wasm'.length,
-      ),
+    return idFromDeferredModuleFilename(moduleFilename);
+  }
+
+  /// Given a deferred module filename returns the module id.
+  ///
+  /// (i.e. returns `<id>` for `test_module<id>.wasm`).
+  static int idFromDeferredModuleFilename(String moduleName) {
+    // The name has pattern: "..._module<moduleId>.wasm"
+    assert(moduleName.endsWith('.wasm') && moduleName.contains('_module'));
+    final offset = moduleName.lastIndexOf('_module') + '_module'.length;
+    return int.parse(
+      moduleName.substring(offset, moduleName.length - '.wasm'.length),
     );
   }
+
+  /// The prefix of all deferred module filenames.
+  ///
+  /// (i.e. returns `test_module` for main module `test.wasm` and
+  /// deferred modules `test_module<id>.wasm`).
+  static String deferredModuleFilenamePrefix(String mainModuleFilename) =>
+      path.basename(path.setExtension(mainModuleFilename, '_module'));
 
   static int _defaultMaxActiveWasmOptProcesses() {
     try {
@@ -135,28 +148,33 @@ class WasmCompilerOptions {
     }
 
     if (!translatorOptions.enableDeferredLoading) {
-      if (loadsIdsUri != null) {
+      if (deferredMapUri != null) {
         throw ArgumentError(
-          "--load-ids can only be used with "
+          "--deferred-map can only be used with "
           "--enable-deferred-loading",
         );
       }
+      if (useLoadIds) {
+        throw ArgumentError(
+          "--use-load-ids can only be used with "
+          "--enable-deferred-loading",
+        );
+      }
+    } else if (useLoadIds && deferredMapUri == null) {
+      throw ArgumentError("--use-load-ids requires --deferred-map");
     }
 
-    if (enableDynamicModules) {
-      if (dynamicMainModuleUri == null) {
-        throw ArgumentError(
-          "--dynamic-module-main must be specified if "
-          "compiling dynamic modules.",
-        );
+    if (translatorOptions.standalone) {
+      void handleUnsupportedOption(bool enabled, String name) {
+        if (enabled) {
+          throw ArgumentError('$name is not supported with --standalone');
+        }
       }
 
-      if (dynamicInterfaceUri == null) {
-        throw ArgumentError(
-          "--dynamic-module-interface must be specified if "
-          "compiling dynamic modules.",
-        );
-      }
+      handleUnsupportedOption(
+        translatorOptions.enableDeferredLoading,
+        '--enable-deferred-loading',
+      );
     }
 
     _validatePhases();

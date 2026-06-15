@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'kernel.dart';
 
 class _ConstVisitor extends RecursiveVisitor {
-  _ConstVisitor(
+  new(
     this.classLibraryUri,
     this.className,
     this.annotationClassLibraryUri,
@@ -187,7 +187,7 @@ class ConstFinder {
   /// Creates a new ConstFinder class.
   ///
   /// The `kernelFilePath` is the path to a dill (kernel) file to process.
-  ConstFinder({
+  new({
     required this.kernelFilePath,
     required String classLibraryUri,
     required String className,

@@ -22,7 +22,7 @@ class SetPropertyValueResult {
   /// The change to apply, or `null` if [errorCode] is not `null`.
   final protocol.SourceChange? change;
 
-  SetPropertyValueResult._({this.errorCode, this.change});
+  new _({this.errorCode, this.change});
 }
 
 class WidgetDescriptions {
@@ -117,7 +117,7 @@ class WidgetDescriptions {
 class _WidgetDescription {
   final List<PropertyDescription> properties;
 
-  _WidgetDescription(this.properties);
+  new(this.properties);
 }
 
 class _WidgetDescriptionComputer {
@@ -138,11 +138,7 @@ class _WidgetDescriptionComputer {
   ClassElement? _classContainer;
   ClassElement? _classEdgeInsets;
 
-  _WidgetDescriptionComputer(
-    this.classRegistry,
-    this.resolvedUnit,
-    this.widgetOffset,
-  );
+  new(this.classRegistry, this.resolvedUnit, this.widgetOffset);
 
   Future<_WidgetDescription?> compute() async {
     var node = resolvedUnit.unit.nodeCovering(offset: widgetOffset);
@@ -178,8 +174,8 @@ class _WidgetDescriptionComputer {
 
     InstanceCreationExpression? parentCreation;
     var childArgument = widgetCreation.parent;
-    if (childArgument is NamedExpression &&
-        childArgument.name.label.name == 'child') {
+    if (childArgument is NamedArgument &&
+        childArgument.name.lexeme == 'child') {
       var argumentList = childArgument.parent;
       var argumentListParent = argumentList?.parent;
       if (argumentList is ArgumentList &&
@@ -284,12 +280,9 @@ class _WidgetDescriptionComputer {
         var parameter = argumentExpression.correspondingParameter;
         if (parameter == null) continue;
 
-        Expression valueExpression;
-        if (argumentExpression is NamedExpression) {
-          valueExpression = argumentExpression.expression;
+        var valueExpression = argumentExpression.argumentExpression;
+        if (argumentExpression is NamedArgument) {
           existingNamed.add(parameter.name!);
-        } else {
-          valueExpression = argumentExpression;
         }
 
         _addProperty(
@@ -326,7 +319,7 @@ class _WidgetDescriptionComputer {
     required FormalParameterElement parameter,
     ClassDescription? classDescription,
     InstanceCreationExpression? instanceCreation,
-    Expression? argumentExpression,
+    Argument? argumentExpression,
     Expression? valueExpression,
   }) {
     var documentation = getParameterDocumentation(parameter);
@@ -491,7 +484,7 @@ class _WidgetDescriptionComputer {
           parameter: staticParameterElement,
           instanceCreation: parentCreation,
           argumentExpression: argument,
-          valueExpression: argument.expression,
+          valueExpression: argument.argumentExpression,
         );
 
         var replacement = replacements[0];

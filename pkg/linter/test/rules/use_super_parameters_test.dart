@@ -18,59 +18,47 @@ class UseSuperParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_super_parameters;
 
   test_functionTypedFormalParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int f(int i));
 }
 class B extends A {
-  B(int f(int i)) : super(f);
+  [!B!](int f(int i)) : super(f);
 }
-''',
-      [lint(53, 1)],
-    );
+''');
   }
 
   test_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A({int? x, int? y});
 }
 class B extends A {
-  const B({int? x, int? y}) : super(x: x, y: y);
+  const [!B!]({int? x, int? y}) : super(x: x, y: y);
 }
-''',
-      [lint(69, 1)],
-    );
+''');
   }
 
   Future<void> test_named_oneWithNameChange() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 class A {
   A({int? x, int? y});
 }
 class B extends A {
-  B({int? x, int? z}) : super(x: x, y: z);
+  [!B!]({int? x, int? z}) : super(x: x, y: z);
 }
-''',
-      [lint(57, 1)],
-    );
+''');
   }
 
   void test_named_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   const A({int? x, int? y});
 }
-class const B({int? x, int? y}) extends A {
+class [!const!] B({int? x, int? y}) extends A {
   this : super(x: x, y: y);
 }
-''',
-      [lint(47, 5)],
-    );
+''');
   }
 
   test_named_someReferencedInBody() async {
@@ -139,17 +127,14 @@ class B extends A {
   }
 
   test_newSyntax() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x);
 }
 class B extends A {
-  new(int x) : super(x);
+  [!new!](int x) : super(x);
 }
-''',
-      [lint(46, 3)],
-    );
+''');
   }
 
   test_noLint_forwardedOutOfOrder() async {
@@ -400,57 +385,45 @@ class B extends A {
   }
 
   test_nonForwardingNamed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x, {int? foo});
 }
 class B extends A {
-  B(int x, {int? foo}) : super(x, foo: 0);
+  [!B!](int x, {int? foo}) : super(x, foo: 0);
 }
-''',
-      [lint(58, 1)],
-    );
+''');
   }
 
   test_optionalPositional_inSuper() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x, [int? y]);
 }
 class B extends A {
-  B(int x) : super(x);
+  [!B!](int x) : super(x);
 }
-''',
-      [lint(56, 1)],
-    );
+''');
   }
 
   test_optionalPositional_singleSuperParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x);
 }
 class B extends A {
-  B([int x = 0]) : super(x);
+  [!B!]([int x = 0]) : super(x);
 }
-''',
-      [lint(46, 1)],
-    );
+''');
   }
 
   test_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A(int x);
-class B(int x) extends A {
+class [!B!](int x) extends A {
   this : super(x);
 }
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/3569
@@ -470,74 +443,106 @@ class Square extends Rect {
   }
 
   test_requiredPositional_allConvertible() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
   final int foo;
   final int bar;
   B(this.foo, this.bar);
 }
 class C extends B {
-  C(int foo, int bar) : super(foo, bar);
+  [!C!](int foo, int bar) : super(foo, bar);
 }
-''',
-      [lint(93, 1)],
-    );
+''');
+  }
+
+  test_requiredPositional_fieldFormal_withNamed() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](this.z, {int? y}) : super(z, y: y);
+  int z;
+}
+''');
+  }
+
+  test_requiredPositional_forwardedOutOfOrder_withNamed() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  A(int x, int y, {int? z});
+}
+class B extends A {
+  [!B!](int x, int y, {int? z}) : super(y, x, z: z);
+}
+''');
   }
 
   test_requiredPositional_mixedSuperParameters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x, {int? y});
 }
 class B extends A {
-  B(int x, int y) : super(x, y: y);
+  [!B!](int x, int y) : super(x, y: y);
 }
-''',
-      [lint(56, 1)],
-    );
+''');
+  }
+
+  test_requiredPositional_nonConvertible_withNamed() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int x, {int? y}) : super(1, y: y);
+}
+''');
   }
 
   test_requiredPositional_primaryConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B(final int foo, final int bar);
-class C(int foo, int bar) extends B {
+class [!C!](int foo, int bar) extends B {
   this : super(foo, bar);
 }
-''',
-      [lint(45, 1)],
-    );
+''');
   }
 
   test_requiredPositional_someConvertible() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class B {
   final int foo;
   final int bar;
   B(this.foo, this.bar);
 }
 class C extends B {
-  C(int baz, int foo, int bar) : super(foo, bar);
+  [!C!](int baz, int foo, int bar) : super(foo, bar);
 }
-''',
-      [lint(93, 1)],
-    );
+''');
   }
 
-  test_requiredPositional_withNamed() async {
-    await assertDiagnostics(
-      r'''
+  test_requiredPositional_usedInBody_withNamed() async {
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(int x, {int? y});
 }
 class B extends A {
-  B(int x, {int? y}) : super(x, y: y);
+  [!B!](int z, {int? y}) : super(z, y: y) {
+    print(z);
+  }
 }
-''',
-      [lint(56, 1)],
-    );
+''');
+  }
+
+  test_requiredPositional_withNamed() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int x, {int? y}) : super(x, y: y);
+}
+''');
   }
 }

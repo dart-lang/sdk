@@ -21,7 +21,7 @@ import '../base/problems.dart' show unhandled, unsupported;
 /// All of these types are replaced by the type inference. It is an internal
 /// error if one survives to the final output.
 class ImplicitTypeArgument extends AuxiliaryType {
-  const ImplicitTypeArgument();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.

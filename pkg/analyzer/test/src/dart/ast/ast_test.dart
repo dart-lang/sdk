@@ -23,87 +23,77 @@ main() {
 
 @reflectiveTest
 class CompilationUnitImplTest extends ParserDiagnosticsTest {
-  late final String testSource;
-  late final CompilationUnitImpl testUnit;
-
-  parse(String source) {
-    testSource = source;
-    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
+  CompilationUnitImpl parse(String source) {
+    return parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
   }
 
   test_languageVersionComment_afterScriptTag() {
-    parse('''
+    var unit = parse('''
 #!/bin/false
 // @dart=2.9
 void main() {}
 ''');
-    var token = testUnit.languageVersionToken!;
+    var token = unit.languageVersionToken!;
     expect(token.major, 2);
     expect(token.minor, 9);
     expect(token.offset, 13);
   }
 
   test_languageVersionComment_afterScriptTag_andComment() {
-    parse('''
+    var unit = parse('''
 #!/bin/false
 // A normal comment.
 // @dart=2.9
 void main() {}
 ''');
-    var token = testUnit.languageVersionToken!;
+    var token = unit.languageVersionToken!;
     expect(token.major, 2);
     expect(token.minor, 9);
     expect(token.offset, 34);
   }
 
   test_languageVersionComment_firstComment() {
-    parse('''
+    var unit = parse('''
 // @dart=2.6
 void main() {}
 ''');
-    expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments,
-    );
+    expect(unit.languageVersionToken, unit.beginToken.precedingComments);
   }
 
   test_languageVersionComment_none() {
-    parse('''
+    var unit = parse('''
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken, null);
+    expect(unit.languageVersionToken, null);
   }
 
   test_languageVersionComment_none_onlyNormalComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken, null);
+    expect(unit.languageVersionToken, null);
   }
 
   test_languageVersionComment_secondComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 // @dart=2.6
 void main() {}
 ''');
-    expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments!.next,
-    );
+    expect(unit.languageVersionToken, unit.beginToken.precedingComments!.next);
   }
 
   test_languageVersionComment_thirdComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 // Another normal comment.
 // @dart=2.6
 void main() {}
 ''');
     expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments!.next!.next,
+      unit.languageVersionToken,
+      unit.beginToken.precedingComments!.next!.next,
     );
   }
 }
@@ -111,61 +101,61 @@ void main() {}
 @reflectiveTest
 class EvaluateExpressionTest extends PubPackageResolutionTest {
   test_hasError_listLiteral_forElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = const [for (var i = 0; i < 4; i++) i];
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isNotEmpty);
     expect(result.value, isNull);
   }
 
   test_hasError_mapLiteral_forElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = const {for (var i = 0; i < 4; i++) i: 0};
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result?.diagnostics, isNotEmpty);
     expect(result?.value, isNull);
   }
 
   test_hasError_methodInvocation() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = 42.abs();
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isNotEmpty);
     expect(result.value, isNull);
   }
 
   test_hasError_setLiteral_forElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = const {for (var i = 0; i < 4; i++) i};
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isNotEmpty);
     expect(result.value, isNull);
   }
 
   test_hasValue_binaryExpression() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = 1 + 2;
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isEmpty);
     expect(result.value!.toIntValue(), 3);
   }
 
   test_hasValue_constantReference() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = 42;
 var x = a;
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isEmpty);
     expect(result.value!.toIntValue(), 42);
@@ -175,37 +165,37 @@ var x = a;
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 42;
 ''');
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 import 'a.dart';
 var x = a;
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isEmpty);
     expect(result.value!.toIntValue(), 42);
   }
 
   test_hasValue_intLiteral() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var x = 42;
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNotNull);
     expect(result!.diagnostics, isEmpty);
     expect(result.value!.toIntValue(), 42);
   }
 
   test_nonConstant() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 var a = 42;
 var x = a;
 ''');
-    var result = _evaluateX();
+    var result = _evaluateX(unitResult);
     expect(result, isNull);
   }
 
-  AttemptedConstantEvaluationResult? _evaluateX() {
-    var node = findNode.topVariableDeclarationByName('x').initializer!;
+  AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
+    var node = result.findNode.topVariableDeclarationByName('x').initializer!;
     return node.computeConstantValue();
   }
 }
@@ -228,7 +218,7 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
 
   parse(String source) {
     testSource = source;
-    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
+    testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
   }
 
   test_inConstantContext_enumConstant_true() {
@@ -787,13 +777,17 @@ final x = const (0, (1, 2));
 
 @reflectiveTest
 class InstanceCreationExpressionImplTest extends PubPackageResolutionTest {
-  assertIsConst(String search, bool expectedResult) {
-    var node = findNode.instanceCreation(search);
+  assertIsConst(
+    TestResolvedUnitResult result,
+    String search,
+    bool expectedResult,
+  ) {
+    var node = result.findNode.instanceCreation(search);
     expect((node as InstanceCreationExpressionImpl).isConst, expectedResult);
   }
 
   test_isConst_notInContext_constructor_const_constParam_identifier() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = C(C.a);
 class C {
   static const C a = C.c();
@@ -801,48 +795,48 @@ class C {
   const C.c();
 }
 ''');
-    assertIsConst("C(C", false);
+    assertIsConst(result, "C(C", false);
   }
 
   test_isConst_notInContext_constructor_const_constParam_named() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = C(c: C());
 class C {
   const C({c});
 }
 ''');
-    assertIsConst("C(c", false);
+    assertIsConst(result, "C(c", false);
   }
 
   test_isConst_notInContext_constructor_const_constParam_named_parens() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = C(c: (C()));
 class C {
   const C({c});
 }
 ''');
-    assertIsConst("C(c", false);
+    assertIsConst(result, "C(c", false);
   }
 
   test_isConst_notInContext_constructor_const_constParam_parens() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = C( (C.c()) );
 class C {
   const C(c);
   const C.c();
 }
 ''');
-    assertIsConst("C( (", false);
+    assertIsConst(result, "C( (", false);
   }
 
   test_isConst_notInContext_constructor_const_generic_named() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() => <Object>[C<int>.n()];
 class C<E> {
   const C.n();
 }
 ''');
-    assertIsConst("C<int>.n", false);
+    assertIsConst(result, "C<int>.n", false);
   }
 
   test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
@@ -851,21 +845,21 @@ class C<E> {
   const C.n();
 }
 ''');
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 import 'c.dart' as p;
 f() => <Object>[p.C<int>.n()];
 ''');
-    assertIsConst("C<int>", false);
+    assertIsConst(result, "C<int>", false);
   }
 
   test_isConst_notInContext_constructor_const_generic_unnamed() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() => <Object>[C<int>()];
 class C<E> {
   const C();
 }
 ''');
-    assertIsConst("C<int>", false);
+    assertIsConst(result, "C<int>", false);
   }
 
   test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
@@ -874,15 +868,15 @@ class C<E> {
   const C();
 }
 ''');
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 import 'c.dart' as p;
 f() => <Object>[p.C<int>()];
 ''');
-    assertIsConst("C<int>", false);
+    assertIsConst(result, "C<int>", false);
   }
 
   test_isConst_notInContext_constructor_const_nonConstParam_constructor() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() {
   return A(B());
 }
@@ -895,28 +889,28 @@ class B {
   B();
 }
 ''');
-    assertIsConst("B())", false);
+    assertIsConst(result, "B())", false);
   }
 
   test_isConst_notInContext_constructor_const_nonConstParam_variable() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f(int i) => <Object>[C(i)];
 class C {
   final int f;
   const C(this.f);
 }
 ''');
-    assertIsConst("C(i)", false);
+    assertIsConst(result, "C(i)", false);
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_named() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() => <Object>[C.n()];
 class C<E> {
   const C.n();
 }
 ''');
-    assertIsConst("C.n()]", false);
+    assertIsConst(result, "C.n()]", false);
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
@@ -925,21 +919,21 @@ class C {
   const C.n();
 }
 ''');
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 import 'c.dart' as p;
 f() => <Object>[p.C.n()];
 ''');
-    assertIsConst("C.n()", false);
+    assertIsConst(result, "C.n()", false);
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() => <Object>[C()];
 class C {
   const C();
 }
 ''');
-    assertIsConst("C()]", false);
+    assertIsConst(result, "C()]", false);
   }
 
   test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
@@ -948,21 +942,21 @@ class C {
   const C();
 }
 ''');
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 import 'c.dart' as p;
 f() => <Object>[p.C()];
 ''');
-    assertIsConst("C()", false);
+    assertIsConst(result, "C()", false);
   }
 
   test_isConst_notInContext_constructor_nonConst() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 f() => <Object>[C()];
 class C {
   C();
 }
 ''');
-    assertIsConst("C()]", false);
+    assertIsConst(result, "C()]", false);
   }
 }
 
@@ -1339,7 +1333,7 @@ class IntegerLiteralImplTest {
 @reflectiveTest
 class NodeCoveringTest extends PubPackageResolutionTest {
   Future<AstNode> coveringNode(String sourceCode) async {
-    var range = await _range(sourceCode);
+    var (result, range) = await _range(sourceCode);
     var node = result.unit.nodeCovering(
       offset: range.offset,
       length: range.length,
@@ -1348,7 +1342,7 @@ class NodeCoveringTest extends PubPackageResolutionTest {
   }
 
   void test_after_EOF() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 library myLib;
 ''');
     var node = result.unit.nodeCovering(offset: 100, length: 20);
@@ -1548,7 +1542,7 @@ class C {
   void m(int a^, int b) {}
 }
 ''');
-    node as SimpleFormalParameter;
+    node as RegularFormalParameter;
   }
 
   Future<void> test_between_identifierAndComma_typeArguments() async {
@@ -1743,7 +1737,9 @@ class C { void call() {} }  Function f = C^();
     node as NamedType;
   }
 
-  Future<SourceRange> _range(String sourceCode) async {
+  Future<(TestResolvedUnitResult, SourceRange)> _range(
+    String sourceCode,
+  ) async {
     // TODO(brianwilkerson): Move TestCode to the analyzer package and make use
     //  of it here.
     var offset = sourceCode.indexOf('^');
@@ -1752,7 +1748,7 @@ class C { void call() {} }  Function f = C^();
     }
     var testCode =
         sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
-    await resolveTestCode(testCode);
-    return SourceRange(offset, 0);
+    var result = await resolveTestCode(testCode);
+    return (result, SourceRange(offset, 0));
   }
 }

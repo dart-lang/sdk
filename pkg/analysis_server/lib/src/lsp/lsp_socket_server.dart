@@ -54,7 +54,7 @@ class LspSocketServer implements AbstractSocketServer {
 
   final Map<String, String>? environment;
 
-  LspSocketServer(
+  new(
     this.analysisServerOptions,
     this.diagnosticServer,
     this.analyticsManager,

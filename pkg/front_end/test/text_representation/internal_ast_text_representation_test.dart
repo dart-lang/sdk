@@ -13,6 +13,7 @@ import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
+import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
@@ -25,6 +26,29 @@ import 'text_representation_test.dart';
 
 void testStatement(
   Statement node,
+  String normal, {
+  String? verbose,
+  String? limited,
+}) {
+  Expect.stringEquals(
+    normal,
+    node.toText(normalStrategy),
+    "Unexpected normal strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    verbose ?? normal,
+    node.toText(verboseStrategy),
+    "Unexpected verbose strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    limited ?? normal,
+    node.toText(limitedStrategy),
+    "Unexpected limited strategy text for ${node.runtimeType}",
+  );
+}
+
+void testVariableDeclaration(
+  InternalVariable node,
   String normal, {
   String? verbose,
   String? limited,
@@ -123,7 +147,7 @@ void main() {
   ) async {
     _testVariableDeclarations();
     _testTryStatement();
-    _testForInStatementWithSynthesizedVariable();
+    _testInternalForInStatement();
     _testSwitchCaseImpl();
     _testBreakStatementImpl();
     _testCascade();
@@ -201,16 +225,47 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a'),
-      new VariableDeclaration('b'),
+      new InternalVariableDeclaration(
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          isImplicitlyTyped: false,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
+      new InternalVariableDeclaration(
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+          isImplicitlyTyped: false,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a', type: const VoidType()),
-      new VariableDeclaration('b', initializer: new NullLiteral()),
+      new InternalVariableDeclaration(
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: 'a',
+            type: const VoidType(),
+          ),
+          isImplicitlyTyped: false,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
+      new InternalVariableDeclaration(
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: 'b',
+            type: null,
+            initializer: new NullLiteral(),
+          ),
+          isImplicitlyTyped: true,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
     ], dummyUri),
     '''
 void a, b = null;''',
@@ -222,23 +277,43 @@ void _testTryStatement() {
   Block emptyBlock2 = new Block([]);
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
-  Catch emptyCatchBlock = new Catch(
-    new VariableDeclaration('e'),
-    new Block([]),
+  InternalCatch emptyCatchBlock = new InternalCatch(
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
+      fileOffset: TreeNode.noOffset,
+    ),
+    body: new Block([]),
+    fileOffset: TreeNode.noOffset,
   );
-  Catch emptyCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
-    new Block([]),
+  InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
+      fileOffset: TreeNode.noOffset,
+    ),
+    body: new Block([]),
     guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
   );
-  Catch returnCatchBlock = new Catch(
-    new VariableDeclaration('e'),
-    new Block([new ReturnStatement()]),
+  InternalCatch returnCatchBlock = new InternalCatch(
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
+      fileOffset: TreeNode.noOffset,
+    ),
+    body: new Block([new ReturnStatement()]),
+    fileOffset: TreeNode.noOffset,
   );
-  Catch returnCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
-    new Block([new ReturnStatement()]),
+  InternalCatch returnCatchBlockOnVoid = new InternalCatch(
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
+      fileOffset: TreeNode.noOffset,
+    ),
+    body: new Block([new ReturnStatement()]),
     guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
   );
 
   testStatement(new TryStatement(emptyBlock1, [], emptyBlock2), '''
@@ -344,8 +419,273 @@ try { return; } on void catch (e) { return; } catch (e) { return; } finally { re
   );
 }
 
-void _testForInStatementWithSynthesizedVariable() {
-  // TODO(johnniwinther): Test ForInStatementWithSynthesizedVariable
+void _testInternalForInStatement() {
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new InternalVariableDeclaration(
+          new InternalLocalVariable(
+            astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+            isImplicitlyTyped: true,
+            fileOffset: -1,
+          ),
+        ),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new InternalVariableDeclaration(
+          new InternalLocalVariable(
+            astVariable: new LocalVariable(
+              cosmeticName: 'e',
+              type: const VoidType(),
+            ),
+            isImplicitlyTyped: false,
+            fileOffset: -1,
+          ),
+        ),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PatternForInElement(
+        pattern: new InternalRecordPattern(
+          patterns: [
+            new InternalVariablePattern(
+              type: const VoidType(),
+              variable: new InternalLocalVariable(
+                astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+                fileOffset: TreeNode.noOffset,
+                isImplicitlyTyped: true,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+            new InternalVariablePattern(
+              type: null,
+              variable: new InternalLocalVariable(
+                astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+                isImplicitlyTyped: true,
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+          ],
+          fileOffset: TreeNode.noOffset,
+        ),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var (void a, var b) in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExistingVariableForInElement(
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          isImplicitlyTyped: true,
+          fileOffset: -1,
+        ),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  // TODO(johnniwinther,cstefantsova): Test toTextInternal for
+  //  [VariableInitializationForInElement].
+
+  testStatement(
+    new InternalForInStatement(
+      new InvalidForInElement(
+        error: new InvalidExpression('error'),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (<invalid:error> in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new StaticForInElement(
+        target: new Field.mutable(new Name('a'), fileUri: dummyUri),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PropertyForInElement(
+        receiver: new ThisExpression(),
+        name: new Name('a'),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new UnassignableForInElement(
+        expression: new NullLiteral(),
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (null in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new InternalVariableDeclaration(
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+              isImplicitlyTyped: true,
+              fileOffset: -1,
+            ),
+          ),
+          new InternalVariableDeclaration(
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+              isImplicitlyTyped: true,
+              fileOffset: -1,
+            ),
+          ),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new InternalVariableDeclaration(
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(
+                cosmeticName: 'a',
+                type: const VoidType(),
+              ),
+              isImplicitlyTyped: false,
+              fileOffset: -1,
+            ),
+          ),
+          new InternalVariableDeclaration(
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+              isImplicitlyTyped: true,
+              fileOffset: -1,
+            ),
+          ),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExtensionForInElement(
+        extension: new Extension(name: 'Extension', fileUri: dummyUri),
+        thisTypeArguments: null,
+        thisAccess: new ThisExpression(),
+        name: new Name('a'),
+        setter: new Procedure(
+          new Name('Extension|a'),
+          ProcedureKind.Method,
+          new FunctionNode(null),
+          fileUri: dummyUri,
+        ),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
 }
 
 void _testSwitchCaseImpl() {
@@ -358,9 +698,21 @@ void _testSwitchCaseImpl() {
   Block returnBlock2 = new Block([new ReturnStatement()]);
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl([0], [case0], [0], emptyBlock, hasLabel: false),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case0],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
@@ -370,16 +722,21 @@ switch (null) { case 0: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [],
-        [],
-        [0],
-        emptyBlock,
-        hasLabel: false,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [],
+          expressions: [],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          labels: null,
+          isDefault: true,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   default:
@@ -389,34 +746,42 @@ switch (null) { default: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [0, 1],
-        [case0, case1],
-        [0, 1],
-        returnBlock1,
-        hasLabel: false,
-      ),
-      new SwitchCaseImpl(
-        [0],
-        [case2],
-        [0],
-        returnBlock2,
-        hasLabel: true,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0, 1],
+          expressions: [case0, case1],
+          expressionOffsets: [0, 1],
+          body: returnBlock1,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case2],
+          expressionOffsets: [0],
+          body: returnBlock2,
+          isDefault: true,
+          labels: [new Label('foo', TreeNode.noOffset)],
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
   case 1:
     return;
+  foo:
   case 2:
   default:
     return;
 }''',
     limited: '''
-switch (null) { case 0: case 1: return; case 2: default: return; }''',
+switch (null) { case 0: case 1: return; foo: case 2: default: return; }''',
   );
 }
 
@@ -574,8 +939,16 @@ continue label0;''',
 }
 
 void _testCascade() {
-  VariableDeclaration variable = new VariableDeclaration.forValue(
-    new IntLiteral(0),
+  // TODO(johnniwinther): Add better text representation support for internal
+  //  synthetic variables.
+  InternalVariable variable = new InternalSyntheticVariable(
+    astVariable: new SyntheticVariable(
+      type: const DynamicType(),
+      initializer: new IntLiteral(0),
+      isFinal: true,
+    )..name = '#0',
+    isImplicitlyTyped: false,
+    fileOffset: TreeNode.noOffset,
   );
   Cascade cascade = new Cascade(variable, isNullAware: false);
   testExpression(cascade, '''
@@ -584,7 +957,7 @@ let final dynamic #0 = 0 in cascade {} => #0''');
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('foo'),
       new IntLiteral(1),
     ),
@@ -593,16 +966,16 @@ let final dynamic #0 = 0 in cascade {} => #0''');
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
+  (#0).foo = 1;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('bar'),
       new IntLiteral(2),
     ),
@@ -611,11 +984,11 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
-  #0.bar = 2;
+  (#0).foo = 1;
+  (#0).bar = 2;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; (#0).bar = 2; } => #0''',
   );
 }
 
@@ -625,11 +998,20 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  VariableDeclaration check = new VariableDeclaration.forValue(
-    new CheckLibraryIsLoaded(dependency),
+  InternalVariable check = new InternalSyntheticVariable(
+    astVariable: new SyntheticVariable(
+      initializer: new CheckLibraryIsLoaded(dependency),
+      type: const DynamicType(),
+      isFinal: true,
+    ),
+    isImplicitlyTyped: false,
+    fileOffset: TreeNode.noOffset,
   );
-  testExpression(new DeferredCheck(check, new IntLiteral(0)), '''
-let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
+  testExpression(
+    new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
+    '''
+let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''',
+  );
 }
 
 void _testFactoryConstructorInvocation() {
@@ -955,10 +1337,25 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 
 void _testFunctionDeclarationImpl() {
   testStatement(
-    new FunctionDeclarationImpl(
-      new VariableDeclarationImpl('foo'),
-      new FunctionNode(new Block([])),
-    ),
+    new InternalFunctionDeclaration(
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+          isImplicitlyTyped: true,
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      )
+      ..function = new InternalFunctionNode(
+        returnType: const DynamicType(),
+        typeParameters: [],
+        positionalParameters: [],
+        namedParameters: [],
+        requiredParameterCount: 0,
+        asyncMarker: AsyncMarker.Sync,
+        body: new Block([]),
+        fileOffset: TreeNode.noOffset,
+        fileEndOffset: TreeNode.noOffset,
+      ),
     '''
 dynamic foo() {}''',
   );
@@ -970,10 +1367,16 @@ void _testIfNullExpression() {
 }
 
 void _testIntLiterals() {
-  testExpression(new IntJudgment(0, null), '0');
-  testExpression(new IntJudgment(0, 'foo'), 'foo');
   testExpression(
-    new ShadowLargeIntLiteral('bar', 'bar', TreeNode.noOffset),
+    new InternalIntLiteral(0, null, fileOffset: TreeNode.noOffset),
+    '0',
+  );
+  testExpression(
+    new InternalIntLiteral(0, 'foo', fileOffset: TreeNode.noOffset),
+    'foo',
+  );
+  testExpression(
+    new LargeIntLiteral('bar', 'bar', fileOffset: TreeNode.noOffset),
     'bar',
   );
 }
@@ -1172,53 +1575,91 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(new VariableDeclarationImpl('foo'), '''
-dynamic foo;''');
-  testStatement(
-    new VariableDeclarationImpl('foo', initializer: new IntLiteral(0)),
-    '''
-dynamic foo = 0;''',
-  );
-  testStatement(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-      isFinal: true,
-      isRequired: true,
+  testVariableDeclaration(
+    new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
-required final void foo;''',
+dynamic foo''',
   );
-  testStatement(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-      isLate: true,
+  testVariableDeclaration(
+    new InternalLocalVariable(
+      astVariable: new LocalVariable(
+        cosmeticName: 'foo',
+        type: null,
+        initializer: new IntLiteral(0),
+      ),
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
-late void foo = 0;''',
+dynamic foo = 0''',
   );
-  testStatement(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-    )..lateGetter = new VariableDeclarationImpl('foo#getter'),
+  testVariableDeclaration(
+    new InternalPositionalParameter(
+      astVariable: new PositionalParameter(
+        cosmeticName: 'foo',
+        type: const VoidType(),
+        defaultValue: new IntLiteral(0),
+        isFinal: true,
+        isRequired: true,
+      ),
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
-late void foo = 0;''',
+required void foo''',
   );
-  testStatement(
-    new VariableDeclarationImpl(
-        'foo',
+  testVariableDeclaration(
+    new InternalLateVariable(
+      astVariable: new LateVariable(
+        cosmeticName: 'foo',
         type: const VoidType(),
         initializer: new IntLiteral(0),
+      ),
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+late void foo = 0''',
+  );
+  testVariableDeclaration(
+    new InternalLateVariable(
+        astVariable: new LateVariable(
+          cosmeticName: 'foo',
+          type: const VoidType(),
+          initializer: new IntLiteral(0),
+        ),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new VariableDeclarationImpl('foo#getter')
+      ..lateGetter = new SyntheticVariable(
+        cosmeticName: 'foo#getter',
+        type: const VoidType(),
+      ),
+
+    '''
+late void foo = 0''',
+  );
+  testVariableDeclaration(
+    new InternalLateVariable(
+        astVariable: new LateVariable(
+          cosmeticName: 'foo',
+          type: const DynamicType(),
+          initializer: new IntLiteral(0),
+        ),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      )
+      ..lateGetter = new SyntheticVariable(
+        cosmeticName: 'foo#getter',
+        type: const DynamicType(),
+      )
       ..lateType = const DynamicType(),
     '''
-late dynamic foo = 0;''',
+late dynamic foo = 0''',
   );
 }
 
@@ -1321,7 +1762,10 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  VariableDeclaration variable = new VariableDeclaration('foo');
+  Variable variable = new LocalVariable(
+    cosmeticName: 'foo',
+    type: const DynamicType(),
+  );
   testExpression(
     new IfNullSet(
       new VariableGet(variable),
@@ -1632,7 +2076,11 @@ void _testPropertyIncDec() {
 }
 
 void _testLocalIncDec() {
-  VariableDeclarationImpl variable = new VariableDeclarationImpl('foo');
+  InternalLocalVariable variable = new InternalLocalVariable(
+    astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+    isImplicitlyTyped: true,
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new LocalIncDec(

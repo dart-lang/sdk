@@ -412,11 +412,11 @@ class CompletionMetrics {
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
-  CompletionMetrics(this.name, {this.enableFunction, this.disableFunction})
+  new(this.name, {this.enableFunction, this.disableFunction})
     : userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
-  factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
+  factory fromJson(Map<String, dynamic> map) {
     var metrics = CompletionMetrics(map['name'] as String);
     metrics.completionCounter.fromJson(
       map['completionCounter'] as Map<String, dynamic>,
@@ -748,7 +748,7 @@ class CompletionMetricsQualityOptions extends CompletionMetricsOptions {
   /// completion requests that had the worst mrr scores.
   final bool printWorstResults;
 
-  CompletionMetricsQualityOptions(super.results)
+  new(super.results)
     : printMissedCompletionDetails = results.flag(
         _printMissedCompletionDetails,
       ),
@@ -770,10 +770,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
 
-  CompletionQualityMetricsComputer(
-    super.rootPath,
-    CompletionMetricsQualityOptions super.options,
-  );
+  new(super.rootPath, CompletionMetricsQualityOptions super.options);
 
   @override
   CompletionMetricsQualityOptions get options =>
@@ -1655,7 +1652,7 @@ class CompletionResult {
 
   final Map<int, int>? precedingRelevanceCounts;
 
-  CompletionResult(
+  new(
     this.place,
     this.request,
     this.actualSuggestion,
@@ -1667,7 +1664,7 @@ class CompletionResult {
   );
 
   /// Return an instance extracted from the decoded JSON [map].
-  factory CompletionResult.fromJson(Map<String, dynamic> map) {
+  factory fromJson(Map<String, dynamic> map) {
     var place = Place.fromJson(map['place'] as Map<String, dynamic>);
     var actualSuggestion = SuggestionData.fromJson(
       map['actualSuggestion'] as Map<String, dynamic>,
@@ -1824,7 +1821,7 @@ class LocationTableLine {
   final double mrr;
   final double mrr_5;
 
-  LocationTableLine({
+  new({
     required this.label,
     required this.product,
     required this.count,
@@ -1935,7 +1932,7 @@ class RelevanceTables {
   final Map<String, Map<String, ProbabilityRange>> keywordRelevance;
 
   /// Initialize a newly created description of a pair of relevance tables.
-  RelevanceTables(this.name, this.elementKindRelevance, this.keywordRelevance);
+  new(this.name, this.elementKindRelevance, this.keywordRelevance);
 }
 
 /// Information about a completion suggestion that suggested a shadowed element.
@@ -1944,7 +1941,7 @@ class ShadowedCompletion {
 
   final CandidateSuggestion closeMatchSuggestion;
 
-  ShadowedCompletion(this.expectedCompletion, this.closeMatchSuggestion);
+  new(this.expectedCompletion, this.closeMatchSuggestion);
 }
 
 /// The information being remembered about an individual suggestion.
@@ -1955,10 +1952,10 @@ class SuggestionData {
   /// The values of the features used to compute the suggestion.
   List<double> features;
 
-  SuggestionData(this.suggestion, this.features);
+  new(this.suggestion, this.features);
 
   /// Return an instance extracted from the decoded JSON [map].
-  factory SuggestionData.fromJson(Map<String, dynamic> map) {
+  factory fromJson(Map<String, dynamic> map) {
     throw UnimplementedError();
     // return SuggestionData(
     //   CandidateSuggestion.fromJson(map['suggestion'] as Map<String, Object?>),

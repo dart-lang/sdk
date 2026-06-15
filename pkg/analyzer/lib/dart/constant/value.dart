@@ -14,6 +14,7 @@ library;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:meta/meta.dart';
 
 /// Information about a const constructor invocation.
 abstract class ConstructorInvocation {
@@ -81,6 +82,11 @@ abstract class DartObject {
   /// This method can return a representation of the type, even if this object
   /// would return `false` from [hasKnownValue].
   DartType? get type;
+
+  /// Return the representation of the type of the object being represented,
+  /// without performing extension type erasure.
+  @experimental
+  DartType? get typeNotExtensionTypeErased;
 
   /// If this object is the value of a constant variable, the variable.
   VariableElement? get variable;
@@ -169,4 +175,9 @@ abstract class DartObject {
   /// * this object is not of type 'Type', or
   /// * the value of the object being represented is `null`.
   DartType? toTypeValue();
+
+  /// Return the static type of the type literal, almost like [toTypeValue],
+  /// but without performing extension type erasure.
+  @experimental
+  DartType? toTypeValueNotExtensionTypeErased();
 }

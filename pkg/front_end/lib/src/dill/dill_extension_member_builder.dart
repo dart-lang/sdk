@@ -15,7 +15,7 @@ import 'dill_member_builder.dart';
 abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   final ExtensionMemberDescriptor _descriptor;
 
-  DillExtensionMemberBuilder(
+  new(
     this._descriptor,
     super.libraryBuilder,
     DillExtensionBuilder super.declarationBuilder,
@@ -34,7 +34,7 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Field _field;
 
-  DillExtensionFieldBuilder(
+  new(
     this._field,
     super.descriptor,
     super.libraryBuilder,
@@ -110,7 +110,7 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Procedure procedure;
 
-  DillExtensionSetterBuilder(
+  new(
     this.procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -155,7 +155,7 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Procedure _procedure;
 
-  DillExtensionGetterBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -208,7 +208,7 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
     implements MethodBuilder {
   final Procedure _procedure;
 
-  DillExtensionOperatorBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -248,7 +248,7 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
     implements MethodBuilder {
   final Procedure _procedure;
 
-  DillExtensionStaticMethodBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,
@@ -295,7 +295,7 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
 
   final Procedure _extensionTearOff;
 
-  DillExtensionInstanceMethodBuilder(
+  new(
     this._procedure,
     super.descriptor,
     super.libraryBuilder,

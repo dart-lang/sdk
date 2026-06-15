@@ -17,7 +17,7 @@ class DocumentHighlightsHandler
           TextDocumentPositionParams,
           List<DocumentHighlight>
         > {
-  DocumentHighlightsHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
 
@@ -51,8 +51,13 @@ class DocumentHighlightsHandler
       // the editor falling back to a text search.
       var highlights = matchingTokens
           .map(
-            (token) => DocumentHighlight(
-              range: toRange(unit.lineInfo, token.offset, token.length),
+            (item) => DocumentHighlight(
+              range: toRange(
+                unit.lineInfo,
+                item.token.offset,
+                item.token.length,
+              ),
+              kind: item.kind,
             ),
           )
           .toList();
@@ -64,7 +69,7 @@ class DocumentHighlightsHandler
 
 class DocumentHighlightsRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  DocumentHighlightsRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

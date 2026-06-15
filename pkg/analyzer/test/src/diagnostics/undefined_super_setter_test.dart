@@ -2,49 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSuperSetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedSuperSetterTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   f() {
     super.m = 0;
+//        ^
+// [diag.undefinedSuperSetter] The setter 'm' isn't defined in a superclass of 'B'.
   }
 }
-''',
-      [error(diag.undefinedSuperSetter, 49, 1)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void f() {
     super.foo = 0;
+//        ^^^
+// [diag.undefinedSuperSetter] The setter 'foo' isn't defined in a superclass of 'E'.
   }
 }
-''',
-      [error(diag.undefinedSuperSetter, 37, 3)],
-    );
+''');
   }
 
   test_enum_OK() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {}
 }

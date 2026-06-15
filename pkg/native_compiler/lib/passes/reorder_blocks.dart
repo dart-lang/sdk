@@ -10,7 +10,7 @@ import 'package:cfg/utils/bit_vector.dart';
 /// Compute block order for code generation.
 ///
 /// It is similar to the reverse postorder except:
-///  - blocks ending with Throw are considered cold and placed at the end.
+///  - blocks ending with Throw/Unreachable are considered cold and placed at the end.
 ///  - blocks which have only cold successors are also considered cold.
 ///  - blocks belonging to a loop are placed together.
 final class ReorderBlocks extends Pass {
@@ -64,7 +64,7 @@ final class ReorderBlocks extends Pass {
         // Figure out if block belongs to a cold section.
         var isCold = false;
         switch (block.lastInstruction) {
-          case Throw():
+          case Throw() || Unreachable():
             isCold = true;
             break;
           default:

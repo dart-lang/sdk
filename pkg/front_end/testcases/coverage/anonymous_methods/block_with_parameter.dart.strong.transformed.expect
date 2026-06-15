@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    core::int p = 1;
+    Null #t1;
+    #L1:
+    {
+      1;
+      {
+        #t1 = null;
+        break #L1;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    Null #t2;
+    #L2:
+    {
+      p;
+      {
+        #t2 = null;
+        break #L2;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    Null #t3;
+    #L3:
+    {
+      p.{core::int::isEven}{core::bool};
+      {
+        #t3 = null;
+        break #L3;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    core::int #t4;
+    #L4:
+    {
+      {
+        #t4 = 1;
+        break #L4;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    core::int #t5;
+    #L5:
+    {
+      {
+        #t5 = p;
+        break #L5;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    core::bool #t6;
+    #L6:
+    {
+      {
+        #t6 = p.{core::int::isEven}{core::bool};
+        break #L6;
+      }
+    }
+  }
+}

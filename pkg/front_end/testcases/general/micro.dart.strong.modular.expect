@@ -29,7 +29,7 @@ class Box extends core::Object {
 }
 class FinalBox extends core::Object {
   final field dynamic finalField;
-  constructor •(dynamic finalField) → self::FinalBox
+  constructor •(initializing-formal dynamic finalField) → self::FinalBox
     : self::FinalBox::finalField = finalField, super core::Object::•()
     ;
 }

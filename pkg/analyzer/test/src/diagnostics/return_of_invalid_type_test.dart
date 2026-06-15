@@ -2,56 +2,54 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ReturnOfInvalidTypeTest extends PubPackageResolutionTest {
   test_closure() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Td = int Function();
 Td f() {
   return () => "hello";
+//             ^^^^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'String' isn't returnable from a 'int' function, as required by the closure's context.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromClosure, 53, 7)],
-    );
+''');
   }
 
   test_factoryConstructor_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   factory C.named() => 7;
+//                     ^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C.named' because it has a return type of 'C'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromConstructor, 33, 1)],
-    );
+''');
   }
 
   test_factoryConstructor_unnamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   factory C() => 7;
+//               ^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromConstructor, 27, 1)],
-    );
+''');
   }
 
   test_function_async_block__to_Future_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void> f1() async {}
 Future<void> f2() async { return; }
 Future<void> f3() async { return null; }
@@ -63,47 +61,43 @@ void g2() {}
   }
 
   test_function_async_block_Future_Future_int__to_Future_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f(Future<Future<int>> a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Future<Future<int>>' can't be returned from the function 'f' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 54, 1)],
-    );
+''');
   }
 
   test_function_async_block_Future_String__to_Future_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f(Future<String> a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Future<String>' can't be returned from the function 'f' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 49, 1)],
-    );
+''');
   }
 
   test_function_async_block_Future_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f1(Future<void> a) async { return a; }
 dynamic f2(Future<void> a) async { return a; }
 ''');
   }
 
   test_function_async_block_illegalReturnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() async {
+// [diag.illegalAsyncReturnType][column 1][length 3] Functions marked 'async' must have a return type which is a supertype of 'Future'.
   return 5;
 }
-''',
-      [error(diag.illegalAsyncReturnType, 0, 3)],
-    );
+''');
   }
 
   test_function_async_block_int__to_Future_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f() async {
   return 0;
 }
@@ -111,7 +105,7 @@ Future<int> f() async {
   }
 
   test_function_async_block_int__to_Future_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<num> f() async {
   return 0;
 }
@@ -119,40 +113,37 @@ Future<num> f() async {
   }
 
   test_function_async_block_int__to_Future_String() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<String> f() async {
   return 5;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of 'Future<String>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 36, 1)],
-    );
+''');
   }
 
   test_function_async_block_int__to_Future_void() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void> f() async {
   return 0;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of 'Future<void>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 34, 1)],
-    );
+''');
   }
 
   test_function_async_block_int__to_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   return 5;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of 'void'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 26, 1)],
-    );
+''');
   }
 
   test_function_async_block_void__to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(void a) async {
   return a;
 }
@@ -160,42 +151,39 @@ dynamic f(void a) async {
   }
 
   test_function_async_block_void__to_Future_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f(void a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 39, 1)],
-    );
+''');
   }
 
   test_function_async_block_void__to_Future_Null() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<Null> f(void a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'Future<Null>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 40, 1)],
-    );
+''');
   }
 
   test_function_async_block_void__to_FutureOr_ObjectQ() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 FutureOr<Object?> f(void a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'FutureOr<Object?>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 67, 1)],
-    );
+''');
   }
 
   test_function_async_block_void__to_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void a) async {
   return a;
 }
@@ -203,36 +191,32 @@ void f(void a) async {
   }
 
   test_function_async_expression_dynamic__to_Future_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<int> f(dynamic a) async => a;
 ''');
   }
 
   test_function_asyncStar() async {
-    await assertErrorsInCode(
-      '''
+    // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+    await resolveTestCodeWithDiagnostics(r'''
 Stream<int> f() async* => 3;
-''',
-      [
-        // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-        error(diag.returnInGenerator, 23, 2),
-      ],
-    );
+//                     ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
   }
 
   test_function_sync_block__invalidType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   return new X();
+//           ^
+// [diag.newWithNonType] The name 'X' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 24, 1)],
-    );
+''');
   }
 
   test_function_sync_block__to_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   try {
     return 0;
@@ -244,7 +228,7 @@ f() {
   }
 
   test_function_sync_block__to_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f1() {}
 void f2() { return; }
 void f3() { return null; }
@@ -256,7 +240,7 @@ void g2() {}
   }
 
   test_function_sync_block_genericFunction__to_genericFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 U Function<U>(U) foo(T Function<T>(T a) f) {
   return f;
 }
@@ -264,18 +248,17 @@ U Function<U>(U) foo(T Function<T>(T a) f) {
   }
 
   test_function_sync_block_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 U Function<U>(U, int) foo(T Function<T>(T a) f) {
   return f;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'T Function<T>(T)' can't be returned from the function 'foo' because it has a return type of 'U Function<U>(U, int)'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 59, 1)],
-    );
+''');
   }
 
   test_function_sync_block_genericFunction__to_nonGenericFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 int Function(int) foo(T Function<T>(T a) f) {
   return f;
 }
@@ -283,18 +266,17 @@ int Function(int) foo(T Function<T>(T a) f) {
   }
 
   test_function_sync_block_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int Function(int, int) foo(T Function<T>(T a) f) {
   return f;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic Function(dynamic)' can't be returned from the function 'foo' because it has a return type of 'int Function(int, int)'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 60, 1)],
-    );
+''');
   }
 
   test_function_sync_block_int__to_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 num f(int a) {
   return a;
 }
@@ -302,36 +284,33 @@ num f(int a) {
   }
 
   test_function_sync_block_int__to_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   return 42;
+//       ^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'f' because it has a return type of 'void'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 20, 2)],
-    );
+''');
   }
 
   test_function_sync_block_num__to_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(num a) {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'num' can't be returned from the function 'f' because it has a return type of 'int'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 24, 1)],
-    );
+''');
   }
 
   test_function_sync_block_String__to_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() {
   return '0';
+//       ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of 'int'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 19, 3)],
-    );
+''');
   }
 
   test_function_sync_block_typeParameter__to_Type() async {
@@ -345,7 +324,7 @@ int f() {
     // returned out of the TestTypeProvider don't have a mock 'dart.core'
     // enclosing library element.
     // See TypeParameterTypeImpl.isMoreSpecificThan().
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   Type get t => T;
 }
@@ -353,7 +332,7 @@ class Foo<T> {
   }
 
   test_function_sync_block_void__to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 dynamic f(void a) {
   return a;
 }
@@ -361,29 +340,27 @@ dynamic f(void a) {
   }
 
   test_function_sync_block_void__to_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(void a) {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'int'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 25, 1)],
-    );
+''');
   }
 
   test_function_sync_block_void__to_Null() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Null f(void a) {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'Null'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 26, 1)],
-    );
+''');
   }
 
   test_function_sync_block_void__to_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void a) {
   return a;
 }
@@ -391,64 +368,58 @@ void f(void a) {
   }
 
   test_function_sync_expression_genericFunction__to_genericFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 U Function<U>(U) foo(T Function<T>(T a) f) => f;
 ''');
   }
 
   test_function_sync_expression_genericFunction__to_genericFunction_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 U Function<U>(U, int) foo(T Function<T>(T a) f) => f;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 51, 1)],
-    );
+//                                                 ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'T Function<T>(T)' can't be returned from the function 'foo' because it has a return type of 'U Function<U>(U, int)'.
+''');
   }
 
   test_function_sync_expression_genericFunction__to_nonGenericFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 int Function(int) foo(T Function<T>(T a) f) => f;
 ''');
   }
 
   test_function_sync_expression_genericFunction__to_nonGenericFunction_notAssignable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int Function(int, int) foo(T Function<T>(T a) f) => f;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 52, 1)],
-    );
+//                                                  ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic Function(dynamic)' can't be returned from the function 'foo' because it has a return type of 'int Function(int, int)'.
+''');
   }
 
   test_function_sync_expression_int__to_void() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() => 42;
 ''');
   }
 
   test_function_sync_expression_String__to_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() => '0';
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 11, 3)],
-    );
+//         ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of 'int'.
+''');
   }
 
   test_function_syncStar() async {
-    await assertErrorsInCode(
-      '''
+    // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+    await resolveTestCodeWithDiagnostics(r'''
 Iterable<int> f() sync* => 3;
-''',
-      [
-        // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
-        error(diag.returnInGenerator, 24, 2),
-      ],
-    );
+//                      ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
   }
 
   test_functionExpression_async_futureOr_void__to_Object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void a = null;
 
 Object Function() f = () async {
@@ -458,7 +429,7 @@ Object Function() f = () async {
   }
 
   test_functionExpression_async_futureQ_void__to_Object() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Future<void>? a = (throw 0);
 
 Object Function() f = () async {
@@ -468,7 +439,7 @@ Object Function() f = () async {
   }
 
   test_functionExpression_async_void__to_FutureOr_ObjectQ() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 void a = (throw 0);
@@ -480,55 +451,51 @@ FutureOr<Object?> Function() f = () async {
   }
 
   test_getter_sync_block_String__to_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int get g {
   return '0';
+//       ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'g' because it has a return type of 'int'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 21, 3)],
-    );
+''');
   }
 
   test_getter_sync_expression_String__to_int() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 int get g => '0';
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 13, 3)],
-    );
+//           ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'g' because it has a return type of 'int'.
+''');
   }
 
   test_localFunction_sync_block_String__to_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int g() {
     return '0';
+//         ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'g' because it has a return type of 'int'.
   }
   g();
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 34, 3)],
-    );
+''');
   }
 
   test_localFunction_sync_expression_String__to_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void m() {
     int f() => '0';
+//             ^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of 'int'.
     f();
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 38, 3)],
-    );
+''');
   }
 
   test_method_async_block_callable_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Fn = void Function(String s);
 
 class CanFn {
@@ -542,20 +509,19 @@ Future<Fn> f() async {
   }
 
   test_method_sync_block_String__to_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m() {
     return '0';
+//         ^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'String' can't be returned from the method 'm' because it has a return type of 'int'.
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 33, 3)],
-    );
+''');
   }
 
   test_method_sync_expression_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class F<T>  {
   T get value;
 }
@@ -567,23 +533,21 @@ abstract class G<U> {
   }
 
   test_method_sync_expression_String__to_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int f() => '0';
+//           ^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'String' can't be returned from the method 'f' because it has a return type of 'int'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 23, 3)],
-    );
+''');
   }
 
   test_spread_iterable_in_map_context() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 Map<int, int> f() => {...[1, 2, 3, 4]};
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 21, 17)],
-    );
+//                   ^^^^^^^^^^^^^^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Set<int>' can't be returned from the function 'f' because it has a return type of 'Map<int, int>'.
+''');
   }
 }
 
@@ -591,22 +555,20 @@ Map<int, int> f() => {...[1, 2, 3, 4]};
 class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_return() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 int f(dynamic a) => a;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 20, 1)],
-    );
+//                  ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic' can't be returned from the function 'f' because it has a return type of 'int'.
+''');
   }
 
   test_return_async() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 Future<int> f(dynamic a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic' can't be returned from the function 'f' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 42, 1)],
-    );
+''');
   }
 }

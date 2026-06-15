@@ -5,8 +5,6 @@
 /// Test where the constructor parameter is in scope and whether it has its
 /// public or private name.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 
 String _foo = 'top-level private';

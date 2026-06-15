@@ -14,7 +14,7 @@ class Logger {
   final StringSink sink;
 
   /// Initialize a newly created logger to write to the given [sink].
-  Logger(this.sink);
+  new(this.sink);
 
   /// Log the given information.
   ///

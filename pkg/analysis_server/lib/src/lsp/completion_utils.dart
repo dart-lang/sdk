@@ -797,5 +797,5 @@ class _ElementDocumentation {
   final String full;
   final String? summary;
 
-  _ElementDocumentation({required this.full, required this.summary});
+  new({required this.full, required this.summary});
 }

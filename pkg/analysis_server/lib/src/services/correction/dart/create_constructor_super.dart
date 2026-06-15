@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
-  CreateConstructorSuper({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -50,11 +50,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The class in which the constructor will be added.
   final ClassDeclaration _targetClass;
 
-  _CreateConstructor(
-    this._constructor,
-    this._targetClass, {
-    required super.context,
-  });
+  new(this._constructor, this._targetClass, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -160,10 +156,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           }
         }
 
-        builder.write(_targetClass.namePart.typeName.lexeme);
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+          if (constructorName != null && constructorName != 'new') {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
+        } else {
+          builder.write(_targetClass.namePart.typeName.lexeme);
+          if (constructorName != null && constructorName != 'new') {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
         writeParameters(true);
@@ -206,10 +210,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write(parameterName);
         }
 
-        builder.write(_targetClass.namePart.typeName.lexeme);
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+          if (constructorName != null && constructorName != 'new') {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
+        } else {
+          builder.write(_targetClass.namePart.typeName.lexeme);
+          if (constructorName != null && constructorName != 'new') {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
 

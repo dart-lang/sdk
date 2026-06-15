@@ -501,7 +501,7 @@ class InstanceMemberInferrer {
         // MixinApp(x, y) : super(x, y);
         var initializers = constructor.constantInitializers;
         var initializer = initializers.single as SuperConstructorInvocation;
-        forCorrespondingPairs<FormalParameterElementImpl, Expression>(
+        forCorrespondingPairs<FormalParameterElementImpl, Argument>(
           constructor.formalParameters.cast(),
           initializer.argumentList.arguments,
           (parameter, argument) {

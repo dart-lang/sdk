@@ -511,7 +511,7 @@ class ClassTable : public MallocAllocated {
                                                    const char* name,
                                                    char** error);
   friend class IsolateGroup;  // for table()
-  static constexpr int kInitialCapacity = 512;
+  static constexpr int kInitialCapacity = 4 * KB;
 
   static constexpr intptr_t kTopLevelCidOffset = kClassIdTagMax + 1;
 

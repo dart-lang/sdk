@@ -64,7 +64,7 @@ class ParserTestListener implements Listener {
   final StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  ParserTestListener(this.trace);
+  new(this.trace);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -133,13 +133,12 @@ class ParserCreatorListener extends Listener {
   List<String?> parameterTypes = [];
   Token? formalParametersEnd;
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,

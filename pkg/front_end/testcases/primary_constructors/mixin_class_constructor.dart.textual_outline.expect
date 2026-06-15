@@ -1,0 +1,15 @@
+mixin class Class1();
+
+mixin class Class2.named();
+
+mixin class Class3 {
+  Class3();
+}
+
+mixin class Class4() {
+  Class4.named();
+}
+
+mixin class Class5.named() {
+  Class5();
+}

@@ -24,12 +24,12 @@ void method(@annotation core.String value) {
 const annotation = const Object();
 
 class Class {
-  Class();
-  Class.named();
-  factory Class.fact1() = Class;
-  factory Class.fact2() = Class.named;
-  factory Class.fact3() = self.Class;
-  factory Class.fact4() = self.Class.named;
+  new();
+  new named();
+  factory fact1() = Class;
+  factory fact2() = Class.named;
+  factory fact3() = self.Class;
+  factory fact4() = self.Class.named;
 }
 
 enum E {
@@ -38,5 +38,7 @@ enum E {
 
   final int value;
 
-  const E(this.value);
+  new(this.value);
 }
+
+final class const AsciiCodec({final bool allowInvalid = false}) {}

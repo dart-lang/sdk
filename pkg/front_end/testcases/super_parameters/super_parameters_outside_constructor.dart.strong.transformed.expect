@@ -29,14 +29,14 @@ class B extends self::A {
   constructor •() → self::B
     : super self::A::•(42)
     ;
-  static factory foo(dynamic x) → self::B
+  static factory foo(super-initializing-formal dynamic x) → self::B
     return new self::B::•();
 }
 class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  set foo(dynamic value) → void {}
+  set foo(super-initializing-formal dynamic value) → void {}
 }
-static method foo(dynamic x) → dynamic {}
+static method foo(super-initializing-formal dynamic x) → dynamic {}
 static method main() → dynamic {}

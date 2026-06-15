@@ -389,13 +389,20 @@ Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
 Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
                                                    Fragment present,
                                                    Fragment absent) {
-  Fragment test;
+  const auto& function = parsed_function_->function();
+  ASSERT(function.IsClosureFunction());
 
+  if (!function.IsGeneric()) {
+    return absent;
+  }
+
+  Fragment test;
   TargetEntryInstr* absent_entry;
   TargetEntryInstr* present_entry;
-
   test += LoadLocal(closure);
-  test += LoadNativeField(Slot::Closure_delayed_type_arguments());
+  test += LoadNativeField(Slot::GetClosureElementSlot(
+      thread_, compiler::target::Closure::element_offset(
+                   UntaggedClosure::kDelayedTypeArgumentsIndex)));
   test += Constant(Object::empty_type_arguments());
   test += BranchIfEqual(&absent_entry, &present_entry);
 
@@ -961,10 +968,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   JoinEntryInstr* nsm = BuildJoinEntry();
 
   Fragment failing(nsm);
-  const Code& nsm_handler = Code::ZoneHandle(
-      Z, IG->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
-  failing += TailCall(nsm_handler);
+  failing += TailCall(StubCode::CallClosureNoSuchMethod());
 
   return nsm;
 }
@@ -997,16 +1002,16 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
 }
 
 Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position,
+                                               bool has_delayed_type_args,
                                                bool has_instantiator_type_args,
-                                               bool is_generic,
+                                               bool has_function_type_args,
                                                bool is_tear_off) {
-  Value* instantiator_type_args =
-      (has_instantiator_type_args ? Pop() : nullptr);
   auto const context = Pop();
   auto const function = Pop();
   auto* allocate = new (Z) AllocateClosureInstr(
-      InstructionSource(position), function, context, instantiator_type_args,
-      is_generic, is_tear_off, GetNextDeoptId());
+      InstructionSource(position), function, context, has_delayed_type_args,
+      has_instantiator_type_args, has_function_type_args, is_tear_off,
+      GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1386,7 +1391,7 @@ intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(intptr_t encoded_position) {
     // TODO(jensj): If Length is small enough it's probably better to just do
     // the linear search.
     for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
-      intptr_t key = Smi::Value(static_cast<SmiPtr>(coverage_array_.At(i)));
+      intptr_t key = coverage_array_.GetUint32(i * kInt32Size);
       intptr_t value = i + 1;
       coverage_state_index_for_position_.Insert(key, value);
     }
@@ -1410,23 +1415,24 @@ void BaseFlowGraphBuilder::FinalizeCoverageArray() {
   }
 
   if (coverage_state_index_for_position_.IsEmpty()) {
-    coverage_array_ = Array::empty_array().ptr();
+    coverage_array_ = TypedData::empty_coverage_array().ptr();
     return;
   }
 
-  coverage_array_ =
-      Array::New(coverage_state_index_for_position_.Length() * 2, Heap::kOld);
+  coverage_array_ = TypedData::New(
+      kTypedDataUint32ArrayCid, coverage_state_index_for_position_.Length() * 2,
+      Heap::kOld);
 
-  Smi& value = Smi::Handle();
   auto it = coverage_state_index_for_position_.GetIterator();
   for (auto* p = it.Next(); p != nullptr; p = it.Next()) {
-    value = Smi::New(p->key);
+    intptr_t value = p->key;
     // p->value is the index at which coverage state is stored, the
     // full coverage entry begins at the previous index.
-    const intptr_t coverage_entry_index = p->value - 1;
-    coverage_array_.SetAt(coverage_entry_index, value);
-    value = Smi::New(0);  // no coverage recorded.
-    coverage_array_.SetAt(p->value, value);
+    const intptr_t coverage_entry_byte_index = (p->value - 1) * kInt32Size;
+    coverage_array_.SetUint32(coverage_entry_byte_index, value);
+    // no coverage recorded.
+    const intptr_t coverage_state_byte_index = p->value * kInt32Size;
+    coverage_array_.SetUint32(coverage_state_byte_index, 0);
   }
 }
 

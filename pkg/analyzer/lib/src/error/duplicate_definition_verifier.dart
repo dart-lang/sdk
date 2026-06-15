@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -238,7 +237,7 @@ class DuplicateDefinitionVerifier {
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
               definedGetters,
-              member.primaryConstructor.typeName,
+              member.namePart.typeName,
               fragment: declaredFragment,
             );
           }
@@ -436,8 +435,7 @@ class _FormalParameterDuplicateIdentifierScope
   getDiagnostic(FormalParameter previous, FormalParameter current) {
     // When two initializing formals collide, tell the user they can't
     // initialize the same field twice.
-    if (previous.notDefault is FieldFormalParameter &&
-        current.notDefault is FieldFormalParameter) {
+    if (previous is FieldFormalParameter && current is FieldFormalParameter) {
       return diag.duplicateFieldFormalParameter;
     }
     return diag.duplicateDefinition;

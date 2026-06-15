@@ -20,8 +20,7 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
-import '../api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, GlobalFeatures;
+import '../api_prototype/experimental_flags.dart' show GlobalFeatures;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
@@ -70,6 +69,7 @@ import 'constant_evaluator.dart'
         ConstantEvaluationData;
 import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
+import 'external_ast_helper.dart' as extern;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'utils.dart';
@@ -168,7 +168,7 @@ class KernelTarget {
 
   final Benchmarker? benchmarker;
 
-  KernelTarget(
+  new(
     this.context,
     this.fileSystem,
     this.includeComments,
@@ -184,18 +184,6 @@ class KernelTarget {
   }
 
   GlobalFeatures get globalFeatures => _options.globalFeatures;
-
-  bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return _options.isExperimentEnabledInLibraryByVersion(
-      flag,
-      importUri,
-      version,
-    );
-  }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 
@@ -253,36 +241,30 @@ class KernelTarget {
     );
   }
 
-  String get currentSdkVersionString {
-    return context.options.currentSdkVersion;
-  }
-
   Version get leastSupportedVersion => const Version(2, 12);
 
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {
     if (_currentSdkVersion == null) {
-      _parseCurrentSdkVersion();
+      _currentSdkVersion = calculateCurrentSdkVersion(context.options);
     }
     return _currentSdkVersion!;
   }
 
-  void _parseCurrentSdkVersion() {
-    bool good = false;
+  static Version calculateCurrentSdkVersion(ProcessedOptions options) {
+    String currentSdkVersionString = options.currentSdkVersion;
     List<String> dotSeparatedParts = currentSdkVersionString.split(".");
     if (dotSeparatedParts.length >= 2) {
-      _currentSdkVersion = new Version(
+      return new Version(
         int.tryParse(dotSeparatedParts[0])!,
         int.tryParse(dotSeparatedParts[1])!,
       );
-      good = true;
     }
-    if (!good) {
-      throw new StateError(
-        "Unparsable sdk version given: $currentSdkVersionString",
-      );
-    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new StateError(
+      "Unparsable sdk version given: $currentSdkVersionString",
+    );
   }
 
   SourceLoader createLoader() =>
@@ -1091,15 +1073,27 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    VariableDeclaration copyFormal(VariableDeclaration formal) {
-      VariableDeclaration copy = new VariableDeclaration(
-        formal.name,
-        isFinal: formal.isFinal,
-        isConst: formal.isConst,
-        isRequired: formal.isRequired,
-        hasDeclaredInitializer: formal.hasDeclaredInitializer,
-        type: const UnknownType(),
-      );
+    Variable copyFormal(Variable formal, {required bool isPositional}) {
+      Variable copy;
+      if (isPositional) {
+        copy = extern.createPositionalParameter(
+          cosmeticName: formal.name,
+          type: const UnknownType(),
+          isFinal: formal.isFinal,
+          isRequired: formal.isRequired,
+          hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+          fileOffset: TreeNode.noOffset,
+        );
+      } else {
+        copy = extern.createNamedParameter(
+          parameterName: formal.name!,
+          type: const UnknownType(),
+          isFinal: formal.isFinal,
+          isRequired: formal.isRequired,
+          hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+          fileOffset: TreeNode.noOffset,
+        );
+      }
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);
       } else {
@@ -1118,19 +1112,17 @@ class KernelTarget {
         }
       }
     }
-    List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-    List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
+    List<Variable> positionalParameters = <Variable>[];
+    List<Variable> namedParameters = <Variable>[];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
 
-    for (VariableDeclaration formal
-        in superConstructor.function.positionalParameters) {
-      positionalParameters.add(copyFormal(formal));
+    for (Variable formal in superConstructor.function.positionalParameters) {
+      positionalParameters.add(copyFormal(formal, isPositional: true));
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (VariableDeclaration formal
-        in superConstructor.function.namedParameters) {
-      VariableDeclaration clone = copyFormal(formal);
+    for (Variable formal in superConstructor.function.namedParameters) {
+      Variable clone = copyFormal(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(
@@ -1669,7 +1661,8 @@ class KernelTarget {
                 ],
               );
             }
-          } else if (!constructor.isConst) {
+          } else if (!constructor.isConst &&
+              constructor.shouldTakeFieldInitializers) {
             constructor.prependInitializer(
               field.takePrimaryConstructorFieldInitializer(),
             );
@@ -1827,6 +1820,9 @@ class KernelTarget {
           loader.hierarchy,
           loader.libraries,
           loader,
+          allowDynamicCallsInDynamicModules:
+              _options.allowDynamicCallsInDynamicModules,
+          dynamicCallsSelectorAllowList: _options.dynamicCallsSelectorAllowList,
         );
       }
     }
@@ -2024,7 +2020,7 @@ class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
   final SourceLoader loader;
 
-  KernelDiagnosticReporter(this.loader);
+  new(this.loader);
 
   @override
   void report(
@@ -2041,5 +2037,5 @@ class KernelDiagnosticReporter
 class BuildResult {
   final Component? component;
 
-  BuildResult({this.component});
+  new({this.component});
 }

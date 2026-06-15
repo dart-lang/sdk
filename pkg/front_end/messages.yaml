@@ -677,8 +677,45 @@ missingExplicitConst:
     }
 
 dynamicCallsAreNotAllowedInDynamicModule:
+  parameters:
+    String name: The selector name.
+  problemMessage: "Dynamic call to selector '#name' is not allowed in a dynamic module."
+  correctionMessage: "Try listing '#name' as 'dynamically-callable' in the dynamic interface specification."
+
+dynamicCallsAreDiscouragedInDynamicModules:
   parameters: none
-  problemMessage: "Dynamic calls are not allowed in a dynamic module."
+  problemMessage: "Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'."
+  correctionMessage: "Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used."
+  severity: WARNING
+
+dynamicCallsAreDisallowedByDefault:
+  parameters: none
+  problemMessage: "Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications."
+  correctionMessage: "You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'."
+
+dynamicallyCallableWithNoSuchMethod:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it declares or inherits a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or not exposing the class."
+
+dynamicallyCallableWithNoSuchMethodHostSubtype:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it has a subtype with a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class."
+
+classWithNoSuchMethodSubtypeCause:
+  parameters:
+    String name: The class name.
+  problemMessage: "Subtype '#name' implements 'noSuchMethod' here."
+
+dynamicallyCallableWithNoSuchMethodDynamicSubtype:
+  parameters:
+    String name: The class name.
+    String subtype: The subclass class name.
+  problemMessage: "Cannot define 'noSuchMethod' on '#subtype' because it is a subtype of '#name', which was exposed as dynamically-callable."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or no longer expose '#name' as dynamically-callable."
 
 constructorShouldBeListedAsCallableInDynamicInterface:
   parameters:
@@ -1075,6 +1112,15 @@ constConstructorWithBody:
   correctionMessage: "Try removing either the 'const' keyword or the body."
   script:
     - "class C { const C() {} }"
+
+implicitlyConstEnumConstructorWithBody:
+  parameters: none
+  problemMessage: "A generative enum constructor can't have a body."
+  correctionMessage: "Try removing the constructor body."
+  experiments: primary-constructors
+  script:
+    - "enum E { a ; new() {} }"
+  exampleAllowOtherCodes: true # TODO(johnniwinther): Avoid cascading error in constant evaluator.
 
 externalFieldInitializer:
   parameters: none
@@ -1595,14 +1641,12 @@ privateNamedNonFieldParameter:
   pseudoSharedCode: PRIVATE_NAMED_NON_FIELD_PARAMETER
   parameters: none
   problemMessage: "A named parameter that doesn't refer to an instance variable can't start with an underscore ('_')."
-  experiments: private-named-parameters
   script: |
     void foo({int? _hello}) {}
 
 privateNamedParameterWithoutPublicName:
   parameters: none
   problemMessage: "A private named parameter must have a corresponding public name."
-  experiments: private-named-parameters
   script: |
     class C {
       int? _123;
@@ -1613,7 +1657,6 @@ privateNamedParameterDuplicatePublicName:
   parameters:
     String name: the corresponding public name of private named parameter
   problemMessage: "The corresponding public name '#name' is already the name of another parameter."
-  experiments: private-named-parameters
   script: |
     class C {
       int? _x;
@@ -3500,10 +3543,6 @@ superAsIdentifier:
       C.super();
     }
 
-invalidAugmentSuper:
-  parameters: none
-  problemMessage: "'augment super' is only allowed in member augmentations."
-
 superAsExpression:
   parameters: none
   problemMessage: "Can't use 'super' as an expression."
@@ -3911,62 +3950,6 @@ patchInjectionFailed:
     Uri uri: The URI that the public name couldn't be injected into.
   problemMessage: "Can't inject public '#name' into '#uri'."
   correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
-
-invalidCastFunctionExpr:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The function expression type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function expression or the context in which it is used."
-
-invalidCastLiteralList:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The list literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the list literal or the context in which it is used."
-
-invalidCastLiteralMap:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The map literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the map literal or the context in which it is used."
-
-invalidCastLiteralSet:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The set literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the set literal or the context in which it is used."
-
-invalidCastLocalFunction:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The local function has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function or the context in which it is used."
-
-invalidCastNewExpr:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The constructor returns type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the object being constructed or the context in which it is used."
-
-invalidCastStaticMethod:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The static method has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the method or the context in which it is used."
-
-invalidCastTopLevelFunction:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The top level function has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function or the context in which it is used."
 
 invalidUseOfNullAwareAccess:
   parameters: none
@@ -6574,6 +6557,7 @@ enumNonConstConstructor:
   parameters: none
   problemMessage: "Generative enum constructors must be marked as 'const'."
   script: |
+    // @dart=3.11
     enum Foo {
       bar;
 
@@ -6813,21 +6797,6 @@ mixinApplicationNoConcreteMemberContext:
   parameters: none
   problemMessage: "This is the super-access that doesn't have a concrete target."
   severity: CONTEXT
-
-noAugmentSuperReadTarget:
-  parameters: none
-  problemMessage: "Cannot read from 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperWriteTarget:
-  parameters: none
-  problemMessage: "Cannot write to 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperInvokeTarget:
-  parameters: none
-  problemMessage: "Cannot call 'augment super'."
-  experiments: augmentations
 
 indexOutOfBoundInRecordIndexGet:
   parameters:
@@ -7457,14 +7426,20 @@ implementMultipleExtensionTypeMembers:
 representationFieldModifier:
   parameters: none
   problemMessage: "Representation fields can't have modifiers."
-  script: |
-    extension type E(final int foo) {}
+  script:
+    - |
+      // @dart=3.11
+      extension type E(final int foo) {}
+    - |
+      extension type E(var int foo) {}
 
 expectedRepresentationType:
   parameters: none
   problemMessage: "Expected a representation type."
-  script: |
-    extension type E(var foo) {}
+  script:
+    - |
+      // @dart=3.11
+      extension type E(var foo) {}
 
 expectedRepresentationField:
   parameters: none
@@ -7508,6 +7483,7 @@ representationFieldTrailingComma:
   parameters: none
   problemMessage: "The representation field can't have a trailing comma."
   script: |
+    // @dart=3.11
     extension type E(int foo,) {}
 
 wrongTypeParameterVarianceInSuperinterface:
@@ -7528,12 +7504,14 @@ namedParametersInExtensionTypeDeclaration:
   parameters: none
   problemMessage: "Extension type declarations can't have named parameters."
   script: |
+    // @dart=3.11
     extension type E(int foo, {dynamic bar}) {}
 
 optionalParametersInExtensionTypeDeclaration:
   parameters: none
   problemMessage: "Extension type declarations can't have optional parameters."
   script: |
+    // @dart=3.11
     extension type E(int foo, [dynamic bar]) {}
 
 classImplementsDeferredClass:
@@ -7720,3 +7698,61 @@ fieldInitializedPrimaryConstructorDuplicateContext:
   parameters: none
   problemMessage: "This is the field declaration."
   severity: CONTEXT
+
+anonymousMethodWrongParameterTypeCfe:
+  parameters:
+    Type receiverType: The type of the receiver.
+    Type parameterType: The type of the parameter.
+  problemMessage: "The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method."
+  correctionMessage: "Try removing the parameter type, or make it a supertype of the receiver type."
+  experiments: anonymous-methods
+  statement:
+    - '"".(int i) => 1;'
+
+nonIdentifierForInElement:
+  parameters: none
+  problemMessage: "The element in a for-in loop must be an identifier or a local variable declaration."
+  correctionMessage: "Try using an existing variable or a variable declaration."
+
+dartExternalEffectNotMethod:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma can only be applied to methods."
+  correctionMessage: "Try removing the pragma or applying it to a method."
+  script: |
+    @pragma('external-effect')
+    external int get foo;
+
+dartExternalEffectIncorrectType:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'"
+  correctionMessage: "Try correcting the type of the function."
+  script: |
+    @pragma('external-effect')
+    external void foo(int x);
+
+dartExternalEffectNotStatic:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be static."
+  correctionMessage: "Try making the function static."
+  script: |
+    class C {
+      @pragma('external-effect')
+      external void foo(Object? x);
+    }
+
+dartExternalEffectNotExternal:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be external."
+  correctionMessage: "Try making the function external."
+  script: |
+    @pragma('external-effect')
+    void foo(Object? x) {}
+
+dartExternalEffectMalformedPragma:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma must be applied as a String literal."
+  correctionMessage: "Try inlining the 'external-string' argument to the pragma."
+  script: |
+    const bar = 'external-effect';
+    @pragma(bar)
+    external void foo(Object? x);

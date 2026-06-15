@@ -21,9 +21,8 @@ const int _latin1Mask = 0xFF;
 
 /// A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
 /// and decodes Latin-1 bytes to strings.
-final class Latin1Codec extends Encoding {
-  final bool _allowInvalid;
-
+final class const Latin1Codec({final bool _allowInvalid = false})
+    extends Encoding {
   /// Instantiates a new [Latin1Codec].
   ///
   /// If [_allowInvalid] is true, the [decode] method and the converter
@@ -32,7 +31,7 @@ final class Latin1Codec extends Encoding {
   /// Calls to the [decode] method can override this default.
   ///
   /// Encoders will not accept invalid (non Latin-1) characters.
-  const Latin1Codec({this._allowInvalid = false});
+  this;
 
   /// The name of this codec, "iso-8859-1".
   String get name => "iso-8859-1";
@@ -72,8 +71,8 @@ final class Latin1Codec extends Encoding {
 /// final encoded = latin1Encoder.convert(sample);
 /// print(encoded); // [224, 225, 226, 227, 228, 229]
 /// ```
-final class Latin1Encoder extends _UnicodeSubsetEncoder {
-  const Latin1Encoder() : super(_latin1Mask);
+final class const Latin1Encoder() extends _UnicodeSubsetEncoder {
+  this : super(_latin1Mask);
 }
 
 /// This class converts Latin-1 bytes (lists of unsigned 8-bit integers)
@@ -114,8 +113,7 @@ final class Latin1Decoder extends _UnicodeSubsetDecoder {
   /// If it is `true`, [convert] replaces invalid bytes with the Unicode
   /// Replacement character `U+FFFD` (�).
   /// Otherwise it throws a [FormatException].
-  const Latin1Decoder({bool allowInvalid = false})
-    : super(allowInvalid, _latin1Mask);
+  const new({bool allowInvalid = false}) : super(allowInvalid, _latin1Mask);
 
   /// Starts a chunked conversion.
   ///

@@ -6,9 +6,9 @@ foo3(bool? x, num y) => <bool, num>{?x: y};
 
 bar1(int? x) => <int>[?x];
 
-bar2(int? x, bool b) => <int>{ if (b) ?x };
+bar2(int? x, bool b) => <int>{if (b) ?x};
 
-bar3(int? x, List<String> y) => <int>{ for (var _ in y) ?x };
+bar3(int? x, List<String> y) => <int>{for (var _ in y) ?x};
 
 bar4(String x, bool? y) => <String, bool>{x: ?y};
 
@@ -16,9 +16,11 @@ bar5(int? x, num y) => <int, num>{?x: y};
 
 bar6(Symbol? x, String? y) => <Symbol, String>{?x: ?y};
 
-bar7(int? x, double? y, bool b) => <int, double>{ if (b) ?x: ?y };
+bar7(int? x, double? y, bool b) => <int, double>{if (b) ?x: ?y};
 
-bar8(bool? x, Symbol? y, List<num> z) => <bool, Symbol>{ for (var _ in z) ?x: ?y };
+bar8(bool? x, Symbol? y, List<num> z) => <bool, Symbol>{
+  for (var _ in z) ?x: ?y,
+};
 
 main() {}
 

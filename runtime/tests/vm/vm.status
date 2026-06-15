@@ -103,6 +103,12 @@ cc/NonStrictCondition*: SkipByDesign # Building flow graph is not supported from
 cc/NotEqualCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/OptimizeCompileFunctionOnHelperThread: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/PeriodicAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/Profiler_BasicSourcePositionOptimized: SkipByDesign # Tests profiling of optimized code.
+cc/Profiler_BinaryOperatorSourcePositionOptimized: SkipByDesign # Tests profiling of optimized code.
+cc/Profiler_FunctionInline: SkipByDesign # Tests profiling of inlined optimized code.
+cc/Profiler_GetSourceReport: SkipByDesign # Tests classifying source positions not found in bytecode.
+cc/Profiler_InliningIntervalBoundary: SkipByDesign # Tests profiling of inlined optimized code.
+cc/Profiler_SourcePositionOptimized: SkipByDesign # Tests profiling of optimized code.
 cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/ReachabilityFence_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
@@ -236,7 +242,7 @@ dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart/ctrlc_handling_test: SkipByDesign
 
 [ $qemu ]
-cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+cc/ManyClasses: SkipSlow # Generates 100k classes, slow on emulated architectures.
 cc/StressMallocDirectly: Skip # Queries RSS
 cc/StressMallocThroughZones: Skip # Queries RSS
 cc/SweepDontNeed: Skip # Queries RSS
@@ -376,6 +382,7 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
 dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
+dart/hash_map_probes_limit_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
 dart/heap_snapshot_regress_49711_test: Pass, Slow
 dart/heap_snapshot_test: SkipSlow
@@ -466,9 +473,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
-
-[ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
-dart/sanitizer_compatibility_test: SkipByDesign
 
 [ $system != macos || $simulator ]
 dart/thread_priority_macos_test: SkipByDesign

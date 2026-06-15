@@ -621,6 +621,12 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(alignment, PageSize()));
   ASSERT(name != nullptr);
 
+  // Ignore executable for gen_snapshot/simulator, but still let the heap
+  // track code and data pages separately.
+  if (!VirtualMemory::ExecutesGeneratedCode()) {
+    is_executable = false;
+  }
+
 #if defined(DART_COMPRESSED_POINTERS)
   if (is_compressed) {
     RELEASE_ASSERT(!is_executable);

@@ -248,6 +248,29 @@ uintptr_t OS::CurrentRSS() {
 #endif
 }
 
+bool OS::SafeReadMemory(void* address,
+                        uint8_t* buffer,
+                        size_t size_in_bytes,
+                        const char** error) {
+#ifdef DART_TARGET_OS_WINDOWS_UWP
+  *error = "ReadProcessMemory not available on UWP";
+  return false;
+#else
+  SIZE_T bytes_read = 0;
+  BOOL ok = ReadProcessMemory(GetCurrentProcess(), address, buffer,
+                              size_in_bytes, &bytes_read);
+  if (!ok || bytes_read != size_in_bytes) {
+    DWORD err = GetLastError();
+    char errbuf[1024];
+    Utils::StrError(static_cast<int>(err), errbuf, sizeof(errbuf));
+    *error = OS::SCreate(nullptr, "ReadProcessMemory failed (error %lu): %s",
+                         err, errbuf);
+    return false;
+  }
+  return true;
+#endif
+}
+
 void OS::Sleep(int64_t millis) {
   ::Sleep(millis);
 }

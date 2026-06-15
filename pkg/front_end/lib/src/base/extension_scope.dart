@@ -41,8 +41,7 @@ class ExtensionsBuilder implements Extensions {
 final class LibraryExtensions implements Extensions {
   final Set<ExtensionBuilder>? _extensions;
 
-  LibraryExtensions({required Set<ExtensionBuilder> extensions})
-    : _extensions = extensions;
+  new({required Set<ExtensionBuilder> extensions}) : _extensions = extensions;
 
   @override
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
@@ -78,18 +77,14 @@ class ParentLibraryExtensionScope extends BaseExtensionScope {
   @override
   final ExtensionScope? _parent;
 
-  ParentLibraryExtensionScope(this._localExtensions, {ExtensionScope? parent})
-    : _parent = parent;
+  new(this._localExtensions, {ExtensionScope? parent}) : _parent = parent;
 }
 
 class CompilationUnitImportExtensionScope extends BaseExtensionScope {
   final SourceCompilationUnit _compilationUnit;
   final Extensions _importNameSpace;
 
-  CompilationUnitImportExtensionScope(
-    this._compilationUnit,
-    this._importNameSpace,
-  );
+  new(this._compilationUnit, this._importNameSpace);
 
   @override
   Extensions get _localExtensions => _importNameSpace;
@@ -106,8 +101,7 @@ class CompilationUnitExtensionScope extends BaseExtensionScope {
   @override
   final ExtensionScope? _parent;
 
-  CompilationUnitExtensionScope(this._compilationUnit, {ExtensionScope? parent})
-    : _parent = parent;
+  new(this._compilationUnit, {ExtensionScope? parent}) : _parent = parent;
 
   @override
   Extensions get _localExtensions =>
@@ -133,10 +127,8 @@ class CompilationUnitPrefixExtensionScope implements ExtensionScope {
 
   final ExtensionScope _parent;
 
-  CompilationUnitPrefixExtensionScope(
-    this._prefixNameSpace, {
-    required ExtensionScope parent,
-  }) : _parent = parent;
+  new(this._prefixNameSpace, {required ExtensionScope parent})
+    : _parent = parent;
 
   /// Set of extension declarations in scope. This is computed lazily in
   /// [forEachExtension].

@@ -98,6 +98,9 @@ final class Simplification extends Pass
   Instruction visitReturn(Return instr) => instr;
 
   @override
+  Instruction visitUnreachable(Unreachable instr) => instr;
+
+  @override
   Instruction visitComparison(Comparison instr) {
     Definition left = instr.left;
     Definition right = instr.right;
@@ -112,7 +115,7 @@ final class Simplification extends Pass
     }
     // Move constant operand to the right.
     if (left is Constant) {
-      instr.op = instr.op.flipOperands();
+      instr.op = instr.op.swapped;
       instr.replaceInputAt(0, right);
       instr.replaceInputAt(1, left);
       left = instr.left;
@@ -238,15 +241,25 @@ final class Simplification extends Pass
   Instruction visitAllocateClosure(AllocateClosure instr) => instr;
 
   @override
+  Instruction visitAllocateContext(AllocateContext instr) => instr;
+
+  @override
   Instruction visitAllocateListLiteral(AllocateListLiteral instr) => instr;
 
   @override
   Instruction visitAllocateMapLiteral(AllocateMapLiteral instr) => instr;
 
   @override
+  Instruction visitAllocateRecordLiteral(AllocateRecordLiteral instr) => instr;
+
+  @override
   Instruction visitStringInterpolation(StringInterpolation instr) {
     final buf = _StringInterpolationBuffer(constantFolding);
     buf.addStringInterpolation(instr);
+    assert(buf.consumed.isEmpty || buf.optimized);
+    for (final i in buf.consumed) {
+      i.removeFromGraph();
+    }
     if (buf.inputs.length == 1) {
       final input = buf.inputs.single;
       if (input is String) {
@@ -274,10 +287,20 @@ final class Simplification extends Pass
   }
 
   @override
+  Instruction visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
+      instr;
+
+  @override
+  Instruction visitSuspend(Suspend instr) => instr;
+
+  @override
   Instruction visitAllocateList(AllocateList instr) => instr;
 
   @override
   Instruction visitSetListElement(SetListElement instr) => instr;
+
+  @override
+  Instruction visitAllocateRecord(AllocateRecord instr) => instr;
 
   @override
   Instruction visitBoxInt(BoxInt instr) => instr;
@@ -614,6 +637,9 @@ class _StringInterpolationBuffer {
   // Contains either String or Definition.
   final List<Object> inputs = [];
 
+  // Consumed StringInterpolation instructions.
+  final List<StringInterpolation> consumed = [];
+
   bool optimized = false;
 
   _StringInterpolationBuffer(this.constantFolding);
@@ -650,7 +676,11 @@ class _StringInterpolationBuffer {
           break;
         case StringInterpolation() when input.singleUser == instr:
           addStringInterpolation(input);
-          input.removeFromGraph();
+          // Do not remove the consumed instruction from the graph immediately,
+          // as removal may change "has single user" property.
+          // As a result, instruction which is used multiple times would be both added
+          // as input and removed, leaving the graph in the inconsistent state.
+          consumed.add(input);
           optimized = true;
           break;
         default:

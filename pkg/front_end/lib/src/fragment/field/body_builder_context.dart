@@ -23,7 +23,7 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
 
   final bool _isConst;
 
-  FieldFragmentBodyBuilderContext(
+  new(
     this._builder,
     this._declaration, {
     required this.isLateField,
@@ -65,7 +65,6 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get memberNameOffset => _nameOffset;
 
   @override

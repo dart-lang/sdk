@@ -27,7 +27,7 @@ class TestLinter implements DiagnosticListener {
 
   final String? _dartSdkPath;
 
-  TestLinter(this._rules, this._dartSdkPath);
+  new(this._rules, this._dartSdkPath);
 
   ResourceProvider get _resourceProvider =>
       file_system.PhysicalResourceProvider.INSTANCE;

@@ -34,16 +34,24 @@ class Instructions implements Serializable {
   final List<SourceMapping>? _sourceMappings;
 
   /// Create a new instruction sequence.
-  Instructions(this.locals, this.localNames, this.instructions,
-      this._stackTraces, this._traceLines, this._sourceMappings);
+  Instructions(
+    this.locals,
+    this.localNames,
+    this.instructions,
+    this._stackTraces,
+    this._traceLines,
+    this._sourceMappings,
+  );
 
   @override
   void serialize(Serializer s) {
     final sourceMappings = _sourceMappings;
     int sourceMappingIdx = 0;
-    for (int instructionIdx = 0;
-        instructionIdx < instructions.length;
-        instructionIdx += 1) {
+    for (
+      int instructionIdx = 0;
+      instructionIdx < instructions.length;
+      instructionIdx += 1
+    ) {
       final i = instructions[instructionIdx];
       if (_stackTraces != null) s.debugTrace(_stackTraces[i]!);
 
@@ -91,18 +99,22 @@ class Instructions implements Serializable {
     for (int k = 0; k < instructions.length; ++k) {
       final i = instructions[k];
 
-      final isTry = i is BeginNoEffectTry ||
+      final isTry =
+          i is BeginNoEffectTry ||
           i is BeginOneOutputTry ||
           i is BeginFunctionTry;
-      final isTryTable = i is BeginNoEffectTryTable ||
+      final isTryTable =
+          i is BeginNoEffectTryTable ||
           i is BeginOneOutputTryTable ||
           i is BeginFunctionTryTable;
       final isIf =
           i is BeginNoEffectIf || i is BeginOneOutputIf || i is BeginFunctionIf;
-      final isBlock = i is BeginNoEffectBlock ||
+      final isBlock =
+          i is BeginNoEffectBlock ||
           i is BeginOneOutputBlock ||
           i is BeginFunctionBlock;
-      final isLoop = i is BeginNoEffectLoop ||
+      final isLoop =
+          i is BeginNoEffectLoop ||
           i is BeginOneOutputLoop ||
           i is BeginFunctionLoop;
       if (isTry || isIf || isBlock || isTryTable || isLoop) {
@@ -157,8 +169,12 @@ class Instructions implements Serializable {
   ) {
     final instructions = <Instruction>[];
     while (true) {
-      final instruction =
-          Instruction.deserializeConst(d, types, functions, globals);
+      final instruction = Instruction.deserializeConst(
+        d,
+        types,
+        functions,
+        globals,
+      );
       instructions.add(instruction);
       if (instruction is End) break;
     }
@@ -179,7 +195,15 @@ class Instructions implements Serializable {
     final instructions = <Instruction>[];
     while (true) {
       final instruction = Instruction.deserialize(
-          d, types, tables, tags, globals, dataSegments, memories, functions);
+        d,
+        types,
+        tables,
+        tags,
+        globals,
+        dataSegments,
+        memories,
+        functions,
+      );
       instructions.add(instruction);
       if (instruction is End) break;
     }

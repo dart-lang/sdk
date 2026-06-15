@@ -23,7 +23,7 @@ class Point {
   Point newPoint2() => new Point(x);
 }
 
-getX(var point) {
+getX(point) {
   point.x;
 }
 

@@ -2703,7 +2703,6 @@ void Timeline::DrainCompletedSampleBlocksIntoRecorder(
 
   DisableThreadInterruptsScope dtis(thread);
   StackZone zone(thread);
-  HandleScope handle_scope(thread);
   Profile profile;
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                   streaming_start_micros,

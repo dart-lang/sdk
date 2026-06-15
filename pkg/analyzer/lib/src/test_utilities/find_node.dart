@@ -32,11 +32,15 @@ class FindNode {
 
   Annotation get singleAnnotation => _single();
 
+  ArgumentList get singleArgumentList => _single();
+
   AsExpression get singleAsExpression => _single();
 
   AssertInitializer get singleAssertInitializer => _single();
 
   AssertStatement get singleAssertStatement => _single();
+
+  AssignedVariablePattern get singleAssignedVariablePattern => _single();
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
@@ -50,20 +54,44 @@ class FindNode {
 
   BlockFunctionBody get singleBlockFunctionBody => _single();
 
+  BooleanLiteral get singleBooleanLiteral => _single();
+
+  BreakStatement get singleBreakStatement => _single();
+
   CascadeExpression get singleCascadeExpression => _single();
+
+  CastPattern get singleCastPattern => _single();
+
+  CatchClause get singleCatchClause => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();
 
   ClassMember get singleClassMember => _single();
 
+  ClassTypeAlias get singleClassTypeAlias => _single();
+
+  Comment get singleComment => _single();
+
+  CommentReference get singleCommentReference => _single();
+
   ConditionalExpression get singleConditionalExpression => _single();
 
   Configuration get singleConfiguration => _single();
+
+  ConstantPattern get singleConstantPattern => _single();
 
   ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
+
+  ConstructorName get singleConstructorName => _single();
+
+  ContinueStatement get singleContinueStatement => _single();
+
+  DeclaredVariablePattern get singleDeclaredVariablePattern => _single();
+
+  DoStatement get singleDoStatement => _single();
 
   DotShorthandConstructorInvocation
   get singleDotShorthandConstructorInvocation => _single();
@@ -74,9 +102,19 @@ class FindNode {
 
   DottedName get singleDottedName => _single();
 
+  DoubleLiteral get singleDoubleLiteral => _single();
+
+  EmptyFunctionBody get singleEmptyFunctionBody => _single();
+
+  EmptyStatement get singleEmptyStatement => _single();
+
+  EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
+
   EnumDeclaration get singleEnumDeclaration => _single();
 
   ExportDirective get singleExportDirective => _single();
+
+  ExpressionFunctionBody get singleExpressionFunctionBody => _single();
 
   ExpressionStatement get singleExpressionStatement => _single();
 
@@ -90,11 +128,21 @@ class FindNode {
 
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
+  ForEachPartsWithIdentifier get singleForEachPartsWithIdentifier => _single();
+
+  ForEachPartsWithPattern get singleForEachPartsWithPattern => _single();
+
   ForElement get singleForElement => _single();
 
   FormalParameter get singleFormalParameter => _single();
 
   FormalParameterList get singleFormalParameterList => _single();
+
+  ForPartsWithDeclarations get singleForPartsWithDeclarations => _single();
+
+  ForPartsWithExpression get singleForPartsWithExpression => _single();
+
+  ForPartsWithPattern get singleForPartsWithPattern => _single();
 
   ForStatement get singleForStatement => _single();
 
@@ -105,6 +153,8 @@ class FindNode {
   FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
       _single();
 
+  FunctionExpression get singleFunctionExpression => _single();
+
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
@@ -112,14 +162,13 @@ class FindNode {
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
 
-  FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
-      _single();
-
   GenericFunctionType get singleGenericFunctionType => _single();
 
   GenericTypeAlias get singleGenericTypeAlias => _single();
 
   GuardedPattern get singleGuardedPattern => _single();
+
+  HideCombinator get singleHideCombinator => _single();
 
   IfElement get singleIfElement => _single();
 
@@ -135,13 +184,27 @@ class FindNode {
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
+  IntegerLiteral get singleIntegerLiteral => _single();
+
+  InterpolationExpression get singleInterpolationExpression => _single();
+
   IsExpression get singleIsExpression => _single();
+
+  Label get singleLabel => _single();
 
   LabeledStatement get singleLabeledStatement => _single();
 
   LibraryDirective get singleLibraryDirective => _single();
 
   ListLiteral get singleListLiteral => _single();
+
+  ListPattern get singleListPattern => _single();
+
+  MapLiteralEntry get singleMapLiteralEntry => _single();
+
+  MapPattern get singleMapPattern => _single();
+
+  MapPatternEntry get singleMapPatternEntry => _single();
 
   MethodDeclaration get singleMethodDeclaration => _single();
 
@@ -151,17 +214,37 @@ class FindNode {
 
   MixinOnClause get singleMixinOnClause => _single();
 
+  NamedArgument get singleNamedArgument => _single();
+
   NamedType get singleNamedType => _single();
+
+  NativeClause get singleNativeClause => _single();
+
+  NativeFunctionBody get singleNativeFunctionBody => _single();
+
+  NullAssertPattern get singleNullAssertPattern => _single();
 
   NullAwareElement get singleNullAwareElement => _single();
 
+  NullCheckPattern get singleNullCheckPattern => _single();
+
+  NullLiteral get singleNullLiteral => _single();
+
+  ObjectPattern get singleObjectPattern => _single();
+
   ParenthesizedExpression get singleParenthesizedExpression => _single();
+
+  ParenthesizedPattern get singleParenthesizedPattern => _single();
 
   PartDirective get singlePartDirective => _single();
 
   PartOfDirective get singlePartOfDirective => _single();
 
   PatternAssignment get singlePatternAssignment => _single();
+
+  PatternField get singlePatternField => _single();
+
+  PatternFieldName get singlePatternFieldName => _single();
 
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();
 
@@ -183,8 +266,18 @@ class FindNode {
 
   RecordLiteral get singleRecordLiteral => _single();
 
+  RecordPattern get singleRecordPattern => _single();
+
+  RecordTypeAnnotation get singleRecordTypeAnnotation => _single();
+
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
+
+  RegularFormalParameter get singleRegularFormalParameter => _single();
+
+  RelationalPattern get singleRelationalPattern => _single();
+
+  RestPatternElement get singleRestPatternElement => _single();
 
   RethrowExpression get singleRethrowExpression => _single();
 
@@ -192,31 +285,63 @@ class FindNode {
 
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
+  ShowCombinator get singleShowCombinator => _single();
+
+  SimpleIdentifier get singleSimpleIdentifier => _single();
+
+  SimpleStringLiteral get singleSimpleStringLiteral => _single();
+
+  SpreadElement get singleSpreadElement => _single();
+
+  StringInterpolation get singleStringInterpolation => _single();
+
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
+
+  SuperExpression get singleSuperExpression => _single();
 
   SuperFormalParameter get singleSuperFormalParameter => _single();
 
   SwitchCase get singleSwitchCase => _single();
 
+  SwitchDefault get singleSwitchDefault => _single();
+
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
 
+  SwitchStatement get singleSwitchStatement => _single();
+
+  SymbolLiteral get singleSymbolLiteral => _single();
+
   ThisExpression get singleThisExpression => _single();
+
+  ThrowExpression get singleThrowExpression => _single();
 
   TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
       _single();
 
   TryStatement get singleTryStatement => _single();
 
+  TypeArgumentList get singleTypeArgumentList => _single();
+
+  TypeParameter get singleTypeParameter => _single();
+
+  TypeParameterList get singleTypeParameterList => _single();
+
   VariableDeclaration get singleVariableDeclaration => _single();
+
+  VariableDeclarationList get singleVariableDeclarationList => _single();
 
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();
 
   WhileStatement get singleWhileStatement => _single();
 
+  WildcardPattern get singleWildcardPattern => _single();
+
   WithClause get singleWithClause => _single();
+
+  YieldStatement get singleYieldStatement => _single();
 
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
@@ -369,10 +494,6 @@ class FindNode {
 
   DeclaredVariablePattern declaredVariablePattern(String search) {
     return _node(search, (n) => n is DeclaredVariablePattern);
-  }
-
-  DefaultFormalParameter defaultParameter(String search) {
-    return _node(search, (n) => n is DefaultFormalParameter);
   }
 
   DoStatement doStatement(String search) {
@@ -532,8 +653,10 @@ class FindNode {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
 
-  FunctionTypedFormalParameter functionTypedFormalParameter(String search) {
-    return _node(search, (n) => n is FunctionTypedFormalParameter);
+  FunctionTypedFormalParameterSuffix functionTypedFormalParameterSuffix(
+    String search,
+  ) {
+    return _node(search, (n) => n is FunctionTypedFormalParameterSuffix);
   }
 
   GenericFunctionType genericFunctionType(String search) {
@@ -652,12 +775,16 @@ class FindNode {
     return _node(search, (n) => n is MixinDeclaration);
   }
 
-  NamedExpression namedExpression(String search) {
-    return _node(search, (n) => n is NamedExpression);
+  NamedArgument namedArgument(String search) {
+    return _node(search, (n) => n is NamedArgument);
   }
 
   NamedType namedType(String search) {
     return _node(search, (n) => n is NamedType);
+  }
+
+  NameWithTypeParameters nameWithTypeParameters(String search) {
+    return _node(search, (n) => n is NameWithTypeParameters);
   }
 
   NativeClause nativeClause(String search) {
@@ -747,6 +874,10 @@ class FindNode {
     return _node(search, (n) => n is PrefixedIdentifier);
   }
 
+  PrimaryConstructorDeclaration primaryConstructorDeclaration(String search) {
+    return _node(search, (n) => n is PrimaryConstructorDeclaration);
+  }
+
   PropertyAccess propertyAccess(String search) {
     return _node(search, (n) => n is PropertyAccess);
   }
@@ -767,6 +898,10 @@ class FindNode {
     String search,
   ) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
+  RegularFormalParameter regularFormalParameter(String search) {
+    return _node(search, (n) => n is RegularFormalParameter);
   }
 
   RelationalPattern relationalPattern(String search) {
@@ -795,14 +930,6 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
-  }
-
-  SimpleFormalParameter simpleFormalParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
-  }
-
-  SimpleFormalParameter simpleParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
   }
 
   SimpleStringLiteral simpleStringLiteral(String search) {

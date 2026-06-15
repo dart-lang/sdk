@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MakeFinal extends ResolvedCorrectionProducer {
-  MakeFinal({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -40,11 +40,10 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node is SimpleFormalParameter) {
+    if (node is RegularFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = node.keyword;
-        if (keyword != null && keyword.keyword == Keyword.VAR) {
-          builder.addSimpleReplacement(range.token(keyword), 'final');
+        if (node.varKeyword case var varKeyword?) {
+          builder.addSimpleReplacement(range.token(varKeyword), 'final');
         } else {
           var type = node.type;
           if (type != null) {

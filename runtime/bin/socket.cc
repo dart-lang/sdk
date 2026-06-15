@@ -828,7 +828,12 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
     Dart_Handle buffer_dart = Dart_GetNativeArgument(args, 1);
     TypedDataScope data(buffer_dart);
 
-    ASSERT((offset + length) <= data.size_in_bytes());
+    const intptr_t end = offset + length;
+    if (!(0 <= offset && offset <= end && end <= data.size_in_bytes())) {
+      delete os_error;
+      Dart_SetReturnValue(args, Dart_NewApiError("Invalid range"));
+      return;
+    }
     uint8_t* buffer_at_offset =
         reinterpret_cast<uint8_t*>(data.data()) + offset;
     bytes_written = SocketBase::SendMessage(
@@ -1151,7 +1156,7 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
       for (intptr_t i = 0; i < addresses->count(); i++) {
         InterfaceSocketAddress* interface = addresses->GetAt(i);
         SocketAddress* addr = interface->socket_address();
-        CObjectArray* entry = new CObjectArray(CObject::NewArray(5));
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(6));
 
         CObjectInt32* type =
             new CObjectInt32(CObject::NewInt32(addr->GetType()));
@@ -1172,6 +1177,10 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
         CObjectInt64* interface_index =
             new CObjectInt64(CObject::NewInt64(interface->interface_index()));
         entry->SetAt(4, interface_index);
+
+        CObjectInt64* prefix_length =
+            new CObjectInt64(CObject::NewInt64(interface->prefix_length()));
+        entry->SetAt(5, prefix_length);
 
         array->SetAt(i + 1, entry);
       }
@@ -1521,8 +1530,7 @@ void FUNCTION_NAME(SocketControlMessage_fromHandles)(
                       DartUtils::NewDartUnsupportedError(
                           "This is not supported on this operating system"));
 #else
-  ASSERT(Dart_IsNull(Dart_GetNativeArgument(args, 0)));
-  Dart_Handle handles_dart = Dart_GetNativeArgument(args, 1);
+  Dart_Handle handles_dart = Dart_GetNativeArgument(args, 0);
   if (Dart_IsNull(handles_dart)) {
     Dart_ThrowException(
         DartUtils::NewDartArgumentError("handles list can't be null"));

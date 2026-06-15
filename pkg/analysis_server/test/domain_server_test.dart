@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -378,6 +379,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       MessageType.warning,
       'message',
       ['a', 'b'],
+      NotCancelableToken(),
     );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 
@@ -400,6 +402,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       MessageType.warning,
       'message',
       ['a', 'b'],
+      NotCancelableToken(),
     );
     expect(serverChannel.serverRequestsSent, hasLength(1));
 

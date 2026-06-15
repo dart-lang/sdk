@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,30 +15,28 @@ main() {
 @reflectiveTest
 class FieldMustBeExternalInStructTest extends PubPackageResolutionTest {
   test_struct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class A extends Struct {
   @Int16()
   int a;
+//    ^
+// [diag.fieldMustBeExternalInStruct] Fields of 'Struct' and 'Union' subclasses must be marked external.
 }
-''',
-      [error(diag.fieldMustBeExternalInStruct, 68, 1)],
-    );
+''');
   }
 
   test_union() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 final class A extends Union {
   @Int16()
   int a;
+//    ^
+// [diag.fieldMustBeExternalInStruct] Fields of 'Struct' and 'Union' subclasses must be marked external.
 }
-''',
-      [error(diag.fieldMustBeExternalInStruct, 67, 1)],
-    );
+''');
   }
 }

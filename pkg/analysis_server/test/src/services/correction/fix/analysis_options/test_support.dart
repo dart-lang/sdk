@@ -6,8 +6,7 @@ import 'package:analysis_server/src/services/correction/fix/analysis_options/fix
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -46,13 +45,12 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   }) {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
-    var errors = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var errors = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: '/',
       sdkVersionConstraint: dart2_12,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
+    ).validateContent(file: optionsFile, content: content);
     if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');

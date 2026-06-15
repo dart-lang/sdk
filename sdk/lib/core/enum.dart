@@ -102,18 +102,23 @@ abstract interface class Enum {
 /// Superclass of all enum class implementations.
 @pragma('dyn-module:language-impl:extendable')
 @pragma('dyn-module:language-impl:callable')
-abstract class _Enum implements Enum {
+abstract class const _Enum(
+  this.index, // Dart2JS does not understand annotation on declaring parameter.
+  this._name, // VM does not understand annotation on declaring parameter.
+) implements Enum {
   // See http://dartbug.com/51657 for discussion of dart2js pragma.
-  @pragma('dart2js:noElision')
+  @pragma('dart2js:noElision') // Does not work if declaring parameter.
   @pragma('wasm:entry-point')
   final int index;
 
-  @pragma('dyn-module:language-impl:callable')
+  @pragma(
+    'dyn-module:language-impl:callable',
+  ) // Does not work if declaring parameter.
   @pragma('wasm:entry-point')
   final String _name;
 
   @pragma('dyn-module:language-impl:callable')
-  const _Enum(this.index, this._name);
+  this;
 
   /// The result of [toString].
   ///

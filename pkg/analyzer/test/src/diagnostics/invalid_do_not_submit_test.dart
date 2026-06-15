@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidDoNotSubmitMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -25,7 +26,9 @@ class InvalidDoNotSubmitMemberTest extends PubPackageResolutionTest {
   }
 
   test_constructor() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -34,22 +37,21 @@ class A {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   A();
+//^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
-    ]);
   }
 
   test_constructor_primary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A() {
@@ -58,20 +60,19 @@ class A() {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 var a = A();
+//      ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 26, 1),
-    ]);
   }
 
   test_constructorFactory() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -81,29 +82,28 @@ class A {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   A();
+//^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
-    ]);
   }
 
   test_exceptionDoNotSubmitMethodReferencingAnotherDoNotSubmitMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 @doNotSubmit
 void a() {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'package:meta/meta.dart';
 
 import 'a.dart';
@@ -124,13 +124,11 @@ void b() {
   }
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
   }
 
   test_exceptionParameterFromParentFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 void a({@doNotSubmit int? a}) {
@@ -140,24 +138,22 @@ void a({@doNotSubmit int? a}) {
   c();
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
   }
 
   test_exceptionParameterFromSameFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 void a({@doNotSubmit int? a}) {
   print(a);
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
   }
 
   test_exceptionParameterFromSameMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -167,12 +163,12 @@ class A {
   }
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
   }
 
   test_extensionGetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 extension A on int {
@@ -181,22 +177,21 @@ extension A on int {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   print(0.a);
+//        ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 39, 1),
-    ]);
   }
 
   test_extensionMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 extension A on int {
@@ -205,22 +200,21 @@ extension A on int {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   0.a();
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
-    ]);
   }
 
   test_extensionSetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 extension A on int {
@@ -229,42 +223,40 @@ extension A on int {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   0.a = 0;
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
-    ]);
   }
 
   test_function() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 @doNotSubmit
 void a() {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() => a();
+//          ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 30, 1),
-    ]);
   }
 
   test_getter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -273,45 +265,44 @@ class A {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   var a = A();
   print(a.a);
+//        ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 54, 1),
-    ]);
   }
 
   test_invalidTargetOfClass() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 @doNotSubmit
+// [diag.invalidAnnotationTarget][column 2][length 11] The annotation 'doNotSubmit' can only be used on constructors, getters, methods, optional parameters, setters, top-level functions, or top-level variables.
 class A {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   A();
+//^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, [error(diag.invalidAnnotationTarget, 35, 11)]);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 31, 1),
-    ]);
   }
 
   test_method() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -320,99 +311,94 @@ class A {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   var a = A();
   a.a();
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 48, 1),
-    ]);
   }
 
   test_namedParameter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 void a({@doNotSubmit int? p}) {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   a(p: 0);
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'p' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
-    ]);
   }
 
   test_parameter_inPrimaryConstructor() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A([@doNotSubmit int x = 0]);
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 var a = A(1);
+//        ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'x' should not be submitted to source control.
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 28, 1),
-    ]);
   }
 
   test_positionalParameter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 void a([@doNotSubmit int? p]) {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   a(0);
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'p' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 33, 1),
-    ]);
   }
 
   test_sameLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 @doNotSubmit
 void a() {}
 
 void b() => a();
+//          ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 ''');
-
-    await assertErrorsInFile2(a, [
-      error(diag.invalidUseOfDoNotSubmitMember, 72, 1),
-    ]);
   }
 
   test_setter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -421,38 +407,34 @@ class A {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() {
   var a = A();
   a.a = 0;
+//  ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 48, 1),
-    ]);
   }
 
-  test_topLevelVarable() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+  test_topLevelVariable() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'package:meta/meta.dart';
 
 @doNotSubmit
 int a = 0;
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void b() => print(a);
+//                ^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'a' should not be submitted to source control.
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidUseOfDoNotSubmitMember, 36, 1),
-    ]);
   }
 }

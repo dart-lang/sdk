@@ -20,7 +20,7 @@ import 'package:analyzer/src/util/graph.dart';
 ///
 /// If the [fragment] is not part of a library currently being linked or
 /// resolved, `null` is returned.
-typedef GetTypeParameterNodeFunction = AstNode? Function(Fragment fragment);
+typedef GetTypeParameterNodeFunction = AstNode? Function(FragmentImpl fragment);
 
 class DefaultTypesBuilder {
   final GetTypeParameterNodeFunction _getTypeParameterNode;
@@ -55,7 +55,7 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        var typeParameters = node.primaryConstructor.typeParameters;
+        var typeParameters = node.namePart.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
         _computeBounds(element, typeParameters);
@@ -101,7 +101,7 @@ class DefaultTypesBuilder {
       } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(node.primaryConstructor.typeParameters);
+        _build(node.namePart.typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAliasImpl) {
@@ -290,7 +290,7 @@ class DefaultTypesBuilder {
         if (startType.element == end) {
           paths.add([_CycleElement(startParameter, startType)]);
         } else if (visited.add(startType.element)) {
-          void recurseParameters(List<TypeParameterElement> parameters) {
+          void recurseParameters(List<TypeParameterElementImpl> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _getTypeParameterNode(
                 parameter.firstFragment,
@@ -315,9 +315,9 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is InterfaceElement) {
+          if (declaration is InterfaceElementImpl) {
             recurseParameters(declaration.typeParameters);
-          } else if (declaration is TypeAliasElement) {
+          } else if (declaration is TypeAliasElementImpl) {
             recurseParameters(declaration.typeParameters);
           }
           visited.remove(startType.element);

@@ -19,79 +19,70 @@ class ParameterAssignmentsTest extends LintRuleTest {
   String get lintRule => LintNames.parameter_assignments;
 
   test_anonymousFunction_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void main() {
   (int i) {
-    i = 42;
+    [!i = 42!];
   }(0);
 }
-''',
-      [lint(30, 6)],
-    );
+''');
   }
 
   test_anonymousFunction_assignment_arrowBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void main() {
-  (int i) => i = 42;
+  (int i) => [!i = 42!];
 }
-''',
-      [lint(27, 6)],
-    );
+''');
   }
 
   test_anonymousFunction_assignment_notInvoked() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void main() {
   (int i) {
-    i = 42;
+    [!i = 42!];
   };
 }
-''',
-      [lint(30, 6)],
-    );
+''');
+  }
+
+  test_assignment_followedByNotOperator() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f(bool p) {
+  [!p = true!];
+  if (!p || p) {}
+}
+''');
   }
 
   test_assignment_inIfElseBranches() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo({String? value}) {
   if (1 == 1) {
-    value = ' $value';
+    /*[0*/value = ' $value'/*0]*/;
   } else {
-    value = ' $value';
+    /*[1*/value = ' $value'/*1]*/;
   }
 }
-''',
-      [lint(48, 17), lint(82, 17)],
-    );
+''');
   }
 
   test_assignment_nullableParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f([int? p]) {
   p ??= 8;
-  p = 42;
+  [!p = 42!];
 }
-''',
-      [lint(32, 6)],
-    );
+''');
   }
 
   test_assignment_nullableParameter_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({int? p}) {
   p ??= 8;
-  p = 42;
+  [!p = 42!];
 }
-''',
-      [lint(32, 6)],
-    );
+''');
   }
 
   test_assignment_wildcard() async {
@@ -109,27 +100,21 @@ void f([int? _]) {
   }
 
   test_closure_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   (int p) {
-    p = 2;
+    [!p = 2!];
   }(2);
 }
-''',
-      [lint(27, 5)],
-    );
+''');
   }
 
   test_compoundAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p += 3;
+  [!p += 3!];
 }
-''',
-      [lint(18, 6)],
-    );
+''');
   }
 
   test_constructor_primary_assignment() async {
@@ -153,36 +138,27 @@ class C {
   }
 
   test_function_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p = 4;
+  [!p = 4!];
 }
-''',
-      [lint(18, 5)],
-    );
+''');
   }
 
   test_function_incrementAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p += 4;
+  [!p += 4!];
 }
-''',
-      [lint(18, 6)],
-    );
+''');
   }
 
   test_function_named_default() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({int p = 5}) {
-  print(p++);
+  print([!p++!]);
 }
-''',
-      [lint(30, 3)],
-    );
+''');
   }
 
   test_function_named_optional_ok() async {
@@ -237,62 +213,47 @@ void f([int? optional]) {
   }
 
   test_function_positional_optional_re_incremented() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f([int? optional]) {
   optional ??= 8;
-  optional += 16;
+  [!optional += 16!];
 }
-''',
-      [lint(46, 14)],
-    );
+''');
   }
 
   test_function_positional_optional_reassigned() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f([int? optional]) {
   optional ??= 8;
-  optional = 16;
+  [!optional = 16!];
 }
-''',
-      [lint(46, 13)],
-    );
+''');
   }
 
   test_function_postfix() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p++;
+  [!p++!];
 }
-''',
-      [lint(18, 3)],
-    );
+''');
   }
 
   test_function_prefix() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  ++p;
+  [!++p!];
 }
-''',
-      [lint(18, 3)],
-    );
+''');
   }
 
   test_instanceMethod_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void m(int p) {
-    p = 4;
+    [!p = 4!];
   }
 }
-''',
-      [lint(32, 5)],
-    );
+''');
   }
 
   test_instanceMethod_nonAssignment() async {
@@ -306,68 +267,53 @@ class A {
   }
 
   test_instanceSetter_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   set x(int value) {
-    value = 5;
+    [!value = 5!];
   }
 }
-''',
-      [lint(35, 9)],
-    );
+''');
   }
 
   // If and switch cases don't need verification since params aren't valid
   // constant pattern expressions.
 
   test_listAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f(int b) {
-  [b] = [1];
+  [![b]!] = [1];
 }
-''',
-      [lint(13, 3)],
-    );
+''');
   }
 
   test_localFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
   void g() {
-    p = 3;
+    [!p = 3!];
   }
   g();
 }
-''',
-      [lint(33, 5)],
-    );
+''');
   }
 
   test_mapAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f(int a) {
-  {'a': a} = {'a': 1};
+  [!{'a': a}!] = {'a': 1};
 }
-''',
-      [lint(13, 8)],
-    );
+''');
   }
 
   test_member_setter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   set x(int v) {
-    v = 5;
+    [!v = 5!];
   }
 }
-''',
-      [lint(31, 5)],
-    );
+''');
   }
 
   test_nullAwareAssignment_nonNullableParameter() async {
@@ -424,64 +370,49 @@ void f([int? p]) {
   }
 
   test_objectAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int a;
   A(this.a);
 }
 
 f(int b) {
-  A(a: b) = A(1);
+  [!A(a: b)!] = A(1);
 }
-''',
-      [lint(48, 7)],
-    );
+''');
   }
 
   test_postfixOperation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p++;
+  [!p++!];
 }
-''',
-      [lint(18, 3)],
-    );
+''');
   }
 
   test_postfixOperation_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({int p = 5}) {
-  p++;
+  [!p++!];
 }
-''',
-      [lint(24, 3)],
-    );
+''');
   }
 
   test_recordAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int a) {
   var b = 0;
-  (a, b) = (1, 2);
+  [!(a, b)!] = (1, 2);
 }
-''',
-      [lint(31, 6)],
-    );
+''');
   }
 
   test_topLevelFunction_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int p) {
-  p = 4;
+  [!p = 4!];
 }
-''',
-      [lint(18, 5)],
-    );
+''');
   }
 
   test_topLevelFunction_nonAssignment() async {

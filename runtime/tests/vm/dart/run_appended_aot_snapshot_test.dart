@@ -26,7 +26,7 @@ Future<void> main(List<String> args) async {
     'run_appended_aot_snapshot_test.dart',
   );
 
-  await withTempDir((String tmp) async {
+  await withTempDir("run-appended-snapshot", (String tmp) async {
     final String exeName = 'test.exe';
     final String dillPath = path.join(tmp, 'test.dill');
     final String aotPath = path.join(tmp, 'test.aot');
@@ -145,8 +145,13 @@ Future<ProcessResult> generateAotSnapshotHelper(
   String snapshotFile,
 ) {
   return Process.run(genSnapshot, [
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$snapshotFile',
+    if (Platform.isMacOS) ...[
+      '--snapshot-kind=app-aot-macho-dylib',
+      '--macho=$snapshotFile',
+    ] else ...[
+      '--snapshot-kind=app-aot-elf',
+      '--elf=$snapshotFile',
+    ],
     kernelFile,
   ]);
 }

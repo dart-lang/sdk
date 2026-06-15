@@ -41,21 +41,16 @@
 #include "platform/utils.h"
 
 extern "C" {
-extern const uint8_t kDartVmSnapshotData[];
-extern const uint8_t kDartVmSnapshotInstructions[];
-extern const uint8_t kDartCoreIsolateSnapshotData[];
-extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
+extern const uint8_t kDartCoreSnapshotData[];
+extern const uint8_t kDartCoreSnapshotText[];
 }
 
 namespace dart {
 namespace bin {
 
 // Snapshot pieces we link in a snapshot.
-const uint8_t* vm_snapshot_data = kDartVmSnapshotData;
-const uint8_t* vm_snapshot_instructions = kDartVmSnapshotInstructions;
-const uint8_t* core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
-const uint8_t* core_isolate_snapshot_instructions =
-    kDartCoreIsolateSnapshotInstructions;
+const uint8_t* core_snapshot_data = kDartCoreSnapshotData;
+const uint8_t* core_snapshot_text = kDartCoreSnapshotText;
 
 /**
  * Global state used to control and store generation of application snapshots.
@@ -68,8 +63,8 @@ const uint8_t* core_isolate_snapshot_instructions =
  */
 static bool vm_run_app_snapshot = false;
 static char* app_script_uri = nullptr;
-static const uint8_t* app_isolate_snapshot_data = nullptr;
-static const uint8_t* app_isolate_snapshot_instructions = nullptr;
+static const uint8_t* app_snapshot_data = nullptr;
+static const uint8_t* app_snapshot_text = nullptr;
 static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = nullptr;
@@ -396,14 +391,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       return nullptr;
     }
     isolate_group_data->AddLoadedSnapshot(snapshot);
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
     const uint8_t* snapshot_data = nullptr;
-    const uint8_t* snapshot_instructions = nullptr;
-    snapshot->SetBuffers(&ignore_vm_snapshot_data,
-                         &ignore_vm_snapshot_instructions, &snapshot_data,
-                         &snapshot_instructions);
-    result = Dart_LoadModuleSnapshot(snapshot_data, snapshot_instructions);
+    const uint8_t* snapshot_text = nullptr;
+    snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+    result = Dart_LoadModuleSnapshot(snapshot_data, snapshot_text);
     CHECK_RESULT(result);
   }
 
@@ -477,22 +468,17 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
             kernel_snapshot_uri, /*force_load_from_memory=*/false,
             /*decode_uri=*/false)) != nullptr) &&
       app_snapshot->IsJIT()) {
-    const uint8_t* isolate_snapshot_data = nullptr;
-    const uint8_t* isolate_snapshot_instructions = nullptr;
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
+    const uint8_t* snapshot_data = nullptr;
+    const uint8_t* snapshot_text = nullptr;
     isolate_run_app_snapshot = true;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
     isolate_group_data = new IsolateGroupData(
         uri, /*asset_resolution_base=*/nullptr, packages_config, app_snapshot,
         isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
-        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions, flags,
-        isolate_group_data, isolate_data, error);
+        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME, snapshot_data,
+        snapshot_text, flags, isolate_group_data, isolate_data, error);
   }
   if (isolate == nullptr) {
     // Clear error from app snapshot and re-trying from kernel file.
@@ -545,8 +531,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                            packages_config, nullptr, false);
   ASSERT(flags != nullptr);
 
-  const uint8_t* isolate_snapshot_data = nullptr;
-  const uint8_t* isolate_snapshot_instructions = nullptr;
+  const uint8_t* snapshot_data = nullptr;
+  const uint8_t* snapshot_text = nullptr;
 
 #if defined(EXPERIMENTAL_VM_SERVICE)
   if (Options::experimental_vm_service()) {
@@ -560,33 +546,29 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     if (app_snapshot == nullptr) {
       Platform::Exit(kErrorExitCode);
     }
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
   } else {
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #if defined(DART_PRECOMPILED_RUNTIME)
     // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
     // mode - so we launch the vm-service from the main app AOT snapshot.
-    isolate_snapshot_data = app_isolate_snapshot_data;
-    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+    snapshot_data = app_snapshot_data;
+    snapshot_text = app_snapshot_text;
 #else
   // JIT: Service isolate uses the core libraries snapshot.
   // Set flag to load and retain the vmservice library.
   flags->load_vmservice_library = true;
   flags->null_safety = true;  // Service isolate runs in sound null safe mode.
-  isolate_snapshot_data = core_isolate_snapshot_data;
-  isolate_snapshot_instructions = core_isolate_snapshot_instructions;
+  snapshot_data = core_snapshot_data;
+  snapshot_text = core_snapshot_text;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 #if defined(EXPERIMENTAL_VM_SERVICE)
   }
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
-  isolate = Dart_CreateIsolateGroup(
-      script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_group_data,
-      /*isolate_data=*/nullptr, error);
+  isolate = Dart_CreateIsolateGroup(script_uri, DART_VM_SERVICE_ISOLATE_NAME,
+                                    snapshot_data, snapshot_text, flags,
+                                    isolate_group_data,
+                                    /*isolate_data=*/nullptr, error);
   if (isolate == nullptr) {
     delete isolate_group_data;
     return nullptr;
@@ -650,11 +632,11 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   AppSnapshot* app_snapshot = nullptr;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  const uint8_t* isolate_snapshot_data = nullptr;
-  const uint8_t* isolate_snapshot_instructions = nullptr;
+  const uint8_t* snapshot_data = nullptr;
+  const uint8_t* snapshot_text = nullptr;
   if (is_main_isolate) {
-    isolate_snapshot_data = app_isolate_snapshot_data;
-    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+    snapshot_data = app_snapshot_data;
+    snapshot_text = app_snapshot_text;
   } else {
     // AOT: All isolates need to be run from AOT compiled snapshots.
     const bool kForceLoadFromMemory = false;
@@ -668,11 +650,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
       return nullptr;
     }
 
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
   }
 
   bool isolate_run_app_snapshot = true;
@@ -680,15 +658,14 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
   bool isolate_run_app_snapshot = false;
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
-  if ((app_isolate_snapshot_data != nullptr) &&
+  const uint8_t* snapshot_data = core_snapshot_data;
+  const uint8_t* snapshot_text = core_snapshot_text;
+  if ((app_snapshot_data != nullptr) &&
       (is_main_isolate || ((app_script_uri != nullptr) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
     isolate_run_app_snapshot = true;
-    isolate_snapshot_data = app_isolate_snapshot_data;
-    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+    snapshot_data = app_snapshot_data;
+    snapshot_text = app_snapshot_text;
   } else if (!is_main_isolate) {
     app_snapshot = Snapshot::TryReadAppSnapshot(script_uri);
     if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
@@ -701,11 +678,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
         return nullptr;
       }
       isolate_run_app_snapshot = true;
-      const uint8_t* ignore_vm_snapshot_data;
-      const uint8_t* ignore_vm_snapshot_instructions;
-      app_snapshot->SetBuffers(
-          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-          &isolate_snapshot_data, &isolate_snapshot_instructions);
+      app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
     }
   }
 
@@ -717,9 +690,12 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   PathSanitizer packages_config_sanitizer(packages_config);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  auto isolate_group_data =
-      new IsolateGroupData(script_uri, asset_resolution_base, packages_config,
-                           app_snapshot, isolate_run_app_snapshot);
+  auto isolate_group_data = new IsolateGroupData(
+      is_main_isolate && Options::script_uri_override() != nullptr
+          ? Options::script_uri_override()
+          : script_uri,
+      asset_resolution_base, packages_config, app_snapshot,
+      isolate_run_app_snapshot);
   if (kernel_buffer != nullptr) {
     isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
                                                   kernel_buffer_size);
@@ -729,7 +705,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   IsolateData* isolate_data = nullptr;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!isolate_run_app_snapshot && (isolate_snapshot_data == nullptr)) {
+  if (!isolate_run_app_snapshot && (snapshot_data == nullptr)) {
     const uint8_t* platform_kernel_buffer = nullptr;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);
@@ -755,15 +731,15 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
         flags, isolate_group_data, isolate_data, error);
   } else {
     isolate_data = new IsolateData(isolate_group_data);
-    isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
-                                      isolate_snapshot_instructions, flags,
-                                      isolate_group_data, isolate_data, error);
+    isolate =
+        Dart_CreateIsolateGroup(script_uri, name, snapshot_data, snapshot_text,
+                                flags, isolate_group_data, isolate_data, error);
   }
 #else
   isolate_data = new IsolateData(isolate_group_data);
-  isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
-                                    isolate_snapshot_instructions, flags,
-                                    isolate_group_data, isolate_data, error);
+  isolate =
+      Dart_CreateIsolateGroup(script_uri, name, snapshot_data, snapshot_text,
+                              flags, isolate_group_data, isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Dart_Isolate created_isolate = nullptr;
@@ -1288,9 +1264,7 @@ void main(int argc, char** argv) {
         Platform::Exit(kErrorExitCode);
       }
       vm_run_app_snapshot = true;
-      app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
-                               &app_isolate_snapshot_data,
-                               &app_isolate_snapshot_instructions);
+      app_snapshot->SetBuffers(&app_snapshot_data, &app_snapshot_text);
     } else if (app_snapshot == nullptr && Dart_IsPrecompiledRuntime()) {
       Syslog::PrintErr(
           "%s is not an AOT snapshot,"
@@ -1367,8 +1341,6 @@ void main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  init_params.vm_snapshot_data = vm_snapshot_data;
-  init_params.vm_snapshot_instructions = vm_snapshot_instructions;
   init_params.create_group = CreateIsolateGroupAndSetup;
   init_params.initialize_isolate = OnIsolateInitialize;
   init_params.shutdown_isolate = OnIsolateShutdown;
@@ -1436,14 +1408,15 @@ void main(int argc, char** argv) {
     }
   }
 
-  // Terminate process exit-code handler.
-  Process::TerminateExitCodeHandler();
-
   error = Dart_Cleanup();
   if (error != nullptr) {
     Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
+
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
+
   const intptr_t global_exit_code = Process::GlobalExitCode();
   dart::embedder::Cleanup();
 

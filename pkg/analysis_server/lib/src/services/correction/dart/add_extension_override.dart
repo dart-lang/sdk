@@ -7,14 +7,13 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExtensionOverride extends MultiCorrectionProducer {
-  AddExtensionOverride({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -45,10 +44,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var nodeName = Name(libraryElement.uri, node.name);
     var extensions = libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(nodeName)
-        .applicableTo(
-          targetLibrary: libraryElement,
-          targetType: targetType as TypeImpl,
-        );
+        .applicableTo(targetLibrary: libraryElement, targetType: targetType);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;
@@ -69,7 +65,7 @@ class _AddOverride extends ResolvedCorrectionProducer {
   /// The extension name to be inserted.
   final String _name;
 
-  _AddOverride(this._expression, this._name, {required super.context});
+  new(this._expression, this._name, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

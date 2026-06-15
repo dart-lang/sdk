@@ -18,7 +18,6 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.annotate_overrides;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_implementsInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -27,8 +26,8 @@ abstract interface class HasLength {
   int get length;
 }
 
-class C {
-  int get length => 42;
+abstract interface class C {
+  int get length;
 }
 ''');
 
@@ -36,7 +35,7 @@ class C {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class C implements HasLength {
+augment abstract interface class C implements HasLength {
   @override
   augment int get length => 42;
 }
@@ -57,16 +56,13 @@ class A {
 class B extends A { }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class B {
-  void a() {}
+  void [!a!]() {}
 }
-''',
-      [lint(44, 1)],
-    );
+''');
   }
 
   test_augmentationMethodWithAnnotation() async {
@@ -87,7 +83,7 @@ class B extends A {
 part of 'a.dart';
 
 augment class B {
-  augment void a() {}
+  augment void a();
 }
 ''');
   }
@@ -103,19 +99,16 @@ class B(@override var int x) extends A {}
   }
 
   test_class_declaringParameter_withoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int get x => 4;
 }
 
-class B(var int x) extends A {}
-''',
-      [lint(47, 1)],
-    );
+class B(var int [!x!]) extends A {}
+''');
   }
 
-  test_class_fieldWithAnnotation() async {
+  test_class_field_withAnnotation() async {
     await assertNoDiagnostics(r'''
 class A {
   int get x => 4;
@@ -128,24 +121,16 @@ class B extends A {
 ''');
   }
 
-  // TODO(srawlins): Test subclassing via `implements`, via mixing-in, and via
-  // superconstraints.
-  // Test that extension methods don't need an annotation.
-  // Test setters and operators.
-
-  test_class_fieldWithoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+  test_class_field_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int get x => 4;
 }
 
 class B extends A {
-  int x = 5;
+  int [!x!] = 5;
 }
-''',
-      [lint(57, 1)],
-    );
+''');
   }
 
   test_class_getterWithAnnotation() async {
@@ -177,18 +162,27 @@ class B extends A {
   }
 
   test_class_getterWithoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int get x => 4;
 }
 
 class B extends A {
-  int get x => 5;
+  int get [!x!] => 5;
 }
-''',
-      [lint(61, 1)],
-    );
+''');
+  }
+
+  test_class_implementsClass_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
+abstract class C {
+  void m();
+}
+
+class D implements C {
+  void [!m!]() {}
+}
+''');
   }
 
   test_class_methodWithAnnotation() async {
@@ -205,18 +199,27 @@ class B extends A {
   }
 
   test_class_methodWithoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   void f() {}
 }
 
 class B extends A {
-  void f() {}
+  void [!f!]() {}
 }
-''',
-      [lint(54, 1)],
-    );
+''');
+  }
+
+  test_class_withMixin_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
+mixin M {
+  void m() {}
+}
+
+class C with M {
+  void [!m!]() {}
+}
+''');
   }
 
   test_enum_declaringParameter_withAnnotation() async {
@@ -232,18 +235,15 @@ class I {
   }
 
   test_enum_declaringParameter_withoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
-enum E(final int x) implements I {
+    await assertDiagnosticsFromMarkdown(r'''
+enum E(final int [!x!]) implements I {
   e(0)
 }
 
 class I {
   int get x => 4;
 }
-''',
-      [lint(17, 1)],
-    );
+''');
   }
 
   test_enum_fieldWithAnnotation() async {
@@ -261,19 +261,16 @@ enum A implements O {
   }
 
   test_enum_fieldWithoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class O {
   int get x => 0;
 }
 
 enum A implements O {
   a,b,c;
-  int get x => 0;
+  int get [!x!] => 0;
 }
-''',
-      [lint(72, 1)],
-    );
+''');
   }
 
   test_enum_methodWithAnnotation() async {
@@ -291,15 +288,20 @@ enum A implements O {
   }
 
   test_enum_methodWithoutAnnotation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum A {
   a,b,c;
-  String toString() => '';
+  String [!toString!]() => '';
 }
-''',
-      [lint(27, 8)],
-    );
+''');
+  }
+
+  test_extension_method_withoutAnnotation() async {
+    await assertNoDiagnostics(r'''
+extension E on Object {
+  void extensionMethod() {}
+}
+''');
   }
 
   test_extensionTypes_field() async {
@@ -352,6 +354,43 @@ class A {
 
 extension type E(A a) implements A {
   set i(int i) {}
+}
+''');
+  }
+
+  test_mixin_superConstraint_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  void m() {}
+}
+
+mixin M on A {
+  void [!m!]() {}
+}
+''');
+  }
+
+  test_operator_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  @override
+  bool operator ==(Object other) => false;
+}
+
+class B extends A {
+  bool operator [!==!](Object other) => true;
+}
+''');
+  }
+
+  test_setter_withoutAnnotation() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  set x(int value) {}
+}
+
+class B extends A {
+  set [!x!](int value) {}
 }
 ''');
   }

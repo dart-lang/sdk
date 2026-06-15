@@ -284,7 +284,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   @override
-  void visitVariableDeclaration(ir.VariableDeclaration node) {
+  void defaultVariable(ir.Variable node) {
     if (node.initializer == null) {
       registerLocalWithoutInitializer();
     }
@@ -426,11 +426,11 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     for (ir.TypeParameter parameter in node.typeParameters) {
       registerParameterCheck(parameter.bound);
     }
-    for (ir.VariableDeclaration parameter in node.positionalParameters) {
+    for (ir.Variable parameter in node.positionalParameters) {
       registerParameterCheck(parameter.type);
       parameter.initializer?.accept(this);
     }
-    for (ir.VariableDeclaration parameter in node.namedParameters) {
+    for (ir.Variable parameter in node.namedParameters) {
       registerParameterCheck(parameter.type);
       parameter.initializer?.accept(this);
     }

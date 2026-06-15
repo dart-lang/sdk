@@ -490,7 +490,7 @@ Futur^e<void>? f;
   }
 
   Future<void> test_import_part() async {
-    var otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    var otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
     var main = TestCode.parse('''
 [!import 'dart:math';!]
 

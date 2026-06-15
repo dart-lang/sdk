@@ -187,6 +187,10 @@ class _ConstantDependenciesCollector extends RecursiveVisitor {
 
   @override
   void defaultConstantReference(Constant node) {
+    if (node is IntConstant || node is DoubleConstant) {
+      // Integers and doubles don't have identity, they are compared by value.
+      return;
+    }
     _directChildren.add(node);
   }
 }
@@ -619,12 +623,12 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitIntLiteral(IntLiteral node) {
-    addConstant(IntConstant(node.value));
+    // Integers don't have identity, they are compared by value.
   }
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    addConstant(DoubleConstant(node.value));
+    // Doubles don't have identity, they are compared by value.
   }
 
   // The references needed by the codegen to handle
@@ -634,7 +638,12 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
 
   @override
   void visitConstantExpression(ConstantExpression node) {
-    addConstant(node.constant);
+    final constant = node.constant;
+    if (constant is IntConstant || constant is DoubleConstant) {
+      // Integers and doubles don't have identity, they are compared by value.
+      return;
+    }
+    addConstant(constant);
   }
 
   void addReference(Reference used) {
@@ -732,12 +741,14 @@ class _ReferenceDependenciesCollector extends RecursiveVisitor {
   @override
   void visitEmptyStatement(EmptyStatement node) => node.visitChildren(this);
   @override
-  void visitVariableDeclaration(VariableDeclaration node) =>
-      node.visitChildren(this);
+  void defaultVariable(Variable node) => node.visitChildren(this);
   @override
   void visitReturnStatement(ReturnStatement node) => node.visitChildren(this);
   @override
   void visitYieldStatement(YieldStatement node) => node.visitChildren(this);
+  @override
+  void visitVariableStatement(VariableStatement node) =>
+      node.visitChildren(this);
 
   @override
   void visitLet(Let node) => node.visitChildren(this);

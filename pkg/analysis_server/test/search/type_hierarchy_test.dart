@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -231,7 +231,7 @@ class B extends A {}
     // reference the package from a project
     writeTestPackageConfig(
       config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
+        ..add(name: 'pkgA', rootFolder: getFolder('$packagesRootPath/pkgA'))),
     );
     addTestFile('''
 import 'package:pkgA/libA.dart';

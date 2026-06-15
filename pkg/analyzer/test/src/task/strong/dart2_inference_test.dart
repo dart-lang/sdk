@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,7 +25,7 @@ void main() {
 @reflectiveTest
 class Dart2InferenceTest extends PubPackageResolutionTest {
   test_assertInitializer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 class C {
@@ -34,7 +33,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleAssertInitializer;
+    var node = result.findNode.singleAssertInitializer;
     assertResolvedNodeText(node, r'''
 AssertInitializer
   assertKeyword: assert
@@ -83,7 +82,7 @@ AssertInitializer
   }
 
   test_assertStatement_message() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 void f() {
@@ -91,7 +90,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleAssertStatement;
+    var node = result.findNode.singleAssertStatement;
     assertResolvedNodeText(node, r'''
 AssertStatement
   assertKeyword: assert
@@ -141,34 +140,37 @@ AssertStatement
   }
 
   test_closure_downwardReturnType_arrow() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   List<int> Function() g;
   g = () => 42;
+//          ^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'List<int>' function, as required by the closure's context.
+  g;
 }
-''';
-    await resolveTestCode(code);
-    Expression closure = findNode.expression('() => 42');
+''');
+    Expression closure = result.findNode.expression('() => 42');
     assertType(closure, 'List<int> Function()');
   }
 
   test_closure_downwardReturnType_block() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   List<int> Function() g;
   g = () { // mark
     return 42;
+//         ^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'List<int>' function, as required by the closure's context.
   };
+  g;
 }
-''';
-    await resolveTestCode(code);
-    Expression closure = findNode.expression('() { // mark');
+''');
+    Expression closure = result.findNode.expression('() { // mark');
     assertType(closure, 'List<int> Function()');
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
@@ -181,37 +183,37 @@ void set topLevel(A value) {}
 
 main() {
   var /*@type=B*/ v = topLevel += 1;
+//                ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 152, 1)],
-    );
-    _assertTypeAnnotations();
+''');
+    _assertTypeAnnotations(result);
   }
 
   test_forIn_identifier() async {
-    var code = r'''
-T f<T>() => null;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+T f<T>() => throw 0;
 
 class A {}
 
-A aTopLevel;
+late A aTopLevel;
 void set aTopLevelSetter(A value) {}
 
 class C {
-  A aField;
+  late A aField;
   void set aSetter(A value) {}
   void test() {
-    A aLocal;
+    late A aLocal;
     for (aLocal in f()) {} // local
+    aLocal;
     for (aField in f()) {} // field
     for (aSetter in f()) {} // setter
     for (aTopLevel in f()) {} // top variable
     for (aTopLevelSetter in f()) {} // top setter
   }
-}''';
-    await resolveTestCode(code);
+}''');
     void assertInvocationType(String prefix) {
-      var invocation = findNode.methodInvocation(prefix);
+      var invocation = result.findNode.methodInvocation(prefix);
       assertType(invocation, 'Iterable<A>');
     }
 
@@ -223,7 +225,7 @@ class C {
   }
 
   test_forIn_variable_implicitlyTyped() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 
@@ -231,25 +233,34 @@ List<T> f<T extends A>(List<T> items) => items;
 
 void test(List<A> listA, List<B> listB) {
   for (var a1 in f(listA)) {} // 1
+//         ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
   for (A a2 in f(listA)) {} // 2
+//       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
   for (var b1 in f(listB)) {} // 3
+//         ^^
+// [diag.unusedLocalVariable] The value of the local variable 'b1' isn't used.
   for (A b2 in f(listB)) {} // 4
+//       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'b2' isn't used.
   for (B b3 in f(listB)) {} // 5
+//       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'b3' isn't used.
 }
-''';
-    await resolveTestCode(code);
+''');
     void assertTypes(
       String vSearch,
       String vType,
       String fSearch,
       String fType,
     ) {
-      var node = findNode.declaredIdentifier(vSearch);
+      var node = result.findNode.declaredIdentifier(vSearch);
 
       var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
-      var invocation = findNode.methodInvocation(fSearch);
+      var invocation = result.findNode.methodInvocation(fSearch);
       assertType(invocation, fType);
     }
 
@@ -261,14 +272,13 @@ void test(List<A> listA, List<B> listB) {
   }
 
   test_implicitVoidReturnType_default() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   set x(_) {}
   operator []=(int index, double value) => null;
 }
-''';
-    await resolveTestCode(code);
-    ClassElement c = findElement2.class_('C');
+''');
+    ClassElement c = result.findElement.class_('C');
 
     SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -279,17 +289,20 @@ class C {
   }
 
   test_implicitVoidReturnType_derived() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Base {
   dynamic set x(_) {}
+//^^^^^^^
+// [diag.nonVoidReturnForSetter] The return type of the setter must be 'void' or absent.
   dynamic operator[]=(int x, int y) => null;
+//^^^^^^^
+// [diag.nonVoidReturnForOperator] The return type of the operator []= must be 'void'.
 }
 class Derived extends Base {
   set x(_) {}
   operator[]=(int x, int y) {}
-}''';
-    await resolveTestCode(code);
-    ClassElement c = findElement2.class_('Derived');
+}''');
+    ClassElement c = result.findElement.class_('Derived');
 
     SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -300,37 +313,35 @@ class Derived extends Base {
   }
 
   test_listMap_empty() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = [];
 var y = {};
-''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+''');
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xfragment = xNode.declaredFragment!;
     assertType(xfragment.element.type, 'List<dynamic>');
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yfragment = yNode.declaredFragment!;
     assertType(yfragment.element.type, 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = [null];
 var y = {null: null};
-''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+''');
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     assertType(xFragment.element.type, 'List<Null>');
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     assertType(yFragment.element.type, 'Map<Null, Null>');
   }
 
   test_logicalAnd() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {
@@ -338,7 +349,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -374,7 +385,7 @@ BinaryExpression
   }
 
   test_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {
@@ -382,7 +393,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -418,7 +429,7 @@ BinaryExpression
   }
 
   test_switchExpression_asContext_forCases() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   const C();
 }
@@ -430,14 +441,13 @@ void test(C<int> x) {
     default:
       break;
   }
-}''';
-    await resolveTestCode(code);
-    var node = findNode.instanceCreation('C():');
+}''');
+    var node = result.findNode.instanceCreation('C():');
     assertType(node, 'C<int>');
   }
 
   test_switchExpression_asContext_forCases_language219() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class C<T> {
   const C();
@@ -450,51 +460,52 @@ void test(C<int> x) {
     default:
       break;
   }
-}''';
-    await resolveTestCode(code);
-    var node = findNode.instanceCreation('const C():');
+}''');
+    var node = result.findNode.instanceCreation('const C():');
     assertType(node, 'C<int>');
   }
 
   test_voidType_method() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   void m() {}
 }
 var x = new C().m();
 main() {
   var y = new C().m();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+''');
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
 
   test_voidType_topLevelFunction() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {}
 var x = f();
 main() {
   var y = f();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
-''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+''');
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
 
-  void _assertTypeAnnotations() {
+  void _assertTypeAnnotations(TestResolvedUnitResult result) {
     var code = result.content;
     var unit = result.unit;
 

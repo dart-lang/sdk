@@ -194,7 +194,7 @@ class ConstIterable extends core::Iterable<core::int> /*hasConstConstructor*/  {
 }
 class WithEquals extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor •(core::int i) → self::WithEquals
+  const constructor •(initializing-formal core::int i) → self::WithEquals
     : self::WithEquals::i = i, super core::Object::•()
     ;
   operator ==(core::Object o) → core::bool {

@@ -22,17 +22,14 @@ class PreferInitializingFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_initializing_formals;
 
   test_assignedInBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num x = 0;
   C(num x) {
-    this.x = x;
+    [!this.x = x!];
   }
 }
-''',
-      [lint(40, 10)],
-    );
+''');
   }
 
   test_assignedInBody_alreadyInitializingFormal() async {
@@ -47,8 +44,7 @@ class C {
   }
 
   test_assignedInBody_andHasSuperInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -56,13 +52,11 @@ class A {
 class C extends A {
   int? c, d;
   C(int c, int d) : super(1, 2) {
-    this.c = c;
-    this.d = d;
+    /*[0*/this.c = c/*0]*/;
+    /*[1*/this.d = d/*1]*/;
   }
 }
-''',
-      [lint(116, 10), lint(132, 10)],
-    );
+''');
   }
 
   test_assignedInBody_justSetters() async {
@@ -106,19 +100,16 @@ class C {
   }
 
   test_assignedInBody_multipleReference_docComment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num x = 0;
 
   /// References to [x] in this doc comment like [x] and [x] are ignored.
   C(num x) {
-    this.x = x;
+    [!this.x = x!];
   }
 }
-''',
-      [lint(115, 10)],
-    );
+''');
   }
 
   test_assignedInBody_multipleReference_initializer() async {
@@ -134,18 +125,15 @@ class C {
   }
 
   test_assignedInBody_namedParameters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num? x, y;
   C({num? x, num y = 1}) {
-    this.x = x;
-    this.y = y;
+    /*[0*/this.x = x/*0]*/;
+    /*[1*/this.y = y/*1]*/;
   }
 }
-''',
-      [lint(54, 10), lint(70, 10)],
-    );
+''');
   }
 
   test_assignedInBody_namedParameters_renamed() async {
@@ -184,21 +172,15 @@ class C {
   }
 
   test_assignedInBody_publicToPrivate_positional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num? _x, _y;
   C(num? x, {num? y}) {
     this._x = x;
-    this._y = y;
+    [!this._y = y!];
   }
 }
-''',
-      [
-        // Only the named parameter is linted.
-        lint(70, 11),
-      ],
-    );
+''');
   }
 
   test_assignedInBody_publicToPrivateRenamed() async {
@@ -214,18 +196,15 @@ class C {
   }
 
   test_assignedInBody_subsequent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num x = 0, y = 0;
   C(num x, num y) {
-    this.x = x;
-    this.y = y;
+    /*[0*/this.x = x/*0]*/;
+    /*[1*/this.y = y/*1]*/;
   }
 }
-''',
-      [lint(54, 10), lint(70, 10)],
-    );
+''');
   }
 
   test_assignedInInitializer_alreadyInitializingFormal() async {
@@ -242,8 +221,7 @@ class C {
   }
 
   test_assignedInInitializer_andHasSuperInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -251,13 +229,11 @@ class A {
 class C extends A {
   int c, d;
   C(int c, int d)
-      : this.c = c,
-        this.d = d,
+      : /*[0*/this.c = c/*0]*/,
+        /*[1*/this.d = d/*1]*/,
         super(1, 2);
 }
-''',
-      [lint(103, 10), lint(123, 10)],
-    );
+''');
   }
 
   test_assignedInInitializer_assignmentWithCalculation() async {
@@ -271,17 +247,14 @@ class C {
   }
 
   test_assignedInInitializer_namedParameters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num? x, y;
   C({num? x, num y = 1})
-      : this.x = x,
-        this.y = y;
+      : /*[0*/this.x = x/*0]*/,
+        /*[1*/this.y = y/*1]*/;
 }
-''',
-      [lint(56, 10), lint(76, 10)],
-    );
+''');
   }
 
   test_assignedInInitializer_privateToPrivate() async {
@@ -305,18 +278,12 @@ class C {
   }
 
   test_assignedInInitializer_publicToPrivate() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   num? _x, _y;
-  C(num? x, {num? y}) : _x = x, _y = y;
+  C(num? x, {num? y}) : _x = x, [!_y = y!];
 }
-''',
-      [
-        // Only the named parameter is linted.
-        lint(57, 6),
-      ],
-    );
+''');
   }
 
   test_assignedInInitializer_publicToPrivateRenamed() async {
@@ -397,16 +364,13 @@ class C {
   }
 
   test_dynamicParameterType_dynamicField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   dynamic _x;
 
-  C({dynamic x}) : _x = x;
+  C({dynamic x}) : [!_x = x!];
 }
-''',
-      [lint(44, 6)],
-    );
+''');
   }
 
   test_dynamicParameterType_nonTopTypeField() async {
@@ -420,16 +384,13 @@ class C {
   }
 
   test_dynamicParameterType_objectQuestionField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   Object? _x;
 
-  C({dynamic x}) : _x = x;
+  C({dynamic x}) : [!_x = x!];
 }
-''',
-      [lint(44, 6)],
-    );
+''');
   }
 
   test_factoryConstructor() async {
@@ -466,16 +427,13 @@ class C {
   }
 
   test_implicitParameterType_dynamicField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   dynamic _x;
 
-  C({x}) : _x = x;
+  C({x}) : [!_x = x!];
 }
-''',
-      [lint(36, 6)],
-    );
+''');
   }
 
   test_implicitParameterType_nonTopTypeField() async {
@@ -489,16 +447,13 @@ class C {
   }
 
   test_implicitParameterType_objectQuestionField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   Object? _x;
 
-  C({x}) : _x = x;
+  C({x}) : [!_x = x!];
 }
-''',
-      [lint(36, 6)],
-    );
+''');
   }
 
   test_initializeFromOtherParameter() async {

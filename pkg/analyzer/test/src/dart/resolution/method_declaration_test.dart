@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MethodDeclarationResolutionTest extends PubPackageResolutionTest {
   test_formalParameterScope_defaultValue() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   static const foo = 0;
 
@@ -25,7 +26,7 @@ class A {
 }
 ''');
 
-    var node = findNode.simple('foo + 1');
+    var node = result.findNode.simple('foo + 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -35,7 +36,7 @@ SimpleIdentifier
   }
 
   test_formalParameterScope_type() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class a {}
 
 class B {
@@ -45,7 +46,7 @@ class B {
 }
 ''');
 
-    var node1 = findNode.namedType('a a');
+    var node1 = result.findNode.namedType('a a');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: a
@@ -53,7 +54,7 @@ NamedType
   type: a
 ''');
 
-    var node2 = findNode.simple('a;');
+    var node2 = result.findNode.simple('a;');
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
@@ -63,7 +64,7 @@ SimpleIdentifier
   }
 
   test_formalParameterScope_wildcardVariable() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var _ = 1;
   void m(int? _) {
@@ -72,7 +73,7 @@ class A {
 }
 ''');
 
-    var node = findNode.simple('_;');
+    var node = result.findNode.simple('_;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
@@ -82,16 +83,15 @@ SimpleIdentifier
   }
 
   test_wildCardMethod() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 12, 1)],
-    );
+''');
 
-    var node = findNode.methodDeclaration('_');
+    var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   name: _
@@ -109,19 +109,18 @@ MethodDeclaration
   }
 
   test_wildCardMethod_preWildCards() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class C {
   _() {}
+//^
+// [diag.unusedElement] The declaration '_' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 56, 1)],
-    );
+''');
 
-    var node = findNode.methodDeclaration('_');
+    var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   name: _
@@ -139,7 +138,7 @@ MethodDeclaration
   }
 
   test_wildcardMethodTypeParameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int _ = 0;
 
@@ -148,8 +147,7 @@ class C {
   }
 }
 ''');
-    var node = findNode.variableDeclaration('_ = _;');
-
+    var node = result.findNode.variableDeclaration('_ = _;');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: _

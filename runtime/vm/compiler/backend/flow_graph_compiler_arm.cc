@@ -30,10 +30,7 @@ DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
   if (FLAG_precompiled_mode) {
-    auto object_store = isolate_group()->object_store();
-
-    const auto& stub =
-        Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
+    const auto& stub = StubCode::WriteBarrierWrappers();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_write_barrier_wrapper_ =
           [&](Condition condition, Register reg) {
@@ -45,8 +42,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
           };
     }
 
-    const auto& array_stub =
-        Code::ZoneHandle(object_store->array_write_barrier_stub());
+    const auto& array_stub = StubCode::ArrayWriteBarrier();
     if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_array_write_barrier_ =
           [&](Condition condition) {
@@ -1040,31 +1036,6 @@ void FlowGraphCompiler::EmitNativeLoad(Register dst,
     default:
       UNREACHABLE();
   }
-}
-
-void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,
-                                     Register dst,
-                                     Register tmp) {
-  compiler::Label skip_reloc;
-  __ b(&skip_reloc);
-  InsertBSSRelocation(relocation);
-  __ Bind(&skip_reloc);
-
-  // For historical reasons, the PC on ARM points 8 bytes (two instructions)
-  // past the current instruction.
-  __ sub(tmp, PC,
-         compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
-
-  // tmp holds the address of the relocation.
-  __ ldr(dst, compiler::Address(tmp));
-
-  // dst holds the relocation itself: tmp - bss_start.
-  // tmp = tmp + (bss_start - tmp) = bss_start
-  __ add(tmp, tmp, compiler::Operand(dst));
-
-  // tmp holds the start of the BSS section.
-  // Load the "get-thread" routine: *bss_start.
-  __ ldr(dst, compiler::Address(tmp));
 }
 
 #undef __

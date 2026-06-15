@@ -21,14 +21,25 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   @override
   final CorrectionApplicability applicability;
 
+  final bool forRepresentationField;
+
   /// Initializes a newly created instance that can't apply bulk and in-file
   /// fixes.
-  AddTypeAnnotation({required super.context})
-    : applicability = CorrectionApplicability.singleLocation;
+  new({required super.context})
+    : applicability = CorrectionApplicability.singleLocation,
+      forRepresentationField = false;
 
-  /// Initializes a newly created instance that can apply bulk and in-file fixes.
-  AddTypeAnnotation.bulkFixable({required super.context})
-    : applicability = CorrectionApplicability.automatically;
+  /// Initializes a newly created instance that can apply bulk and in-file
+  /// fixes.
+  new bulkFixable({required super.context})
+    : applicability = CorrectionApplicability.automatically,
+      forRepresentationField = false;
+
+  /// Initializes a newly created instance that will replace the keyword with
+  /// the added type.
+  new forRepresentationField({required super.context})
+    : applicability = CorrectionApplicability.singleLocation,
+      forRepresentationField = true;
 
   @override
   AssistKind get assistKind => DartAssistKind.addTypeAnnotation;
@@ -43,8 +54,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
 
-    if (node is SimpleFormalParameter) {
-      await _forSimpleFormalParameter(builder, node);
+    if (node is RegularFormalParameter) {
+      await _forRegularFormalParameter(builder, node);
       return;
     }
 
@@ -92,7 +103,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   ) async {
     await builder.addDartFileEdit(file, (builder) {
       if (builder.canWriteType(type, offset: name.offset)) {
-        if (keyword != null && keyword.keyword == Keyword.VAR) {
+        if (keyword != null &&
+            (forRepresentationField || keyword.keyword == Keyword.VAR)) {
           builder.addReplacement(range.token(keyword), (builder) {
             builder.writeType(type);
           });
@@ -129,15 +141,15 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     );
   }
 
-  Future<void> _forSimpleFormalParameter(
+  Future<void> _forRegularFormalParameter(
     ChangeBuilder builder,
-    SimpleFormalParameter parameter,
+    RegularFormalParameter parameter,
   ) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
       return;
     }
-    // Ensure that the parameter is named.
+    // Ensure that the parameter has a named.
     var name = parameter.name;
     if (name == null) {
       return;
@@ -145,15 +157,18 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     // Prepare the type.
     var type = parameter.declaredFragment!.element.type;
     // TODO(scheglov): If the parameter is in a method declaration, and if the
-    // method overrides a method that has a type for the corresponding
-    // parameter, it would be nice to copy down the type from the overridden
-    // method.
+    //  method overrides a method that has a type for the corresponding
+    //  parameter, it would be nice to copy down the type from the overridden
+    //  method.
     if (type is! InterfaceType &&
-        //        type is! FunctionType &&
+        // type is! FunctionType &&
         type is! RecordType) {
       return;
     }
-    await _applyChange(builder, null, name, type);
+    var keyword = forRepresentationField
+        ? parameter.constFinalOrVarKeyword
+        : null;
+    await _applyChange(builder, keyword, name, type);
   }
 
   Future<void> _forVariableDeclaration(
@@ -196,13 +211,10 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    int offset;
-    switch (node) {
-      case ListLiteral():
-        offset = node.leftBracket.offset;
-      case SetOrMapLiteral():
-        offset = node.leftBracket.offset;
-    }
+    var offset = switch (node) {
+      ListLiteral() => node.leftBracket.offset,
+      SetOrMapLiteral() => node.leftBracket.offset,
+    };
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(offset, (builder) {
@@ -248,7 +260,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};
 
-  _AssignedTypeCollector(this.typeSystem, this.variable);
+  new(this.typeSystem, this.variable);
 
   DartType? get bestType {
     if (assignedTypes.isEmpty) {

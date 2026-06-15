@@ -44,7 +44,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFileKeys.enableExperiment}:');
   }
 
   void test_analyzer_enableExperiment() {
@@ -88,6 +88,18 @@ analyzer:
     assertNoSuggestion('dead_code');
   }
 
+  void test_analyzer_errors_internal() {
+    registerLintRule(_InternalRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('internal_lint: ');
+  }
+
   void test_analyzer_errors_noDuplicates() {
     getCompletions('''
 analyzer:
@@ -101,6 +113,20 @@ analyzer:
     expect(duplicateCompletions, isEmpty);
   }
 
+  void test_analyzer_errors_removed() {
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_rule_lint', description: ''),
+    );
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('removed_rule_lint: ');
+  }
+
   void test_analyzer_errors_severity() {
     getCompletions('''
 analyzer:
@@ -111,6 +137,18 @@ analyzer:
     assertSuggestion('info');
     assertSuggestion('warning');
     assertSuggestion('error');
+  }
+
+  void test_analyzer_errors_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint: ');
   }
 
   void test_analyzer_language_strictCasts() {
@@ -148,7 +186,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.format}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -162,10 +200,10 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
-    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
-    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
@@ -175,8 +213,8 @@ code-style:
 formatter:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
-    assertSuggestion('${AnalysisOptionsFile.trailingCommas}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.trailingCommas}: ');
   }
 
   void test_formatter_trailingCommas() {
@@ -207,7 +245,7 @@ linter:
   }
 
   void test_linter_rules_internal() {
-    registerLintRule(InternalRule());
+    registerLintRule(_InternalRule());
 
     getCompletions('''
 linter:
@@ -295,6 +333,44 @@ linter:
     assertNoSuggestion('removed_lint');
   }
 
+  void test_linter_rules_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint');
+  }
+
+  void test_plugins_git_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    git:
+      ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.url}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.ref}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.tagPattern}: ');
+  }
+
+  void test_plugins_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.diagnostics}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.git}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.version}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.hosted}: ');
+  }
+
   @failingTest
   void test_topLevel_afterOtherKeys() {
     // This test fails because the cursor is considered to be inside the exclude
@@ -305,7 +381,7 @@ analyzer:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
   }
 
   @failingTest
@@ -322,15 +398,8 @@ li^
   }
 }
 
-class InternalRule extends AnalysisRule {
-  static const LintCode code = LintCode(
-    'internal_rule',
-    'Internal rule.',
-    correctionMessage: 'Try internal rule.',
-    uniqueName: 'LintCode.internal_rule',
-  );
-
-  InternalRule()
+class _InternalRule extends AnalysisRule {
+  new()
     : super(
         name: 'internal_lint',
         state: RuleState.internal(),
@@ -338,5 +407,21 @@ class InternalRule extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => code;
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'internal_rule',
+    'Internal rule.',
+    uniqueName: 'LintCode.internal_rule',
+  );
+}
+
+class _TestingRule extends AnalysisRule {
+  new()
+    : super(name: 'testing_lint', state: RuleState.testing(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'testing_rule',
+    'Testing rule.',
+    uniqueName: 'LintCode.testing_rule',
+  );
 }

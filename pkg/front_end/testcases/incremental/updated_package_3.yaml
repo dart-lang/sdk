@@ -46,7 +46,7 @@ worlds:
     expectInitializeFromDill: false
     checkInvalidatedFiles: false
     invalidate:
-      - .packages
+      - .dart_tool/package_config.json
     sources:
       package_0.1.1/b.dart: |
         b() {

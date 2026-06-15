@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -452,7 +452,7 @@ dependencies:
 ''');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'other', rootPath: otherRoot.path),
+        ..add(name: 'other', rootFolder: otherRoot),
     );
     await resolveTestCode('''
 import 'package:other/exposed.dart';
@@ -489,7 +489,7 @@ dependencies:
 ''');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'other', rootPath: otherRoot.path),
+        ..add(name: 'other', rootFolder: otherRoot),
     );
     await resolveTestCode('''
 import 'package:other/exposed.dart';
@@ -1098,7 +1098,7 @@ dependencies:
 ''');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'other', rootPath: otherRoot.path),
+        ..add(name: 'other', rootFolder: otherRoot),
     );
     await resolveTestCode('''
 import 'package:other/exposed.dart';

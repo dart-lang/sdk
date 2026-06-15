@@ -23,7 +23,7 @@ class CodeTemplate {
 
   /// Initialize a newly generated code template with the given [kind] and
   /// [components].
-  CodeTemplate(this.kind, this.components, this.requiredIfCondition);
+  new(this.kind, this.components, this.requiredIfCondition);
 
   /// Use the [context] to validate that this template will be able to generate
   /// a value.
@@ -71,21 +71,24 @@ class TemplateContext {
   final CorrectionUtils utils;
 
   /// Initialize a newly created template context with the [node] and [utils].
-  TemplateContext(this.node, this.utils);
+  new(this.node, this.utils);
 
   /// Initialize a newly created template context that uses the invocation
   /// containing the [node] and the [utils].
-  factory TemplateContext.forInvocation(AstNode node, CorrectionUtils utils) =>
+  factory forInvocation(AstNode node, CorrectionUtils utils) =>
       TemplateContext(_getInvocation(node), utils);
 
   /// Return the invocation containing the given [node]. The invocation will be
   /// either an instance creation expression, function invocation, method
-  /// invocation, or an extension override.
+  /// invocation, or an extension override. For string literals in an import
+  /// directive, the invocation is the import directive.
   static AstNode? _getInvocation(AstNode node) {
     if (node is ArgumentList) {
       return node.parent;
     } else if (node.parent is ArgumentList) {
       return node.parent?.parent;
+    } else if (node is ImportDirective) {
+      return node;
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
       return node;
@@ -97,6 +100,11 @@ class TemplateContext {
           return grandparent;
         }
       }
+    } else if (node is SimpleStringLiteral) {
+      var parent = node.parent;
+      if (parent is ImportDirective) {
+        return parent;
+      }
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorName) {
@@ -104,8 +112,6 @@ class TemplateContext {
         if (grandparent is InstanceCreationExpression) {
           return grandparent;
         }
-      } else if (parent is Label && parent.parent is NamedExpression) {
-        return parent.parent?.parent?.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
       } else if (parent is NamedType &&
@@ -124,7 +130,7 @@ class TemplateContext {
       }
     }
     var parent = node.parent;
-    if (parent is NamedExpression &&
+    if (parent is NamedArgument &&
         parent.parent?.parent is InstanceCreationExpression) {
       return parent.parent?.parent;
     }
@@ -138,7 +144,7 @@ class TemplateText extends TemplateComponent {
   final String text;
 
   /// Initialize a newly create template text with the given [text].
-  TemplateText(this.text);
+  new(this.text);
 
   @override
   bool validate(TemplateContext context) {
@@ -157,7 +163,7 @@ class TemplateVariable extends TemplateComponent {
   final ValueGenerator generator;
 
   /// Initialize a newly created template variable with the given [generator].
-  TemplateVariable(this.generator);
+  new(this.generator);
 
   @override
   bool validate(TemplateContext context) {

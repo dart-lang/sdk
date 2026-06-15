@@ -142,10 +142,7 @@ class AnalyzeCommand extends DartdevCommand {
       }
     }
 
-    /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
-    /// and a note that they might be the cause of other errors.
-    final List<AnalysisError> priorityErrors = <AnalysisError>[];
-    final List<AnalysisError> errors = <AnalysisError>[];
+    final errorsByFile = <String, List<AnalysisError>>{};
 
     final machineFormat = args.option('format') == 'machine';
     final jsonFormat = args.option('format') == 'json';
@@ -202,7 +199,7 @@ class AnalyzeCommand extends DartdevCommand {
         ? null
         : log.progress('Analyzing $targetsNames');
 
-    final AnalysisServer server = AnalysisServer(
+    final server = AnalysisServer(
       _packagesFile(),
       sdkPath,
       targets,
@@ -216,24 +213,9 @@ class AnalyzeCommand extends DartdevCommand {
       useAotSnapshot: useAotSnapshot,
     );
 
-    server.onErrors.listen((FileAnalysisErrors fileErrors) {
-      var isPriorityFile = const {
-        'analysis_options.yaml',
-        'pubspec.yaml',
-      }.contains(path.basename(fileErrors.file));
-
-      // Record the issues found (but filter out to do comments unless they've
-      // been upgraded from INFO).
-      for (var error in fileErrors.errors.where(
-        (AnalysisError error) =>
-            error.type != 'TODO' || error.severity != 'INFO',
-      )) {
-        if (isPriorityFile && error.severity == 'ERROR') {
-          priorityErrors.add(error);
-        } else {
-          errors.add(error);
-        }
-      }
+    server.onErrors.listen((fileErrors) {
+      // Replace any previous results for `fileErrors.file`.
+      errorsByFile[fileErrors.file] = fileErrors.errors;
     });
 
     int pid = await server.start();
@@ -267,7 +249,28 @@ class AnalyzeCommand extends DartdevCommand {
 
     progress?.finish(showTiming: true);
 
-    if (priorityErrors.isEmpty && errors.isEmpty) {
+    /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
+    /// and a note that they might be the cause of other errors.
+    final priorityErrors = <AnalysisError>[];
+    final nonPriorityErrors = <AnalysisError>[];
+    for (final MapEntry(key: filePath, value: fileErrors)
+        in errorsByFile.entries) {
+      var isPriorityFile = const {
+        'analysis_options.yaml',
+        'pubspec.yaml',
+      }.contains(path.basename(filePath));
+      for (var error in fileErrors.where(
+        (e) => e.type != 'TODO' || e.severity != 'INFO',
+      )) {
+        if (isPriorityFile && error.severity == 'ERROR') {
+          priorityErrors.add(error);
+        } else {
+          nonPriorityErrors.add(error);
+        }
+      }
+    }
+
+    if (priorityErrors.isEmpty && nonPriorityErrors.isEmpty) {
       if (jsonFormat) {
         emitJsonFormat(log, [], usageInfo);
       } else if (!machineFormat && !server.serverErrorReceived) {
@@ -279,12 +282,14 @@ class AnalyzeCommand extends DartdevCommand {
     }
 
     priorityErrors.sort();
-    errors.sort();
+    nonPriorityErrors.sort();
 
     if (machineFormat) {
-      emitMachineFormat(log, errors);
+      // TODO(srawlins): Why don't we emit the priority errors here?
+      emitMachineFormat(log, nonPriorityErrors);
     } else if (jsonFormat) {
-      emitJsonFormat(log, errors, usageInfo);
+      // TODO(srawlins): Why don't we emit the priority errors here?
+      emitJsonFormat(log, nonPriorityErrors, usageInfo);
     } else {
       var relativeTo = targets.length == 1 ? targets.single : null;
 
@@ -309,16 +314,16 @@ class AnalyzeCommand extends DartdevCommand {
         );
 
         emit(priorityErrors);
-        if (errors.isNotEmpty) {
+        if (nonPriorityErrors.isNotEmpty) {
           log.stdout('Errors in remaining files.');
         }
       }
 
-      if (errors.isNotEmpty) {
-        emit(errors);
+      if (nonPriorityErrors.isNotEmpty) {
+        emit(nonPriorityErrors);
       }
 
-      final errorCount = priorityErrors.length + errors.length;
+      final errorCount = priorityErrors.length + nonPriorityErrors.length;
       log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
     }
 
@@ -326,7 +331,7 @@ class AnalyzeCommand extends DartdevCommand {
     bool hasWarnings = false;
     bool hasInfos = false;
 
-    for (final AnalysisError error in priorityErrors.followedBy(errors)) {
+    for (final error in [...priorityErrors, ...nonPriorityErrors]) {
       hasErrors |= error.isError;
       hasWarnings |= error.isWarning;
       hasInfos |= error.isInfo;
@@ -380,7 +385,7 @@ class AnalyzeCommand extends DartdevCommand {
         : (dartdevUsageLineLength! - _bodyIndentWidth);
 
     for (final AnalysisError error in errors) {
-      var severity = error.severity!.toLowerCase().padLeft(_severityWidth);
+      var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
         severity = ansi.error(severity);
       }

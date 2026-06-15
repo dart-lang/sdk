@@ -5,15 +5,10 @@
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -71,15 +66,9 @@ class LineInfoTest {
     ]);
   }
 
-  void test_linestarts() {
+  void test_lineStarts() {
     String source = "var\r\ni\n=\n1;\n";
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner =
-        Scanner(source, DiagnosticReporter(listener, TestSource()))
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+    var scanner = _newScanner(source);
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -91,14 +80,8 @@ class LineInfoTest {
     // to the correct analyzer error code.
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner =
-        Scanner(source, DiagnosticReporter(listener, TestSource()))
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
-    Token token = scanner.tokenize(reportScannerErrors: false);
+    var scanner = _newScanner(source);
+    Token token = scanner.tokenize();
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
     expect(token, TypeMatcher<UnmatchedToken>());
@@ -110,11 +93,7 @@ class LineInfoTest {
     String source,
     List<ScannerTest_ExpectedLocation> expectedLocations,
   ) {
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    _scanWithListener(source, listener);
-    listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(TestSource())!;
-    expect(info, isNotNull);
+    var info = _scanLineInfo(source);
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
@@ -132,26 +111,34 @@ class LineInfoTest {
     }
   }
 
-  Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
-    Scanner scanner =
-        Scanner(source, DiagnosticReporter(listener, TestSource()))
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
-    Token result = scanner.tokenize();
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-    listener.setLineInfo(TestSource(), lineInfo);
-    return result;
+  Scanner _newScanner(String source) {
+    return Scanner(
+      inputText: source,
+      reportError: (diagnostic) {
+        fail('Unexpected diagnostic: $diagnostic');
+      },
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
+  }
+
+  LineInfo _scanLineInfo(String source) {
+    var scanner = _newScanner(source);
+    scanner.tokenize();
+    return LineInfo(scanner.lineStarts);
   }
 }
 
 @reflectiveTest
-class ScannerTest with ResourceProviderMixin {
+class ScannerTest {
   test_featureSet() {
-    var scanner = _createScanner(r'''
+    var scanner = Scanner(
+      inputText: r'''
 // @dart = 2.0
-''');
+''',
+      reportError: (_) {},
+    );
     var defaultFeatureSet = FeatureSet.latestLanguageVersion();
     expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
 
@@ -166,9 +153,12 @@ class ScannerTest with ResourceProviderMixin {
   }
 
   test_featureSet_majorOverflow() {
-    var scanner = _createScanner(r'''
+    var scanner = Scanner(
+      inputText: r'''
 // @dart = 99999999999999999999999999999999.0
-''');
+''',
+      reportError: (_) {},
+    );
     var featureSet = FeatureSet.latestLanguageVersion();
     scanner.configureFeatures(
       featureSetForOverriding: featureSet,
@@ -179,9 +169,12 @@ class ScannerTest with ResourceProviderMixin {
   }
 
   test_featureSet_minorOverflow() {
-    var scanner = _createScanner(r'''
+    var scanner = Scanner(
+      inputText: r'''
 // @dart = 3.99999999999999999999999999999999
-''');
+''',
+      reportError: (_) {},
+    );
     var featureSet = FeatureSet.latestLanguageVersion();
     scanner.configureFeatures(
       featureSetForOverriding: featureSet,
@@ -189,13 +182,6 @@ class ScannerTest with ResourceProviderMixin {
     );
     scanner.tokenize();
     // Don't check features, but should not crash.
-  }
-
-  Scanner _createScanner(String content) {
-    var path = convertPath('/test/lib/a.dart');
-    var source = StringSource(content, path);
-    var diagnosticCollector = RecordingDiagnosticListener();
-    return Scanner(content, DiagnosticReporter(diagnosticCollector, source));
   }
 }
 

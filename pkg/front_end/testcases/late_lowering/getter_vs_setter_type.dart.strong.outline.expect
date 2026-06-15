@@ -26,7 +26,7 @@ abstract class A extends core::Object {
   field core::int? _#A#property5;
   field core::bool _#A#property5#isSet;
   field core::int? _#A#property6;
-  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+  constructor •(initializing-formal core::int property4, initializing-formal core::int? property5, initializing-formal core::int property6) → self::A
     ;
   get property4() → core::int;
   set property4(core::int property4#param) → void;
@@ -40,7 +40,7 @@ abstract class B1 extends core::Object {
   field core::int? _#B1#property5;
   field core::int? _#B1#property6;
   field core::bool _#B1#property6#isSet;
-  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::int? property6) → self::B1
     ;
   get property4() → core::int;
   set property4(core::int property4#param) → void;
@@ -60,7 +60,7 @@ abstract class C1 extends core::Object {
   field core::int? _#C1#property4;
   field core::int? _#C1#property5;
   field core::int? _#C1#property6;
-  constructor •(core::int property4, core::int property5, core::int property6) → self::C1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::int property6) → self::C1
     ;
   get property4() → core::int;
   set property4(core::int property4#param) → void;

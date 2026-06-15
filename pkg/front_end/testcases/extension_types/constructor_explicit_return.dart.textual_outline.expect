@@ -1,0 +1,13 @@
+main() {}
+
+class A {
+  static int counter = 0;
+  final int value;
+  A() : value = counter++;
+}
+
+extension type View(A a) {
+  View.a(this.a) {}
+}
+
+expect(expected, actual) {}

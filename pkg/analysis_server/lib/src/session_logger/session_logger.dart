@@ -23,17 +23,17 @@ class SessionLogger {
   ///
   /// If [filePath] is non-`null`, it also writes log entries to a file at
   /// [filePath].
-  factory SessionLogger({String? filePath}) {
+  factory({String? filePath}) {
     var normalizer = LogNormalizer();
     var sink = SessionLoggerInMemorySink(
       maxBufferLength: 1024,
       normalizer: normalizer,
-      filePath: filePath,
+      sessionLogFilePath: filePath,
     );
     return SessionLogger._(sink: sink, normalizer: normalizer);
   }
 
-  SessionLogger._({required this.sink, required this.normalizer});
+  new _({required this.sink, required this.normalizer});
 
   /// Adds normalization replacements for the package roots.
   ///
@@ -43,9 +43,9 @@ class SessionLogger {
     required Map<String, Uri> packageRoots,
   }) {
     for (var MapEntry(key: packageName, value: uri) in packageRoots.entries) {
-      normalizer.addUriReplacement(
+      normalizer.addReplacementsForUri(
         uri,
-        '{{context-$index:package-root:$packageName}}',
+        'context-$index:package-root:$packageName',
       );
     }
   }

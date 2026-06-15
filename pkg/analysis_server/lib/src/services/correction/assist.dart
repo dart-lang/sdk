@@ -9,7 +9,7 @@ abstract final class DartAssistKind {
   static const addDiagnosticPropertyReference = AssistKind(
     'dart.assist.add.diagnosticPropertyReference',
     DartAssistKindPriority.default_,
-    'Add a debug reference to this property',
+    'Add debug reference to this property',
   );
   static const addDigitSeparators = AssistKind(
     'dart.assist.add.digitSeparators',
@@ -31,10 +31,15 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Add type annotation',
   );
+  static const addTypeName = AssistKind(
+    'dart.assist.add.typeName',
+    DartAssistKindPriority.default_,
+    'Add implicit type name',
+  );
   static const assignToLocalVariable = AssistKind(
     'dart.assist.assignToVariable',
     DartAssistKindPriority.default_,
-    'Assign value to new local variable',
+    'Assign value to local variable',
   );
   static const bindAllToFields = AssistKind(
     'dart.assist.bindAllToFields',
@@ -49,12 +54,12 @@ abstract final class DartAssistKind {
   static const convertClassToEnum = AssistKind(
     'dart.assist.convert.classToEnum',
     DartAssistKindPriority.default_,
-    'Convert class to an enum',
+    'Convert class to enum',
   );
   static const convertClassToMixin = AssistKind(
     'dart.assist.convert.classToMixin',
     DartAssistKindPriority.default_,
-    'Convert class to a mixin',
+    'Convert class to mixin',
   );
   static const convertDocumentationIntoBlock = AssistKind(
     'dart.assist.convert.blockComment',
@@ -69,7 +74,7 @@ abstract final class DartAssistKind {
   static const convertFieldFormalToNormal = AssistKind(
     'dart.assist.convert.fieldFormalToNormal',
     DartAssistKindPriority.default_,
-    'Convert to a normal parameter',
+    'Convert to normal parameter',
   );
   static const convertIntoAsyncBody = AssistKind(
     'dart.assist.convert.bodyToAsync',
@@ -99,17 +104,17 @@ abstract final class DartAssistKind {
   static const convertIntoGenericFunctionSyntax = AssistKind(
     'dart.assist.convert.toGenericFunctionSyntax',
     DartAssistKindPriority.default_,
-    "Convert into 'Function' syntax",
+    "Convert to 'Function' syntax",
   );
   static const convertIntoGetter = AssistKind(
     'dart.assist.convert.finalFieldToGetter',
     DartAssistKindPriority.default_,
-    "Convert '{0}' to a getter",
+    "Convert '{0}' to getter",
   );
   static const convertIntoIsNot = AssistKind(
     'dart.assist.convert.isNot',
     DartAssistKindPriority.default_,
-    'Convert to is!',
+    "Convert to 'is!'",
   );
   static const convertIntoIsNotEmpty = AssistKind(
     'dart.assist.convert.isNotEmpty',
@@ -119,12 +124,12 @@ abstract final class DartAssistKind {
   static const convertPartOfToUri = AssistKind(
     'dart.assist.convert.partOfToPartUri',
     DartAssistKindPriority.default_,
-    'Convert to use a URI',
+    'Convert to use URI',
   );
   static const convertToDeclaringParameter = AssistKind(
     'dart.assist.convert.toDeclaringParameter',
     DartAssistKindPriority.default_,
-    'Convert to a declaring parameter',
+    'Convert to declaring parameter',
   );
   static const convertToDotShorthand = AssistKind(
     'dart.assist.convert.toDotShorthand',
@@ -144,7 +149,7 @@ abstract final class DartAssistKind {
   static const convertToForElement = AssistKind(
     'dart.assist.convert.toForElement',
     DartAssistKindPriority.default_,
-    "Convert to a 'for' element",
+    "Convert to 'for' element",
   );
   static const convertToIfCaseStatement = AssistKind(
     'dart.assist.convert.ifCaseStatement',
@@ -159,12 +164,12 @@ abstract final class DartAssistKind {
   static const convertToIfElement = AssistKind(
     'dart.assist.convert.toIfElement',
     DartAssistKindPriority.default_,
-    "Convert to an 'if' element",
+    "Convert to 'if' element",
   );
   static const convertToIntLiteral = AssistKind(
     'dart.assist.convert.toIntLiteral',
     DartAssistKindPriority.default_,
-    'Convert to an int literal',
+    'Convert to int literal',
   );
   static const convertToMapLiteral = AssistKind(
     'dart.assist.convert.toMapLiteral',
@@ -189,17 +194,17 @@ abstract final class DartAssistKind {
   static const convertToPrimaryConstructor = AssistKind(
     'dart.assist.convert.toPrimaryConstructor',
     DartAssistKindPriority.default_,
-    'Convert to a primary constructor',
+    'Convert to primary constructor',
   );
   static const convertToRelativeImport = AssistKind(
     'dart.assist.convert.packageToRelativeImport',
     DartAssistKindPriority.default_,
-    'Convert to a relative import',
+    'Convert to relative import',
   );
   static const convertToSecondaryConstructor = AssistKind(
     'dart.assist.convert.toSecondaryConstructor',
     DartAssistKindPriority.default_,
-    'Convert to a secondary constructor',
+    'Convert to secondary constructor',
   );
   static const convertToSetLiteral = AssistKind(
     'dart.assist.convert.toSetLiteral',
@@ -214,7 +219,7 @@ abstract final class DartAssistKind {
   static const convertToSpread = AssistKind(
     'dart.assist.convert.toSpread',
     DartAssistKindPriority.default_,
-    'Convert to a spread',
+    'Convert to spread',
   );
   static const convertToSuperParameters = AssistKind(
     'dart.assist.convert.toSuperParameters',
@@ -349,7 +354,7 @@ abstract final class DartAssistKind {
   static const flutterRemoveWidget = AssistKind(
     'dart.assist.flutter.removeWidget',
     DartAssistKindPriority.flutterRemove,
-    'Remove this widget',
+    'Remove widget',
   );
   static const importAddShow = AssistKind(
     'dart.assist.add.showCombinator',
@@ -374,7 +379,7 @@ abstract final class DartAssistKind {
   static const joinElseWithIf = AssistKind(
     'dart.assist.inlineElseBlock',
     DartAssistKindPriority.default_,
-    "Join the 'else' block with inner 'if' statement",
+    "Join 'else' block with inner 'if' statement",
   );
   static const joinIfWithElse = AssistKind(
     'dart.assist.inlineEnclosingElseBlock',
@@ -395,6 +400,11 @@ abstract final class DartAssistKind {
     'dart.assist.joinVariableDeclaration',
     DartAssistKindPriority.default_,
     'Join variable declaration',
+  );
+  static const moveInitializationToFieldDeclaration = AssistKind(
+    'dart.assist.moveInitializationToFieldDeclaration',
+    DartAssistKindPriority.default_,
+    "Move initialization to the field's declaration",
   );
   static const removeAsync = AssistKind(
     'dart.assist.remove.async',
@@ -435,7 +445,7 @@ abstract final class DartAssistKind {
   static const shadowField = AssistKind(
     'dart.assist.shadowField',
     DartAssistKindPriority.default_,
-    'Create a local variable that shadows the field',
+    'Create local variable that shadows the field',
   );
   static const sortChildPropertyLast = AssistKind(
     'dart.assist.sort.child.properties.last',
@@ -445,7 +455,7 @@ abstract final class DartAssistKind {
   static const splitAndCondition = AssistKind(
     'dart.assist.splitIfConjunction',
     DartAssistKindPriority.default_,
-    'Split && condition',
+    "Split '&&' condition",
   );
   static const splitVariableDeclaration = AssistKind(
     'dart.assist.splitVariableDeclaration',

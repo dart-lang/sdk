@@ -25,12 +25,22 @@ JsonRpcPeer jsonRpcPeerFromSocket(
 ]) {
   final lineChannel = StreamChannel<String>(
     const LineSplitter().bind(utf8.decoder.bind(socket)),
-    StreamController<String>(sync: true, onCancel: socket.close)
+    StreamController<String>(
+        sync: true,
+        onCancel: () async {
+          try {
+            await socket.close();
+          } catch (_) {}
+        },
+      )
       ..stream.listen((line) {
         socket.write(line);
         socket.write('\n');
       }),
   );
+
+  socket.done.ignore();
+
   final peer = json_rpc.Peer(lineChannel);
   if (methods != null) {
     for (final MapEntry(:key, :value) in methods.entries) {
@@ -57,7 +67,7 @@ class JsonRpcServer {
       _endpoints.add(endpoint);
       endpoint.done.whenComplete(() {
         _endpoints.remove(endpoint);
-      });
+      }).ignore();
     });
   }
 
@@ -65,7 +75,9 @@ class JsonRpcServer {
   List<JsonRpcPeer> get endpoints => _endpoints.toList();
 
   Future<void> close() async {
-    await Future.wait(_endpoints.toList().map((e) => e.close()));
+    try {
+      await Future.wait(_endpoints.toList().map((e) => e.close()));
+    } catch (_) {}
     await _serverSocket.close();
   }
 }

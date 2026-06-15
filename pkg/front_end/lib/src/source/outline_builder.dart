@@ -22,7 +22,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
-    show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
+    show InvalidType, Nullability, ProcedureKind, TreeNode;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -516,7 +516,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   OffsetMap _offsetMap;
 
-  OutlineBuilder(
+  new(
     this._problemReporting,
     this._compilationUnit,
     this._builderFactory,
@@ -739,7 +739,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("endImport");
     assert(
       checkState(importKeyword, [
@@ -773,22 +773,10 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    if (augmentToken != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        augmentToken.charOffset,
-        augmentToken.length,
-      )) {
-        augmentToken = null;
-      }
-    }
-    bool isAugmentationImport = augmentToken != null;
     _builderFactory.addImport(
       offsetMap: _offsetMap,
       importKeyword: importKeyword,
       metadata: metadata,
-      isAugmentationImport: isAugmentationImport,
       uri: uri,
       configurations: configurations,
       prefix: prefix?.name,
@@ -1105,7 +1093,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1121,15 +1108,6 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(DeclarationContext.Class);
     NominalParameters? typeParameters =
         peek(NullValues.NominalParameters) as NominalParameters?;
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1182,7 +1160,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
     Modifiers modifiers = Modifiers.from(
       abstractToken: abstractToken,
-      macroToken: macroToken,
       sealedToken: sealedToken,
       baseToken: baseToken,
       interfaceToken: interfaceToken,
@@ -1274,7 +1251,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginNamedMixinApplication(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1295,15 +1271,6 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1352,7 +1319,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(
       Modifiers.from(
         abstractToken: abstractToken,
-        macroToken: macroToken,
         sealedToken: sealedToken,
         baseToken: baseToken,
         interfaceToken: interfaceToken,
@@ -1469,9 +1435,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    List<TypeBuilder>? mixins =
-        nullIfParserRecovery(pop(NullValues.TypeBuilderList))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? mixins = nullIfParserRecovery(
+      pop(NullValues.TypeBuilderList),
+    ) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
@@ -1818,6 +1784,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -1845,12 +1812,22 @@ class OutlineBuilder extends StackListenerImpl {
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
 
-    if (kind != DeclarationKind.ExtensionType) {
-      reportIfNotEnabled(
-        libraryFeatures.primaryConstructors,
-        beginToken.charOffset,
-        noLength,
-      );
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Extension:
+        // Invalid. Error reported in the parser.
+        break;
+      case DeclarationKind.ExtensionType:
+        // Always valid.
+        break;
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+        reportIfNotEnabled(
+          libraryFeatures.primaryConstructors,
+          beginToken.charOffset,
+          noLength,
+        );
     }
 
     if (formals != null) {
@@ -2023,9 +2000,9 @@ class OutlineBuilder extends StackListenerImpl {
       beginToken: beginToken,
       name: name,
       startOffset: startOffset,
+      endOffset: endToken.charOffset,
       nameOffset: nameOffset,
       formalsOffset: formalsOffset,
-      // TODO(johnniwinther): Provide `endOffset`.
       formals: formals,
       isConst: constKeyword != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
@@ -2050,14 +2027,14 @@ class OutlineBuilder extends StackListenerImpl {
 
     Token methodBodyToken = pop() as Token;
     MethodBody methodBody = pop() as MethodBody;
-    pop() as AsyncMarker;
+    pop() as AsyncModifier;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     _builderFactory.addPrimaryConstructorBody(
       offsetMap: _offsetMap,
       metadata: metadata,
       beginToken: beginToken,
       endOffset: endToken.charOffset,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasBody: methodBody != MethodBody.Abstract,
       bodyOffset: methodBodyToken.charOffset,
     );
@@ -2085,7 +2062,7 @@ class OutlineBuilder extends StackListenerImpl {
       checkState(beginToken, [
         /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
-        ValueKinds.AsyncMarker,
+        ValueKinds.AsyncModifier,
         ValueKinds.FormalListOrNull,
         /* formalsOffset */ ValueKinds.Integer,
         ValueKinds.NominalTypeParametersOrNull,
@@ -2098,7 +2075,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2429,7 +2406,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2540,7 +2517,7 @@ class OutlineBuilder extends StackListenerImpl {
     bool isAbstract = bodyKind == MethodBody.Abstract;
     if (isAbstract) {
       // An error has been reported if this wasn't already sync.
-      asyncModifier = AsyncMarker.Sync;
+      asyncModifier = AsyncModifier.implicitSync;
     }
     if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
       if (formals == null || formals.length != 1) {
@@ -2627,7 +2604,7 @@ class OutlineBuilder extends StackListenerImpl {
         /* method body kind */ ValueKinds.MethodBody,
       ]),
     );
-    pop() as Token; // Method body token
+    Token bodyToken = pop() as Token;
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2647,7 +2624,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    pop() as AsyncMarker;
+    pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2692,14 +2669,24 @@ class OutlineBuilder extends StackListenerImpl {
       modifiers |= Modifiers.External;
     }
 
-    bool isConst = modifiers.isConst;
-
-    if (isConst &&
-        bodyKind != MethodBody.Abstract &&
-        !libraryFeatures.constFunctions.isEnabled) {
-      addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
-      modifiers -= Modifiers.Const;
+    if (modifiers.isConst) {
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
+      }
+    } else if (kind == DeclarationKind.Enum &&
+        libraryFeatures.primaryConstructors.isEnabled) {
+      modifiers |= Modifiers.Const;
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(
+          diag.implicitlyConstEnumConstructorWithBody,
+          bodyToken.charOffset,
+          noLength,
+        );
+      }
     }
+
     if (returnType != null) {
       addProblem(
         diag.constructorWithReturnType,
@@ -2730,7 +2717,7 @@ class OutlineBuilder extends StackListenerImpl {
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       nativeMethodName: nativeMethodName,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
     );
@@ -2804,9 +2791,9 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    List<TypeBuilder>? interfaces =
-        nullIfParserRecovery(popIfNotNull(implementsKeyword))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? interfaces = nullIfParserRecovery(
+      popIfNotNull(implementsKeyword),
+    ) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Modifiers modifiers = pop() as Modifiers;
@@ -3968,8 +3955,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4026,6 +4013,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4063,6 +4051,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = Modifiers.from(
+      abstractToken: abstractToken,
+      augmentToken: augmentToken,
       externalToken: externalToken,
       staticToken: staticToken,
       covariantToken: covariantToken,
@@ -4485,6 +4475,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
@@ -4512,7 +4503,13 @@ class OutlineBuilder extends StackListenerImpl {
 
     pushDeclarationContext(declarationContext);
     _builderFactory.beginFactoryMethod();
-    push(Modifiers.from(externalToken: externalToken, constToken: constToken));
+    push(
+      Modifiers.from(
+        augmentToken: augmentToken,
+        externalToken: externalToken,
+        constToken: constToken,
+      ),
+    );
   }
 
   void _endFactoryMethod(
@@ -4537,7 +4534,7 @@ class OutlineBuilder extends StackListenerImpl {
             ValueKinds.ConstructorReferenceBuilderOrNull,
             ValueKinds.ParserRecovery,
           ]),
-        ValueKinds.AsyncMarker,
+        ValueKinds.AsyncModifier,
         ValueKinds.FormalListOrNull,
         /* formals offset */ ValueKinds.Integer,
         ValueKinds.NominalTypeParametersOrNull,
@@ -4552,7 +4549,7 @@ class OutlineBuilder extends StackListenerImpl {
       redirectionTarget =
           nullIfParserRecovery(pop()) as ConstructorReferenceBuilder?;
     }
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -4905,7 +4902,7 @@ class EnumConstantInfo {
   final String name;
   final int nameOffset;
 
-  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
+  new(this.metadata, this.name, this.nameOffset);
 }
 
 class NominalParameters {
@@ -4913,7 +4910,7 @@ class NominalParameters {
   final Token endToken;
   final List<TypeParameterFragment>? fragments;
 
-  NominalParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.fragments,
@@ -4929,7 +4926,7 @@ class StructuralParameters {
   final Token endToken;
   final List<SourceStructuralParameterBuilder>? builders;
 
-  StructuralParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.builders,

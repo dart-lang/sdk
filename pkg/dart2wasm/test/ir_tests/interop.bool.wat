@@ -1,38 +1,42 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"dart2wasm._197 (import)" (import "dart2wasm" "_197") (param i32) (result externref))
-  (func $"dart2wasm._322 (import)" (import "dart2wasm" "_322") (param externref) (result externref))
-  (func $"dart2wasm._323 (import)" (import "dart2wasm" "_323") (param externref) (result externref))
+  (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param i32) (result externref))
+  (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param externref) (result externref))
+  (func $"dart2wasm.R (import)" (import "dart2wasm" "R") (param externref) (result externref))
   (global $"boolValueNullable initialized" (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
   (global $false (ref $#Top) <...>)
   (global $true (ref $#Top) <...>)
   (func $boolValue implicit getter (result i32) <...>)
   (func $ktrue implicit getter (result i32) <...>)
-  (func $sinkBool <noInline> (param $var0 i32) <...>)
-  (func $sinkBoolNullable <noInline> (param $var0 (ref null $#Top)) <...>)
-  (func $"testBoolConstant <noInline>"
+  (func $sinkBool (param $var0 i32) <...>)
+  (func $sinkBoolNullable (param $var0 (ref null $#Top)) <...>)
+  (@binaryen.inline 0)
+  (func $testBoolConstant
     i32.const 1
-    call $"dart2wasm._197 (import)"
-    call $"dart2wasm._322 (import)"
+    call $"dart2wasm.M (import)"
+    call $"dart2wasm.R (import)"
     call $toDartBool
-    call $"sinkBool <noInline>"
+    call $sinkBool
   )
-  (func $"testBoolConstantNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testBoolConstantNullable
     ref.null noextern
-    call $"dart2wasm._323 (import)"
+    call $"dart2wasm.N (import)"
     call $toDartNullableBool
-    call $"sinkBoolNullable <noInline>"
+    call $sinkBoolNullable
   )
-  (func $"testBoolValue <noInline>"
+  (@binaryen.inline 0)
+  (func $testBoolValue
     call $"boolValue implicit getter"
-    call $"dart2wasm._197 (import)"
-    call $"dart2wasm._322 (import)"
+    call $"dart2wasm.M (import)"
+    call $"dart2wasm.R (import)"
     call $toDartBool
-    call $"sinkBool <noInline>"
+    call $sinkBool
   )
-  (func $"testBoolValueNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testBoolValueNullable
     (local $var0 (ref null $#Top))
     global.get $"boolValueNullable initialized"
     if (result (ref null $#Top))
@@ -62,11 +66,11 @@
       global.get $false
       ref.eq
       i32.eqz
-      call $"dart2wasm._197 (import)"
+      call $"dart2wasm.M (import)"
     end
-    call $"dart2wasm._323 (import)"
+    call $"dart2wasm.N (import)"
     call $toDartNullableBool
-    call $"sinkBoolNullable <noInline>"
+    call $sinkBoolNullable
   )
   (func $toDartBool (param $var0 externref) (result i32) <...>)
   (func $toDartNullableBool (param $var0 externref) (result (ref null $#Top)) <...>)

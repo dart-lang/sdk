@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/add_digit_separator
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_type_name.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/bind_all_to_fields.dart';
 import 'package:analysis_server/src/services/correction/dart/bind_to_field.dart';
@@ -68,6 +69,7 @@ import 'package:analysis_server/src/services/correction/dart/join_else_with_if.d
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/move_initialization_to_field_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -92,6 +94,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   AddLate.new,
   AddReturnType.new,
   AddTypeAnnotation.bulkFixable,
+  AddTypeName.new,
   AssignToLocalVariable.new,
   BindAllToFields.new,
   BindToField.new,
@@ -154,6 +157,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   JoinIfWithInner.new,
   JoinIfWithOuter.new,
   JoinVariableDeclaration.new,
+  MoveInitializationToFieldDeclaration.new,
   RemoveAsync.new,
   RemoveUnnecessaryName.new,
   RemoveDigitSeparators.new,

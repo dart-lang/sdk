@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,10 +11,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -548,7 +551,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new() { print(42); }'));
   }
 
   Future<void> test_writeConstructorDeclaration_fieldNames() async {
@@ -567,7 +570,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new(this.a, this.bb);'));
   }
 
   Future<void> test_writeConstructorDeclaration_initializerWriter() async {
@@ -586,7 +589,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new() : super();'));
   }
 
   Future<void> test_writeConstructorDeclaration_parameterWriter() async {
@@ -605,7 +608,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new(int a, {this.b});'));
   }
 
   Future<void> test_writeFieldDeclaration_initializerWriter() async {
@@ -1455,7 +1458,11 @@ class A {}
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(2, (builder) {
-        builder.writeParameterMatchingArgument(argument, 0, <String>{});
+        builder.writeParameterMatchingArgument(
+          argument.argumentExpression,
+          0,
+          <String>{},
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1770,7 +1777,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('set s(value) {/* TODO */}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_isStatic() async {
@@ -1785,7 +1795,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('static set s(value) {}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_nameGroupName() async {
@@ -1800,7 +1813,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
@@ -1828,7 +1841,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(A value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
@@ -2525,10 +2538,49 @@ A'''),
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
+  late String testFilePath = convertPath('/home/test/lib/test.dart');
+
+  late TestCode testCode;
+
+  late ResolvedUnitResult resolvedUnit;
+
+  late ChangeBuilder changeBuilder;
+
+  void assertChange(String expectedCode) {
+    var sourceChange = changeBuilder.sourceChange;
+    var fileEdits = sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    expect(sourceChange.edits[0].file, testFilePath);
+    var resultCode = SourceEdit.applySequence(
+      testCode.code,
+      sourceChange.edits[0].edits,
+    );
+    expect(resultCode, expectedCode);
+  }
+
+  T findNode<T extends AstNode>() {
+    var selection = resolvedUnit.unit.select(
+      offset: testCode.position.offset,
+      length: 0,
+    )!;
+    return selection.coveringNode.thisOrAncestorOfType<T>()!;
+  }
+
   Future<ResolvedUnitResult> resolveContent(String path, String content) {
     path = convertPath(path);
     addSource(path, content);
     return resolveFile(path);
+  }
+
+  Future<void> resolveTestSource(String codeWithMarkup) async {
+    testCode = TestCode.parse(codeWithMarkup);
+    addSource(testFilePath, testCode.code);
+    resolvedUnit = await resolveFile(testFilePath);
+    // TODO(dantup): Currently these tests all assume \n and need updating.
+    changeBuilder = ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: '\n',
+    );
   }
 
   Future<void> test_convertFunctionFromSyncToAsync_closure() async {
@@ -2572,6 +2624,162 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
     expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
+  }
+
+  Future<void> test_deleteClassMember_class_first() async {
+    await resolveTestSource('''
+class C {
+  void a^() {}
+
+  void b() {}
+
+  void c() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+class C {
+  void b() {}
+
+  void c() {}
+}
+''');
+  }
+
+  Future<void> test_deleteClassMember_class_last() async {
+    await resolveTestSource('''
+class C {
+  void a() {}
+
+  void b() {}
+
+  void c^() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+class C {
+  void a() {}
+
+  void b() {}
+}
+''');
+  }
+
+  Future<void> test_deleteClassMember_class_middle() async {
+    await resolveTestSource('''
+class C {
+  void a() {}
+
+  void b^() {}
+
+  void c() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+class C {
+  void a() {}
+
+  void c() {}
+}
+''');
+  }
+
+  Future<void> test_deleteClassMember_class_only() async {
+    await resolveTestSource('''
+class C {
+  void a^() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+class C;
+''');
+  }
+
+  Future<void>
+  test_deleteClassMember_class_only_withPrimaryConstructor() async {
+    await resolveTestSource('''
+class C(var int i) {
+  void a^() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+class C(var int i);
+''');
+  }
+
+  Future<void> test_deleteClassMember_enum_first() async {
+    await resolveTestSource('''
+enum E {
+  e, f, g;
+
+  void a^() {}
+
+  void b() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+enum E {
+  e, f, g;
+
+  void b() {}
+}
+''');
+  }
+
+  Future<void> test_deleteClassMember_enum_only() async {
+    await resolveTestSource('''
+enum E {
+  e, f, g;
+
+  void a^() {}
+}
+''');
+
+    var member = findNode<ClassMember>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.deleteClassMember(member);
+    });
+
+    assertChange('''
+enum E {
+  e, f, g
+}
+''');
   }
 
   Future<void> test_fileHeader_emptyFile() async {

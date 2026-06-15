@@ -455,6 +455,8 @@ class TypeRef {
 
   bool get isArray => arrayDepth > 0;
 
+  bool get isMap => name == 'Map';
+
   bool get isSimple =>
       arrayDepth == 0 &&
       (name == 'int' ||
@@ -620,15 +622,9 @@ class Type extends Member {
       gen.write('}');
     }
     gen.write(')');
-    if (hasRequiredParentFields) {
+    if (hasRequiredParentFields && name == 'Instance') {
       gen.write(' : super(');
-      superType.fields.where((field) => !field.optional).forEach((field) {
-        String? name = field.generatableName;
-        gen.writeln('$name: $name,');
-      });
-      if (name == 'Instance') {
-        gen.writeln('classRef: classRef,');
-      }
+      gen.writeln('classRef: classRef,');
       gen.write(')');
     } else if (name!.contains('NullVal')) {
       gen.writeln(' : super(');
@@ -754,7 +750,7 @@ class Type extends Member {
             } else {
               gen.writeln(
                   '${field.generatableName} = _createServiceObjectListOrNull'
-                  '<${fieldType.listTypeArg}>($ref, $typesList)');
+                  '<${fieldType.listTypeArg}>($ref, $typesList) ?? []');
             }
           }
         }
@@ -1152,9 +1148,7 @@ class TypeField extends Member {
 
   void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
     if (fromParent) {
-      String typeName =
-          api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      gen.writeStatement('required $typeName $generatableName,');
+      gen.writeStatement('super.$generatableName,');
     } else {
       gen.writeStatement('this.$generatableName,');
     }

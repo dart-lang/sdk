@@ -10,7 +10,7 @@ abstract class B extends core::Object {
 }
 class A extends core::Object implements self::B {
   final field core::String f;
-  constructor •(core::String f) → self::A
+  constructor •(initializing-formal core::String f) → self::A
     : self::A::f = f, super core::Object::•()
     ;
 }

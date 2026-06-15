@@ -55,6 +55,7 @@ abstract class AbstractLspAnalysisServerTest
         LspReverseRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
+        LspNotificationsMixin,
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
         ConfigurationFilesMixin,
@@ -77,6 +78,8 @@ abstract class AbstractLspAnalysisServerTest
 
   @override
   AnalyticsManager get analyticsManager => server.analyticsManager;
+
+  bool get clientSupportsShowMessageNotification => true;
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
@@ -758,6 +761,8 @@ mixin ClientCapabilitiesHelperMixin {
     experimentalCapabilities['snippetTextEdit'] = supported;
   }
 
+  /// Sets the supported [CodeActionKind]s for this client. This implies
+  /// `codeActionLiteralSupport`.
   void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -775,10 +780,24 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
-  void setSupportedCommandParameterKinds(Set<String>? kinds) {
-    experimentalCapabilities['dartCodeAction'] = {
-      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
-    };
+  void setSupportedInteractiveFormInputKinds(Set<String>? inputTypes) {
+    const parentKey = 'interactiveResolve';
+    const inputTypesKey = 'inputTypes';
+    if (inputTypes != null) {
+      experimentalCapabilities[parentKey] = {
+        inputTypesKey: inputTypes.toList(),
+      };
+    } else {
+      experimentalCapabilities.remove(parentKey);
+    }
+  }
+
+  void setSupportsWindowShowMessageRequest([bool supported = true]) {
+    if (supported) {
+      experimentalCapabilities['supportsWindowShowMessageRequest'] = true;
+    } else {
+      experimentalCapabilities.remove('supportsWindowShowMessageRequest');
+    }
   }
 
   void setTextDocumentDynamicRegistration(String name) {
@@ -831,7 +850,8 @@ mixin LspAnalysisServerTestMixin
     on
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspEditHelpersMixin
+        LspEditHelpersMixin,
+        LspNotificationsMixin
     implements ClientCapabilitiesHelperMixin {
   late String projectFolderPath,
       mainFilePath,
@@ -868,12 +888,6 @@ mixin LspAnalysisServerTestMixin
   /// list.
   final diagnostics = <Uri, List<Diagnostic>>{};
 
-  /// Whether to fail tests if any error notifications are received from the
-  /// server.
-  ///
-  /// This does not need to be set when using [expectErrorNotification].
-  bool failTestOnAnyErrorNotification = true;
-
   /// Whether to fail tests if any error diagnostics are received from the
   /// server.
   bool failTestOnErrorDiagnostic = true;
@@ -890,11 +904,6 @@ mixin LspAnalysisServerTestMixin
   /// A [Future] that completes when the current analysis completes (or is
   /// already completed if no analysis is in progress).
   Future<void> get currentAnalysis => _currentAnalysisCompleter.future;
-
-  /// A stream of [NotificationMessage]s from the server that may be errors.
-  Stream<NotificationMessage> get errorNotificationsFromServer {
-    return notificationsFromServer.where(_isErrorNotification);
-  }
 
   /// The experimental capabilities returned from the server during initialization.
   Map<String, Object?> get experimentalServerCapabilities =>
@@ -920,6 +929,7 @@ mixin LspAnalysisServerTestMixin
   Uri get nonExistentFileUri => pathContext.toUri(nonExistentFilePath);
 
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
@@ -1056,39 +1066,6 @@ mixin LspAnalysisServerTestMixin
       decoder: decoder,
       workDoneToken: workDoneToken,
     );
-  }
-
-  Future<ShowMessageParams> expectErrorNotification(
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstError = errorNotificationsFromServer.first;
-
-    failTestOnAnyErrorNotification = false;
-
-    await f();
-    var notificationFromServer = await firstError.timeout(timeout);
-
-    failTestOnAnyErrorNotification = true;
-
-    expect(notificationFromServer, isNotNull);
-    return ShowMessageParams.fromJson(
-      notificationFromServer.params as Map<String, Object?>,
-    );
-  }
-
-  Future<T> expectNotification<T>(
-    bool Function(NotificationMessage) test,
-    FutureOr<void> Function() f, {
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    var firstError = notificationsFromServer.firstWhere(test);
-    await f();
-
-    var notificationFromServer = await firstError.timeout(timeout);
-
-    expect(notificationFromServer, isNotNull);
-    return notificationFromServer.params as T;
   }
 
   /// Gets the current contents of a file.
@@ -1256,7 +1233,7 @@ mixin LspAnalysisServerTestMixin
       Method.client_registerCapability,
       RegistrationParams.fromJson,
       f,
-      handler: (registrationParams) {
+      handler: (registrationParams) async {
         registrations.addAll(registrationParams.registrations);
       },
     );
@@ -1281,7 +1258,7 @@ mixin LspAnalysisServerTestMixin
       Method.client_unregisterCapability,
       UnregistrationParams.fromJson,
       f,
-      handler: (unregistrationParams) {
+      handler: (unregistrationParams) async {
         registrations.removeWhere(
           (element) => unregistrationParams.unregisterations.any(
             (u) => u.id == element.id,
@@ -1667,22 +1644,6 @@ mixin LspAnalysisServerTestMixin
       throw Exception('Server tried to create already-active progress token');
     }
     _validProgressTokens.add(params.token);
-  }
-
-  /// Checks whether a notification is likely an error from the server (for
-  /// example a window/showMessage). This is useful for tests that want to
-  /// ensure no errors come from the server in response to notifications (which
-  /// don't have their own responses).
-  bool _isErrorNotification(NotificationMessage notification) {
-    var method = notification.method;
-    var params = notification.params as Map<String, Object?>?;
-    if (method == Method.window_logMessage && params != null) {
-      return LogMessageParams.fromJson(params).type == MessageType.Error;
-    } else if (method == Method.window_showMessage && params != null) {
-      return ShowMessageParams.fromJson(params).type == MessageType.Error;
-    } else {
-      return false;
-    }
   }
 }
 

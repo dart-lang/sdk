@@ -43,7 +43,6 @@ final abstract class FinalAbstract {}
 // [cfe] Expected ';' after this.
 // [cfe] The modifier 'abstract' should be before the modifier 'final'.
 //             ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'class'.
 base abstract class BaseAbstract {}

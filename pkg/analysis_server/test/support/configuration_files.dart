@@ -5,8 +5,8 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
@@ -67,21 +67,24 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     // Add this package to its own config.
     config.add(
       name: packageName ?? pathContext.basename(projectFolderPath),
-      rootPath: projectFolderPath,
+      rootFolder: resourceProvider.getFolder(projectFolderPath),
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
     if (meta || flutter) {
       var libFolder = addMeta();
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
+      config.add(name: 'meta', rootFolder: libFolder.parent);
     }
 
     if (flutter) {
       var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
-      config.add(name: 'sky_engine', rootPath: skyEnginePath);
+      config.add(
+        name: 'sky_engine',
+        rootFolder: resourceProvider.getFolder(skyEnginePath),
+      );
 
       var flutterLibFolder = addFlutter();
-      config.add(name: 'flutter', rootPath: flutterLibFolder.parent.path);
+      config.add(name: 'flutter', rootFolder: flutterLibFolder.parent);
     }
 
     if (addFlutterTestPackageDep) {
@@ -90,8 +93,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       );
 
       var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
-      var libFolder = flutterTestRoot.getChildAssumingFolder('lib')..create();
-      libFolder.getChildAssumingFile('flutter_test.dart').writeAsStringSync(r'''
+      var libFolder = flutterTestRoot.getFolder('lib')..create();
+      libFolder.getFile('flutter_test.dart').writeAsStringSync(r'''
 void test(Object description, dynamic Function() body) {}
 
 void group(Object description, void Function() body) {}
@@ -104,22 +107,21 @@ void main() {
 }
 
 ''');
-      config.add(name: 'flutter_test', rootPath: flutterTestRootPath);
+      config.add(name: 'flutter_test', rootFolder: flutterTestRoot);
     }
 
     if (addVectorMathPackageDep) {
       var libFolder = addVectorMath();
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+      config.add(name: 'vector_math', rootFolder: libFolder.parent);
     }
 
-    var content = config.toContent(pathContext: pathContext);
+    var content = config.toContent();
 
     var projectFolder = resourceProvider.getFolder(projectFolderPath);
-    var dartToolFolder = projectFolder.getChildAssumingFolder(
-      file_paths.dotDartTool,
-    )..create();
+    var dartToolFolder = projectFolder.getFolder(file_paths.dotDartTool)
+      ..create();
     dartToolFolder
-        .getChildAssumingFile(file_paths.packageConfigJson)
+        .getFile(file_paths.packageConfigJson)
         .writeAsStringSync(content);
   }
 

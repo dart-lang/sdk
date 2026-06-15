@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractClassMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AbstractClassMemberTest extends PubPackageResolutionTest {
   test_abstract_field_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract dynamic x;
 }
@@ -23,7 +25,7 @@ abstract class A {
   }
 
   test_abstract_field_untyped() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract var x;
 }
@@ -31,7 +33,7 @@ abstract class A {
   }
 
   test_abstract_field_untyped_covariant() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   abstract covariant var x;
 }

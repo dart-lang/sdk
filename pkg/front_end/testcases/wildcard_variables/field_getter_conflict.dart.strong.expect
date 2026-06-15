@@ -18,7 +18,7 @@ extension type ET1(core::int id) {
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

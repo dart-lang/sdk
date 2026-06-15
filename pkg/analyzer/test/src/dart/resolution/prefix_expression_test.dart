@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PrefixExpressionResolutionTest extends PubPackageResolutionTest {
   test_bang_bool_context() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>() {
   throw 42;
 }
@@ -26,7 +27,7 @@ main() {
 }
 ''');
 
-    var node = findNode.methodInvocation('f();');
+    var node = result.findNode.methodInvocation('f();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -44,13 +45,13 @@ MethodInvocation
   }
 
   test_bang_bool_localVariable() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   !x;
 }
 ''');
 
-    var node = findNode.prefix('!x');
+    var node = result.findNode.prefix('!x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
@@ -64,16 +65,15 @@ PrefixExpression
   }
 
   test_bang_int_localVariable() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   !x;
+// ^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 19, 1)],
-    );
+''');
 
-    var node = findNode.prefix('!x');
+    var node = result.findNode.prefix('!x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
@@ -87,20 +87,20 @@ PrefixExpression
   }
 
   test_bang_no_nullShorting() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool get foo => true;
 }
 
 void f(A? a) {
   !a?.foo;
+// ^^^^^^
+// [diag.uncheckedUseOfNullableValueAsCondition] A nullable expression can't be used as a condition.
 }
-''',
-      [error(diag.uncheckedUseOfNullableValueAsCondition, 55, 6)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.prefix('!a'), r'''
+    var node = result.findNode.prefix('!a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
   operand: PropertyAccess
@@ -120,21 +120,18 @@ PrefixExpression
   }
 
   test_bang_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     !super;
+//   ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
   }
 }
-''',
-      [
-        error(diag.missingAssignableSelector, 28, 5),
-        error(diag.nonBoolNegationExpression, 28, 5),
-      ],
-    );
+''');
 
-    var node = findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
@@ -147,16 +144,15 @@ PrefixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   ++ ++ x;
+//      ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 24, 1)],
-    );
+''');
 
-    var node = findNode.prefix('++ ++ x');
+    var node = result.findNode.prefix('++ ++ x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -182,18 +178,17 @@ PrefixExpression
   }
 
   test_formalParameter_inc_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f(A a) {
   ++a;
+//^^
+// [diag.undefinedOperator] The operator '+' isn't defined for the type 'A'.
 }
-''',
-      [error(diag.undefinedOperator, 28, 2)],
-    );
+''');
 
-    var node = findNode.prefix('++a');
+    var node = result.findNode.prefix('++a');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -211,7 +206,7 @@ PrefixExpression
   }
 
   test_inc_indexExpression_instance() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -222,7 +217,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -249,7 +244,7 @@ PrefixExpression
   }
 
   test_inc_indexExpression_super() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -262,7 +257,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -288,7 +283,7 @@ PrefixExpression
   }
 
   test_inc_indexExpression_this() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -299,7 +294,7 @@ class A {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -325,16 +320,15 @@ PrefixExpression
   }
 
   test_inc_unresolvedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   ++x;
+//  ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
-''',
-      [error(diag.undefinedIdentifier, 15, 1)],
-    );
+''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -351,193 +345,14 @@ PrefixExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_minus_augmentedExpression_augments_class_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await assertNoErrorsInCode('''
-part of 'a.dart';
-
-augment class A {
-  augment int foo = -augmented;
-}
-''');
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: -
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@field::foo
-    fragment: package:test/a.dart::<fragment>::@class::A::@field::foo
-    staticType: int
-  staticElement: dart:core::<fragment>::@class::int::@method::unary-
-  element: dart:core::<fragment>::@class::int::@method::unary-#element
-  staticType: int
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_minus_augmentedExpression_augments_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int get foo => 0;
-}
-''');
-
-    await assertNoErrorsInCode('''
-part of 'a.dart';
-
-augment class A {
-  augment int get foo {
-    return -augmented;
-  }
-}
-''');
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: -
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@getter::foo
-    fragment: package:test/a.dart::<fragment>::@class::A::@getter::foo
-    staticType: int
-  staticElement: dart:core::<fragment>::@class::int::@method::unary-
-  element: dart:core::<fragment>::@class::int::@method::unary-#element
-  staticType: int
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_minus_augmentedExpression_augments_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  void foo() {}
-}
-''');
-
-    await assertErrorsInCode(
-      '''
-part of 'a.dart';
-
-augment class A {
-  augment void foo() {
-    -augmented;
-  }
-}
-''',
-      [error(diag.augmentedExpressionNotOperator, 65, 9)],
-    );
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: -
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@method::foo
-    fragment: package:test/a.dart::<fragment>::@class::A::@method::foo
-    staticType: A
-  staticElement: <null>
-  element: <null>
-  staticType: InvalidType
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_minus_augmentedExpression_augments_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  set foo(int _) {}
-}
-''');
-
-    await assertErrorsInCode(
-      '''
-part of 'a.dart';
-
-augment class A {
-  augment set foo(int _) {
-    -augmented;
-  }
-}
-''',
-      [error(diag.augmentedExpressionIsSetter, 69, 9)],
-    );
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: -
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@setter::foo
-    fragment: package:test/a.dart::<fragment>::@class::A::@setter::foo
-    staticType: InvalidType
-  staticElement: <null>
-  element: <null>
-  staticType: InvalidType
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_minus_augmentedExpression_augments_unaryMinus() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int operator-() => 0;
-}
-''');
-
-    await assertNoErrorsInCode('''
-part of 'a.dart';
-
-augment class A {
-  augment int operator-() {
-    return -augmented;
-  }
-}
-''');
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: -
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    fragment: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    staticType: A
-  staticElement: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@methodAugmentation::unary-
-  element: package:test/a.dart::<fragment>::@class::A::@method::unary-#element
-  staticType: int
-''');
-  }
-
   test_minus_dynamicIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   -a;
 }
 ''');
 
-    var node = findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
@@ -551,20 +366,20 @@ PrefixExpression
   }
 
   test_minus_no_nullShorting() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 
 void f(A? a) {
   -a?.foo;
+//^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 50, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.prefix('-a'), r'''
+    var node = result.findNode.prefix('-a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: PropertyAccess
@@ -584,13 +399,13 @@ PrefixExpression
   }
 
   test_minus_simpleIdentifier_parameter_int() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   -x;
 }
 ''');
 
-    var node = findNode.prefix('-x');
+    var node = result.findNode.prefix('-x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
@@ -604,7 +419,7 @@ PrefixExpression
   }
 
   test_plusPlus_depromote() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   Object operator +(int _) => this;
 }
@@ -616,7 +431,8 @@ void f(Object x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -633,8 +449,7 @@ PrefixExpression
   }
 
   test_plusPlus_notLValue_extensionOverride() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 extension Ext on C {
@@ -645,12 +460,12 @@ extension Ext on C {
 
 void f(C c) {
   ++Ext(c);
+//       ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 103, 1)],
-    );
+''');
 
-    var node = findNode.prefix('++Ext');
+    var node = result.findNode.prefix('++Ext');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -678,16 +493,15 @@ PrefixExpression
   }
 
   test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   ++int;
+//  ^^^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 15, 3)],
-    );
+''');
 
-    var node = findNode.prefix('++int');
+    var node = result.findNode.prefix('++int');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -705,7 +519,7 @@ PrefixExpression
   }
 
   test_plusPlus_nullShorting() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
@@ -715,7 +529,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.prefix('++a'), r'''
+    var node = result.findNode.prefix('++a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: PropertyAccess
@@ -739,7 +554,7 @@ PrefixExpression
   }
 
   test_plusPlus_ofExtensionType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
   set foo(int _) {}
@@ -750,7 +565,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -776,7 +591,7 @@ PrefixExpression
   }
 
   test_plusPlus_prefixedIdentifier_instance() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -786,7 +601,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -815,7 +630,7 @@ PrefixExpression
     newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 void f() {
@@ -823,14 +638,14 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -849,7 +664,7 @@ PrefixExpression
   }
 
   test_plusPlus_propertyAccess_instance() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -859,7 +674,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -891,7 +706,7 @@ PrefixExpression
   }
 
   test_plusPlus_propertyAccess_super() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -907,7 +722,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -931,7 +746,7 @@ PrefixExpression
   }
 
   test_plusPlus_propertyAccess_this() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -942,7 +757,7 @@ class A {
 }
 ''');
 
-    var node = findNode.prefix('++');
+    var node = result.findNode.prefix('++');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -966,13 +781,13 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_double() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(double x) {
   ++x;
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -990,13 +805,13 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_int() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   ++x;
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1014,13 +829,13 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_num() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   ++x;
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1038,16 +853,15 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T x) {
   ++x;
+//^^^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'T'.
 }
-''',
-      [error(diag.invalidAssignment, 31, 3)],
-    );
+''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1065,7 +879,7 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_superSetter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -1078,7 +892,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1096,7 +910,7 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_thisSetter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(num _) {}
@@ -1106,7 +920,7 @@ class A {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1124,7 +938,7 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -1134,7 +948,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1152,7 +966,7 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter_fromClass() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -1164,7 +978,7 @@ class A {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1182,18 +996,17 @@ PrefixExpression
   }
 
   test_plusPlus_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     ++super;
+//    ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 29, 5)],
-    );
+''');
 
-    var node = findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1210,18 +1023,17 @@ PrefixExpression
   }
 
   test_plusPlus_switchExpression() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   ++switch (x) {
     _ => 0,
   };
+//^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 }
-''',
-      [error(diag.missingAssignableSelector, 51, 1)],
-    );
+''');
 
-    var node = findNode.prefix('++switch');
+    var node = result.findNode.prefix('++switch');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1258,7 +1070,7 @@ PrefixExpression
   /// Verify that we get all necessary types when building the dependencies
   /// graph during top-level inference.
   test_plusPlus_topLevelInference() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 0;
 
 class A {
@@ -1266,7 +1078,7 @@ class A {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1283,59 +1095,21 @@ PrefixExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_tilde_augmentedExpression_augments_unaryMinus() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int operator-() => 0;
-}
-''');
-
-    await assertErrorsInCode(
-      '''
-part of 'a.dart';
-
-augment class A {
-  augment int operator-() {
-    return ~augmented;
-  }
-}
-''',
-      [error(diag.augmentedExpressionNotOperator, 77, 9)],
-    );
-
-    var node = findNode.singlePrefixExpression;
-    assertResolvedNodeText(node, r'''
-PrefixExpression
-  operator: ~
-  operand: AugmentedExpression
-    augmentedKeyword: augmented
-    element: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    fragment: package:test/a.dart::<fragment>::@class::A::@method::unary-
-    staticType: A
-  staticElement: <null>
-  element: <null>
-  staticType: InvalidType
-''');
-  }
-
   test_tilde_no_nullShorting() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
 
 void f(A? a) {
   ~a?.foo;
+//^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method '~' can't be unconditionally invoked because the receiver can be 'null'.
 }
-''',
-      [error(diag.uncheckedMethodInvocationOfNullableValue, 50, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.prefix('~a'), r'''
+    var node = result.findNode.prefix('~a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ~
   operand: PropertyAccess
@@ -1355,13 +1129,13 @@ PrefixExpression
   }
 
   test_tilde_simpleIdentifier_parameter_int() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   ~x;
 }
 ''');
 
-    var node = findNode.prefix('~x');
+    var node = result.findNode.prefix('~x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ~

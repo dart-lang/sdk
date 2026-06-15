@@ -48,7 +48,7 @@ void f(String str) {
   StringExt1(str).nullIfEmpty;
 }
 ''',
-      matchFixMessage: "Add an extension override for 'StringExt1'",
+      matchFixMessage: "Add extension override for 'StringExt1'",
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
@@ -56,8 +56,8 @@ void f(String str) {
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'StringExt1'",
-        "Add an extension override for 'StringExt2'",
+        "Add extension override for 'StringExt1'",
+        "Add extension override for 'StringExt2'",
       ],
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
@@ -86,13 +86,13 @@ extension E2 on int {
 f() {
   E(0).foo();
 }
-''', matchFixMessage: "Add an extension override for 'E'");
+''', matchFixMessage: "Add extension override for 'E'");
 
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'E'",
-        "Add an extension override for 'E2'",
+        "Add extension override for 'E'",
+        "Add extension override for 'E2'",
       ],
     );
   }
@@ -155,8 +155,8 @@ f() {
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'E'",
-        "Add an extension override for 'E2'",
+        "Add extension override for 'E'",
+        "Add extension override for 'E2'",
       ],
     );
   }
@@ -197,7 +197,7 @@ extension E2 on A {
   int get value => 0;
 }
 ''',
-      matchFixMessage: "Add an extension override for 'E2'",
+      matchFixMessage: "Add extension override for 'E2'",
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
@@ -231,7 +231,7 @@ extension E2 on A {
   int get value => 0;
 }
 ''',
-      matchFixMessage: "Add an extension override for 'E2'",
+      matchFixMessage: "Add extension override for 'E2'",
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
@@ -269,7 +269,7 @@ extension E2 on A {
   int get value => 0;
 }
 ''',
-      matchFixMessage: "Add an extension override for 'E2'",
+      matchFixMessage: "Add extension override for 'E2'",
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
@@ -294,8 +294,8 @@ f() {
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'E'",
-        "Add an extension override for 'E2'",
+        "Add extension override for 'E'",
+        "Add extension override for 'E2'",
       ],
     );
 
@@ -312,7 +312,7 @@ extension E3 on String {
 f() {
   E(0).foo();
 }
-''', matchFixMessage: "Add an extension override for 'E'");
+''', matchFixMessage: "Add extension override for 'E'");
   }
 
   Future<void> test_parentheses() async {
@@ -342,8 +342,8 @@ f() {
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'E'",
-        "Add an extension override for 'E2'",
+        "Add extension override for 'E'",
+        "Add extension override for 'E2'",
       ],
     );
   }
@@ -376,7 +376,7 @@ void f(String str) {
   StringExt1(str).foo = 0;
 }
 ''',
-      matchFixMessage: "Add an extension override for 'StringExt1'",
+      matchFixMessage: "Add extension override for 'StringExt1'",
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
@@ -384,8 +384,8 @@ void f(String str) {
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
       matchFixMessages: [
-        "Add an extension override for 'StringExt1'",
-        "Add an extension override for 'StringExt2'",
+        "Add extension override for 'StringExt1'",
+        "Add extension override for 'StringExt2'",
       ],
       filter: (error) =>
           error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,

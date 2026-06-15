@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -24,26 +23,29 @@ class A {
   const A({int p});
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 const a = const A();
-''',
-      [error(diag.constConstructorParamTypeMismatch, 27, 9)],
-    );
+//        ^^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'Null' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
 
-    var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
+    var aLib = result.findElement
+        .import('package:test/a.dart')
+        .importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
     var p = aConstructor.formalParameters.single;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
     expect(p.isConstantEvaluated, isTrue);
-    expect(p.computeConstantValue()!.isNull, isTrue);
+    assertDartObjectText(p.computeConstantValue(), r'''
+Null null
+''');
   }
 
   test_constFactoryRedirection_super() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -62,104 +64,111 @@ class B extends A {
 main() {}
 ''');
 
-    var node = findNode.annotation('@I');
+    var node = result.findNode.annotation('@I');
     var value = node.elementAnnotation!.computeConstantValue()!;
-    expect(value.getField('(super)')!.getField('f')!.toIntValue(), 42);
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    f: int 42
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::I::@constructor::new
+    positionalArguments
+      0: int 42
+''');
   }
 
   test_constList_withNullAwareElement() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const [?A()];
+//                ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareElement, 51, 1)],
-    );
-    assertType(findNode.listLiteral('const ['), 'List<A>');
+''');
+    assertType(result.findNode.listLiteral('const ['), 'List<A>');
   }
 
   test_constMap_withNullAwareKey() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {?A(): 0};
+//                ^
+// [diag.invalidNullAwareMapEntryKey] The map entry key can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareMapEntryKey, 51, 1)],
-    );
-    assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
+''');
+    assertType(result.findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
 
   test_constMap_withNullAwareValue() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {0: ?A()};
+//                   ^
+// [diag.invalidNullAwareMapEntryValue] The map entry value can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareMapEntryValue, 54, 1)],
-    );
-    assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
+''');
+    assertType(result.findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
 
   test_constNotInitialized() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   const B(_);
 }
 
 class C extends B {
   static const a;
+//             ^
+// [diag.constNotInitialized] The constant 'a' must be initialized.
   const C() : super(a);
 }
-''',
-      [error(diag.constNotInitialized, 62, 1)],
-    );
+''');
   }
 
   test_constSet_withNullAwareElement() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   foo() {
     return const {?A()};
+//                ^
+// [diag.invalidNullAwareElement] The element can't be null, so the null-aware operator '?' is unnecessary.
   }
 }
-''',
-      [error(diag.invalidNullAwareElement, 51, 1)],
-    );
-    assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
+''');
+    assertType(result.findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
 
   test_context_eliminateTypeVariables() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A({List<T> a = const []});
 }
 ''');
-    assertType(findNode.listLiteral('const []'), 'List<Never>');
+    assertType(result.findNode.listLiteral('const []'), 'List<Never>');
   }
 
   test_context_eliminateTypeVariables_functionType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   const A({List<T Function(U)> a = const []});
 }
 ''');
     assertType(
-      findNode.listLiteral('const []'),
+      result.findNode.listLiteral('const []'),
       'List<Never Function(Object?)>',
     );
   }
@@ -173,13 +182,13 @@ class C<T> {
   const C();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 const v = a;
 ''');
 
-    var v = findElement2.topVar('v');
+    var v = result.findElement.topVar('v');
     var value = v.computeConstantValue()!;
 
     dartObjectPrinterConfiguration.withTypeArguments = true;
@@ -207,13 +216,18 @@ class C {
   static const int f = 42;
 }
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
-    var import_ = findElement2.importFind('package:test/a.dart');
+    var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
@@ -224,13 +238,18 @@ extension E on int {
   static const int f = 42;
 }
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
-    var import_ = findElement2.importFind('package:test/a.dart');
+    var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
@@ -243,17 +262,25 @@ mixin M on C {
   static const int f = 42;
 }
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
-    var import_ = findElement2.importFind('package:test/a.dart');
+    var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 import 'test.dart';
 
 class A {
@@ -264,34 +291,43 @@ class A {
 
   const A({this.f1 = false}) : this.f2 = f1 && true;
 }
-''');
-
-    await assertNoErrorsInCode(r'''
+''',
+      testFile: r'''
 import 'a.dart';
 
 class B extends A {
   const B() : super();
 }
+''',
+    });
+    var aResult = results[a]!;
+
+    var bElement = aResult.findElement.field('b');
+    assertDartObjectText(bElement.computeConstantValue(), r'''
+B
+  (super): A
+    f1: bool false
+    f2: bool false
+    constructorInvocation
+      constructor: package:test/a.dart::@class::A::@constructor::new
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+  variable: package:test/a.dart::@class::A::@field::b
 ''');
-
-    await resolveFile2(a);
-    assertErrorsInResolvedUnit(result, []);
-
-    var bElement = findElement2.field('b') as FieldElementImpl;
-    var bValue = bElement.evaluationResult as DartObjectImpl;
-    var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
-    expect(superFields!.getField('f1')!.toBoolValue(), false);
   }
 
   test_local_prefixedIdentifier_staticField_extension() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = E.f;
 
 extension E on int {
   static const int f = 42;
 }
 ''');
-    var a = findElement2.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    var a = result.findElement.topVar('a');
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 }

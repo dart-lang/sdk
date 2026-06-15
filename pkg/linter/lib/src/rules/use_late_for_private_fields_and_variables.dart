@@ -20,7 +20,7 @@ import '../extensions.dart';
 const _desc = r'Use late for private members with a non-nullable type.';
 
 class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
-  UseLateForPrivateFieldsAndVariables()
+  new()
     : super(
         name: LintNames.use_late_for_private_fields_and_variables,
         description: _desc,
@@ -53,7 +53,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// [visitCompilationUnit].
   late LibraryFragment currentLibraryFragment;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void afterLibrary() {
     for (var contextUnit in context.allUnits) {
@@ -153,6 +153,15 @@ class _Visitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitFieldDeclaration(node);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    var element = node.declaredFragment?.element;
+    if (element case FieldFormalParameterElement(:var field?)) {
+      nullableAccess.add(field.baseElement);
+    }
+    super.visitFieldFormalParameter(node);
   }
 
   @override

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,16 +19,15 @@ class ImplementsDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}
-''',
-      [error(diag.implementsDeferredClass, 67, 3)],
-    );
+//                 ^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -38,7 +36,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/lib1.dart::@class::A
       type: A
@@ -51,16 +49,15 @@ library lib1;
 class A {}
 typedef B = A;
 ''');
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C implements a.B {}
-''',
-      [error(diag.implementsDeferredClass, 67, 3)],
-    );
+//                 ^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -69,7 +66,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: B
       element: package:test/lib1.dart::@typeAlias::B
       type: A
@@ -82,18 +79,17 @@ ImplementsClause
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class M {}
 class C = B with M implements a.A;
-''',
-      [error(diag.implementsDeferredClass, 100, 3)],
-    );
+//                            ^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -102,7 +98,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/lib1.dart::@class::A
       type: A
@@ -114,18 +110,16 @@ ImplementsClause
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
-''',
-      [
-        error(diag.typeAnnotationDeferredClass, 48, 3),
-        error(diag.implementsDeferredClass, 67, 3),
-      ],
-    );
+//               ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+//                                  ^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -134,7 +128,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -146,15 +140,14 @@ ImplementsClause
 extension type A(int it) {}
 ''');
 
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as a;
 extension type B(int it) implements a.A {}
-''',
-      [error(diag.implementsDeferredClass, 67, 3)],
-    );
+//                                  ^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -163,7 +156,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::@extensionType::A
       type: A
@@ -171,15 +164,14 @@ ImplementsClause
   }
 
   test_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
-''',
-      [error(diag.implementsDeferredClass, 56, 11)],
-    );
+//                 ^^^^^^^^^^^
+// [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
+''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -188,7 +180,7 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: <testLibraryFragment>::@prefix2::math
+        element: <testLibraryFragment>::@prefix::math
       name: Random
       element: dart:math::@class::Random
       type: Random

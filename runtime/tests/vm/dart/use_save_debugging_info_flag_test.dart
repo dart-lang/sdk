@@ -27,6 +27,11 @@ main(List<String> args) async {
   if (Platform.isAndroid) {
     return; // SDK tree and dart_bootstrap not available on the test device.
   }
+  if (Platform.isMacOS) {
+    // Don't run ELF on MacOS since that requires
+    // allow-unsigned-executable-memory. Mach-O check unimplemented.
+    return;
+  }
 
   // These are the tools we need to be available to run on a given platform:
   if (!await testExecutable(genSnapshot)) {

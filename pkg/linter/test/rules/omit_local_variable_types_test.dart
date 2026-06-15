@@ -26,14 +26,11 @@ class C {
   }
 
   test_forEach() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  for (int i in [1, 2, 3]) { }
+  for ([!int!] i in [1, 2, 3]) { }
 }
-''',
-      [lint(13, 3)],
-    );
+''');
   }
 
   test_forEach_ok() async {
@@ -45,16 +42,13 @@ f() {
   }
 
   test_forIn_iterableSubclass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class StringIterator<E> implements Iterable<E> {}
 
 void f(StringIterator<String> items) {
-  for (String item in items) {}
+  for ([!String!] item in items) {}
 }
-''',
-      [lint(106, 6)],
-    );
+''');
   }
 
   test_forIn_rightSideIsIterableOfDynamic_typedWithString() async {
@@ -75,17 +69,14 @@ void f(StringIterator<String> items) {
   }
 
   test_forLoop_declarationHasRedundantType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   late C next;
 }
 void f(C head) {
-  for (C node = head; ; node = node.next) {}
+  for ([!C!] node = head; ; node = node.next) {}
 }
-''',
-      [lint(51, 1)],
-    );
+''');
   }
 
   /// Types are considered an important part of the pattern so we
@@ -99,14 +90,11 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 f() {
-  String a = 'a', b = 'b';
+  [!String!] a = 'a', b = 'b';
 }
-''',
-      [lint(8, 6)],
-    );
+''');
   }
 
   test_local_multiple_ok() async {
@@ -126,14 +114,11 @@ f() {
   }
 
   test_multipleLocalVariables_rightSideIsIterable_typedWithRawIterable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Iterable a = new Iterable.empty(), b = new Iterable.empty();
+  [!Iterable!] a = new Iterable.empty(), b = new Iterable.empty();
 }
-''',
-      [lint(13, 8)],
-    );
+''');
   }
 
   test_multipleLocalVariables_rightSideIsList_typedWithRawIterable() async {
@@ -174,17 +159,14 @@ f() {
   /// https://github.com/dart-lang/linter/issues/3016
   @failingTest
   test_paramIsType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 T bar<T>(T d) => d;
 
 String f() {
-  String h = bar('');
+  String[! h = bar('');
   return h;
-}
-''',
-      [lint(42, 26)],
-    );
+!]}
+''');
   }
 
   test_record_destructured() async {
@@ -245,16 +227,13 @@ String f() {
 
   /// https://github.com/dart-lang/linter/issues/3016
   test_typeParamProvided() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 T bar<T>(dynamic d) => d;
 
 String f() {
-  String h = bar<String>('');
+  [!String!] h = bar<String>('');
   return h;
 }
-''',
-      [lint(42, 6)],
-    );
+''');
   }
 }

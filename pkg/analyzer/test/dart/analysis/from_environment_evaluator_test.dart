@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class FromEnvironmentEvaluatorTest {
+class FromEnvironmentEvaluatorTest with ResourceProviderMixin {
   late final TypeProviderImpl typeProvider;
   late final TypeSystemImpl typeSystem;
 
@@ -48,7 +49,7 @@ class FromEnvironmentEvaluatorTest {
   }
 
   void setUp() {
-    var analysisContext = TestAnalysisContext();
+    var analysisContext = TestAnalysisContext(this);
     typeProvider = analysisContext.typeProvider;
     typeSystem = analysisContext.typeSystem;
   }

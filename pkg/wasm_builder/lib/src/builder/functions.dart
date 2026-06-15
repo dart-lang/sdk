@@ -29,17 +29,31 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// The [ir.DefinedFunction.body] must be completed (including the terminating
   /// `end`) before the module can be serialized.
   FunctionBuilder define(ir.FunctionType type, [String? name]) {
-    final function =
-        FunctionBuilder(_moduleBuilder, ir.FinalizableIndex(), type, name);
+    final function = FunctionBuilder(
+      _moduleBuilder,
+      ir.FinalizableIndex(),
+      type,
+      name,
+    );
     _functionBuilders.add(function);
     return function;
   }
 
   /// Import a function into the module.
-  ir.ImportedFunction import(String module, String name, ir.FunctionType type,
-      [String? functionName]) {
-    final function = ir.ImportedFunction(_moduleBuilder.module, module, name,
-        ir.FinalizableIndex(), type, functionName);
+  ir.ImportedFunction import(
+    String module,
+    String name,
+    ir.FunctionType type, [
+    String? functionName,
+  ]) {
+    final function = ir.ImportedFunction(
+      _moduleBuilder.module,
+      module,
+      name,
+      ir.FinalizableIndex(),
+      type,
+      functionName,
+    );
     _importedFunctions.add(function);
     return function;
   }
@@ -47,7 +61,9 @@ class FunctionsBuilder with Builder<ir.Functions> {
   @override
   ir.Functions forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
-        _importedFunctions, _functionBuilders);
+      _importedFunctions,
+      _functionBuilders,
+    );
     return ir.Functions(_importedFunctions, built);
   }
 }

@@ -2,11 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Declaring constructors are not enabled in versions before release.
+// Primary constructors are not enabled in versions before release.
 
-// @dart=3.9
+// @dart=3.12
 
 class Point(var int x, var int y);
 //         ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] The 'primary-constructors' language feature is disabled for this library.
+//          ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] The 'primary-constructors' language feature is disabled for this library.
+//                     ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] The 'primary-constructors' language feature is disabled for this library.
+//                               ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] The 'primary-constructors' language feature is disabled for this library.

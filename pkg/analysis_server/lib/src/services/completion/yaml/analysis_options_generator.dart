@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -21,40 +22,42 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
-    AnalysisOptionsFile.analyzer: MapProducer({
-      AnalysisOptionsFile.enableExperiment: ListProducer(_ExperimentProducer()),
-      AnalysisOptionsFile.errors: _ErrorProducer(),
-      AnalysisOptionsFile.exclude: EmptyProducer(),
-      AnalysisOptionsFile.language: MapProducer({
-        AnalysisOptionsFile.strictCasts: BooleanProducer(),
-        AnalysisOptionsFile.strictInference: BooleanProducer(),
-        AnalysisOptionsFile.strictRawTypes: BooleanProducer(),
+    AnalysisOptionsFileKeys.analyzer: MapProducer({
+      AnalysisOptionsFileKeys.enableExperiment: ListProducer(
+        _ExperimentProducer(),
+      ),
+      AnalysisOptionsFileKeys.errors: _ErrorProducer(),
+      AnalysisOptionsFileKeys.exclude: EmptyProducer(),
+      AnalysisOptionsFileKeys.language: MapProducer({
+        AnalysisOptionsFileKeys.strictCasts: BooleanProducer(),
+        AnalysisOptionsFileKeys.strictInference: BooleanProducer(),
+        AnalysisOptionsFileKeys.strictRawTypes: BooleanProducer(),
       }),
-      AnalysisOptionsFile.optionalChecks: MapProducer({
-        AnalysisOptionsFile.chromeOsManifestChecks: EmptyProducer(),
+      AnalysisOptionsFileKeys.optionalChecks: MapProducer({
+        AnalysisOptionsFileKeys.chromeOsManifestChecks: EmptyProducer(),
       }),
-      AnalysisOptionsFile.plugins: EmptyProducer(),
-      AnalysisOptionsFile.propagateLinterExceptions: EmptyProducer(),
+      AnalysisOptionsFileKeys.plugins: EmptyProducer(),
+      AnalysisOptionsFileKeys.propagateLinterExceptions: EmptyProducer(),
     }),
-    AnalysisOptionsFile.codeStyle: MapProducer({
-      AnalysisOptionsFile.format: BooleanProducer(),
+    AnalysisOptionsFileKeys.codeStyle: MapProducer({
+      AnalysisOptionsFileKeys.format: BooleanProducer(),
     }),
-    AnalysisOptionsFile.formatter: MapProducer({
-      AnalysisOptionsFile.pageWidth: EmptyProducer(),
-      AnalysisOptionsFile.trailingCommas: EnumProducer(
+    AnalysisOptionsFileKeys.formatter: MapProducer({
+      AnalysisOptionsFileKeys.pageWidth: EmptyProducer(),
+      AnalysisOptionsFileKeys.trailingCommas: EnumProducer(
         TrailingCommas.values.map((item) => item.name).toList(),
       ),
     }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
-    AnalysisOptionsFile.include: EmptyProducer(),
+    AnalysisOptionsFileKeys.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
     'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
+    AnalysisOptionsFileKeys.plugins: _PluginsProducer(),
   });
 
   /// Initialize a newly created suggestion generator for analysis options
   /// files.
-  AnalysisOptionsGenerator(ResourceProvider resourceProvider)
-    : super(resourceProvider, null);
+  new(ResourceProvider resourceProvider) : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => analysisOptionsProducer;
@@ -76,7 +79,8 @@ class _ErrorProducer extends KeyValueProducer {
     // There may be overlaps in these names, so use a set.
     var names = {
       for (var diagnostic in diagnosticCodeValues) diagnostic.lowerCaseName,
-      for (var rule in Registry.ruleRegistry.rules) rule.name,
+      for (var rule in Registry.ruleRegistry.rules)
+        if (rule.includeInCompletions) rule.name,
     };
     return {for (var name in names) identifier('$name: ')};
   }
@@ -85,7 +89,7 @@ class _ErrorProducer extends KeyValueProducer {
 class _ExperimentProducer extends Producer {
   /// Initialize a location whose valid values are the names of the known
   /// experimental features.
-  const _ExperimentProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
@@ -99,7 +103,7 @@ class _ExperimentProducer extends Producer {
 class _LintRuleProducer extends Producer {
   /// Initialize a location whose valid values are the names of the registered
   /// lint rules.
-  const _LintRuleProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
@@ -107,8 +111,37 @@ class _LintRuleProducer extends Producer {
       for (var rule in Registry.ruleRegistry.rules)
         // TODO(pq): consider suggesting internal lints if editing an SDK
         // options file.
-        if (!rule.state.isInternal && !rule.state.isRemoved)
+        if (rule.includeInCompletions)
           identifier(rule.name, docComplete: rule.description),
     ];
   }
+}
+
+class _PluginsProducer extends KeyValueProducer {
+  @override
+  Producer producerForKey(String key) => MapProducer({
+    // TODO(srawlins): It's possible that, if the plugin in question is
+    // already running, we could determine the possible warning / lint rule
+    // names and suggest them.
+    AnalysisOptionsFileKeys.diagnostics: EmptyProducer(),
+    AnalysisOptionsFileKeys.git: MapProducer({
+      AnalysisOptionsFileKeys.url: EmptyProducer(),
+      AnalysisOptionsFileKeys.ref: EmptyProducer(),
+      AnalysisOptionsFileKeys.path: EmptyProducer(),
+      AnalysisOptionsFileKeys.tagPattern: EmptyProducer(),
+    }),
+    AnalysisOptionsFileKeys.path: EmptyProducer(),
+    AnalysisOptionsFileKeys.version: EmptyProducer(),
+    AnalysisOptionsFileKeys.hosted: EmptyProducer(),
+  });
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) =>
+      const [];
+}
+
+extension on AbstractAnalysisRule {
+  /// Whether this rule should be included in completion suggestions.
+  bool get includeInCompletions =>
+      !state.isInternal && !state.isRemoved && !state.isTesting;
 }

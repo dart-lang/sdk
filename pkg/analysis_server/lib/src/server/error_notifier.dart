@@ -54,6 +54,6 @@ class ErrorNotifier extends NoopInstrumentationService {
 /// Server may throw a [FatalException] to send a fatal error response to the
 /// IDEs.
 class FatalException extends CaughtException {
-  FatalException(String super.message, super.exception, super.stackTrace)
+  new(String super.message, super.exception, super.stackTrace)
     : super.withMessage();
 }

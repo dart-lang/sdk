@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
@@ -427,8 +428,8 @@ build() => Contai^ner(child: Container());
         // Check the ordering for two well-known assists that should always be
         // sorted this way.
         // https://github.com/Dart-Code/Dart-Code/issues/3646
-        'Wrap with widget...',
-        'Remove this widget',
+        DartAssistKind.flutterWrapGeneric.message,
+        DartAssistKind.flutterRemoveWidget.message,
       ]),
     );
   }
@@ -476,7 +477,7 @@ void f() {
 class _RawParams extends ToJsonable {
   final String _json;
 
-  _RawParams(this._json);
+  new(this._json);
 
   @override
   Object toJson() => jsonDecode(_json) as Object;

@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid `double` and `int` checks.';
 
 class AvoidDoubleAndIntChecks extends AnalysisRule {
-  AvoidDoubleAndIntChecks()
+  new()
     : super(name: LintNames.avoid_double_and_int_checks, description: _desc);
 
   @override
@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitIfStatement(IfStatement node) {

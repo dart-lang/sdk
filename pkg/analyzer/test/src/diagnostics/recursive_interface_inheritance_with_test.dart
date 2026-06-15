@@ -2,39 +2,80 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecursiveInterfaceInheritanceWithTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecursiveInterfaceInheritanceWithTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A extends Object {}
 augment class A with A {}
+//                   ^
+// [diag.recursiveInterfaceInheritanceWith] 'A' can't use itself as a mixin.
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
+  }
+
+  test_class_inAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A extends Object {}
 ''',
-      [
-        error(diag.recursiveInterfaceInheritanceWith, 6, 1),
-        error(diag.classUsedAsMixin, 47, 1),
-      ],
-    );
+      b: r'''
+part of 'a.dart';
+
+augment class A with A {}
+//                   ^
+// [diag.recursiveInterfaceInheritanceWith] 'A' can't use itself as a mixin.
+// [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''',
+    });
+  }
+
+  test_class_inAugmentation_part_indirect() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
+
+mixin class B implements A {}
+//          ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class A with B {}
+''',
+    });
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class M = Object with M;
-''',
-      [error(diag.recursiveInterfaceInheritanceWith, 12, 1)],
-    );
+//                          ^
+// [diag.recursiveInterfaceInheritanceWith] 'M' can't use itself as a mixin.
+''');
   }
 }

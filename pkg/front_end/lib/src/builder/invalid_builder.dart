@@ -23,7 +23,7 @@ class InvalidBuilder extends TypeDeclarationBuilderImpl
 
   final bool errorHasBeenReported;
 
-  InvalidBuilder(
+  new(
     this.name,
     this.message, {
     this.context,

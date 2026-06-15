@@ -12,6 +12,11 @@ library;
 //   set E6(_) {}
 //       ^^
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:56:8: Error: A generative enum constructor can't have a body.
+// Try removing the constructor body.
+//   E7() {}
+//        ^
+//
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:10:6: Error: Conflicts with type variable 'values'.
 // enum E2<values> {
 //      ^^^^^^
@@ -34,10 +39,6 @@ library;
 // Try renaming the member.
 //   E4
 //   ^^
-//
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:56:3: Error: Generative enum constructors must be marked as 'const'.
-//   E7() {}
-//   ^
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:61:11: Error: The factory conflicts with member 'values'.
 //   factory E8.values() => a;
@@ -73,11 +74,6 @@ library;
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:38:16: Error: A concrete instance member named 'values' can't be inherited from 'SuperclassWithValues' in a class that implements 'Enum'.
 // abstract class A3 extends SuperclassWithValues implements Enum {} // Error.
 //                ^
-//
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   a;
-//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -180,12 +176,10 @@ class E6 extends core::_Enum /*isEnum*/  {
     ;
 }
 class E7 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type a = invalid-expression "pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  a;
-  ^";
+  enum-element static const field self::E7 a = const self::E7::•(0, "a");
   static const field core::List<self::E7> values = const <self::E7>[self::E7::a];
-  constructor •(core::int #index, core::String #name) → self::E7
+  const constructor •(core::int #index, core::String #name) → self::E7
+    : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
@@ -220,6 +214,8 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:4
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:44:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:50:3 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:49:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:55:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:54:6 -> ListConstant(const <E7>[const E7{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:60:3 -> InstanceConstant(const E8{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:59:6 -> ListConstant(const <E8>[const E8{_Enum.index: 0, _Enum._name: "a"}])
-Extra constant evaluation: evaluated: 61, effectively constant: 16
+Extra constant evaluation: evaluated: 63, effectively constant: 18

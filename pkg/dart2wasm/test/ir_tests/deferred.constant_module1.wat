@@ -38,7 +38,7 @@
     (ref.null none))
   (global $"\">(\"" (ref $JSExternWrapper) <...>)
   (global $"\"globalH1Bar<\"" (ref $JSExternWrapper)
-    (i32.const 107)
+    (i32.const 58)
     (i32.const 0)
     (global.get $.globalH1Bar<)
     (struct.new $JSExternWrapper))
@@ -50,25 +50,25 @@
   (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-1-1) <...>)
   (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"modMainUseH0 <noInline>"))
-    (set 1 (ref.func $"modH1UseH1 <noInline>")))
+    (set 0 (ref.func $modMainUseH0))
+    (set 1 (ref.func $modH1UseH1)))
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
   (func $"H1 (lazy initializer)" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
     (local $var3 (ref $H1))
-    i32.const 109
+    i32.const 107
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 52
+      i32.const 31
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 52
+        i32.const 31
         i32.const 0
         global.get $global0
         global.get $global2
@@ -123,10 +123,12 @@
     i32.const 6
     call_indirect $module0.cross-module-funcs-0 (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    ref.null none
   )
   (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $"modH1UseH1 <noInline>" (result (ref null $#Top))
+  (@binaryen.inline 0)
+  (func $modH1UseH1
     (local $var0 (ref $#Closure-0-1))
     block $label0 (result (ref $H1))
       global.get $H1
@@ -134,8 +136,7 @@
       call $"H1 (lazy initializer)"
     end $label0
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
     block $label1 (result (ref $H1))
       global.get $H1
       br_on_non_null $label1
@@ -144,7 +145,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 66
+    i32.const 88
     i64.const 1
     struct.new $BoxedInt
     local.get $var0
@@ -152,39 +153,37 @@
     struct.get $#Vtable-0-1 $closureCallEntry-0-1
     call_ref $type0
     drop
-    ref.null none
   )
-  (func $"modMainUseH0 <noInline>" (result (ref null $#Top))
+  (@binaryen.inline 0)
+  (func $modMainUseH0
     i64.const 0
     i32.const 7
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
     drop
     block $label0 (result (ref $H0))
-      i32.const 9
+      i32.const 8
       call_indirect $module0.cross-module-funcs-0 (result (ref null $H0))
       br_on_non_null $label0
-      i32.const 10
+      i32.const 9
       call_indirect $module0.cross-module-funcs-0 (result (ref $H0))
     end $label0
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
     i64.const 0
     i32.const 7
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
     drop
     block $label1 (result (ref $H0))
-      i32.const 9
+      i32.const 8
       call_indirect $module0.cross-module-funcs-0 (result (ref null $H0))
       br_on_non_null $label1
-      i32.const 10
+      i32.const 9
       call_indirect $module0.cross-module-funcs-0 (result (ref $H0))
     end $label1
     drop
-    i64.const 1
-    i32.const 8
-    call_indirect $module0.cross-module-funcs-0 (param i64) (result (ref null $#Top))
-    drop
-    ref.null none
+    i32.const 10
+    call_indirect $module0.cross-module-funcs-0 (result (ref $JSExternWrapper))
+    i32.const 5
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
   )
 )

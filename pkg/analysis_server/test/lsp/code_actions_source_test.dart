@@ -169,7 +169,7 @@ void f() {
 
         return commandFuture;
       },
-      handler: (edit) {
+      handler: (edit) async {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (we'll verify the actual edit below).
         editParams = edit;

@@ -8,8 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add test with setter-like with multiple statements; add
-    // test with non-trivial right side (`this.x = x + 1`).
     defineReflectiveTests(UseSettersToChangePropertiesTest);
   });
 }
@@ -37,20 +35,17 @@ abstract class A {
   }
 
   test_extension() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 0;
 }
 
 extension E on A {
-  void setX(int x) {
+  void [!setX!](int x) {
     this.x = x;
   }
 }
-''',
-      [lint(52, 4)],
-    );
+''');
   }
 
   test_inheritedFromSuperclass() async {
@@ -85,29 +80,46 @@ class B implements A {
 ''');
   }
 
-  test_setterLike_blockBody() async {
-    await assertDiagnostics(
-      r'''
-abstract class A {
+  test_multipleStatements() async {
+    await assertNoDiagnostics(r'''
+class A {
   int x = 0;
   void setX(int x) {
     this.x = x;
+    print(x);
   }
 }
-''',
-      [lint(39, 4)],
-    );
+''');
+  }
+
+  test_nonTrivialRightSide() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 0;
+  void setX(int x) {
+    this.x = x + 1;
+  }
+}
+''');
+  }
+
+  test_setterLike_blockBody() async {
+    await assertDiagnosticsFromMarkdown(r'''
+abstract class A {
+  int x = 0;
+  void [!setX!](int x) {
+    this.x = x;
+  }
+}
+''');
   }
 
   test_setterLike_expressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 abstract class A {
   int x = 0;
-  void setX(int x) => this.x = x;
+  void [!setX!](int x) => this.x = x;
 }
-''',
-      [lint(39, 4)],
-    );
+''');
   }
 }

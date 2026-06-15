@@ -5,7 +5,7 @@
 import '../ast.dart';
 
 class FindTypeVisitor implements DartTypeVisitor<bool> {
-  const FindTypeVisitor();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {

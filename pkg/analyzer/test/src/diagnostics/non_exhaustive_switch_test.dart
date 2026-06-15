@@ -2,35 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonExhaustiveSwitchExpressionTest);
     defineReflectiveTests(NonExhaustiveSwitchStatementTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NonExhaustiveSwitchExpressionTest extends PubPackageResolutionTest {
   test_bool_true() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f(bool x) {
   return switch (x) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type 'bool' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'false'.
     true => 0,
   };
 }
-''',
-      [error(diag.nonExhaustiveSwitchExpression, 28, 6)],
-    );
+''');
   }
 
   test_bool_true_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f(bool x) {
   return switch (x) {
     true => 1,
@@ -41,7 +41,7 @@ Object f(bool x) {
   }
 
   test_class_int_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f(int x) {
   return switch (x) {
     0 => 0,
@@ -52,7 +52,7 @@ Object f(int x) {
   }
 
   test_class_withField_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Object f(int x) {
   return switch (x) {
     int(isEven: true) => 0,
@@ -63,37 +63,28 @@ Object f(int x) {
   }
 
   test_enum_2at2_hasWhen() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
 
 Object f(E x) {
   return switch (x) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.a'.
     E.a when 1 == 0 => 0,
     E.b => 1,
   };
 }
-''',
-      [
-        error(
-          diag.nonExhaustiveSwitchExpression,
-          44,
-          6,
-          correctionContains: 'E.a',
-        ),
-      ],
-    );
+''');
   }
 
   test_invalidType_empty() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Unresolved x) => switch (x) {};
-''',
-      [error(diag.undefinedClass, 7, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
+''');
   }
 
   test_private_enum() async {
@@ -101,90 +92,84 @@ void f(Unresolved x) => switch (x) {};
 enum _E { a, b }
 _E e() => _E.a;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 Object f() {
   return switch (e()) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpressionPrivate] The enum '_E' isn't exhaustively matched by the switch cases because some of the enum constants are private.
   };
 }
-''',
-      [error(diag.nonExhaustiveSwitchExpressionPrivate, 51, 6)],
-    );
+''');
   }
 
   test_private_enum_sameLibrary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum _E { a, b }
+//        ^
+// [diag.unusedField] The value of the field 'a' isn't used.
+//           ^
+// [diag.unusedField] The value of the field 'b' isn't used.
 
 Object f(_E e) {
   return switch (e) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type '_E' isn't exhaustively matched by the switch cases since it doesn't match the pattern '_E.a'.
   };
 }
-''',
-      [
-        error(diag.unusedField, 10, 1),
-        error(diag.unusedField, 13, 1),
-        error(diag.nonExhaustiveSwitchExpression, 44, 6),
-      ],
-    );
+''');
   }
 
   test_private_enumConstant() async {
     newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
 enum E { a, b, _c }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 Object f(E e) {
   return switch (e) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
     E.a => 0,
   };
 }
-''',
-      [error(diag.nonExhaustiveSwitchExpression, 54, 6)],
-    );
+''');
   }
 
   test_private_enumConstant_only() async {
     newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
 enum E { a, b, _c }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 Object f(E e) {
   return switch (e) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpressionPrivate] The enum 'E' isn't exhaustively matched by the switch cases because some of the enum constants are private.
     E.a => 0,
     E.b => 1,
   };
 }
-''',
-      [error(diag.nonExhaustiveSwitchExpressionPrivate, 54, 6)],
-    );
+''');
   }
 
   test_private_enumConstant_sameLibrary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 enum E { a, b, _c }
+//             ^^
+// [diag.unusedField] The value of the field '_c' isn't used.
 Object f(E e) {
   return switch (e) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E._c'.
     E.a => 0,
     E.b => 1,
   };
 }
-''',
-      [
-        error(diag.unusedField, 15, 2),
-        error(diag.nonExhaustiveSwitchExpression, 45, 6),
-      ],
-    );
+''');
   }
 
   test_private_sealed() async {
@@ -193,38 +178,36 @@ sealed class _A {}
 class B extends _A {}
 _A a() => B();
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_sealed.dart';
 
 Object f() {
   return switch (a()) {
+//       ^^^^^^
+// [diag.nonExhaustiveSwitchExpression] The type '_A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'B()'.
   };
 }
-''',
-      [error(diag.nonExhaustiveSwitchExpression, 53, 6)],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class NonExhaustiveSwitchStatementTest extends PubPackageResolutionTest {
   test_alwaysExhaustive_bool_true() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'bool' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'false'.
     case true:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_bool_true_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
     case true:
@@ -236,7 +219,7 @@ void f(bool x) {
   }
 
   test_alwaysExhaustive_bool_wildcard_typed_bool() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
     case bool _:
@@ -247,24 +230,22 @@ void f(bool x) {
   }
 
   test_alwaysExhaustive_bool_wildcard_typed_int() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'bool' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'true'.
     case int _:
+//       ^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'bool' can never match the required type 'int'.
       break;
   }
 }
-''',
-      [
-        error(diag.nonExhaustiveSwitchStatement, 19, 6),
-        error(diag.patternNeverMatchesValueType, 41, 3),
-      ],
-    );
+''');
   }
 
   test_alwaysExhaustive_bool_wildcard_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool x) {
   switch (x) {
     case _:
@@ -275,22 +256,21 @@ void f(bool x) {
   }
 
   test_alwaysExhaustive_boolNullable_true_false() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool? x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'bool?' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'null'.
     case true:
     case false:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 20, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_boolNullable_true_false_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(bool? x) {
   switch (x) {
     case true:
@@ -303,25 +283,24 @@ void f(bool? x) {
   }
 
   test_alwaysExhaustive_enum_2at1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
 
 void f(E x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
     case E.a:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 35, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_enum_2at2_cases() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
@@ -337,33 +316,25 @@ void f(E x) {
   }
 
   test_alwaysExhaustive_enum_2at2_hasWhen() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
 
 void f(E x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.a'.
     case E.a when 1 == 0:
     case E.b:
       break;
   }
 }
-''',
-      [
-        error(
-          diag.nonExhaustiveSwitchStatement,
-          35,
-          6,
-          correctionContains: 'E.a',
-        ),
-      ],
-    );
+''');
   }
 
   test_alwaysExhaustive_enum_2at2_logicalOr() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b
 }
@@ -378,10 +349,13 @@ void f(E x) {
   }
 
   test_alwaysExhaustive_enum_cannotCompute() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v1(v2), v2(v1);
+//^^
+// [diag.recursiveCompileTimeConstant] The compile-time constant expression depends on itself.
+//        ^^
+// [diag.recursiveCompileTimeConstant] The compile-time constant expression depends on itself.
   const E(Object f);
 }
 
@@ -392,27 +366,21 @@ void f(E x) {
       break;
   }
 }
-''',
-      [
-        error(diag.recursiveCompileTimeConstant, 11, 2),
-        error(diag.recursiveCompileTimeConstant, 19, 2),
-      ],
-    );
+''');
   }
 
   test_alwaysExhaustive_Null_hasError() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Null x) {
   switch (x) {}
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'Null' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'null'.
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_Null_noError() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Null x) {
   switch (x) {
     case null:
@@ -423,7 +391,7 @@ void f(Null x) {
   }
 
   test_alwaysExhaustive_recordType_bool_bool_4at4() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f((bool, bool) x) {
   switch (x) {
     case (false, false):
@@ -437,25 +405,24 @@ void f((bool, bool) x) {
   }
 
   test_alwaysExhaustive_sealedClass_2at1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
 
 void f(A x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'C()'.
     case B():
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 77, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_2at2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -472,7 +439,7 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_2at2_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -489,8 +456,7 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_constraintsMixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 
 class B extends A {}
@@ -499,17 +465,17 @@ mixin M on A {}
 
 void f(A x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'M()'.
     case B _:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 74, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_hasExtensionType_1of1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 extension type EA(A it) implements A {}
@@ -524,8 +490,7 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_hasExtensionType_1of2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -533,18 +498,17 @@ extension type EA(A it) implements A {}
 
 void f(A x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'C()'.
     case B():
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 117, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_implementedByEnum_3at2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 
 class B implements A {}
@@ -555,18 +519,18 @@ enum E implements A {
 
 void f(A x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
     case B _:
     case E.a:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 92, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_implementedByEnum_3at3() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 
 class B implements A {}
@@ -587,8 +551,7 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_implementedByMixin_2at1() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 
 class B implements A {}
@@ -597,17 +560,17 @@ mixin M implements A {}
 
 void f(A x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'M()'.
     case B _:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 85, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_implementedByMixin_2at2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 
 class B implements A {}
@@ -625,55 +588,52 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_unresolvedIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 
 void f(A x) {
   switch (x) {
     case unresolved:
+//       ^^^^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unresolved'.
       break;
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 78, 10)],
-    );
+''');
   }
 
   test_alwaysExhaustive_sealedClass_unresolvedObject() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 sealed class A {}
 class B extends A {}
 
 void f(A x) {
   switch (x) {
     case Unresolved():
+//       ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
       break;
   }
 }
-''',
-      [error(diag.undefinedClass, 78, 10)],
-    );
+''');
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends bool>(T x) {
   switch (x) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'T' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'false'.
     case true:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 32, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T extends bool>(T x) {
   switch (x) {
     case true:
@@ -685,23 +645,22 @@ void f<T extends bool>(T x) {
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T x) {
   if (x is bool) {
     switch (x) {
+//  ^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'T & bool' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'false'.
       case true:
         break;
     }
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 40, 6)],
-    );
+''');
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T x) {
   if (x is bool) {
     switch (x) {
@@ -715,18 +674,17 @@ void f<T>(T x) {
   }
 
   test_invalidType_empty() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Unresolved x) {
+//     ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   switch (x) {}
 }
-''',
-      [error(diag.undefinedClass, 7, 10)],
-    );
+''');
   }
 
   test_notAlwaysExhaustive_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case 0:
@@ -741,56 +699,53 @@ void f(int x) {
 enum _E { a, b }
 _E e() => _E.a;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 void f() {
   switch (e()) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatementPrivate] The enum '_E' isn't exhaustively matched by the switch cases because some of the enum constants are private.
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatementPrivate, 42, 6)],
-    );
+''');
   }
 
   test_private_enumConstant() async {
     newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
 enum E { a, b, _c }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 void f(E e) {
   switch (e) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
     case E.a:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 45, 6)],
-    );
+''');
   }
 
   test_private_enumConstant_only() async {
     newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
 enum E { a, b, _c }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_enum.dart';
 
 void f(E e) {
   switch (e) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatementPrivate] The enum 'E' isn't exhaustively matched by the switch cases because some of the enum constants are private.
     case E.a:
     case E.b:
       break;
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatementPrivate, 45, 6)],
-    );
+''');
   }
 
   test_private_sealed() async {
@@ -799,16 +754,15 @@ sealed class _A {}
 class B extends _A {}
 _A a() => B();
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'private_sealed.dart';
 
 Object f() {
   switch (a()) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type '_A' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'B()'.
   }
 }
-''',
-      [error(diag.nonExhaustiveSwitchStatement, 46, 6)],
-    );
+''');
   }
 }

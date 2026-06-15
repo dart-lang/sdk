@@ -485,11 +485,7 @@ final class _PhiIterator implements Iterator<Phi> {
 }
 
 /// Iterable over [Phi] instructions in the [JoinBlock].
-final class _PhiIterable extends Iterable<Phi> {
-  final JoinBlock _block;
-
-  _PhiIterable(this._block);
-
+final class _PhiIterable(final JoinBlock _block) extends Iterable<Phi> {
   @override
   Iterator<Phi> get iterator => _PhiIterator(_block);
 }
@@ -522,7 +518,15 @@ final class TargetBlock extends Block {
 /// to represent incoming values of local variables, exception object and
 /// stack trace.
 final class CatchBlock extends Block {
-  CatchBlock(super.graph, super.sourcePosition);
+  final List<ast.DartType> guardTypes;
+  final bool isSynthetic;
+
+  CatchBlock(
+    super.graph,
+    super.sourcePosition,
+    this.guardTypes, {
+    required this.isSynthetic,
+  });
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCatchBlock(this);
@@ -605,11 +609,26 @@ final class Return extends Instruction
     setInputAt(0, value);
   }
 
+  Definition get value => inputDefAt(0);
+
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitReturn(this);
 }
 
-enum ComparisonOpcode {
+/// A point in the control flow which should not be reachable at runtime.
+final class Unreachable extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  /// Message which could be displayed if this instruction is reached.
+  final String message;
+  Unreachable(super.graph, super.sourcePosition, this.message)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnreachable(this);
+}
+
+enum ComparisonOpcode(final String token) {
   // Simple object pointer equality.
   equal('=='),
   notEqual('!='),
@@ -634,9 +653,6 @@ enum ComparisonOpcode {
   doubleGreater('double >'),
   doubleGreaterOrEqual('double >=');
 
-  final String token;
-  const ComparisonOpcode(this.token);
-
   bool get isIntComparison => switch (this) {
     intEqual ||
     intNotEqual ||
@@ -659,7 +675,16 @@ enum ComparisonOpcode {
     _ => false,
   };
 
-  ComparisonOpcode flipOperands() => switch (this) {
+  /// The opcode for an equivalent comparison with the operands swapped.
+  ///
+  /// For example, `a < b` is equivalent to `b > a`,
+  /// so [intLess] becomes [intGreater].
+  /// Symmetric opcodes, such as those for equality,
+  /// stay the same when swapped.
+  ///
+  /// Swapping preserves the comparison's result and strictness,
+  /// unlike [negate], which inverts the result.
+  ComparisonOpcode get swapped => switch (this) {
     equal ||
     notEqual ||
     identical ||
@@ -670,14 +695,14 @@ enum ComparisonOpcode {
     intTestIsNotZero ||
     doubleEqual ||
     doubleNotEqual => this,
-    intLess => intGreaterOrEqual,
-    intLessOrEqual => intGreater,
-    intGreater => intLessOrEqual,
-    intGreaterOrEqual => intLess,
-    doubleLess => doubleGreaterOrEqual,
-    doubleLessOrEqual => doubleGreater,
-    doubleGreater => doubleLessOrEqual,
-    doubleGreaterOrEqual => doubleLess,
+    intLess => intGreater,
+    intLessOrEqual => intGreaterOrEqual,
+    intGreater => intLess,
+    intGreaterOrEqual => intLessOrEqual,
+    doubleLess => doubleGreater,
+    doubleLessOrEqual => doubleGreaterOrEqual,
+    doubleGreater => doubleLess,
+    doubleGreaterOrEqual => doubleLessOrEqual,
   };
 
   bool get canBeNegated => switch (this) {
@@ -1061,21 +1086,45 @@ final class StoreStaticField extends StoreField {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
 }
 
-/// Throw given exception object. Also takes optional stack trace
+/// Kinds of exceptions thrown via [Throw].
+enum ThrowKind {
+  // Throw given exception object.
+  exception,
+  // Rethrow given exception object with a given stack trace.
+  rethrowException,
+
+  /// Throw LateError when local variable has not been initialized.
+  lateLocalNotInitialized,
+  // Throw LateError when local variable has already been initialized.
+  lateLocalAlreadyInitialized,
+  // Throw LateError when local variable has been assigned during initialization.
+  lateLocalAssignedDuringInitialization,
+}
+
+/// Throw exception, either using provided exception object or
+/// one of the standard errors. Also takes optional stack trace
 /// input to rethrow exception object without collecting a new stack trace.
 final class Throw extends Instruction
     with CanThrow, HasSideEffects
     implements ControlFlowInstruction {
+  final ThrowKind kind;
+
   Throw(
     super.graph,
     super.sourcePosition,
-    Definition exception,
-    Definition? stackTrace,
-  ) : super(inputCount: stackTrace != null ? 2 : 1) {
-    setInputAt(0, exception);
-    if (stackTrace != null) {
-      setInputAt(1, stackTrace);
-    }
+    this.kind, {
+    required super.inputCount,
+  }) {
+    assert(
+      inputCount ==
+          switch (kind) {
+            .exception => 1, // Exception object.
+            .rethrowException => 2, // Exception object and stack trace.
+            .lateLocalNotInitialized ||
+            .lateLocalAlreadyInitialized ||
+            .lateLocalAssignedDuringInitialization => 1, // Variable name.
+          },
+    );
   }
 
   @override
@@ -1102,13 +1151,15 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
 }
 
 enum TypeParametersKind {
+  /// All type parameters of the current function and all enclosing functions.
   functionTypeParameters,
+
+  /// All type parameters of the current class.
   classTypeParameters,
   // Add kinds for a single function/class type parameter.
 }
 
-/// Represents collection of type parameters corresponding to the
-/// given parameter.
+/// Represents collection of type parameters.
 /// Can be used as inputs in [TypeCast], [TypeTest], [TypeArguments] and
 /// [TypeLiteral] instructions.
 final class TypeParameters extends Definition with NoThrow, Pure {
@@ -1117,13 +1168,9 @@ final class TypeParameters extends Definition with NoThrow, Pure {
   TypeParameters(
     super.graph,
     super.sourcePosition,
-    this.kind,
-    Definition parameter,
-  ) : super(inputCount: 1) {
-    setInputAt(0, parameter);
-  }
-
-  Definition get parameter => inputDefAt(0);
+    this.kind, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
 
   @override
   CType get type => const TypeParametersType();
@@ -1204,7 +1251,7 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral] and [AllocateMapLiteral].
+/// [AllocateListLiteral], [AllocateMapLiteral] and [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1262,13 +1309,11 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     Definition? typeArguments,
   ) : super(inputCount: typeArguments != null ? 1 : 0) {
     if (typeArguments != null) {
-      assert(
-        (type.dartType as ast.InterfaceType)
-            .classNode
-            .typeParameters
-            .isNotEmpty,
-      );
       setInputAt(0, typeArguments);
+    } else {
+      assert(
+        (type.dartType as ast.InterfaceType).classNode.typeParameters.isEmpty,
+      );
     }
   }
 
@@ -1280,10 +1325,9 @@ final class AllocateObject extends Definition with CanThrow, Pure {
 }
 
 /// Allocate a closure instance.
-///
-/// Takes captured values as inputs.
 final class AllocateClosure extends Definition with CanThrow, Pure {
   final ClosureFunction function;
+  final ClosureLayout closureLayout;
 
   @override
   final CType type;
@@ -1292,12 +1336,25 @@ final class AllocateClosure extends Definition with CanThrow, Pure {
     super.graph,
     super.sourcePosition,
     this.function,
-    this.type, {
-    required super.inputCount,
-  });
+    this.closureLayout,
+    this.type,
+  ) : super(inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateClosure(this);
+}
+
+/// Allocate a context instance to hold values of captured variables.
+final class AllocateContext extends Definition with CanThrow, Pure {
+  final int length;
+
+  AllocateContext(super.graph, super.sourcePosition, this.length)
+    : super(inputCount: 0);
+
+  CType get type => const ContextType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateContext(this);
 }
 
 /// Allocate a new List literal with given type arguments and elements.
@@ -1341,6 +1398,24 @@ final class AllocateMapLiteral extends Definition with CanThrow, Pure {
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateMapLiteral(this);
 }
 
+/// Allocate a new Record literal with given elements.
+final class AllocateRecordLiteral extends Definition with CanThrow, Pure {
+  @override
+  final RecordType type;
+
+  AllocateRecordLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount == type.numFields);
+
+  Definition elementAt(int index) => inputDefAt(index);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecordLiteral(this);
+}
+
 /// Interpolate given objects into a String.
 final class StringInterpolation extends Definition
     with CanThrow, HasSideEffects {
@@ -1357,7 +1432,64 @@ final class StringInterpolation extends Definition
   R accept<R>(InstructionVisitor<R> v) => v.visitStringInterpolation(this);
 }
 
-enum BinaryIntOpcode {
+/// Enter a suspendable function.
+/// Type arguments of the function return value are provided as input.
+final class EnterSuspendableFunction extends Instruction
+    with CanThrow, HasSideEffects {
+  EnterSuspendableFunction(
+    super.graph,
+    super.sourcePosition,
+    Definition typeArguments,
+  ) : super(inputCount: 1) {
+    setInputAt(0, typeArguments);
+  }
+
+  Definition get typeArguments => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitEnterSuspendableFunction(this);
+}
+
+enum SuspendOpcode {
+  await,
+  awaitWithTypeCheck,
+  asyncYield,
+  asyncYieldStar,
+  syncYield,
+  syncYieldStar,
+}
+
+/// A point where execution of a suspendable function can be suspended
+/// and resumed (await, yield or yield*).
+final class Suspend extends Definition with CanThrow, HasSideEffects {
+  final SuspendOpcode op;
+
+  @override
+  final CType type;
+
+  Suspend(
+    super.graph,
+    super.sourcePosition,
+    this.op,
+    this.type,
+    Definition operand, {
+    Definition? typeArguments,
+  }) : super(inputCount: (typeArguments != null ? 2 : 1)) {
+    setInputAt(0, operand);
+    if (typeArguments != null) {
+      assert(op == SuspendOpcode.awaitWithTypeCheck);
+      setInputAt(1, typeArguments);
+    }
+  }
+
+  Definition get operand => inputDefAt(0);
+  Definition? get typeArguments => inputCount > 1 ? inputDefAt(1) : null;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSuspend(this);
+}
+
+enum BinaryIntOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1370,9 +1502,6 @@ enum BinaryIntOpcode {
   shiftLeft('<<'),
   shiftRight('>>'),
   unsignedShiftRight('>>>');
-
-  final String token;
-  const BinaryIntOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul || bitOr || bitAnd || bitXor => true,
@@ -1419,15 +1548,12 @@ final class BinaryIntOp extends Definition with Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryIntOp(this);
 }
 
-enum UnaryIntOpcode {
+enum UnaryIntOpcode(final String token) {
   neg('-'),
   bitNot('~'),
   toDouble('toDouble'),
   abs('abs'),
-  sign('sign');
-
-  final String token;
-  const UnaryIntOpcode(this.token);
+  sign('sign')
 }
 
 /// Unary operation on the int operand.
@@ -1454,7 +1580,7 @@ final class UnaryIntOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryIntOp(this);
 }
 
-enum BinaryDoubleOpcode {
+enum BinaryDoubleOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1462,9 +1588,6 @@ enum BinaryDoubleOpcode {
   truncatingDiv('~/'),
   mod('%'),
   rem('remainder');
-
-  final String token;
-  const BinaryDoubleOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul => true,
@@ -1503,7 +1626,7 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryDoubleOp(this);
 }
 
-enum UnaryDoubleOpcode {
+enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
   sign('sign'),
@@ -1515,10 +1638,7 @@ enum UnaryDoubleOpcode {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble');
-
-  final String token;
-  const UnaryDoubleOpcode(this.token);
+  truncateToDouble('truncateToDouble')
 }
 
 /// Unary operation on the double operand.
@@ -1548,11 +1668,8 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryDoubleOp(this);
 }
 
-enum UnaryBoolOpcode {
-  not('!');
-
-  final String token;
-  const UnaryBoolOpcode(this.token);
+enum UnaryBoolOpcode(final String token) {
+  not('!')
 }
 
 /// Unary operation on the bool operand.
@@ -1647,6 +1764,19 @@ final class SetListElement extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
 }
 
+/// Allocate a Record instance of given type.
+final class AllocateRecord extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  @override
+  final RecordType type;
+
+  AllocateRecord(super.graph, super.sourcePosition, this.type)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecord(this);
+}
+
 /// Base class for boxing instructions.
 abstract base class Box extends Definition
     with CanThrow, Pure, BackendInstruction {
@@ -1723,17 +1853,18 @@ abstract base class MoveOp {}
 /// e.g. for every two successive [ParallelMove] instructions it is guaranteed
 /// that `instr.stage.index < instr.next.stage.index`.
 enum ParallelMoveStage {
-  // Move fixed output of the instruction to its desired location.
-  output,
-  // Spill output of the instruction.
-  spill,
-  // Split live ranges between instructions.
-  split,
-  // Split live ranges at the next instruction.
-  splitLate,
-  // Moves at control flow edges (including phi moves).
+  // Control flow moves at the beginning of basic block.
   control,
+  // Move fixed output of the instruction to its desired location.
+  // Moves which split live ranges between instructions.
+  // Spill a non-fixed output of the instruction.
+  output,
+  // Spill output of the instruction in case of a fixed location
+  // (output is defined only after [ParallelMoveStage.output]).
+  spill,
   // Move instruction inputs to their fixed locations.
+  // Moves which split live ranges at the next instructions.
+  // Also control flow moves at the end of basic block.
   input,
 }
 

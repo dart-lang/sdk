@@ -155,7 +155,7 @@ abstract class CfeStyleMessage extends Message {
   /// `messages.yaml`.
   final DiagnosticCodeName frontEndCode;
 
-  CfeStyleMessage(MessageYaml messageYaml)
+  new(MessageYaml messageYaml)
     : cfeSeverity = messageYaml.get(
         'severity',
         decode: (node) {
@@ -244,7 +244,7 @@ class DiagnosticCodeName implements Comparable<DiagnosticCodeName> {
   /// capitalized words, with no separation between words).
   final String camelCaseName;
 
-  DiagnosticCodeName.fromCamelCase(this.camelCaseName)
+  new fromCamelCase(this.camelCaseName)
     : snakeCaseName =
           _snakeCaseExceptions[camelCaseName] ?? camelCaseName.toSnakeCase() {
     if (snakeCaseName.toLowerCase() != snakeCaseName) {
@@ -288,7 +288,7 @@ class DiagnosticParameter {
   final String comment;
   final int index;
 
-  DiagnosticParameter({
+  new({
     required this.name,
     required this.type,
     required this.comment,
@@ -399,7 +399,7 @@ enum DiagnosticParameterType {
   ///   sufficient.
   final Conversion? cfeConversion;
 
-  const DiagnosticParameterType({
+  new({
     required this.messagesYamlName,
     this._analyzerName,
     this.cfeName,
@@ -407,7 +407,7 @@ enum DiagnosticParameterType {
   });
 
   /// Decodes a type name from `messages.yaml` into a [DiagnosticParameterType].
-  factory DiagnosticParameterType.fromMessagesYamlName(String name) =>
+  factory fromMessagesYamlName(String name) =>
       _messagesYamlNameToValue[name] ?? (throw 'Unknown type name: $name');
 
   String get analyzerName =>
@@ -444,7 +444,7 @@ class DiagnosticTables {
   /// Map from [DiagnosticCodeName.pascalCaseName] to front end diagnostic.
   final Map<String, CfeStyleMessage> frontEndDiagnosticsByPascalCaseName = {};
 
-  DiagnosticTables._(List<Message> messages) {
+  new _(List<Message> messages) {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Front end code',
     );
@@ -538,7 +538,7 @@ class FrontEndMessage extends CfeStyleMessage {
   // codes.
   final String? pseudoSharedCode;
 
-  FrontEndMessage(super.messageYaml)
+  new(super.messageYaml)
     : pseudoSharedCode = messageYaml.getOptionalString('pseudoSharedCode');
 }
 
@@ -547,7 +547,7 @@ class LabelerConversion implements Conversion {
   /// The name of the [TypeLabeler] method to call.
   final String methodName;
 
-  const LabelerConversion(this.methodName);
+  const new(this.methodName);
 
   @override
   int get hashCode => Object.hash(runtimeType, methodName.hashCode);
@@ -623,7 +623,7 @@ abstract class Message {
   final String keyString;
 
   /// Decodes a [Message] object from its YAML representation.
-  Message(MessageYaml messageYaml, {bool requireProblemMessage = false})
+  new(MessageYaml messageYaml, {bool requireProblemMessage = false})
     : comment = messageYaml.getOptionalString('comment'),
       correctionMessage = messageYaml.getMessageTemplate(
         'correctionMessage',
@@ -691,7 +691,7 @@ class MessageYaml {
   /// this set, an exception will be thrown to report them as unexpected keys.
   final Set<String> _permittedKeys = {};
 
-  MessageYaml._(this._key, this._map);
+  new _(this._key, this._map);
 
   /// The span of the YAML key node from the key/value pair that defines the
   /// message.
@@ -894,7 +894,7 @@ class NumericConversion implements Conversion {
   /// used.
   final bool padWithZeros;
 
-  NumericConversion({
+  new({
     required this.fractionDigits,
     required this.padWidth,
     required this.padWithZeros,
@@ -974,7 +974,7 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   final AnalyzerDiagnosticType type;
 
-  SharedMessage(super.messageYaml)
+  new(super.messageYaml)
     : analyzerCode = messageYaml.get(
         'analyzerCode',
         decode: _decodeAnalyzerCode,
@@ -1006,7 +1006,7 @@ class SimpleConversion implements Conversion {
   /// The name of the function to be invoked.
   final String functionName;
 
-  const SimpleConversion(this.functionName);
+  const new(this.functionName);
 
   @override
   int get hashCode => Object.hash(runtimeType, functionName.hashCode);
@@ -1028,7 +1028,7 @@ class TemplateLiteralPart implements TemplatePart {
   /// The literal text.
   final String text;
 
-  TemplateLiteralPart(this.text);
+  new(this.text);
 }
 
 /// [TemplatePart] representing a parameter to be substituted into the
@@ -1044,7 +1044,7 @@ class TemplateParameterPart implements TemplatePart {
 
   /// Builds a [TemplateParameterPart] from the given [match] of
   /// [placeholderPattern].
-  factory TemplateParameterPart.fromMatch(
+  factory fromMatch(
     Match match, {
     required Map<String, DiagnosticParameter> parameters,
   }) {
@@ -1060,10 +1060,7 @@ class TemplateParameterPart implements TemplatePart {
     );
   }
 
-  TemplateParameterPart._({
-    required this.parameter,
-    required this.conversionOverride,
-  });
+  new _({required this.parameter, required this.conversionOverride});
 
   @override
   int get hashCode => Object.hash(parameter, conversionOverride);
@@ -1085,7 +1082,7 @@ class _DuplicateChecker<Code> {
   final Map<Code, List<Message>> _codeToMessages = {};
   final String kind;
 
-  _DuplicateChecker({required this.kind});
+  new({required this.kind});
 
   void operator []=(Code code, Message message) {
     (_codeToMessages[code] ??= []).add(message);

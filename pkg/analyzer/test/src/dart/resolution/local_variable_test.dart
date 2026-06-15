@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalVariableResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LocalVariableResolutionTest extends PubPackageResolutionTest {
   test_annotation_twoVariables() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f() {
@@ -26,21 +27,21 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     assertElement(
       x.metadata.annotations.single.element,
-      declaration: findElement2.topGet('a'),
+      declaration: result.findElement.topGet('a'),
     );
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     assertElement(
       y.metadata.annotations.single.element,
-      declaration: findElement2.topGet('a'),
+      declaration: result.findElement.topGet('a'),
     );
   }
 
   test_demoteTypeParameterType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, T b) {
   if (a is String) {
     var o = a;
@@ -50,20 +51,19 @@ void f<T>(T a, T b) {
 }
 ''');
 
-    assertType(findNode.simple('o; // ref'), 'T');
+    assertType(result.findNode.simple('o; // ref'), 'T');
   }
 
   test_element_block() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 17, 1)],
-    );
+''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -71,16 +71,15 @@ void f() {
   }
 
   test_element_const() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const int x = 0;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 23, 1)],
-    );
+''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isTrue);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -88,16 +87,15 @@ void f() {
   }
 
   test_element_final() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final int x = 0;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 23, 1)],
-    );
+''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isTrue);
     expect(x.isLate, isFalse);
@@ -105,17 +103,16 @@ void f() {
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   if (1 > 2)
     int x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 32, 1)],
-    );
+''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -123,16 +120,15 @@ void f() {
   }
 
   test_element_late() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int x = 0;
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
+''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isTrue);
@@ -140,7 +136,7 @@ void f() {
   }
 
   test_initializerReference_ifStatement_nonBlock() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   if (c)
     // ignore: unused_local_variable
@@ -148,7 +144,8 @@ void f(bool c) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.simple('a; // ref'), r'''
+    var node = result.findNode.simple('a; // ref');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: a@71
@@ -157,19 +154,20 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   _() {}
+//^^^^^^
+// [diag.deadCode] Dead code.
   _();
+//^
+// [diag.undefinedFunction] The function '_' isn't defined.
 }
-''',
-      [error(diag.deadCode, 8, 6), error(diag.undefinedFunction, 17, 1)],
-    );
+''');
   }
 
   test_localVariable_wildcardFunction_preWildcards() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -179,7 +177,7 @@ f() {
 }
 ''');
 
-    var node = findNode.simple('_();');
+    var node = result.findNode.simple('_();');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
@@ -189,7 +187,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_field() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   var _ = 1;
   void m() {
@@ -199,7 +197,7 @@ class C {
 }
 ''');
 
-    var node = findNode.simple('_;');
+    var node = result.findNode.simple('_;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
@@ -209,7 +207,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_topLevel() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var _ = 1;
 
 void f() {
@@ -218,7 +216,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('_;');
+    var node = result.findNode.simple('_;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _

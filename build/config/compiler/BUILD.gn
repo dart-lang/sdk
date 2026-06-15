@@ -130,8 +130,8 @@ config("compiler") {
       cflags += [ "-fsanitize=address" ]
       if (is_win) {
         # Windows directly calls link.exe instead of the compiler driver when
-        # linking.  Hence, pass the runtime libraries instead of -fsanitize=address
-        # or -fsanitize=fuzzer.
+        # linking. Hence, pass the runtime libraries instead of
+        # -fsanitize=address or -fsanitize=fuzzer.
         _clang_lib_dir =
             "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.asan_dynamic.lib" ]
@@ -231,26 +231,18 @@ config("compiler") {
     common_mac_flags = []
 
     # CPU architecture.
-    if (current_cpu == "x64") {
-      common_mac_flags += [
-        "-arch",
-        "x86_64",
-      ]
-    } else if (current_cpu == "x86") {
-      common_mac_flags += [
-        "-arch",
-        "i386",
-      ]
-    } else if (current_cpu == "arm") {
-      common_mac_flags += [
-        "-arch",
-        "armv7",
-      ]
-    } else if (current_cpu == "arm64") {
-      common_mac_flags += [
-        "-arch",
-        "arm64",
-      ]
+    if (is_mac) {
+      if (current_cpu == "x64") {
+        common_mac_flags += [ "--target=x86_64-apple-macos" ]
+      } else if (current_cpu == "arm64") {
+        common_mac_flags += [ "--target=arm64-apple-macos" ]
+      }
+    } else if (is_ios) {
+      if (current_cpu == "x64") {
+        common_mac_flags += [ "--target=x86_64-apple-darwin" ]
+      } else if (current_cpu == "arm64") {
+        common_mac_flags += [ "--target=arm64-apple-darwin" ]
+      }
     }
 
     cflags += common_mac_flags
@@ -520,18 +512,6 @@ config("cxx_version_14") {
   cflags_objcc = cc_std
 }
 
-config("cxx_version_17") {
-  if (is_win) {
-    cflags_c = [ "/std:c17" ]
-    cc_std = [ "/std:c++17" ]
-  } else {
-    cflags_c = [ "-std=c17" ]
-    cc_std = [ "-std=c++17" ]
-  }
-  cflags_cc = cc_std
-  cflags_objcc = cc_std
-}
-
 config("cxx_version_20") {
   if (is_win) {
     cflags_c = [ "/std:c17" ]
@@ -659,10 +639,12 @@ if (is_win) {
       "-Wno-ignored-pragma-optimize",  # icu, double-conversion
       "-Wno-macro-redefined",
       "-Wno-microsoft-cast",
-      "-Wno-microsoft-unqualified-friend",
       "-Wno-unknown-argument",  # icu
       "-Wno-unused-value",  # crashpad
       "-Wno-deprecated-non-prototype",  # zlib
+    ]
+    default_warning_flags_cc += [
+      "-Wno-microsoft-unqualified-friend",
     ]
   } else {
     default_warning_flags += [
@@ -699,7 +681,13 @@ if (is_win) {
   } else {
     default_warning_flags += [
       "-Wno-ignored-qualifiers",  # Warnings in BoringSSL headers
+      "-Wno-stringop-overflow",  # ICU in gcc 16
     ]
+    if (is_tsan && current_cpu == "riscv64") {
+      default_warning_flags += [
+        "-Wno-tsan",  # Use of std::atomic_thread_fence in the STL.
+      ]
+    }
   }
 
   if (is_mac || is_ios) {

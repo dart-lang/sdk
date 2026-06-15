@@ -16,7 +16,7 @@ class ElementWriter with TreeWriter {
 
   /// Initialize a newly created element writer to write the HTML representation
   /// of visited elements on the given [buffer].
-  ElementWriter(this.buffer);
+  new(this.buffer);
 
   void write(Element element) {
     _writeElement(element);
@@ -86,7 +86,7 @@ class ElementWriter with TreeWriter {
       },
       if (element is FormalParameterElement) ...{
         'defaultValueCode': ?element.defaultValueCode,
-        'isInitializingFormal': element.isInitializingFormal,
+        'isInitializingFormal': element is FieldFormalParameterElement,
         if (element.isRequiredPositional)
           'parameterKind': 'required-positional'
         else if (element.isRequiredNamed)

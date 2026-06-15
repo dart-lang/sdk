@@ -48,6 +48,14 @@ base class VMOffsets {
   int get SubtypeTestCache_kMaxInputs => throw 'Unknown';
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedClosure_kHasDelayedTypeArgumentsBit => throw 'Unknown';
+  int get UntaggedClosure_kHasInstantiatorTypeArgumentsBit => throw 'Unknown';
+  int get UntaggedClosure_kHasFunctionTypeArgumentsBit => throw 'Unknown';
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsPos => throw 'Unknown';
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsSize =>
+      throw 'Unknown';
+  int get UntaggedClosure_kLengthBitsPos => throw 'Unknown';
+  int get UntaggedClosure_kLengthBitsSize => throw 'Unknown';
   int get UntaggedObject_kCardRememberedBit => throw 'Unknown';
   int get UntaggedObject_kCanonicalBit => throw 'Unknown';
   int get UntaggedObject_kNotMarkedBit => throw 'Unknown';
@@ -65,6 +73,12 @@ base class VMOffsets {
   int get UntaggedObject_kClassIdTagSize => throw 'Unknown';
   int get UntaggedObject_kHashTagPos => throw 'Unknown';
   int get UntaggedObject_kHashTagSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kKindBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kKindBitsSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -86,12 +100,9 @@ base class VMOffsets {
   int get Class_host_type_arguments_field_offset_in_words_offset =>
       throw 'Unknown';
   int get ClassTable_allocation_tracing_state_table_offset => throw 'Unknown';
-  int get Closure_context_offset => throw 'Unknown';
-  int get Closure_delayed_type_arguments_offset => throw 'Unknown';
   int get Closure_function_offset => throw 'Unknown';
-  int get Closure_function_type_arguments_offset => throw 'Unknown';
   int get Closure_hash_offset => throw 'Unknown';
-  int get Closure_instantiator_type_arguments_offset => throw 'Unknown';
+  int get Closure_length_and_flags_offset => throw 'Unknown';
   int get ClosureData_packed_fields_offset => throw 'Unknown';
   int get Code_instructions_offset => throw 'Unknown';
   int get Code_object_pool_offset => throw 'Unknown';
@@ -139,6 +150,7 @@ base class VMOffsets {
   int get LinkedHashBase_index_offset => throw 'Unknown';
   int get LinkedHashBase_type_arguments_offset => throw 'Unknown';
   int get LinkedHashBase_used_data_offset => throw 'Unknown';
+  int get LinkedHashBase_NextFieldOffset => throw 'Unknown';
   int get LocalHandle_ptr_offset => throw 'Unknown';
   int get MarkingStackBlock_pointers_offset => throw 'Unknown';
   int get MarkingStackBlock_top_offset => throw 'Unknown';
@@ -405,7 +417,6 @@ base class VMOffsets {
   int get Bytecode_InstanceSize => throw 'Unknown';
   int get Capability_InstanceSize => throw 'Unknown';
   int get Class_InstanceSize => throw 'Unknown';
-  int get Closure_InstanceSize => throw 'Unknown';
   int get ClosureData_InstanceSize => throw 'Unknown';
   int get CodeSourceMap_HeaderSize => throw 'Unknown';
   int get CompressedStackMaps_ObjectHeaderSize => throw 'Unknown';
@@ -484,6 +495,10 @@ base class VMOffsets {
   int get ClassTable_elementSize => throw 'Unknown';
   int ClassTable_elementOffset(int index) =>
       ClassTable_elementsStartOffset + index * ClassTable_elementSize;
+  int get Closure_elementsStartOffset => throw 'Unknown';
+  int get Closure_elementSize => throw 'Unknown';
+  int Closure_elementOffset(int index) =>
+      Closure_elementsStartOffset + index * Closure_elementSize;
   int get Code_elementsStartOffset => throw 'Unknown';
   int get Code_elementSize => throw 'Unknown';
   int Code_elementOffset(int index) =>
@@ -496,6 +511,11 @@ base class VMOffsets {
   int get ContextScope_elementSize => throw 'Unknown';
   int ContextScope_elementOffset(int index) =>
       ContextScope_elementsStartOffset + index * ContextScope_elementSize;
+  int get LocalVarDescriptors_elementsStartOffset => throw 'Unknown';
+  int get LocalVarDescriptors_elementSize => throw 'Unknown';
+  int LocalVarDescriptors_elementOffset(int index) =>
+      LocalVarDescriptors_elementsStartOffset +
+      index * LocalVarDescriptors_elementSize;
   int get ExceptionHandlers_elementsStartOffset => throw 'Unknown';
   int get ExceptionHandlers_elementSize => throw 'Unknown';
   int ExceptionHandlers_elementOffset(int index) =>
@@ -548,6 +568,10 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get ClassTable_elementSize => 0x1;
   @override
+  int get Closure_elementsStartOffset => 0x20;
+  @override
+  int get Closure_elementSize => 0x8;
+  @override
   int get Code_elementsStartOffset => 0xb0;
   @override
   int get Code_elementSize => 0x4;
@@ -559,6 +583,10 @@ final class Arm64VMOffsets extends VMOffsets {
   int get ContextScope_elementsStartOffset => 0x10;
   @override
   int get ContextScope_elementSize => 0x50;
+  @override
+  int get LocalVarDescriptors_elementsStartOffset => 0x10;
+  @override
+  int get LocalVarDescriptors_elementSize => 0x1c;
   @override
   int get ExceptionHandlers_elementsStartOffset => 0x18;
   @override
@@ -654,6 +682,20 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get UntaggedClosure_kHasDelayedTypeArgumentsBit => 0x0;
+  @override
+  int get UntaggedClosure_kHasInstantiatorTypeArgumentsBit => 0x1;
+  @override
+  int get UntaggedClosure_kHasFunctionTypeArgumentsBit => 0x2;
+  @override
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsPos => 0x3;
+  @override
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsSize => 0x2;
+  @override
+  int get UntaggedClosure_kLengthBitsPos => 0x5;
+  @override
+  int get UntaggedClosure_kLengthBitsSize => 0x39;
+  @override
   int get UntaggedObject_kCardRememberedBit => 0x0;
   @override
   int get UntaggedObject_kCanonicalBit => 0x1;
@@ -687,6 +729,18 @@ final class Arm64VMOffsets extends VMOffsets {
   int get UntaggedObject_kHashTagPos => 0x20;
   @override
   int get UntaggedObject_kHashTagSize => 0x20;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsPos => 0x0;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsSize => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => 0xa;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -728,17 +782,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get ClassTable_allocation_tracing_state_table_offset => 0x8;
   @override
-  int get Closure_context_offset => 0x28;
+  int get Closure_function_offset => 0x18;
   @override
-  int get Closure_delayed_type_arguments_offset => 0x18;
+  int get Closure_hash_offset => 0x10;
   @override
-  int get Closure_function_offset => 0x20;
-  @override
-  int get Closure_function_type_arguments_offset => 0x10;
-  @override
-  int get Closure_hash_offset => 0x30;
-  @override
-  int get Closure_instantiator_type_arguments_offset => 0x8;
+  int get Closure_length_and_flags_offset => 0x8;
   @override
   int get ClosureData_packed_fields_offset => 0x20;
   @override
@@ -836,6 +884,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get LinkedHashBase_used_data_offset => 0x20;
   @override
+  int get LinkedHashBase_NextFieldOffset => 0x38;
+  @override
   int get LocalHandle_ptr_offset => 0x0;
   @override
   int get MarkingStackBlock_pointers_offset => 0x10;
@@ -862,35 +912,35 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x430;
+  int get ObjectStore_record_field_names_offset => 0x440;
   @override
   int get ObjectStore_string_type_offset => 0x1e0;
   @override
   int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x530;
+  int get ObjectStore_ffi_callback_code_offset => 0x540;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x480;
+  int get ObjectStore_suspend_state_await_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4d8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x478;
+  int get ObjectStore_suspend_state_init_async_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x4a8;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4d0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4b8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
@@ -944,11 +994,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_AllocateArray_entry_point_offset => 0x2e8;
   @override
-  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x708;
+  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x710;
   @override
-  int get Thread_active_exception_offset => 0x6c8;
+  int get Thread_active_exception_offset => 0x6d0;
   @override
-  int get Thread_active_stacktrace_offset => 0x6d0;
+  int get Thread_active_stacktrace_offset => 0x6d8;
   @override
   int get Thread_array_write_barrier_entry_point_offset => 0x200;
   @override
@@ -966,7 +1016,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x888;
+  int get Thread_api_top_scope_offset => 0x890;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -982,15 +1032,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8e0;
+  int get Thread_dart_stream_offset => 0x8e8;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x890;
+  int get Thread_double_truncate_round_supported_offset => 0x898;
   @override
-  int get Thread_service_extension_stream_offset => 0x8e8;
+  int get Thread_service_extension_stream_offset => 0x8f0;
   @override
-  int get Thread_thread_locals_offset => 0x8f0;
+  int get Thread_thread_locals_offset => 0x8f8;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -1008,7 +1058,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_enter_safepoint_stub_offset => 0x1e0;
   @override
-  int get Thread_execution_state_offset => 0x6f0;
+  int get Thread_execution_state_offset => 0x6f8;
   @override
   int get Thread_exit_safepoint_stub_offset => 0x1e8;
   @override
@@ -1028,7 +1078,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_float_zerow_address_offset => 0x2e0;
   @override
-  int get Thread_global_object_pool_offset => 0x6d8;
+  int get Thread_global_object_pool_offset => 0x6e0;
   @override
   int get Thread_interpret_call_entry_point_offset => 0x2a0;
   @override
@@ -1036,11 +1086,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_invoke_dart_code_stub_offset => 0xc8;
   @override
-  int get Thread_exit_through_ffi_offset => 0x700;
+  int get Thread_exit_through_ffi_offset => 0x708;
   @override
-  int get Thread_isolate_offset => 0x678;
+  int get Thread_isolate_offset => 0x680;
   @override
-  int get Thread_isolate_group_offset => 0x680;
+  int get Thread_isolate_group_offset => 0x688;
   @override
   int get Thread_field_table_values_offset => 0x70;
   @override
@@ -1050,9 +1100,9 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_lazy_specialize_type_test_stub_offset => 0x1d8;
   @override
-  int get Thread_old_marking_stack_block_offset => 0x6a8;
+  int get Thread_old_marking_stack_block_offset => 0x6b0;
   @override
-  int get Thread_new_marking_stack_block_offset => 0x6b0;
+  int get Thread_new_marking_stack_block_offset => 0x6b8;
   @override
   int get Thread_megamorphic_call_checked_entry_offset => 0x248;
   @override
@@ -1108,15 +1158,15 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_resume_interpreter_adjusted_entry_point_offset => 0x280;
   @override
-  int get Thread_resume_pc_offset => 0x6e0;
+  int get Thread_resume_pc_offset => 0x6e8;
   @override
-  int get Thread_saved_shadow_call_stack_offset => 0x6e8;
+  int get Thread_saved_shadow_call_stack_offset => 0x6f0;
   @override
-  int get Thread_safepoint_state_offset => 0x6f8;
+  int get Thread_safepoint_state_offset => 0x700;
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
-  int get Thread_single_step_offset => 0x8c0;
+  int get Thread_single_step_offset => 0x8c8;
   @override
   int get Thread_slow_type_test_stub_offset => 0x1d0;
   @override
@@ -1124,9 +1174,9 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_stack_limit_offset => 0x48;
   @override
-  int get Thread_saved_stack_limit_offset => 0x688;
+  int get Thread_saved_stack_limit_offset => 0x690;
   @override
-  int get Thread_stack_overflow_flags_offset => 0x690;
+  int get Thread_stack_overflow_flags_offset => 0x698;
   @override
   int get Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset =>
       0x240;
@@ -1138,60 +1188,60 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Thread_stack_overflow_shared_without_fpu_regs_stub_offset => 0x188;
   @override
-  int get Thread_store_buffer_block_offset => 0x6a0;
+  int get Thread_store_buffer_block_offset => 0x6a8;
   @override
-  int get Thread_suspend_state_await_entry_point_offset => 0x628;
+  int get Thread_suspend_state_await_entry_point_offset => 0x630;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x630;
+      0x638;
   @override
-  int get Thread_suspend_state_init_async_entry_point_offset => 0x620;
+  int get Thread_suspend_state_init_async_entry_point_offset => 0x628;
   @override
-  int get Thread_suspend_state_return_async_entry_point_offset => 0x638;
+  int get Thread_suspend_state_return_async_entry_point_offset => 0x640;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x640;
+      0x648;
   @override
-  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x648;
+  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x650;
   @override
-  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x650;
+  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x658;
   @override
-  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x658;
+  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x660;
   @override
-  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x660;
+  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x668;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x668;
+      0x670;
   @override
-  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x670;
+  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x678;
   @override
-  int get Thread_top_exit_frame_info_offset => 0x698;
+  int get Thread_top_exit_frame_info_offset => 0x6a0;
   @override
   int get Thread_top_offset => 0x58;
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x898;
+  int get Thread_unboxed_runtime_arg_offset => 0x8a0;
   @override
-  int get Thread_vm_tag_offset => 0x6c0;
+  int get Thread_vm_tag_offset => 0x6c8;
   @override
   int get Thread_write_barrier_entry_point_offset => 0x1f8;
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8a8;
+  int get Thread_next_task_id_offset => 0x8b0;
   @override
-  int get Thread_random_offset => 0x8b0;
+  int get Thread_random_offset => 0x8b8;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8b8;
+  int get Thread_tsan_utils_offset => 0x8c0;
   @override
-  int get Thread_current_tag_offset => 0x8d0;
+  int get Thread_current_tag_offset => 0x8d8;
   @override
-  int get Thread_default_tag_offset => 0x8d8;
+  int get Thread_default_tag_offset => 0x8e0;
   @override
-  int get Thread_user_tag_offset => 0x8c8;
+  int get Thread_user_tag_offset => 0x8d0;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -1294,7 +1344,6 @@ final class Arm64VMOffsets extends VMOffsets {
   List<int> get Code_entry_point_offset => [0x8, 0x18, 0x10, 0x20];
   @override
   List<int> get Thread_write_barrier_wrappers_thread_offset => [
-    0x580,
     0x588,
     0x590,
     0x598,
@@ -1309,17 +1358,18 @@ final class Arm64VMOffsets extends VMOffsets {
     0x5e0,
     0x5e8,
     0x5f0,
-    -1,
-    -1,
-    -1,
-    -1,
     0x5f8,
+    -1,
+    -1,
+    -1,
+    -1,
     0x600,
-    -1,
-    -1,
     0x608,
+    -1,
+    -1,
     0x610,
     0x618,
+    0x620,
     -1,
     -1,
     -1,
@@ -1336,13 +1386,11 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Bool_InstanceSize => 0x10;
   @override
-  int get Bytecode_InstanceSize => 0x60;
+  int get Bytecode_InstanceSize => 0x70;
   @override
   int get Capability_InstanceSize => 0x10;
   @override
-  int get Class_InstanceSize => 0xc8;
-  @override
-  int get Closure_InstanceSize => 0x38;
+  int get Class_InstanceSize => 0xd8;
   @override
   int get ClosureData_InstanceSize => 0x28;
   @override
@@ -1499,6 +1547,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Array_elementSize => 0x8;
   @override
+  int get Closure_elementsStartOffset => 0x20;
+  @override
+  int get Closure_elementSize => 0x8;
+  @override
   int get Code_elementsStartOffset => 0x90;
   @override
   int get Code_elementSize => 0x4;
@@ -1510,6 +1562,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get ContextScope_elementsStartOffset => 0x10;
   @override
   int get ContextScope_elementSize => 0x50;
+  @override
+  int get LocalVarDescriptors_elementsStartOffset => 0x10;
+  @override
+  int get LocalVarDescriptors_elementSize => 0x1c;
   @override
   int get ExceptionHandlers_elementsStartOffset => 0x18;
   @override
@@ -1605,6 +1661,20 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get UntaggedClosure_kHasDelayedTypeArgumentsBit => 0x0;
+  @override
+  int get UntaggedClosure_kHasInstantiatorTypeArgumentsBit => 0x1;
+  @override
+  int get UntaggedClosure_kHasFunctionTypeArgumentsBit => 0x2;
+  @override
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsPos => 0x3;
+  @override
+  int get UntaggedClosure_kFunctionTypeArgumentsIndexBitsSize => 0x2;
+  @override
+  int get UntaggedClosure_kLengthBitsPos => 0x5;
+  @override
+  int get UntaggedClosure_kLengthBitsSize => 0x39;
+  @override
   int get UntaggedObject_kCardRememberedBit => 0x0;
   @override
   int get UntaggedObject_kCanonicalBit => 0x1;
@@ -1638,6 +1708,18 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get UntaggedObject_kHashTagPos => 0x20;
   @override
   int get UntaggedObject_kHashTagSize => 0x20;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsPos => 0x0;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsSize => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => 0xa;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1677,17 +1759,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Class_host_type_arguments_field_offset_in_words_offset => 0xb4;
   @override
-  int get Closure_context_offset => 0x28;
+  int get Closure_function_offset => 0x18;
   @override
-  int get Closure_delayed_type_arguments_offset => 0x18;
+  int get Closure_hash_offset => 0x10;
   @override
-  int get Closure_function_offset => 0x20;
-  @override
-  int get Closure_function_type_arguments_offset => 0x10;
-  @override
-  int get Closure_hash_offset => 0x30;
-  @override
-  int get Closure_instantiator_type_arguments_offset => 0x8;
+  int get Closure_length_and_flags_offset => 0x8;
   @override
   int get ClosureData_packed_fields_offset => 0x20;
   @override
@@ -1783,6 +1859,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get LinkedHashBase_used_data_offset => 0x20;
   @override
+  int get LinkedHashBase_NextFieldOffset => 0x38;
+  @override
   int get LocalHandle_ptr_offset => 0x0;
   @override
   int get MarkingStackBlock_pointers_offset => 0x10;
@@ -1809,35 +1887,35 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get ObjectStore_int_type_offset => 0x168;
   @override
-  int get ObjectStore_record_field_names_offset => 0x430;
+  int get ObjectStore_record_field_names_offset => 0x440;
   @override
   int get ObjectStore_string_type_offset => 0x1e0;
   @override
   int get ObjectStore_type_type_offset => 0x140;
   @override
-  int get ObjectStore_ffi_callback_code_offset => 0x530;
+  int get ObjectStore_ffi_callback_code_offset => 0x540;
   @override
-  int get ObjectStore_suspend_state_await_offset => 0x480;
+  int get ObjectStore_suspend_state_await_offset => 0x490;
   @override
-  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x488;
+  int get ObjectStore_suspend_state_await_with_type_check_offset => 0x498;
   @override
-  int get ObjectStore_suspend_state_handle_exception_offset => 0x4c8;
+  int get ObjectStore_suspend_state_handle_exception_offset => 0x4d8;
   @override
-  int get ObjectStore_suspend_state_init_async_offset => 0x478;
+  int get ObjectStore_suspend_state_init_async_offset => 0x488;
   @override
-  int get ObjectStore_suspend_state_init_async_star_offset => 0x4a0;
+  int get ObjectStore_suspend_state_init_async_star_offset => 0x4b0;
   @override
-  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4b8;
+  int get ObjectStore_suspend_state_init_sync_star_offset => 0x4c8;
   @override
-  int get ObjectStore_suspend_state_return_async_offset => 0x490;
+  int get ObjectStore_suspend_state_return_async_offset => 0x4a0;
   @override
-  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x498;
+  int get ObjectStore_suspend_state_return_async_not_future_offset => 0x4a8;
   @override
-  int get ObjectStore_suspend_state_return_async_star_offset => 0x4b0;
+  int get ObjectStore_suspend_state_return_async_star_offset => 0x4c0;
   @override
-  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4c0;
+  int get ObjectStore_suspend_state_suspend_sync_star_at_start_offset => 0x4d0;
   @override
-  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4a8;
+  int get ObjectStore_suspend_state_yield_async_star_offset => 0x4b8;
   @override
   int get OneByteString_data_offset => 0x10;
   @override
@@ -1891,11 +1969,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_AllocateArray_entry_point_offset => 0x2e8;
   @override
-  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x708;
+  int get Thread_DeoptimizeCopyFrame_entry_point_offset => 0x710;
   @override
-  int get Thread_active_exception_offset => 0x6c8;
+  int get Thread_active_exception_offset => 0x6d0;
   @override
-  int get Thread_active_stacktrace_offset => 0x6d0;
+  int get Thread_active_stacktrace_offset => 0x6d8;
   @override
   int get Thread_array_write_barrier_entry_point_offset => 0x200;
   @override
@@ -1913,7 +1991,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_allocate_object_slow_entry_point_offset => 0x230;
   @override
-  int get Thread_api_top_scope_offset => 0x888;
+  int get Thread_api_top_scope_offset => 0x890;
   @override
   int get Thread_async_exception_handler_stub_offset => 0x160;
   @override
@@ -1929,15 +2007,15 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_call_to_runtime_stub_offset => 0xd8;
   @override
-  int get Thread_dart_stream_offset => 0x8e0;
+  int get Thread_dart_stream_offset => 0x8e8;
   @override
   int get Thread_dispatch_table_array_offset => 0x68;
   @override
-  int get Thread_double_truncate_round_supported_offset => 0x890;
+  int get Thread_double_truncate_round_supported_offset => 0x898;
   @override
-  int get Thread_service_extension_stream_offset => 0x8e8;
+  int get Thread_service_extension_stream_offset => 0x8f0;
   @override
-  int get Thread_thread_locals_offset => 0x8f0;
+  int get Thread_thread_locals_offset => 0x8f8;
   @override
   int get Thread_optimize_entry_offset => 0x258;
   @override
@@ -1955,7 +2033,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_enter_safepoint_stub_offset => 0x1e0;
   @override
-  int get Thread_execution_state_offset => 0x6f0;
+  int get Thread_execution_state_offset => 0x6f8;
   @override
   int get Thread_exit_safepoint_stub_offset => 0x1e8;
   @override
@@ -1975,7 +2053,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_float_zerow_address_offset => 0x2e0;
   @override
-  int get Thread_global_object_pool_offset => 0x6d8;
+  int get Thread_global_object_pool_offset => 0x6e0;
   @override
   int get Thread_interpret_call_entry_point_offset => 0x2a0;
   @override
@@ -1983,11 +2061,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_invoke_dart_code_stub_offset => 0xc8;
   @override
-  int get Thread_exit_through_ffi_offset => 0x700;
+  int get Thread_exit_through_ffi_offset => 0x708;
   @override
-  int get Thread_isolate_offset => 0x678;
+  int get Thread_isolate_offset => 0x680;
   @override
-  int get Thread_isolate_group_offset => 0x680;
+  int get Thread_isolate_group_offset => 0x688;
   @override
   int get Thread_field_table_values_offset => 0x70;
   @override
@@ -1997,9 +2075,9 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_lazy_specialize_type_test_stub_offset => 0x1d8;
   @override
-  int get Thread_old_marking_stack_block_offset => 0x6a8;
+  int get Thread_old_marking_stack_block_offset => 0x6b0;
   @override
-  int get Thread_new_marking_stack_block_offset => 0x6b0;
+  int get Thread_new_marking_stack_block_offset => 0x6b8;
   @override
   int get Thread_megamorphic_call_checked_entry_offset => 0x248;
   @override
@@ -2055,11 +2133,11 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_resume_interpreter_adjusted_entry_point_offset => 0x280;
   @override
-  int get Thread_resume_pc_offset => 0x6e0;
+  int get Thread_resume_pc_offset => 0x6e8;
   @override
-  int get Thread_saved_shadow_call_stack_offset => 0x6e8;
+  int get Thread_saved_shadow_call_stack_offset => 0x6f0;
   @override
-  int get Thread_safepoint_state_offset => 0x6f8;
+  int get Thread_safepoint_state_offset => 0x700;
   @override
   int get Thread_shared_field_table_values_offset => 0x78;
   @override
@@ -2069,9 +2147,9 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_stack_limit_offset => 0x48;
   @override
-  int get Thread_saved_stack_limit_offset => 0x688;
+  int get Thread_saved_stack_limit_offset => 0x690;
   @override
-  int get Thread_stack_overflow_flags_offset => 0x690;
+  int get Thread_stack_overflow_flags_offset => 0x698;
   @override
   int get Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset =>
       0x240;
@@ -2083,60 +2161,60 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Thread_stack_overflow_shared_without_fpu_regs_stub_offset => 0x188;
   @override
-  int get Thread_store_buffer_block_offset => 0x6a0;
+  int get Thread_store_buffer_block_offset => 0x6a8;
   @override
-  int get Thread_suspend_state_await_entry_point_offset => 0x628;
+  int get Thread_suspend_state_await_entry_point_offset => 0x630;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x630;
+      0x638;
   @override
-  int get Thread_suspend_state_init_async_entry_point_offset => 0x620;
+  int get Thread_suspend_state_init_async_entry_point_offset => 0x628;
   @override
-  int get Thread_suspend_state_return_async_entry_point_offset => 0x638;
+  int get Thread_suspend_state_return_async_entry_point_offset => 0x640;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x640;
+      0x648;
   @override
-  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x648;
+  int get Thread_suspend_state_init_async_star_entry_point_offset => 0x650;
   @override
-  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x650;
+  int get Thread_suspend_state_yield_async_star_entry_point_offset => 0x658;
   @override
-  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x658;
+  int get Thread_suspend_state_return_async_star_entry_point_offset => 0x660;
   @override
-  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x660;
+  int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x668;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x668;
+      0x670;
   @override
-  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x670;
+  int get Thread_suspend_state_handle_exception_entry_point_offset => 0x678;
   @override
-  int get Thread_top_exit_frame_info_offset => 0x698;
+  int get Thread_top_exit_frame_info_offset => 0x6a0;
   @override
   int get Thread_top_offset => 0x58;
   @override
   int get Thread_top_resource_offset => 0x20;
   @override
-  int get Thread_unboxed_runtime_arg_offset => 0x898;
+  int get Thread_unboxed_runtime_arg_offset => 0x8a0;
   @override
-  int get Thread_vm_tag_offset => 0x6c0;
+  int get Thread_vm_tag_offset => 0x6c8;
   @override
   int get Thread_write_barrier_entry_point_offset => 0x1f8;
   @override
   int get Thread_write_barrier_mask_offset => 0x50;
   @override
-  int get Thread_next_task_id_offset => 0x8a8;
+  int get Thread_next_task_id_offset => 0x8b0;
   @override
-  int get Thread_random_offset => 0x8b0;
+  int get Thread_random_offset => 0x8b8;
   @override
   int get Thread_jump_to_frame_entry_point_offset => 0x270;
   @override
-  int get Thread_tsan_utils_offset => 0x8b8;
+  int get Thread_tsan_utils_offset => 0x8c0;
   @override
-  int get Thread_current_tag_offset => 0x8d0;
+  int get Thread_current_tag_offset => 0x8d8;
   @override
-  int get Thread_default_tag_offset => 0x8d8;
+  int get Thread_default_tag_offset => 0x8e0;
   @override
-  int get Thread_user_tag_offset => 0x8c8;
+  int get Thread_user_tag_offset => 0x8d0;
   @override
   int get TsanUtils_setjmp_function_offset => 0x0;
   @override
@@ -2239,7 +2317,6 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   List<int> get Code_entry_point_offset => [0x8, 0x18, 0x10, 0x20];
   @override
   List<int> get Thread_write_barrier_wrappers_thread_offset => [
-    0x580,
     0x588,
     0x590,
     0x598,
@@ -2254,17 +2331,18 @@ final class Arm64ProductVMOffsets extends VMOffsets {
     0x5e0,
     0x5e8,
     0x5f0,
-    -1,
-    -1,
-    -1,
-    -1,
     0x5f8,
+    -1,
+    -1,
+    -1,
+    -1,
     0x600,
-    -1,
-    -1,
     0x608,
+    -1,
+    -1,
     0x610,
     0x618,
+    0x620,
     -1,
     -1,
     -1,
@@ -2285,9 +2363,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Capability_InstanceSize => 0x10;
   @override
-  int get Class_InstanceSize => 0xc0;
-  @override
-  int get Closure_InstanceSize => 0x38;
+  int get Class_InstanceSize => 0xd0;
   @override
   int get ClosureData_InstanceSize => 0x28;
   @override
@@ -2431,7 +2507,6 @@ final class Arm64ProductVMOffsets extends VMOffsets {
 }
 
 enum StubCode {
-  GetCStackPointer,
   JumpToFrame,
   RunExceptionHandler,
   RunExceptionHandlerUnbox,
@@ -2462,10 +2537,10 @@ enum StubCode {
   AllocateFloat64x2Array,
   AllocateMintSharedWithFPURegs,
   AllocateMintSharedWithoutFPURegs,
-  AllocateClosure,
-  AllocateClosureGeneric,
-  AllocateClosureTA,
-  AllocateClosureTAGeneric,
+  AllocateClosure1,
+  AllocateClosure2,
+  AllocateClosure3,
+  AllocateClosure4,
   AllocateContext,
   AllocateGrowableArray,
   AllocateObject,
@@ -2691,6 +2766,7 @@ enum RuntimeEntry {
   InitializeSharedField,
   FatalError,
   EnsureDeeplyImmutable,
+  AllocateBytecodeCoverageArray,
 }
 
 enum LeafRuntimeEntry {
@@ -2841,6 +2917,7 @@ enum ClassId {
   StringCid,
   OneByteStringCid,
   TwoByteStringCid,
+  LinkedHashBaseCid,
   FfiNativeFunctionCid,
   FfiInt8Cid,
   FfiInt16Cid,
@@ -2920,4 +2997,14 @@ enum ClassId {
   DynamicCid,
   VoidCid,
   NeverCid,
+}
+
+enum PcDescriptorKind {
+  Deopt,
+  IcCall,
+  UnoptStaticCall,
+  RuntimeCall,
+  OsrEntry,
+  Rewind,
+  Other,
 }

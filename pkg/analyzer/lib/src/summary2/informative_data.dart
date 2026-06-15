@@ -11,13 +11,13 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/growable_type_data.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var info = _InfoBuilder().build(unit);
@@ -147,7 +147,6 @@ class InformativeDataApplier {
     );
   }
 
-  /// This calls `withOriginDeclaration` on [fragmentList].
   void _applyToAccessors(
     List<PropertyAccessorFragmentImpl> fragmentList,
     List<_InfoExecutableDeclaration> infoList,
@@ -245,7 +244,10 @@ class InformativeDataApplier {
     List<ConstructorFragmentImpl> fragmentList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    forCorrespondingPairs(fragmentList, infoList, (fragment, info) {
+    forCorrespondingPairs(fragmentList.withOriginDeclaration, infoList, (
+      fragment,
+      info,
+    ) {
       fragment.setCodeRange(info.codeOffset, info.codeLength);
       fragment.newKeywordOffset = info.newKeywordOffset;
       fragment.factoryKeywordOffset = info.factoryKeywordOffset;
@@ -394,8 +396,6 @@ class InformativeDataApplier {
         fragment.firstTokenOffset = info.firstTokenOffset;
         fragment.nameOffset = info.nameOffset;
         fragment.documentationComment = info.documentationComment;
-        _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
-        _applyToFormalParameters(fragment.formalParameters, info.parameters);
       },
     );
   }
@@ -732,13 +732,9 @@ class _InfoBuilder {
       if (formalParameters != null) {
         for (var parameter in formalParameters.parameters) {
           parameter.metadata.accept(collector);
-          addFormalParameters(
-            parameter is FunctionTypedFormalParameter
-                ? parameter.parameters
-                : null,
-          );
-          if (parameter is DefaultFormalParameter) {
-            parameter.defaultValue?.accept(collector);
+          addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
+          if (parameter.defaultClause case var defaultClause?) {
+            defaultClause.value.accept(collector);
           }
         }
       }
@@ -763,7 +759,7 @@ class _InfoBuilder {
     }
     enumConstantArguments?.typeArguments?.accept(collector);
     enumConstantArguments?.argumentList.accept(collector);
-    return Uint32List.fromList(collector.offsets);
+    return collector.offsets.takeAndReset();
   }
 
   _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration node) {
@@ -847,9 +843,9 @@ class _InfoBuilder {
     return _InfoExtensionTypeDeclaration(
       data: _buildInterfaceData(
         node,
-        name: node.primaryConstructor.typeName,
-        typeParameters: node.primaryConstructor.typeParameters,
-        primaryConstructor: node.primaryConstructor,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.tryCast(),
         members: node.body.members,
       ),
     );
@@ -872,23 +868,16 @@ class _InfoBuilder {
   }
 
   _InfoFormalParameter _buildFormalParameter(FormalParameter node) {
-    var notDefault = node.notDefault;
-
-    var (typeParameters, parameters) = switch (notDefault) {
-      FunctionTypedFormalParameter p => (p.typeParameters, p.parameters),
-      FieldFormalParameter p => (p.typeParameters, p.parameters),
-      SuperFormalParameter p => (p.typeParameters, p.parameters),
-      _ => (null, null),
-    };
+    var functionTypedSuffix = node.functionTypedSuffix;
 
     return _InfoFormalParameter(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name?.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(notDefault),
-      typeParameters: _buildTypeParameters(typeParameters),
-      parameters: _buildFormalParameters(parameters),
+      documentationComment: _getDocumentationComment(node),
+      typeParameters: _buildTypeParameters(functionTypedSuffix?.typeParameters),
+      parameters: _buildFormalParameters(functionTypedSuffix?.formalParameters),
     );
   }
 
@@ -1774,7 +1763,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   ) {
     for (var formalParameters in formalParameters) {
       applyToMetadata(formalParameters.metadata);
-      applyToFormalParameters(formalParameters.formalParameters);
       applyToConstantInitializer(formalParameters);
     }
   }
@@ -1825,8 +1813,8 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    super.visitSimpleFormalParameter(node);
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    super.visitRegularFormalParameter(node);
 
     var fragment = node.declaredFragment;
     var identifier = node.name;
@@ -2054,6 +2042,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    _tokenOrNull(node.name);
+    _tokenOrNull(node.colon);
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
     _tokenOrNull(node.name);
@@ -2108,6 +2103,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    _tokenOrNull(node.name);
+    _tokenOrNull(node.colon);
+    super.visitRecordLiteralNamedField(node);
+  }
+
+  @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);
@@ -2150,18 +2152,18 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _tokenOrNull(node.requiredKeyword);
+    _tokenOrNull(node.name);
+    super.visitRegularFormalParameter(node);
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitSetOrMapLiteral(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _tokenOrNull(node.requiredKeyword);
-    _tokenOrNull(node.name);
-    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -2224,7 +2226,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _OffsetsCollector extends _OffsetsAstVisitor {
-  final List<int> offsets = [];
+  final GrowableUint32List offsets = GrowableUint32List();
 
   @override
   void handleToken(Token token) {
@@ -2289,6 +2291,12 @@ extension on DeferredResolutionReadingMixin {
       var applier = _OffsetsApplier(_SafeListIterator(constantOffsets));
       callback(applier);
     });
+  }
+}
+
+extension on List<ConstructorFragmentImpl> {
+  Iterable<ConstructorFragmentImpl> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration);
   }
 }
 

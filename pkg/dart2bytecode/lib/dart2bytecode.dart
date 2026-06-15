@@ -109,9 +109,16 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     help: 'Print this help message.',
   )
   ..addFlag(
-    'track-widget-creation',
-    help: 'Run a kernel transformer to track creation locations for widgets.',
+    'track-creation-locations',
+    help:
+        'Run a kernel transformer to track creation locations for'
+        ' classes annotated with @pragma(\'track-creation-locations\').',
     defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
   )
   ..addOption(
     'invocation-modes',
@@ -135,6 +142,17 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     'prefix-library-uris',
     help: 'Slash-separated prefix to add to all library uris',
     defaultsTo: '',
+  )
+  ..addFlag(
+    'allow-dynamic-calls-in-dynamic-modules',
+    help: 'Allow dynamic calls in dynamic modules',
+    defaultsTo: false,
+  )
+  ..addMultiOption(
+    'extra-selectors-allowed-in-dynamic-calls',
+    help:
+        'Selector names that weren\'t exposed by the host, but are allowed in '
+        'dynamic calls within the dynamic module',
   );
 
 final String _usage =
@@ -186,9 +204,13 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? validateDynamicInterface = options['validate'];
   final String messageVerbosity = options['verbosity'];
   final String cfeInvocationModes = options['invocation-modes'];
-  final bool trackWidgetCreation = options['track-widget-creation'];
+  final bool trackCreationLocations = options['track-creation-locations'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
   final String libraryUrisPrefix = options['prefix-library-uris']!;
+  final bool allowDynamicCallsInDynamicModules =
+      options['allow-dynamic-calls-in-dynamic-modules'];
+  final List<String> dynamicCallsSelectorAllowList =
+      options['extra-selectors-allowed-in-dynamic-calls'];
 
   return await runCompilerWithOptions(
     input: input,
@@ -205,11 +227,13 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     fileSystemRoots: fileSystemRoots,
     messageVerbosity: messageVerbosity,
     cfeInvocationModes: cfeInvocationModes,
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     bytecodeGeneratorOptions: bytecodeGeneratorOptions,
     depfile: depfile,
     depfileTarget: depfileTarget,
     libraryUrisPrefix: libraryUrisPrefix,
+    allowDynamicCallsInDynamicModules: allowDynamicCallsInDynamicModules,
+    dynamicCallsSelectorAllowList: dynamicCallsSelectorAllowList,
   );
 }
 
@@ -231,11 +255,13 @@ Future<int> runCompilerWithOptions({
   String messageVerbosity = Verbosity.defaultValue,
   void Function(String) printMessage = print,
   String cfeInvocationModes = '',
-  bool trackWidgetCreation = false,
+  bool trackCreationLocations = false,
   List<String>? bytecodeGeneratorOptions,
   String? depfile,
   String? depfileTarget,
   required String libraryUrisPrefix,
+  bool allowDynamicCallsInDynamicModules = false,
+  List<String> dynamicCallsSelectorAllowList = const [],
 }) async {
   final fileSystem = createFrontEndFileSystem(
     fileSystemScheme,
@@ -246,9 +272,9 @@ Future<int> runCompilerWithOptions({
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
 
-  final List<Uri> additionalDills = <Uri>[];
+  final List<Uri> additionalDillModules = <Uri>[];
   if (importDill != null) {
-    additionalDills.add(Uri.base.resolveUri(new Uri.file(importDill)));
+    additionalDillModules.add(Uri.base.resolveUri(new Uri.file(importDill)));
   }
 
   final Uri? dynamicInterfaceSpecificationUri =
@@ -272,9 +298,11 @@ Future<int> runCompilerWithOptions({
   final CompilerOptions compilerOptions = CompilerOptions()
     ..sdkSummary = platformKernelUri
     ..fileSystem = fileSystem
-    ..additionalDills = additionalDills
+    ..additionalDillModules = additionalDillModules
     ..packagesFileUri = packagesUri
     ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
+    ..allowDynamicCallsInDynamicModules = allowDynamicCallsInDynamicModules
+    ..dynamicCallsSelectorAllowList = dynamicCallsSelectorAllowList
     ..explicitExperimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experimentalFlags),
       onError: printMessage,
@@ -287,7 +315,7 @@ Future<int> runCompilerWithOptions({
     ..verbosity = verbosity
     ..target = createFrontEndTarget(
       targetName,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
       isClosureContextLoweringEnabled:
           bytecodeOptions.isClosureContextLoweringEnabled,

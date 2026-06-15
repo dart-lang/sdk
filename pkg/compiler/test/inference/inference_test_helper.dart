@@ -143,7 +143,7 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {
-    if (node is ir.VariableDeclaration && node.parent is ir.FunctionNode) {
+    if (node is ir.Variable && node.parent is ir.FunctionNode) {
       Local parameter = _localsMap.getLocalVariable(node);
       return getParameterValue(parameter, null);
     } else if (node is ir.FunctionExpression ||

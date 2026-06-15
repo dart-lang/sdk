@@ -7,6 +7,8 @@
 #ifndef RUNTIME_INCLUDE_DART_NATIVE_API_H_
 #define RUNTIME_INCLUDE_DART_NATIVE_API_H_
 
+#include <stdint.h>
+
 #include "dart_api.h" /* NOLINT */
 
 /*

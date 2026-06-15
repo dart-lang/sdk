@@ -81,7 +81,7 @@ class Tags {
 }
 
 class PredicateDataComputer extends CfeDataComputer<Features> {
-  const PredicateDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -120,7 +120,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   Map<Object?, Features> featureMap = {};
   Map<Object?, NodeId> nodeIdMap = {};
 
-  PredicateDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<Features>> actualMap,
   ) : super(compilerResult, actualMap);
@@ -215,7 +215,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     Object? identity;
     String? name;
     String? tag;
@@ -257,7 +257,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.name] = name;
       }
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

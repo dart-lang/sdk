@@ -14,7 +14,7 @@ class LspClientPage extends ClientPage {
   @override
   LspAnalysisServer server;
 
-  LspClientPage(DiagnosticsSite site, this.server) : super(site, 'lsp', 'LSP');
+  new(DiagnosticsSite site, this.server) : super(site, 'lsp', 'LSP');
 
   @override
   Future<void> generateContent(Map<String, String> params) async {

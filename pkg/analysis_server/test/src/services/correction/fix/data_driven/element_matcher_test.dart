@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -98,49 +98,46 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
 class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   /// The kinds that are expected where a getter or setter is allowed.
   static List<ElementKind> accessorKinds = [
-    ElementKind.constantKind,
-    ElementKind.fieldKind,
-    ElementKind.functionKind, // tear-off
-    ElementKind.getterKind,
-    ElementKind.methodKind, // tear-off
-    ElementKind.setterKind,
+    .constantKind,
+    .fieldKind,
+    .functionKind, // tear-off
+    .getterKind,
+    .methodKind, // tear-off
+    .setterKind,
   ];
 
   /// The kinds that are expected where a static getter is allowed.
   static List<ElementKind> staticGetterAccessorKinds = [
-    ElementKind.constantKind,
-    ElementKind.fieldKind,
-    ElementKind.getterKind,
-    ElementKind.methodKind, // tear-off
+    .constantKind,
+    .fieldKind,
+    .getterKind,
+    .methodKind, // tear-off
   ];
 
   /// The kinds that are expected where an invocation is allowed.
   static List<ElementKind> invocationKinds = [
-    ElementKind.classKind,
-    ElementKind.constructorKind,
-    ElementKind.enumKind,
-    ElementKind.extensionKind,
-    ElementKind.extensionTypeKind,
-    ElementKind.functionKind,
-    ElementKind.getterKind,
-    ElementKind.methodKind,
-    ElementKind.mixinKind,
-    ElementKind.typedefKind,
+    .classKind,
+    .constructorKind,
+    .enumKind,
+    .extensionKind,
+    .extensionTypeKind,
+    .functionKind,
+    .getterKind,
+    .methodKind,
+    .mixinKind,
+    .typedefKind,
   ];
 
   /// The kinds that are expected where a method or constructor is allowed.
-  static List<ElementKind> methodKinds = [
-    ElementKind.constructorKind,
-    ElementKind.methodKind,
-  ];
+  static List<ElementKind> methodKinds = [.constructorKind, .methodKind];
 
   /// The kinds that are expected where a type is allowed.
   static List<ElementKind> typeKinds = [
-    ElementKind.classKind,
-    ElementKind.enumKind,
-    ElementKind.extensionTypeKind,
-    ElementKind.mixinKind,
-    ElementKind.typedefKind,
+    .classKind,
+    .enumKind,
+    .extensionTypeKind,
+    .mixinKind,
+    .typedefKind,
   ];
 
   @failingTest
@@ -154,7 +151,7 @@ void f(int x, int y) {
     _assertMatcher(
       '+',
       expectedComponents: ['+', 'int'],
-      expectedKinds: [ElementKind.methodKind],
+      expectedKinds: [.methodKind],
     );
   }
 
@@ -170,7 +167,35 @@ class C {}
     _assertMatcher(
       '+',
       expectedComponents: ['+', 'C'],
-      expectedKinds: [ElementKind.methodKind],
+      expectedKinds: [.methodKind],
+    );
+  }
+
+  Future<void> test_constructor_redirect_withoutTypeName() async {
+    await resolveTestCode('''
+class C {
+  new () : this._(); //
+  new _();
+}
+''');
+    _assertMatcher(
+      '(); //',
+      expectedComponents: ['_', 'C'],
+      expectedKinds: [.constructorKind],
+    );
+  }
+
+  Future<void> test_constructor_redirect_withTypeName() async {
+    await resolveTestCode('''
+class C {
+  C() : this._(); //
+  C._();
+}
+''');
+    _assertMatcher(
+      '(); //',
+      expectedComponents: ['_', 'C'],
+      expectedKinds: [.constructorKind],
     );
   }
 
@@ -187,7 +212,7 @@ void f() {
     _assertMatcher(
       'named(1)',
       expectedComponents: ['named', 'A'],
-      expectedKinds: [ElementKind.constructorKind],
+      expectedKinds: [.constructorKind],
     );
   }
 
@@ -204,7 +229,7 @@ void f() {
     _assertMatcher(
       '(1)',
       expectedComponents: ['named', 'A'],
-      expectedKinds: [ElementKind.constructorKind],
+      expectedKinds: [.constructorKind],
     );
   }
 
@@ -218,7 +243,7 @@ void f() {
     _assertMatcher(
       'new()',
       expectedComponents: ['new', 'A'],
-      expectedKinds: [ElementKind.constructorKind],
+      expectedKinds: [.constructorKind],
     );
   }
 
@@ -280,7 +305,7 @@ void f() {
     _assertMatcher(
       'method();',
       expectedComponents: ['method', 'A'],
-      expectedKinds: [ElementKind.methodKind, ElementKind.constructorKind],
+      expectedKinds: [.methodKind, .constructorKind],
     );
   }
 
@@ -296,7 +321,7 @@ void f() {
     _assertMatcher(
       '(x: 1);',
       expectedComponents: ['method', 'A'],
-      expectedKinds: [ElementKind.methodKind],
+      expectedKinds: [.methodKind],
     );
   }
 
@@ -312,7 +337,7 @@ void f() {
     _assertMatcher(
       'method<int>(1);',
       expectedComponents: ['method', 'A'],
-      expectedKinds: [ElementKind.methodKind],
+      expectedKinds: [.methodKind],
     );
   }
 
@@ -383,7 +408,7 @@ void f() {
 
     var element = ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKind.constructorKind,
+      kind: .constructorKind,
       components: ['', 'A'],
       isStatic: false,
     );
@@ -400,7 +425,7 @@ void f() {
 
     var element = ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKind.constructorKind,
+      kind: .constructorKind,
       components: ['', 'A'],
       isStatic: false,
     );
@@ -676,7 +701,7 @@ String s = '';
     newFile('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'other', rootPath: packageRootPath),
+        ..add(name: 'other', rootFolder: getFolder(packageRootPath)),
     );
 
     await resolveTestCode('''

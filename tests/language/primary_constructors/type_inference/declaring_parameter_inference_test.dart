@@ -5,8 +5,6 @@
 // Tests for type inference of declaring parameters in primary constructors,
 // including override inference and inference from default values.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 import "package:expect/static_type_helper.dart";
 
@@ -32,13 +30,11 @@ class DeclaringExtends(final x, var y) extends A {
 }
 
 // Infer from default values.
-class DefaultValues(
-  [
-    final x = 1, // int
-    var y = 'string', // String
-    final z = null, // Object?
-  ]
-);
+class DefaultValues([
+  final x = 1, // int
+  var y = 'string', // String
+  final z = null, // Object?
+]);
 
 // `Object?` is the default when no default value is provided.
 class NoDefaultValue(final x, var y);
@@ -54,6 +50,7 @@ class Implements(final x, var y) implements SimpleInterface;
 
 // Inference from `implements` of a mixin with `on` clause.
 mixin MixinOn on SimpleInterface {}
+
 class ImplementsMixinOn(final x, var y) implements MixinOn;
 
 mixin SimpleMixin {

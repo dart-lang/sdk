@@ -282,7 +282,7 @@ List<String> _splitText(
 class AliasMessage extends AnalyzerMessage {
   String aliasFor;
 
-  AliasMessage(
+  new(
     super.messageYaml, {
     required this.aliasFor,
     required super.analyzerCode,
@@ -351,7 +351,7 @@ enum AnalyzerDiagnosticPackage {
   /// the `prefer_single_quotes` lint.
   final bool shouldIgnorePreferSingleQuotes;
 
-  const AnalyzerDiagnosticPackage({
+  new({
     required this.diagnosticPathPart,
     required this.dirName,
     required this.permittedTypes,
@@ -403,7 +403,7 @@ enum AnalyzerDiagnosticType {
   /// Base classes used for messages of this type.
   final DiagnosticBaseClasses baseClasses;
 
-  const AnalyzerDiagnosticType({this.baseClasses = analyzerBaseClasses});
+  new({this.baseClasses = analyzerBaseClasses});
 
   /// The representation of this type in analyzer source code.
   String get code => 'DiagnosticType.${name.toSnakeCase().toUpperCase()}';
@@ -426,7 +426,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final AnalyzerDiagnosticType type;
 
-  factory AnalyzerMessage(
+  factory(
     MessageYaml messageYaml, {
     required DiagnosticCodeName analyzerCode,
     required AnalyzerDiagnosticPackage package,
@@ -447,7 +447,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
     }
   }
 
-  AnalyzerMessage.internal(
+  new internal(
     MessageYaml messageYaml, {
     required this.analyzerCode,
     required this.package,
@@ -487,7 +487,7 @@ class DiagnosticBaseClasses {
   /// require arguments.
   final String withoutArgumentsImplClass;
 
-  const DiagnosticBaseClasses({
+  const new({
     required this.requiresTypeArgument,
     required this.withArgumentsClass,
     required this.withExpectedTypesClass,
@@ -525,11 +525,7 @@ class DiagnosticClassInfo {
   /// If no documentation comment is needed, this should be the empty string.
   final String comment;
 
-  const DiagnosticClassInfo({
-    required this.name,
-    required this.type,
-    this.comment = '',
-  });
+  const new({required this.name, required this.type, this.comment = ''});
 
   static DiagnosticClassInfo byName(String name) =>
       _diagnosticClassesByName[name] ??

@@ -18,7 +18,7 @@ class VariableScope {
   /// Initialize a newly created variable scope defining the variables in the
   /// [_generators] map. Any variables not defined locally will be looked up in
   /// the [outerScope].
-  VariableScope(this.outerScope, this._generators);
+  new(this.outerScope, this._generators);
 
   /// Return the generator used to generate the value of the variable with the
   /// given [variableName], or `null` if the variable is not defined.

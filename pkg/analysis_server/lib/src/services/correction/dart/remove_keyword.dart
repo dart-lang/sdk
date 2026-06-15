@@ -13,13 +13,11 @@ class RemoveKeyword extends ResolvedCorrectionProducer {
   /// The keyword to remove.
   final Keyword _keyword;
 
-  RemoveKeyword.awaitKeyword({required super.context})
-    : _keyword = Keyword.AWAIT;
+  new awaitKeyword({required super.context}) : _keyword = Keyword.AWAIT;
 
-  RemoveKeyword.covariantKeyword({required super.context})
-    : _keyword = Keyword.COVARIANT;
+  new covariantKeyword({required super.context}) : _keyword = Keyword.COVARIANT;
 
-  RemoveKeyword.varKeyword({required super.context}) : _keyword = Keyword.VAR;
+  new varKeyword({required super.context}) : _keyword = Keyword.VAR;
 
   @override
   CorrectionApplicability get applicability =>

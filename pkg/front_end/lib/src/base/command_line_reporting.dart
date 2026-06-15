@@ -197,7 +197,6 @@ String _colorizeMessageText(CfeSeverity severity, String messageTextPlain) {
       return red(messageTextPlain);
 
     case CfeSeverity.warning:
-      // Coverage-ignore(suite): Not run.
       return magenta(messageTextPlain);
 
     case CfeSeverity.context:
@@ -262,15 +261,11 @@ String formatErrorMessage(
 bool isHidden(CfeSeverity severity) {
   switch (severity) {
     case CfeSeverity.error:
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.internalProblem:
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.context:
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.info:
       return false;
 
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.warning:
       return hideWarnings;
     // Coverage-ignore(suite): Not run.
@@ -286,11 +281,9 @@ bool shouldThrowOn(ProcessedOptions options, CfeSeverity severity) {
     case CfeSeverity.error:
       return options.throwOnErrorsForDebugging;
 
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.internalProblem:
       return true;
 
-    // Coverage-ignore(suite): Not run.
     case CfeSeverity.warning:
       return options.throwOnWarningsForDebugging;
 

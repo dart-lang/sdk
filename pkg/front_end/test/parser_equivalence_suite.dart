@@ -34,7 +34,7 @@ class Context extends ChainContext {
   final String suiteName;
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
 
-  Context(Uri baseUri, this.suiteName, Map<String, String> environment)
+  new(Uri baseUri, this.suiteName, Map<String, String> environment)
     : folderOptions = new SuiteFolderOptions(baseUri),
       forcedExperimentalFlags =
           SuiteFolderOptions.computeForcedExperimentalFlags(environment);
@@ -45,7 +45,7 @@ class Context extends ChainContext {
 
 class ListenerCompareStep
     extends Step<TestDescription, TestDescription, Context> {
-  const ListenerCompareStep();
+  const new();
 
   @override
   String get name => "listenerCompare";

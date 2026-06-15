@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ConstructorDeclarationResolutionTest extends PubPackageResolutionTest {
   test_factory_redirect_generic_instantiated() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A(T a);
 }
@@ -29,7 +30,7 @@ B<int> b = B(0);
 
     nodeTextConfiguration.withRedirectedConstructors = true;
 
-    var node = findNode.constructorName('B(0)');
+    var node = result.findNode.constructorName('B(0)');
     assertResolvedNodeText(node, r'''
 ConstructorName
   type: NamedType
@@ -47,18 +48,17 @@ ConstructorName
   }
 
   test_fieldShadowingWildcardParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   var v;
   var _;
   A(_) : v = _;
+//           ^
+// [diag.implicitThisReferenceInInitializer] The instance member '_' can't be accessed in an initializer.
 }
-''',
-      [error(diag.implicitThisReferenceInInitializer, 41, 1)],
-    );
+''');
 
-    var node = findNode.constructorFieldInitializer('v = _');
+    var node = result.findNode.constructorFieldInitializer('v = _');
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -74,7 +74,7 @@ ConstructorFieldInitializer
   }
 
   test_formalParameterScope() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class a {}
 
 class B {
@@ -84,7 +84,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('B(');
+    var node = result.findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -121,18 +121,19 @@ ConstructorDeclaration
   }
 
   test_privateNamedParameter_accessInInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
+//     ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   int? _y;
+//     ^^
+// [diag.unusedField] The value of the field '_y' isn't used.
   C({this._x}) : _y = _x;
 }
-''',
-      [error(diag.unusedField, 17, 2), error(diag.unusedField, 28, 2)],
-    );
+''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -148,17 +149,16 @@ ConstructorFieldInitializer
   }
 
   test_privateNamedParameter_fieldFormal() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
+//     ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   C({this._x});
 }
-''',
-      [error(diag.unusedField, 17, 2)],
-    );
+''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -189,16 +189,15 @@ ConstructorDeclaration
   test_privateNamedParameter_nonFieldFormal() async {
     // The user is incorrectly using a private named parameter for a non-field
     // parameter. This is erroneous, but resolve using the private name.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({int? _x});
+//        ^^
+// [diag.privateNamedNonFieldParameter] Named parameters that don't refer to instance variables can't start with underscore.
 }
-''',
-      [error(diag.privateNamedNonFieldParameter, 20, 2)],
-    );
+''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -229,7 +228,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A.named();
 }
@@ -239,7 +238,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -271,7 +270,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A.named();
 }
@@ -281,7 +280,7 @@ class B<U> {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -325,20 +324,19 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A();
 }
 
 class B {
   factory B() = A.named;
+//              ^^^^^^^
+// [diag.redirectToMissingConstructor] The constructor 'A.named' couldn't be found in 'A'.
 }
-''',
-      [error(diag.redirectToMissingConstructor, 59, 7)],
-    );
+''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -370,7 +368,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A();
 }
@@ -380,7 +378,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -409,7 +407,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A();
 }
@@ -419,7 +417,7 @@ class B<U> {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -458,20 +456,19 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A.named();
 }
 
 class B {
   factory B.named() = A;
+//                    ^
+// [diag.redirectToMissingConstructor] The constructor 'A' couldn't be found in 'A'.
 }
-''',
-      [error(diag.redirectToMissingConstructor, 71, 1)],
-    );
+''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory

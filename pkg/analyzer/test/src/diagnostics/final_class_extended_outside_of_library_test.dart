@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class FinalClassExtendedOutsideOfLibraryTest extends PubPackageResolutionTest {
   test_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class Foo {}
 final class Bar extends Foo {}
 ''');
@@ -27,19 +26,19 @@ final class Bar extends Foo {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar extends Foo {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 43, 3)],
-    );
+//                      ^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Foo' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_outside_viaLanguage219AndCore() async {
     // There is no error when extending a pre-feature class that subtypes a
     // class in the core libraries.
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 // @dart=2.19
 import 'dart:core';
 class A implements MapEntry<int, int> {
@@ -48,10 +47,7 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 final class B extends A {
   int get key => 0;
@@ -66,13 +62,12 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 final class Bar extends FooTypedef {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 43, 10)],
-    );
+//                      ^^^^^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Foo' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_outside_viaTypedef_outside() async {
@@ -80,13 +75,12 @@ final class Bar extends FooTypedef {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar extends FooTypedef {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 69, 10)],
-    );
+//                      ^^^^^^^^^^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'Foo' can't be extended outside of its library because it's a final class.
+''');
   }
 }

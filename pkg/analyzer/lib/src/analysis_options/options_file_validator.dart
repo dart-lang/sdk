@@ -2,294 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/formatter_options.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_validator.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/src/utilities/extensions/source.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
-import 'package:pub_semver/pub_semver.dart';
-import 'package:source_span/source_span.dart';
-import 'package:yaml/yaml.dart';
-
-/// Returns the name of the first legacy plugin, if one is specified in
-/// [options], otherwise `null`.
-String? _firstPluginName(YamlMap options) {
-  var analyzerMap = options.valueAt(AnalysisOptionsFile.analyzer);
-  if (analyzerMap is! YamlMap) {
-    return null;
-  }
-  var plugins = analyzerMap.valueAt(AnalysisOptionsFile.plugins);
-  if (plugins is YamlScalar) {
-    return plugins.value as String?;
-  } else if (plugins is YamlList) {
-    return plugins.first as String?;
-  } else if (plugins is YamlMap) {
-    return plugins.keys.first as String?;
-  } else {
-    return null;
-  }
-}
-
-/// Validates the legacy 'plugins' options in [options], given
-/// [firstEnabledPluginName].
-void _validateLegacyPluginsOption(
-  DiagnosticReporter diagnosticReporter, {
-  required YamlMap options,
-  String? firstEnabledPluginName,
-}) {
-  _LegacyPluginsOptionValidator(
-    firstEnabledPluginName,
-  ).validate(diagnosticReporter, options);
-}
-
-class AnalysisOptionsAnalyzer {
-  RecordingDiagnosticListener initialDiagnosticListener =
-      RecordingDiagnosticListener();
-  DiagnosticReporter initialDiagnosticReporter;
-  DiagnosticListener diagnosticListener;
-  DiagnosticReporter diagnosticReporter;
-  final SourceFactory sourceFactory;
-  final String contextRoot;
-  final VersionConstraint? sdkVersionConstraint;
-  final ResourceProvider resourceProvider;
-  SourceSpan? initialIncludeSpan;
-  final AnalysisOptionsProvider optionsProvider;
-  String? firstPluginName;
-
-  /// Map whose keys are source files containing an `include` directive that is
-  /// currently being visited, and whose values are the corresponding
-  /// [SourceSpan]s of those `include` directives.
-  final Map<Source, SourceSpan> includeChain = {};
-
-  factory AnalysisOptionsAnalyzer({
-    required Source initialSource,
-    required SourceFactory sourceFactory,
-    required String contextRoot,
-    required VersionConstraint? sdkVersionConstraint,
-    required ResourceProvider resourceProvider,
-  }) {
-    var initialDiagnosticListener = RecordingDiagnosticListener();
-    var initialDiagnosticReporter = DiagnosticReporter(
-      initialDiagnosticListener,
-      initialSource,
-    );
-    return AnalysisOptionsAnalyzer._(
-      initialDiagnosticListener: initialDiagnosticListener,
-      initialDiagnosticReporter: initialDiagnosticReporter,
-      diagnosticListener: initialDiagnosticListener,
-      diagnosticReporter: initialDiagnosticReporter,
-      sourceFactory: sourceFactory,
-      contextRoot: contextRoot,
-      sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-      optionsProvider: AnalysisOptionsProvider(sourceFactory),
-    );
-  }
-
-  AnalysisOptionsAnalyzer._({
-    required this.initialDiagnosticListener,
-    required this.initialDiagnosticReporter,
-    required this.diagnosticListener,
-    required this.diagnosticReporter,
-    required this.sourceFactory,
-    required this.contextRoot,
-    required this.sdkVersionConstraint,
-    required this.resourceProvider,
-    required this.optionsProvider,
-  });
-
-  Source get initialSource => initialDiagnosticReporter.source;
-
-  /// Whether the source file currently being visited is the initial source
-  /// file.
-  bool get isPrimarySource => source == initialSource;
-
-  Source get source => diagnosticReporter.source;
-
-  List<Diagnostic> walkIncludes({required String content}) {
-    try {
-      YamlMap options = optionsProvider.getOptionsFromString(
-        content,
-        sourceUrl: initialSource.uri,
-      );
-      _validate(options);
-    } on OptionsFormatException catch (e) {
-      SourceSpan span = e.span!;
-      diagnosticReporter.report(
-        diag.parseError
-            .withArguments(errorMessage: e.message)
-            .atSourceSpan(span),
-      );
-    }
-    // Make sure `initialIncludeSpan`, `source`, `includeChain`,
-    // `diagnosticListener`, and `diagnosticReporter` have been restored to
-    // their original states.
-    assert(initialIncludeSpan == null);
-    assert(identical(source, initialSource));
-    assert(includeChain.isEmpty);
-    assert(identical(diagnosticListener, initialDiagnosticListener));
-    assert(identical(diagnosticReporter, initialDiagnosticReporter));
-    return initialDiagnosticListener.diagnostics;
-  }
-
-  // Validates the specified options and any included option files.
-  void _validate(YamlMap options) {
-    OptionsFileValidator(
-      source,
-      sdkVersionConstraint: sdkVersionConstraint,
-      contextRoot: contextRoot,
-      isPrimarySource: isPrimarySource,
-      optionsProvider: optionsProvider,
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-    ).validate(options, diagnosticReporter);
-
-    var includeNode = options.valueAt(AnalysisOptionsFile.include);
-    if (includeNode == null) {
-      // Validate the 'plugins' option in [options], understanding that no other
-      // options are included.
-      _validateLegacyPluginsOption(diagnosticReporter, options: options);
-      return;
-    }
-
-    var includes = switch (includeNode) {
-      YamlScalar node => [node],
-      YamlList(:var nodes) => nodes.whereType<YamlScalar>().toList(),
-      _ => const <YamlScalar>[],
-    };
-
-    for (var includeValue in includes) {
-      var previousInitialIncludeSpan = initialIncludeSpan;
-      try {
-        var includeSpan = includeValue.span;
-        initialIncludeSpan ??= includeSpan;
-        _validateInclude(options, includeSpan);
-      } finally {
-        initialIncludeSpan = previousInitialIncludeSpan;
-      }
-    }
-  }
-
-  void _validateInclude(YamlMap options, SourceSpan includeSpan) {
-    assert(initialIncludeSpan != null);
-    var includeUri = includeSpan.text;
-    var (first, last) = (
-      includeUri.codeUnits.firstOrNull,
-      includeUri.codeUnits.lastOrNull,
-    );
-    if ((first == 0x0022 || first == 0x0027) && first == last) {
-      // The URI begins and ends with either a double quote or single quote
-      // i.e. the value of the "include" field is quoted.
-      includeUri = includeUri.substring(1, includeUri.length - 1);
-    }
-
-    var includedSource = sourceFactory.resolveUri(source, includeUri);
-    if (includedSource == initialSource) {
-      initialDiagnosticReporter.report(
-        diag.recursiveIncludeFile
-            .withArguments(
-              includedUri: includeUri,
-              includingFilePath: source.fullName,
-            )
-            .atSourceSpan(initialIncludeSpan!),
-      );
-      return;
-    }
-    if (includedSource == null || !includedSource.exists()) {
-      initialDiagnosticReporter.report(
-        diag.includeFileNotFound
-            .withArguments(
-              includedUri: includeUri,
-              includingFilePath: source.fullName,
-              contextRootPath: contextRoot,
-            )
-            .atSourceSpan(initialIncludeSpan!),
-      );
-      return;
-    }
-
-    try {
-      var includedOptions = optionsProvider.getOptionsFromString(
-        includedSource.stringContents,
-      );
-      var previousDiagnosticListener = diagnosticListener;
-      var previousDiagnosticReporter = diagnosticReporter;
-      try {
-        assert(includeChain[source] == null);
-        includeChain[source] = includeSpan;
-        var spanInChain = includeChain[includedSource];
-        if (spanInChain != null) {
-          initialDiagnosticReporter.report(
-            diag.includedFileWarning
-                .withArguments(
-                  includingFilePath: includedSource.fullName,
-                  startOffset: spanInChain.start.offset,
-                  endOffset: spanInChain.end.offset - 1,
-                  warningMessage: 'The file includes itself recursively.',
-                )
-                .atSourceSpan(initialIncludeSpan!),
-          );
-          return;
-        }
-        diagnosticListener = _IncludedDiagnosticListener(
-          source: includedSource,
-          initialDiagnosticReporter: initialDiagnosticReporter,
-          initialIncludeSpan: initialIncludeSpan!,
-        );
-        diagnosticReporter = DiagnosticReporter(
-          diagnosticListener,
-          includedSource,
-        );
-        _validate(includedOptions);
-      } finally {
-        diagnosticListener = previousDiagnosticListener;
-        diagnosticReporter = previousDiagnosticReporter;
-        includeChain.remove(source);
-      }
-      firstPluginName ??= _firstPluginName(includedOptions);
-      // Validate the 'plugins' option in [options], taking into account any
-      // plugins enabled by [includedOptions].
-      _validateLegacyPluginsOption(
-        diagnosticReporter,
-        options: options,
-        firstEnabledPluginName: firstPluginName,
-      );
-    } on OptionsFormatException catch (e) {
-      // Report diagnostics for included option files on the `include` directive
-      // located in the initial options file.
-      initialDiagnosticReporter.report(
-        diag.includedFileParseError
-            .withArguments(
-              includingFilePath: includedSource.fullName,
-              startOffset: e.span!.start.offset,
-              endOffset: e.span!.end.offset,
-              errorMessage: e.message,
-            )
-            .atSourceSpan(initialIncludeSpan!),
-      );
-    }
-  }
-}
+part of 'analysis_options_validator.dart';
 
 /// Validates `analyzer` options.
-class AnalyzerOptionsValidator extends _CompositeValidator {
-  AnalyzerOptionsValidator()
+class _AnalyzerOptionsValidator extends _CompositeValidator {
+  _AnalyzerOptionsValidator()
     : super([
         _AnalyzerTopLevelOptionsValidator(),
         _StrongModeOptionValueValidator(),
@@ -301,50 +18,13 @@ class AnalyzerOptionsValidator extends _CompositeValidator {
       ]);
 }
 
-/// Validates options defined in an analysis options file.
-@visibleForTesting
-class OptionsFileValidator {
-  final List<OptionsValidator> _validators;
-
-  OptionsFileValidator(
-    Source source, {
-    VersionConstraint? sdkVersionConstraint,
-    required String contextRoot,
-    required bool isPrimarySource,
-    required AnalysisOptionsProvider optionsProvider,
-    required ResourceProvider resourceProvider,
-    required SourceFactory sourceFactory,
-  }) : _validators = [
-         AnalyzerOptionsValidator(),
-         _CodeStyleOptionsValidator(),
-         _FormatterOptionsValidator(),
-         _LinterTopLevelOptionsValidator(),
-         LinterRuleOptionsValidator(
-           resourceProvider: resourceProvider,
-           optionsProvider: optionsProvider,
-           sourceFactory: sourceFactory,
-           sdkVersionConstraint: sdkVersionConstraint,
-           isPrimarySource: isPrimarySource,
-         ),
-         _PluginsOptionsValidator(
-           contextRoot: contextRoot,
-           filePath: source.fullName,
-           isPrimarySource: isPrimarySource,
-           resourceProvider: resourceProvider,
-         ),
-       ];
-
-  void validate(YamlMap options, DiagnosticReporter reporter) {
-    for (var validator in _validators) {
-      validator.validate(reporter, options);
-    }
-  }
-}
-
 /// Validates `analyzer` top-level options.
 class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _AnalyzerTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.analyzer, AnalysisOptionsFile.analyzerOptions);
+    : super(
+        AnalysisOptionsFileKeys.analyzer,
+        AnalysisOptionsFileKeys.analyzerOptions,
+      );
 }
 
 /// Validates the `analyzer` `cannot-ignore` option.
@@ -369,15 +49,17 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var unignorableNames = analyzer.valueAt(AnalysisOptionsFile.cannotIgnore);
+      var unignorableNames = analyzer.valueAt(
+        AnalysisOptionsFileKeys.cannotIgnore,
+      );
       if (unignorableNames is YamlList) {
         var listedNames = <String>{};
         for (var unignorableNameNode in unignorableNames.nodes) {
           var unignorableName = unignorableNameNode.value;
           if (unignorableName is String) {
-            if (AnalysisOptionsFile.severities.contains(unignorableName)) {
+            if (AnalysisOptionsFileKeys.severities.contains(unignorableName)) {
               listedNames.add(unignorableName);
               continue;
             }
@@ -399,7 +81,9 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
           } else {
             reporter.report(
               diag.invalidSectionFormat
-                  .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+                  .withArguments(
+                    sectionName: AnalysisOptionsFileKeys.cannotIgnore,
+                  )
                   .atSourceSpan(unignorableNameNode.span),
             );
           }
@@ -407,7 +91,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
       } else if (unignorableNames != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.cannotIgnore)
               .atSourceSpan(unignorableNames.span),
         );
       }
@@ -419,17 +103,17 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
 class _CodeStyleOptionsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var codeStyle = options.valueAt(AnalysisOptionsFile.codeStyle);
+    var codeStyle = options.valueAt(AnalysisOptionsFileKeys.codeStyle);
     if (codeStyle is YamlMap) {
       codeStyle.nodeMap.forEach((keyNode, valueNode) {
         var key = keyNode.value;
-        if (key == AnalysisOptionsFile.format) {
+        if (key == AnalysisOptionsFileKeys.format) {
           _validateFormat(reporter, valueNode);
         } else {
           reporter.report(
             diag.unsupportedOptionWithoutValues
                 .withArguments(
-                  sectionName: AnalysisOptionsFile.codeStyle,
+                  sectionName: AnalysisOptionsFileKeys.codeStyle,
                   optionKey: keyNode.toString(),
                 )
                 .atSourceSpan(keyNode.span),
@@ -439,13 +123,13 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     } else if (codeStyle is YamlScalar && codeStyle.value != null) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.codeStyle)
             .atSourceSpan(codeStyle.span),
       );
     } else if (codeStyle is YamlList) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.codeStyle)
             .atSourceSpan(codeStyle.span),
       );
     }
@@ -455,19 +139,19 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     if (format is! YamlScalar) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.format)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.format)
             .atSourceSpan(format.span),
       );
       return;
     }
-    var formatValue = toBool(format.valueOrThrow);
+    var formatValue = format.toBool();
     if (formatValue == null) {
       reporter.report(
         diag.unsupportedValue
             .withArguments(
-              optionName: AnalysisOptionsFile.format,
-              invalidValue: format.valueOrThrow.toString(),
-              legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+              optionName: AnalysisOptionsFileKeys.format,
+              invalidValue: format.value.toString(),
+              legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
             )
             .atSourceSpan(format.span),
       );
@@ -493,10 +177,10 @@ class _CompositeValidator extends OptionsValidator {
 class _EnableExperimentsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
       var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFile.enableExperiment,
+        AnalysisOptionsFileKeys.enableExperiment,
       );
       if (experimentNames is YamlList) {
         var flags = experimentNames.nodes
@@ -509,7 +193,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
             reporter.report(
               diag.unsupportedOptionWithoutValues
                   .withArguments(
-                    sectionName: AnalysisOptionsFile.enableExperiment,
+                    sectionName: AnalysisOptionsFileKeys.enableExperiment,
                     optionKey: flags[flagIndex],
                   )
                   .atSourceSpan(span),
@@ -518,7 +202,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
             reporter.report(
               diag.invalidOption
                   .withArguments(
-                    optionName: AnalysisOptionsFile.enableExperiment,
+                    optionName: AnalysisOptionsFileKeys.enableExperiment,
                     detailMessage: validationResult.message,
                   )
                   .atSourceSpan(span),
@@ -528,7 +212,9 @@ class _EnableExperimentsValidator extends OptionsValidator {
       } else if (experimentNames != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(experimentNames.span),
         );
       }
@@ -550,7 +236,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithoutValues
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
               )
               .atSourceSpan(node.span),
         ),
@@ -561,7 +247,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithLegalValue
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
                 legalValue: supportedOptions.single,
               )
               .atSourceSpan(node.span),
@@ -573,7 +259,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithLegalValues
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
                 legalValues: supportedOptions.quotedAndCommaSeparatedWithAnd,
               )
               .atSourceSpan(node.span),
@@ -589,9 +275,9 @@ class _ErrorBuilder {
 class _ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal values.
   static final List<String> legalValues = [
-    ...AnalysisOptionsFile.ignoreSynonyms,
-    ...AnalysisOptionsFile.includeSynonyms,
-    ...AnalysisOptionsFile.severities,
+    ...AnalysisOptionsFileKeys.ignoreSynonyms,
+    ...AnalysisOptionsFileKeys.trueOrFalse,
+    ...AnalysisOptionsFileKeys.severities,
   ];
 
   /// Pretty String listing legal values.
@@ -615,14 +301,14 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var filters = analyzer.valueAt(AnalysisOptionsFile.errors);
+      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
       if (filters is YamlMap) {
         filters.nodes.forEach((k, v) {
           String? value;
           if (k is YamlScalar) {
-            value = toUpperCase(k.value);
+            value = k.toUpperCase();
             if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
                 !_removedDiagnosticCodes.contains(value)) {
@@ -634,12 +320,12 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             }
           }
           if (v is YamlScalar) {
-            value = toLowerCase(v.value);
+            value = v.toLowerCase();
             if (!legalValues.contains(value)) {
               reporter.report(
                 diag.unsupportedOptionWithLegalValues
                     .withArguments(
-                      sectionName: AnalysisOptionsFile.errors,
+                      sectionName: AnalysisOptionsFileKeys.errors,
                       optionKey: v.value.toString(),
                       legalValues: legalValueString,
                     )
@@ -650,7 +336,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             reporter.report(
               diag.invalidSectionFormat
                   .withArguments(
-                    sectionName: AnalysisOptionsFile.enableExperiment,
+                    sectionName: AnalysisOptionsFileKeys.enableExperiment,
                   )
                   .atSourceSpan(v.span),
             );
@@ -659,7 +345,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
       } else if (filters != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(filters.span),
         );
       }
@@ -671,7 +359,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 class _FormatterOptionsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var formatter = options.valueAt(AnalysisOptionsFile.formatter);
+    var formatter = options.valueAt(AnalysisOptionsFileKeys.formatter);
     if (formatter == null) {
       return;
     }
@@ -679,15 +367,15 @@ class _FormatterOptionsValidator extends OptionsValidator {
     if (formatter is YamlMap) {
       for (var MapEntry(key: keyNode, value: valueNode)
           in formatter.nodeMap.entries) {
-        if (keyNode.value == AnalysisOptionsFile.pageWidth) {
+        if (keyNode.value == AnalysisOptionsFileKeys.pageWidth) {
           _validatePageWidth(keyNode, valueNode, reporter);
-        } else if (keyNode.value == AnalysisOptionsFile.trailingCommas) {
+        } else if (keyNode.value == AnalysisOptionsFileKeys.trailingCommas) {
           _validateTrailingCommas(keyNode, valueNode, reporter);
         } else {
           reporter.report(
             diag.unsupportedOptionWithoutValues
                 .withArguments(
-                  sectionName: AnalysisOptionsFile.formatter,
+                  sectionName: AnalysisOptionsFileKeys.formatter,
                   optionKey: keyNode.toString(),
                 )
                 .atSourceSpan(keyNode.span),
@@ -697,7 +385,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
     } else if (formatter.value != null) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.formatter)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.formatter)
             .atSourceSpan(formatter.span),
       );
     }
@@ -742,196 +430,66 @@ class _FormatterOptionsValidator extends OptionsValidator {
   }
 }
 
-/// Implementation of [DiagnosticListener] that converts each reported
-/// [Diagnostic] into a [diag.includedFileWarning] located at the site of an
-/// `include` directive.
-///
-/// This is used by [AnalysisOptionsAnalyzer] to report diagnostics that occur
-/// in included options files.
-class _IncludedDiagnosticListener implements DiagnosticListener {
-  /// The [Source] file in which diagnostics are being reported.
-  final Source source;
-
-  /// The [DiagnosticReporter] for the initial soure file (the one containing
-  /// the first `include` in the chain of `include`s that's currently being
-  /// processed).
-  final DiagnosticReporter initialDiagnosticReporter;
-
-  /// The [SourceSpan] of the first `include` in the chain of `include`s that's
-  /// currently being processed.
-  final SourceSpan initialIncludeSpan;
-
-  _IncludedDiagnosticListener({
-    required this.source,
-    required this.initialDiagnosticReporter,
-    required this.initialIncludeSpan,
-  });
-
-  @override
-  void onDiagnostic(Diagnostic diagnostic) {
-    initialDiagnosticReporter.report(
-      diag.includedFileWarning
-          .withArguments(
-            includingFilePath: source.fullName,
-            startOffset: diagnostic.offset,
-            endOffset: diagnostic.offset + diagnostic.length - 1,
-            warningMessage: diagnostic.message,
-          )
-          .atSourceSpan(initialIncludeSpan),
-    );
-  }
-}
-
 /// Validates `analyzer` language configuration options.
 class _LanguageOptionValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.languageOptions,
+    AnalysisOptionsFileKeys.languageOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var language = analyzer.valueAt(AnalysisOptionsFile.language);
+      var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
-          String? key, value;
-          bool validKey = false;
-          if (k is YamlScalar) {
-            key = k.value?.toString();
-            if (!AnalysisOptionsFile.languageOptions.contains(key)) {
-              _builder.reportError(reporter, AnalysisOptionsFile.language, k);
-            } else {
-              // If we have a valid key, go on and check the value.
-              validKey = true;
-            }
+          if (k is! YamlScalar) return;
+          var key = k.value?.toString();
+          if (!AnalysisOptionsFileKeys.languageOptions.contains(key)) {
+            _builder.reportError(reporter, AnalysisOptionsFileKeys.language, k);
+            return;
           }
-          if (validKey && v is YamlScalar) {
-            value = toLowerCase(v.value);
-            // `null` is not a valid key, so we can safely assume `key` is
-            // non-`null`.
-            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+
+          if (v is YamlScalar) {
+            var value = v.toBool();
+            if (value == null) {
+              // `null` is not a valid key, so we can safely assume `key` is
+              // non-`null`.
               reporter.report(
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow.toString(),
-                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                      invalidValue: v.value.toString(),
+                      legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
               );
+            } else if (key == AnalysisOptionsFileKeys.strictRawTypes && value) {
+              // TODO(srawlins): Enable once the `no_raw_types` lint rule is
+              // available in Flutter main, so that developers have something to
+              // migrate to.
+              if (1 == 2) {
+                reporter.report(
+                  diag.analysisOptionDeprecated
+                      .withArguments(optionName: key!)
+                      .atSourceSpan(k.span),
+                );
+              }
             }
           }
         });
       } else if (language is YamlScalar && language.value != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.language)
               .atSourceSpan(language.span),
         );
       } else if (language is YamlList) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.language)
               .atSourceSpan(language.span),
         );
-      }
-    }
-  }
-}
-
-/// Validates `analyzer` plugins configuration options.
-class _LegacyPluginsOptionValidator extends OptionsValidator {
-  /// The name of the first included legacy plugin, if there is one.
-  ///
-  /// If there are no included legacy plugins, this is `null`.
-  final String? _firstIncludedPluginName;
-
-  _LegacyPluginsOptionValidator(this._firstIncludedPluginName);
-
-  @override
-  void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
-    if (analyzer is! YamlMap) {
-      return;
-    }
-    var plugins = analyzer.valueAt(AnalysisOptionsFile.plugins);
-    if (plugins is YamlScalar && plugins.value != null) {
-      if (_firstIncludedPluginName != null &&
-          _firstIncludedPluginName != plugins.value) {
-        reporter.report(
-          diag.multiplePlugins
-              .withArguments(firstPluginName: _firstIncludedPluginName)
-              .atSourceSpan(plugins.span),
-        );
-      }
-    } else if (plugins is YamlList) {
-      var pluginValues = plugins.nodes.whereType<YamlNode>().toList();
-      if (_firstIncludedPluginName != null) {
-        // There is already at least one plugin specified in included options.
-        for (var plugin in pluginValues) {
-          if (plugin.value != _firstIncludedPluginName) {
-            reporter.report(
-              diag.multiplePlugins
-                  .withArguments(firstPluginName: _firstIncludedPluginName)
-                  .atSourceSpan(plugin.span),
-            );
-          }
-        }
-      } else if (plugins.length > 1) {
-        String? firstPlugin;
-        for (var plugin in pluginValues) {
-          if (firstPlugin == null) {
-            var pluginValue = plugin.value;
-            if (pluginValue is String) {
-              firstPlugin = pluginValue;
-              continue;
-            } else {
-              // This plugin is bad and should not be marked as the first one.
-              continue;
-            }
-          } else if (plugin.value != firstPlugin) {
-            reporter.report(
-              diag.multiplePlugins
-                  .withArguments(firstPluginName: firstPlugin)
-                  .atSourceSpan(plugin.span),
-            );
-          }
-        }
-      }
-    } else if (plugins is YamlMap) {
-      var pluginValues = plugins.nodes.keys.cast<YamlNode?>();
-      if (_firstIncludedPluginName != null) {
-        // There is already at least one plugin specified in included options.
-        for (var plugin in pluginValues) {
-          if (plugin != null && plugin.value != _firstIncludedPluginName) {
-            reporter.report(
-              diag.multiplePlugins
-                  .withArguments(firstPluginName: _firstIncludedPluginName)
-                  .atSourceSpan(plugin.span),
-            );
-          }
-        }
-      } else if (plugins.length > 1) {
-        String? firstPlugin;
-        for (var plugin in pluginValues) {
-          if (firstPlugin == null) {
-            var pluginValue = plugin?.value;
-            if (pluginValue is String) {
-              firstPlugin = pluginValue;
-              continue;
-            } else {
-              // This plugin is bad and should not be marked as the first one.
-              continue;
-            }
-          } else if (plugin != null && plugin.value != firstPlugin) {
-            reporter.report(
-              diag.multiplePlugins
-                  .withArguments(firstPluginName: firstPlugin)
-                  .atSourceSpan(plugin.span),
-            );
-          }
-        }
       }
     }
   }
@@ -940,26 +498,29 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
 /// Validates `linter` top-level options.
 class _LinterTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _LinterTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.linter, AnalysisOptionsFile.linterOptions);
+    : super(
+        AnalysisOptionsFileKeys.linter,
+        AnalysisOptionsFileKeys.linterOptions,
+      );
 }
 
 /// Validates `analyzer` optional-checks value configuration options.
 class _OptionalChecksValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.optionalChecksOptions,
+    AnalysisOptionsFileKeys.optionalChecksOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var v = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
+      var v = analyzer.valueAt(AnalysisOptionsFileKeys.optionalChecks);
       if (v is YamlScalar) {
-        var value = toLowerCase(v.value);
-        if (!AnalysisOptionsFile.optionalChecksOptions.contains(value)) {
+        var value = v.toLowerCase();
+        if (!AnalysisOptionsFileKeys.optionalChecksOptions.contains(value)) {
           _builder.reportError(
             reporter,
-            AnalysisOptionsFile
+            AnalysisOptionsFileKeys
                 .optionalChecksOptions
                 .quotedAndCommaSeparatedWithOr,
             v,
@@ -967,26 +528,25 @@ class _OptionalChecksValueValidator extends OptionsValidator {
         }
       } else if (v is YamlMap) {
         v.nodes.forEach((k, v) {
-          String? key, value;
           if (k is YamlScalar) {
-            key = k.value?.toString();
-            if (!AnalysisOptionsFile.optionalChecksOptions.contains(key)) {
+            var key = k.value?.toString();
+            if (!AnalysisOptionsFileKeys.optionalChecksOptions.contains(key)) {
               _builder.reportError(
                 reporter,
-                AnalysisOptionsFile
+                AnalysisOptionsFileKeys
                     .optionalChecksOptions
                     .quotedAndCommaSeparatedWithOr,
                 k,
               );
             } else {
-              value = toLowerCase(v.value);
-              if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+              if (v is! YamlScalar || v.toBool() == null) {
                 reporter.report(
                   diag.unsupportedValue
                       .withArguments(
                         optionName: key!,
-                        invalidValue: v.valueOrThrow.toString(),
-                        legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                        invalidValue: v.value.toString(),
+                        legalValues:
+                            AnalysisOptionsFileKeys.trueOrFalseProposal,
                       )
                       .atSourceSpan(v.span),
                 );
@@ -997,7 +557,9 @@ class _OptionalChecksValueValidator extends OptionsValidator {
       } else if (v != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(v.span),
         );
       }
@@ -1005,10 +567,55 @@ class _OptionalChecksValueValidator extends OptionsValidator {
   }
 }
 
+/// Validates options defined in an analysis options file.
+class _OptionsFileValidator {
+  final List<OptionsValidator> _validators;
+
+  _OptionsFileValidator(
+    Source source, {
+    VersionConstraint? sdkVersionConstraint,
+    required String contextRoot,
+    required bool isPrimarySource,
+    required AnalysisOptionsProvider optionsProvider,
+    required ResourceProvider resourceProvider,
+    required SourceFactory sourceFactory,
+    required AnalysisOptionsCache analysisOptionsCache,
+  }) : _validators = [
+         _AnalyzerOptionsValidator(),
+         _CodeStyleOptionsValidator(),
+         _FormatterOptionsValidator(),
+         _LinterTopLevelOptionsValidator(),
+         _LinterRuleOptionsValidator(
+           resourceProvider: resourceProvider,
+           optionsProvider: optionsProvider,
+           sourceFactory: sourceFactory,
+           sdkVersionConstraint: sdkVersionConstraint,
+           isPrimarySource: isPrimarySource,
+           analysisOptionsCache: analysisOptionsCache,
+         ),
+         _PluginsOptionsValidator(
+           contextRoot: contextRoot,
+           filePath: source.fullName,
+           isPrimarySource: isPrimarySource,
+           resourceProvider: resourceProvider,
+         ),
+       ];
+
+  void validate(YamlMap options, DiagnosticReporter reporter) {
+    for (var validator in _validators) {
+      validator.validate(reporter, options);
+    }
+  }
+}
+
 /// Validates options for each `plugins` map value.
 class _PluginsOptionsValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.pluginsOptions,
+    AnalysisOptionsFileKeys.pluginsOptions,
+  );
+
+  final _ErrorBuilder _gitBuilder = _ErrorBuilder(
+    AnalysisOptionsFileKeys.gitOptions,
   );
 
   final String _contextRoot;
@@ -1031,7 +638,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var plugins = options.valueAt(AnalysisOptionsFile.plugins);
+    var plugins = options.valueAt(AnalysisOptionsFileKeys.plugins);
     switch (plugins) {
       case YamlMap():
         var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
@@ -1043,62 +650,198 @@ class _PluginsOptionsValidator extends OptionsValidator {
                 .atSourceSpan(plugins.span),
           );
         }
-        plugins.nodes.forEach((pluginName, pluginValue) {
+        plugins.nodes.forEach((pluginNameNode, pluginValue) {
+          if (pluginNameNode is! YamlScalar) {
+            return;
+          }
+          var pluginName = pluginNameNode.value;
           if (pluginName is! String) {
             return;
           }
-          switch (pluginValue) {
-            case YamlScalar(value: String()):
-              // Valid enough. We could validate that it is a legal VersionConstraint
-              // from the pub_semver package.
-              break;
-            case YamlMap():
-              _validatePluginMap(reporter, pluginName, pluginValue);
-            default:
-              reporter.report(
-                diag.invalidSectionFormat
-                    .withArguments(
-                      sectionName: '${AnalysisOptionsFile.plugins}/$pluginName',
-                    )
-                    .atSourceSpan(plugins.span),
-              );
+          if (pluginName == AnalysisOptionsFileKeys.dependencyOverrides) {
+            switch (pluginValue) {
+              case YamlMap():
+                pluginValue.nodes.forEach((
+                  overriddenPluginNameNode,
+                  overriddenPluginValue,
+                ) {
+                  if (overriddenPluginNameNode is! YamlScalar) {
+                    return;
+                  }
+                  var overriddenPluginName = overriddenPluginNameNode.value;
+                  if (overriddenPluginName is! String) {
+                    return;
+                  }
+                  _validatePlugin(
+                    reporter,
+                    '${AnalysisOptionsFileKeys.plugins}/${AnalysisOptionsFileKeys.dependencyOverrides}',
+                    overriddenPluginName,
+                    overriddenPluginValue,
+                  );
+                });
+              default:
+                reporter.report(
+                  diag.invalidSectionFormat
+                      .withArguments(
+                        sectionName:
+                            '${AnalysisOptionsFileKeys.plugins}/${AnalysisOptionsFileKeys.dependencyOverrides}',
+                      )
+                      .atSourceSpan(pluginValue.span),
+                );
+            }
+          } else {
+            _validatePlugin(
+              reporter,
+              AnalysisOptionsFileKeys.plugins,
+              pluginName,
+              pluginValue,
+            );
           }
         });
       case YamlList():
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.plugins)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.plugins)
               .atSourceSpan(plugins.span),
         );
       case YamlScalar(:var value):
         if (value != null) {
           reporter.report(
             diag.invalidSectionFormat
-                .withArguments(sectionName: AnalysisOptionsFile.plugins)
+                .withArguments(sectionName: AnalysisOptionsFileKeys.plugins)
                 .atSourceSpan(plugins.span),
           );
         }
     }
   }
 
+  void _validateDiagnostics(
+    DiagnosticReporter reporter,
+    String pluginPath,
+    YamlNode diagnosticsValue,
+  ) {
+    var sectionName = [
+      pluginPath,
+      AnalysisOptionsFileKeys.diagnostics,
+    ].join('/');
+    if (diagnosticsValue is! YamlMap) {
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: sectionName)
+            .atSourceSpan(diagnosticsValue.span),
+      );
+      return;
+    }
+
+    diagnosticsValue.nodes.forEach((codeNameNode, severityNode) {
+      // The keys are diagnostic codes.
+      if (severityNode is! YamlScalar) {
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: sectionName)
+              .atSourceSpan(severityNode.span),
+        );
+        return;
+      }
+
+      var severity = severityNode.value?.toString().toLowerCase();
+      if (!_ErrorFilterOptionValidator.legalValues.contains(severity)) {
+        reporter.report(
+          diag.unsupportedOptionWithLegalValues
+              .withArguments(
+                sectionName: sectionName,
+                optionKey: severityNode.value.toString(),
+                legalValues: _ErrorFilterOptionValidator.legalValueString,
+              )
+              .atSourceSpan(severityNode.span),
+        );
+      }
+    });
+  }
+
+  void _validateGit(
+    DiagnosticReporter reporter,
+    String pluginPath,
+    YamlNode gitValue,
+  ) {
+    var sectionName = [pluginPath, AnalysisOptionsFileKeys.git].join('/');
+
+    if (gitValue is YamlScalar) {
+      if (gitValue.value is! String) {
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: sectionName)
+              .atSourceSpan(gitValue.span),
+        );
+      }
+      return;
+    }
+
+    if (gitValue is! YamlMap) {
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: sectionName)
+            .atSourceSpan(gitValue.span),
+      );
+      return;
+    }
+
+    gitValue.nodes.forEach((keyNode, valueNode) {
+      if (keyNode case YamlScalar(value: String key)) {
+        if (!AnalysisOptionsFileKeys.gitOptions.contains(key)) {
+          _gitBuilder.reportError(reporter, sectionName, keyNode);
+        } else if (valueNode is! YamlScalar || valueNode.value is! String) {
+          reporter.report(
+            diag.invalidSectionFormat
+                .withArguments(sectionName: '$sectionName/$key')
+                .atSourceSpan(valueNode.span),
+          );
+        }
+      }
+    });
+  }
+
+  void _validatePlugin(
+    DiagnosticReporter reporter,
+    String parentPath,
+    String pluginName,
+    YamlNode pluginValue,
+  ) {
+    var pluginPath = '$parentPath/$pluginName';
+    switch (pluginValue) {
+      case YamlScalar(value: String()):
+        // Valid enough. We could validate that it is a legal VersionConstraint
+        // from the pub_semver package.
+        break;
+      case YamlMap():
+        _validatePluginMap(reporter, pluginPath, pluginValue);
+      default:
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: pluginPath)
+              .atSourceSpan(pluginValue.span),
+        );
+    }
+  }
+
   void _validatePluginMap(
     DiagnosticReporter reporter,
-    String pluginName,
+    String pluginPath,
     YamlMap pluginValue,
   ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
-        if (!AnalysisOptionsFile.pluginsOptions.contains(pluginMapKey)) {
-          _builder.reportError(
-            reporter,
-            '${AnalysisOptionsFile.plugins}/$pluginName',
-            pluginMapKeyNode,
-          );
+        if (pluginMapKey == AnalysisOptionsFileKeys.diagnostics) {
+          _validateDiagnostics(reporter, pluginPath, pluginMapValueNode);
+        } else if (pluginMapKey == AnalysisOptionsFileKeys.git) {
+          _validateGit(reporter, pluginPath, pluginMapValueNode);
+        } else if (!AnalysisOptionsFileKeys.pluginsOptions.contains(
+          pluginMapKey,
+        )) {
+          _builder.reportError(reporter, pluginPath, pluginMapKeyNode);
         }
       }
       // TODO(srawlins): Validate 'path' is a YamlScalar.
-      // TODO(srawlins): Validate 'git' value is a YamlScalar. Change when
-      // supporting refs.
     });
   }
 }
@@ -1106,20 +849,20 @@ class _PluginsOptionsValidator extends OptionsValidator {
 /// Validates `analyzer` strong-mode value configuration options.
 class _StrongModeOptionValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.strongModeOptions,
+    AnalysisOptionsFileKeys.strongModeOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var strongModeNode = analyzer.valueAt(AnalysisOptionsFile.strongMode);
+      var strongModeNode = analyzer.valueAt(AnalysisOptionsFileKeys.strongMode);
       if (strongModeNode is YamlMap) {
         return _validateStrongModeAsMap(reporter, strongModeNode);
       } else if (strongModeNode != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.strongMode)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.strongMode)
               .atSourceSpan(strongModeNode.span),
         );
       }
@@ -1133,29 +876,28 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
     strongModeNode.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         var key = k.value?.toString();
-        if (!AnalysisOptionsFile.strongModeOptions.contains(key)) {
-          _builder.reportError(reporter, AnalysisOptionsFile.strongMode, k);
-        } else if (key == AnalysisOptionsFile.declarationCasts) {
+        if (!AnalysisOptionsFileKeys.strongModeOptions.contains(key)) {
+          _builder.reportError(reporter, AnalysisOptionsFileKeys.strongMode, k);
+        } else if (key == AnalysisOptionsFileKeys.declarationCasts) {
           reporter.report(
             diag.unsupportedValue
                 .withArguments(
-                  optionName: AnalysisOptionsFile.strongMode,
-                  invalidValue: v.valueOrThrow.toString(),
-                  legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                  optionName: AnalysisOptionsFileKeys.strongMode,
+                  invalidValue: v.value.toString(),
+                  legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                 )
                 .atSourceSpan(v.span),
           );
         } else {
           // The key is valid.
           if (v is YamlScalar) {
-            var value = toLowerCase(v.value);
-            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+            if (v.toBool() == null) {
               reporter.report(
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow.toString(),
-                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                      invalidValue: v.value.toString(),
+                      legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
               );
@@ -1192,7 +934,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
     if (node is! YamlMap) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.cannotIgnore)
             .atSourceSpan(node.span),
       );
       return;
@@ -1200,7 +942,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
     node.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         if (!supportedOptions.contains(k.value)) {
-          var optionKey = k.valueOrThrow.toString();
+          var optionKey = k.value.toString();
           var locatableDiagnostic = supportedOptions.length == 1
               ? diag.unsupportedOptionWithLegalValue.withArguments(
                   sectionName: sectionName,

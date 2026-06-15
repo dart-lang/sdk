@@ -4,10 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -59,8 +59,8 @@ class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
 
 /// Failure because of a getter and a method from direct superinterfaces.
 class GetterMethodConflict extends Conflict {
-  final InternalExecutableElement getter;
-  final InternalExecutableElement method;
+  final InternalGetterElement getter;
+  final InternalMethodElement method;
 
   GetterMethodConflict({
     required super.name,
@@ -156,7 +156,7 @@ class InheritanceManager3 {
 
   /// Returns signatures of all concrete members that the given [element]
   /// inherits from the superclasses and mixins.
-  Map<Name, ExecutableElement> getInheritedConcreteMap(
+  Map<Name, InternalExecutableElement> getInheritedConcreteMap(
     InterfaceElement element,
   ) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
@@ -284,7 +284,7 @@ class InheritanceManager3 {
     }
 
     var substitution = Substitution.fromInterfaceType(type);
-    return SubstitutedExecutableElementImpl.from(rawElement, substitution);
+    return rawElement.substitute(substitution);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -322,10 +322,7 @@ class InheritanceManager3 {
     } else {
       for (var entry in map.entries) {
         var candidate = entry.value;
-        candidate = SubstitutedExecutableElementImpl.from(
-          candidate,
-          substitution,
-        );
+        candidate = candidate.substitute(substitution);
         var candidates = namedCandidates[entry.key] ??=
             <InternalExecutableElement>[];
         candidates.add(candidate);
@@ -370,11 +367,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      executable = SubstitutedExecutableElementImpl.from(
-        executable,
-        substitution,
-      );
-
+      executable = executable.substitute(substitution);
       implemented[entry.key] = executable;
     }
   }
@@ -388,15 +381,14 @@ class InheritanceManager3 {
   ) {
     assert(candidates.length > 1);
 
-    InternalExecutableElement? getter;
-    InternalExecutableElement? method;
+    InternalGetterElement? getter;
+    InternalMethodElement? method;
     for (var candidate in candidates) {
-      var kind = candidate.kind;
-      if (kind == ElementKind.GETTER) {
-        getter ??= candidate;
-      }
-      if (kind == ElementKind.METHOD) {
-        method ??= candidate;
+      switch (candidate) {
+        case InternalGetterElement():
+          getter ??= candidate;
+        case InternalMethodElement():
+          method ??= candidate;
       }
     }
 
@@ -576,10 +568,7 @@ class InheritanceManager3 {
       } else {
         for (var entry in superTypeInterface.implemented.entries) {
           var executable = entry.value;
-          executable = SubstitutedExecutableElementImpl.from(
-            executable,
-            substitution,
-          );
+          executable = executable.substitute(substitution);
           implemented[entry.key] = executable;
         }
       }
@@ -616,10 +605,7 @@ class InheritanceManager3 {
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
-        var candidate = SubstitutedExecutableElementImpl.from(
-          entry.value,
-          substitution,
-        );
+        var candidate = entry.value.substitute(substitution);
 
         var currentList = namedCandidates[name];
         if (currentList == null) {
@@ -631,12 +617,16 @@ class InheritanceManager3 {
         if (candidate.enclosingElement == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
-            var currentIsGetter = current.kind == ElementKind.GETTER;
+            var currentIsGetter = current is InternalGetterElement;
             mixinConflicts.add(
               GetterMethodConflict(
                 name: name,
-                getter: currentIsGetter ? current : candidate,
-                method: currentIsGetter ? candidate : current,
+                getter: currentIsGetter
+                    ? current
+                    : candidate as InternalGetterElement,
+                method: currentIsGetter
+                    ? candidate as InternalMethodElement
+                    : current as InternalMethodElement,
               ),
             );
           }
@@ -789,10 +779,7 @@ class InheritanceManager3 {
       var substitution = Substitution.fromInterfaceType(interface);
       for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
-        var executable = SubstitutedExecutableElementImpl.from(
-          entry.value,
-          substitution,
-        );
+        var executable = entry.value.substitute(substitution);
         if (executable.isExtensionTypeMember) {
           (extensionCandidates[name] ??= _ExtensionTypeCandidates(
             name,
@@ -1134,9 +1121,7 @@ class InheritanceManager3 {
     if (executable is InternalMethodElement) {
       var fragmentName = executable.name ?? '';
 
-      var elementReference = class_.reference!
-          .getChild('@method')
-          .getChild(fragmentName);
+      var elementReference = class_.reference.getOrCreateMethod(fragmentName);
       if (elementReference.element case MethodElementImpl result) {
         return result;
       }
@@ -1144,16 +1129,10 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
-      resultFragment.formalParameters = List.generate(
-        transformedParameters.length,
-        (index) => transformedParameters![index].firstFragment,
+      var freshTypeParameters = _FreshExecutableTypeParameters(
+        executable.typeParameters,
       );
-      var typeParameters = executable.typeParameters;
-      resultFragment.typeParameters = List.generate(
-        typeParameters.length,
-        (index) => typeParameters[index].firstFragment,
-      );
+      resultFragment.typeParameters = freshTypeParameters.fragments;
 
       var elementName = executable.name!;
       var result = MethodElementImpl(
@@ -1161,40 +1140,45 @@ class InheritanceManager3 {
         reference: elementReference,
         firstFragment: resultFragment,
       );
-      result.returnType = executable.returnType;
+      freshTypeParameters.initializeElements(result.typeParameters);
+
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(transformedParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      result.returnType = freshTypeParameters.substitute(executable.returnType);
 
       return result;
     }
 
     if (executable is SetterElementImpl) {
       var fragmentName = executable.name ?? '';
-      var setterReference = class_.reference!
-          .getChild('@setter')
-          .getChild(fragmentName);
+      var setterReference = class_.reference.getOrCreateSetter(fragmentName);
       if (setterReference.element case SetterElementImpl result) {
         return result;
       }
 
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isSynthetic = true;
       resultFragment.isOriginInterface = true;
-      resultFragment.formalParameters = transformedParameters
+      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
+      freshTypeParameters.initializeElements(const []);
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(transformedParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
           .map((e) => e.firstFragment)
-          .toList();
+          .toFixedList();
 
       var result = SetterElementImpl(setterReference, resultFragment);
-      result.returnType = executable.returnType;
+      result.returnType = freshTypeParameters.substitute(executable.returnType);
 
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
       resultField.isOriginGetterSetter = true;
-      resultField.isSynthetic = true;
 
       var elementName = executable.name!;
-      var fieldReference = class_.reference!
-          .getChild('@field')
-          .getChild(elementName);
+      var fieldReference = class_.reference.getOrCreateField(elementName);
       assert(fieldReference.element == null);
       FieldElementImpl(reference: fieldReference, firstFragment: resultField);
 
@@ -1243,9 +1227,9 @@ class InheritanceManager3 {
     if (firstElement is InternalMethodElement) {
       var fragmentName = firstElement.firstFragment.name!;
 
-      var elementReference = targetClass.reference!
-          .getChild('@method')
-          .getChild(fragmentName);
+      var elementReference = targetClass.reference.getOrCreateMethod(
+        fragmentName,
+      );
       if (elementReference.element case MethodElementImpl result) {
         return result;
       }
@@ -1254,37 +1238,39 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
-      resultFragment.typeParameters = resultType.typeParameters
-          .map((e) => e.firstFragment)
-          .toList();
-      // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters = resultType.parameters
-          .map((e) => e.firstFragment)
-          .toList();
+      var freshTypeParameters = _FreshExecutableTypeParameters(
+        resultType.typeParameters,
+      );
+      resultFragment.typeParameters = freshTypeParameters.fragments;
 
       var elementName = firstElement.name!;
-      var resultElement = MethodElementImpl(
+      var result = MethodElementImpl(
         name: elementName,
         reference: elementReference,
         firstFragment: resultFragment,
       );
-      resultElement.returnType = resultType.returnType;
+      freshTypeParameters.initializeElements(result.typeParameters);
 
-      return resultElement;
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      result.returnType = freshTypeParameters.substitute(resultType.returnType);
+
+      return result;
     } else {
       firstElement as InternalPropertyAccessorElement;
       var fragmentName = firstElement.name!;
       var field = FieldFragmentImpl(name: fragmentName);
       field.isOriginGetterSetter = true;
-      field.isSynthetic = true;
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
       if (firstElement is InternalGetterElement) {
-        var elementReference = targetClass.reference!
-            .getChild('@getter')
-            .getChild(fragmentName);
+        var elementReference = targetClass.reference.getOrCreateGetter(
+          fragmentName,
+        );
         if (elementReference.element case GetterElementImpl result) {
           return result;
         }
@@ -1293,13 +1279,12 @@ class InheritanceManager3 {
         var fragment = GetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;
 
-        var element = GetterElementImpl(elementReference, fragment);
-        element.returnType = resultType.returnType;
-        resultElement = element;
+        var result = GetterElementImpl(elementReference, fragment);
+        resultElement = result;
       } else {
-        var elementReference = targetClass.reference!
-            .getChild('@setter')
-            .getChild(fragmentName);
+        var elementReference = targetClass.reference.getOrCreateSetter(
+          fragmentName,
+        );
         if (elementReference.element case SetterElementImpl result) {
           return result;
         }
@@ -1309,22 +1294,27 @@ class InheritanceManager3 {
         resultFragment = fragment;
         resultFragment.isOriginInterface = true;
 
-        var element = SetterElementImpl(elementReference, fragment);
-        element.returnType = resultType.returnType;
-        resultElement = element;
+        var result = SetterElementImpl(elementReference, fragment);
+        resultElement = result;
       }
       resultFragment.enclosingFragment = targetClass.firstFragment;
-      // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters = resultType.parameters
+      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
+      freshTypeParameters.initializeElements(const []);
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
           .map((e) => e.firstFragment)
-          .toList();
+          .toFixedList();
+      resultElement.returnType = freshTypeParameters.substitute(
+        resultType.returnType,
+      );
 
       field.enclosingFragment = targetClass.firstFragment;
 
       var elementName = firstElement.name!;
-      var elementReference = targetClass.reference!
-          .getChild('@field')
-          .getChild(elementName);
+      var elementReference = targetClass.reference.getOrCreateField(
+        elementName,
+      );
       assert(elementReference.element == null);
       var fieldElement = FieldElementImpl(
         reference: elementReference,
@@ -1335,7 +1325,7 @@ class InheritanceManager3 {
       if (firstElement is GetterElement) {
         fieldElement.type = resultType.returnType;
       } else {
-        var type = resultType.formalParameters[0].type;
+        var type = freshFormalParameterElements[0].type;
         fieldElement.type = type;
       }
 
@@ -1612,6 +1602,61 @@ class _ExtensionTypeCandidates {
       if (!precludedSetters.contains(name)) ...setters,
     ];
   }
+}
+
+/// Owns the fresh type parameters used while synthesizing an executable.
+///
+/// The caller creates [fragments] first, attaches them to a fragment, and only
+/// then calls [initializeElements] with the element-owned type parameters that
+/// were materialized from those fragments.
+final class _FreshExecutableTypeParameters {
+  final List<TypeParameterElementImpl> _source;
+  final List<TypeParameterFragmentImpl> fragments;
+  late final MapSubstitution _substitution;
+
+  _FreshExecutableTypeParameters(this._source)
+    : fragments = [
+        for (var typeParameter in _source)
+          TypeParameterFragmentImpl.synthetic(name: typeParameter.name ?? ''),
+      ];
+
+  List<FormalParameterElementImpl> freshFormalParameterElements(
+    List<InternalFormalParameterElement> formalParameters,
+  ) {
+    return [
+      for (var formalParameter in formalParameters)
+        formalParameter.copyWith(type: substitute(formalParameter.type)),
+    ];
+  }
+
+  void initializeElements(List<TypeParameterElementImpl> target) {
+    _substitution = Substitution.fromPairs2(_source, [
+      for (var element in target)
+        TypeParameterTypeImpl(
+          element: element,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+    ]);
+
+    for (var i = 0; i < _source.length; i++) {
+      var sourceTypeParameter = _source[i];
+      var targetTypeParameter = target[i];
+      if (!sourceTypeParameter.isLegacyCovariant) {
+        targetTypeParameter.variance = sourceTypeParameter.variance;
+      }
+      var defaultType = sourceTypeParameter.defaultType;
+      if (defaultType != null) {
+        targetTypeParameter.defaultType = substitute(defaultType);
+      }
+
+      var bound = sourceTypeParameter.bound;
+      if (bound != null) {
+        targetTypeParameter.bound = substitute(bound);
+      }
+    }
+  }
+
+  TypeImpl substitute(DartType type) => _substitution.substituteType(type);
 }
 
 class _ParameterDesc {

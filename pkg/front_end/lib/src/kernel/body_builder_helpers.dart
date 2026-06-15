@@ -20,7 +20,7 @@ class Operator {
 
   final int charOffset;
 
-  Operator(this.token, this.charOffset);
+  new(this.token, this.charOffset);
 
   @override
   String toString() => "operator($name)";
@@ -37,12 +37,7 @@ class JumpTarget {
 
   final int charOffset;
 
-  JumpTarget(
-    this.kind,
-    this.functionNestingLevel,
-    this.fileUri,
-    this.charOffset,
-  );
+  new(this.kind, this.functionNestingLevel, this.fileUri, this.charOffset);
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
 
@@ -89,11 +84,11 @@ class JumpTarget {
     return statements;
   }
 
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
     for (Statement user in users) {
-      ContinueSwitchStatement continueSwitchStatement =
-          user as ContinueSwitchStatement;
+      InternalContinueSwitchStatement continueSwitchStatement =
+          user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
     }
     users.clear();
@@ -114,7 +109,7 @@ class LabelTarget implements JumpTarget {
   @override
   final int charOffset;
 
-  LabelTarget(this.functionNestingLevel, this.fileUri, this.charOffset)
+  new(this.functionNestingLevel, this.fileUri, this.charOffset)
     : breakTarget = new JumpTarget(
         JumpTargetKind.Break,
         functionNestingLevel,
@@ -179,7 +174,7 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 }
@@ -190,12 +185,7 @@ class FunctionTypeParameters {
   final int length;
   final Uri uri;
 
-  FunctionTypeParameters(
-    this.parameters,
-    this.charOffset,
-    this.length,
-    this.uri,
-  ) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -274,29 +264,31 @@ class FormalParameters extends Parameters {
   @override
   final Uri uri;
 
-  FormalParameters(this.parameters, this.charOffset, this.length, this.uri) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
   }
 
-  FunctionNode buildFunctionNode(
-    SourceLibraryBuilder library,
-    TypeBuilder? returnTypeBuilder,
-    List<NominalParameterBuilder>? typeParameterBuilders,
-    AsyncMarker asyncModifier,
-    Statement body,
-    int fileEndOffset,
-  ) {
-    DartType returnType =
-        returnTypeBuilder?.build(library, TypeUse.returnType) ??
-        const DynamicType();
+  InternalFunctionNode buildFunctionNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required TypeBuilder? returnTypeBuilder,
+    required List<NominalParameterBuilder>? typeParameterBuilders,
+    required AsyncModifier asyncModifier,
+    required Statement body,
+    required int fileOffset,
+    required int fileEndOffset,
+  }) {
+    DartType? returnType = returnTypeBuilder?.build(
+      libraryBuilder,
+      TypeUse.returnType,
+    );
     int requiredParameterCount = 0;
-    List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-    List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
+    List<InternalVariable> positionalParameters = [];
+    List<InternalVariable> namedParameters = [];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        VariableDeclaration parameter = formal.build(library);
+        InternalVariable parameter = formal.build(libraryBuilder);
         if (formal.isPositional) {
           positionalParameters.add(parameter);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -304,8 +296,8 @@ class FormalParameters extends Parameters {
           namedParameters.add(parameter);
         }
       }
-      namedParameters.sort((VariableDeclaration a, VariableDeclaration b) {
-        return a.name!.compareTo(b.name!);
+      namedParameters.sort((InternalVariable a, InternalVariable b) {
+        return a.cosmeticName!.compareTo(b.cosmeticName!);
       });
     }
 
@@ -315,20 +307,20 @@ class FormalParameters extends Parameters {
       for (NominalParameterBuilder t in typeParameterBuilders) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library, TypeUse.typeParameterBound);
+        t.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
       }
     }
-    return new FunctionNode(
-        body,
-        typeParameters: typeParameters,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount,
-        returnType: returnType,
-        asyncMarker: asyncModifier,
-      )
-      ..fileOffset = charOffset
-      ..fileEndOffset = fileEndOffset;
+    return intern.createFunctionNode(
+      body: body,
+      typeParameters: typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      requiredParameterCount: requiredParameterCount,
+      returnType: returnType,
+      asyncMarker: asyncModifier.kind,
+      fileOffset: charOffset,
+      fileEndOffset: fileEndOffset,
+    );
   }
 
   @override
@@ -350,7 +342,7 @@ class CatchParameters extends Parameters {
   @override
   final Uri uri;
 
-  CatchParameters(this.parameters, this.charOffset, this.length, this.uri) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -359,32 +351,6 @@ class CatchParameters extends Parameters {
   @override
   String toString() {
     return "CatchParameters($parameters, $charOffset, $uri)";
-  }
-}
-
-/// Returns a block like this:
-///
-///     {
-///       statement;
-///       body;
-///     }
-///
-/// If [body] is a [Block], it's returned with [statement] prepended to it.
-Block combineStatements(Statement statement, Statement body) {
-  if (body is Block) {
-    if (statement is Block) {
-      body.statements.insertAll(0, statement.statements);
-      setParents(statement.statements, body);
-    } else {
-      body.statements.insert(0, statement);
-      statement.parent = body;
-    }
-    return body;
-  } else {
-    return new Block(<Statement>[
-      if (statement is Block) ...statement.statements else statement,
-      body,
-    ])..fileOffset = statement.fileOffset;
   }
 }
 
@@ -410,28 +376,17 @@ class Label {
   String name;
   int charOffset;
 
-  Label(this.name, this.charOffset);
+  new(this.name, this.charOffset);
 
   @override
   String toString() => "label($name)";
 }
 
-class ForInElements {
-  VariableDeclaration? explicitVariableDeclaration;
-  VariableDeclaration? syntheticVariableDeclaration;
-  Expression? syntheticAssignment;
-  Expression? expressionProblem;
-  Statement? expressionEffects;
-
-  VariableDeclaration get variable =>
-      (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
-}
-
 class Condition {
   final Expression expression;
-  final PatternGuard? patternGuard;
+  final InternalPatternGuard? patternGuard;
 
-  Condition(this.expression, [this.patternGuard]);
+  new(this.expression, [this.patternGuard]);
 
   @override
   String toString() =>
@@ -448,17 +403,13 @@ final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
 class ExpressionOrPatternGuardCase {
   final int caseOffset;
   final Expression? expression;
-  final PatternGuard? patternGuard;
+  final InternalPatternGuard? patternGuard;
 
-  ExpressionOrPatternGuardCase.expression(
-    this.caseOffset,
-    Expression this.expression,
-  ) : patternGuard = null;
+  new expression(this.caseOffset, Expression this.expression)
+    : patternGuard = null;
 
-  ExpressionOrPatternGuardCase.patternGuard(
-    this.caseOffset,
-    PatternGuard this.patternGuard,
-  ) : expression = null;
+  new patternGuard(this.caseOffset, InternalPatternGuard this.patternGuard)
+    : expression = null;
 }
 
 extension on MemberKind {
@@ -493,7 +444,7 @@ class PendingAnnotations {
   final List<SingleTargetAnnotations>? singleTargetAnnotations;
   final List<MultiTargetAnnotations>? multiTargetAnnotations;
 
-  PendingAnnotations(this.singleTargetAnnotations, this.multiTargetAnnotations);
+  new(this.singleTargetAnnotations, this.multiTargetAnnotations);
 }
 
 /// A single target holding annotations to be inferred.
@@ -501,7 +452,7 @@ class SingleTargetAnnotations {
   final Annotatable target;
   final List<int>? indicesOfAnnotationsToBeInferred;
 
-  SingleTargetAnnotations(this.target, [this.indicesOfAnnotationsToBeInferred]);
+  new(this.target, [this.indicesOfAnnotationsToBeInferred]);
 }
 
 /// A multiple targets holding annotations to be inferred.
@@ -511,51 +462,51 @@ class SingleTargetAnnotations {
 class MultiTargetAnnotations {
   final List<Annotatable> targets;
 
-  MultiTargetAnnotations(this.targets);
+  new(this.targets);
 }
 
 class BuildInitializersResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildInitializersResult(this.initializers, this.annotations);
+  new(this.initializers, this.annotations);
 }
 
 class BuildParameterInitializerResult {
   final Expression initializer;
   final PendingAnnotations? annotations;
 
-  BuildParameterInitializerResult(this.initializer, this.annotations);
+  new(this.initializer, this.annotations);
 }
 
 class BuildRedirectingFactoryMethodResult {
   final PendingAnnotations? annotations;
 
-  BuildRedirectingFactoryMethodResult(this.annotations);
+  new(this.annotations);
 }
 
 class BuildFieldsResult {
   final Map<Identifier, Expression?> fieldInitializers;
   final PendingAnnotations? annotations;
 
-  BuildFieldsResult(this.fieldInitializers, this.annotations);
+  new(this.fieldInitializers, this.annotations);
 }
 
 class BuildPrimaryConstructorResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(this.initializers, this.annotations);
+  new(this.initializers, this.annotations);
 }
 
 class BuildFunctionBodyResult {
-  final AsyncMarker asyncMarker;
+  final AsyncModifier asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildFunctionBodyResult({
-    required this.asyncMarker,
+  new({
+    required this.asyncModifier,
     required this.body,
     required this.initializers,
     required this.annotations,
@@ -563,13 +514,13 @@ class BuildFunctionBodyResult {
 }
 
 class BuildPrimaryConstructorBodyResult {
-  final AsyncMarker asyncMarker;
+  final AsyncModifier asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorBodyResult({
-    required this.asyncMarker,
+  new({
+    required this.asyncModifier,
     required this.body,
     required this.initializers,
     required this.annotations,
@@ -580,21 +531,21 @@ class BuildMetadataListResult {
   final List<Expression> expressions;
   final PendingAnnotations? annotations;
 
-  BuildMetadataListResult(this.expressions, this.annotations);
+  new(this.expressions, this.annotations);
 }
 
 class BuildFieldInitializerResult {
   final Expression initializer;
   final PendingAnnotations? annotations;
 
-  BuildFieldInitializerResult(this.initializer, this.annotations);
+  new(this.initializer, this.annotations);
 }
 
 class BuildEnumConstantResult {
   final ActualArguments arguments;
   final PendingAnnotations? annotations;
 
-  BuildEnumConstantResult(this.arguments, this.annotations);
+  new(this.arguments, this.annotations);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -602,5 +553,5 @@ class BuildSingleExpressionResult {
   final Expression expression;
   final PendingAnnotations? annotations;
 
-  BuildSingleExpressionResult(this.expression, this.annotations);
+  new(this.expression, this.annotations);
 }

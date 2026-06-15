@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,18 +18,17 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest {
   test_condition_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void f() {
     super ? 0 : 1;
+//  ^^^^^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
-''',
-      [error(diag.nonBoolCondition, 27, 5)],
-    );
+''');
 
-    var node = findNode.singleConditionalExpression;
+    var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SuperExpression
@@ -49,7 +47,7 @@ ConditionalExpression
   }
 
   test_downward_condition() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int b, int c) {
   a() ? b : c;
 }
@@ -57,7 +55,7 @@ void f(int b, int c) {
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -75,18 +73,17 @@ MethodInvocation
   }
 
   test_else_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void f(bool c) {
     c ? 0 : super;
+//          ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 41, 5)],
-    );
+''');
 
-    var node = findNode.singleConditionalExpression;
+    var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -106,7 +103,7 @@ ConditionalExpression
   }
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart=3.3
 class A {}
 class B1 extends A {}
@@ -120,7 +117,8 @@ f(bool b, C1 c1, C2 c2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.conditionalExpression('b ? c1 : c2'), r'''
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
@@ -142,21 +140,20 @@ ConditionalExpression
   }
 
   test_issue49692() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T t, bool b) {
   if (t is int) {
     final u = b ? t : null;
     return u;
+//         ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int?' can't be returned from the function 'f' because it has a return type of 'T'.
   } else {
     return t;
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 79, 1)],
-    );
+''');
 
-    var node = findNode.conditionalExpression('b ?');
+    var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -177,13 +174,13 @@ ConditionalExpression
   }
 
   test_recordType_differentShape() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool b, (int, String) r1, ({int a}) r2) {
   b ? r1 : r2;
 }
 ''');
 
-    var node = findNode.conditionalExpression('b ?');
+    var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -205,13 +202,13 @@ ConditionalExpression
   }
 
   test_recordType_sameShape_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool b, ({int a}) r1, ({double a}) r2) {
   b ? r1 : r2;
 }
 ''');
 
-    var node = findNode.conditionalExpression('b ?');
+    var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -233,18 +230,17 @@ ConditionalExpression
   }
 
   test_then_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void f(bool c) {
     c ? super : 0;
+//      ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
-''',
-      [error(diag.missingAssignableSelector, 37, 5)],
-    );
+''');
 
-    var node = findNode.singleConditionalExpression;
+    var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -264,13 +260,13 @@ ConditionalExpression
   }
 
   test_type_int_double() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool b) {
   b ? 0 : 1.2;
 }
 ''');
 
-    var node = findNode.singleConditionalExpression;
+    var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -290,13 +286,13 @@ ConditionalExpression
   }
 
   test_type_int_null() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool b) {
   b ? 42 : null;
 }
 ''');
 
-    var node = findNode.singleConditionalExpression;
+    var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -316,20 +312,20 @@ ConditionalExpression
   }
 
   test_upward() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool a, int b, int c) {
   var d = a ? b : c;
   print(d);
 }
 ''');
-    assertType(findNode.simple('d)'), 'int');
+    assertType(result.findNode.simple('d)'), 'int');
   }
 }
 
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   test_contextIsConvertedToATypeUsingGreatestClosure() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1<T> extends A {}
 class B2<T> extends A {}
@@ -341,9 +337,8 @@ f(bool b, C1<int> c1, C2<double> c2) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.conditionalExpression('b ? c1 : c2'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -362,12 +357,11 @@ f(bool b, C1<int> c1, C2<double> c2) {
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
-''',
-    );
+''');
   }
 
   test_contextNotUsedIfLhsDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -380,9 +374,8 @@ f(bool b, B2 b2, C1 c1, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.conditionalExpression('b ? b2 : c1'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? b2 : c1');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -399,12 +392,11 @@ f(bool b, B2 b2, C1 c1, Object? o) {
     staticType: C1
   correspondingParameter: <null>
   staticType: B2
-''',
-    );
+''');
   }
 
   test_contextNotUsedIfRhsDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -417,9 +409,8 @@ f(bool b, C1 c1, B2 b2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.conditionalExpression('b ? c1 : b2'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? c1 : b2');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -436,12 +427,11 @@ f(bool b, C1 c1, B2 b2, Object? o) {
     staticType: B2
   correspondingParameter: <null>
   staticType: B2
-''',
-    );
+''');
   }
 
   test_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -450,7 +440,8 @@ class C2 implements B1, B2 {}
 B1 f(bool b, C1 c1, C2 c2) => b ? c1 : c2;
 ''');
 
-    assertResolvedNodeText(findNode.conditionalExpression('b ? c1 : c2'), r'''
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b

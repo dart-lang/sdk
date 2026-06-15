@@ -2,45 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingRequiredParamTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MissingRequiredParamTest extends PubPackageResolutionTest {
   test_annotation_noImportPrefix_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.named({required int a});
 }
 
 @A.named()
+// ^^^^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
-''',
-      [error(diag.missingRequiredArgument, 51, 5)],
-    );
+''');
   }
 
   test_annotation_noImportPrefix_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A({required int a});
 }
 
 @A()
+// [diag.missingRequiredArgument][column 2][length 1] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
-''',
-      [error(diag.missingRequiredArgument, 43, 1)],
-    );
+''');
   }
 
   test_annotation_withImportPrefix_named() async {
@@ -50,15 +48,14 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 
 @a.A.named()
+//   ^^^^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
-''',
-      [error(diag.missingRequiredArgument, 28, 5)],
-    );
+''');
   }
 
   test_annotation_withImportPrefix_unnamed() async {
@@ -68,19 +65,18 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as a;
 
 @a.A()
+// ^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
-''',
-      [error(diag.missingRequiredArgument, 26, 1)],
-    );
+''');
   }
 
   test_constructor_argumentGiven() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({required int a}) {}
 }
@@ -92,67 +88,62 @@ main() {
   }
 
   test_constructor_fieldFormal_missingName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required this.})
+//   ^^^^^^^^^^^^^^
+// [diag.initializingFormalForNonExistentField] '' isn't a field in the enclosing class.
+//                 ^
+// [diag.missingIdentifier] Expected an identifier.
 }
+// [diag.missingFunctionBody][column 1][length 1] A function body must be provided.
 
 void f() {
   A();
 }
-''',
-      [
-        error(diag.initializingFormalForNonExistentField, 15, 14),
-        error(diag.missingIdentifier, 29, 1),
-        error(diag.missingFunctionBody, 32, 1),
-      ],
-    );
+''');
   }
 
   test_constructor_missingArgument() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({required int a}) {}
 }
 main() {
   new C();
+//    ^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 52, 1)],
-    );
+''');
   }
 
   test_constructor_redirectingConstructorCall() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({required int x});
   C.named() : this();
+//            ^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 47, 6)],
-    );
+''');
   }
 
   test_constructor_superCall() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({required int a}) {}
 }
 
 class D extends C {
   D() : super();
+//      ^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 66, 7)],
-    );
+''');
   }
 
   test_constructor_superFormalParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({required int a});
 }
@@ -164,79 +155,73 @@ class B extends A {
   }
 
   test_enumConstant_withArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v();
+//^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
   const E({required int a});
 }
-''',
-      [error(diag.missingRequiredArgument, 11, 1)],
-    );
+''');
   }
 
   test_enumConstant_withoutArguments() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
+//^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
   const E({required int a});
 }
-''',
-      [error(diag.missingRequiredArgument, 11, 1)],
-    );
+''');
   }
 
   test_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({required int a}) {}
 
 main() {
   f();
+//^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 40, 1)],
-    );
+''');
   }
 
   test_function_call() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f({required int a}) {}
 
 main() {
   f.call();
+//      ^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 46, 2)],
-    );
+''');
   }
 
   test_functionInvocation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void Function({required int a}) f() => throw '';
 g() {
   f()();
+//^^^^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 57, 5)],
-    );
+''');
   }
 
   test_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void m({required int a}) {}
 }
 f() {
   new A().m();
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 58, 1)],
-    );
+''');
   }
 
   test_method_inOtherLib() async {
@@ -245,29 +230,27 @@ class A {
   void m({required int a}) {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import "a_lib.dart";
 f() {
   new A().m();
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 37, 1)],
-    );
+''');
   }
 
   test_typedef_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 String test(C c) => c.m()();
+//                  ^^^^^^^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
 
 typedef String F({required String x});
 
 class C {
   F m() => ({required String x}) => throw '';
 }
-''',
-      [error(diag.missingRequiredArgument, 20, 7)],
-    );
+''');
   }
 }

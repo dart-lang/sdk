@@ -12,13 +12,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithNotNullAwareElementOrEntry extends ResolvedCorrectionProducer {
   final _ReplaceWithNotNullAwareElementOrEntryKind _kind;
 
-  ReplaceWithNotNullAwareElementOrEntry.entry({required super.context})
+  new entry({required super.context})
     : _kind = _ReplaceWithNotNullAwareElementOrEntryKind.entry;
 
-  ReplaceWithNotNullAwareElementOrEntry.mapKey({required super.context})
+  new mapKey({required super.context})
     : _kind = _ReplaceWithNotNullAwareElementOrEntryKind.mapKey;
 
-  ReplaceWithNotNullAwareElementOrEntry.mapValue({required super.context})
+  new mapValue({required super.context})
     : _kind = _ReplaceWithNotNullAwareElementOrEntryKind.mapValue;
 
   @override

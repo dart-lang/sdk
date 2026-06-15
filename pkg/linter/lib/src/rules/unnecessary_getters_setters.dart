@@ -18,7 +18,7 @@ const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
 
 class UnnecessaryGettersSetters extends AnalysisRule {
-  UnnecessaryGettersSetters()
+  new()
     : super(name: LintNames.unnecessary_getters_setters, description: _desc);
 
   @override
@@ -38,7 +38,7 @@ class UnnecessaryGettersSetters extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

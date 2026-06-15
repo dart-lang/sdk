@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use generic function type syntax for parameters.';
 
 class UseFunctionTypeSyntaxForParameters extends AnalysisRule {
-  UseFunctionTypeSyntaxForParameters()
+  new()
     : super(
         name: LintNames.use_function_type_syntax_for_parameters,
         description: _desc,
@@ -33,17 +33,35 @@ class UseFunctionTypeSyntaxForParameters extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
-    registry.addFunctionTypedFormalParameter(this, visitor);
+    registry.addFieldFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
+    registry.addSuperFormalParameter(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportAtNode(node, arguments: [node.name.lexeme]);
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _check(node);
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _check(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _check(node);
+  }
+
+  void _check(FormalParameter node) {
+    if (node.functionTypedSuffix != null) {
+      rule.reportAtNode(node, arguments: [node.name?.lexeme ?? '']);
+    }
   }
 }

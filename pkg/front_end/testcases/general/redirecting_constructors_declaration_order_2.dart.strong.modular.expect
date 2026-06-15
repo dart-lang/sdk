@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::List<self::A> field;
-  constructor named1({core::List<self::A> field = #C2}) → self::C
+  constructor named1({initializing-formal core::List<self::A> field = #C2}) → self::C
     : self::C::field = field, super core::Object::•()
     ;
-  constructor named2({core::List<self::A> field = #C2}) → self::C
+  constructor named2({initializing-formal core::List<self::A> field = #C2}) → self::C
     : self::C::field = field, super core::Object::•()
     ;
 }

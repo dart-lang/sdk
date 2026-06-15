@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -239,7 +239,7 @@ class C {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+        ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );
 
     await resolveTestCode('''

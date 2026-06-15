@@ -19,11 +19,7 @@ final maxStdioDelayPassedMessage =
  that there is a hanging process which we were unable to kill.""";
 
 /// The names of the packages that are available for use in tests.
-const testPackages = [
-  "expect",
-  "js",
-  "meta",
-];
+const testPackages = ["expect", "js", "meta"];
 
 /// Gets the file extension for a shell script on the host OS.
 String get shellScriptExtension => Platform.isWindows ? '.bat' : '';
@@ -93,11 +89,9 @@ String decodeUtf8(List<int> bytes) {
 /// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
 /// returns, and deletes and trailing and leading whitespace.
 List<String> decodeLines(List<int> output) {
-  return decodeUtf8(output)
-      .replaceAll('\r\n', '\n')
-      .replaceAll('\r', '\n')
-      .trim()
-      .split('\n');
+  return decodeUtf8(
+    output,
+  ).replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim().split('\n');
 }
 
 String indent(String string, int numSpaces) {
@@ -118,8 +112,11 @@ String niceTime(Duration duration) {
 
   var minutes = digits(2, duration.inMinutes, Duration.minutesPerHour);
   var seconds = digits(2, duration.inSeconds, Duration.secondsPerMinute);
-  var millis =
-      digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
+  var millis = digits(
+    6,
+    duration.inMilliseconds,
+    Duration.millisecondsPerSecond,
+  );
 
   if (duration.inHours >= 1) {
     return "${duration.inHours}:$minutes:${seconds}s";
@@ -163,8 +160,10 @@ class HashCodeBuilder {
         addJson(object[key]);
       }
     } else {
-      throw Exception("Can't build hashcode for non json-like object "
-          "(${object.runtimeType})");
+      throw Exception(
+        "Can't build hashcode for non json-like object "
+        "(${object.runtimeType})",
+      );
     }
   }
 
@@ -196,8 +195,10 @@ bool deepJsonCompare(Object? a, Object? b) {
     }
     return false;
   } else {
-    throw Exception("Can't compare two non json-like objects "
-        "(a: ${a.runtimeType}, b: ${b.runtimeType})");
+    throw Exception(
+      "Can't compare two non json-like objects "
+      "(a: ${a.runtimeType}, b: ${b.runtimeType})",
+    );
   }
 }
 
@@ -272,8 +273,10 @@ class TestUtils {
   /// Copy a [source] file to a new place.
   /// Assumes that the directory for [dest] already exists.
   static Future copyFile(Path source, Path dest) {
-    return _copyFilesMap.putIfAbsent(dest.toNativePath(),
-        () => File(source.toNativePath()).copy(dest.toNativePath()));
+    return _copyFilesMap.putIfAbsent(
+      dest.toNativePath(),
+      () => File(source.toNativePath()).copy(dest.toNativePath()),
+    );
   }
 
   static Future copyDirectory(String source, String dest) {
@@ -288,8 +291,10 @@ class TestUtils {
     }
     return Process.run(executable, args).then((ProcessResult result) {
       if (result.exitCode != 0) {
-        throw Exception("Failed to execute '$executable "
-            "${args.join(' ')}'.");
+        throw Exception(
+          "Failed to execute '$executable "
+          "${args.join(' ')}'.",
+        );
       }
     });
   }
@@ -302,11 +307,15 @@ class TestUtils {
       var nativePath = Path(path).toNativePath();
       // Running this in a shell sucks, but rmdir is not part of the standard
       // path.
-      return Process.run('rmdir', ['/s', '/q', nativePath], runInShell: true)
-          .then((ProcessResult result) {
+      return Process.run('rmdir', [
+        '/s',
+        '/q',
+        nativePath,
+      ], runInShell: true).then((ProcessResult result) {
         if (result.exitCode != 0) {
           throw Exception(
-              "Can't delete path $nativePath. This path might be too long");
+            "Can't delete path $nativePath. This path might be too long",
+          );
         }
       });
     } else {
@@ -321,7 +330,7 @@ class TestUtils {
       var generatedPath = [
         configuration.buildDirectory,
         "generated_compilations",
-        configuration.configuration.name
+        configuration.configuration.name,
       ].join('/');
       if (FileSystemEntity.isDirectorySync(generatedPath)) {
         TestUtils.deleteDirectory(generatedPath);
@@ -355,30 +364,40 @@ class TestUtils {
       "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
           "co19_css_getComputedStyle_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "caretRangeFromPoint-": "co19_caretrangefrompoint_",
+              "caretRangeFromPoint-":
+          "co19_caretrangefrompoint_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "hittest-relative-to-viewport_": "co19_caretrange_hittest_",
+              "hittest-relative-to-viewport_":
+          "co19_caretrange_hittest_",
       "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
-          "stylesheet-with-": "co19_dom_link-",
+              "stylesheet-with-":
+          "co19_dom_link-",
       "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
       "tests_co19_src_LayoutTests_fast_canvas_webgl": "co19_canvas_webgl",
       "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
-          "AbstractClassInstantiationError_": "co19_abstract_class_",
+              "AbstractClassInstantiationError_":
+          "co19_abstract_class_",
       "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
-          "IntegerDivisionByZeroException_": "co19_division_by_zero",
+              "IntegerDivisionByZeroException_":
+          "co19_division_by_zero",
       "tests_co19_src_WebPlatformTest_html_dom_documents_dom-tree-accessors_":
           "co19_dom_accessors_",
       "tests_co19_src_WebPlatformTest_html_semantics_embedded-content_"
-          "media-elements_": "co19_media_elements",
+              "media-elements_":
+          "co19_media_elements",
       "tests_co19_src_WebPlatformTest_html_semantics_": "co19_semantics_",
       "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
-          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
+              "the-steps-to-clone-a-node_":
+          "co19_htmltemplates_clone_",
       "tests_co19_src_WebPlatformTest_html-templates_definitions_"
-          "template-contents-owner": "co19_htmltemplates_contents",
+              "template-contents-owner":
+          "co19_htmltemplates_contents",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_additions-to-": "co19_htmltemplates_add_",
+              "templates_additions-to-":
+          "co19_htmltemplates_add_",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
+              "templates_appending-to-a-template_":
+          "co19_htmltemplates_append_",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
               "templates_clearing-the-stack-back-to-a-given-context_":
           "co19_htmltemplates_clearstack_",
@@ -386,17 +405,21 @@ class TestUtils {
               "templates_creating-an-element-for-the-token_":
           "co19_htmltemplates_create_",
       "tests_co19_src_WebPlatformTest_html-templates_template-element"
-          "_template-": "co19_htmltemplates_element-",
+              "_template-":
+          "co19_htmltemplates_element-",
       "tests_co19_src_WebPlatformTest_html-templates_": "co19_htmltemplate_",
       "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
           "co19_shadow-trees_",
       "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
           "co19_shadowdom_",
       "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
-          "shadow-trees_": "co19_shadow_html_",
+              "shadow-trees_":
+          "co19_shadow_html_",
       "tests_co19_src_WebPlatformTest_html_webappapis_system-state-and-"
-          "capabilities_the-navigator-object": "co19_webappapis_navigator_",
-      "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
+              "capabilities_the-navigator-object":
+          "co19_webappapis_navigator_",
+      "tests_co19_src_WebPlatformTest_DOMEvents_approved_":
+          "co19_dom_approved_",
     };
 
     // Some tests are already in [build_dir]/generated_tests.

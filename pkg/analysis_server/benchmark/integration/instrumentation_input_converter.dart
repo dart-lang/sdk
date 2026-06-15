@@ -23,7 +23,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
   /// or `null` if not converting a "Read" entry.
   StringBuffer? readBuffer;
 
-  InstrumentationInputConverter(super.tmpSrcDirPath, super.srcPathMap);
+  new(super.tmpSrcDirPath, super.srcPathMap);
 
   @override
   Operation? convert(String line) {

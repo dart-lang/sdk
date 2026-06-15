@@ -284,14 +284,10 @@ static const char* ImageName(uword vm_instructions,
                              uword isolate_instructions,
                              uword pc,
                              intptr_t* offset) {
-  const Image vm_image(vm_instructions);
   const Image isolate_image(isolate_instructions);
-  if (vm_image.contains(pc)) {
-    *offset = pc - vm_instructions;
-    return kVmSnapshotInstructionsAsmSymbol;
-  } else if (isolate_image.contains(pc)) {
+  if (isolate_image.contains(pc)) {
     *offset = pc - isolate_instructions;
-    return kIsolateSnapshotInstructionsAsmSymbol;
+    return kSnapshotTextAsmSymbol;
   } else {
     *offset = 0;
     return "<unknown>";
@@ -335,10 +331,9 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const T = Thread::Current();
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate_group()->source()->snapshot_instructions);
-  auto const isolate_instructions = reinterpret_cast<uword>(
-      T->isolate_group()->source()->snapshot_instructions);
+  const uword vm_instructions = 0;
+  const uword isolate_instructions =
+      reinterpret_cast<uword>(T->isolate_group()->source()->snapshot_text);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
                vm_instructions, isolate_instructions);
 #else
@@ -1829,8 +1824,24 @@ struct CallbackContext {
   uword sp;
 };
 
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
+  // Assumptions in ffi_trampolines_arm64.S
+  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
+  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
+#if defined(DART_TARGET_OS_FUCHSIA)
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
+#elif defined(DART_TARGET_OS_MACOS)
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
+#else
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
+#endif
+
   CallbackMetadata out;
   Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
   if (thread == nullptr) {
@@ -1843,6 +1854,8 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   ASSERT(sim != nullptr);
   sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
+
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 // Compare FfiCallbackTrampolineStub.
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
@@ -1982,6 +1995,9 @@ void Simulator::DecodeSystem(Instr* instr) {
   if (instr->InstructionBits() == kDMB_ISH) {
     // Format(instr, "dmb ish");
     memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
     std::atomic_thread_fence(std::memory_order_seq_cst);
     return;
   }
@@ -2052,8 +2068,13 @@ void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
         const Register rn = instr->RnField();
         const int64_t dest = get_register(rn, instr->RnMode());
         const int64_t ret = get_pc() + Instr::kInstrSize;
-        set_pc(dest);
+        // Set LR first so that the profiler does not get confused by
+        // observing the update to PC without the update to LR when we are
+        // calling out of the entry stub, i.e., failing to indentify the entry
+        // stub. On real hardware, the profiler's signal handler cannot
+        // observe a partially execute BLR.
         set_register(instr, LR, ret);
+        set_pc(dest);
         break;
       }
       case 2: {
@@ -3996,6 +4017,54 @@ void Simulator::ExecuteTrace() {
   }
 }
 
+// Verifies that callee-saved registers are preserved across Dart execution.
+// On construction, saves and overwrites callee-saved registers with a known
+// value. On destruction, asserts that the known value is still present and
+// restores the original values.
+class CalleeRegisterVerifier {
+ public:
+  explicit CalleeRegisterVerifier(Simulator* sim)
+      : sim_(sim),
+        callee_saved_value_(
+            bit_cast<int64_t, double>(static_cast<double>(sim->get_icount()))) {
+    for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+      const Register r = static_cast<Register>(i);
+      preserved_cpu_[i - kAbiFirstPreservedCpuReg] = sim->get_register(r);
+      sim->set_register(nullptr, r, callee_saved_value_);
+    }
+    // Only the bottom half of the V registers must be preserved.
+    for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+      const VRegister r = static_cast<VRegister>(i);
+      preserved_fpu_[i - kAbiFirstPreservedFpuReg] = sim->get_vregisterd(r, 0);
+      sim->set_vregisterd(r, 0, callee_saved_value_);
+      sim->set_vregisterd(r, 1, 0);
+    }
+  }
+
+  ~CalleeRegisterVerifier() {
+    for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+      const Register r = static_cast<Register>(i);
+      ASSERT(callee_saved_value_ == sim_->get_register(r));
+      sim_->set_register(nullptr, r,
+                         preserved_cpu_[i - kAbiFirstPreservedCpuReg]);
+    }
+    for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+      const VRegister r = static_cast<VRegister>(i);
+      ASSERT(callee_saved_value_ == sim_->get_vregisterd(r, 0));
+      sim_->set_vregisterd(r, 0, preserved_fpu_[i - kAbiFirstPreservedFpuReg]);
+      sim_->set_vregisterd(r, 1, 0);
+    }
+  }
+
+ private:
+  Simulator* const sim_;
+  const int64_t callee_saved_value_;
+  int64_t preserved_cpu_[kAbiPreservedCpuRegCount];
+  int64_t preserved_fpu_[kAbiPreservedFpuRegCount];
+
+  DISALLOW_COPY_AND_ASSIGN(CalleeRegisterVerifier);
+};
+
 int64_t Simulator::Call(int64_t entry,
                         int64_t parameter0,
                         int64_t parameter1,
@@ -4038,43 +4107,10 @@ int64_t Simulator::Call(int64_t entry,
   // the LR the simulation stops when returning to this call point.
   set_register(nullptr, LR, kEndSimulatingPC);
 
-  // Remember the values of callee-saved registers, and set them up with a
-  // known value so that we are able to check that they are preserved
-  // properly across Dart execution.
-  int64_t preserved_vals[kAbiPreservedCpuRegCount];
-  const double dicount = static_cast<double>(icount_);
-  const int64_t callee_saved_value = bit_cast<int64_t, double>(dicount);
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    preserved_vals[i - kAbiFirstPreservedCpuReg] = get_register(r);
-    set_register(nullptr, r, callee_saved_value);
-  }
-
-  // Only the bottom half of the V registers must be preserved.
-  int64_t preserved_dvals[kAbiPreservedFpuRegCount];
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    preserved_dvals[i - kAbiFirstPreservedFpuReg] = get_vregisterd(r, 0);
-    set_vregisterd(r, 0, callee_saved_value);
-    set_vregisterd(r, 1, 0);
-  }
-
-  // Start the simulation.
-  Execute();
-
-  // Check that the callee-saved registers have been preserved,
-  // and restore them with the original value.
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    ASSERT(callee_saved_value == get_register(r));
-    set_register(nullptr, r, preserved_vals[i - kAbiFirstPreservedCpuReg]);
-  }
-
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    ASSERT(callee_saved_value == get_vregisterd(r, 0));
-    set_vregisterd(r, 0, preserved_dvals[i - kAbiFirstPreservedFpuReg]);
-    set_vregisterd(r, 1, 0);
+  {
+    // Verify callee-saved registers are preserved across Dart execution.
+    CalleeRegisterVerifier callee_saved(this);
+    Execute();
   }
 
   // Restore the SP register and return R0.

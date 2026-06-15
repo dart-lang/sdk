@@ -19,12 +19,11 @@ import '../type_inference/type_inference_engine.dart'
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 
-typedef BuildNodesCallback =
-    void Function({
-      required Member member,
-      Member? tearOff,
-      required BuiltMemberKind kind,
-    });
+typedef BuildNodesCallback = void Function({
+  required Member member,
+  Member? tearOff,
+  required BuiltMemberKind kind,
+});
 
 /// [BuildNodesCallback] that doesn't add the member nodes.
 void noAddBuildNodesCallback({
@@ -107,7 +106,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl()
+  new()
     : dataForTesting = retainDataForTesting
           ?
             // Coverage-ignore(suite): Not run.
@@ -163,19 +162,4 @@ enum BuiltMemberKind {
 
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
-}
-
-// Coverage-ignore(suite): Not run.
-class AugmentSuperTarget {
-  final SourceMemberBuilder declaration;
-  final Member? readTarget;
-  final Member? invokeTarget;
-  final Member? writeTarget;
-
-  AugmentSuperTarget({
-    required this.declaration,
-    required this.readTarget,
-    required this.invokeTarget,
-    required this.writeTarget,
-  });
 }

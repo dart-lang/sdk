@@ -20,7 +20,7 @@ const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
 class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
-  UnrelatedTypeEqualityChecks()
+  new()
     : super(name: LintNames.unrelated_type_equality_checks, description: _desc);
 
   @override
@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.typeSystem);
+  new(this.rule, this.typeSystem);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {

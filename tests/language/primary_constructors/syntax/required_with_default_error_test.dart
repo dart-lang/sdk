@@ -5,19 +5,17 @@
 // It is an error for a named parameter to be both `required` and have a
 // default value.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C1({required var int x = 0});
-//       ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                         ^
+// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_ON_REQUIRED_PARAMETER
+// [cfe] Named parameter 'x' is required and can't have a default value.
 
 class C2({required final int x = 0});
-//       ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                           ^
+// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_ON_REQUIRED_PARAMETER
+// [cfe] Named parameter 'x' is required and can't have a default value.
 
 class C3({required int x = 0});
-//       ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                     ^
+// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_ON_REQUIRED_PARAMETER
+// [cfe] Named parameter 'x' is required and can't have a default value.

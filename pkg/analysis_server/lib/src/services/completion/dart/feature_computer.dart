@@ -169,7 +169,7 @@ class FeatureComputer {
   final TypeProvider typeProvider;
 
   /// Initialize a newly created feature computer.
-  FeatureComputer(this.typeSystem, this.typeProvider);
+  new(this.typeSystem, this.typeProvider);
 
   /// Return the type imposed when completing at the given [offset], where the
   /// offset is within the given [node], or `null` if the context does not
@@ -506,7 +506,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   int offset;
 
-  _ContextTypeVisitor(this.typeProvider, this.offset);
+  new(this.typeProvider, this.offset);
 
   @override
   DartType? visitAdjacentStrings(AdjacentStrings node) {
@@ -538,15 +538,15 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
         return null;
       }
 
-      Expression? previousArgument;
+      Argument? previousArgument;
       for (var argument in node.arguments) {
-        if (argument is NamedExpression) {
+        if (argument is NamedArgument) {
           if (offset <= argument.offset) {
             return typeOfIndexPositionalParameter();
           }
           if (argument.contains(offset)) {
-            if (offset >= argument.name.end) {
-              return argument.element?.type;
+            if (offset >= argument.colon.end) {
+              return argument.correspondingParameter?.type;
             }
             return null;
           }
@@ -628,14 +628,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (node.operator.end <= offset) {
       if (node.operator.type == TokenType.EQ_EQ ||
           node.operator.type == TokenType.BANG_EQ) {
-        // TODO(kallentu): Fix the parser implementation where dot shorthand
-        // const constructor declarations recover with a wrapping function
-        // expression invocation and then remove this.
         var rightOperand = node.rightOperand;
-        if (rightOperand is FunctionExpressionInvocation &&
-            rightOperand.function is DotShorthandMixin) {
-          rightOperand = rightOperand.function;
-        }
         if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
           return node.leftOperand.staticType;
         }
@@ -687,15 +680,6 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitConstructorReference(ConstructorReference node) {
     return _visitParent(node);
-  }
-
-  @override
-  DartType? visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var separator = node.separator;
-    if (separator != null && separator.end <= offset) {
-      return node.parameter.declaredFragment?.element.type;
-    }
-    return null;
   }
 
   @override
@@ -801,6 +785,20 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return node.forLoopParts.accept(this);
     }
     return node.parent!.accept(this);
+  }
+
+  @override
+  DartType? visitFormalParameterDefaultClause(
+    FormalParameterDefaultClause node,
+  ) {
+    var separator = node.separator;
+    if (separator.end <= offset) {
+      var parent = node.parent;
+      if (parent is FormalParameter) {
+        return parent.declaredFragment?.element.type;
+      }
+    }
+    return null;
   }
 
   @override
@@ -1011,11 +1009,11 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
-  DartType? visitNamedExpression(NamedExpression node) {
+  DartType? visitNamedArgument(NamedArgument node) {
     if (offset == node.offset) {
       return _visitParent(node);
     }
-    if (node.name.end <= offset) {
+    if (offset >= node.colon.end) {
       return _visitParent(node);
     }
     return null;
@@ -1109,13 +1107,13 @@ parent3: ${node.parent?.parent?.parent}
     }
 
     for (var argument in node.fields) {
-      if (argument is NamedExpression) {
+      if (argument is RecordLiteralNamedField) {
         if (offset <= argument.offset) {
           return typeOfIndexPositionalField();
         }
         if (argument.contains(offset)) {
-          if (offset >= argument.name.colon.end) {
-            var name = argument.name.label.name;
+          if (offset >= argument.colon.end) {
+            var name = argument.name.lexeme;
             return type.namedField(name)?.type;
           }
           return null;
@@ -1129,6 +1127,17 @@ parent3: ${node.parent?.parent?.parent}
     }
 
     return typeOfIndexPositionalField();
+  }
+
+  @override
+  DartType? visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    if (offset == node.offset) {
+      return _visitParent(node);
+    }
+    if (offset >= node.colon.end) {
+      return _visitParent(node);
+    }
+    return null;
   }
 
   @override

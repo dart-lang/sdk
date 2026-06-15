@@ -199,7 +199,7 @@ class LeakMe {
   final String unique;
   final String forPrettyPrinting;
 
-  LeakMe(this.unique, this.forPrettyPrinting);
+  new(this.unique, this.forPrettyPrinting);
 }
 
 class LeakMe2 {
@@ -207,7 +207,7 @@ class LeakMe2 {
   final String uniquePart2;
   final String forPrettyPrinting;
 
-  LeakMe2(this.uniquePart1, this.uniquePart2, this.forPrettyPrinting);
+  new(this.uniquePart1, this.uniquePart2, this.forPrettyPrinting);
 }
 
 class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
@@ -216,7 +216,7 @@ class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
   int iterationNumber = -1;
   Completer<List<String>> completer = new Completer<List<String>>();
 
-  LeakFinderTest({
+  new({
     required List<helper.Interest> interests,
     required List<helper.Interest> prettyPrints,
     required bool throwOnPossibleLeak,

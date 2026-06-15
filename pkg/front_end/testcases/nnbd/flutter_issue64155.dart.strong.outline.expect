@@ -9,17 +9,17 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
 }
 class PagingResponse<T extends core::Object? = dynamic> extends core::Object {
   final field self::PagingResponseData<self::PagingResponse::T%> data;
-  constructor •(self::PagingResponseData<self::PagingResponse::T%> data) → self::PagingResponse<self::PagingResponse::T%>
+  constructor •(initializing-formal self::PagingResponseData<self::PagingResponse::T%> data) → self::PagingResponse<self::PagingResponse::T%>
     ;
 }
 class PagingResponseData<T extends core::Object? = dynamic> extends core::Object {
   final field core::List<self::PagingResponseData::T%> data;
-  constructor •(core::List<self::PagingResponseData::T%> data) → self::PagingResponseData<self::PagingResponseData::T%>
+  constructor •(initializing-formal core::List<self::PagingResponseData::T%> data) → self::PagingResponseData<self::PagingResponseData::T%>
     ;
 }
 class Response<T extends core::Object? = dynamic> extends core::Object {
   final field self::Response::T% data;
-  constructor •(self::Response::T% data) → self::Response<self::Response::T%>
+  constructor •(initializing-formal self::Response::T% data) → self::Response<self::Response::T%>
     ;
 }
 class Class1 extends self::_Class1&Object&TestMixin {

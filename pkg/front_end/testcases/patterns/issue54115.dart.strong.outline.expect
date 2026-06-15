@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field core::int? _x;
-  constructor •(core::int? _x) → self::C
+  constructor •(initializing-formal core::int? _x) → self::C
     ;
   @/*original=core::pragma::•*/ const core::pragma::_("dart2js:never-inline")
   method manual() → void

@@ -13,6 +13,7 @@ import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 
 /// Base class for all control-flow elements.
@@ -70,7 +71,8 @@ mixin ControlFlowElementMixin on AuxiliaryExpression {
 }
 
 /// A spread element in a list or set literal.
-class SpreadElement extends ControlFlowElement with ControlFlowElementMixin {
+class SpreadElement extends ControlFlowElement
+    with InternalTreeNode, ControlFlowElementMixin {
   Expression expression;
   bool isNullAware;
 
@@ -80,7 +82,7 @@ class SpreadElement extends ControlFlowElement with ControlFlowElementMixin {
   /// during the desugaring.
   DartType? elementType;
 
-  SpreadElement(this.expression, {required this.isNullAware}) {
+  new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -128,10 +130,11 @@ class SpreadElement extends ControlFlowElement with ControlFlowElementMixin {
   }
 }
 
-class NullAwareElement extends ControlFlowElement with ControlFlowElementMixin {
+class NullAwareElement extends ControlFlowElement
+    with InternalTreeNode, ControlFlowElementMixin {
   Expression expression;
 
-  NullAwareElement(this.expression);
+  new(this.expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -149,75 +152,22 @@ class NullAwareElement extends ControlFlowElement with ControlFlowElementMixin {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    expression = v.transform(expression);
-    expression.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    expression = v.transform(expression);
-    expression.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    expression.accept(v);
-  }
-
-  @override
   String toString() {
     return "NullAwareElement(${toStringInternal()})";
   }
 }
 
 /// An 'if' element in a list or set literal.
-class IfElement extends ControlFlowElement with ControlFlowElementMixin {
+class IfElement extends ControlFlowElement
+    with InternalTreeNode, ControlFlowElementMixin {
   Expression condition;
   Expression then;
   Expression? otherwise;
 
-  IfElement(this.condition, this.then, this.otherwise) {
+  new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    condition.accept(v);
-    then.accept(v);
-    otherwise?.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    condition = v.transform(condition);
-    condition.parent = this;
-    then = v.transform(then);
-    then.parent = this;
-    if (otherwise != null) {
-      otherwise = v.transform(otherwise!);
-      otherwise?.parent = this;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    condition = v.transform(condition);
-    condition.parent = this;
-    then = v.transform(then);
-    then.parent = this;
-    if (otherwise != null) {
-      otherwise = v.transformOrRemoveExpression(otherwise!);
-      otherwise?.parent = this;
-    }
   }
 
   @override
@@ -268,15 +218,11 @@ class IfElement extends ControlFlowElement with ControlFlowElementMixin {
 
 /// A 'for' element in a list or set literal.
 class ForElement extends ControlFlowElement
-    with ControlFlowElementMixin
+    with InternalTreeNode, ControlFlowElementMixin
     implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -287,50 +233,13 @@ class ForElement extends ControlFlowElement
   @override
   Expression body;
 
-  ForElement(
-    this.variableInitializations,
-    this.condition,
-    this.updates,
-    this.body,
-  ) {
-    setParents(variableInitializations, this);
+  @override
+  late List<VariableDeclaration> variables;
+
+  new(this.internalVariables, this.condition, this.updates, this.body) {
+    setParents(internalVariables, this);
     condition?.parent = this;
     setParents(updates, this);
-    body.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    visitList(variableInitializations, v);
-    condition?.accept(v);
-    visitList(updates, v);
-    body.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    v.transformList(variableInitializations, this);
-    if (condition != null) {
-      condition = v.transform(condition!);
-      condition?.parent = this;
-    }
-    v.transformList(updates, this);
-    body = v.transform(body);
-    body.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformVariableInitializationList(variableInitializations, this);
-    if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition!);
-      condition?.parent = this;
-    }
-    v.transformExpressionList(updates, this);
-    body = v.transform(body);
     body.parent = this;
   }
 
@@ -346,7 +255,7 @@ class ForElement extends ControlFlowElement
     }
     if (bodyEntry == null) return null;
     ForMapEntry result = new ForMapEntry(
-      variableInitializations,
+      internalVariables,
       condition,
       updates,
       bodyEntry,
@@ -364,12 +273,12 @@ class ForElement extends ControlFlowElement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        internalVariables[index].variable.astVariable,
         includeModifiersAndType: index == 0,
       );
     }
@@ -385,15 +294,15 @@ class ForElement extends ControlFlowElement
 }
 
 /// A 'for-in' element in a list or set literal.
-class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
-  // Has no initializer.
-  VariableDeclaration variable;
+class ForInElement extends ControlFlowElement
+    with InternalTreeNode, ControlFlowElementMixin {
+  final InternalForInElement element;
   Expression iterable;
-  Expression? syntheticAssignment; // May be null.
-  Statement? expressionEffects; // May be null.
   Expression body;
-  Expression? problem; // May be null.
-  bool isAsync; // True if this is an 'await for' loop.
+  final bool isAsync; // True if this is an 'await for' loop.
+
+  /// File offset for the `for` keyword.
+  final int forOffset;
 
   /// Variable [Scope] of this [ForInElement].
   ///
@@ -401,109 +310,28 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  ForInElement(
-    this.variable,
+  late Variable variable;
+
+  ForInEncoding? encoding;
+
+  new(
+    this.element,
     this.iterable,
-    this.syntheticAssignment,
-    this.expressionEffects,
-    this.body,
-    this.problem, {
-    this.isAsync = false,
+    this.body, {
+    required this.isAsync,
+    required int fileOffset,
+    required this.forOffset,
+    this.encoding,
   }) {
-    variable.parent = this;
+    this.fileOffset = fileOffset;
     iterable.parent = this;
-    syntheticAssignment?.parent = this;
-    expressionEffects?.parent = this;
     body.parent = this;
-    problem
-            // Coverage-ignore(suite): Not run.
-            ?.parent =
-        this;
-  }
-
-  Statement? get prologue => syntheticAssignment != null
-      ? (new ExpressionStatement(syntheticAssignment!)
-          ..fileOffset = syntheticAssignment!.fileOffset)
-      : expressionEffects;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    variable.accept(v);
-    iterable.accept(v);
-    syntheticAssignment?.accept(v);
-    expressionEffects?.accept(v);
-    body.accept(v);
-    problem?.accept(v);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
-    iterable = v.transform(iterable);
-    iterable.parent = this;
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    body = v.transform(body);
-    body.parent = this;
-    if (problem != null) {
-      problem = v.transform(problem!);
-      problem?.parent = this;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
-    iterable = v.transform(iterable);
-    iterable.parent = this;
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    body = v.transform(body);
-    body.parent = this;
-    if (problem != null) {
-      problem = v.transformOrRemoveExpression(problem!);
-      problem?.parent = this;
-    }
-  }
-
-  @override
-  MapLiteralEntry? toMapLiteralEntry(
-    void onConvertElement(TreeNode from, TreeNode to),
-  ) {
-    MapLiteralEntry? bodyEntry;
-    Expression body = this.body;
-    if (body is ControlFlowElement) {
-      bodyEntry = body.toMapLiteralEntry(onConvertElement);
-    }
-    if (bodyEntry == null) return null;
-    ForInMapEntry result = new ForInMapEntry(
-      variable,
-      iterable,
-      syntheticAssignment,
-      expressionEffects,
-      bodyEntry,
-      problem,
-      isAsync: isAsync,
-    )..fileOffset = fileOffset;
-    onConvertElement(this, result);
-    return result;
+  void toTextInternal(AstPrinter state) {
+    // TODO(johnniwinther): Implement this.
   }
 
   @override
@@ -512,16 +340,33 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  MapLiteralEntry? toMapLiteralEntry(
+    void Function(TreeNode from, TreeNode to) onConvertElement,
+  ) {
+    MapLiteralEntry? bodyEntry;
+    Expression body = this.body;
+    if (body is ControlFlowElement) {
+      bodyEntry = body.toMapLiteralEntry(onConvertElement);
+    }
+    if (bodyEntry == null) return null;
+    ForInMapEntry result = new ForInMapEntry(
+      element,
+      iterable,
+      bodyEntry,
+      isAsync: isAsync,
+      fileOffset: fileOffset,
+      forOffset: forOffset,
+      encoding: encoding,
+    );
+    onConvertElement(this, result);
+    return result;
   }
 }
 
 class IfCaseElement extends ControlFlowElementImpl
     with ControlFlowElementMixin {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   Expression then;
   Expression? otherwise;
   List<Statement> prelude;
@@ -531,16 +376,19 @@ class IfCaseElement extends ControlFlowElementImpl
   /// This is set during inference.
   DartType? matchedValueType;
 
-  IfCaseElement({
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
+  new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     setParents(prelude, this);
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -559,7 +407,7 @@ class IfCaseElement extends ControlFlowElementImpl
     printer.write('if (');
     printer.writeExpression(expression);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     printer.writeExpression(then);
     if (otherwise != null) {
@@ -593,7 +441,7 @@ class IfCaseElement extends ControlFlowElementImpl
         new IfCaseMapEntry(
             prelude: prelude,
             expression: expression,
-            patternGuard: patternGuard,
+            internalPatternGuard: internalPatternGuard,
             then: thenEntry,
             otherwise: otherwiseEntry,
           )
@@ -610,30 +458,27 @@ class IfCaseElement extends ControlFlowElementImpl
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<VariableInitializationBase> get variableInitializations;
-
-  List<VariableDeclaration> get variables;
+  List<InternalVariableDeclaration> get internalVariables;
 
   abstract Expression? condition;
 
   List<Expression> get updates;
 
   abstract Expression body;
+
+  /// [VariableDeclaration]s computed after inference of [internalVariables].
+  abstract List<VariableDeclaration> variables;
 }
 
 class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
     implements ForElementBase {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
+  List<InternalVariableDeclaration> intermediateVariables;
 
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -644,14 +489,21 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   Expression body;
 
-  PatternForElement({
-    required this.patternVariableDeclaration,
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
+  @override
+  late List<VariableDeclaration> variables;
+
+  new({
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitializationBase> variables,
+    required this.internalVariables,
     required this.condition,
     required this.updates,
     required this.body,
-  }) : variableInitializations = variables;
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -664,14 +516,14 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        internalVariables[index].variable.astVariable,
         includeModifiersAndType: index == 0,
       );
     }
@@ -738,7 +590,7 @@ mixin ControlFlowMapEntryMixin implements MapLiteralEntry {
 
 /// A null-aware entry in a map literal.
 class NullAwareMapEntry extends TreeNode
-    with ControlFlowMapEntryMixin
+    with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   /// `true` if the key expression is null-aware, that is, marked with `?`.
   bool isKeyNullAware;
@@ -752,7 +604,7 @@ class NullAwareMapEntry extends TreeNode
   @override
   Expression value;
 
-  NullAwareMapEntry({
+  new({
     required this.isKeyNullAware,
     required this.key,
     required this.isValueNullAware,
@@ -772,36 +624,11 @@ class NullAwareMapEntry extends TreeNode
     }
     value.toTextInternal(printer);
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    key = v.transform(key);
-    key.parent = this;
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    key = v.transform(key);
-    key.parent = this;
-    value = v.transform(value);
-    value.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    key.accept(v);
-    value.accept(v);
-  }
 }
 
 /// A spread element in a map literal.
 class SpreadMapEntry extends TreeNode
-    with ControlFlowMapEntryMixin
+    with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
@@ -812,27 +639,7 @@ class SpreadMapEntry extends TreeNode
   /// during the desugaring.
   DartType? entryType;
 
-  SpreadMapEntry(this.expression, {required this.isNullAware}) {
-    expression.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    expression.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    expression = v.transform(expression);
-    expression.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    expression = v.transform(expression);
+  new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -851,50 +658,16 @@ class SpreadMapEntry extends TreeNode
 
 /// An 'if' element in a map literal.
 class IfMapEntry extends TreeNode
-    with ControlFlowMapEntryMixin
+    with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression condition;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
 
-  IfMapEntry(this.condition, this.then, this.otherwise) {
+  new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    condition.accept(v);
-    then.accept(v);
-    otherwise?.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    condition = v.transform(condition);
-    condition.parent = this;
-    then = v.transform(then);
-    then.parent = this;
-    if (otherwise != null) {
-      otherwise = v.transform(otherwise!);
-      otherwise?.parent = this;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    condition = v.transform(condition);
-    condition.parent = this;
-    then = v.transform(then);
-    then.parent = this;
-    if (otherwise != null) {
-      otherwise = v.transformOrRemove(otherwise!, dummyMapLiteralEntry);
-      otherwise?.parent = this;
-    }
   }
 
   @override
@@ -917,28 +690,25 @@ class IfMapEntry extends TreeNode
 }
 
 abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
-  List<VariableInitializationBase> get variableInitializations;
-
-  List<VariableDeclaration> get variables;
+  List<InternalVariableDeclaration> get internalVariables;
 
   abstract Expression? condition;
 
   List<Expression> get updates;
 
   abstract MapLiteralEntry body;
+
+  /// [VariableDeclaration]s computed after inference of [internalVariables].
+  abstract List<VariableDeclaration> variables;
 }
 
 /// A 'for' element in a map literal.
 class ForMapEntry extends TreeNode
-    with ControlFlowMapEntryMixin
+    with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -949,50 +719,13 @@ class ForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  ForMapEntry(
-    this.variableInitializations,
-    this.condition,
-    this.updates,
-    this.body,
-  ) {
-    setParents(variableInitializations, this);
+  @override
+  late List<VariableDeclaration> variables;
+
+  new(this.internalVariables, this.condition, this.updates, this.body) {
+    setParents(internalVariables, this);
     condition?.parent = this;
     setParents(updates, this);
-    body.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    visitList(variableInitializations, v);
-    condition?.accept(v);
-    visitList(updates, v);
-    body.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    v.transformList(variableInitializations, this);
-    if (condition != null) {
-      condition = v.transform(condition!);
-      condition?.parent = this;
-    }
-    v.transformList(updates, this);
-    body = v.transform(body);
-    body.parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformVariableInitializationList(variableInitializations, this);
-    if (condition != null) {
-      condition = v.transformOrRemoveExpression(condition!);
-      condition?.parent = this;
-    }
-    v.transformExpressionList(updates, this);
-    body = v.transform(body);
     body.parent = this;
   }
 
@@ -1005,12 +738,12 @@ class ForMapEntry extends TreeNode
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        internalVariables[index].variable.astVariable,
         includeModifiersAndType: index == 0,
       );
     }
@@ -1028,15 +761,11 @@ class ForMapEntry extends TreeNode
 class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
+  List<InternalVariableDeclaration> intermediateVariables;
 
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition;
@@ -1047,26 +776,33 @@ class PatternForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  PatternForMapEntry({
-    required this.patternVariableDeclaration,
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
+  @override
+  late List<VariableDeclaration> variables;
+
+  new({
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitializationBase> variables,
+    required this.internalVariables,
     required this.condition,
     required this.updates,
     required this.body,
-  }) : variableInitializations = variables;
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        internalVariables[index].variable.astVariable,
         includeModifiersAndType: index == 0,
       );
     }
@@ -1088,16 +824,15 @@ class PatternForMapEntry extends TreeNode
 
 /// A 'for-in' element in a map literal.
 class ForInMapEntry extends TreeNode
-    with ControlFlowMapEntryMixin
+    with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
-  // Has no initializer.
-  VariableDeclaration variable;
+  final InternalForInElement element;
   Expression iterable;
-  Expression? syntheticAssignment; // May be null.
-  Statement? expressionEffects; // May be null.
   MapLiteralEntry body;
-  Expression? problem; // May be null.
-  bool isAsync; // True if this is an 'await for' loop.
+  final bool isAsync; // True if this is an 'await for' loop.
+
+  /// File offset for the `for` keyword.
+  final int forOffset;
 
   /// Variable [Scope] of this [ForInMapEntry].
   ///
@@ -1105,91 +840,22 @@ class ForInMapEntry extends TreeNode
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  ForInMapEntry(
-    this.variable,
+  late Variable variable;
+
+  ForInEncoding? encoding;
+
+  new(
+    this.element,
     this.iterable,
-    this.syntheticAssignment,
-    this.expressionEffects,
-    this.body,
-    this.problem, {
+    this.body, {
     required this.isAsync,
+    required int fileOffset,
+    required this.forOffset,
+    this.encoding,
   }) {
-    variable.parent = this;
+    this.fileOffset = fileOffset;
     iterable.parent = this;
-    syntheticAssignment?.parent = this;
-    expressionEffects?.parent = this;
     body.parent = this;
-    problem
-            // Coverage-ignore(suite): Not run.
-            ?.parent =
-        this;
-  }
-
-  Statement? get prologue => syntheticAssignment != null
-      ? (new ExpressionStatement(syntheticAssignment!)
-          ..fileOffset = syntheticAssignment!.fileOffset)
-      : expressionEffects;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    variable.accept(v);
-    iterable.accept(v);
-    syntheticAssignment?.accept(v);
-    expressionEffects?.accept(v);
-    body.accept(v);
-    problem?.accept(v);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
-    iterable = v.transform(iterable);
-    iterable.parent = this;
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transform(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transform(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    body = v.transform(body);
-    body.parent = this;
-    if (problem != null) {
-      problem = v.transform(problem!);
-      problem?.parent = this;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transform(variable);
-    variable.parent = this;
-    iterable = v.transform(iterable);
-    iterable.parent = this;
-    if (syntheticAssignment != null) {
-      syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
-      syntheticAssignment?.parent = this;
-    }
-    if (expressionEffects != null) {
-      expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
-      expressionEffects?.parent = this;
-    }
-    body = v.transform(body);
-    body.parent = this;
-    if (problem != null) {
-      problem = v.transformOrRemoveExpression(problem!);
-      problem?.parent = this;
-    }
-  }
-
-  @override
-  String toString() {
-    return "ForInMapEntry(${toStringInternal()})";
   }
 
   @override
@@ -1197,13 +863,18 @@ class ForInMapEntry extends TreeNode
   void toTextInternal(AstPrinter state) {
     // TODO(johnniwinther): Implement this.
   }
+
+  @override
+  String toString() {
+    return "ForInMapEntry(${toStringInternal()})";
+  }
 }
 
 class IfCaseMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
   List<Statement> prelude;
@@ -1213,15 +884,18 @@ class IfCaseMapEntry extends TreeNode
   /// This is set during inference.
   DartType? matchedValueType;
 
-  IfCaseMapEntry({
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
+  new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -1232,7 +906,7 @@ class IfCaseMapEntry extends TreeNode
     printer.write('if (');
     expression.toTextInternal(printer);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     then.toTextInternal(printer);
     if (otherwise != null) {
@@ -1333,7 +1007,7 @@ MapLiteralEntry convertToMapEntry(
             new IfCaseMapEntry(
                 prelude: [],
                 expression: element.expression,
-                patternGuard: element.patternGuard,
+                internalPatternGuard: element.internalPatternGuard,
                 then: convertToMapEntry(
                   element.then,
                   problemReporting,
@@ -1358,9 +1032,10 @@ MapLiteralEntry convertToMapEntry(
 
       case PatternForElement():
         PatternForMapEntry result = new PatternForMapEntry(
-          patternVariableDeclaration: element.patternVariableDeclaration,
+          internalPatternVariableDeclaration:
+              element.internalPatternVariableDeclaration,
           intermediateVariables: element.intermediateVariables,
-          variables: element.variableInitializations,
+          internalVariables: element.internalVariables,
           condition: element.condition,
           updates: element.updates,
           body: convertToMapEntry(
@@ -1376,7 +1051,7 @@ MapLiteralEntry convertToMapEntry(
 
       case ForElement():
         ForMapEntry result = new ForMapEntry(
-          element.variableInitializations,
+          element.internalVariables,
           element.condition,
           element.updates,
           convertToMapEntry(
@@ -1392,10 +1067,8 @@ MapLiteralEntry convertToMapEntry(
 
       case ForInElement():
         ForInMapEntry result = new ForInMapEntry(
-          element.variable,
+          element.element,
           element.iterable,
-          element.syntheticAssignment,
-          element.expressionEffects,
           convertToMapEntry(
             element.body,
             problemReporting,
@@ -1403,9 +1076,11 @@ MapLiteralEntry convertToMapEntry(
             fileUri,
             onConvertElement,
           ),
-          element.problem,
+          fileOffset: element.fileOffset,
+          forOffset: element.forOffset,
           isAsync: element.isAsync,
-        )..fileOffset = element.fileOffset;
+          encoding: element.encoding,
+        );
         onConvertElement(element, result);
         return result;
     }
@@ -1427,7 +1102,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   CompilerContext compilerContext,
   Uri fileUri,
 ) {
-  return new MapLiteralEntry(
+  return extern.createMapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.expectedAfterButGot.withArguments(expected: ':'),
@@ -1436,6 +1111,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
       // TODO(danrubel): what is the length of the expression?
       length: noLength,
     ),
-    new NullLiteral()..fileOffset = element.fileOffset,
-  )..fileOffset = element.fileOffset;
+    extern.createNullLiteral(fileOffset: element.fileOffset),
+    fileOffset: element.fileOffset,
+  );
 }

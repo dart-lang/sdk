@@ -22,6 +22,7 @@ import 'common/test_helper.dart';
 
 void main() {
   late Process chromeDriver;
+  late int chromeDriverPort;
   late DartDevelopmentService dds;
   late SseHandler handler;
   Process? process;
@@ -29,14 +30,24 @@ void main() {
   late WebDriver webdriver;
 
   setUpAll(() async {
-    var chromedriverPath = '../../../third_party/webdriver/chrome/chromedriver';
-    if (Platform.isWindows) {
-      chromedriverPath = '$chromedriverPath.exe';
+    final socket = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    chromeDriverPort = socket.port;
+    await socket.close();
+
+    var chromedriverPath = Platform.environment['CHROMEDRIVER_PATH'];
+    final Uri chromedriverUri;
+    if (chromedriverPath == null) {
+      chromedriverPath = '../../../third_party/webdriver/chrome/chromedriver';
+      if (Platform.isWindows) {
+        chromedriverPath = '$chromedriverPath.exe';
+      }
+      chromedriverUri = resolveTestRelativePath(chromedriverPath);
+    } else {
+      chromedriverUri = Uri.file(chromedriverPath);
     }
-    final chromedriverUri = resolveTestRelativePath(chromedriverPath);
     try {
       chromeDriver = await Process.start(chromedriverUri.toFilePath(), [
-        '--port=4444',
+        '--port=$chromeDriverPort',
         '--url-base=wd/hub',
       ]);
     } catch (e) {
@@ -71,6 +82,7 @@ void main() {
         });
       webdriver = await createDriver(
         desired: capabilities,
+        uri: Uri.parse('http://localhost:$chromeDriverPort/wd/hub/'),
       );
     });
 

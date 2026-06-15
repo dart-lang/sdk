@@ -42,7 +42,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
-    List<String>? excludedPaths,
     List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packageConfigFile,
@@ -93,7 +92,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var roots = locateContextRoots(
       includedPaths: includedPaths,
       resourceProvider: this.resourceProvider,
-      excludedPaths: excludedPaths = const [],
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,
     );

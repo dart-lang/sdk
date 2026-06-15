@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 130;
+static const uint32_t kSupportedKernelFormatVersion = 132;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -117,7 +117,7 @@ static const uint32_t kSupportedKernelFormatVersion = 130;
   V(TryCatch, 75)                                                              \
   V(TryFinally, 76)                                                            \
   V(YieldStatement, 77)                                                        \
-  V(VariableDeclaration, 78)                                                   \
+  V(VariableStatement, 78)                                                     \
   V(FunctionDeclaration, 79)                                                   \
   V(AsyncForInStatement, 80)                                                   \
   V(AssertBlock, 81)                                                           \
@@ -174,6 +174,15 @@ static const uint32_t kSupportedKernelFormatVersion = 130;
   V(PatternVariableDeclaration, 151)                                           \
   V(NullType, 152)                                                             \
   V(RedirectingFactoryInvocation, 153)                                         \
+  V(VariableDeclaration, 154)                                                  \
+  V(LocalVariable, 155)                                                        \
+  V(LateVariable, 156)                                                         \
+  V(SyntheticVariable, 157)                                                    \
+  V(CatchVariable, 158)                                                        \
+  V(PositionalParameter, 159)                                                  \
+  V(NamedParameter, 160)                                                       \
+  V(ThisVariable, 161)                                                         \
+  V(LegacyVariable, 162)                                                       \
   V(SpecializedVariableGet, 224)                                               \
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)

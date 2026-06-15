@@ -942,6 +942,11 @@ class Assembler : public AssemblerBase {
                   RangeCheckCondition condition,
                   Label* target) override;
 
+  void ExtractBitField(Register dst,
+                       Register src,
+                       intptr_t low_bit,
+                       intptr_t width) override;
+
   /*
    * Loading and comparing classes of objects.
    */

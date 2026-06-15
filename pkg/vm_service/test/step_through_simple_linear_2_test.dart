@@ -31,7 +31,7 @@ int getB() => 42;
 final stops = <String>[];
 const expected = <String>[
   '$file:$LINE_A:3', // on call to 'print'
-  '$file:${LINE_A + 1}:23', // on ')', i.e. before ';'
+  '$file:${LINE_A + 1}:9', // on the first '''
   '$file:${LINE_A + 1}:3', // on call to 'print'
   '$file:${LINE_A + 2}:3', // on call to 'print'
   '$file:${LINE_A + 3}:1', // on ending '}'

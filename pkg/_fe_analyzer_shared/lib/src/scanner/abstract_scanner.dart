@@ -8,15 +8,23 @@
 library _fe_analyzer_shared.scanner.abstract_scanner;
 
 import 'dart:collection' show ListMixin;
-
 import 'dart:typed_data' show Uint16List, Uint32List;
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
-
+import '../experiments/flags.dart';
+import '../messages/diagnostic.dart' as diag;
+import '../util/link.dart' show Link;
+import 'characters.dart';
+import 'error_token.dart'
+    show
+        NonAsciiIdentifierToken,
+        UnmatchedToken,
+        UnsupportedOperator,
+        UnterminatedString,
+        UnterminatedToken;
 import 'internal_utils.dart' show isIdentifierChar;
-
 import 'keyword_state.dart' show KeywordState, KeywordStateHelper;
-
+import 'scanner.dart'
+    show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 import 'token.dart'
     show
         BeginToken,
@@ -28,27 +36,9 @@ import 'token.dart'
         Token,
         TokenIsAExtension,
         TokenType;
-
 import 'token.dart' as analyzer show StringToken;
-
-import '../util/link.dart' show Link;
-
-import 'characters.dart';
-
-import 'error_token.dart'
-    show
-        NonAsciiIdentifierToken,
-        UnmatchedToken,
-        UnsupportedOperator,
-        UnterminatedString,
-        UnterminatedToken;
-
-import 'token_impl.dart' show DartDocToken, StringTokenImpl;
-
 import 'token_constants.dart';
-
-import 'scanner.dart'
-    show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
+import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
 typedef void LanguageVersionChanged(
   Scanner scanner,
@@ -74,10 +64,10 @@ abstract class AbstractScanner implements Scanner {
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  bool _enableTripleShift = false;
+  bool _enableTripleShift = ExperimentalFlag.tripleShift.isEnabledByDefault;
 
-  /// If `true`, 'augment' is treated as a built-in identifier.
-  bool _forAugmentationLibrary = false;
+  /// Experimental flag for enabling 'augment' as a built-in identifier.
+  bool _enableAugmentations = ExperimentalFlag.augmentations.isEnabledByDefault;
 
   /**
    * The string offset for the next token that will be created.
@@ -127,7 +117,7 @@ abstract class AbstractScanner implements Scanner {
   Token? commentsTail;
 
   @override
-  final List<int> lineStarts;
+  final LineStarts lineStarts;
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -178,7 +168,9 @@ abstract class AbstractScanner implements Scanner {
   AbstractScanner._recoveryOptionScanner(
     AbstractScanner copyFrom,
     Token newEofToken,
-  ) : lineStarts = [],
+  ) : lineStarts = new LineStarts(
+        /*numberOfBytesHint - fake number, but doesn't really matter */ 1000,
+      ),
       includeComments = false,
       languageVersionChanged = null,
       inRecoveryOption = true,
@@ -195,7 +187,7 @@ abstract class AbstractScanner implements Scanner {
   set configuration(ScannerConfiguration? config) {
     if (config != null) {
       _enableTripleShift = config.enableTripleShift;
-      _forAugmentationLibrary = config.forAugmentationLibrary;
+      _enableAugmentations = config.enableAugmentations;
     }
   }
 
@@ -2041,7 +2033,7 @@ abstract class AbstractScanner implements Scanner {
     if (keyword == null) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
-    if (!_forAugmentationLibrary && keyword == Keyword.AUGMENT) {
+    if (!_enableAugmentations && keyword == Keyword.AUGMENT) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (($A <= next && next <= $Z) ||
@@ -2487,6 +2479,21 @@ class LineStarts extends Object with ListMixin<int> {
     add(/* value = */ 0);
   }
 
+  // Coverage-ignore(suite): Not run.
+  /// Create a [Uint32List] or [Uint16List] (as needed) copy without the last
+  /// element. Used by the Analyzer.
+  List<int> copyToTypedDataWithoutLastElement() {
+    if (last > 65535) {
+      Uint32List list = new Uint32List(arrayLength - 1);
+      list.setRange(0, arrayLength - 1, array);
+      return list;
+    } else {
+      Uint16List list = new Uint16List(arrayLength - 1);
+      list.setRange(0, arrayLength - 1, array);
+      return list;
+    }
+  }
+
   // Implement abstract members used by [ListMixin]
 
   @override
@@ -2570,18 +2577,16 @@ class LineStarts extends Object with ListMixin<int> {
 /// [ScannerConfiguration] contains information for configuring which tokens
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
-  static const ScannerConfiguration nonNullable = const ScannerConfiguration();
-
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
   final bool enableTripleShift;
 
-  /// If `true`, 'augment' is treated as a built-in identifier.
-  final bool forAugmentationLibrary;
+  /// Experimental flag for enabling 'augment' as a built-in identifier.
+  final bool enableAugmentations;
 
   const ScannerConfiguration({
-    this.enableTripleShift = false,
-    this.forAugmentationLibrary = false,
+    required this.enableTripleShift,
+    required this.enableAugmentations,
   });
 }

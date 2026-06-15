@@ -22,6 +22,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server/src/utilities/extensions/list.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/dart/element/element.dart';
@@ -1537,17 +1538,9 @@ lsp.SignatureHelp toSignatureHelp(
         ? ' = ${p.defaultValueCode}'
         : '';
 
-    var hasFinal = p is FieldFormalParameterElement
-        ? (p.field?.isFinal ?? false)
-        : p.isFinal;
-    var hasVar = p is FieldFormalParameterElement && p.isDeclaring && !hasFinal;
+    var prefix = p.isRequiredNamed ? 'required ' : '';
 
-    var prefixes = [
-      if (hasFinal) 'final ',
-      if (hasVar) 'var ',
-      if (p.isRequiredNamed) 'required ',
-    ];
-    return '${prefixes.join()}${p.type} ${p.displayName}$defaultCodeSuffix';
+    return '$prefix${p.type} ${p.displayName}$defaultCodeSuffix';
   }
 
   /// Gets the full signature label in the form
@@ -1898,9 +1891,4 @@ extension CompletionLabelExtension on CompletionItemLabelDetails {
   /// Returns `null` if no fields are set, otherwise `this`.
   CompletionItemLabelDetails? get nullIfEmpty =>
       detail != null || description != null ? this : null;
-}
-
-extension _ListExtensions<T> on List<T> {
-  /// Returns `null` if this list is empty, otherwise `this`.
-  List<T>? get nullIfEmpty => isEmpty ? null : this;
 }

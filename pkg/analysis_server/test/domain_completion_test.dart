@@ -8,7 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -110,8 +110,7 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
     await _configureWithWorkspaceRoot();
@@ -789,8 +788,8 @@ class A02 {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+        ..add(name: 'aaa', rootFolder: aaaRoot)
+        ..add(name: 'bbb', rootFolder: bbbRoot),
     );
 
     await _configureWithWorkspaceRoot();
@@ -843,8 +842,8 @@ class A04 {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+        ..add(name: 'aaa', rootFolder: aaaRoot)
+        ..add(name: 'bbb', rootFolder: bbbRoot),
     );
 
     await _configureWithWorkspaceRoot();
@@ -893,8 +892,8 @@ class A04 {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+        ..add(name: 'aaa', rootFolder: aaaRoot)
+        ..add(name: 'bbb', rootFolder: bbbRoot),
     );
 
     await _configureWithWorkspaceRoot();
@@ -945,8 +944,8 @@ class A02 {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+        ..add(name: 'aaa', rootFolder: aaaRoot)
+        ..add(name: 'bbb', rootFolder: bbbRoot),
     );
 
     await _configureWithWorkspaceRoot();
@@ -2140,6 +2139,8 @@ suggestions
     kind: identifier
   |linter: |
     kind: identifier
+  |plugins: |
+    kind: identifier
 ''');
   }
 
@@ -2295,7 +2296,7 @@ class RequestWithFutureResponse {
   final Request request;
   final Future<Response> futureResponse;
 
-  RequestWithFutureResponse(this.offset, this.request, this.futureResponse);
+  new(this.offset, this.request, this.futureResponse);
 
   Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
@@ -2324,7 +2325,7 @@ class _SuggestionDetailsPrinter {
 
   String _indent = '';
 
-  _SuggestionDetailsPrinter({
+  new({
     required this.buffer,
     required this.result,
     required this.resourceProvider,

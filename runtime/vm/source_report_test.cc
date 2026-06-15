@@ -937,7 +937,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
   // WARNING: This MUST be big enough for the serialized JSON string.
-  const int kBufferSize = 2048;
+  const int kBufferSize = 4096;
   char buffer[kBufferSize];
   const char* kScript =
       "abstract class AllStatic {\n"
@@ -1277,7 +1277,7 @@ String destructure(Map<String, dynamic> map) {
 
       // destructure
       "{\"scriptIndex\":0,\"startPos\":81,\"endPos\":216,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[81,144,160,214],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[81,144,160,185],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

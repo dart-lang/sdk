@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingOverrideOfMustBeOverriddenTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -22,8 +23,7 @@ class MissingOverrideOfMustBeOverriddenTest extends PubPackageResolutionTest {
   }
 
   test_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -32,27 +32,25 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 86, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'f'.
+''');
   }
 
   test_field_declaredInPrimaryConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A(@mustBeOverridden var int f);
 
 class B(super.f) extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 79, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'f'.
+''');
   }
 
   test_field_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -64,20 +62,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [
-        error(
-          diag.missingOverrideOfMustBeOverriddenTwo,
-          121,
-          1,
-          messageContains: ["'f'", "'m'"],
-        ),
-      ],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenTwo] Missing a required override of 'm' and 'f'.
+''');
   }
 
   test_field_overriddenWithField() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -92,7 +83,7 @@ class B extends A {
   }
 
   test_field_overriddenWithField_inPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -105,7 +96,7 @@ class B(var int f) extends A;
   }
 
   test_field_overriddenWithGetterSetterPair() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -122,8 +113,7 @@ class B extends A {
   }
 
   test_field_overriddenWithOnlyGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -132,15 +122,15 @@ class A {
 }
 
 class B extends A {
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'f'.
   int get f => 0;
 }
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 86, 1)],
-    );
+''');
   }
 
   test_finalField_overriddenWithOnlyGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -155,8 +145,7 @@ class B extends A {
   }
 
   test_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -165,13 +154,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 91, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'f'.
+''');
   }
 
   test_getter_overriddenWithField() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -186,7 +175,7 @@ class B extends A {
   }
 
   test_getter_overriddenWithField_inPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -199,7 +188,7 @@ class B(var int f) extends A;
   }
 
   test_getter_overriddenWithGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -214,8 +203,7 @@ class B extends A {
   }
 
   test_method_directMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -224,14 +212,13 @@ mixin M {
 }
 
 class A with M {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_directSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -240,14 +227,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_directSuperclass_three() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -262,14 +248,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenThreePlus, 157, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenThreePlus] Missing a required override of 'm', 'n', and 1 more.
+''');
   }
 
   test_method_directSuperclass_two() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -281,13 +266,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenTwo, 122, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenTwo] Missing a required override of 'm' and 'n'.
+''');
   }
 
   test_method_hasAbstractOverride_isOkBecauseNotConcreteClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -302,7 +287,7 @@ abstract class B extends A {
   }
 
   test_method_hasConcreteOverride() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -317,7 +302,7 @@ class B extends A {
   }
 
   test_method_hasNoSuchMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -332,8 +317,7 @@ class B extends A {
   }
 
   test_method_indirectMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -346,14 +330,13 @@ class A with M {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 121, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_indirectSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -366,14 +349,13 @@ class B extends A {
 }
 
 class C extends B {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 124, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_indirectSuperclass_oneErrorPerName() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -387,14 +369,13 @@ class B extends A {
 }
 
 class C extends B {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 144, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_mixinApplication() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 mixin A {
@@ -403,9 +384,9 @@ mixin A {
 }
 
 class B = Object with A;
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'm'.
+''');
   }
 
   test_method_notVisible() async {
@@ -418,7 +399,7 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:test/a.dart';
 
 class B extends A {}
@@ -426,7 +407,7 @@ class B extends A {}
   }
 
   test_method_overriddenWithMethod_wildcardParams() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class C {
@@ -442,7 +423,7 @@ class A extends C {
   }
 
   test_method_overriddenWithMethod_wildcardParams_preWildcards() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -461,7 +442,7 @@ class A extends C {
   }
 
   test_method_sealedClassIsImplicitlyAbstract() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -474,7 +455,7 @@ sealed class B extends A {}
   }
 
   test_method_superconstraint_isOkBecauseMixinsAreNotConcrete() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -487,8 +468,7 @@ mixin M on A {}
   }
 
   test_operator_directSuperclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -497,14 +477,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 107, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of '+'.
+''');
   }
 
   test_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -513,14 +492,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 100, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of 'f'.
+''');
   }
 
   test_unary_operator() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -529,13 +507,13 @@ class A {
 }
 
 class B extends A {}
-''',
-      [error(diag.missingOverrideOfMustBeOverriddenOne, 96, 1)],
-    );
+//    ^
+// [diag.missingOverrideOfMustBeOverriddenOne] Missing a required override of '-'.
+''');
   }
 
   test_unary_operator_overriden() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden

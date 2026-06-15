@@ -43,7 +43,7 @@ TEST_CASE(StackMapGC) {
   const char* kScriptChars = R"(
 class A {
   @pragma("vm:external-name", "NativeFunc")
-  external static void func(var i, var k);
+  external static void func(i, k);
   static foo() {
     var i;
     var s1;

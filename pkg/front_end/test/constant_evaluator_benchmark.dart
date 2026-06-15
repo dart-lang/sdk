@@ -190,14 +190,14 @@ Future<void> main(List<String> arguments) async {
 
 CompilerContext setupCompilerContext(
   String targetString,
-  bool widgetTransformation,
+  bool trackCreationLocations,
   Uri platformUri,
   Uri mainUri,
 ) {
   CompilerOptions options = getOptions();
 
   TargetFlags targetFlags = new TargetFlags(
-    trackWidgetCreation: widgetTransformation,
+    trackCreationLocations: trackCreationLocations,
   );
   Target target;
   switch (targetString) {
@@ -237,7 +237,7 @@ CompilerContext setupCompilerContext(
 }
 
 class HookInVmTarget extends VmTarget {
-  HookInVmTarget(TargetFlags flags) : super(flags);
+  new(TargetFlags flags) : super(flags);
 
   @override
   void performPreConstantEvaluationTransformations(
@@ -261,7 +261,7 @@ class HookInVmTarget extends VmTarget {
 }
 
 class HookInDart2jsTarget extends Dart2jsTarget {
-  HookInDart2jsTarget(String name, TargetFlags flags) : super(name, flags);
+  new(String name, TargetFlags flags) : super(name, flags);
 
   @override
   void performPreConstantEvaluationTransformations(
@@ -285,7 +285,7 @@ class HookInDart2jsTarget extends Dart2jsTarget {
 }
 
 class HookInDevCompilerTarget extends DevCompilerTarget {
-  HookInDevCompilerTarget(TargetFlags flags) : super(flags);
+  new(TargetFlags flags) : super(flags);
 
   @override
   void performPreConstantEvaluationTransformations(
@@ -309,7 +309,7 @@ class HookInDevCompilerTarget extends DevCompilerTarget {
 }
 
 class HookInFlutterTarget extends FlutterTarget {
-  HookInFlutterTarget(TargetFlags flags) : super(flags);
+  new(TargetFlags flags) : super(flags);
 
   @override
   void performPreConstantEvaluationTransformations(

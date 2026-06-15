@@ -15,7 +15,7 @@ class ReadFile {
 
   final Uint8List bytes;
 
-  const ReadFile(this.uri, this.bytes);
+  const new(this.uri, this.bytes);
 }
 
 class ScannedFile {
@@ -23,11 +23,11 @@ class ScannedFile {
 
   final ScannerResult result;
 
-  const ScannedFile(this.file, this.result);
+  const new(this.file, this.result);
 }
 
 class Read extends Step<TestDescription, ReadFile, ChainContext> {
-  const Read();
+  const new();
 
   @override
   String get name => "read";
@@ -42,7 +42,7 @@ class Read extends Step<TestDescription, ReadFile, ChainContext> {
 }
 
 class Scan extends Step<ReadFile, ScannedFile, ChainContext> {
-  const Scan();
+  const new();
 
   @override
   String get name => "scan";

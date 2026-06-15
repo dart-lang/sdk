@@ -153,7 +153,7 @@ class FixedExpression extends AbstractDelayedExpression {
 
   bool used = false;
 
-  FixedExpression(this._expression, this._type);
+  new(this._expression, this._type);
 
   @override
   Expression createExpression(
@@ -182,7 +182,7 @@ class BooleanExpression extends AbstractDelayedExpression {
   final bool value;
   final int fileOffset;
 
-  BooleanExpression(this.value, {required this.fileOffset});
+  new(this.value, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -210,7 +210,7 @@ class IntegerExpression extends AbstractDelayedExpression {
   final int value;
   final int fileOffset;
 
-  IntegerExpression(this.value, {required this.fileOffset});
+  new(this.value, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -244,7 +244,7 @@ class DelayedAndExpression implements DelayedExpression {
   final DelayedExpression _right;
   final int fileOffset;
 
-  DelayedAndExpression(this._left, this._right, {required this.fileOffset});
+  new(this._left, this._right, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -423,7 +423,7 @@ class DelayedOrExpression extends AbstractDelayedExpression {
   final DelayedExpression _right;
   final int fileOffset;
 
-  DelayedOrExpression(this._left, this._right, {required this.fileOffset});
+  new(this._left, this._right, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -480,7 +480,7 @@ class EffectExpression implements DelayedExpression {
   final DelayedExpression _result;
   final DelayedExpression? _lateEffect;
 
-  EffectExpression(this._effect, this._result, [this._lateEffect]);
+  new(this._effect, this._result, [this._lateEffect]);
 
   @override
   Expression createExpression(
@@ -611,13 +611,13 @@ class EffectExpression implements DelayedExpression {
 /// to [_target].
 class DelayedAssignment extends DelayedExpression {
   final MatchingCache _cache;
-  final VariableDeclaration _target;
+  final Variable _target;
   final DartType _type;
   final DelayedExpression _value;
   final bool hasEffect;
   final int fileOffset;
 
-  DelayedAssignment(
+  new(
     this._cache,
     this._target,
     this._type,
@@ -634,7 +634,7 @@ class DelayedAssignment extends DelayedExpression {
   }) {
     if (effects != null && hasEffect) {
       // Coverage-ignore-block(suite): Not run.
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );
@@ -682,7 +682,7 @@ class DelayedAssignment extends DelayedExpression {
     List<Statement>? effects,
   }) {
     if (effects != null && hasEffect) {
-      VariableDeclaration tempVariable = _cache.createTemporaryVariable(
+      Variable tempVariable = _cache.createTemporaryVariable(
         _type,
         fileOffset: fileOffset,
       );
@@ -758,7 +758,7 @@ class DelayedIsExpression extends AbstractDelayedExpression {
   final DartType _type;
   final int fileOffset;
 
-  DelayedIsExpression(this._operand, this._type, {required this.fileOffset});
+  new(this._operand, this._type, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -802,7 +802,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
   final bool isCovarianceCheck;
   final int fileOffset;
 
-  DelayedAsExpression(
+  new(
     this._operand,
     this._type, {
     this.isUnchecked = false,
@@ -827,7 +827,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
       return createAsExpression(
         operand,
         _type,
-        forNonNullableByDefault: true,
         isCovarianceCheck: true,
         fileOffset: fileOffset,
       );
@@ -840,7 +839,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
     return createAsExpression(
       operand,
       _type,
-      forNonNullableByDefault: true,
       isUnchecked: isUnchecked,
       fileOffset: fileOffset,
     );
@@ -867,7 +865,7 @@ class DelayedNullAssertExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
-  DelayedNullAssertExpression(this._operand, {required this.fileOffset});
+  new(this._operand, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -906,7 +904,7 @@ class DelayedNullCheckExpression extends AbstractDelayedExpression {
   final DelayedExpression _operand;
   final int fileOffset;
 
-  DelayedNullCheckExpression(this._operand, {required this.fileOffset});
+  new(this._operand, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -955,7 +953,7 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
   final bool isObjectAccess;
   final int fileOffset;
 
-  DelayedInstanceGet(
+  new(
     this._receiver,
     this._target,
     this._resultType, {
@@ -1027,7 +1025,7 @@ class DelayedDynamicGet extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedDynamicGet(
+  new(
     this._receiver,
     this._propertyName,
     this._kind,
@@ -1076,11 +1074,7 @@ class DelayedFunctionTearOff extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedFunctionTearOff(
-    this._receiver,
-    this._resultType, {
-    required this.fileOffset,
-  });
+  new(this._receiver, this._resultType, {required this.fileOffset});
 
   @override
   Expression createExpression(
@@ -1125,7 +1119,7 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedDynamicInvocation(
+  new(
     this._receiver,
     this._methodName,
     this._arguments,
@@ -1198,7 +1192,7 @@ class DelayedRecordIndexGet extends AbstractDelayedExpression {
   final int _index;
   final int fileOffset;
 
-  DelayedRecordIndexGet(
+  new(
     this._receiver,
     this._recordType,
     this._index, {
@@ -1247,16 +1241,11 @@ class DelayedRecordNameGet extends AbstractDelayedExpression {
   final String _name;
   final int fileOffset;
 
-  DelayedRecordNameGet(
-    this._receiver,
-    this._recordType,
-    this._name, {
-    required this.fileOffset,
-  }) : assert(
-         _recordType.named.where((element) => element.name == _name).length ==
-             1,
-         "Invalid record type $_recordType for named access of '$_name'.",
-       );
+  new(this._receiver, this._recordType, this._name, {required this.fileOffset})
+    : assert(
+        _recordType.named.where((element) => element.name == _name).length == 1,
+        "Invalid record type $_recordType for named access of '$_name'.",
+      );
 
   @override
   Expression createExpression(
@@ -1303,7 +1292,7 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
   final List<DelayedExpression> _arguments;
   final int fileOffset;
 
-  DelayedInstanceInvocation(
+  new(
     this._receiver,
     this._target,
     this._functionType,
@@ -1379,7 +1368,7 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
   final DartType _resultType;
   final int fileOffset;
 
-  DelayedExtensionInvocation(
+  new(
     this._target,
     this._arguments,
     this._typeArguments,
@@ -1444,7 +1433,7 @@ class DelayedEqualsExpression extends AbstractDelayedExpression {
   final FunctionType _functionType;
   final int fileOffset;
 
-  DelayedEqualsExpression(
+  new(
     this._left,
     this._right,
     this._target,
@@ -1497,7 +1486,7 @@ class DelayedEqualsExpression extends AbstractDelayedExpression {
 class DelayedNotExpression extends AbstractDelayedExpression {
   final DelayedExpression _expression;
 
-  DelayedNotExpression(this._expression);
+  new(this._expression);
 
   @override
   Expression createExpression(

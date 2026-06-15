@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'A code block is missing a specified language.';
 
 class MissingCodeBlockLanguageInDocComment extends AnalysisRule {
-  MissingCodeBlockLanguageInDocComment()
+  new()
     : super(
         name: LintNames.missing_code_block_language_in_doc_comment,
         description: _desc,
@@ -39,7 +39,7 @@ class MissingCodeBlockLanguageInDocComment extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitComment(Comment node) {

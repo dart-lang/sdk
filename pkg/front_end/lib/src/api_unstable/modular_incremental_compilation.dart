@@ -23,19 +23,20 @@ import 'util.dart' show equalMaps, equalSets;
 /// as necessary based on [workerInputDigests].
 ///
 /// Notes:
-/// * [outputLoadedAdditionalDills] should be given as an empty list of the same
-///   size as the [additionalDills]. The input summaries are loaded (or taken
-///   from cache) and placed in this list in order, i.e. the `i`-th entry in
-///   [outputLoadedAdditionalDills] after this call corresponds to the component
-///   loaded from the `i`-th entry in [additionalDills].
+/// * [outputLoadedAdditionalDillModules] should be given as an empty list of
+///   the same size as the [additionalDillModules]. The input summaries are
+///   loaded (or taken from cache) and placed in this list in order, i.e. the
+///   `i`-th entry in [outputLoadedAdditionalDillModules] after this call
+///   corresponds to the component loaded from the `i`-th entry in
+///   [additionalDillModules].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
   InitializedCompilerState? oldState,
   Set<String> tags,
-  List<Component> outputLoadedAdditionalDills,
+  List<Component> outputLoadedAdditionalDillModules,
   Uri? sdkSummary,
   Uri? packagesFile,
   Uri? librariesSpecificationUri,
-  List<Uri> additionalDills,
+  List<Uri> additionalDillModules,
   Map<Uri, List<int>> workerInputDigests,
   Target target, {
   bool compileSdk = false,
@@ -83,7 +84,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           !equalSets(oldState.tags, tags) ||
           (sdkSummary != null &&
               (cachedSdkInput == null ||
-                  !digestsEqual(cachedSdkInput.digest, sdkDigest)))) {
+                  !digestsEqual(cachedSdkInput.digest, sdkDigest))) ||
+          (oldState.options.target == null ||
+              !oldState.options.target!.isModularlyCompatibleWith(target))) {
         // No - or immediately not correct - previous state.
         // We'll load a new sdk, anything loaded already will have a wrong root.
         workerInputCache.clear();
@@ -148,6 +151,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         options.packagesFileUri = packagesFile;
         options.fileSystem = fileSystem;
         processedOpts.clearFileSystemCache();
+        options.target!.updateModularCompatibilityAs(target);
       }
 
       // Then read all the input summary components.
@@ -160,13 +164,14 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
       // Notice that the ordering of the input summaries matter, so we need to
       // keep them in order.
-      if (outputLoadedAdditionalDills.length != additionalDills.length) {
+      if (outputLoadedAdditionalDillModules.length !=
+          additionalDillModules.length) {
         throw new ArgumentError("Invalid length.");
       }
-      Set<Uri> additionalDillsSet = new Set<Uri>();
-      for (int i = 0; i < additionalDills.length; i++) {
-        Uri summaryUri = additionalDills[i];
-        additionalDillsSet.add(summaryUri);
+      Set<Uri> additionalDillModulesSet = new Set<Uri>();
+      for (int i = 0; i < additionalDillModules.length; i++) {
+        Uri summaryUri = additionalDillModules[i];
+        additionalDillModulesSet.add(summaryUri);
         WorkerInputComponent? cachedInput = workerInputCache[summaryUri];
         List<int>? digest = workerInputDigests[summaryUri];
         if (digest == null) {
@@ -193,20 +198,22 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             }
           }
           component.computeCanonicalNames(); // this isn't needed, is it?
-          outputLoadedAdditionalDills[i] = component;
+          outputLoadedAdditionalDillModules[i] = component;
         }
       }
 
       for (int i = 0; i < loadFromDillIndexes.length; i++) {
         int index = loadFromDillIndexes[i];
-        Uri additionalDillUri = additionalDills[index];
-        List<int>? digest = workerInputDigests[additionalDillUri];
+        Uri additionalDillModuleUri = additionalDillModules[index];
+        List<int>? digest = workerInputDigests[additionalDillModuleUri];
         if (digest == null) {
-          throw new StateError("Expected to get digest for $additionalDillUri");
+          throw new StateError(
+            "Expected to get digest for $additionalDillModuleUri",
+          );
         }
 
         Uint8List bytes = await fileSystem
-            .entityForUri(additionalDillUri)
+            .entityForUri(additionalDillModuleUri)
             .readAsBytes();
         WorkerInputComponent cachedInput = new WorkerInputComponent(
           digest,
@@ -216,12 +223,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             alwaysCreateNewNamedNodes: true,
           ),
         );
-        workerInputCache[additionalDillUri] = cachedInput;
-        outputLoadedAdditionalDills[index] = cachedInput.component;
+        workerInputCache[additionalDillModuleUri] = cachedInput;
+        outputLoadedAdditionalDillModules[index] = cachedInput.component;
         for (Library lib in cachedInput.component.libraries) {
           if (workerInputCacheLibs.containsKey(lib.importUri)) {
             Uri fromSummary = workerInputCacheLibs[lib.importUri]!;
-            if (additionalDillsSet.contains(fromSummary)) {
+            if (additionalDillModulesSet.contains(fromSummary)) {
               throw new StateError(
                 "Asked to load several summaries that contain the same "
                 "library.",
@@ -236,17 +243,17 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
               }
             }
           } else {
-            workerInputCacheLibs[lib.importUri] = additionalDillUri;
+            workerInputCacheLibs[lib.importUri] = additionalDillModuleUri;
           }
 
           if (trackNeededDillLibraries) {
-            libraryToInputDill![lib.importUri] = additionalDillUri;
+            libraryToInputDill![lib.importUri] = additionalDillModuleUri;
           }
         }
       }
 
       incrementalCompiler.setModulesToLoadOnNextComputeDelta(
-        outputLoadedAdditionalDills,
+        outputLoadedAdditionalDillModules,
       );
 
       return new InitializedCompilerState(

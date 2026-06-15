@@ -190,21 +190,6 @@ TEST_CASE(ClassHeapStats) {
 }
 #endif  // !PRODUCT
 
-ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
-  const String& obj = String::Handle(String::New("x", Heap::kOld));
-
-  // It is not safe to make the heap read-only if marking or sweeping is in
-  // progress.
-  GCTestHelper::WaitForGCTasks();
-
-  Heap* heap = IsolateGroup::Current()->heap();
-  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
-  heap->WriteProtect(true);
-  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
-  heap->WriteProtect(false);
-  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
-}
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   Heap* heap = IsolateGroup::Current()->heap();
 

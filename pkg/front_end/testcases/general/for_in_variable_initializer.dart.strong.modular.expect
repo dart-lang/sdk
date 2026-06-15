@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/for_in_variable_initializer.dart:6:14: Error: The loop variable in a for-each loop can't be initialized.
+// Try removing the initializer, or using a different kind of loop.
+//   for (var l = 1 in List.filled(100, 0)) break;
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  #L1:
+  for (core::int l in core::List::filled<core::int>(100, 0))
+    break #L1;
+}

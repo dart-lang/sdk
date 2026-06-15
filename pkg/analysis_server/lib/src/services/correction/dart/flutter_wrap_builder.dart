@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrapBuilders extends MultiCorrectionProducer {
-  FlutterWrapBuilders({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -33,7 +33,7 @@ abstract class _FlutterBaseWrapBuilder extends ResolvedCorrectionProducer {
   final List<String> extraNamedParams;
   final String builderName;
 
-  _FlutterBaseWrapBuilder({
+  new({
     required super.context,
     required this.builderName,
     required this.extraNamedParams,
@@ -108,7 +108,7 @@ abstract class _FlutterBaseWrapBuilder extends ResolvedCorrectionProducer {
 }
 
 class _FlutterWrapBuilder extends _FlutterBaseWrapBuilder {
-  _FlutterWrapBuilder({required super.context})
+  new({required super.context})
     : super(
         builderName: 'Builder',
         extraNamedParams: const [],
@@ -120,7 +120,7 @@ class _FlutterWrapBuilder extends _FlutterBaseWrapBuilder {
 }
 
 class _FlutterWrapFutureBuilder extends _FlutterBaseWrapBuilder {
-  _FlutterWrapFutureBuilder({required super.context})
+  new({required super.context})
     : super(
         builderName: 'FutureBuilder',
         extraNamedParams: const ['future'],
@@ -132,7 +132,7 @@ class _FlutterWrapFutureBuilder extends _FlutterBaseWrapBuilder {
 }
 
 class _FlutterWrapStreamBuilder extends _FlutterBaseWrapBuilder {
-  _FlutterWrapStreamBuilder({required super.context})
+  new({required super.context})
     : super(
         builderName: 'StreamBuilder',
         extraNamedParams: const ['stream'],
@@ -144,7 +144,7 @@ class _FlutterWrapStreamBuilder extends _FlutterBaseWrapBuilder {
 }
 
 class _FlutterWrapValueListenableBuilder extends _FlutterBaseWrapBuilder {
-  _FlutterWrapValueListenableBuilder({required super.context})
+  new({required super.context})
     : super(
         builderName: 'ValueListenableBuilder',
         extraNamedParams: const ['valueListenable'],

@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = "Don't type annotate initializing formals.";
 
 class TypeInitFormals extends AnalysisRule {
-  TypeInitFormals()
-    : super(name: LintNames.type_init_formals, description: _desc);
+  new() : super(name: LintNames.type_init_formals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.typeInitFormals;
@@ -36,7 +35,7 @@ class TypeInitFormals extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {

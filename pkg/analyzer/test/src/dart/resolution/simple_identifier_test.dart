@@ -2,187 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augment_topLevel_function_with_function() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment void foo() {}
-''');
-
-    await assertNoErrorsInCode('''
-part 'a.dart';
-
-void foo() {}
-
-void f() {
-  foo;
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-  element: <testLibrary>::@function::foo
-  staticType: void Function()
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augment_topLevel_getter_with_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment int get foo => 1;
-''');
-
-    await assertNoErrorsInCode('''
-part 'a.dart';
-
-int get foo => 0;
-
-void f() {
-  foo;
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-  element: <testLibraryFragment>::@getter::foo#element
-  staticType: int
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augment_topLevel_setter_with_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment set foo(int _) {}
-''');
-
-    await assertNoErrorsInCode('''
-part 'a.dart';
-
-set foo(int _) {}
-
-void f() {
-  foo = 0;
-}
-''');
-
-    var node = findNode.singleAssignmentExpression;
-    assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide: SimpleIdentifier
-    token: foo
-    staticElement: <null>
-    element: <null>
-    staticType: null
-  operator: =
-  rightHandSide: IntegerLiteral
-    literal: 0
-    parameter: <testLibraryFragment>::@setter::foo::@parameter::_
-    staticType: int
-  readElement: <null>
-  readElement2: <null>
-  readType: null
-  writeElement: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
-  writeElement2: <testLibraryFragment>::@setter::foo#element
-  writeType: int
-  staticElement: <null>
-  element: <null>
-  staticType: int
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augment_topLevel_variable_with_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment int get foo() => 1;
-''');
-
-    await assertNoErrorsInCode('''
-part 'a.dart';
-
-int foo = 0;
-
-void f() {
-  foo;
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
-  element: <testLibraryFragment>::@getter::foo#element
-  staticType: int
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augment_topLevel_variable_with_variable() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment int foo = 1;
-''');
-
-    await assertNoErrorsInCode('''
-part 'a.dart';
-
-int foo = 0;
-
-void f() {
-  foo;
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibraryFragment>::@getter::foo
-  element: <testLibraryFragment>::@getter::foo#element
-  staticType: int
-''');
-  }
-
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as mycore;
 
 main() {
   dynamic;
+//^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'dynamic'.
 }
-''',
-      [error(diag.undefinedIdentifier, 42, 7)],
-    );
+''');
 
-    var node = findNode.simple('dynamic;');
+    var node = result.findNode.simple('dynamic;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: dynamic
@@ -192,7 +37,7 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 void f() {
@@ -200,7 +45,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -210,20 +55,19 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnBody() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 class C {
   C() {
     return a;
+//         ^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
   }
 }
-''',
-      [error(diag.returnInGenerativeConstructor, 43, 1)],
-    );
+''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -233,21 +77,19 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnExpression() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 class C {
   C() => a;
+//    ^^^^^
+// [diag.returnInGenerativeConstructor] Constructors can't return values.
+//       ^
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.returnInGenerativeConstructor, 30, 5),
-        error(diag.returnOfInvalidTypeFromConstructor, 33, 1),
-      ],
-    );
+''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -257,7 +99,7 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_invocationArgument_afterNamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 final a = 0;
 
 void foo(int a, {int? b}) {}
@@ -267,7 +109,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('a);');
+    var node = result.findNode.simple('a);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -278,7 +120,7 @@ SimpleIdentifier
   }
 
   test_implicitCall_tearOff() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int call() => 0;
 }
@@ -288,8 +130,8 @@ int Function() foo(A a) {
 }
 ''');
 
-    var identifier = findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
@@ -298,21 +140,20 @@ SimpleIdentifier
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int call() => 0;
 }
 
 int Function() foo(A? a) {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'A?' can't be returned from the function 'foo' because it has a return type of 'int Function()'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 68, 1)],
-    );
+''');
 
-    var identifier = findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
@@ -321,7 +162,7 @@ SimpleIdentifier
   }
 
   test_inClass_getterInherited_setterDeclaredLocally() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 7;
 }
@@ -334,7 +175,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.simple('foo;');
+    var node = result.findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -343,39 +184,8 @@ SimpleIdentifier
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_inClass_inDeclaration_augmentationDeclares() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
-
-augment class A {
-  int get foo => 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-int get foo => 0;
-
-class A {
-  void f() {
-    foo;
-  }
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo
-  element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
-  staticType: int
-''');
-  }
-
   test_inExtension_onFunctionType_call() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int Function(double) {
   void f() {
     call;
@@ -383,7 +193,7 @@ extension E on int Function(double) {
 }
 ''');
 
-    var node = findNode.simple('call;');
+    var node = result.findNode.simple('call;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: call
@@ -393,7 +203,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onFunctionType_call_inference() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int Function<T>(T) {
   int Function(double) f() {
     return call;
@@ -401,7 +211,7 @@ extension E on int Function<T>(T) {
 }
 ''');
 
-    var node = findNode.simple('call;');
+    var node = result.findNode.simple('call;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: call
@@ -413,7 +223,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_fromTypeParameterBound_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E<T extends ({int foo})> on T {
   void f() {
     foo;
@@ -421,7 +231,7 @@ extension E<T extends ({int foo})> on T {
 }
 ''');
 
-    var node = findNode.simple('foo;');
+    var node = result.findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -431,7 +241,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_fromTypeParameterBound_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E<T extends (int, String)> on T {
   void f() {
     $1;
@@ -439,7 +249,7 @@ extension E<T extends (int, String)> on T {
 }
 ''');
 
-    var node = findNode.simple(r'$1;');
+    var node = result.findNode.simple(r'$1;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $1
@@ -449,7 +259,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   void f() {
     foo;
@@ -457,7 +267,7 @@ extension E on ({int foo}) {
 }
 ''');
 
-    var node = findNode.simple('foo;');
+    var node = result.findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -467,7 +277,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named_fromExtension() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   bool get bar => true;
 
@@ -477,7 +287,7 @@ extension E on ({int foo}) {
 }
 ''');
 
-    var node = findNode.simple('bar;');
+    var node = result.findNode.simple('bar;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
@@ -487,18 +297,17 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on ({int foo}) {
   void f() {
     bar;
+//  ^^^
+// [diag.undefinedIdentifier] Undefined name 'bar'.
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 46, 3)],
-    );
+''');
 
-    var node = findNode.simple('bar;');
+    var node = result.findNode.simple('bar;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
@@ -508,7 +317,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_0() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $1;
@@ -516,7 +325,7 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = findNode.simple(r'$1;');
+    var node = result.findNode.simple(r'$1;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $1
@@ -526,7 +335,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_1() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $2;
@@ -534,7 +343,7 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = findNode.simple(r'$2;');
+    var node = result.findNode.simple(r'$2;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $2
@@ -544,7 +353,7 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_2_fromExtension() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   bool get $3 => true;
 
@@ -554,7 +363,7 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = findNode.simple(r'$3;');
+    var node = result.findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
@@ -564,18 +373,17 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_2_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on (int, String) {
   void f() {
     $3;
+//  ^^
+// [diag.undefinedIdentifier] Undefined name '$3'.
   }
 }
-''',
-      [error(diag.undefinedIdentifier, 48, 2)],
-    );
+''');
 
-    var node = findNode.simple(r'$3;');
+    var node = result.findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
@@ -585,7 +393,7 @@ SimpleIdentifier
   }
 
   test_inExtensionType_declared() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 
@@ -595,7 +403,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.simple('foo;');
+    var node = result.findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -605,7 +413,7 @@ SimpleIdentifier
   }
 
   test_inExtensionType_explicitThis_exposed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -619,7 +427,7 @@ extension type X(B it) implements A {
 }
 ''');
 
-    var node = findNode.simple('foo;');
+    var node = result.findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -628,39 +436,8 @@ SimpleIdentifier
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_inMixin_inDeclaration_augmentationDeclares() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart'
-
-augment mixin A {
-  int get foo => 0;
-}
-''');
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-int get foo => 0;
-
-mixin A {
-  void f() {
-    foo;
-  }
-}
-''');
-
-    var node = findNode.simple('foo;');
-    assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo
-  element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo#element
-  staticType: int
-''');
-  }
-
   test_localFunction_generic() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   static void foo<S>(S s) {
     void f<U>(S s, U u) {}
@@ -669,8 +446,8 @@ class C<T> {
 }
 ''');
 
-    var identifier = findNode.simple('f;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('f;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
   element: f@50
@@ -679,7 +456,7 @@ SimpleIdentifier
   }
 
   test_tearOff_function_topLevel() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo(int a) {}
 
 main() {
@@ -687,8 +464,8 @@ main() {
 }
 ''');
 
-    var identifier = findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@function::foo
@@ -697,7 +474,7 @@ SimpleIdentifier
   }
 
   test_tearOff_method() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void foo(int a) {}
 
@@ -707,8 +484,8 @@ class A {
 }
 ''');
 
-    var identifier = findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@method::foo

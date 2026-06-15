@@ -18,39 +18,30 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_constClass_constructorInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   final a;
-  const C() : a = const [];
+  const C() : [!a = const []!];
 }
-''',
-      [lint(35, 12)],
-    );
+''');
   }
 
   test_constClass_constructorInitializer_explicitThis() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   final a;
-  const C(int a) : this.a = 0;
+  const C(int a) : [!this.a = 0!];
 }
-''',
-      [lint(40, 10)],
-    );
+''');
   }
 
   test_constClass_constructorInitializer_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class const C(int a) {
   final a;
-  this : this.a = 0;
+  this : [!this.a = 0!];
 }
-''',
-      [lint(43, 10)],
-    );
+''');
   }
 
   test_constClass_constructorInitializer_usingParameter() async {
@@ -72,15 +63,12 @@ class C {
   }
 
   test_constClass_fieldInitiailizer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  final a = const [];
+  final [!a = const []!];
   const C();
 }
-''',
-      [lint(18, 12)],
-    );
+''');
   }
 
   test_constClass_multipleConstructors() async {

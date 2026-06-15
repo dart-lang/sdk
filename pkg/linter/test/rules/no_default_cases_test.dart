@@ -18,8 +18,7 @@ class NoDefaultCasesTest extends LintRuleTest {
   String get lintRule => 'no_default_cases';
 
   test_enumLikeType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   final int i;
   const C._(this.i);
@@ -34,34 +33,29 @@ void f(C c) {
     case C.a :
       print('a');
       break;
-    default:
-      print('default');
+    [!default:
+      print('default');!]
   }
 }
-''',
-      [lint(210, 32)],
-    );
+''');
   }
 
   test_enumType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(E e) {
   switch(e) {
     case E.a :
       print('a');
       break;
-    default:
-      print('default');
+    [!default:
+      print('default');!]
   }
 }
 
 enum E {
   a, b, c;
 }
-''',
-      [lint(78, 32)],
-    );
+''');
   }
 
   test_intType() async {

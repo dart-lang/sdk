@@ -16,8 +16,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'`SizedBox` for whitespace.';
 
 class SizedBoxForWhitespace extends AnalysisRule {
-  SizedBoxForWhitespace()
-    : super(name: LintNames.sized_box_for_whitespace, description: _desc);
+  new() : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.sizedBoxForWhitespace;
@@ -36,7 +35,7 @@ class SizedBoxForWhitespace extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -55,11 +54,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var hasWidth = false;
 
     for (var argument in argumentList.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         // Positional arguments are not supported.
         return false;
       }
-      switch (argument.name.label.name) {
+      switch (argument.name.lexeme) {
         case 'child':
           hasChild = true;
         case 'height':

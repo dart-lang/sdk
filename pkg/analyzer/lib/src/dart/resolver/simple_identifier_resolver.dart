@@ -75,16 +75,16 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclarationImpl) {
       if (parent.typeName == node) {
         return false;
       }
     }
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
-        parent is PropertyAccess ||
-        parent is NamedType) {
+    if (parent is ConstructorNameImpl ||
+        parent is MethodInvocationImpl ||
+        parent is PrefixedIdentifierImpl && parent.prefix == node ||
+        parent is PropertyAccessImpl ||
+        parent is NamedTypeImpl) {
       return false;
     }
     return true;
@@ -95,11 +95,11 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// * it is the prefix in a prefixed identifier.
   bool _isValidAsPrefix(SimpleIdentifier node) {
     var parent = node.parent;
-    if (parent is ImportDirective) {
+    if (parent is ImportDirectiveImpl) {
       return identical(parent.prefix, node);
-    } else if (parent is PrefixedIdentifier) {
+    } else if (parent is PrefixedIdentifierImpl) {
       return true;
-    } else if (parent is MethodInvocation) {
+    } else if (parent is MethodInvocationImpl) {
       return identical(parent.target, node) &&
           parent.operator?.type == TokenType.PERIOD;
     }
@@ -140,12 +140,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return null;
     }
     var parent = node.parent;
-    if (parent is FieldFormalParameter) {
+    if (parent is FieldFormalParameterImpl) {
       return null;
-    } else if (parent is ConstructorFieldInitializer &&
+    } else if (parent is ConstructorFieldInitializerImpl &&
         parent.fieldName == node) {
       return null;
-    } else if (parent is Annotation && parent.constructorName == node) {
+    } else if (parent is AnnotationImpl && parent.constructorName == node) {
       return null;
     }
 
@@ -158,7 +158,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var hasWrite = false;
     {
       var parent = node.parent;
-      if (parent is ForEachPartsWithIdentifier && parent.identifier == node) {
+      if (parent is ForEachPartsWithIdentifierImpl &&
+          parent.identifier == node) {
         hasRead = false;
         hasWrite = true;
       }
@@ -273,8 +274,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       );
     } else if (element is PrefixElement) {
       var parent = node.parent;
-      if (parent is PrefixedIdentifier && parent.prefix == node ||
-          parent is MethodInvocation && parent.target == node) {
+      if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
+          parent is MethodInvocationImpl && parent.target == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
@@ -317,10 +318,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
       parent = node.parent;
     }
 
-    if (parent is CommentReference ||
-        parent is MethodInvocation && parent.target == node ||
+    if (parent is CommentReferenceImpl ||
+        parent is MethodInvocationImpl && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccess && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target == node) {
       return;
     }
 
@@ -340,7 +341,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// constructor declaration.
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier);
     }
     return false;
@@ -350,7 +351,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// constructor.
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier) &&
           parent.factoryKeyword != null;
     }

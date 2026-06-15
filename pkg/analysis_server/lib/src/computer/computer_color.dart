@@ -18,7 +18,7 @@ class ColorComputer {
   final ResolvedUnitResult resolvedUnit;
   final List<ColorReference> _colors = [];
 
-  ColorComputer(this.resolvedUnit, path.Context pathContext);
+  new(this.resolvedUnit, path.Context pathContext);
 
   /// Returns information about the color references in [resolvedUnit].
   ///
@@ -104,7 +104,7 @@ class ColorComputer {
   }
 
   /// Extracts the color information from dart:ui Color constructor args.
-  ColorInformation? _getDartUiColor(String? name, List<Expression> args) {
+  ColorInformation? _getDartUiColor(String? name, List<Argument> args) {
     if (name == null && args.length == 1) {
       // Color(0xFF000000).
       var arg0 = args[0];
@@ -112,14 +112,14 @@ class ColorComputer {
     } else if (name == 'from') {
       // Color.from(alpha: 1, red: 1, green: 1, blue: 1).
       double? alpha, red, green, blue;
-      for (var arg in args.whereType<NamedExpression>()) {
-        var expression = arg.expression;
+      for (var arg in args.whereType<NamedArgument>()) {
+        var expression = arg.argumentExpression;
         var value = expression is DoubleLiteral
             ? expression.value
             : expression is IntegerLiteral
             ? expression.value?.toDouble()
             : null;
-        switch (arg.name.label.name) {
+        switch (arg.name.lexeme) {
           case 'alpha':
             alpha = value;
           case 'red':
@@ -179,17 +179,14 @@ class ColorComputer {
   /// Extracts the color from Flutter MaterialAccentColor constructor args.
   ColorInformation? _getFlutterMaterialAccentColor(
     String? name,
-    List<Expression> args,
+    List<Argument> args,
   ) =>
       // MaterialAccentColor is a subclass of SwatchColor and has the same
       // constructor.
       _getFlutterSwatchColor(name, args);
 
   /// Extracts the color information from Flutter ColorSwatch constructor args.
-  ColorInformation? _getFlutterSwatchColor(
-    String? name,
-    List<Expression> args,
-  ) {
+  ColorInformation? _getFlutterSwatchColor(String? name, List<Argument> args) {
     if (name == null && args.isNotEmpty) {
       var arg0 = args[0];
       return arg0 is IntegerLiteral ? getColorForInt(arg0.value) : null;
@@ -329,7 +326,7 @@ class ColorInformation {
   /// Blue as a value from 0 to 255.
   final int blue;
 
-  ColorInformation(this.alpha, this.red, this.green, this.blue);
+  new(this.alpha, this.red, this.green, this.blue);
 }
 
 /// Information about a specific known location of a [ColorInformation]
@@ -339,13 +336,13 @@ class ColorReference {
   final int length;
   final ColorInformation color;
 
-  ColorReference(this.offset, this.length, this.color);
+  new(this.offset, this.length, this.color);
 }
 
 class _ColorBuilder extends RecursiveAstVisitor<void> {
   final ColorComputer computer;
 
-  _ColorBuilder(this.computer);
+  new(this.computer);
 
   @override
   void visitDotShorthandConstructorInvocation(

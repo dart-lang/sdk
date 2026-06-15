@@ -23,7 +23,7 @@ typedef _Values = ({DartObject? parameterValue, DartObject? argumentValue});
 class EditableArgumentsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, EditableArguments?>
     with EditableArgumentsMixin {
-  EditableArgumentsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.dartTextDocumentEditableArguments;
@@ -156,14 +156,12 @@ class EditableArgumentsHandler
   EditableArgument? _toEditableArgument(
     ResolvedUnitResult result,
     FormalParameterElement parameter,
-    Expression? argument, {
+    Argument? argument, {
     int? positionalIndex,
     required int numPositionals,
     required int numSuppliedPositionals,
   }) {
-    var valueExpression = argument is NamedExpression
-        ? argument.expression
-        : argument;
+    var valueExpression = argument?.argumentExpression;
 
     // Lazily compute the values if we will use this parameter/argument.
     late var values = _getValues(parameter, valueExpression);

@@ -38,7 +38,6 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
   params.create_group = TesterState::create_callback;
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = TesterState::group_cleanup_callback;
@@ -64,42 +63,10 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
   EXPECT(Dart_Cleanup() == nullptr);
 }
 
-UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
-  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
-  Dart_InitializeParams params;
-  memset(&params, 0, sizeof(Dart_InitializeParams));
-  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
-  params.create_group = TesterState::create_callback;
-  params.shutdown_isolate = TesterState::shutdown_callback;
-  params.cleanup_group = TesterState::group_cleanup_callback;
-  params.start_kernel_isolate = true;
-
-  bool was_called = false;
-  Dart_CodeObserver code_observer;
-  code_observer.data = &was_called;
-  code_observer.on_new_code = [](Dart_CodeObserver* observer, const char* name,
-                                 uintptr_t base, uintptr_t size) {
-    *static_cast<bool*>(observer->data) = true;
-  };
-  params.code_observer = &code_observer;
-
-  // Reinitialize and ensure we can execute Dart code.
-  EXPECT(Dart_Initialize(&params) == nullptr);
-
-  // Wait for 5 seconds to let the kernel service load the snapshot,
-  // which should trigger calls to the code observer.
-  OS::Sleep(5);
-
-  EXPECT(was_called);
-  EXPECT(Dart_Cleanup() == nullptr);
-}
-
 UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
   params.create_group = TesterState::create_callback;
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = TesterState::group_cleanup_callback;
@@ -166,7 +133,6 @@ UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
   params.create_group = CreateCallback;
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = CleanupCallback;
@@ -3007,12 +2973,12 @@ static void TestTypedDataDirectAccess1() {
       "    }\n"
       "  }\n"
       "}\n"
-      "void setMain(var a) {"
+      "void setMain(a) {"
       "  for (var i = 0; i < 10; i++) {"
       "    a[i] = i;"
       "  }"
       "}\n"
-      "bool testMain(var list) {"
+      "bool testMain(list) {"
       "  for (var i = 0; i < 10; i++) {"
       "    Expect.equals((10 + i), list[i]);"
       "  }\n"
@@ -3076,13 +3042,13 @@ static void TestTypedDataViewDirectAccess() {
       "    }\n"
       "  }\n"
       "}\n"
-      "void setMain(var list) {"
+      "void setMain(list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
       "    list[i] = i;"
       "  }"
       "}\n"
-      "bool testMain(var list) {"
+      "bool testMain(list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
       "    Expect.equals((10 + i), list[i]);"
@@ -3177,13 +3143,13 @@ static void TestByteDataDirectAccess() {
       "    }\n"
       "  }\n"
       "}\n"
-      "void setMain(var list) {"
+      "void setMain(list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
       "    list.setInt8(i, i);"
       "  }"
       "}\n"
-      "bool testMain(var list) {"
+      "bool testMain(list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
       "    Expect.equals((10 + i), list.getInt8(i));"
@@ -5601,16 +5567,16 @@ TEST_CASE(DartAPI_FieldAccess) {
       "  static const _const_static_fld = 'hidden const static';\n"
       "\n"
       "  get instance_getset_fld { return _gs_fld1; }\n"
-      "  void set instance_getset_fld(var value) { _gs_fld1 = value; }\n"
+      "  void set instance_getset_fld(value) { _gs_fld1 = value; }\n"
       "  get _instance_getset_fld { return _gs_fld2; }\n"
-      "  void set _instance_getset_fld(var value) { _gs_fld2 = value; }\n"
+      "  void set _instance_getset_fld(value) { _gs_fld2 = value; }\n"
       "  var _gs_fld1;\n"
       "  var _gs_fld2;\n"
       "\n"
       "  static get static_getset_fld { return _gs_fld3; }\n"
-      "  static void set static_getset_fld(var value) { _gs_fld3 = value; }\n"
+      "  static void set static_getset_fld(value) { _gs_fld3 = value; }\n"
       "  static get _static_getset_fld { return _gs_fld4; }\n"
-      "  static void set _static_getset_fld(var value) { _gs_fld4 = value; }\n"
+      "  static void set _static_getset_fld(value) { _gs_fld4 = value; }\n"
       "  static var _gs_fld3;\n"
       "  static var _gs_fld4;\n"
       "}\n"
@@ -5620,9 +5586,9 @@ TEST_CASE(DartAPI_FieldAccess) {
       "const _const_top_fld = 'hidden const top';\n"
       "\n"
       "get top_getset_fld { return _gs_fld5; }\n"
-      "void set top_getset_fld(var value) { _gs_fld5 = value; }\n"
+      "void set top_getset_fld(value) { _gs_fld5 = value; }\n"
       "get _top_getset_fld { return _gs_fld6; }\n"
-      "void set _top_getset_fld(var value) { _gs_fld6 = value; }\n"
+      "void set _top_getset_fld(value) { _gs_fld6 = value; }\n"
       "var _gs_fld5;\n"
       "var _gs_fld6;\n"
       "\n"
@@ -5639,9 +5605,9 @@ TEST_CASE(DartAPI_FieldAccess) {
       "var imported_fld = 'imported';\n"
       "var _imported_fld = 'hidden imported';\n"
       "get imported_getset_fld { return _gs_fld1; }\n"
-      "void set imported_getset_fld(var value) { _gs_fld1 = value; }\n"
+      "void set imported_getset_fld(value) { _gs_fld1 = value; }\n"
       "get _imported_getset_fld { return _gs_fld2; }\n"
-      "void set _imported_getset_fld(var value) { _gs_fld2 = value; }\n"
+      "void set _imported_getset_fld(value) { _gs_fld2 = value; }\n"
       "var _gs_fld1;\n"
       "var _gs_fld2;\n"
       "void test2() {\n"
@@ -10835,7 +10801,6 @@ UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  params.vm_snapshot_data = TesterState::vm_snapshot_data;
   params.create_group = TesterState::create_callback;
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = TesterState::group_cleanup_callback;

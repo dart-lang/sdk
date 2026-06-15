@@ -215,11 +215,12 @@ class UseResultVerifier {
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
-        parent is NamedExpression ||
+        parent is NamedArgument ||
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
         parent is RecordLiteral ||
+        parent is RecordLiteralNamedField ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
         parent is SwitchExpression ||

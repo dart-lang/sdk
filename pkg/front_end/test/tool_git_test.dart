@@ -17,7 +17,6 @@ const List<String> subtools = const <String>[
   "compile",
   "compile-platform",
   "log",
-  "logd",
   "outline",
   "parser",
   "scanner",
@@ -33,10 +32,6 @@ const List<String> unsafeTools = const <String>[
   // other tests to fail. This tool is tested as we invoke it everytime we edit
   // messages.yaml.
   "generate-messages",
-
-  // This is a daemon process that never terminates. It's not currently tested
-  // directly.
-  "logd",
 
   // This would eventually run this test again, recursively, and never
   // finish. As this tool is part of the workflow for testing Fasta, we assume

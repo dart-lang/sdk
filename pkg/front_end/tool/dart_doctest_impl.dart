@@ -15,8 +15,6 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show NullListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -79,7 +77,7 @@ class DartDocTest {
   final bool onlyIncludeFirstError;
   bool printOnDiagnostic = true;
 
-  DartDocTest({
+  new({
     this.underlyingFileSystem,
     this.silent = false,
     this.onlyIncludeFirstError = false,
@@ -587,14 +585,9 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 }
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-  );
-
   Utf8BytesScanner scanner = new Utf8BytesScanner(
     rawBytes,
     includeComments: true,
-    configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {
       // For now don't do anything, but having it (making it non-null) means the
       // configuration won't be reset.
@@ -622,7 +615,7 @@ class ExpectTest implements Test {
   @override
   final String location;
 
-  ExpectTest(this.call, this.result, this.location);
+  new(this.call, this.result, this.location);
 
   @override
   bool operator ==(Object other) {
@@ -644,7 +637,7 @@ class ThrowsTest implements Test {
   @override
   final String location;
 
-  ThrowsTest(this.call, this.location);
+  new(this.call, this.location);
 
   @override
   bool operator ==(Object other) {
@@ -666,7 +659,7 @@ class TestParseError implements Test {
   @override
   final String location;
 
-  TestParseError(this.message, this.position, this.location);
+  new(this.message, this.position, this.location);
 
   @override
   bool operator ==(Object other) {
@@ -698,7 +691,7 @@ class TestResult {
   final TestOutcome outcome;
   String? message;
 
-  TestResult(this.test, this.outcome);
+  new(this.test, this.outcome);
 
   @override
   bool operator ==(Object other) {
@@ -980,7 +973,7 @@ class CommentString {
   final String string;
   final int charOffset;
 
-  CommentString(this.string, this.charOffset);
+  new(this.string, this.charOffset);
 
   @override
   bool operator ==(Object other) {
@@ -1015,7 +1008,7 @@ class RecoverableError {
   final Token startToken;
   final Token endToken;
 
-  RecoverableError(this.message, this.startToken, this.endToken);
+  new(this.message, this.startToken, this.endToken);
 }
 
 class DocTestIncrementalCompiler extends IncrementalCompiler {
@@ -1023,7 +1016,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     scheme: "dartdoctest",
     path: "tester",
   );
-  DocTestIncrementalCompiler(CompilerContext context) : super(context);
+  new(CompilerContext context) : super(context);
 
   @override
   bool dontReissueLibraryProblemsFor(Uri? uri) {
@@ -1178,7 +1171,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
 class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
   final DocTestIncrementalCompiler compiler;
-  DocTestIncrementalKernelTarget(
+  new(
     CompilerContext compilerContext,
     this.compiler,
     FileSystem fileSystem,
@@ -1202,7 +1195,7 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
 class DocTestSourceLoader extends SourceLoader {
   final DocTestIncrementalCompiler compiler;
 
-  DocTestSourceLoader(
+  new(
     this.compiler,
     FileSystem fileSystem,
     bool includeComments,
