@@ -31,8 +31,13 @@ abstract class AbstractAnalysisOptionsTest
 
   VersionConstraint? get sdkVersionConstraint => null;
 
-  List<Diagnostic> assertAnalysisOptionsDiagnostics(String code) {
-    return assertAnalysisOptionsDiagnosticsInFiles({analysisOptionsFile: code});
+  List<Diagnostic> assertAnalysisOptionsDiagnostics(
+    String code, {
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    return assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: code,
+    }, sdkVersionConstraint: sdkVersionConstraint);
   }
 
   List<Diagnostic> assertAnalysisOptionsDiagnosticsInFiles(
