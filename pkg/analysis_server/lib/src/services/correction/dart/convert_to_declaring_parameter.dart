@@ -99,6 +99,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     );
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+
       // Move metadata and/or doc comments.
       var variableList = fieldDeclaration.parent as VariableDeclarationList;
       var member = variableList.parent;
@@ -106,8 +108,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         var metadata = member.metadata;
         var docComment = member.documentationComment;
         if (metadata.isNotEmpty || docComment != null) {
-          var text = _getMetadataText(member);
-          builder.addSimpleInsertion(parameter.offset, '\n$text  ');
+          var text = _getMetadataText(member, eol: eol);
+          builder.addSimpleInsertion(parameter.offset, '$eol$text  ');
         }
       }
 
@@ -334,7 +336,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     return linesRange;
   }
 
-  String _getMetadataText(AnnotatedNode node) {
+  String _getMetadataText(AnnotatedNode node, {required String eol}) {
     // It might be better to grab all of the text in order to preserve the
     // current formatting and comments. Depends, in part, on how the formatter
     // handles wrapping primary constructor parameter lists.
@@ -342,11 +344,13 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     var docComment = node.documentationComment;
     if (docComment != null) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(docComment));
+      buffer.write(utils.getNodeText(docComment));
+      buffer.write(eol);
     }
     for (var annotation in node.metadata) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(annotation));
+      buffer.write(utils.getNodeText(annotation));
+      buffer.write(eol);
     }
     return buffer.toString();
   }
