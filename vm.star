@@ -13,7 +13,7 @@ load(
     "arm64",
     "flutter_pool",
     "fuchsia_deps",
-    "jammy",
+    "linux",
     "mac",
     "no_reclient",
     "resolute",
@@ -275,6 +275,18 @@ _vm_builder(
     properties = [android_deps, slow_shards],
     location_filters = paths.to_location_filters(paths.android),
 )
+_nightly_builder(
+    "vm-aot-android-debug-x64c",
+    category = "vm|aot|android|d",
+    dimensions = [linux, {"host_class": "virtualization"}],
+    properties = [android_deps],
+)
+_vm_builder(
+    "vm-aot-android-release-x64c",
+    category = "vm|aot|android|r",
+    dimensions = [linux, {"host_class": "virtualization"}],
+    properties = [android_deps],
+)
 
 # vm|aot|product
 _nightly_builder(
@@ -419,7 +431,7 @@ _vm_builder(
     "vm-fuchsia-release-x64",
     category = "vm|misc|f",
     channels = ["try"],
-    dimensions = [jammy, {"host_class": "virtualization"}],
+    dimensions = [linux, {"host_class": "virtualization"}],
     properties = [fuchsia_deps],
     location_filters = paths.to_location_filters(paths.fuchsia),
 )
