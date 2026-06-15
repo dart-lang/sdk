@@ -633,15 +633,12 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         typeArguments = [];
       }
 
-      _thisVariable = intern.createPositionalParameter(
-        isClosureContextLoweringEnabled:
-            libraryBuilder.loader.isClosureContextLoweringEnabled,
-        cosmeticName: syntheticThisName,
+      _thisVariable = intern.createSyntheticVariable(
+        name: syntheticThisName,
         type: _computeThisType(declarationBuilder, typeArguments),
         isFinal: true,
         isLowered: true,
-        forSyntheticToken: false,
-        isImplicitlyTyped: false,
+        isSynthesized: false,
         fileOffset: fileOffset,
       );
 

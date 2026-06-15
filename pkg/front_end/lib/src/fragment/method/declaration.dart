@@ -261,10 +261,6 @@ class MethodDeclarationImpl
         fileUri: fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
-        isClosureContextLoweringEnabled: enclosingClassBuilder
-            .libraryBuilder
-            .loader
-            .isClosureContextLoweringEnabled,
       );
     }
     _encoding.ensureTypes(

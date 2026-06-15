@@ -129,8 +129,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableGet': {'variable': FieldRule(isDeclaration: false)},
   'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
-  'LocalVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
-  'LateVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
   'ForStatement': {'variables': FieldRule(isDeclaration: true)},
   'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
@@ -149,7 +147,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
-  'SyntheticVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
   'LegacyVariable': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
@@ -157,12 +154,23 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
-  'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
+  'TypeVariable': {
+    'parameter': FieldRule(isDeclaration: false),
+
+    'context': null,
+  },
   'ClassTypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
     'thisVariable': FieldRule(isDeclaration: false),
   },
   'NominalParameter': {'_variance': FieldRule(name: 'variance')},
+  'LocalVariable': {'variableDeclaration': null, 'context': null},
+  'LateVariable': {'variableDeclaration': null, 'context': null},
+  'SyntheticVariable': {'variableDeclaration': null, 'context': null},
+  'CatchVariable': {'context': null},
+  'ThisVariable': {'context': null},
+  'PositionalParameter': {'context': null},
+  'NamedParameter': {'context': null},
 };
 
 /// Data that determines exceptions to how fields are used.
@@ -518,15 +526,13 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
     }
   };
 
-  InternalCompilerResult compilerResult =
-      (await kernelForProgramInternal(
-            astLibraryUri,
-            options,
-            retainDataForTesting: true,
-            requireMain: false,
-            buildComponent: false,
-          ))
-          as InternalCompilerResult;
+  InternalCompilerResult compilerResult = (await kernelForProgramInternal(
+    astLibraryUri,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    buildComponent: false,
+  )) as InternalCompilerResult;
   if (errorsFound) {
     throw 'Errors found';
   }

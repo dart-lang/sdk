@@ -50,10 +50,10 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         StringLiteral,
         TypeParameter,
-        Variable,
         VariableGet,
         defaultLanguageVersion,
-        LegacyVariable;
+        SyntheticVariable,
+        LocalVariable;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -83,8 +83,12 @@ Future<void> main() async {
       hasNamedBeforePositional: false,
       positionalCount: 1,
     );
-    Expression expression = new VariableGet(new Variable("expression"));
-    Expression index = new VariableGet(new Variable("index"));
+    Expression expression = new VariableGet(
+      new LocalVariable(cosmeticName: "expression", type: const DynamicType()),
+    );
+    Expression index = new VariableGet(
+      new LocalVariable(cosmeticName: "index", type: const DynamicType()),
+    );
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(
       c,
@@ -178,8 +182,9 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    InternalVariable variable = new InternalLegacyVariable(
-      astVariable: new LegacyVariable(null, isSynthesized: true),
+    InternalVariable variable = new InternalSyntheticVariable(
+      astVariable: new SyntheticVariable(type: const DynamicType()),
+      isImplicitlyTyped: false,
       fileOffset: -1,
     );
 

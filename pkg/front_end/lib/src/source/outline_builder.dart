@@ -1435,9 +1435,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    List<TypeBuilder>? mixins =
-        nullIfParserRecovery(pop(NullValues.TypeBuilderList))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? mixins = nullIfParserRecovery(
+      pop(NullValues.TypeBuilderList),
+    ) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
@@ -2791,9 +2791,9 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    List<TypeBuilder>? interfaces =
-        nullIfParserRecovery(popIfNotNull(implementsKeyword))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? interfaces = nullIfParserRecovery(
+      popIfNotNull(implementsKeyword),
+    ) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Modifiers modifiers = pop() as Modifiers;

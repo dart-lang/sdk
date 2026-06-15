@@ -503,7 +503,9 @@ final VariableDeclaration dummyVariableDeclaration = new VariableDeclaration(
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Variable dummyVariable = new Variable(null, isSynthesized: true);
+final SyntheticVariable dummyVariable = new SyntheticVariable(
+  type: const DynamicType(),
+);
 
 /// Non-nullable [CatchVariable] dummy value.
 ///

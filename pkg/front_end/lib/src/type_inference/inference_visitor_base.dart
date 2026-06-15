@@ -766,8 +766,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         // Replace expression with:
         // `let t = expression in t == null ? null : t.call`
-        Variable t = new Variable.forValue(expression, type: expressionType)
-          ..fileOffset = fileOffset;
+        Variable t = extern.createVariableCache(
+          expression,
+          expressionType,
+          fileOffset: fileOffset,
+        );
         tearOff = new Let(
           t,
           new ConditionalExpression(
@@ -4700,8 +4703,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (uninstantiatedType.isPotentiallyNullable) {
         // Replace expression with:
         // `let t = expression in t == null ? null : t<...>`
-        Variable t = new Variable.forValue(expression, type: uninstantiatedType)
-          ..fileOffset = expression.fileOffset;
+        Variable t = extern.createVariable(expression, uninstantiatedType);
 
         Expression nullCheck = new EqualsNull(
           new VariableGet(t)..fileOffset = expression.fileOffset,

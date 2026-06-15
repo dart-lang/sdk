@@ -630,7 +630,6 @@ class BodyBuilderImpl extends StackListenerImpl
   InternalVariable createVariableDeclarationForValue(Expression expression) {
     InternalVariable variable = intern.createSyntheticVariableForValue(
       expression,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     assignedVariables.declare(variable);
     return variable;
@@ -1981,9 +1980,9 @@ class BodyBuilderImpl extends StackListenerImpl
         List<InternalVariable> jointVariables = [
           for (InternalVariable leftVariable in left.declaredVariables)
             intern.createSyntheticVariable(
-              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
               name: leftVariable.cosmeticName!,
               fileOffset: leftVariable.fileOffset,
+              isSynthesized: false,
               // TODO(johnniwinther): Should this be final if [leftVariable]
               //  is?
             ),
@@ -3388,7 +3387,6 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalVariable internalVariable;
     if (isLate) {
       internalVariable = intern.createLateVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         name: name,
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -3404,7 +3402,6 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else {
       internalVariable = intern.createLocalVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         name: name,
         type: currentLocalVariableType,
         fileOffset: identifier.nameOffset,
@@ -3732,14 +3729,12 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (variableOrExpression is Expression) {
       InternalVariable variable = intern.createSyntheticVariableForEffect(
         variableOrExpression,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
       return [intern.createVariableDeclaration(variable)];
     } else if (variableOrExpression is ExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
       InternalVariable variable = intern.createSyntheticVariableForEffect(
         variableOrExpression.expression,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
       return [intern.createVariableDeclaration(variable)];
     } else if (intern.isVariablesDeclaration(variableOrExpression)) {
@@ -3852,12 +3847,10 @@ class BodyBuilderImpl extends StackListenerImpl
                 variable,
                 fileOffset: variable.fileOffset,
               ),
-              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             );
         intermediateVariables.add(intermediateVariable);
 
         InternalVariable internalVariable = intern.createSyntheticVariable(
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           name: variable.cosmeticName!,
           initializer: intern.createVariableGet(
             intermediateVariable,
@@ -3865,6 +3858,7 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
           fileOffset: variable.fileOffset,
           isFinal: isFinal,
+          isSynthesized: false,
         );
         internalVariables.add(internalVariable);
 
@@ -7768,7 +7762,6 @@ class BodyBuilderImpl extends StackListenerImpl
       wildcardVariableIndex++;
     }
     InternalVariable variable = intern.createLocalVariable(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       name: identifierName,
       type: null,
       forSyntheticToken: nameToken.isSynthetic,
@@ -8059,7 +8052,6 @@ class BodyBuilderImpl extends StackListenerImpl
     // and we never have access to more than one of these variables. It does
     // not disrupt other backends that this name exists.
     InternalVariable variable = intern.createSyntheticVariable(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       fileOffset: offsetForToken(punctuation),
       name: "anonymous#this",
       initializer: receiver,
@@ -8966,11 +8958,10 @@ class BodyBuilderImpl extends StackListenerImpl
             jointPatternVariables = [
               for (InternalVariable variable in pattern.declaredVariables)
                 intern.createSyntheticVariable(
-                  isClosureContextLoweringEnabled:
-                      isClosureContextLoweringEnabled,
                   name: variable.cosmeticName!,
                   isFinal: variable.isFinal,
                   fileOffset: variable.fileOffset,
+                  isSynthesized: false,
                 ),
             ];
             if (i != 0) {
@@ -9003,11 +8994,10 @@ class BodyBuilderImpl extends StackListenerImpl
             if (patternVariablesByName.isNotEmpty) {
               for (InternalVariable variable in patternVariablesByName.values) {
                 InternalVariable jointVariable = intern.createSyntheticVariable(
-                  isClosureContextLoweringEnabled:
-                      isClosureContextLoweringEnabled,
                   name: variable.cosmeticName!,
                   isFinal: variable.isFinal,
                   fileOffset: variable.fileOffset,
+                  isSynthesized: false,
                 );
                 (jointPatternVariablesNotInAll ??= []).add(jointVariable);
                 jointPatternVariables.add(jointVariable);
@@ -10528,7 +10518,6 @@ class BodyBuilderImpl extends StackListenerImpl
     if (arguments == null) return expression;
     for (Argument argument in arguments.argumentList.reversed) {
       expression = intern.createLetForEffect(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         effect: argument.expression,
         // TODO(johnniwinther): Should we use `void` instead?
         effectType: coreTypes.objectRawType(Nullability.nullable),
@@ -10746,7 +10735,6 @@ class BodyBuilderImpl extends StackListenerImpl
   ) {
     InternalVariable check = intern.createSyntheticVariableForValue(
       intern.checkLibraryIsLoaded(charOffset, prefix.dependency!),
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     return new DeferredCheck(check, expression, fileOffset: charOffset);
   }
@@ -11089,8 +11077,7 @@ class BodyBuilderImpl extends StackListenerImpl
         declaredVariables: const [],
       );
     } else {
-      InternalVariable declaredVariable = intern.createSyntheticVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      InternalVariable declaredVariable = intern.createLocalVariable(
         fileOffset: variable.charOffset,
         name: variable.lexeme,
         type: patternType,

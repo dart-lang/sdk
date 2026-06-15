@@ -6127,9 +6127,7 @@ class ConstantEvaluator
 }
 
 class StatementConstantEvaluator
-    with
-        StatementVisitorExperimentExclusionMixin<ExecutionStatus>,
-        VariableVisitorExperimentExclusionMixin<ExecutionStatus>
+    with StatementVisitorExperimentExclusionMixin<ExecutionStatus>
     implements
         StatementVisitor<ExecutionStatus>,
         VariableVisitor<ExecutionStatus> {
@@ -6473,6 +6471,41 @@ class StatementConstantEvaluator
       "Unsupported auxiliary statement ${node} (${node.runtimeType}).",
     );
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitCatchVariable(CatchVariable node) => visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitLateVariable(LateVariable node) => visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitLegacyVariable(LegacyVariable node) =>
+      visitVariable(node);
+
+  @override
+  ExecutionStatus visitLocalVariable(LocalVariable node) => visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitNamedParameter(NamedParameter node) =>
+      visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitPositionalParameter(PositionalParameter node) =>
+      visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitSyntheticVariable(SyntheticVariable node) =>
+      visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitThisVariable(ThisVariable node) => visitVariable(node);
 }
 
 class ConstantCoverage {
@@ -6901,6 +6934,7 @@ bool _isFormalParameter(Variable variable) {
     return true;
   } else if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||
+        // Coverage-ignore(suite): Not run.
         parent.namedParameters.contains(variable);
   }
   return false;

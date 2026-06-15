@@ -881,26 +881,25 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       Variable newParameter;
       switch (parameter) {
         case PositionalParameter():
-          // Coverage-ignore(suite): Not run.
           newParameter = new PositionalParameter(
             cosmeticName: parameter.cosmeticName,
-            type: parameter.type,
+            type: type,
             isFinal: parameter.isFinal,
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
           )..fileOffset = parameter.fileOffset;
         case NamedParameter():
-          // Coverage-ignore(suite): Not run.
           newParameter = new NamedParameter(
             parameterName: parameter.parameterName,
-            type: parameter.type,
+            type: type,
             isFinal: parameter.isFinal,
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
           )..fileOffset = parameter.fileOffset;
+        // Coverage-ignore(suite): Not run.
         case Variable():
-          newParameter = extern.createParameterVariable(
-            parameter.name,
+          newParameter = extern.createPositionalParameter(
+            cosmeticName: parameter.name,
             type: type,
             isFinal: parameter.isFinal,
             isLowered: parameter.isLowered,

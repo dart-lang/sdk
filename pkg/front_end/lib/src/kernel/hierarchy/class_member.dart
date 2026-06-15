@@ -531,8 +531,6 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
   ClassMember? _noSuchMethodTarget;
 
-  final bool _isClosureContextLoweringEnabled;
-
   new(
     this.classBuilder,
     Name name,
@@ -543,13 +541,11 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     ClassMember? noSuchMethodTarget,
     required ClassMemberKind memberKind,
     required bool shouldModifyKernel,
-    required bool isClosureContextLoweringEnabled,
   }) : this._superClassMember = superClassMember,
        this._canonicalMember = canonicalMember,
        this._mixedInMember = mixedInMember,
        this._noSuchMethodTarget = noSuchMethodTarget,
        this._shouldModifyKernel = shouldModifyKernel,
-       this._isClosureContextLoweringEnabled = isClosureContextLoweringEnabled,
        super(name, memberKind);
 
   @override
@@ -580,7 +576,6 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         declarations.indexOf(_canonicalMember),
         declarations,
         forSetter: isSetter,
-        isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
       );
     } else {
       combinedMemberSignature = new CombinedClassMemberSignature(
@@ -588,7 +583,6 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         classBuilder,
         declarations,
         forSetter: isSetter,
-        isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
       );
 
       if (combinedMemberSignature.canonicalMember == null) {
@@ -983,17 +977,13 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   /// If `true`, a stub should be inserted, if needed.
   final bool _shouldModifyKernel;
 
-  final bool _isClosureContextLoweringEnabled;
-
   new(
     this.extensionTypeDeclarationBuilder,
     Name name,
     this.declarations, {
     required ClassMemberKind memberKind,
     required bool shouldModifyKernel,
-    required bool isClosureContextLoweringEnabled,
   }) : this._shouldModifyKernel = shouldModifyKernel,
-       this._isClosureContextLoweringEnabled = isClosureContextLoweringEnabled,
        super(name, memberKind);
 
   @override
@@ -1013,7 +1003,6 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
           extensionTypeDeclarationBuilder,
           declarations,
           forSetter: isSetter,
-          isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
         );
 
     if (combinedMemberSignature.canonicalMember == null) {

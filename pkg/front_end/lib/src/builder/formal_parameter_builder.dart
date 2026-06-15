@@ -152,7 +152,6 @@ class CatchParameterBuilder extends NamedBuilderImpl
           : name;
 
       _variable = intern.createCatchVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         name: variableName,
         type: isTypeOmitted ? const DynamicType() : builtType,
         isWildcard: isWildcard,
@@ -351,7 +350,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
         case FormalParameterKind.requiredPositional:
         case FormalParameterKind.optionalPositional:
           _variable = intern.createPositionalParameter(
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             cosmeticName: variableName,
             type: isTypeOmitted ? const DynamicType() : builtType,
             defaultValue: null,
@@ -369,7 +367,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
         case FormalParameterKind.requiredNamed:
         case FormalParameterKind.optionalNamed:
           _variable = intern.createNamedParameter(
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             parameterName: variableName!,
             type: isTypeOmitted ? const DynamicType() : builtType,
             defaultValue: null,

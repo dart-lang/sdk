@@ -422,6 +422,11 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
       Printer printer = new Printer(
         sb,
         showOffsets: result.compilationSetup.folderOptions.showOffsets,
+        isClosureContextLoweringEnabled: result
+            .sourceTarget
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
       );
       for (Library library in component.libraries) {
         if (result.userLibraries.contains(library.importUri)) {
@@ -583,6 +588,11 @@ class MatchExpectation
         new Printer(
           buffer,
           showOffsets: result.compilationSetup.folderOptions.showOffsets,
+          isClosureContextLoweringEnabled: result
+              .sourceTarget
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         )..writeProblemsAsJson(
           "Problems in component",
           componentToText.problemsAsJson,

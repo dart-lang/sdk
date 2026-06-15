@@ -363,9 +363,6 @@ DelayedDefaultValueCloner _createParameters(
   Substitution substitution,
   SourceLibraryBuilder libraryBuilder,
 ) {
-  bool isClosureContextLoweringEnabled =
-      libraryBuilder.loader.isClosureContextLoweringEnabled;
-
   Variable createTearOffParameter(
     Variable constructorParameter, {
     required bool isPositional,
@@ -373,25 +370,17 @@ DelayedDefaultValueCloner _createParameters(
     DartType tearOffParameterType = substitution.substituteType(
       constructorParameter.type,
     );
-    if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
-      if (isPositional) {
-        return new PositionalParameter(
-          cosmeticName: constructorParameter.name,
-          type: tearOffParameterType,
-        )..fileOffset = constructorParameter.fileOffset;
-      } else {
-        return new NamedParameter(
-          parameterName: constructorParameter.name!,
-          type: tearOffParameterType,
-          isRequired: constructorParameter.isRequired,
-        )..fileOffset = constructorParameter.fileOffset;
-      }
+    if (isPositional) {
+      return extern.createPositionalParameter(
+        cosmeticName: constructorParameter.name,
+        type: tearOffParameterType,
+        fileOffset: constructorParameter.fileOffset,
+      );
     } else {
-      return extern.createParameterVariable(
-        constructorParameter.name,
-        type: substitution.substituteType(constructorParameter.type),
-        isRequired: !isPositional && constructorParameter.isRequired,
+      return extern.createNamedParameter(
+        parameterName: constructorParameter.name!,
+        type: tearOffParameterType,
+        isRequired: constructorParameter.isRequired,
         fileOffset: constructorParameter.fileOffset,
       );
     }
