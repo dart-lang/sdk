@@ -123,3 +123,33 @@ class CatchEntryMoves {
           other is CatchEntryMoves &&
           other.exceptionSites.isEmpty);
 }
+
+class CodeSourcePosition(
+  final int pcOffset,
+  final SourcePosition sourcePosition,
+);
+
+/// Metadata describing source positions.
+class CodeSourceMap {
+  final List<CodeSourcePosition> sourcePositions = [];
+
+  void add(CodeSourcePosition sp) {
+    if (sourcePositions.isNotEmpty) {
+      assert(sourcePositions.last.pcOffset < sp.pcOffset);
+      if (sourcePositions.last.sourcePosition == sp.sourcePosition) {
+        return;
+      }
+    }
+    sourcePositions.add(sp);
+  }
+
+  @override
+  int get hashCode => sourcePositions.isEmpty ? 23 : identityHashCode(this);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (sourcePositions.isEmpty &&
+          other is CodeSourceMap &&
+          other.sourcePositions.isEmpty);
+}

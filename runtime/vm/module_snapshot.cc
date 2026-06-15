@@ -79,6 +79,7 @@ class ModuleSnapshot : public AllStatic {
     kExceptionHandlers,
     kPcDescriptors,
     kCatchEntryMoves,
+    kCodeSourceMap,
     kInstances,
   };
 
@@ -1232,8 +1233,7 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
   explicit CodeDeserializationCluster(Zone* zone)
-      : DeserializationCluster("Code"),
-        code_source_map_(CodeSourceMap::Handle(zone, CodeSourceMap::New(0))) {}
+      : DeserializationCluster("Code") {}
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1262,7 +1262,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->catch_entry_ = static_cast<TypedDataPtr>(d->ReadRef());
       code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
       code->untag()->inlined_id_to_function_ = Array::null();
-      code->untag()->code_source_map_ = code_source_map_.ptr();
+      code->untag()->code_source_map_ =
+          static_cast<CodeSourceMapPtr>(d->ReadRef());
       code->untag()->active_instructions_ = Instructions::null();
       code->untag()->deopt_info_array_ = Array::null();
       code->untag()->static_calls_target_table_ = Array::null();
@@ -1316,9 +1317,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
     }
   }
-
- private:
-  const CodeSourceMap& code_source_map_;
 };
 
 class ICDataDeserializationCluster : public DeserializationCluster {
@@ -1591,6 +1589,37 @@ class CatchEntryMovesDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class CodeSourceMapDeserializationCluster : public DeserializationCluster {
+ public:
+  CodeSourceMapDeserializationCluster()
+      : DeserializationCluster("CodeSourceMap") {}
+  ~CodeSourceMapDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(CodeSourceMap::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      CodeSourceMapPtr map = static_cast<CodeSourceMapPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, kCodeSourceMapCid,
+                                     CodeSourceMap::InstanceSize(length));
+      map->untag()->length_ = length;
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
 Deserializer::Deserializer(Thread* thread,
                            const uint8_t* buffer,
                            intptr_t size,
@@ -1707,6 +1736,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) PcDescriptorsDeserializationCluster();
     case ModuleSnapshot::kCatchEntryMoves:
       return new (Z) CatchEntryMovesDeserializationCluster();
+    case ModuleSnapshot::kCodeSourceMap:
+      return new (Z) CodeSourceMapDeserializationCluster();
     case ModuleSnapshot::kInstances: {
       const auto& cls = Class::Handle(Z, static_cast<ClassPtr>(ReadRef()));
       return new (Z) InstanceDeserializationCluster(cls);

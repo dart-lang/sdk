@@ -86,6 +86,7 @@ enum PredefinedClusters {
   exceptionHandlers,
   pcDescriptors,
   catchEntryMoves,
+  codeSourceMap,
   instances, // Separate cluster for every class.
 }
 
@@ -386,6 +387,7 @@ class SnapshotSerializer {
     CatchEntryMoves() => getPredefinedCluster(
       PredefinedClusters.catchEntryMoves,
     ),
+    CodeSourceMap() => getPredefinedCluster(PredefinedClusters.codeSourceMap),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
 
@@ -429,6 +431,7 @@ class SnapshotSerializer {
         .exceptionHandlers => ExceptionHandlersSerializationCluster(),
         .pcDescriptors => PcDescriptorsSerializationCluster(),
         .catchEntryMoves => CatchEntryMovesSerializationCluster(),
+        .codeSourceMap => CodeSourceMapSerializationCluster(),
         .instances => throw 'Each class has a separate instance cluster',
       };
 }
@@ -1525,6 +1528,7 @@ final class CodeSerializationCluster extends SerializationCluster {
     serializer.push(code.exceptionHandlers);
     serializer.push(code.pcDescriptors);
     serializer.push(code.catchEntryMoves);
+    serializer.push(code.codeSourceMap);
   }
 
   @override
@@ -1548,6 +1552,7 @@ final class CodeSerializationCluster extends SerializationCluster {
       serializer.writeRefId(code.exceptionHandlers);
       serializer.writeRefId(code.pcDescriptors);
       serializer.writeRefId(code.catchEntryMoves);
+      serializer.writeRefId(code.codeSourceMap);
       serializer.writeUint(code.instructions.lengthInBytes);
     }
   }
@@ -1783,7 +1788,7 @@ final class PcDescriptorsSerializationCluster extends SerializationCluster {
       stream.writeSLEB128(packedFields);
       final pcOffset = cs.pcOffset;
       stream.writeSLEB128(pcOffset - previousPcOffset);
-      previousPcOffset = cs.pcOffset;
+      previousPcOffset = pcOffset;
       stream.writeSLEB128(0); // Delta-encoded deoptId.
       final fileOffset = cs.sourcePosition.fileOffset;
       stream.writeSLEB128(fileOffset - previousFileOffset);
@@ -1861,6 +1866,80 @@ final class CatchEntryMovesSerializationCluster extends SerializationCluster {
     for (final catchEntryMoves in _objects) {
       serializer.assignRef(catchEntryMoves);
       final encoded = _encode(serializer, catchEntryMoves);
+      _encoded.add(encoded);
+      serializer.writeUint(encoded.position);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final encoded in _encoded) {
+      serializer.writeUint(encoded.position);
+      for (final buf in encoded.getContents()) {
+        serializer.out.writeUint8List(buf);
+      }
+    }
+  }
+}
+
+enum CodeSourceMapOp {
+  changePosition,
+  advancePC,
+  pushFunction,
+  popFunction,
+  nullCheck,
+}
+
+final class CodeSourceMapSerializationCluster extends SerializationCluster {
+  final List<CodeSourceMap> _objects = [];
+  final List<SnapshotStreamWriter> _encoded = [];
+
+  static const int opBits = 3;
+  static const int argMask = (1 << (32 - opBits)) - 1;
+  static const int startPosition = -12; // kDartCodePrologue
+
+  SnapshotStreamWriter _encode(
+    SnapshotSerializer serializer,
+    CodeSourceMap codeSourceMap,
+  ) {
+    final stream = SnapshotStreamWriter(initialSize: 16);
+    var previousPcOffset = 0;
+    var previousFileOffset = startPosition;
+    for (final sp in codeSourceMap.sourcePositions) {
+      // TODO: encode inline stacks
+      final fileOffset = sp.sourcePosition.fileOffset;
+      stream.writeInt(
+        CodeSourceMapOp.changePosition.index |
+            ((fileOffset - previousFileOffset) & argMask) << opBits,
+      );
+      previousFileOffset = fileOffset;
+      final pcOffset = sp.pcOffset;
+      stream.writeInt(
+        CodeSourceMapOp.advancePC.index |
+            ((pcOffset - previousPcOffset) & argMask) << opBits,
+      );
+      previousPcOffset = pcOffset;
+    }
+    return stream;
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final codeSourceMap = object as CodeSourceMap;
+    _objects.add(codeSourceMap);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.codeSourceMap.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final codeSourceMap in _objects) {
+      serializer.assignRef(codeSourceMap);
+      final encoded = _encode(serializer, codeSourceMap);
       _encoded.add(encoded);
       serializer.writeUint(encoded.position);
     }

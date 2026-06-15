@@ -17,6 +17,7 @@ class Code(
   final ExceptionHandlers? exceptionHandlers,
   final PcDescriptors? pcDescriptors,
   final CatchEntryMoves? catchEntryMoves,
+  final CodeSourceMap? codeSourceMap,
 ]) {
   /// Offset of instructions in the resulting image.
   int? instructionsImageOffset;

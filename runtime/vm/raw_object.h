@@ -49,6 +49,7 @@ class StackFrame;
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
 class CodeDeserializationCluster;
+class CodeSourceMapDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
@@ -2361,6 +2362,7 @@ class UntaggedCodeSourceMap : public UntaggedObject {
 
   friend class Object;
   friend class ImageWriter;
+  friend class module_snapshot::CodeSourceMapDeserializationCluster;
 };
 
 // RawCompressedStackMaps is a compressed representation of the stack maps

@@ -58,6 +58,9 @@ abstract base class CodeGenerator extends Pass
   /// Metadata describing moves between exception site and exception handler.
   CatchEntryMoves? _catchEntryMoves;
 
+  /// Metadata describing source positions in the generated code.
+  late final CodeSourceMap _codeSourceMap;
+
   CodeGenerator(this.backEndState) : super('CodeGen');
 
   VMOffsets get vmOffsets => backEndState.vmOffsets;
@@ -120,6 +123,12 @@ abstract base class CodeGenerator extends Pass
         ),
       );
     }
+    _codeSourceMap.add(
+      CodeSourcePosition(
+        _asm.currentPcOffset,
+        _currentInstruction!.sourcePosition,
+      ),
+    );
   }
 
   @override
@@ -133,6 +142,7 @@ abstract base class CodeGenerator extends Pass
       hasAsyncHandler: asyncMarker == .Async || asyncMarker == .AsyncStar,
     );
     _pcDescriptors = PcDescriptors();
+    _codeSourceMap = CodeSourceMap();
 
     _asm = createAssembler();
 
@@ -160,6 +170,7 @@ abstract base class CodeGenerator extends Pass
         _exceptionHandlers,
         _pcDescriptors,
         _catchEntryMoves,
+        _codeSourceMap,
       ),
     );
   }
