@@ -75,6 +75,9 @@ Constraint? anyRegisterOrImmediate(Definition def) =>
 Constraint? anyLocationOrImmediate(Definition def) =>
     def is Constant ? null : anyLocation(def);
 
+Constraint? anyFpuRegisterOrZero(Definition def) =>
+    (def is Constant && def.value.isZero) ? null : anyFpuRegister;
+
 /// Base class to define register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
 abstract base class const Constraints()

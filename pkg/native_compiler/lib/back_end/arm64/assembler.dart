@@ -1978,6 +1978,104 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         throw 'Unexpect operand ${o.runtimeType}';
     }
   }
+
+  void fadd(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B13, rd, rn, rm, sz);
+  }
+
+  void fsub(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12 | B13, rd, rn, rm, sz);
+  }
+
+  void fmul(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(0, rd, rn, rm, sz);
+  }
+
+  void fdiv(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12, rd, rn, rm, sz);
+  }
+
+  void _emitFPBinary(
+    int opcode,
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm,
+    OperandSize sz,
+  ) {
+    assert(sz.is16or32or64);
+    emit(
+      B11 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd |
+          rn.encodingRn |
+          rm.encodingRm |
+          (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+    );
+  }
+
+  void fcmp(FPRegister rn, Operand o, [OperandSize sz = OperandSize.s64]) {
+    _emitFPCompare(0, rn, o, sz);
+  }
+
+  void _emitFPCompare(int opcode, FPRegister rn, Operand o, OperandSize sz) {
+    assert(sz.is16or32or64);
+    switch (o) {
+      case FPRegister():
+        emit(
+          B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              o.encodingRm |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+      case Immediate(value: 0):
+        emit(
+          B3 |
+              B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+
+      default:
+        throw 'Unexpect operand ${o.runtimeType} $o';
+    }
+  }
 }
 
 bool _isUint(int numBits, int value) => (value >>> numBits) == 0;
@@ -2009,6 +2107,7 @@ extension on FPRegister {
   int get encodingRd => index;
   int get encodingRt => index;
   int get encodingRn => index << 5;
+  int get encodingRm => index << 16;
 }
 
 extension on Immediate {

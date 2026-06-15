@@ -128,7 +128,7 @@ final class Arm64Constraints extends Constraints {
       InstructionConstraints(
         anyCpuRegister,
         instr.op.isDoubleComparison
-            ? const [anyFpuRegister, anyFpuRegister]
+            ? [anyFpuRegister, anyFpuRegisterOrZero(instr.right)]
             : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
       );
 

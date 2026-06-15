@@ -487,18 +487,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitComparison(Comparison instr) {
-    final left = inputReg(instr, 0);
     final right = instr.right;
     final result = outputReg(instr);
     switch (instr.op) {
-      case ComparisonOpcode.equal:
-      case ComparisonOpcode.notEqual:
-      case ComparisonOpcode.intEqual:
-      case ComparisonOpcode.intNotEqual:
-      case ComparisonOpcode.intLess:
-      case ComparisonOpcode.intLessOrEqual:
-      case ComparisonOpcode.intGreater:
-      case ComparisonOpcode.intGreaterOrEqual:
+      case .equal:
+      case .notEqual:
+      case .intEqual:
+      case .intNotEqual:
+      case .intLess:
+      case .intLessOrEqual:
+      case .intGreater:
+      case .intGreaterOrEqual:
+        final left = inputReg(instr, 0);
         final (operand, negated) = _generateAddSubRightOperand(instr, right);
         if (negated) {
           _asm.cmn(left, operand);
@@ -506,12 +506,27 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _asm.cmp(left, operand);
         }
         break;
-      case ComparisonOpcode.intTestIsZero:
-      case ComparisonOpcode.intTestIsNotZero:
+      case .intTestIsZero:
+      case .intTestIsNotZero:
+        final left = inputReg(instr, 0);
         final operand = _generateLogicalRightOperand(instr, right);
         _asm.tst(left, operand);
         break;
-      default:
+      case .doubleEqual:
+      case .doubleNotEqual:
+      case .doubleLess:
+      case .doubleLessOrEqual:
+      case .doubleGreater:
+      case .doubleGreaterOrEqual:
+        final left = inputFPReg(instr, 0);
+        if (right is Constant && right.value.isZero) {
+          _asm.fcmp(left, Immediate(0));
+        } else {
+          _asm.fcmp(left, inputFPReg(instr, 1));
+        }
+        break;
+      case .identical:
+      case .notIdentical:
         _asm.unimplemented(
           'Unimplemented: code generation for Comparison ${instr.op}',
         );
@@ -1812,9 +1827,22 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitBinaryDoubleOp(BinaryDoubleOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
-    );
+    final leftReg = inputFPReg(instr, 0);
+    final rightReg = inputFPReg(instr, 1);
+    switch (instr.op) {
+      case .add:
+        _asm.fadd(outputFPReg(instr), leftReg, rightReg);
+      case .sub:
+        _asm.fsub(outputFPReg(instr), leftReg, rightReg);
+      case .mul:
+        _asm.fmul(outputFPReg(instr), leftReg, rightReg);
+      case .div:
+        _asm.fdiv(outputFPReg(instr), leftReg, rightReg);
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
+        );
+    }
   }
 
   @override
@@ -1996,23 +2024,23 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
 extension on ComparisonOpcode {
   Condition get conditionCode => switch (this) {
-    ComparisonOpcode.equal => Condition.equal,
-    ComparisonOpcode.notEqual => Condition.notEqual,
-    ComparisonOpcode.identical => Condition.equal,
-    ComparisonOpcode.notIdentical => Condition.notEqual,
-    ComparisonOpcode.intEqual => Condition.equal,
-    ComparisonOpcode.intNotEqual => Condition.notEqual,
-    ComparisonOpcode.intLess => Condition.less,
-    ComparisonOpcode.intLessOrEqual => Condition.lessOrEqual,
-    ComparisonOpcode.intGreater => Condition.greater,
-    ComparisonOpcode.intGreaterOrEqual => Condition.greaterOrEqual,
-    ComparisonOpcode.intTestIsZero => Condition.equal,
-    ComparisonOpcode.intTestIsNotZero => Condition.notEqual,
-    ComparisonOpcode.doubleEqual => Condition.equal,
-    ComparisonOpcode.doubleNotEqual => Condition.notEqual,
-    ComparisonOpcode.doubleLess => Condition.less,
-    ComparisonOpcode.doubleLessOrEqual => Condition.lessOrEqual,
-    ComparisonOpcode.doubleGreater => Condition.greater,
-    ComparisonOpcode.doubleGreaterOrEqual => Condition.greaterOrEqual,
+    .equal => Condition.equal,
+    .notEqual => Condition.notEqual,
+    .identical => Condition.equal,
+    .notIdentical => Condition.notEqual,
+    .intEqual => Condition.equal,
+    .intNotEqual => Condition.notEqual,
+    .intLess => Condition.less,
+    .intLessOrEqual => Condition.lessOrEqual,
+    .intGreater => Condition.greater,
+    .intGreaterOrEqual => Condition.greaterOrEqual,
+    .intTestIsZero => Condition.equal,
+    .intTestIsNotZero => Condition.notEqual,
+    .doubleEqual => Condition.equal,
+    .doubleNotEqual => Condition.notEqual,
+    .doubleLess => Condition.unsignedLess, // LO
+    .doubleLessOrEqual => Condition.unsignedLessOrEqual, // LS
+    .doubleGreater => Condition.greater, // GT
+    .doubleGreaterOrEqual => Condition.greaterOrEqual, // GE
   };
 }
