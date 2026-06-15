@@ -609,7 +609,13 @@ class Translator with KernelNodes {
 
     final result = <ModuleMetadata, w.Module>{};
     _outputToBuilder.forEach((outputModule, builder) {
-      result[outputModule] = builder.build();
+      final module = builder.build();
+      if (builder != mainModule) {
+        if (module.exports.exported.isNotEmpty) {
+          throw StateError('Deferred modules are not allowed to have exports.');
+        }
+      }
+      result[outputModule] = module;
     });
     return result;
   }

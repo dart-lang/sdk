@@ -120,6 +120,7 @@ Future testPartitionExpectation(
       '--compiler-asserts',
       '--phases=cfe,tfa',
       '--enable-deferred-loading',
+      '--extra-compiler-option=--enable-experimental-wasm-interop',
       '-o',
       outDill,
       mainFile,
