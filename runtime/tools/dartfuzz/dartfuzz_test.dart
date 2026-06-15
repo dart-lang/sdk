@@ -34,8 +34,9 @@ class TestResult {
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
   var res = Process.runSync('timeout', [
-    '-s',
+    '--signal',
     '$sigkill',
+    '--preserve-status',
     '$timeout',
     ...cmd,
   ], environment: env);
