@@ -164,6 +164,14 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
     return _resourceProvider.getFile(path);
   }
 
+  String? _filePathForRuleData(_RuleData ruleData) {
+    var sourceUrl = ruleData.node.span.sourceUrl;
+    if (sourceUrl == null) {
+      return null;
+    }
+    return _fileFromFileUri(sourceUrl).path;
+  }
+
   /// Returns the first rule that is incompatible with the given [rule].
   ///
   /// If the rule is found in the [rules] map, it returns the file path
@@ -249,10 +257,7 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
             reference: ruleData.node,
             incompatibleRules: {
               for (var data in includedIncompatible)
-                if (data.file?.value case String value)
-                  if (_actualIncludePath(value, data.file?.span.sourceUrl)
-                      case var uri?)
-                    _fileFromFileUri(uri).path: data.ruleData.node,
+                ?_filePathForRuleData(data.ruleData): data.ruleData.node,
             },
           ),
         );
@@ -343,10 +348,7 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
             reference: includeNode,
             incompatibleRules: {
               for (var data in incompatible)
-                if (data.file?.value case String value)
-                  if (_actualIncludePath(value, data.file?.span.sourceUrl)
-                      case var uri?)
-                    _fileFromFileUri(uri).path: data.ruleData.node,
+                ?_filePathForRuleData(data.ruleData): data.ruleData.node,
             },
             fileCount: incompatible.map((data) => data.file).toSet().length,
           ),
@@ -521,5 +523,6 @@ class _RuleData {
 
   final YamlScalar node;
   final bool isEnabled;
+
   _RuleData(this.rule, this.node, {required this.isEnabled});
 }

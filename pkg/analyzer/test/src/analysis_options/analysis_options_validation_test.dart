@@ -1502,6 +1502,233 @@ linter:
     });
   }
 
+  test_linter_rules_incompatible_multipleIncludes_nestedFirst() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+''',
+      getFile('/included1.yaml'): '''
+include: nested.yaml
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('/included2.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_multipleIncludes_nestedFirst_disabled() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+''',
+      getFile('/included1.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+      getFile('/included2.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/nested.yaml'.
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile_ignore() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: ignore
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile_listToMap() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    - rule_neg
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInMain() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: false
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+  }
+
+  // TODO(scheglov): Enable when linter rule validation preserves the source
+  // location of a rule that overrides a rule from an included file.
+  @SkippedTest(
+    reason: 'Enable when linter rule validation preserves override locations.',
+  )
+  test_linter_rules_incompatible_nestedInclude_enabledInIncludedFile_listOverridesMap() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    - rule_neg
+//    ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: false
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_nestedInclude_mainIgnore() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: ignore
+''',
+      getFile('/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+  }
+
   test_linter_rules_incompatible_packageInclude() {
     var testProjectPath = '/test';
     var testAnalysisOptionsFile = getFile(

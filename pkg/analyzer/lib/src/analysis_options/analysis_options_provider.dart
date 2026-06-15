@@ -135,7 +135,10 @@ class AnalysisOptionsProvider {
     }
     YamlMap options;
     try {
-      options = getOptionsFromString(source.stringContents);
+      options = getOptionsFromString(
+        source.stringContents,
+        sourceUrl: source.uri,
+      );
     } on Exception {
       // A YAML-parsing exception is hopefully reported by the analysis-options
       // validation path.
