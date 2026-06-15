@@ -413,7 +413,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<AbstractAnalysisRule> lintRules = [];
 
-  /// The [RuleConfig]s for lint rules, keyed by lowercase rule name.
+  /// The [RuleConfig]s for lint rules, keyed by `lower_snake_case` rule name.
   final Map<String, RuleConfig> lintRuleConfigs;
 
   /// Whether linter exceptions should be propagated to the caller (by
