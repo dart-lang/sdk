@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -15,15 +13,14 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart' as linter_rules;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
+
+import 'analysis_options_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -96,20 +93,18 @@ YamlNode? _getValue(Map<Object, YamlNode?> map, Object key) {
 }
 
 @reflectiveTest
-class AnalysisOptionsBuildTest
-    with ResourceProviderMixin, LintRegistrationMixin {
+class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
   final AnalysisOptionsProvider stringOptionsProvider = AnalysisOptionsProvider(
     SourceFactoryImpl([]),
   );
 
-  late SourceFactory sourceFactory;
   late AnalysisOptionsProvider provider;
 
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   String get optionsFilePath => '/analysis_options.yaml';
 
-  AnalysisOptions buildOptionsFromFolder(String folderPath) {
+  AnalysisOptionsImpl buildOptionsFromFolder(String folderPath) {
     var file = getFolder(folderPath).getFile(file_paths.analysisOptionsYaml);
     return AnalysisOptionsImpl.fromYaml(
       optionsMap: provider.getOptionsFromFile(file),
@@ -139,13 +134,10 @@ class AnalysisOptionsBuildTest
     return AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(file);
   }
 
+  @override
   void setUp() {
-    sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    super.setUp();
     provider = AnalysisOptionsProvider(sourceFactory);
-  }
-
-  void tearDown() {
-    unregisterLintRules();
   }
 
   test_fromFile_analyzer_plugins_chooseFirstLegacyPlugin() {
@@ -174,7 +166,11 @@ analyzer:
 ''');
 
     var options = buildOptionsFromFolder('/');
-    expect(options.enabledLegacyPluginNames, unorderedEquals(['plugin_ddd']));
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_ddd
+''');
   }
 
   test_fromFile_include_analyzerErrors_merged() {
@@ -192,17 +188,12 @@ analyzer:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.errorProcessors,
-      unorderedMatches([
-        ErrorProcessorMatcher(
-          ErrorProcessor('toplevelerror', DiagnosticSeverity.WARNING),
-        ),
-        ErrorProcessorMatcher(
-          ErrorProcessor('lowlevelerror', DiagnosticSeverity.WARNING),
-        ),
-      ]),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    toplevelerror: warning
+    lowlevelerror: warning
+''');
   }
 
   test_fromFile_include_analyzerErrors_merged_chainOfIncludes() {
@@ -223,14 +214,12 @@ include: second_options.yaml
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.errorProcessors,
-      contains(
-        ErrorProcessorMatcher(
-          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
-        ),
-      ),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    error_1: error
+    error_2: warning
+''');
   }
 
   test_fromFile_include_analyzerErrors_merged_multipleIncludes() {
@@ -252,17 +241,12 @@ include:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.errorProcessors,
-      unorderedMatches([
-        ErrorProcessorMatcher(
-          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
-        ),
-        ErrorProcessorMatcher(
-          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
-        ),
-      ]),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    error_1: error
+    error_2: warning
+''');
   }
 
   test_fromFile_include_analyzerErrors_outermostWins() {
@@ -281,17 +265,12 @@ analyzer:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.errorProcessors,
-      unorderedMatches([
-        // We want to explicitly state the expected severity.
-        // ignore: avoid_redundant_argument_values
-        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(
-          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
-        ),
-      ]),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    error_1: ignore
+    error_2: warning
+''');
   }
 
   test_fromFile_include_analyzerErrors_subsequentIncludeWins() {
@@ -315,17 +294,12 @@ include:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.errorProcessors,
-      unorderedMatches([
-        // We want to explicitly state the expected severity.
-        // ignore: avoid_redundant_argument_values
-        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(
-          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
-        ),
-      ]),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    error_1: ignore
+    error_2: warning
+''');
   }
 
   test_fromFile_include_analyzerExclude_merged() {
@@ -343,10 +317,12 @@ analyzer:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.excludePatterns,
-      unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    toplevelexclude.dart
+    lowlevelexclude.dart
+''');
   }
 
   test_fromFile_include_analyzerLanguage_merged() {
@@ -364,9 +340,11 @@ analyzer:
 
     var options = buildOptionsFromFolder('/');
 
-    expect(options.strictCasts, true);
-    expect(options.strictInference, true);
-    expect(options.strictRawTypes, false);
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  strictCasts: true
+  strictInference: true
+''');
   }
 
   test_fromFile_include_analyzerPlugins_legacyPlugin() {
@@ -382,10 +360,11 @@ include: other_options.yaml
 
     var options = buildOptionsFromFolder('/');
 
-    expect(
-      options.enabledLegacyPluginNames,
-      unorderedEquals(['toplevelplugin']),
-    );
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    toplevelplugin
+''');
   }
 
   test_fromFile_include_linterRules_merged() {
@@ -406,7 +385,13 @@ linter:
     registerLintRules([lowLevelLint, topLevelLint]);
     var options = buildOptionsFromFolder('/');
 
-    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    low_level_lint
+    top_level_lint
+''');
   }
 
   test_fromFile_include_linterRules_merged_differentFormats() {
@@ -427,7 +412,13 @@ linter:
     registerLintRules([lowLevelLint, topLevelLint]);
     var options = buildOptionsFromFolder('/');
 
-    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    low_level_lint
+    top_level_lint
+''');
   }
 
   test_fromFile_include_linterRules_outermostWins() {
@@ -447,7 +438,9 @@ linter:
     registerLintRule(topLevelLint);
     var options = buildOptionsFromFolder('/');
 
-    expect(options.lintRules, isNot(contains(topLevelLint)));
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_fromFile_include_plugins_pathRebased() {
@@ -460,21 +453,16 @@ plugins:
 include: ../analysis_options.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/project/foo') as AnalysisOptionsImpl;
+    var options = buildOptionsFromFolder('/project/foo');
 
-    expect(options.pluginsOptions.configurations, hasLength(1));
-    var pluginConfiguration = options.pluginsOptions.configurations.first;
-    expect(
-      pluginConfiguration.source,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    path: ${convertPath('/project/foo/bar')}
-''',
-      ),
-    );
+    assertAnalysisOptionsText(options, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: ${convertPath('/project/foo/bar')}
+''');
   }
 
   test_fromFile_signature_mergeStable() {
@@ -525,11 +513,12 @@ analyzer:
     - another
 ''');
 
-    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(
-      unignorableCodeNames,
-      unorderedEquals(['one_error_code', 'another']),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    another
+    one_error_code
+''');
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity() {
@@ -579,8 +568,11 @@ analyzer:
     return_type_invalid_for_catch_error: ignore
 ''');
 
-    var processors = analysisOptions.errorProcessors;
-    expect(processors, hasLength(1));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    return_type_invalid_for_catch_error: ignore
+''');
 
     var warning = Diagnostic.tmp(
       source: FileSource(newFile('/test.dart', '')),
@@ -593,7 +585,7 @@ analyzer:
       ],
     );
 
-    var processor = processors.first;
+    var processor = analysisOptions.errorProcessors.single;
     expect(processor.appliesTo(warning), isFalse);
   }
 
@@ -604,8 +596,11 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    var processors = analysisOptions.errorProcessors;
-    expect(processors, hasLength(1));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    unused_local_variable: error
+''');
 
     var warning = Diagnostic.tmp(
       source: FileSource(newFile('/test.dart', '')),
@@ -617,9 +612,8 @@ analyzer:
       ],
     );
 
-    var processor = processors.first;
+    var processor = analysisOptions.errorProcessors.single;
     expect(processor.appliesTo(warning), isTrue);
-    expect(processor.severity, DiagnosticSeverity.ERROR);
   }
 
   test_fromYaml_analyzer_errors_severityIsIgnore() {
@@ -629,8 +623,11 @@ analyzer:
     invalid_assignment: ignore
 ''');
 
-    var processors = analysisOptions.errorProcessors;
-    expect(processors, hasLength(1));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_assignment: ignore
+''');
 
     var error = Diagnostic.tmp(
       source: FileSource(newFile('/test.dart', '')),
@@ -643,9 +640,8 @@ analyzer:
       ],
     );
 
-    var processor = processors.first;
+    var processor = analysisOptions.errorProcessors.single;
     expect(processor.appliesTo(error), isTrue);
-    expect(processor.severity, isNull);
   }
 
   test_fromYaml_analyzer_errors_sharedNameAppliesToAllSharedCodes() {
@@ -655,8 +651,11 @@ analyzer:
     invalid_return_type_for_catch_error: ignore
 ''');
 
-    var processors = analysisOptions.errorProcessors;
-    expect(processors, hasLength(1));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_return_type_for_catch_error: ignore
+''');
 
     var warning = Diagnostic.tmp(
       source: FileSource(newFile('/test.dart', '')),
@@ -669,9 +668,8 @@ analyzer:
       ],
     );
 
-    var processor = processors.first;
+    var processor = analysisOptions.errorProcessors.single;
     expect(processor.appliesTo(warning), isTrue);
-    expect(processor.severity, isNull);
   }
 
   test_fromYaml_analyzer_exclude() {
@@ -682,8 +680,12 @@ analyzer:
     - 'test/**'
 ''');
 
-    var excludes = analysisOptions.excludePatterns;
-    expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    foo/bar.dart
+    test/**
+''');
   }
 
   test_fromYaml_analyzer_exclude_withNonStrings() {
@@ -695,8 +697,12 @@ analyzer:
     - a: b
 ''');
 
-    var excludes = analysisOptions.excludePatterns;
-    expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    foo/bar.dart
+    test/**
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks() {
@@ -705,7 +711,10 @@ analyzer:
   optional-checks:
     chrome-os-manifest-checks
 ''');
-    expect(analysisOptions.chromeOsManifestChecks, true);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  chromeOsManifestChecks: true
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks_map() {
@@ -714,7 +723,10 @@ analyzer:
   optional-checks:
     chrome-os-manifest-checks : true
 ''');
-    expect(analysisOptions.chromeOsManifestChecks, true);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  chromeOsManifestChecks: true
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_default() {
@@ -722,7 +734,9 @@ analyzer:
 analyzer:
   optional-checks:
 ''');
-    expect(analysisOptions.propagateLinterExceptions, false);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_empty() {
@@ -731,7 +745,10 @@ analyzer:
   optional-checks:
     propagate-linter-exceptions
 ''');
-    expect(analysisOptions.propagateLinterExceptions, true);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  propagateLinterExceptions: true
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_false() {
@@ -740,7 +757,9 @@ analyzer:
   optional-checks:
     propagate-linter-exceptions: false
 ''');
-    expect(analysisOptions.propagateLinterExceptions, false);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_true() {
@@ -749,7 +768,10 @@ analyzer:
   optional-checks:
     propagate-linter-exceptions: true
 ''');
-    expect(analysisOptions.propagateLinterExceptions, true);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  propagateLinterExceptions: true
+''');
   }
 
   test_fromYaml_analyzer_plugins_legacy_list() {
@@ -762,8 +784,11 @@ analyzer:
     - intl
 ''');
 
-    var names = analysisOptions.enabledLegacyPluginNames;
-    expect(names, ['angular2']);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    angular2
+''');
   }
 
   test_fromYaml_analyzer_plugins_legacy_map() {
@@ -776,8 +801,11 @@ analyzer:
       enabled: true
 ''');
 
-    var names = analysisOptions.enabledLegacyPluginNames;
-    expect(names, ['angular2']);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    angular2
+''');
   }
 
   test_fromYaml_analyzer_plugins_legacy_string() {
@@ -787,8 +815,11 @@ analyzer:
     angular2
 ''');
 
-    var names = analysisOptions.enabledLegacyPluginNames;
-    expect(names, ['angular2']);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    angular2
+''');
   }
 
   test_fromYaml_codeStyle_format_false() {
@@ -796,7 +827,9 @@ analyzer:
 code-style:
   format: false
 ''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, false);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_fromYaml_codeStyle_format_true() {
@@ -804,7 +837,284 @@ code-style:
 code-style:
   format: true
 ''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, true);
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_alwaysDeclareReturnTypes() {
+    registerLintRule(TestRule.withName('always_declare_return_types'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - always_declare_return_types
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    always_declare_return_types
+  codeStyleOptions
+    specifyReturnTypes: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_alwaysPutRequiredNamedParametersFirst() {
+    registerLintRule(
+      TestRule.withName('always_put_required_named_parameters_first'),
+    );
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - always_put_required_named_parameters_first
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    always_put_required_named_parameters_first
+  codeStyleOptions
+    requiredNamedParametersFirst: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_alwaysSpecifyTypes() {
+    registerLintRule(TestRule.withName('always_specify_types'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - always_specify_types
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    always_specify_types
+  codeStyleOptions
+    specifyReturnTypes: true
+    specifyTypes: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_alwaysUsePackageImports() {
+    registerLintRule(TestRule.withName('always_use_package_imports'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - always_use_package_imports
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    always_use_package_imports
+  codeStyleOptions
+    usePackageUris: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_avoidAnnotatingWithDynamic() {
+    registerLintRule(TestRule.withName('avoid_annotating_with_dynamic'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - avoid_annotating_with_dynamic
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    avoid_annotating_with_dynamic
+  codeStyleOptions
+    avoidAnnotatingWithDynamic: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_avoidRenamingMethodParameters() {
+    registerLintRule(TestRule.withName('avoid_renaming_method_parameters'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - avoid_renaming_method_parameters
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    avoid_renaming_method_parameters
+  codeStyleOptions
+    avoidRenamingMethodParameters: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_combinatorsOrdering() {
+    registerLintRule(TestRule.withName('combinators_ordering'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - combinators_ordering
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    combinators_ordering
+  codeStyleOptions
+    sortCombinators: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferConstDeclarations() {
+    registerLintRule(TestRule.withName('prefer_const_declarations'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_const_declarations
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_const_declarations
+  codeStyleOptions
+    preferConstDeclarations: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferDoubleQuotes() {
+    registerLintRule(TestRule.withName('prefer_double_quotes'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_double_quotes
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_double_quotes
+  codeStyleOptions
+    preferredQuoteForStrings: "
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferFinalInForEach() {
+    registerLintRule(TestRule.withName('prefer_final_in_for_each'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_final_in_for_each
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_final_in_for_each
+  codeStyleOptions
+    finalInForEach: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferFinalLocals() {
+    registerLintRule(TestRule.withName('prefer_final_locals'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_final_locals
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_final_locals
+  codeStyleOptions
+    makeLocalsFinal: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferIntLiterals() {
+    registerLintRule(TestRule.withName('prefer_int_literals'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_int_literals
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_int_literals
+  codeStyleOptions
+    preferIntLiterals: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_preferRelativeImports() {
+    registerLintRule(TestRule.withName('prefer_relative_imports'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - prefer_relative_imports
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    prefer_relative_imports
+  codeStyleOptions
+    useRelativeUris: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_requireTrailingCommas() {
+    registerLintRule(TestRule.withName('require_trailing_commas'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - require_trailing_commas
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    require_trailing_commas
+  codeStyleOptions
+    addTrailingCommas: true
+''');
+  }
+
+  test_fromYaml_codeStyle_lint_sortConstructorsFirst() {
+    registerLintRule(TestRule.withName('sort_constructors_first'));
+    var analysisOptions = fromYaml('''
+linter:
+  rules:
+    - sort_constructors_first
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    sort_constructors_first
+  codeStyleOptions
+    sortConstructorsFirst: true
+''');
   }
 
   test_fromYaml_plugins_dependencyOverrides_git() {
@@ -818,27 +1128,19 @@ plugins:
         ref: main
 ''');
 
-    var dependencyOverrides =
-        analysisOptions.pluginsOptions.dependencyOverrides;
-    expect(dependencyOverrides, isNotNull);
-    expect(dependencyOverrides, hasLength(1));
-
-    var packageOverride = dependencyOverrides!.entries.singleOrNull;
-    expect(packageOverride, isNotNull);
-    expect(packageOverride!.key, 'some_package');
-    expect(
-      packageOverride.value,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'some_package'),
-        'toYaml',
-        '''
-  some_package:
-    git:
-      url: https://github.com/dart-lang/some_package.git
-      ref: main
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
+    dependencyOverrides
+      some_package
+        source: GitPluginSource
+          url: https://github.com/dart-lang/some_package.git
+          ref: main
+''');
   }
 
   test_fromYaml_plugins_dependencyOverrides_relative() {
@@ -853,42 +1155,21 @@ plugins:
       path: sub_folder/some_package2
 ''');
 
-    var dependencyOverrides =
-        analysisOptions.pluginsOptions.dependencyOverrides;
-    expect(dependencyOverrides, isNotNull);
-    expect(dependencyOverrides, hasLength(2));
-    var package1 = dependencyOverrides!.entries.singleWhereOrNull(
-      (entry) => entry.key == 'some_package1',
-    );
-    var package2 = dependencyOverrides.entries.singleWhereOrNull(
-      (entry) => entry.key == 'some_package2',
-    );
-    expect(package1, isNotNull);
-    expect(package1!.key, 'some_package1');
-    expect(
-      package1.value,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'some_package1'),
-        'toYaml',
-        '''
-  some_package1:
-    path: ${convertPath('/some_package1')}
-''',
-      ),
-    );
-    expect(package2, isNotNull);
-    expect(package2!.key, 'some_package2');
-    expect(
-      package2.value,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'some_package2'),
-        'toYaml',
-        '''
-  some_package2:
-    path: ${convertPath('/project/sub_folder/some_package2')}
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: ${convertPath('/project/foo/bar')}
+    dependencyOverrides
+      some_package1
+        source: PathPluginSource
+          path: ${convertPath('/some_package1')}
+      some_package2
+        source: PathPluginSource
+          path: ${convertPath('/project/sub_folder/some_package2')}
+''');
   }
 
   test_fromYaml_plugins_dependencyOverrides_versionConstraintHosted() {
@@ -901,26 +1182,19 @@ plugins:
       hosted: https://example.com/packages/
 ''');
 
-    var dependencyOverrides =
-        analysisOptions.pluginsOptions.dependencyOverrides;
-    expect(dependencyOverrides, isNotNull);
-    expect(dependencyOverrides, hasLength(1));
-
-    var packageOverride = dependencyOverrides!.entries.singleOrNull;
-    expect(packageOverride, isNotNull);
-    expect(packageOverride!.key, 'some_package1');
-    expect(
-      packageOverride.value,
-      isA<VersionedPluginSource>().having(
-        (e) => e.toYaml(name: 'some_package1'),
-        'toYaml',
-        '''
-  some_package1:
-    version: ^3.2.1
-    hosted: https://example.com/packages/
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
+    dependencyOverrides
+      some_package1
+        source: VersionedPluginSource
+          constraint: ^3.2.1
+          hosted: https://example.com/packages/
+''');
   }
 
   test_fromYaml_plugins_git() {
@@ -930,21 +1204,14 @@ plugins:
     git: https://github.com/dart-lang/plugin_one.git
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/plugin_one.git
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/plugin_one.git
+''');
   }
 
   test_fromYaml_plugins_git_full() {
@@ -958,24 +1225,17 @@ plugins:
       tag_pattern: 'v*'
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      ref: main
-      path: pkg/plugin_one
-      tag_pattern: v*
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/sdk.git
+          ref: main
+          path: pkg/plugin_one
+          tagPattern: v*
+''');
   }
 
   test_fromYaml_plugins_git_scalar() {
@@ -985,21 +1245,14 @@ plugins:
     git: https://github.com/dart-lang/plugin_one.git
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/plugin_one.git
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/plugin_one.git
+''');
   }
 
   test_fromYaml_plugins_path() {
@@ -1009,20 +1262,14 @@ plugins:
     path: /foo/bar
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    path: /foo/bar
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: /foo/bar
+''');
   }
 
   test_fromYaml_plugins_path_relative() {
@@ -1032,20 +1279,14 @@ plugins:
     path: foo/bar
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    path: ${convertPath('/project/foo/bar')}
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: ${convertPath('/project/foo/bar')}
+''');
   }
 
   test_fromYaml_plugins_path_relativeNonNormal() {
@@ -1055,20 +1296,14 @@ plugins:
     path: .././foo/bar/../baz
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<PathPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    path: ${convertPath('/foo/baz')}
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: ${convertPath('/foo/baz')}
+''');
   }
 
   test_fromYaml_plugins_scalar() {
@@ -1077,17 +1312,14 @@ plugins:
   plugin_one: ^1.2.3
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<VersionedPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '  plugin_one: ^1.2.3\n',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
+''');
   }
 
   test_fromYaml_plugins_version() {
@@ -1097,17 +1329,14 @@ plugins:
     version: ^1.2.3
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<VersionedPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '  plugin_one: ^1.2.3\n',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
+''');
   }
 
   test_fromYaml_plugins_versionHosted() {
@@ -1118,21 +1347,15 @@ plugins:
     hosted: https://example.com/packages/
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<VersionedPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    version: ^1.2.3
-    hosted: https://example.com/packages/
-''',
-      ),
-    );
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
+          hosted: https://example.com/packages/
+''');
   }
 
   test_fromYaml_signature_differsForHostedPlugin() {
@@ -1393,23 +1616,6 @@ analyzer:
 
     var options = stringOptionsProvider.getOptionsFromString(src);
     expect(options, isNotNull);
-  }
-}
-
-class ErrorProcessorMatcher extends Matcher {
-  final ErrorProcessor required;
-
-  ErrorProcessorMatcher(this.required);
-
-  @override
-  Description describe(Description desc) => desc
-    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
-
-  @override
-  bool matches(dynamic o, Map<dynamic, dynamic> options) {
-    return o is ErrorProcessor &&
-        o.code == required.code &&
-        o.severity == required.severity;
   }
 }
 

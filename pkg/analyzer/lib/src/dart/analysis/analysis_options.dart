@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -631,21 +630,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addBool(pluginConfiguration.isEnabled);
         switch (pluginConfiguration.source) {
           case GitPluginSource source:
-            buffer.addString(source._url);
-            if (source._path case var path?) {
+            buffer.addString(source.url);
+            if (source.path case var path?) {
               buffer.addString(path);
             }
-            if (source._ref case var ref?) {
+            if (source.ref case var ref?) {
               buffer.addString(ref);
             }
-            if (source._tagPattern case var tagPattern?) {
+            if (source.tagPattern case var tagPattern?) {
               buffer.addString(tagPattern);
             }
           case PathPluginSource source:
-            buffer.addString(source._path);
+            buffer.addString(source.path);
           case VersionedPluginSource source:
-            buffer.addString(source._constraint);
-            if (source._hostedUrl case var hostedUrl?) {
+            buffer.addString(source.constraint);
+            if (source.hostedUrl case var hostedUrl?) {
               buffer.addString(hostedUrl);
             }
         }
@@ -662,20 +661,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             buffer.addString(pluginDependencyOverrideEntry.key);
             switch (pluginDependencyOverrideEntry.value) {
               case GitPluginSource source:
-                buffer.addString(source._url);
-                if (source._path case var path?) {
+                buffer.addString(source.url);
+                if (source.path case var path?) {
                   buffer.addString(path);
                 }
-                if (source._ref case var ref?) {
+                if (source.ref case var ref?) {
                   buffer.addString(ref);
                 }
-                if (source._tagPattern case var tagPattern?) {
+                if (source.tagPattern case var tagPattern?) {
                   buffer.addString(tagPattern);
                 }
               case PathPluginSource source:
-                buffer.addString(source._path);
+                buffer.addString(source.path);
               case VersionedPluginSource source:
-                buffer.addString(source._constraint);
+                buffer.addString(source.constraint);
             }
           }
         }
@@ -793,68 +792,51 @@ final class DebugLink {
   DebugLink(this.text, this.url);
 }
 
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class GitPluginSource implements PluginSource {
-  final String _url;
+  final String url;
 
-  final String? _path;
+  final String? path;
 
-  final String? _ref;
+  final String? ref;
 
-  final String? _tagPattern;
+  final String? tagPattern;
 
-  GitPluginSource({
-    required String url,
-    String? path,
-    String? ref,
-    String? tagPattern,
-  }) : _url = url,
-       _path = path,
-       _ref = ref,
-       _tagPattern = tagPattern;
+  GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
   String toYaml({required String name}) {
     var buffer = StringBuffer()
       ..writeln('  $name:')
       ..writeln('    git:')
-      ..writeln('      url: $_url');
-    if (_ref != null) {
-      buffer.writeln('      ref: $_ref');
+      ..writeln('      url: $url');
+    if (ref != null) {
+      buffer.writeln('      ref: $ref');
     }
-    if (_path != null) {
-      buffer.writeln('      path: $_path');
+    if (path != null) {
+      buffer.writeln('      path: $path');
     }
-    if (_tagPattern != null) {
-      buffer.writeln('      tag_pattern: $_tagPattern');
+    if (tagPattern != null) {
+      buffer.writeln('      tag_pattern: $tagPattern');
     }
     return buffer.toString();
   }
 }
 
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class PathPluginSource implements PluginSource {
-  final String _path;
+  final String path;
 
-  PathPluginSource({required String path}) : _path = path;
+  PathPluginSource({required this.path});
 
   @override
   String toYaml({required String name}) =>
       '''
   $name:
-    path: $_path
+    path: $path
 ''';
 }
 
 /// The configuration of a Dart Analysis Server plugin, as specified by
 /// analysis options.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class PluginConfiguration {
   /// The name of the plugin being configured.
   final String name;
@@ -863,13 +845,11 @@ final class PluginConfiguration {
   final PluginSource source;
 
   /// The list of specified [DiagnosticConfig]s.
-  // ignore: analyzer_public_api_bad_type
   final Map<String, DiagnosticConfig> diagnosticConfigs;
 
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
-  // ignore: analyzer_public_api_bad_type
   PluginConfiguration({
     required this.name,
     required this.source,
@@ -907,9 +887,6 @@ final class PluginsOptions {
 ///
 /// We support all of the source formats documented at
 /// https://dart.dev/tools/pub/dependencies.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 sealed class PluginSource {
   /// Returns the YAML-formatted source, using [name] as a key, for writing into
   /// a pubspec 'dependencies' section.
@@ -918,28 +895,23 @@ sealed class PluginSource {
 
 /// A plugin source using a version constraint, hosted either at pub.dev or
 /// another host.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class VersionedPluginSource implements PluginSource {
   /// The specified version constraint.
-  final String _constraint;
-  final String? _hostedUrl;
+  final String constraint;
+  final String? hostedUrl;
 
-  VersionedPluginSource({required String constraint, String? hostedUrl})
-    : _constraint = constraint,
-      _hostedUrl = hostedUrl;
+  VersionedPluginSource({required this.constraint, this.hostedUrl});
 
   @override
   String toYaml({required String name}) {
-    if (_hostedUrl == null) {
-      return '  $name: $_constraint\n';
+    if (hostedUrl == null) {
+      return '  $name: $constraint\n';
     }
 
     var buffer = StringBuffer()
       ..writeln('  $name:')
-      ..writeln('    version: $_constraint')
-      ..writeln('    hosted: $_hostedUrl');
+      ..writeln('    version: $constraint')
+      ..writeln('    hosted: $hostedUrl');
 
     return buffer.toString();
   }
