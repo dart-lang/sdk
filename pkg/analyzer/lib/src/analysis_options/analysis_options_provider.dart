@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
@@ -30,6 +31,25 @@ class AnalysisOptionsProvider {
   final SourceFactory _sourceFactory;
 
   AnalysisOptionsProvider(this._sourceFactory);
+
+  /// Builds the analysis options represented by [file].
+  ///
+  /// Recursively merges options referenced by any `include` directives before
+  /// applying the resulting YAML to a new [AnalysisOptionsImpl].
+  AnalysisOptionsImpl getAnalysisOptionsFromFile(
+    File file, {
+    AnalysisOptionsCache? analysisOptionsCache,
+    ResourceProvider? resourceProvider,
+  }) {
+    return AnalysisOptionsImpl.fromYaml(
+      optionsMap: getOptionsFromFile(
+        file,
+        analysisOptionsCache: analysisOptionsCache,
+      ),
+      file: file,
+      resourceProvider: resourceProvider ?? file.provider,
+    );
+  }
 
   /// Provides the options found in [file].
   ///

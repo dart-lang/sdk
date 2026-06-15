@@ -196,9 +196,8 @@ class ContextBuilderImpl {
   ) {
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
-      var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: analysisOptionsProvider.getOptionsFromFile(file),
-        file: file,
+      var options = analysisOptionsProvider.getAnalysisOptionsFromFile(
+        file,
         resourceProvider: resourceProvider,
       );
 
@@ -284,9 +283,8 @@ class ContextBuilderImpl {
     AnalysisOptionsImpl options;
 
     try {
-      options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: analysisOptionsProvider.getOptionsFromFile(optionsFile),
-        file: optionsFile,
+      options = analysisOptionsProvider.getAnalysisOptionsFromFile(
+        optionsFile,
         resourceProvider: resourceProvider,
       );
     } catch (e) {

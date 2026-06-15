@@ -106,10 +106,7 @@ class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
 
   AnalysisOptionsImpl buildOptionsFromFolder(String folderPath) {
     var file = getFolder(folderPath).getFile(file_paths.analysisOptionsYaml);
-    return AnalysisOptionsImpl.fromYaml(
-      optionsMap: provider.getOptionsFromFile(file),
-      file: getFile(folderPath),
-    );
+    return provider.getAnalysisOptionsFromFile(file);
   }
 
   void expectMergesTo(String defaults, String overrides, String expected) {
@@ -465,6 +462,57 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_fromFile_sameAsMergedYaml() {
+    newFile('/included_options.yaml', '''
+analyzer:
+  errors:
+    included_error: warning
+linter:
+  rules:
+    - included_lint
+''');
+    var file = newFile(optionsFilePath, r'''
+include: included_options.yaml
+analyzer:
+  errors:
+    main_error: ignore
+  language:
+    strict-casts: true
+code-style:
+  format: true
+linter:
+  rules:
+    - main_lint
+''');
+
+    registerLintRules([
+      TestRule.withName('included_lint'),
+      TestRule.withName('main_lint'),
+    ]);
+    var fromFile = provider.getAnalysisOptionsFromFile(file);
+    var fromMergedYaml = AnalysisOptionsImpl.fromYaml(
+      optionsMap: provider.getOptionsFromFile(file),
+      file: file,
+      resourceProvider: resourceProvider,
+    );
+
+    var expected = r'''
+AnalysisOptionsImpl
+  errorProcessors
+    included_error: warning
+    main_error: ignore
+  lint: true
+  lintRules
+    included_lint
+    main_lint
+  strictCasts: true
+  codeStyleOptions
+    useFormatter: true
+''';
+    assertAnalysisOptionsText(fromFile, expected);
+    assertAnalysisOptionsText(fromMergedYaml, expected);
+  }
+
   test_fromFile_signature_mergeStable() {
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
@@ -488,16 +536,14 @@ analyzer:
     d: ignore
 ''');
 
-    var options = AnalysisOptionsImpl.fromYaml(
-      optionsMap: optionsProvider.getOptionsFromFile(mainOptions),
-      file: mainOptions,
+    var options = optionsProvider.getAnalysisOptionsFromFile(
+      mainOptions,
       resourceProvider: resourceProvider,
     );
     var sig1 = options.signature;
     for (var i = 0; i < 100; i++) {
-      var options2 = AnalysisOptionsImpl.fromYaml(
-        optionsMap: optionsProvider.getOptionsFromFile(mainOptions),
-        file: mainOptions,
+      var options2 = optionsProvider.getAnalysisOptionsFromFile(
+        mainOptions,
         resourceProvider: resourceProvider,
       );
       var sig2 = options2.signature;
