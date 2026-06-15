@@ -24,8 +24,6 @@ abstract class AnalysisContextCollection {
   /// [dispose] must be invoked after collection is finished being used.
   factory AnalysisContextCollection({
     required List<String> includedPaths,
-    @Deprecated('Use analysis_options.yaml to exclude paths.')
-    List<String>? excludedPaths,
     ResourceProvider? resourceProvider,
     String? sdkPath,
   }) {
