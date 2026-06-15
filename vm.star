@@ -79,6 +79,7 @@ def add_postponed_alt_console_entries():
 _vm_builder(
     "vm-linux-debug-x64",
     category = "vm|jit|d",
+    on_cq = True,
 )
 _vm_builder(
     "vm-linux-release-x64",
@@ -124,11 +125,10 @@ _vm_builder(
     category = "vm|jit|mr",
     dimensions = mac,
 )
-_vm_builder(
+_nightly_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|mda",
     dimensions = [mac, arm64],
-    on_cq = True,
 )
 _vm_builder(
     "vm-mac-release-arm64",
@@ -543,7 +543,7 @@ _vm_builder(
     category = "vm|ffi|qr",
     dimensions = resolute,
 )
-_vm_builder(
+_nightly_builder(
     "vm-ffi-mac-debug-simarm64_arm64",
     category = "vm|ffi|ad",
     channels = ["try"],

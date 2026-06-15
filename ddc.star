@@ -27,7 +27,7 @@ dart.ci_sandbox_builder(
     location_filters = paths.to_location_filters(paths.ddc),
 )
 
-dart.ci_sandbox_builder(
+cron.nightly_builder(
     "ddc-mac-chrome",
     category = "ddc|chrome|m",
     dimensions = [arm64, mac],

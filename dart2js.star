@@ -5,6 +5,7 @@
 Defines the dart2js builders.
 """
 
+load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
@@ -54,7 +55,7 @@ dart.ci_sandbox_builder(
     category = "dart2js|chrome|csp",
     properties = [chrome],
 )
-dart.ci_sandbox_builder(
+cron.nightly_builder(
     "dart2js-mac-chrome",
     category = "dart2js|chrome|m",
     dimensions = [arm64, mac],

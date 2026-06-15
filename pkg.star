@@ -33,7 +33,6 @@ def _pkg_builder(name, category = None, properties = [], **kwargs):
 _pkg_builder(
     "pkg-linux-release",
     category = "pkg|l",
-    location_filters = paths.to_location_filters(paths.pkg),
     properties = chrome,
 )
 _pkg_builder(
@@ -52,6 +51,7 @@ _pkg_builder(
     category = "pkg|ma",
     dimensions = [mac, arm64],
     properties = [chrome],
+    location_filters = paths.to_location_filters(paths.pkg),
 )
 _pkg_builder(
     "pkg-win-release",
