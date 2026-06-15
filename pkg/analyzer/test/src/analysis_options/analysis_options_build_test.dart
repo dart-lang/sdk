@@ -1,9 +1,12 @@
-// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -12,20 +15,528 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:collection/collection.dart';
-import 'package:linter/src/rules.dart';
+import 'package:linter/src/rules.dart' as linter_rules;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:yaml/yaml.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisOptionsTest);
+    defineReflectiveTests(AnalysisOptionsFromYamlTest);
+    defineReflectiveTests(AnalysisOptionsMergedYamlTest);
+    defineReflectiveTests(AnalysisOptionsEffectiveOptionsTest);
+
+    // TODO(srawlins): add tests for multiple includes.
+    // TODO(srawlins): add tests with duplicate legacy plugin names.
+    // https://github.com/dart-lang/sdk/issues/50980
+  });
+
+  group('AnalysisOptionsMergedYaml', () {
+    void expectMergesTo(String defaults, String overrides, String expected) {
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
+      var defaultOptions = optionsProvider.getOptionsFromString(defaults);
+      var overrideOptions = optionsProvider.getOptionsFromString(overrides);
+      var merged = optionsProvider.merge(defaultOptions, overrideOptions);
+      expectEquals(merged, optionsProvider.getOptionsFromString(expected));
+    }
+
+    group('merging', () {
+      test('integration', () {
+        expectMergesTo(
+          '''
+analyzer:
+  plugins:
+    - p1
+    - p2
+  errors:
+    unused_local_variable : error
+linter:
+  rules:
+    - camel_case_types
+    - one_member_abstracts
+''',
+          '''
+analyzer:
+  plugins:
+    - p3
+  errors:
+    unused_local_variable : ignore # overrides error
+linter:
+  rules:
+    one_member_abstracts: false # promotes and disables
+    always_specify_return_types: true
+''',
+          '''
+analyzer:
+  plugins:
+    - p1
+    - p2
+    - p3
+  errors:
+    unused_local_variable : ignore
+linter:
+  rules:
+    camel_case_types: true
+    one_member_abstracts: false
+    always_specify_return_types: true
+''',
+        );
+      });
+    });
+  });
+
+  group('AnalysisOptionsMergedYaml', () {
+    test('test_bad_yaml (1)', () {
+      var src = '''
+    analyzer: # <= bang
+strong-mode: true
+''';
+
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
+      expect(
+        () => optionsProvider.getOptionsFromString(src),
+        throwsA(TypeMatcher<OptionsFormatException>()),
+      );
+    });
+
+    test('test_bad_yaml (2)', () {
+      var src = '''
+analyzer:
+  strong-mode:true # missing space (sdk/issues/24885)
+''';
+
+      var optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
+      // Should not throw an exception.
+      var options = optionsProvider.getOptionsFromString(src);
+      // Should return a non-null options list.
+      expect(options, isNotNull);
+    });
   });
 }
 
+bool containsKey(Map<Object, YamlNode> map, Object key) =>
+    _getValue(map, key) != null;
+
+void expectEquals(YamlNode? actual, YamlNode? expected) {
+  if (expected is YamlScalar) {
+    actual!;
+    expect(actual, TypeMatcher<YamlScalar>());
+    expect(expected.value, actual.value);
+  } else if (expected is YamlList) {
+    if (actual is YamlList) {
+      expect(actual.length, expected.length);
+      List<YamlNode> expectedNodes = expected.nodes;
+      List<YamlNode> actualNodes = actual.nodes;
+      for (int i = 0; i < expectedNodes.length; i++) {
+        expectEquals(actualNodes[i], expectedNodes[i]);
+      }
+    } else {
+      fail('Expected a YamlList, found ${actual.runtimeType}');
+    }
+  } else if (expected is YamlMap) {
+    if (actual is YamlMap) {
+      expect(actual.length, expected.length);
+      var expectedNodes = expected.nodes.cast<Object, YamlNode>();
+      var actualNodes = actual.nodes.cast<Object, YamlNode>();
+      for (var expectedKey in expectedNodes.keys) {
+        if (!containsKey(actualNodes, expectedKey)) {
+          fail('Missing key $expectedKey');
+        }
+      }
+      for (var actualKey in actualNodes.keys) {
+        if (!containsKey(expectedNodes, actualKey)) {
+          fail('Extra key $actualKey');
+        }
+      }
+      for (var expectedKey in expectedNodes.keys) {
+        expectEquals(
+          _getValue(actualNodes, expectedKey),
+          _getValue(expectedNodes, expectedKey),
+        );
+      }
+    } else {
+      fail('Expected a YamlMap, found ${actual.runtimeType}');
+    }
+  } else {
+    fail('Unknown type of node: ${expected.runtimeType}');
+  }
+}
+
+Object? valueOf(Object object) => object is YamlNode ? object.value : object;
+
+YamlNode? _getValue(Map<Object, YamlNode?> map, Object key) {
+  var keyValue = valueOf(key);
+  for (var existingKey in map.keys) {
+    if (valueOf(existingKey) == keyValue) {
+      return map[existingKey];
+    }
+  }
+  return null;
+}
+
 @reflectiveTest
-class AnalysisOptionsTest with ResourceProviderMixin {
+class AnalysisOptionsEffectiveOptionsTest
+    with ResourceProviderMixin, LintRegistrationMixin {
+  late final SourceFactory sourceFactory;
+
+  late final AnalysisOptionsProvider provider;
+
+  String get optionsFilePath => '/analysis_options.yaml';
+
+  void setUp() {
+    sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    provider = AnalysisOptionsProvider(sourceFactory);
+  }
+
+  void tearDown() {
+    unregisterLintRules();
+  }
+
+  test_chooseFirstLegacyPlugin() {
+    newFile('/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_ddd
+    - plugin_ggg
+    - plugin_aaa
+''');
+    newFile('/other_options.yaml', '''
+include: more_options.yaml
+analyzer:
+  plugins:
+    - plugin_eee
+    - plugin_hhh
+    - plugin_bbb
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  plugins:
+    - plugin_fff
+    - plugin_iii
+    - plugin_ccc
+''');
+
+    var options = _getOptionsObject('/');
+    expect(options.enabledLegacyPluginNames, unorderedEquals(['plugin_ddd']));
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  errors:
+    toplevelerror: warning
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  errors:
+    lowlevelerror: warning
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        ErrorProcessorMatcher(
+          ErrorProcessor('toplevelerror', DiagnosticSeverity.WARNING),
+        ),
+        ErrorProcessorMatcher(
+          ErrorProcessor('lowlevelerror', DiagnosticSeverity.WARNING),
+        ),
+      ]),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_chainOfIncludes() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: error
+''');
+    newFile('/second_options.yaml', '''
+include: first_options.yaml
+analyzer:
+  errors:
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include: second_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      contains(
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
+      ),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_multipleIncludes() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: error
+''');
+    newFile('/second_options.yaml', '''
+analyzer:
+  errors:
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include:
+  - first_options.yaml
+  - second_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
+      ]),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_outermostWins() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  errors:
+    error_1: warning
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  errors:
+    error_1: ignore
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        // We want to explicitly state the expected severity.
+        // ignore: avoid_redundant_argument_values
+        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
+      ]),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_subsequentIncludeWins() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: warning
+    error_2: warning
+''');
+    newFile('/second_options.yaml', '''
+analyzer:
+  errors:
+    error_1: ignore
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include:
+  - first_options.yaml
+  - second_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        // We want to explicitly state the expected severity.
+        // ignore: avoid_redundant_argument_values
+        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
+      ]),
+    );
+  }
+
+  test_include_analyzerExcludeListsAreMerged() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  exclude:
+    - toplevelexclude.dart
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  exclude:
+    - lowlevelexclude.dart
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.excludePatterns,
+      unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']),
+    );
+  }
+
+  test_include_analyzerLanguageModesAreMerged() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  language:
+    strict-casts: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  language:
+    strict-inference: true
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(options.strictCasts, true);
+    expect(options.strictInference, true);
+    expect(options.strictRawTypes, false);
+  }
+
+  test_include_legacyPluginCanBeIncluded() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    toplevelplugin:
+      enabled: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.enabledLegacyPluginNames,
+      unorderedEquals(['toplevelplugin']),
+    );
+  }
+
+  test_include_linterRulesAreMerged() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    - top_level_lint
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    - low_level_lint
+''');
+
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRules([lowLevelLint, topLevelLint]);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+  }
+
+  test_include_linterRulesAreMerged_differentFormats() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    top_level_lint: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    - low_level_lint
+''');
+
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRules([lowLevelLint, topLevelLint]);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+  }
+
+  test_include_linterRulesAreMerged_outermostWins() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    - top_level_lint
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    top_level_lint: false
+''');
+
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRule(topLevelLint);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, isNot(contains(topLevelLint)));
+  }
+
+  test_include_plugins() {
+    newFile('/project/analysis_options.yaml', '''
+plugins:
+  plugin_one:
+    path: foo/bar
+''');
+    newFile('/project/foo/analysis_options.yaml', r'''
+include: ../analysis_options.yaml
+''');
+
+    var options = _getOptionsObject('/project/foo') as AnalysisOptionsImpl;
+
+    expect(options.pluginsOptions.configurations, hasLength(1));
+    var pluginConfiguration = options.pluginsOptions.configurations.first;
+    expect(
+      pluginConfiguration.source,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    path: ${convertPath('/project/foo/bar')}
+''',
+      ),
+    );
+  }
+
+  AnalysisOptions _getOptionsObject(String folderPath) {
+    var file = getFolder(folderPath).getFile(file_paths.analysisOptionsYaml);
+    return AnalysisOptionsImpl.fromYaml(
+      optionsMap: provider.getOptionsFromFile(file),
+      file: getFile(folderPath),
+    );
+  }
+}
+
+@reflectiveTest
+class AnalysisOptionsFromYamlTest with ResourceProviderMixin {
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
     SourceFactoryImpl([]),
   );
@@ -699,7 +1210,7 @@ analyzer:
   }
 
   test_signature_on_different_lints_ordering() {
-    registerLintRules();
+    linter_rules.registerLintRules();
     var knownRules = Registry.ruleRegistry.rules
         .map((rule) => "    - ${rule.name}")
         .toList(growable: false);
@@ -780,4 +1291,161 @@ analyzer:
       expect(sig1, sig2);
     }
   }
+}
+
+@reflectiveTest
+class AnalysisOptionsMergedYamlTest with ResourceProviderMixin {
+  String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
+
+  void test_getOptions_crawlUp_hasInFolder() {
+    newFolder('/foo/bar');
+    newFile('/foo/$analysisOptionsYaml', r'''
+analyzer:
+  ignore:
+    - foo
+''');
+    newFile('/foo/bar/$analysisOptionsYaml', r'''
+analyzer:
+  ignore:
+    - bar
+''');
+    YamlMap options = _getOptions('/foo/bar');
+    expect(options, hasLength(1));
+    {
+      var analyzer = options.valueAt('analyzer') as YamlMap;
+      expect(analyzer, isNotNull);
+      expect(analyzer.valueAt('ignore'), unorderedEquals(['bar']));
+    }
+  }
+
+  void test_getOptions_doesNotExist() {
+    newFolder('/notFile');
+    YamlMap options = _getOptions('/notFile');
+    expect(options, isEmpty);
+  }
+
+  void test_getOptions_empty() {
+    newFile('/$analysisOptionsYaml', r'''#empty''');
+    YamlMap options = _getOptions('/');
+    expect(options, isNotNull);
+    expect(options, isEmpty);
+  }
+
+  void test_getOptions_include() {
+    newFile('/foo.yaml', r'''
+analyzer:
+  ignore:
+    - ignoreme.dart
+    - 'sdk_ext/**'
+''');
+    newFile('/$analysisOptionsYaml', r'''
+include: foo.yaml
+''');
+    var options = _getOptions('/');
+    expect(options, hasLength(2));
+
+    var analyzer = options.valueAt('analyzer') as YamlMap;
+    expect(analyzer, hasLength(1));
+
+    var ignore = analyzer.valueAt('ignore') as YamlList;
+    expect(ignore, hasLength(2));
+    expect(ignore[0], 'ignoreme.dart');
+    expect(ignore[1], 'sdk_ext/**');
+  }
+
+  void test_getOptions_include_emptyLints() {
+    newFile('/foo.yaml', r'''
+linter:
+  rules:
+    - prefer_single_quotes
+''');
+    newFile('/$analysisOptionsYaml', r'''
+include: foo.yaml
+linter:
+  rules:
+    # avoid_print: false
+''');
+    var options = _getOptions('/');
+    expect(options, hasLength(2));
+
+    var linter = options.valueAt('linter') as YamlMap;
+    expect(linter, hasLength(1));
+
+    var rules = linter.valueAt('rules') as YamlList;
+    expect(rules, hasLength(1));
+    expect(rules[0], 'prefer_single_quotes');
+  }
+
+  void test_getOptions_include_missing() {
+    newFile('/$analysisOptionsYaml', r'''
+include: /foo.yaml
+''');
+    var options = _getOptions('/');
+    expect(options, hasLength(1));
+  }
+
+  void test_getOptions_invalid() {
+    newFile('/$analysisOptionsYaml', r''':''');
+    var options = _getOptions('/');
+    expect(options, hasLength(1));
+  }
+
+  void test_getOptions_simple() {
+    newFile('/$analysisOptionsYaml', r'''
+analyzer:
+  ignore:
+    - ignoreme.dart
+    - 'sdk_ext/**'
+''');
+    var options = _getOptions('/');
+    expect(options, hasLength(1));
+
+    var analyzer = options.valueAt('analyzer') as YamlMap;
+    expect(analyzer, hasLength(1));
+
+    var ignore = analyzer.valueAt('ignore') as YamlList;
+    expect(ignore, hasLength(2));
+    expect(ignore[0], 'ignoreme.dart');
+    expect(ignore[1], 'sdk_ext/**');
+  }
+
+  YamlMap _getOptions(String posixPath) {
+    var folder = getFolder(posixPath);
+    var file = folder.getFile(file_paths.analysisOptionsYaml);
+    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    return AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(file);
+  }
+}
+
+class ErrorProcessorMatcher extends Matcher {
+  final ErrorProcessor required;
+
+  ErrorProcessorMatcher(this.required);
+
+  @override
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
+
+  @override
+  bool matches(dynamic o, Map<dynamic, dynamic> options) {
+    return o is ErrorProcessor &&
+        o.code == required.code &&
+        o.severity == required.severity;
+  }
+}
+
+class TestRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'fantastic_test_rule',
+    'Fantastic test rule.',
+    correctionMessage: 'Try fantastic test rule.',
+    uniqueName: 'LintCode.fantastic_test_rule',
+  );
+
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
+
+  TestRule.withName(String name) : super(name: name, description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
 }

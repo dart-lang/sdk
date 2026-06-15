@@ -187,22 +187,22 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
     ),
     _AssertMethod(
-      className: 'OptionsFileValidatorTest',
+      className: 'AnalysisOptionsFileValidationTest',
       methodName: 'validate',
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
-      className: 'OptionsProviderTest',
+      className: 'OptionsIncludeValidationTest',
       methodName: 'assertDiagnosticsInOptionsFile',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'OptionsRuleValidatorTestMixin',
+      className: 'AnalysisOptionsLintRuleValidationTestMixin',
       methodName: 'assertDiagnostics',
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
-      className: 'OptionsRuleValidatorTestMixin',
+      className: 'AnalysisOptionsLintRuleValidationTestMixin',
       methodName: 'assertRuleDiagnosticsInFiles',
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
     ),
