@@ -47,8 +47,6 @@ final class AnalysisOptionsBuilder {
 
   List<AbstractAnalysisRule> lintRules = [];
 
-  Map<String, RuleConfig> lintRuleConfigs = const {};
-
   bool propagateLinterExceptions = false;
 
   bool strictCasts = false;
@@ -83,7 +81,6 @@ final class AnalysisOptionsBuilder {
       excludePatterns: excludePatterns,
       lint: lint,
       lintRules: lintRules,
-      lintRuleConfigs: lintRuleConfigs,
       propagateLinterExceptions: propagateLinterExceptions,
       strictCasts: strictCasts,
       strictInference: strictInference,
@@ -413,9 +410,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<AbstractAnalysisRule> lintRules = [];
 
-  /// The [RuleConfig]s for lint rules, keyed by `lower_snake_case` rule name.
-  final Map<String, RuleConfig> lintRuleConfigs;
-
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
   bool propagateLinterExceptions;
@@ -520,7 +514,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     var ruleConfigs = parseLinterSection(optionsMap);
     if (ruleConfigs != null) {
-      builder.lintRuleConfigs = ruleConfigs;
       var enabledRules = Registry.ruleRegistry.enabled(ruleConfigs);
       if (enabledRules.isNotEmpty) {
         builder.lint = true;
@@ -545,7 +538,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.errorProcessors,
     required this.lint,
     required this.lintRules,
-    this.lintRuleConfigs = const {},
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
