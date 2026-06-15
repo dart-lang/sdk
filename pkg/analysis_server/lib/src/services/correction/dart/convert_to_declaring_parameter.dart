@@ -50,8 +50,15 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (!parameterName.sourceRange.contains(selectionOffset)) {
-      // The assist only applies if the name of the parameter is selected.
+    var inName = parameterName.sourceRange.contains(selectionOffset);
+    var inThisPrefix =
+        parameter is FieldFormalParameter &&
+        range
+            .startEnd(parameter.thisKeyword, parameter.period)
+            .contains(selectionOffset);
+    if (!inName && !inThisPrefix) {
+      // The assist only applies if the name or the `this.` prefix of the
+      // parameter is selected.
       return;
     }
 
