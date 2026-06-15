@@ -359,8 +359,7 @@ analyzer:
   }
 
   test_analyzer_plugins_multiple_directList() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 analyzer:
   plugins:
     - plugin_one
@@ -370,56 +369,47 @@ analyzer:
     - plugin_three
 //    ^^^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_directList_nonString() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 analyzer:
   plugins:
     - 7
     - plugin_one
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_directList_sameName() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 analyzer:
   plugins:
     - plugin_one
     - plugin_one
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_directMap() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_two: sure
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_directMap_sameName() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_one: sure
 //  ^^^^^^^^^^
 // [diag.parseError] Duplicate mapping key.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_list() {
@@ -428,16 +418,14 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_map() {
@@ -446,8 +434,7 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
@@ -455,8 +442,7 @@ analyzer:
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
       foo: bar
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_scalar() {
@@ -465,15 +451,13 @@ analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins: plugin_two
 //         ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondDirect() {
@@ -485,16 +469,14 @@ analyzer:
     newFile('/other_options.yaml', '''
 include: more_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondIncluded() {
@@ -509,13 +491,11 @@ analyzer:
   plugins:
     - plugin_two
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /other_options.yaml(54..63): Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_analyzer_unsupportedOption() {
@@ -716,30 +696,26 @@ formatter:
   }
 
   test_include_missing_direct() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'other_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_include_missing_nested() {
     newFile('/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'other_options2.yaml' included in '/other_options1.yaml' can't be found when analyzing '/'.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
-  Future<void> test_include_missing_packageUri_doubleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_doubleQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: "package:pedantic/analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -747,8 +723,8 @@ include: "package:pedantic/analysis_options.yaml"
 ''');
   }
 
-  Future<void> test_include_missing_packageUri_listFirst() async {
-    await assertDiagnosticsInFiles({
+  test_include_missing_packageUri_listFirst() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 # We don't depend on pedantic, but we should consider adding it.
 include:
@@ -761,8 +737,8 @@ include:
     });
   }
 
-  Future<void> test_include_missing_packageUri_listSecond() async {
-    await assertDiagnosticsInFiles({
+  test_include_missing_packageUri_listSecond() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 # We don't depend on pedantic, but we should consider adding it.
 include:
@@ -775,8 +751,8 @@ include:
     });
   }
 
-  Future<void> test_include_missing_packageUri_notQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_notQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -784,8 +760,8 @@ include: package:pedantic/analysis_options.yaml
 ''');
   }
 
-  Future<void> test_include_missing_packageUri_singleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_singleQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: 'package:pedantic/analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -799,13 +775,11 @@ formatter:
   page_width: 80
   page_width: 90
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includedFileParseError] Duplicate mapping key. in /other_options.yaml(30..40)
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_include_recursive_cycle_direct() {
@@ -815,13 +789,11 @@ include: other_options.yaml
     newFile('/other_options.yaml', r'''
 include: analysis_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/other_options.yaml' includes '/other_options.yaml', creating a circular reference.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_include_recursive_cycle_inIncludedFiles() {
@@ -837,19 +809,17 @@ include: other_options2.yaml
 # comment
 include: other_options1.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 # comment
 # comment
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /other_options1.yaml(9..27): The file includes itself recursively.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
-  Future<void> test_include_recursive_includedCycle() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_includedCycle() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
@@ -864,8 +834,8 @@ include: a.yaml
     });
   }
 
-  Future<void> test_include_recursive_includedFileSelf() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_includedFileSelf() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
@@ -877,8 +847,8 @@ include: a.yaml
     });
   }
 
-  Future<void> test_include_recursive_initialThroughChain() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
@@ -893,8 +863,8 @@ include: analysis_options.yaml
     });
   }
 
-  Future<void> test_include_recursive_initialThroughChain_listAtTop() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain_listAtTop() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - empty.yaml
@@ -913,9 +883,8 @@ include: analysis_options.yaml
     });
   }
 
-  Future<void>
-  test_include_recursive_initialThroughChain_listInIncludedFile() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain_listInIncludedFile() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
@@ -934,8 +903,8 @@ include: analysis_options.yaml
     });
   }
 
-  Future<void> test_include_recursive_none_nestedSiblingIncludes() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_none_nestedSiblingIncludes() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: c.yaml
 ''',
@@ -951,8 +920,8 @@ include:
     });
   }
 
-  Future<void> test_include_recursive_none_siblingIncludes() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_none_siblingIncludes() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - a.yaml
@@ -968,33 +937,31 @@ include: b.yaml
   test_include_recursive_self_direct() {
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include itself.
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
-  Future<void> test_include_recursive_self_doubleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_doubleQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 include: "./analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
 ''');
   }
 
-  Future<void> test_include_recursive_self_fileName() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_fileName() {
+    assertAnalysisOptionsDiagnostics('''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
 ''');
   }
 
-  Future<void> test_include_recursive_self_fileNameInList() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_fileNameInList() {
+    assertAnalysisOptionsDiagnostics('''
 include:
   - analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^
@@ -1011,18 +978,16 @@ include:
     newFile('/other_options.yaml', r'''
 include: other_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 # comment
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /other_options.yaml(9..26): The file includes itself recursively.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
-  Future<void> test_include_recursive_self_listFirst() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_self_listFirst() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - ./analysis_options.yaml
@@ -1034,8 +999,8 @@ include:
     });
   }
 
-  Future<void> test_include_recursive_self_listSecond() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_self_listSecond() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - included1.yaml
@@ -1047,24 +1012,24 @@ include:
     });
   }
 
-  Future<void> test_include_recursive_self_notQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_notQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 include: ./analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
 ''');
   }
 
-  Future<void> test_include_recursive_self_singleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_singleQuoted() {
+    assertAnalysisOptionsDiagnostics('''
 include: './analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
 ''');
   }
 
-  Future<void> test_include_warning_fromIncludedFile() async {
-    await assertDiagnosticsInFiles({
+  test_include_warning_fromIncludedFile() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
@@ -1077,7 +1042,7 @@ analyzer:
     });
   }
 
-  void test_linter_rules_deprecated() {
+  test_linter_rules_deprecated() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1087,7 +1052,7 @@ linter:
 ''');
   }
 
-  Future<void> test_linter_rules_deprecated_inIncludedFile_ok() async {
+  test_linter_rules_deprecated_inIncludedFile_ok() {
     newFile('/included.yaml', '''
 linter:
   rules:
@@ -1099,7 +1064,7 @@ include: included.yaml
 ''');
   }
 
-  void test_linter_rules_deprecated_map() {
+  test_linter_rules_deprecated_map() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1109,7 +1074,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_deprecated_map_mixedCase() {
+  test_linter_rules_deprecated_map_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1119,7 +1084,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_deprecated_mixedCase() {
+  test_linter_rules_deprecated_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1129,7 +1094,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_deprecated_previousSdk() {
+  test_linter_rules_deprecated_previousSdk() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1139,7 +1104,7 @@ linter:
 ''', sdkVersionConstraint: dart3_3);
   }
 
-  void test_linter_rules_deprecated_since_inCurrentSdk() {
+  test_linter_rules_deprecated_since_inCurrentSdk() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1149,7 +1114,7 @@ linter:
 ''', sdkVersionConstraint: dart3);
   }
 
-  void test_linter_rules_deprecated_since_notInCurrentSdk() {
+  test_linter_rules_deprecated_since_notInCurrentSdk() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1157,7 +1122,7 @@ linter:
 ''', sdkVersionConstraint: Version(2, 17, 0));
   }
 
-  void test_linter_rules_deprecated_since_unknownSdk() {
+  test_linter_rules_deprecated_since_unknownSdk() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1165,7 +1130,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_deprecated_withReplacement() {
+  test_linter_rules_deprecated_withReplacement() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1175,7 +1140,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_deprecated_withReplacement_mixedCase() {
+  test_linter_rules_deprecated_withReplacement_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1185,7 +1150,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_duplicate() {
+  test_linter_rules_duplicate() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1196,7 +1161,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_duplicate_inIncludedFile_ok() {
+  test_linter_rules_duplicate_inIncludedFile_ok() {
     newFile('/included.yaml', '''
 linter:
   rules:
@@ -1211,7 +1176,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_duplicate_mixedCase() {
+  test_linter_rules_duplicate_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1222,14 +1187,14 @@ linter:
 ''');
   }
 
-  void test_linter_rules_empty() {
+  test_linter_rules_empty() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
 ''');
   }
 
-  void test_linter_rules_include_multipleCompatible() {
+  test_linter_rules_include_multipleCompatible() {
     newFile('/included1.yaml', '''
 linter:
   rules:
@@ -1247,8 +1212,8 @@ include:
 ''');
   }
 
-  Future<void> test_linter_rules_incompatible() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible() {
+    assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
     - rule_pos
@@ -1260,7 +1225,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_incompatible_invalidMap_noDiagnostic() {
+  test_linter_rules_incompatible_invalidMap_noDiagnostic() {
     newFile('/included.yaml', '''
 linter:
   rules:
@@ -1276,15 +1241,8 @@ linter:
 ''');
   }
 
-  void test_linter_rules_incompatible_invalidMap_reports() {
+  test_linter_rules_incompatible_invalidMap_reports() {
     assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
-linter:
-  rules:
-    rule_neg: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
-''',
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1295,11 +1253,18 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
+      getFile('/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+''',
     });
   }
 
-  Future<void> test_linter_rules_incompatible_map() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_map() {
+    assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
     rule_pos: true
@@ -1311,7 +1276,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_incompatible_map_disabled() {
+  test_linter_rules_incompatible_map_disabled() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1320,15 +1285,8 @@ linter:
 ''');
   }
 
-  Future<void> test_linter_rules_incompatible_map_includedFile() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
-linter:
-  rules:
-    rule_neg: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
-''',
+  test_linter_rules_incompatible_map_includedFile() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1338,17 +1296,23 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
+      getFile('/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+''',
     });
   }
 
-  Future<void>
-  test_linter_rules_incompatible_map_includedFile_disabledInMain() async {
+  test_linter_rules_incompatible_map_includedFile_disabledInMain() {
     newFile('/included.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    await assertDiagnosticsInCode('''
+    assertAnalysisOptionsDiagnostics('''
 include: included.yaml
 
 linter:
@@ -1358,16 +1322,8 @@ linter:
 ''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_map_includedFile_mixedCase() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
-linter:
-  rules:
-    rulE_neg: true
-//  ^^^^^^^^
-// [context 1] The rule 'rulE_neg' is enabled here in the file '/included.yaml'.
-''',
+  test_linter_rules_incompatible_map_includedFile_mixedCase() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1377,11 +1333,18 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'Rule_pos' is incompatible with 'rulE_neg'.
 ''',
+      getFile('/included.yaml'): '''
+linter:
+  rules:
+    rulE_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rulE_neg' is enabled here in the file '/included.yaml'.
+''',
     });
   }
 
-  Future<void> test_linter_rules_incompatible_map_mixedCase() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_map_mixedCase() {
+    assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
     Rule_pos: true
@@ -1393,8 +1356,8 @@ linter:
 ''');
   }
 
-  Future<void> test_linter_rules_incompatible_mixedCase() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_mixedCase() {
+    assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
     - rule_Pos
@@ -1406,8 +1369,15 @@ linter:
 ''');
   }
 
-  Future<void> test_linter_rules_incompatible_multipleIncludes() async {
-    await assertDiagnosticsInFiles({
+  test_linter_rules_incompatible_multipleIncludes() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+''',
       getFile('/included1.yaml'): '''
 linter:
   rules:
@@ -1422,18 +1392,10 @@ linter:
 //  ^^^^^^^^
 // [context 1] The rule 'rule_pos' is enabled here.
 ''',
-      analysisOptionsFile: '''
-include:
-  - included1.yaml
-  - included2.yaml
-//  ^^^^^^^^^^^^^^
-// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
-''',
     });
   }
 
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_disabledInMain() async {
+  test_linter_rules_incompatible_multipleIncludes_disabledInMain() {
     newFile('/included1.yaml', '''
 linter:
   rules:
@@ -1444,7 +1406,7 @@ linter:
   rules:
     rule_pos: true
 ''');
-    await assertDiagnosticsInCode('''
+    assertAnalysisOptionsDiagnostics('''
 include:
   - included1.yaml
   - included2.yaml
@@ -1455,9 +1417,18 @@ linter:
 ''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules() async {
+  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules() {
     assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+
+linter:
+  rules:
+''',
       getFile('/included1.yaml'): '''
 linter:
   rules:
@@ -1472,22 +1443,22 @@ linter:
 //    ^^^^^^^^
 // [context 1] The rule 'rule_pos' is enabled here.
 ''',
+    });
+  }
+
+  void
+  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules_mixedCase() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - included1.yaml
   - included2.yaml
 //  ^^^^^^^^^^^^^^
-// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_poS' and 'ruLe_neg', which is included from 2 files.
 
 linter:
   rules:
 ''',
-    });
-  }
-
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules_mixedCase() async {
-    assertAnalysisOptionsDiagnosticsInFiles({
       getFile('/included1.yaml'): '''
 linter:
   rules:
@@ -1502,21 +1473,18 @@ linter:
 //    ^^^^^^^^
 // [context 1] The rule 'rule_poS' is enabled here.
 ''',
+    });
+  }
+
+  test_linter_rules_incompatible_multipleIncludes_list() {
+    assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
 include:
   - included1.yaml
   - included2.yaml
 //  ^^^^^^^^^^^^^^
-// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_poS' and 'ruLe_neg', which is included from 2 files.
-
-linter:
-  rules:
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
-    });
-  }
-
-  Future<void> test_linter_rules_incompatible_multipleIncludes_list() async {
-    await assertDiagnosticsInFiles({
       getFile('/included1.yaml'): '''
 linter:
   rules:
@@ -1531,29 +1499,15 @@ linter:
 //    ^^^^^^^^
 // [context 1] The rule 'rule_pos' is enabled here.
 ''',
-      analysisOptionsFile: '''
-include:
-  - included1.yaml
-  - included2.yaml
-//  ^^^^^^^^^^^^^^
-// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
-''',
     });
   }
 
-  void test_linter_rules_incompatible_packageInclude() {
+  test_linter_rules_incompatible_packageInclude() {
     var testProjectPath = '/test';
     var testAnalysisOptionsFile = getFile(
       '$testProjectPath/analysis_options.yaml',
     );
     assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('$otherLib/analysis_options.yaml'): '''
-linter:
-  rules:
-    rule_pos: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
-''',
       testAnalysisOptionsFile: '''
 include:
   - package:other/analysis_options.yaml
@@ -1564,10 +1518,17 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_neg' is incompatible with 'rule_pos'.
 ''',
-    }, initialFile: testAnalysisOptionsFile);
+      getFile('$otherLib/analysis_options.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
+''',
+    });
   }
 
-  void test_linter_rules_nullValue() {
+  test_linter_rules_nullValue() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1575,7 +1536,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_removed() {
+  test_linter_rules_removed() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1585,7 +1546,7 @@ linter:
 ''', sdkVersionConstraint: dart2_12);
   }
 
-  Future<void> test_linter_rules_removed_inIncludedFile_ok() async {
+  test_linter_rules_removed_inIncludedFile_ok() {
     newFile('/included.yaml', '''
 linter:
   rules:
@@ -1596,7 +1557,7 @@ include: included.yaml
 ''');
   }
 
-  void test_linter_rules_removed_notYet_ok() {
+  test_linter_rules_removed_notYet_ok() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1625,7 +1586,7 @@ linter:
 ''', sdkVersionConstraint: dart3_3);
   }
 
-  void test_linter_rules_replaced() {
+  test_linter_rules_replaced() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1635,7 +1596,7 @@ linter:
 ''', sdkVersionConstraint: dart3);
   }
 
-  void test_linter_rules_replaced_mixedCase() {
+  test_linter_rules_replaced_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1645,7 +1606,7 @@ linter:
 ''', sdkVersionConstraint: dart3);
   }
 
-  void test_linter_rules_stable() {
+  test_linter_rules_stable() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1653,7 +1614,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_stable_map() {
+  test_linter_rules_stable_map() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1661,7 +1622,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_stable_map_mixedCase() {
+  test_linter_rules_stable_map_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1669,7 +1630,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_stable_mixedCase() {
+  test_linter_rules_stable_mixedCase() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1686,7 +1647,7 @@ linter:
     ''');
   }
 
-  void test_linter_rules_undefined() {
+  test_linter_rules_undefined() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1696,7 +1657,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_undefined_map() {
+  test_linter_rules_undefined_map() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1706,7 +1667,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_error() {
+  test_linter_rules_value_error() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1717,7 +1678,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_false() {
+  test_linter_rules_value_false() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1728,7 +1689,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_ignore() {
+  test_linter_rules_value_ignore() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1739,7 +1700,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_info() {
+  test_linter_rules_value_info() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1750,7 +1711,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_true() {
+  test_linter_rules_value_true() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1761,7 +1722,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_unsupported() {
+  test_linter_rules_value_unsupported() {
     assertAnalysisOptionsDiagnostics('''
 linter:
   rules:
@@ -1771,7 +1732,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_unsupported_withIncompatibleIncludedRule() {
+  test_linter_rules_value_unsupported_withIncompatibleIncludedRule() {
     newFile('/included.yaml', '''
 linter:
   rules:
@@ -1806,7 +1767,7 @@ linter:
 ''');
   }
 
-  void test_linter_rules_value_warning() {
+  test_linter_rules_value_warning() {
     newEmptyIncludedOptionsFile();
     assertAnalysisOptionsDiagnostics('''
 include: included.yaml
@@ -1827,15 +1788,13 @@ linter:
   }
 
   test_parse_duplicateKey_initialFile() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    assertAnalysisOptionsDiagnostics(r'''
 formatter:
   page_width: 80
   page_width: 90
 //^^^^^^^^^^
 // [diag.parseError] Duplicate mapping key.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
   }
 
   test_plugins_dependencyOverrides_invalidKey() {
@@ -1956,13 +1915,14 @@ plugins:
 name: test
 version: 0.0.1
 ''');
+    var innerOptionsFile = getFile('/inner/analysis_options.yaml');
     assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/inner/analysis_options.yaml'): '''
+      innerOptionsFile: '''
 plugins:
   one: ^1.0.0
 // [diag.pluginsInInnerOptions][column 3][length 12] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
 ''',
-    }, initialFile: getFile('/inner/analysis_options.yaml'));
+    });
   }
 
   test_plugins_innerOptions_included() {
@@ -1974,11 +1934,12 @@ plugins:
 name: test
 version: 0.0.1
 ''');
+    var innerOptionsFile = getFile('/inner/analysis_options.yaml');
     assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/inner/analysis_options.yaml'): '''
+      innerOptionsFile: '''
 include: ../analysis_options.yaml
 ''',
-    }, initialFile: getFile('/inner/analysis_options.yaml'));
+    });
   }
 
   test_plugins_innerOptions_included_notAtContextRoot() {
@@ -1992,11 +1953,12 @@ plugins:
 name: test
 version: 0.0.1
 ''');
+    var inner1File = getFile(inner1Path);
     assertAnalysisOptionsDiagnosticsInFiles({
-      getFile(inner1Path): '''
+      inner1File: '''
 include: ../inner2/analysis_options.yaml
 ''',
-    }, initialFile: getFile(inner1Path));
+    });
   }
 
   test_plugins_notMap_scalar() {

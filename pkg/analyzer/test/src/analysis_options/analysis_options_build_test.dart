@@ -1442,7 +1442,7 @@ plugins:
     }
   }
 
-  void test_mergedYaml_getOptions_crawlUp_hasInFolder() {
+  test_mergedYaml_getOptions_crawlUp_hasInFolder() {
     newFolder('/foo/bar');
     newFile('/foo/$analysisOptionsYaml', r'''
 analyzer:
@@ -1463,20 +1463,20 @@ analyzer:
     }
   }
 
-  void test_mergedYaml_getOptions_doesNotExist() {
+  test_mergedYaml_getOptions_doesNotExist() {
     newFolder('/notFile');
     YamlMap options = mergedYamlFromFolder('/notFile');
     expect(options, isEmpty);
   }
 
-  void test_mergedYaml_getOptions_empty() {
+  test_mergedYaml_getOptions_empty() {
     newFile('/$analysisOptionsYaml', r'''#empty''');
     YamlMap options = mergedYamlFromFolder('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
   }
 
-  void test_mergedYaml_getOptions_include() {
+  test_mergedYaml_getOptions_include() {
     newFile('/foo.yaml', r'''
 analyzer:
   ignore:
@@ -1498,7 +1498,7 @@ include: foo.yaml
     expect(ignore[1], 'sdk_ext/**');
   }
 
-  void test_mergedYaml_getOptions_include_emptyLints() {
+  test_mergedYaml_getOptions_include_emptyLints() {
     newFile('/foo.yaml', r'''
 linter:
   rules:
@@ -1521,7 +1521,7 @@ linter:
     expect(rules[0], 'prefer_single_quotes');
   }
 
-  void test_mergedYaml_getOptions_include_missing() {
+  test_mergedYaml_getOptions_include_missing() {
     newFile('/$analysisOptionsYaml', r'''
 include: /foo.yaml
 ''');
@@ -1529,13 +1529,13 @@ include: /foo.yaml
     expect(options, hasLength(1));
   }
 
-  void test_mergedYaml_getOptions_invalidYaml() {
+  test_mergedYaml_getOptions_invalidYaml() {
     newFile('/$analysisOptionsYaml', r''':''');
     var options = mergedYamlFromFolder('/');
     expect(options, hasLength(1));
   }
 
-  void test_mergedYaml_getOptions_simple() {
+  test_mergedYaml_getOptions_simple() {
     newFile('/$analysisOptionsYaml', r'''
 analyzer:
   ignore:
@@ -1554,7 +1554,7 @@ analyzer:
     expect(ignore[1], 'sdk_ext/**');
   }
 
-  void test_mergedYaml_merge_integration() {
+  test_mergedYaml_merge_integration() {
     expectMergesTo(
       '''
 analyzer:
@@ -1596,7 +1596,7 @@ linter:
     );
   }
 
-  void test_mergedYaml_parse_badYaml_throws() {
+  test_mergedYaml_parse_badYaml_throws() {
     var src = '''
     analyzer: # <= bang
 strong-mode: true
@@ -1608,7 +1608,7 @@ strong-mode: true
     );
   }
 
-  void test_mergedYaml_parse_missingSpace_ok() {
+  test_mergedYaml_parse_missingSpace_ok() {
     var src = '''
 analyzer:
   strong-mode:true # missing space (sdk/issues/24885)

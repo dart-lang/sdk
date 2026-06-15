@@ -27,10 +27,7 @@ import '../../util/diff.dart';
 import '../dart/resolution/node_text_expectations.dart';
 
 abstract class AbstractAnalysisOptionsTest
-    with
-        ResourceProviderMixin,
-        LintRegistrationMixin,
-        AnalysisOptionsDiagnosticExpectationMixin {
+    with ResourceProviderMixin, LintRegistrationMixin {
   late SourceFactory sourceFactory;
   Map<String, String>? dependencies;
 
@@ -49,15 +46,15 @@ abstract class AbstractAnalysisOptionsTest
 
   List<Diagnostic> assertAnalysisOptionsDiagnosticsInFiles(
     Map<File, String> codeByFile, {
-    File? initialFile,
     VersionConstraint? sdkVersionConstraint,
   }) {
-    initialFile ??= analysisOptionsFile;
-    var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var cleanContent = cleanCodeByFile[initialFile];
-    if (cleanContent == null) {
-      fail('Cannot validate ${initialFile.path}: no content was provided.');
+    if (codeByFile.isEmpty) {
+      fail('Cannot validate analysis options: no content was provided.');
     }
+    var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
+    var initialEntry = cleanCodeByFile.entries.first;
+    var initialFile = initialEntry.key;
+    var cleanContent = initialEntry.value;
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
@@ -66,7 +63,7 @@ abstract class AbstractAnalysisOptionsTest
       resourceProvider: resourceProvider,
     ).validateContent(file: initialFile, content: cleanContent);
 
-    assertDiagnosticMarkersInFiles(
+    _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
       diagnostics: diagnostics,
     );
@@ -84,14 +81,6 @@ abstract class AbstractAnalysisOptionsTest
     expect(actual, expected);
   }
 
-  Future<void> assertDiagnosticsInCode(String code) async {
-    assertAnalysisOptionsDiagnostics(code);
-  }
-
-  Future<void> assertDiagnosticsInFiles(Map<File, String> codeByFile) async {
-    assertAnalysisOptionsDiagnosticsInFiles(codeByFile);
-  }
-
   void setUp() {
     sourceFactory = _createSourceFactory(packageDependencies: dependencies);
   }
@@ -101,28 +90,7 @@ abstract class AbstractAnalysisOptionsTest
     unregisterLintRules();
   }
 
-  SourceFactory _createSourceFactory({
-    Map<String, String>? packageDependencies,
-  }) {
-    var resolvers = [
-      ResourceUriResolver(resourceProvider),
-      if (packageDependencies != null)
-        PackageMapUriResolver(resourceProvider, {
-          for (var entry in packageDependencies.entries)
-            entry.key: [getFolder(convertPath(entry.value))],
-        }),
-    ];
-    return SourceFactoryImpl(resolvers);
-  }
-}
-
-/// Shared inline diagnostic expectation checks for analysis-options tests.
-///
-/// These helpers only compare diagnostics with inline markers. The test
-/// fixture remains responsible for choosing which analyzer or validator entry
-/// point produces the diagnostics.
-mixin AnalysisOptionsDiagnosticExpectationMixin {
-  void assertDiagnosticMarkersInFiles({
+  void _assertDiagnosticMarkersInFiles({
     required Map<File, String> codeByFile,
     required List<Diagnostic> diagnostics,
   }) {
@@ -156,17 +124,18 @@ mixin AnalysisOptionsDiagnosticExpectationMixin {
     }
   }
 
-  Map<File, String> writeFilesWithoutDiagnosticExpectations(
-    Map<File, String> codeByFile,
-  ) {
-    var cleanCodeByFile = {
-      for (var entry in codeByFile.entries)
-        entry.key: removeDiagnosticExpectations(entry.value),
-    };
-    for (var entry in cleanCodeByFile.entries) {
-      entry.key.writeAsStringSync(entry.value);
-    }
-    return cleanCodeByFile;
+  SourceFactory _createSourceFactory({
+    Map<String, String>? packageDependencies,
+  }) {
+    var resolvers = [
+      ResourceUriResolver(resourceProvider),
+      if (packageDependencies != null)
+        PackageMapUriResolver(resourceProvider, {
+          for (var entry in packageDependencies.entries)
+            entry.key: [getFolder(convertPath(entry.value))],
+        }),
+    ];
+    return SourceFactoryImpl(resolvers);
   }
 
   Map<File, List<Diagnostic>> _diagnosticsByFile({
@@ -189,6 +158,19 @@ mixin AnalysisOptionsDiagnosticExpectationMixin {
     }
 
     return diagnosticsByFile;
+  }
+
+  Map<File, String> _writeFilesWithoutDiagnosticExpectations(
+    Map<File, String> codeByFile,
+  ) {
+    var cleanCodeByFile = {
+      for (var entry in codeByFile.entries)
+        entry.key: removeDiagnosticExpectations(entry.value),
+    };
+    for (var entry in cleanCodeByFile.entries) {
+      entry.key.writeAsStringSync(entry.value);
+    }
+    return cleanCodeByFile;
   }
 }
 
