@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -50,8 +50,15 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (!parameterName.sourceRange.contains(selectionOffset)) {
-      // The assist only applies if the name of the parameter is selected.
+    var inName = parameterName.sourceRange.contains(selectionOffset);
+    var inThisPrefix =
+        parameter is FieldFormalParameter &&
+        range
+            .startEnd(parameter.thisKeyword, parameter.period)
+            .contains(selectionOffset);
+    if (!inName && !inThisPrefix) {
+      // The assist only applies if the name or the `this.` prefix of the
+      // parameter is selected.
       return;
     }
 
@@ -81,7 +88,19 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     //  constant expression and can be moved to the parameter.
     if (fieldDeclaration.initializer != null) return;
 
+    var parameterElement = parameter.declaredFragment?.element;
+    if (parameterElement == null) return;
+
+    var references = findParameterReferences(
+      parameterElement: parameterElement,
+      constructorBody: constructorBody?.body,
+      initializers: constructorBody?.initializers,
+      nodesBeingRemoved: [?initializer],
+    );
+
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+
       // Move metadata and/or doc comments.
       var variableList = fieldDeclaration.parent as VariableDeclarationList;
       var member = variableList.parent;
@@ -89,8 +108,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         var metadata = member.metadata;
         var docComment = member.documentationComment;
         if (metadata.isNotEmpty || docComment != null) {
-          var text = _getMetadataText(member);
-          builder.addSimpleInsertion(parameter.offset, '\n$text  ');
+          var text = _getMetadataText(member, eol: eol);
+          builder.addSimpleInsertion(parameter.offset, '$eol$text  ');
         }
       }
 
@@ -130,6 +149,9 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       // Rename the parameter if it's different than the name of the field.
       if (fieldName != parameterName.lexeme) {
         builder.addSimpleReplacement(range.token(parameterName), fieldName);
+        for (var reference in references) {
+          builder.addSimpleReplacement(range.node(reference), fieldName);
+        }
       }
       if (!insertedVariable) {
         var offset = parameterName.offset;
@@ -314,7 +336,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     return linesRange;
   }
 
-  String _getMetadataText(AnnotatedNode node) {
+  String _getMetadataText(AnnotatedNode node, {required String eol}) {
     // It might be better to grab all of the text in order to preserve the
     // current formatting and comments. Depends, in part, on how the formatter
     // handles wrapping primary constructor parameter lists.
@@ -322,11 +344,13 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     var docComment = node.documentationComment;
     if (docComment != null) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(docComment));
+      buffer.write(utils.getNodeText(docComment));
+      buffer.write(eol);
     }
     for (var annotation in node.metadata) {
       buffer.write('  ');
-      buffer.writeln(utils.getNodeText(annotation));
+      buffer.write(utils.getNodeText(annotation));
+      buffer.write(eol);
     }
     return buffer.toString();
   }
@@ -388,11 +412,6 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         return null;
       }
 
-      if (_parameterHasOtherUses(parameter, parameterElement, initializer)) {
-        // The parameter can't be converted because it's used for something
-        // else.
-        return null;
-      }
       var fieldIdentifier = initializer.fieldName;
       var element = fieldIdentifier.element;
       if (element is! FieldElement) {
@@ -422,32 +441,5 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   /// Whether the [node] has either a documentation comment or metadata.
   bool _hasCommentOrMetadata(AnnotatedNode node) {
     return node.documentationComment != null || node.metadata.isNotEmpty;
-  }
-
-  bool _parameterHasOtherUses(
-    FormalParameter parameter,
-    FormalParameterElement element,
-    ConstructorFieldInitializer initializer,
-  ) {
-    var visitor = _UsageFinder(element, initializer);
-    parameter.parent?.parent?.accept(visitor);
-    return visitor.hasUsage;
-  }
-}
-
-class _UsageFinder extends RecursiveAstVisitor<void> {
-  final FormalParameterElement element;
-  final ConstructorFieldInitializer initializer;
-  bool hasUsage = false;
-
-  new(this.element, this.initializer);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.element == element) {
-      if (node != initializer.expression) {
-        hasUsage = true;
-      }
-    }
   }
 }

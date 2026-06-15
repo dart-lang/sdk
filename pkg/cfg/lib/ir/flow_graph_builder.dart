@@ -111,7 +111,15 @@ class FlowGraphBuilder {
   TargetBlock newTargetBlock() => TargetBlock(graph, currentSourcePosition);
 
   /// Create a new [CatchBlock].
-  CatchBlock newCatchBlock() => CatchBlock(graph, currentSourcePosition);
+  CatchBlock newCatchBlock(
+    List<ast.DartType> guardTypes, {
+    required bool isSynthetic,
+  }) => CatchBlock(
+    graph,
+    currentSourcePosition,
+    guardTypes,
+    isSynthetic: isSynthetic,
+  );
 
   /// Append [Goto] to the graph. Ends current block.
   void addGoto(Block target) {

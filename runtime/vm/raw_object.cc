@@ -771,29 +771,4 @@ void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
 }
 #endif
 
-const char* UntaggedPcDescriptors::KindToCString(Kind k) {
-  switch (k) {
-#define ENUM_CASE(name, init)                                                  \
-  case Kind::k##name:                                                          \
-    return #name;
-    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
-#undef ENUM_CASE
-    default:
-      return nullptr;
-  }
-}
-
-bool UntaggedPcDescriptors::ParseKind(const char* cstr, Kind* out) {
-  ASSERT(cstr != nullptr && out != nullptr);
-#define ENUM_CASE(name, init)                                                  \
-  if (strcmp(#name, cstr) == 0) {                                              \
-    *out = Kind::k##name;                                                      \
-    return true;                                                               \
-  }
-  FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
-#undef ENUM_CASE
-  return false;
-}
-#undef PREFIXED_NAME
-
 }  // namespace dart

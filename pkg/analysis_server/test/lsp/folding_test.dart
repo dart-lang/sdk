@@ -78,9 +78,9 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class() async {
     var content = '''
-class MyClass2/*[0*/ {
+class MyClass2 {/*[0*/
   // Class content
-}/*0]*/
+/*0]*/}
 ''';
 
     await computeRanges(content);
@@ -159,9 +159,9 @@ void f() {
     const content = '''
 // /*[0*/contributed by fake plugin/*0]*/
 
-class AnnotatedDartClass/*[1*/ {
+class AnnotatedDartClass {/*[1*/
   // content of dart class, contributed by server
-}/*1]*/
+/*1]*/}
 ''';
 
     initializePlugin() {
@@ -327,13 +327,13 @@ var ix = """/*[2*/
 
   Future<void> test_nested() async {
     var content = '''
-class MyClass2/*[0*/ {
+class MyClass2 {/*[0*/
   void f/*[1*/() {
     void g/*[2*/() {
       //
     }/*2]*/
   }/*1]*/
-}/*0]*/
+/*0]*/}
 ''';
 
     await computeRanges(content);

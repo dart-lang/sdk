@@ -375,6 +375,28 @@ class C(var int _x) {
 ''');
   }
 
+  Future<void> test_privateField_referencedInInitializer() async {
+    await resolveTestCode('''
+class C({required int? i}) {
+  final int? _i;
+  final bool _b;
+
+  this : _i = i, _b = i != null;
+
+  num get use => (_i ?? 0) + (_b ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+class C({required final int? _i}) {
+  final bool _b;
+
+  this : _b = _i != null;
+
+  num get use => (_i ?? 0) + (_b ? 1 : 0);
+}
+''');
+  }
+
   Future<void> test_requiredNamed_fieldFormalParameter_final() async {
     await resolveTestCode('''
 class C({required this.x}) {

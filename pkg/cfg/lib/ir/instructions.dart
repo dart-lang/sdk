@@ -518,7 +518,15 @@ final class TargetBlock extends Block {
 /// to represent incoming values of local variables, exception object and
 /// stack trace.
 final class CatchBlock extends Block {
-  CatchBlock(super.graph, super.sourcePosition);
+  final List<ast.DartType> guardTypes;
+  final bool isSynthetic;
+
+  CatchBlock(
+    super.graph,
+    super.sourcePosition,
+    this.guardTypes, {
+    required this.isSynthetic,
+  });
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCatchBlock(this);

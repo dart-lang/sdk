@@ -318,7 +318,7 @@ final class AnalysisOptionsBuilder {
 
     // Grab either the source value from 'version', 'git', or 'path'. In the
     // erroneous case that multiple are specified, just take the first. A
-    // warning should be reported by `OptionsFileValidator`.
+    // warning should be reported by the analysis-options validation path.
     // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
 
     var versionSource = pluginNode.valueAt(AnalysisOptionsFileKeys.version);

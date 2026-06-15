@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -183,38 +183,6 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Add to the list of [references] any references to the [parameter] that
-  /// occur inside either the [initializers] or the [constructorBody].
-  void _addReferencesToParam({
-    required FunctionBody? constructorBody,
-    required List<Expression> fieldInitializers,
-    required NodeList<ConstructorInitializer>? initializers,
-    required List<AstNode> nodesBeingRemoved,
-    required FormalParameter parameter,
-    required List<SimpleIdentifier> references,
-  }) {
-    var parameterElement = parameter.declaredFragment?.element;
-    if (parameterElement == null) {
-      return;
-    }
-    var visitor = _ReferenceVisitor(
-      references,
-      parameterElement,
-      nodesBeingRemoved,
-    );
-    if (initializers != null) {
-      for (var initializer in initializers) {
-        if (!nodesBeingRemoved.contains(initializer)) {
-          initializer.accept(visitor);
-        }
-      }
-    }
-    for (var initializer in fieldInitializers) {
-      initializer.accept(visitor);
-    }
-    constructorBody?.accept(visitor);
-  }
-
   /// Attempts to compute a change [parameter] to an initializing formal for
   /// [field].
   ///
@@ -251,13 +219,12 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             Identifier.isPrivateName(fieldName)) {
           return;
         }
-        _addReferencesToParam(
+        references = findParameterReferences(
+          parameterElement: parameterElement,
           constructorBody: constructorBody,
           fieldInitializers: fieldInitializers,
           initializers: initializers,
           nodesBeingRemoved: [?initializer, ?assignment],
-          parameter: parameter,
-          references: references,
         );
         updateCommentReferences = true;
       } else if (fieldName != parameterName) {
@@ -548,30 +515,5 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     }
 
     return null;
-  }
-}
-
-class _ReferenceVisitor extends GeneralizingAstVisitor<void> {
-  final List<SimpleIdentifier> references;
-
-  final FormalParameterElement parameterElement;
-
-  final List<AstNode> nodesBeingRemoved;
-
-  new(this.references, this.parameterElement, this.nodesBeingRemoved);
-
-  @override
-  void visitNode(AstNode node) {
-    if (!nodesBeingRemoved.contains(node)) {
-      super.visitNode(node);
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element == parameterElement) {
-      references.add(node);
-    }
   }
 }

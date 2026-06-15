@@ -2,26 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_validator.dart';
-import 'package:analyzer/src/analysis_rule/rule_context.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/util/uri.dart';
-import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart';
+part of 'analysis_options_validator.dart';
+
+class _IncompatibleRuleData {
+  final _RuleData ruleData;
+
+  final YamlScalar? file;
+  _IncompatibleRuleData(this.ruleData, {this.file});
+}
 
 /// Validates `linter` rule configurations.
-class LinterRuleOptionsValidator extends OptionsValidator {
+class _LinterRuleOptionsValidator extends OptionsValidator {
   static const _includeKey = 'include';
   static const _linter = 'linter';
   static const _rulesKey = 'rules';
@@ -59,7 +50,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   /// A cache of options file contents.
   final AnalysisOptionsCache _analysisOptionsCache;
 
-  LinterRuleOptionsValidator({
+  _LinterRuleOptionsValidator({
     required ResourceProvider resourceProvider,
     required AnalysisOptionsProvider optionsProvider,
     required SourceFactory sourceFactory,
@@ -523,13 +514,6 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       }
     }
   }
-}
-
-class _IncompatibleRuleData {
-  final _RuleData ruleData;
-
-  final YamlScalar? file;
-  _IncompatibleRuleData(this.ruleData, {this.file});
 }
 
 class _RuleData {

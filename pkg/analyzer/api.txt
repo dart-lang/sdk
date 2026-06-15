@@ -320,7 +320,7 @@ package:analyzer/dart/analysis/analysis_context.dart:
     getAnalysisOptionsForFile (method: AnalysisOptions Function(File))
 package:analyzer/dart/analysis/analysis_context_collection.dart:
   AnalysisContextCollection (class extends Object, abstract):
-    new (constructor: AnalysisContextCollection Function({deprecated List<String>? excludedPaths, required List<String> includedPaths, ResourceProvider? resourceProvider, String? sdkPath}))
+    new (constructor: AnalysisContextCollection Function({required List<String> includedPaths, ResourceProvider? resourceProvider, String? sdkPath}))
     contexts (getter: List<AnalysisContext>)
     contextFor (method: AnalysisContext Function(String))
     dispose (method: Future<void> Function())

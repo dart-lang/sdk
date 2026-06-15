@@ -168,6 +168,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -942,6 +954,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -1715,6 +1739,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -2488,6 +2524,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -3267,6 +3315,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -4043,6 +4103,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -4817,6 +4889,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -5592,6 +5676,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -6363,6 +6459,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -7129,6 +7237,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -7894,6 +8014,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -8659,6 +8791,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -9430,6 +9574,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -10198,6 +10354,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
@@ -10964,6 +11132,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagPos =
     0xc;
 static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
     0x14;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x8;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -11731,6 +11911,18 @@ static constexpr dart::compiler::target::word UntaggedObject_kClassIdTagSize =
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagPos = 0x20;
 static constexpr dart::compiler::target::word UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AbstractType_flags_offset = 0x10;
 static constexpr dart::compiler::target::word AbstractType_hash_offset = 0x20;
 static constexpr dart::compiler::target::word
@@ -12506,6 +12698,18 @@ static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagPos = 0xc;
 static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -13363,6 +13567,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -14227,6 +14443,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -15087,6 +15315,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -15947,6 +16187,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -16805,6 +17057,18 @@ static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagPos = 0xc;
 static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -17663,6 +17927,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -18515,6 +18791,18 @@ static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagPos = 0xc;
 static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -19363,6 +19651,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -20218,6 +20518,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -21069,6 +21381,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -21920,6 +22244,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -22769,6 +23105,18 @@ static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagPos = 0xc;
 static constexpr dart::compiler::target::word
     AOT_UntaggedObject_kClassIdTagSize = 0x14;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x8;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =
@@ -23618,6 +23966,18 @@ static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagPos =
     0x20;
 static constexpr dart::compiler::target::word AOT_UntaggedObject_kHashTagSize =
     0x20;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kKindBitsSize = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsPos = 0x3;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kTryIndexBitsSize = 0xa;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsPos = 0xd;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedPcDescriptors_kYieldIndexBitsSize = 0x13;
 static constexpr dart::compiler::target::word AOT_AbstractType_flags_offset =
     0x10;
 static constexpr dart::compiler::target::word AOT_AbstractType_hash_offset =

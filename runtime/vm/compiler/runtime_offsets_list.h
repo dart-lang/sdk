@@ -142,6 +142,12 @@
   CONSTANT(UntaggedObject, kClassIdTagSize)                                    \
   ONLY_IF_HASH_IN_OBJECT_HEADER(CONSTANT(UntaggedObject, kHashTagPos))         \
   ONLY_IF_HASH_IN_OBJECT_HEADER(CONSTANT(UntaggedObject, kHashTagSize))        \
+  CONSTANT(UntaggedPcDescriptors, kKindBitsPos)                                \
+  CONSTANT(UntaggedPcDescriptors, kKindBitsSize)                               \
+  CONSTANT(UntaggedPcDescriptors, kTryIndexBitsPos)                            \
+  CONSTANT(UntaggedPcDescriptors, kTryIndexBitsSize)                           \
+  CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsPos)                          \
+  CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsSize)                         \
   FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
@@ -535,7 +541,8 @@
   ENUM(StubCode, StubCode::StubNames)                                          \
   ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
   ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
-  ENUM(ClassId, kClassIdNames)
+  ENUM(ClassId, kClassIdNames)                                                 \
+  ENUM(PcDescriptorKind, UntaggedPcDescriptors::kKindNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

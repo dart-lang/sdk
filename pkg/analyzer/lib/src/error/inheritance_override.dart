@@ -852,9 +852,12 @@ class _ClassVerifier {
       return false;
     }
 
-    if (interfaceElement.fields.every(
-      (e) => e.isStatic || e.isOriginGetterSetter,
-    )) {
+    if (interfaceElement.fields.every((e) {
+      return e.isStatic ||
+          e.isOriginGetterSetter ||
+          e.isAbstract ||
+          e.isExternal;
+    })) {
       return false;
     }
 

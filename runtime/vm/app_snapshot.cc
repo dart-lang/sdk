@@ -3571,7 +3571,7 @@ class CodeSourceMapDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       const intptr_t length = d.ReadUnsigned();
       CodeSourceMapPtr map = static_cast<CodeSourceMapPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(map, kPcDescriptorsCid,
+      Deserializer::InitializeHeader(map, kCodeSourceMapCid,
                                      CodeSourceMap::InstanceSize(length));
       map->untag()->length_ = length;
       uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
