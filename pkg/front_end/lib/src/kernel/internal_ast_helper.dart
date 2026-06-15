@@ -190,7 +190,6 @@ InternalCatch createCatch(
 }
 
 InternalVariable createCatchVariable({
-  required bool isClosureContextLoweringEnabled,
   required String name,
   required DartType type,
   required bool isImplicitlyTyped,
@@ -198,31 +197,17 @@ InternalVariable createCatchVariable({
   required bool isFinal,
   required int fileOffset,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    return new InternalCatchVariable(
-      astVariable: extern.createCatchVariable(
-        name: name,
-        type: type,
-        isWildcard: isWildcard,
-        isFinal: isFinal,
-        fileOffset: fileOffset,
-      ),
-      isImplicitlyTyped: isImplicitlyTyped,
+  return new InternalCatchVariable(
+    astVariable: extern.createCatchVariable(
+      name: name,
+      type: type,
+      isWildcard: isWildcard,
+      isFinal: isFinal,
       fileOffset: fileOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: name,
-        type: type,
-        isWildcard: isWildcard,
-        isFinal: isFinal,
-        fileOffset: fileOffset,
-      ),
-      fileOffset: fileOffset,
-      isImplicitlyTyped: isImplicitlyTyped,
-    );
-  }
+    ),
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a conditional expression at the given
@@ -647,7 +632,6 @@ LabeledStatement createLabeledStatement(Statement statement) {
 }
 
 InternalVariable createLateVariable({
-  required bool isClosureContextLoweringEnabled,
   required String? name,
   required DartType? type,
   bool isFinal = false,
@@ -661,57 +645,32 @@ InternalVariable createLateVariable({
   bool isStaticLate = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    return new InternalLateVariable(
-      astVariable: extern.createLateVariable(
-        cosmeticName: name,
-        type: type,
-        isFinal: isFinal,
-        isConst: isConst,
-        isWildcard: isWildcard,
-        hasDeclaredInitializer: initializer != null,
-        fileOffset: fileOffset,
-        initializer: initializer,
-      ),
-      forSyntheticToken: forSyntheticToken,
-      isImplicitlyTyped: isImplicitlyTyped,
-      isStaticLate: isStaticLate,
+  return new InternalLateVariable(
+    astVariable: extern.createLateVariable(
+      cosmeticName: name,
+      type: type,
+      isFinal: isFinal,
+      isConst: isConst,
+      isWildcard: isWildcard,
+      hasDeclaredInitializer: initializer != null,
       fileOffset: fileOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: name,
-        fileOffset: fileOffset,
-        hasDeclaredInitializer: hasDeclaredInitializer,
-        initializer: initializer,
-        type: type ?? const DynamicType(),
-        isFinal: isFinal,
-        isConst: isConst,
-        isLate: true,
-        isWildcard: isWildcard,
-        fileEqualsOffset: fileEqualsOffset,
-      ),
-      fileOffset: fileOffset,
-      forSyntheticToken: forSyntheticToken,
-      isStaticLate: isStaticLate,
-      isImplicitlyTyped: isImplicitlyTyped,
-    );
-  }
+      initializer: initializer,
+      fileEqualsOffset: fileEqualsOffset,
+    ),
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isStaticLate: isStaticLate,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalLet createLetForEffect({
-  required bool isClosureContextLoweringEnabled,
   required Expression effect,
   required DartType effectType,
   required Expression expression,
 }) {
   return new InternalLet(
-    createSyntheticVariableForValue(
-      effect,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      type: effectType,
-    ),
+    createSyntheticVariableForValue(effect, type: effectType),
     expression,
   )..fileOffset = effect.fileOffset;
 }
@@ -757,7 +716,6 @@ LoadLibrary createLoadLibrary(
 }
 
 InternalVariable createLocalVariable({
-  required bool isClosureContextLoweringEnabled,
   required String name,
   required DartType? type,
   bool isFinal = false,
@@ -772,44 +730,25 @@ InternalVariable createLocalVariable({
   bool isLocalFunction = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    return new InternalLocalVariable(
-      astVariable: new LocalVariable(
-        cosmeticName: name,
-        type: type,
-        isFinal: isFinal,
-        isConst: isConst,
-        isWildcard: isWildcard,
-        initializer: initializer,
-        hasDeclaredInitializer: hasDeclaredInitializer,
-      )..fileOffset = fileOffset,
-      forSyntheticToken: forSyntheticToken,
-      isImplicitlyTyped: isImplicitlyTyped,
+  return new InternalLocalVariable(
+    astVariable: extern.createLocalVariable(
+      cosmeticName: name,
+      type: type,
+      isFinal: isFinal,
+      isConst: isConst,
+      isWildcard: isWildcard,
+      initializer: initializer,
+      hasDeclaredInitializer: hasDeclaredInitializer,
       fileOffset: fileOffset,
-      isStaticLate: isStaticLate,
-      isLocalFunction: isLocalFunction,
       fileEqualsOffset: fileEqualsOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: name,
-        fileOffset: fileOffset,
-        hasDeclaredInitializer: hasDeclaredInitializer,
-        initializer: initializer,
-        type: type ?? const DynamicType(),
-        isFinal: isFinal,
-        isConst: isConst,
-        isWildcard: isWildcard,
-        fileEqualsOffset: fileEqualsOffset,
-      ),
-      fileOffset: fileOffset,
-      forSyntheticToken: forSyntheticToken,
-      isLocalFunction: isLocalFunction,
-      isStaticLate: isStaticLate,
-      isImplicitlyTyped: isImplicitlyTyped,
-    );
-  }
+    ),
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
+    isStaticLate: isStaticLate,
+    isLocalFunction: isLocalFunction,
+    fileEqualsOffset: fileEqualsOffset,
+  );
 }
 
 /// Return a representation of a logical expression at the given [fileOffset]
@@ -934,7 +873,6 @@ NamedExpression createNamedExpression(
 }
 
 InternalVariable createNamedParameter({
-  required bool isClosureContextLoweringEnabled,
   required String parameterName,
   required DartType type,
   Expression? defaultValue,
@@ -951,47 +889,25 @@ InternalVariable createNamedParameter({
   bool isImplicitlyTyped = false,
   bool forSyntheticToken = false,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    return new InternalNamedParameter(
-      astVariable: extern.createNamedParameter(
-        parameterName: parameterName,
-        type: type,
-        defaultValue: defaultValue,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isRequired: isRequired,
-        isInitializingFormal: isInitializingFormal,
-        isFinal: isFinal,
-        hasDeclaredDefaultType: hasDeclaredDefaultValue,
-        isSynthesized: isSynthesized,
-        isWildcard: isWildcard,
-        fileOffset: fileOffset,
-      ),
-      isImplicitlyTyped: isImplicitlyTyped,
-      forSyntheticToken: forSyntheticToken,
+  return new InternalNamedParameter(
+    astVariable: extern.createNamedParameter(
+      parameterName: parameterName,
+      type: type,
+      defaultValue: defaultValue,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isRequired: isRequired,
+      isInitializingFormal: isInitializingFormal,
+      isSuperInitializingFormal: isSuperInitializingFormal,
+      isFinal: isFinal,
+      hasDeclaredDefaultValue: hasDeclaredDefaultValue,
+      isSynthesized: isSynthesized,
+      isWildcard: isWildcard,
       fileOffset: fileOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: parameterName,
-        fileOffset: fileOffset,
-        hasDeclaredInitializer: hasDeclaredDefaultValue,
-        initializer: defaultValue,
-        type: type,
-        isFinal: isFinal,
-        isInitializingFormal: isInitializingFormal,
-        isSuperInitializingFormal: isSuperInitializingFormal,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isRequired: isRequired,
-        isLowered: isLowered,
-        isSynthesized: isSynthesized,
-        isWildcard: isWildcard,
-      ),
-      fileOffset: fileOffset,
-      forSyntheticToken: forSyntheticToken,
-      isImplicitlyTyped: isImplicitlyTyped,
-    );
-  }
+    ),
+    isImplicitlyTyped: isImplicitlyTyped,
+    forSyntheticToken: forSyntheticToken,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createNamedPattern(
@@ -1208,7 +1124,6 @@ Statement createPatternVariableDeclaration(
 }
 
 InternalVariable createPositionalParameter({
-  required bool isClosureContextLoweringEnabled,
   String? cosmeticName,
   required DartType type,
   bool isImplicitlyTyped = false,
@@ -1225,47 +1140,25 @@ InternalVariable createPositionalParameter({
   required int fileOffset,
   bool forSyntheticToken = false,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    return new InternalPositionalParameter(
-      astVariable: extern.createPositionalParameter(
-        cosmeticName: cosmeticName,
-        type: type,
-        defaultValue: defaultValue,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isInitializingFormal: isInitializingFormal,
-        isFinal: isFinal,
-        hasDeclaredDefaultType: hasDeclaredDefaultValue,
-        isLowered: isLowered,
-        isSynthesized: isSynthesized,
-        isWildcard: isWildcard,
-        fileOffset: fileOffset,
-      ),
-      forSyntheticToken: forSyntheticToken,
-      isImplicitlyTyped: isImplicitlyTyped,
+  return new InternalPositionalParameter(
+    astVariable: extern.createPositionalParameter(
+      cosmeticName: cosmeticName,
+      type: type,
+      defaultValue: defaultValue,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isInitializingFormal: isInitializingFormal,
+      isSuperInitializingFormal: isSuperInitializingFormal,
+      isFinal: isFinal,
+      hasDeclaredDefaultValue: hasDeclaredDefaultValue,
+      isLowered: isLowered,
+      isSynthesized: isSynthesized,
+      isWildcard: isWildcard,
       fileOffset: fileOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: cosmeticName,
-        fileOffset: fileOffset,
-        hasDeclaredInitializer: hasDeclaredDefaultValue,
-        initializer: defaultValue,
-        type: type,
-        isFinal: isFinal,
-        isInitializingFormal: isInitializingFormal,
-        isSuperInitializingFormal: isSuperInitializingFormal,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isRequired: isRequired,
-        isLowered: isLowered,
-        isSynthesized: isSynthesized,
-        isWildcard: isWildcard,
-      ),
-      fileOffset: fileOffset,
-      forSyntheticToken: forSyntheticToken,
-      isImplicitlyTyped: isImplicitlyTyped,
-    );
-  }
+    ),
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createPropertyGet(
@@ -1519,49 +1412,30 @@ SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
 
 InternalVariable createSyntheticVariable({
   String? name,
-  required bool isClosureContextLoweringEnabled,
   DartType? type,
   required int fileOffset,
   Expression? initializer,
   bool isFinal = false,
-  bool isSynthesized = false,
+  bool isLowered = false,
+  bool isSynthesized = true,
 }) {
-  if (isClosureContextLoweringEnabled) {
-    // Coverage-ignore-block(suite): Not run.
-    return new InternalSyntheticVariable(
-      astVariable: new SyntheticVariable(
-        cosmeticName: name,
-        type: type ?? const DynamicType(),
-        isFinal: isFinal,
-        initializer: initializer,
-      )..fileOffset = fileOffset,
-      isImplicitlyTyped: type == null,
-      fileOffset: fileOffset,
-    );
-  } else {
-    return new InternalLegacyVariable(
-      astVariable: extern.createLegacyVariable(
-        name: name,
-        type: type ?? const DynamicType(),
-        initializer: initializer,
-        isFinal: isFinal,
-        isSynthesized: isSynthesized,
-        hasDeclaredInitializer: initializer != null,
-        fileOffset: fileOffset,
-      ),
-      fileOffset: fileOffset,
-      isImplicitlyTyped: type == null,
-    );
-  }
+  return new InternalSyntheticVariable(
+    astVariable: new SyntheticVariable(
+      cosmeticName: name,
+      type: type ?? const DynamicType(),
+      isFinal: isFinal,
+      isLowered: isLowered,
+      isSynthesized: isSynthesized,
+      initializer: initializer,
+    )..fileOffset = fileOffset,
+    isImplicitlyTyped: type == null,
+    fileOffset: fileOffset,
+  );
 }
 
-InternalVariable createSyntheticVariableForEffect(
-  Expression expression, {
-  required bool isClosureContextLoweringEnabled,
-}) {
+InternalVariable createSyntheticVariableForEffect(Expression expression) {
   return createSyntheticVariable(
     initializer: expression,
-    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     isFinal: true,
     fileOffset: expression.fileOffset,
     type: const DynamicType(),
@@ -1571,12 +1445,10 @@ InternalVariable createSyntheticVariableForEffect(
 
 InternalVariable createSyntheticVariableForValue(
   Expression initializer, {
-  required bool isClosureContextLoweringEnabled,
   DartType? type,
 }) {
   return createSyntheticVariable(
     initializer: initializer,
-    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     isFinal: true,
     fileOffset: initializer.fileOffset,
     type: type,

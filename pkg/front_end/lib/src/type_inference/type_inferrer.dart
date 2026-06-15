@@ -335,30 +335,20 @@ class TypeInferrerImpl implements TypeInferrer {
     List<InternalVariable> positionalParameters = [
       for (Variable positionalParameter
           in redirectingFactoryFunction.positionalParameters)
-        isClosureContextLoweringEnabled
-            ? new InternalPositionalParameter(
-                astVariable: positionalParameter as PositionalParameter,
-                isImplicitlyTyped: false,
-                fileOffset: positionalParameter.fileOffset,
-              )
-            : new InternalLegacyVariable(
-                astVariable: positionalParameter,
-                fileOffset: positionalParameter.fileOffset,
-              ),
+        new InternalPositionalParameter(
+          astVariable: positionalParameter as PositionalParameter,
+          isImplicitlyTyped: false,
+          fileOffset: positionalParameter.fileOffset,
+        ),
     ];
     List<InternalVariable> namedParameters = [
       for (Variable namedParameter
           in redirectingFactoryFunction.namedParameters)
-        isClosureContextLoweringEnabled
-            ? new InternalNamedParameter(
-                astVariable: namedParameter as NamedParameter,
-                isImplicitlyTyped: false,
-                fileOffset: namedParameter.fileOffset,
-              )
-            : new InternalLegacyVariable(
-                astVariable: namedParameter,
-                fileOffset: namedParameter.fileOffset,
-              ),
+        new InternalNamedParameter(
+          astVariable: namedParameter as NamedParameter,
+          isImplicitlyTyped: false,
+          fileOffset: namedParameter.fileOffset,
+        ),
     ];
 
     ScopeProviderInfo? scopeProviderInfo;

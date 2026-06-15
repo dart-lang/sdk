@@ -6087,9 +6087,6 @@ class EquivalenceStrategy {
     if (!checkTypeVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_context(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkTypeVariable_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6116,13 +6113,7 @@ class EquivalenceStrategy {
     if (!checkLocalVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLocalVariable_variableDeclaration(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkLocalVariable_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkLocalVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_initializer(visitor, node, other)) {
@@ -6160,13 +6151,7 @@ class EquivalenceStrategy {
     if (!checkLateVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLateVariable_variableDeclaration(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkLateVariable_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkLateVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLateVariable_initializer(visitor, node, other)) {
@@ -6207,9 +6192,6 @@ class EquivalenceStrategy {
     if (!checkCatchVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkCatchVariable_context(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkCatchVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6243,9 +6225,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkPositionalParameter_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_binaryOffsetNoTag(visitor, node, other)) {
@@ -6286,9 +6265,6 @@ class EquivalenceStrategy {
     if (!checkNamedParameter_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkNamedParameter_context(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkNamedParameter_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6324,9 +6300,6 @@ class EquivalenceStrategy {
     if (!checkThisVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkThisVariable_context(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkThisVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6359,13 +6332,7 @@ class EquivalenceStrategy {
     if (!checkSyntheticVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkSyntheticVariable_variableDeclaration(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkSyntheticVariable_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkSyntheticVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_initializer(visitor, node, other)) {
@@ -13576,15 +13543,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkTypeVariable_context(
-    EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
-  }
-
   bool checkVariableBase_flags(
     EquivalenceVisitor visitor,
     VariableBase node,
@@ -13637,18 +13595,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkLocalVariable_variableDeclaration(
-    EquivalenceVisitor visitor,
-    LocalVariable node,
-    LocalVariable other,
-  ) {
-    return visitor.checkNodes(
-      node.variableDeclaration,
-      other.variableDeclaration,
-      'variableDeclaration',
-    );
-  }
-
   bool checkLocalVariable_annotations(
     EquivalenceVisitor visitor,
     LocalVariable node,
@@ -13660,15 +13606,6 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
-  }
-
-  bool checkLocalVariable_context(
-    EquivalenceVisitor visitor,
-    LocalVariable node,
-    LocalVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkLocalVariable_initializer(
@@ -13759,18 +13696,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkLateVariable_variableDeclaration(
-    EquivalenceVisitor visitor,
-    LateVariable node,
-    LateVariable other,
-  ) {
-    return visitor.checkNodes(
-      node.variableDeclaration,
-      other.variableDeclaration,
-      'variableDeclaration',
-    );
-  }
-
   bool checkLateVariable_annotations(
     EquivalenceVisitor visitor,
     LateVariable node,
@@ -13782,15 +13707,6 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
-  }
-
-  bool checkLateVariable_context(
-    EquivalenceVisitor visitor,
-    LateVariable node,
-    LateVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkLateVariable_initializer(
@@ -13878,15 +13794,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkCatchVariable_context(
-    EquivalenceVisitor visitor,
-    CatchVariable node,
-    CatchVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
-  }
-
   bool checkCatchVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     CatchVariable node,
@@ -13958,15 +13865,6 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
-  }
-
-  bool checkPositionalParameter_context(
-    EquivalenceVisitor visitor,
-    PositionalParameter node,
-    PositionalParameter other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkPositionalParameter_binaryOffsetNoTag(
@@ -14078,15 +13976,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkNamedParameter_context(
-    EquivalenceVisitor visitor,
-    NamedParameter node,
-    NamedParameter other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
-  }
-
   bool checkNamedParameter_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     NamedParameter node,
@@ -14156,15 +14045,6 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkThisVariable_context(
-    EquivalenceVisitor visitor,
-    ThisVariable node,
-    ThisVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
-  }
-
   bool checkThisVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     ThisVariable node,
@@ -14225,18 +14105,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkSyntheticVariable_variableDeclaration(
-    EquivalenceVisitor visitor,
-    SyntheticVariable node,
-    SyntheticVariable other,
-  ) {
-    return visitor.checkNodes(
-      node.variableDeclaration,
-      other.variableDeclaration,
-      'variableDeclaration',
-    );
-  }
-
   bool checkSyntheticVariable_annotations(
     EquivalenceVisitor visitor,
     SyntheticVariable node,
@@ -14248,15 +14116,6 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
-  }
-
-  bool checkSyntheticVariable_context(
-    EquivalenceVisitor visitor,
-    SyntheticVariable node,
-    SyntheticVariable other,
-  ) {
-    'context';
-    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkSyntheticVariable_initializer(

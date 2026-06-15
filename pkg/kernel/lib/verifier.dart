@@ -240,11 +240,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       case 1:
         return true;
       case 0:
-        problem(
-          node,
-          "Variable '${node.cosmeticName}' of the kind "
-          "'${node.runtimeType}' wasn't found in the enclosing scopes.",
-        );
+        if (node is! SyntheticVariable && node.parent is Let) {
+          // TODO(johnniwinther,cstefantsova): Let variables are not set up
+          // correctly.
+          problem(
+            node,
+            "Variable '${node.cosmeticName}' of the kind "
+            "'${node.runtimeType}' wasn't found in the enclosing scopes.",
+          );
+        }
         return false;
       default:
         problem(
@@ -280,33 +284,39 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   void _reportMissingVariableContext(VariableBase node) {
-    problem(
-      node,
-      "A '${node.runtimeType}' variable with cosmetic name "
-      "'${node.cosmeticName}' doesn't have its context set.",
-    );
+    if (node is! SyntheticVariable && node.parent is Let) {
+      // TODO(johnniwinther,cstefantsova): Let variables are not set up
+      // correctly.
+      problem(
+        node,
+        "A '${node.runtimeType}' variable with cosmetic name "
+        "'${node.cosmeticName}' doesn't have its context set.",
+      );
+    }
   }
 
   void enterScopeProvider(ScopeProvider node) {
     if (node.scope case var scope?) {
       scopeStack.add(scope);
 
-      for (VariableContext context in scope.contexts) {
-        for (VariableBase variable in context.variables) {
-          VariableContext variableContext;
-          try {
-            variableContext = variable.context;
-          } on Error {
-            _reportMissingVariableContext(variable);
-            continue;
-          }
+      if (target.flags.isClosureContextLoweringEnabled) {
+        for (VariableContext context in scope.contexts) {
+          for (VariableBase variable in context.variables) {
+            VariableContext variableContext;
+            try {
+              variableContext = variable.context;
+            } on Error {
+              _reportMissingVariableContext(variable);
+              continue;
+            }
 
-          if (!identical(context, variableContext)) {
-            problem(
-              node,
-              "Variable '${variable.cosmeticName}' appears in a context "
-              "that's not its own.",
-            );
+            if (!identical(context, variableContext)) {
+              problem(
+                node,
+                "Variable '${variable.cosmeticName}' appears in a context "
+                "that's not its own.",
+              );
+            }
           }
         }
       }
@@ -1332,7 +1342,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareVariable(node);
     exitTreeNode(node);
 
-    if (!isOutline) {
+    if (target.flags.isClosureContextLoweringEnabled && !isOutline) {
       checkVariableInScopeStack(node);
       checkVariableIsInOwnContext(node);
     }

@@ -898,17 +898,11 @@ class Resolver {
             parameters.positionalParameters.length,
             (int i) {
               Variable parameter = parameters.positionalParameters[i];
-              InternalVariable formal =
-                  libraryBuilder.loader.isClosureContextLoweringEnabled
-                  ? new InternalPositionalParameter(
-                      astVariable: parameter as PositionalParameter,
-                      isImplicitlyTyped: false,
-                      fileOffset: parameter.fileOffset,
-                    )
-                  : new InternalLegacyVariable(
-                      astVariable: parameter,
-                      fileOffset: parameter.fileOffset,
-                    );
+              InternalVariable formal = new InternalPositionalParameter(
+                astVariable: parameter as PositionalParameter,
+                isImplicitlyTyped: false,
+                fileOffset: parameter.fileOffset,
+              );
               String formalName = formal.cosmeticName!;
               bool isWildcard =
                   libraryFeatures.wildcardVariables.isEnabled &&

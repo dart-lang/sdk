@@ -2929,6 +2929,69 @@ class Strategy extends EquivalenceStrategy {
   ) {
     return true;
   }
+
+  @override
+  bool checkLocalVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkLateVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkSyntheticVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkCatchVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    CatchVariable node,
+    CatchVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkThisVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    ThisVariable node,
+    ThisVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkPositionalParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkNamedParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
+  ) {
+    return true;
+  }
 }
 
 class TestData {

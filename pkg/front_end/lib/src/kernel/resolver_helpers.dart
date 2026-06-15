@@ -4,22 +4,21 @@
 
 part of 'resolver.dart';
 
-typedef BodyBuilderCreator =
-    BodyBuilder Function({
-      required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext context,
-      required ExtensionScope extensionScope,
-      required LookupScope enclosingScope,
-      LocalScope? formalParameterScope,
-      required ClassHierarchy hierarchy,
-      required CoreTypes coreTypes,
-      InternalVariable? thisVariable,
-      List<TypeParameter>? thisTypeParameters,
-      required Uri uri,
-      required AssignedVariablesImpl assignedVariables,
-      required TypeEnvironment typeEnvironment,
-      required ConstantContext constantContext,
-    });
+typedef BodyBuilderCreator = BodyBuilder Function({
+  required SourceLibraryBuilder libraryBuilder,
+  required BodyBuilderContext context,
+  required ExtensionScope extensionScope,
+  required LookupScope enclosingScope,
+  LocalScope? formalParameterScope,
+  required ClassHierarchy hierarchy,
+  required CoreTypes coreTypes,
+  InternalVariable? thisVariable,
+  List<TypeParameter>? thisTypeParameters,
+  required Uri uri,
+  required AssignedVariablesImpl assignedVariables,
+  required TypeEnvironment typeEnvironment,
+  required ConstantContext constantContext,
+});
 
 // Coverage-ignore(suite): Not run.
 class ResolverForTesting extends Resolver {

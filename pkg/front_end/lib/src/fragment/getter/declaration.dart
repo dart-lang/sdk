@@ -290,8 +290,6 @@ class RegularGetterDeclaration
         fileUri: _fragment.fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
-        isClosureContextLoweringEnabled:
-            libraryBuilder.loader.isClosureContextLoweringEnabled,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);

@@ -226,14 +226,16 @@ void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
-        new InternalLegacyVariable(
-          astVariable: new LegacyVariable('a'),
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
       ),
       new InternalVariableDeclaration(
-        new InternalLegacyVariable(
-          astVariable: new LegacyVariable('b'),
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+          isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
       ),
@@ -244,14 +246,23 @@ dynamic a, b;''',
   testStatement(
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
-        new InternalLegacyVariable(
-          astVariable: new LegacyVariable('a', type: const VoidType()),
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: 'a',
+            type: const VoidType(),
+          ),
+          isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
       ),
       new InternalVariableDeclaration(
-        new InternalLegacyVariable(
-          astVariable: new LegacyVariable('b', initializer: new NullLiteral()),
+        new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: 'b',
+            type: null,
+            initializer: new NullLiteral(),
+          ),
+          isImplicitlyTyped: true,
           fileOffset: TreeNode.noOffset,
         ),
       ),
@@ -267,16 +278,18 @@ void _testTryStatement() {
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
   InternalCatch emptyCatchBlock = new InternalCatch(
-    exception: new InternalLegacyVariable(
-      astVariable: new LegacyVariable('e'),
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
     body: new Block([]),
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
-    exception: new InternalLegacyVariable(
-      astVariable: new LegacyVariable('e'),
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
     body: new Block([]),
@@ -284,16 +297,18 @@ void _testTryStatement() {
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlock = new InternalCatch(
-    exception: new InternalLegacyVariable(
-      astVariable: new LegacyVariable('e'),
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
     body: new Block([new ReturnStatement()]),
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlockOnVoid = new InternalCatch(
-    exception: new InternalLegacyVariable(
-      astVariable: new LegacyVariable('e'),
+    exception: new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
     body: new Block([new ReturnStatement()]),
@@ -409,8 +424,8 @@ void _testInternalForInStatement() {
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
-          new InternalLegacyVariable(
-            astVariable: new LegacyVariable('e'),
+          new InternalLocalVariable(
+            astVariable: new LocalVariable(cosmeticName: 'e', type: null),
             isImplicitlyTyped: true,
             fileOffset: -1,
           ),
@@ -431,8 +446,12 @@ for (var e in null) {}''',
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
-          new InternalLegacyVariable(
-            astVariable: new LegacyVariable('e', type: const VoidType()),
+          new InternalLocalVariable(
+            astVariable: new LocalVariable(
+              cosmeticName: 'e',
+              type: const VoidType(),
+            ),
+            isImplicitlyTyped: false,
             fileOffset: -1,
           ),
         ),
@@ -455,16 +474,18 @@ for (void e in null) {}''',
           patterns: [
             new InternalVariablePattern(
               type: const VoidType(),
-              variable: new InternalLegacyVariable(
-                astVariable: new LegacyVariable('a'),
+              variable: new InternalLocalVariable(
+                astVariable: new LocalVariable(cosmeticName: 'a', type: null),
                 fileOffset: TreeNode.noOffset,
+                isImplicitlyTyped: true,
               ),
               fileOffset: TreeNode.noOffset,
             ),
             new InternalVariablePattern(
               type: null,
-              variable: new InternalLegacyVariable(
-                astVariable: new LegacyVariable('b'),
+              variable: new InternalLocalVariable(
+                astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+                isImplicitlyTyped: true,
                 fileOffset: TreeNode.noOffset,
               ),
               fileOffset: TreeNode.noOffset,
@@ -487,8 +508,9 @@ for (var (void a, var b) in null) {}''',
   testStatement(
     new InternalForInStatement(
       new ExistingVariableForInElement(
-        variable: new InternalLegacyVariable(
-          astVariable: new LegacyVariable('a'),
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          isImplicitlyTyped: true,
           fileOffset: -1,
         ),
         nameOffset: -1,
@@ -579,15 +601,15 @@ for (null in null) {}''',
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
           new InternalVariableDeclaration(
-            new InternalLegacyVariable(
-              astVariable: new LegacyVariable('a'),
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'a', type: null),
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
           ),
           new InternalVariableDeclaration(
-            new InternalLegacyVariable(
-              astVariable: new LegacyVariable('b'),
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
@@ -610,14 +632,19 @@ for (var a, b in null) {}''',
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
           new InternalVariableDeclaration(
-            new InternalLegacyVariable(
-              astVariable: new LegacyVariable('a', type: const VoidType()),
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(
+                cosmeticName: 'a',
+                type: const VoidType(),
+              ),
+              isImplicitlyTyped: false,
               fileOffset: -1,
             ),
           ),
           new InternalVariableDeclaration(
-            new InternalLegacyVariable(
-              astVariable: new LegacyVariable('b'),
+            new InternalLocalVariable(
+              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+              isImplicitlyTyped: true,
               fileOffset: -1,
             ),
           ),
@@ -914,8 +941,13 @@ continue label0;''',
 void _testCascade() {
   // TODO(johnniwinther): Add better text representation support for internal
   //  synthetic variables.
-  InternalVariable variable = new InternalLegacyVariable(
-    astVariable: new LegacyVariable.forValue(new IntLiteral(0))..name = '#0',
+  InternalVariable variable = new InternalSyntheticVariable(
+    astVariable: new SyntheticVariable(
+      type: const DynamicType(),
+      initializer: new IntLiteral(0),
+      isFinal: true,
+    )..name = '#0',
+    isImplicitlyTyped: false,
     fileOffset: TreeNode.noOffset,
   );
   Cascade cascade = new Cascade(variable, isNullAware: false);
@@ -966,10 +998,13 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  InternalVariable check = new InternalLegacyVariable(
-    astVariable: new LegacyVariable.forValue(
-      new CheckLibraryIsLoaded(dependency),
+  InternalVariable check = new InternalSyntheticVariable(
+    astVariable: new SyntheticVariable(
+      initializer: new CheckLibraryIsLoaded(dependency),
+      type: const DynamicType(),
+      isFinal: true,
     ),
+    isImplicitlyTyped: false,
     fileOffset: TreeNode.noOffset,
   );
   testExpression(
@@ -1303,8 +1338,9 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 void _testFunctionDeclarationImpl() {
   testStatement(
     new InternalFunctionDeclaration(
-        variable: new InternalLegacyVariable(
-          astVariable: new LegacyVariable('foo'),
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+          isImplicitlyTyped: true,
           fileOffset: TreeNode.noOffset,
         ),
         fileOffset: TreeNode.noOffset,
@@ -1540,71 +1576,87 @@ return 0;''');
 
 void _testVariableDeclarationImpl() {
   testVariableDeclaration(
-    new InternalLegacyVariable(
-      astVariable: new LegacyVariable('foo'),
+    new InternalLocalVariable(
+      astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+      isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
 dynamic foo''',
   );
   testVariableDeclaration(
-    new InternalLegacyVariable(
-      astVariable: new LegacyVariable('foo', initializer: new IntLiteral(0)),
+    new InternalLocalVariable(
+      astVariable: new LocalVariable(
+        cosmeticName: 'foo',
+        type: null,
+        initializer: new IntLiteral(0),
+      ),
+      isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
 dynamic foo = 0''',
   );
   testVariableDeclaration(
-    new InternalLegacyVariable(
-      astVariable: new LegacyVariable(
-        'foo',
+    new InternalPositionalParameter(
+      astVariable: new PositionalParameter(
+        cosmeticName: 'foo',
         type: const VoidType(),
-        initializer: new IntLiteral(0),
+        defaultValue: new IntLiteral(0),
         isFinal: true,
         isRequired: true,
       ),
+      isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
-required final void foo''',
+required void foo''',
   );
   testVariableDeclaration(
-    new InternalLegacyVariable(
-      astVariable: new LegacyVariable(
-        'foo',
+    new InternalLateVariable(
+      astVariable: new LateVariable(
+        cosmeticName: 'foo',
         type: const VoidType(),
         initializer: new IntLiteral(0),
-        isLate: true,
       ),
+      isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
 late void foo = 0''',
   );
   testVariableDeclaration(
-    new InternalLegacyVariable(
-      astVariable: new LegacyVariable(
-        'foo',
+    new InternalLateVariable(
+        astVariable: new LateVariable(
+          cosmeticName: 'foo',
+          type: const VoidType(),
+          initializer: new IntLiteral(0),
+        ),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      )
+      ..lateGetter = new SyntheticVariable(
+        cosmeticName: 'foo#getter',
         type: const VoidType(),
-        initializer: new IntLiteral(0),
       ),
-      fileOffset: TreeNode.noOffset,
-    )..lateGetter = new LegacyVariable('foo#getter'),
 
     '''
 late void foo = 0''',
   );
   testVariableDeclaration(
-    new InternalLegacyVariable(
-        astVariable: new LegacyVariable(
-          'foo',
-          type: const VoidType(),
+    new InternalLateVariable(
+        astVariable: new LateVariable(
+          cosmeticName: 'foo',
+          type: const DynamicType(),
           initializer: new IntLiteral(0),
         ),
+        isImplicitlyTyped: false,
         fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new LegacyVariable('foo#getter')
+      ..lateGetter = new SyntheticVariable(
+        cosmeticName: 'foo#getter',
+        type: const DynamicType(),
+      )
       ..lateType = const DynamicType(),
     '''
 late dynamic foo = 0''',
@@ -1710,7 +1762,10 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  Variable variable = new Variable('foo');
+  Variable variable = new LocalVariable(
+    cosmeticName: 'foo',
+    type: const DynamicType(),
+  );
   testExpression(
     new IfNullSet(
       new VariableGet(variable),
@@ -2021,8 +2076,9 @@ void _testPropertyIncDec() {
 }
 
 void _testLocalIncDec() {
-  InternalLegacyVariable variable = new InternalLegacyVariable(
-    astVariable: new LegacyVariable('foo'),
+  InternalLocalVariable variable = new InternalLocalVariable(
+    astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+    isImplicitlyTyped: true,
     fileOffset: TreeNode.noOffset,
   );
 

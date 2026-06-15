@@ -19,12 +19,11 @@ import '../type_inference/type_inference_engine.dart'
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
 
-typedef BuildNodesCallback =
-    void Function({
-      required Member member,
-      Member? tearOff,
-      required BuiltMemberKind kind,
-    });
+typedef BuildNodesCallback = void Function({
+  required Member member,
+  Member? tearOff,
+  required BuiltMemberKind kind,
+});
 
 /// [BuildNodesCallback] that doesn't add the member nodes.
 void noAddBuildNodesCallback({

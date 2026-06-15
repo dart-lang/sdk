@@ -414,8 +414,6 @@ class PrimaryConstructorFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
-        isClosureContextLoweringEnabled:
-            classBuilder.libraryBuilder.loader.isClosureContextLoweringEnabled,
       );
     } else {
       type.build(

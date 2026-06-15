@@ -10,8 +10,10 @@ import '../base/problems.dart';
 import '../codes/cfe_codes.dart';
 import 'constant_evaluator.dart';
 
-typedef ReportErrorFunction =
-    void Function(LocatedMessage message, List<LocatedMessage>? context);
+typedef ReportErrorFunction = void Function(
+  LocatedMessage message,
+  List<LocatedMessage>? context,
+);
 
 class TryConstantEvaluator extends ConstantEvaluator {
   final bool _supportReevaluationForTesting;

@@ -1153,57 +1153,6 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 }
 
-/// Front end specific implementation of [Variable].
-class InternalLegacyVariable extends InternalVariable {
-  @override
-  final Variable astVariable;
-
-  @override
-  final bool forSyntheticToken;
-
-  @override
-  final bool isImplicitlyTyped;
-
-  @override
-  final bool isLocalFunction;
-
-  new({
-    required this.astVariable,
-    this.forSyntheticToken = false,
-    this.isImplicitlyTyped = false,
-    bool isLocalFunction = false,
-    bool isStaticLate = false,
-    bool isLateFinalWithoutInitializer = false,
-    required int fileOffset,
-  }) : isLocalFunction = isLocalFunction {
-    this.isStaticLate = isStaticLate;
-    this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  bool get isAssignable {
-    if (isStaticLate) return true;
-    return astVariable.isAssignable;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeVariableInitialization(
-      astVariable,
-      isLate: isLate || lateGetter != null,
-      isImplicitlyTyped: isImplicitlyTyped,
-      type: lateType ?? type,
-    );
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
-}
-
 class InternalLocalVariable extends InternalVariable {
   @override
   LocalVariable astVariable;
@@ -1261,6 +1210,10 @@ class InternalLocalVariable extends InternalVariable {
     ];
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
+    }
+    if (astVariable.initializer != null) {
+      printer.write(' = ');
+      printer.writeExpression(astVariable.initializer!);
     }
   }
 }
@@ -1321,6 +1274,10 @@ class InternalLateVariable extends InternalVariable {
     ];
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
+    }
+    if (astVariable.initializer != null) {
+      printer.write(' = ');
+      printer.writeExpression(astVariable.initializer!);
     }
   }
 }
@@ -1505,7 +1462,6 @@ class InternalCatchVariable extends InternalVariable {
   String get catchVariableName => astVariable.catchVariableName;
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalSyntheticVariable extends InternalVariable {
   @override
   SyntheticVariable astVariable;
@@ -1535,6 +1491,7 @@ class InternalSyntheticVariable extends InternalVariable {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(astVariable);
     List<String> modifiers = [
@@ -7970,8 +7927,9 @@ final InternalCatch dummyInternalCatch = new InternalCatch(
   fileOffset: TreeNode.noOffset,
 );
 
-final InternalVariable dummyInternalVariable = new InternalLegacyVariable(
+final InternalVariable dummyInternalVariable = new InternalSyntheticVariable(
   astVariable: dummyVariable,
+  isImplicitlyTyped: false,
   fileOffset: TreeNode.noOffset,
 );
 

@@ -1950,9 +1950,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   def.value.initializer is ConstantExpression) {
                 extraKnownVariables.add(
                   intern.createLocalVariable(
-                    isClosureContextLoweringEnabled: lastGoodKernelTarget
-                        .loader
-                        .isClosureContextLoweringEnabled,
                     name: def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: true,
@@ -1973,9 +1970,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // etc.
                 extraKnownVariables.add(
                   intern.createLocalVariable(
-                    isClosureContextLoweringEnabled: lastGoodKernelTarget
-                        .loader
-                        .isClosureContextLoweringEnabled,
                     name: def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: false,
@@ -2249,18 +2243,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         positionalParameters: usedDefinitions.entries.map<Variable>((
           MapEntry<String, DartType> def,
         ) {
-          Variable variable =
-              lastGoodKernelTarget.loader.isClosureContextLoweringEnabled
-              ? extern.createPositionalParameter(
-                  cosmeticName: def.key,
-                  type: def.value,
-                  fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-                )
-              : extern.createLegacyVariable(
-                  name: def.key,
-                  type: def.value,
-                  fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-                );
+          Variable variable = extern.createPositionalParameter(
+            cosmeticName: def.key,
+            type: def.value,
+            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+          );
 
           if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&

@@ -6778,13 +6778,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Variable _createVariable(Expression expression, DartType type) {
     assert(expression.fileOffset != TreeNode.noOffset);
-    return new Variable.forValue(expression, type: type)
-      ..fileOffset = expression.fileOffset;
+    return extern.createVariableCache(expression, type);
   }
 
   Variable _createForInVariable(int fileOffset, DartType type) {
     assert(fileOffset != TreeNode.noOffset);
-    return new Variable.forValue(null, type: type)..fileOffset = fileOffset;
+    return extern.createUninitializedVariable(
+      type: type,
+      fileOffset: fileOffset,
+      isFinal: true,
+      hasDeclaredInitializer: true,
+    );
   }
 
   VariableGet _createVariableGet(Variable variable) {
@@ -12060,10 +12064,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.isCascade) {
       inferredType = initializerType;
 
-      Variable tempVar = new Variable(
-        null,
-        initializer: bodyResult.expression,
-        isSynthesized: true,
+      Variable tempVar = extern.createVariable(
+        bodyResult.expression,
+        const DynamicType(),
+        isFinal: false,
       )..fileOffset = node.fileOffset;
 
       body = new Let(tempVar, new VariableGet(node.variable.astVariable))
@@ -12079,9 +12083,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           .target
           .backendTarget
           .supportsLetVariableCapture) {
-        Variable resultVar = new Variable(null, isSynthesized: true)
-          ..type = inferredType
-          ..fileOffset = node.fileOffset;
+        Variable resultVar = extern.createUninitializedVariable(
+          type: inferredType,
+          fileOffset: node.fileOffset,
+        );
         return new BlockExpression(
           new Block([
             extern.createVariableStatement(
@@ -12103,14 +12108,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression replacement;
     if (node.isNullAware) {
-      Variable tempVar =
-          new Variable(
-              "anonymous#receiver",
-              initializer: node.variable.astVariable.initializer!,
-              isSynthesized: true,
-            )
-            ..type = initializerType
-            ..fileOffset = node.fileOffset;
+      Variable tempVar = extern.createVariable(
+        node.variable.astVariable.initializer!,
+        initializerType,
+        cosmeticName: "anonymous#receiver",
+        isFinal: false,
+        fileOffset: node.fileOffset,
+      );
 
       Expression condition = new EqualsNull(new VariableGet(tempVar));
       Expression thenExpression = new NullLiteral();
@@ -12151,8 +12155,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AnonymousMethodBlock node,
     DartType typeContext,
   ) {
-    Variable resultVar = new Variable(null, isSynthesized: true)
-      ..fileOffset = node.fileOffset;
+    Variable resultVar = extern.createUninitializedVariable(
+      type: const DynamicType(),
+      fileOffset: node.fileOffset,
+    );
     LabeledStatement label = new LabeledStatement(null)
       ..fileOffset = node.fileOffset;
 
@@ -12227,10 +12233,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Variable? tempVar;
 
       if (isNullAwareAccess) {
-        tempVar =
-            new Variable(null, initializer: receiverExpr, isSynthesized: true)
-              ..type = initializerType
-              ..fileOffset = node.fileOffset;
+        tempVar = extern.createVariable(
+          receiverExpr,
+          initializerType,
+          isFinal: false,
+          fileOffset: node.fileOffset,
+        );
         receiverExpr = new VariableGet(tempVar);
       }
 
@@ -12879,12 +12887,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // Create the set: Set<E> setVar = new Set<E>();
     InterfaceType receiverType;
-    Variable setVar = new Variable.forValue(
+    Variable setVar = extern.createVariable(
       new StaticInvocation(
         engine.setFactory,
         new Arguments([], types: [node.typeArgument]),
       ),
-      type: receiverType = new InterfaceType(
+      receiverType = new InterfaceType(
         coreTypes.setClass,
         Nullability.nonNullable,
         [node.typeArgument],
@@ -17554,14 +17562,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           );
       Variable? isSetVariable;
       if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
-        isSetVariable = new Variable(
-          late_lowering.computeLateLocalIsSetName(
+        isSetVariable = extern.createVariable(
+          new BoolLiteral(false)..fileOffset = fileOffset,
+          coreTypes.boolRawType(Nullability.nonNullable),
+          cosmeticName: late_lowering.computeLateLocalIsSetName(
             internalVariable.cosmeticName!,
           ),
-          initializer: new BoolLiteral(false)..fileOffset = fileOffset,
-          type: coreTypes.boolRawType(Nullability.nonNullable),
           isLowered: true,
-        )..fileOffset = fileOffset;
+          isFinal: false,
+          isSynthesized: false,
+        );
         variableDeclarations.add(
           extern.createVariableDeclaration(isSetVariable),
         );
@@ -17586,12 +17596,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable!, value);
 
-      Variable getVariable = new Variable(
-        late_lowering.computeLateLocalGetterName(
+      Variable getVariable = extern.createUninitializedVariable(
+        name: late_lowering.computeLateLocalGetterName(
           internalVariable.cosmeticName!,
         ),
+        type: const DynamicType(),
         isLowered: true,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
       FunctionDeclaration getter = new FunctionDeclaration(
         getVariable,
         new FunctionNode(
@@ -17646,16 +17658,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         internalVariable.isLateFinalWithoutInitializer =
             internalVariable.isFinal &&
             internalVariable.astVariable.initializer == null;
-        Variable setVariable = new Variable(
-          late_lowering.computeLateLocalSetterName(
+        Variable setVariable = extern.createUninitializedVariable(
+          name: late_lowering.computeLateLocalSetterName(
             internalVariable.cosmeticName!,
           ),
+          type: const DynamicType(),
           isLowered: true,
-        )..fileOffset = fileOffset;
-        Variable setterParameter = new Variable(
-          "${internalVariable.cosmeticName}#param",
+          fileOffset: fileOffset,
+        );
+        Variable setterParameter = extern.createUninitializedVariable(
+          name: "${internalVariable.cosmeticName}#param",
           type: internalVariable.type,
-        )..fileOffset = fileOffset;
+          isSynthesized: false,
+          fileOffset: fileOffset,
+        );
         FunctionDeclaration setter = new FunctionDeclaration(
           setVariable,
           new FunctionNode(
