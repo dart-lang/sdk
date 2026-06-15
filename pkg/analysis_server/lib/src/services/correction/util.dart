@@ -76,6 +76,36 @@ List<AstNode> findLocalElementReferences(AstNode root, LocalElement element) {
   return collector.references;
 }
 
+/// Returns references to the [parameterElement] inside the constructor components and field initializers.
+List<SimpleIdentifier> findParameterReferences({
+  required FormalParameterElement parameterElement,
+  required FunctionBody? constructorBody,
+  required NodeList<ConstructorInitializer>? initializers,
+  List<Expression> fieldInitializers = const [],
+  List<AstNode> nodesBeingRemoved = const [],
+}) {
+  var references = <SimpleIdentifier>[];
+  var visitor = _ParameterReferenceVisitor(
+    references,
+    parameterElement,
+    nodesBeingRemoved,
+  );
+  if (initializers != null) {
+    for (var initializer in initializers) {
+      if (!nodesBeingRemoved.contains(initializer)) {
+        initializer.accept(visitor);
+      }
+    }
+  }
+  for (var initializer in fieldInitializers) {
+    initializer.accept(visitor);
+  }
+  constructorBody?.accept(visitor);
+  return references;
+}
+
+// TODO(scheglov): replace with nodes once there will be
+// [CompilationUnit.getComments].
 /// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
@@ -91,8 +121,6 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
-// TODO(scheglov): replace with nodes once there will be
-// [CompilationUnit.getComments].
 /// Return all [LocalElement]s defined in the given [node].
 List<LocalElement> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
@@ -499,6 +527,31 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
     }
 
     super.visitVariableDeclaration(node);
+  }
+}
+
+class _ParameterReferenceVisitor extends GeneralizingAstVisitor<void> {
+  final List<SimpleIdentifier> references;
+
+  final FormalParameterElement parameterElement;
+
+  final List<AstNode> nodesBeingRemoved;
+
+  new(this.references, this.parameterElement, this.nodesBeingRemoved);
+
+  @override
+  void visitNode(AstNode node) {
+    if (!nodesBeingRemoved.contains(node)) {
+      super.visitNode(node);
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.element;
+    if (element == parameterElement) {
+      references.add(node);
+    }
   }
 }
 

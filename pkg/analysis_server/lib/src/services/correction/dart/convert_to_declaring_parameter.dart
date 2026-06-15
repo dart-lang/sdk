@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -81,6 +81,16 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     //  constant expression and can be moved to the parameter.
     if (fieldDeclaration.initializer != null) return;
 
+    var parameterElement = parameter.declaredFragment?.element;
+    if (parameterElement == null) return;
+
+    var references = findParameterReferences(
+      parameterElement: parameterElement,
+      constructorBody: constructorBody?.body,
+      initializers: constructorBody?.initializers,
+      nodesBeingRemoved: [?initializer],
+    );
+
     await builder.addDartFileEdit(file, (builder) {
       // Move metadata and/or doc comments.
       var variableList = fieldDeclaration.parent as VariableDeclarationList;
@@ -130,6 +140,9 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       // Rename the parameter if it's different than the name of the field.
       if (fieldName != parameterName.lexeme) {
         builder.addSimpleReplacement(range.token(parameterName), fieldName);
+        for (var reference in references) {
+          builder.addSimpleReplacement(range.node(reference), fieldName);
+        }
       }
       if (!insertedVariable) {
         var offset = parameterName.offset;
@@ -388,11 +401,6 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         return null;
       }
 
-      if (_parameterHasOtherUses(parameter, parameterElement, initializer)) {
-        // The parameter can't be converted because it's used for something
-        // else.
-        return null;
-      }
       var fieldIdentifier = initializer.fieldName;
       var element = fieldIdentifier.element;
       if (element is! FieldElement) {
@@ -422,32 +430,5 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   /// Whether the [node] has either a documentation comment or metadata.
   bool _hasCommentOrMetadata(AnnotatedNode node) {
     return node.documentationComment != null || node.metadata.isNotEmpty;
-  }
-
-  bool _parameterHasOtherUses(
-    FormalParameter parameter,
-    FormalParameterElement element,
-    ConstructorFieldInitializer initializer,
-  ) {
-    var visitor = _UsageFinder(element, initializer);
-    parameter.parent?.parent?.accept(visitor);
-    return visitor.hasUsage;
-  }
-}
-
-class _UsageFinder extends RecursiveAstVisitor<void> {
-  final FormalParameterElement element;
-  final ConstructorFieldInitializer initializer;
-  bool hasUsage = false;
-
-  new(this.element, this.initializer);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.element == element) {
-      if (node != initializer.expression) {
-        hasUsage = true;
-      }
-    }
   }
 }
