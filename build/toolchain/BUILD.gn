@@ -9,4 +9,8 @@ if (current_toolchain == host_toolchain) {
   pool("local_action_pool") {
     depth = exec_script("../dart/num_cpus.py", [], "value")
   }
+
+  pool("gnu_link_pool") {
+    depth = exec_script("get_concurrent_links.py", [], "value")
+  }
 }
