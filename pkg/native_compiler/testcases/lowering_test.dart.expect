@@ -14,23 +14,23 @@ B0 = EntryBlock()
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   v2 = Parameter(this)   # RA: param[1] <- ()
   v3 = Parameter(x)   # RA: param[2] <- ()
-  ParallelMove output(param[2] -> vloc:R6, param[1] -> vloc:R1, param[0] -> vloc:R5)
+  ParallelMove output(param[2] -> vloc:R6, param[1] -> vloc:R5, param[0] -> vloc:R1)
   v8 = AllocateContext()   # RA: R0 <- () temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[1])
-  StoreInstanceField(#context-field:this, v8, v2)   # RA: (R0, R1) temps: [R2, R3]
-  v37 = LoadInstanceField(C.#typeArguments, v2)   # RA: R9 <- (R1)
-  ParallelMove output(R0 -> R10, R9 -> stack[0])
-  ParallelMove input(vloc:R6 -> R0, vloc:R9 -> R2, NullConstant(null) -> R1)
-  v13 = TypeTest(v3, v37, v12, List<C.T%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove spill(R0 -> stack[0])
+  StoreInstanceField(#context-field:this, v8, v2)   # RA: (R0, R5) temps: [R2, R3]
+  v37 = LoadInstanceField(C.#typeArguments, v2)   # RA: R2 <- (R5)
+  ParallelMove output(R6 -> R0, R2 -> R1, R2 -> stack[1])
+  ParallelMove input(vloc:R0 -> R0, vloc:R1 -> R2, NullConstant(null) -> R1)
+  v13 = TypeTest(v3, v37, v12, List<C.T%>)   # RA: R7 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R7 -> vloc:R7)
   DirectCall print(v13)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R5, param[2] -> R6)
-  ParallelMove input(vloc:R6 -> R0, NullConstant(null) -> R2, vloc:R5 -> R1)
-  v16 = TypeTest(v3, v12, v1, List<C.typeParameters.U%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove output(param[0] -> R0, param[2] -> R1)
+  ParallelMove input(vloc:R1 -> R0, NullConstant(null) -> R2, vloc:R0 -> R1)
+  v16 = TypeTest(v3, v12, v1, List<C.typeParameters.U%>)   # RA: R7 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R7 -> vloc:R7)
   DirectCall print(v16)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R0, param[2] -> R1, stack[0] -> R2)
+  ParallelMove output(param[0] -> R0, param[2] -> R1, stack[1] -> R2)
   ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, vloc:R0 -> R1)
   v19 = TypeCast(v3, v37, v1, Map<C.T%, C.typeParameters.U%>)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
@@ -38,7 +38,7 @@ B0 = EntryBlock()
   v21 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
   StoreInstanceField(#closure-field[0], v21, v1)   # RA: (R0, R3) temps: [R1, R2]
-  ParallelMove output(stack[1] -> R4)
+  ParallelMove output(stack[0] -> R4)
   StoreInstanceField(#closure-field[1], v21, v8)   # RA: (R0, R4) temps: [R1, R2]
   DirectCall closure FunctionDeclaration(void local1() {
   print(C.T%);
@@ -92,8 +92,9 @@ B0 = EntryBlock()
   ParallelMove output(R0 -> vloc:R0, param[1] -> R1)
   v8 = LoadInstanceField(#closure-field[1], v2)   # RA: R1 <- (R1)
   LoadInstanceField(#context-field:this, v8)   # RA: R1 <- (R1)
-  ParallelMove input(NullConstant(null) -> vloc:R2)
-  v12 = TypeLiteral(Map<C.typeParameters.U%, V%>, v11, v15)   # RA: R0 <- (R2, R0)
+  ParallelMove input(NullConstant(null) -> R1, vloc:R0 -> R2)
+  v12 = TypeLiteral(Map<C.typeParameters.U%, V%>, v11, v15)   # RA: R0 <- (R1, R2) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v12)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(NullConstant(null) -> R0)
   Return(v11)   # RA: (R0)
@@ -646,16 +647,16 @@ B0 = EntryBlock()
   v20 = Constant(<String, int, double>)
   v22 = Constant(<String, num, double>)
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
-  ParallelMove output(param[0] -> vloc:R5)
+  ParallelMove output(param[0] -> vloc:R0)
   ParallelMove input(<int, double> -> R1)
-  v5 = AllocateObject D<int, double>(v4)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  v5 = AllocateObject D<int, double>(v4)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[0])
   DirectCall D.(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(stack[0] -> R1)
   DirectCall print(v5)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(<String, int, double> -> R1)
-  v8 = AllocateObject E<int, double>(v20)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  v8 = AllocateObject E<int, double>(v20)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[1])
   DirectCall E.(v8)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -668,14 +669,14 @@ B0 = EntryBlock()
   v21 = TypeArguments(v11, v1, <String, allocateObjects.K%, List<allocateObjects.K%>>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
   ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
-  v13 = AllocateObject E<allocateObjects.K%, List<allocateObjects.K%>>(v21)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  v13 = AllocateObject E<allocateObjects.K%, List<allocateObjects.K%>>(v21)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[2])
   DirectCall E.(v13)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(stack[2] -> R1)
   DirectCall print(v13)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove input(<String, num, double> -> R1)
-  v23 = AllocateObject F(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  v23 = AllocateObject F(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[3])
   DirectCall F.(v23)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
