@@ -1821,6 +1821,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     canWriteType (method: bool Function(DartType?, {required int offset, List<TypeParameterElement>? typeParametersInScope}))
     convertFunctionFromAsyncToSync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
     convertFunctionFromSyncToAsync (method: void Function({required FunctionBody body, required TypeProvider typeProvider, required TypeSystem typeSystem}))
+    deleteClassMember (method: void Function(ClassMember))
     format (method: void Function(SourceRange))
     importLibrary (method: String Function(Uri, {String? prefix, String? showName, bool useShow}))
     importLibraryElement (method: ImportLibraryElementResult Function(Uri, {String? prefix, String? showName, bool useShow}))

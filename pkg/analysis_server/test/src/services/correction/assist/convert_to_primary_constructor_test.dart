@@ -27,8 +27,7 @@ class C<T> {
 }
 ''');
     await assertHasAssist('''
-class C<T>() {
-}
+class C<T>();
 ''');
   }
 
@@ -39,8 +38,7 @@ class C {
 }
 ''');
     await assertHasAssist('''
-class C.n() {
-}
+class C.n();
 ''');
   }
 
@@ -61,8 +59,7 @@ class C {
 }
 ''');
     await assertHasAssist('''
-class C() {
-}
+class C();
 ''');
   }
 
@@ -128,8 +125,7 @@ class C {
 }
 ''');
     await assertHasAssist('''
-class const C() {
-}
+class const C();
 ''');
   }
 
@@ -202,10 +198,8 @@ class C {
   factory C.c() => C();
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C() {
-
   factory C.c() => C();
 }
 ''');
@@ -229,10 +223,8 @@ class C {
   C.c() : this();
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C() {
-
   C.c() : this();
 }
 ''');
@@ -265,11 +257,9 @@ class C {
   C^({this.x = 0});
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C({this.x = 0}) {
   int x;
-
 }
 ''');
   }
@@ -304,8 +294,7 @@ class B {
 }
 ''');
     await assertHasAssist('''
-class C({super.x = 0}) extends B {
-}
+class C({super.x = 0}) extends B;
 
 class B {
   int x;
@@ -323,11 +312,9 @@ class C {
   C^([this.x = 0]);
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C([this.x = 0]) {
   int x;
-
 }
 ''');
   }
@@ -362,8 +349,7 @@ class B {
 }
 ''');
     await assertHasAssist('''
-class C([super.x = 0]) extends B {
-}
+class C([super.x = 0]) extends B;
 
 class B {
   int x;
@@ -381,11 +367,9 @@ class C {
   C^({required this.x});
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C({required this.x}) {
   int x;
-
 }
 ''');
   }
@@ -420,8 +404,7 @@ class B {
 }
 ''');
     await assertHasAssist('''
-class C({required super.x}) extends B {
-}
+class C({required super.x}) extends B;
 
 class B {
   int x;
@@ -439,11 +422,9 @@ class C {
   C^(this.x);
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasAssist('''
 class C(this.x) {
   int x;
-
 }
 ''');
   }
@@ -478,8 +459,7 @@ class B {
 }
 ''');
     await assertHasAssist('''
-class C(super.x) extends B {
-}
+class C(super.x) extends B;
 
 class B {
   int x;
@@ -504,7 +484,7 @@ enum C<T> {
 ''');
     await assertHasAssist('''
 enum C<T>() {
-  a;
+  a
 }
 ''');
   }
@@ -519,8 +499,7 @@ enum E {
 ''');
     await assertHasAssist('''
 enum E() {
-  a, b;
-
+  a, b
 }
 ''');
   }
