@@ -567,44 +567,64 @@ class _OptionalChecksValueValidator extends OptionsValidator {
   }
 }
 
-/// Validates options defined in an analysis options file.
+final class _OptionsFileValidationResult {
+  final _LocalLinterRules linterRules;
+
+  _OptionsFileValidationResult({required this.linterRules});
+}
+
+/// Validates one physical analysis options file.
+///
+/// This class does not follow `include` directives. It reports diagnostics that
+/// can be decided from the current file alone and returns the local facts that
+/// the include walker needs to validate rules whose meaning depends on the
+/// surrounding include graph.
 class _OptionsFileValidator {
-  final List<OptionsValidator> _validators;
+  late final _LinterRuleOptionsValidator _linterRuleOptionsValidator;
+  late final List<OptionsValidator> _validators;
 
   _OptionsFileValidator(
-    Source source, {
+    File file, {
     VersionConstraint? sdkVersionConstraint,
     required String contextRoot,
     required bool isPrimarySource,
-    required AnalysisOptionsProvider optionsProvider,
     required ResourceProvider resourceProvider,
-    required SourceFactory sourceFactory,
-    required AnalysisOptionsCache analysisOptionsCache,
-  }) : _validators = [
-         _AnalyzerOptionsValidator(),
-         _CodeStyleOptionsValidator(),
-         _FormatterOptionsValidator(),
-         _LinterTopLevelOptionsValidator(),
-         _LinterRuleOptionsValidator(
-           resourceProvider: resourceProvider,
-           optionsProvider: optionsProvider,
-           sourceFactory: sourceFactory,
-           sdkVersionConstraint: sdkVersionConstraint,
-           isPrimarySource: isPrimarySource,
-           analysisOptionsCache: analysisOptionsCache,
-         ),
-         _PluginsOptionsValidator(
-           contextRoot: contextRoot,
-           filePath: source.fullName,
-           isPrimarySource: isPrimarySource,
-           resourceProvider: resourceProvider,
-         ),
-       ];
+  }) {
+    _linterRuleOptionsValidator = _LinterRuleOptionsValidator(
+      file: file,
+      sdkVersionConstraint: sdkVersionConstraint,
+      isPrimarySource: isPrimarySource,
+    );
+    _validators = [
+      _AnalyzerOptionsValidator(),
+      _CodeStyleOptionsValidator(),
+      _FormatterOptionsValidator(),
+      _LinterTopLevelOptionsValidator(),
+      _linterRuleOptionsValidator,
+      _PluginsOptionsValidator(
+        contextRoot: contextRoot,
+        filePath: file.path,
+        isPrimarySource: isPrimarySource,
+        resourceProvider: resourceProvider,
+      ),
+    ];
+  }
 
-  void validate(YamlMap options, DiagnosticReporter reporter) {
+  /// Reports single-file diagnostics for [options] and returns local rule data.
+  ///
+  /// The returned data is intentionally source-preserving: callers use it to
+  /// merge linter rule state across includes without losing the YAML nodes that
+  /// should appear in context messages.
+  _OptionsFileValidationResult validate(
+    YamlMap options,
+    DiagnosticReporter reporter,
+  ) {
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
+    return _OptionsFileValidationResult(
+      linterRules: _linterRuleOptionsValidator.localRules,
+    );
   }
 }
 

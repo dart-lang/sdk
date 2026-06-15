@@ -1322,6 +1322,28 @@ linter:
 ''');
   }
 
+  test_linter_rules_incompatible_map_includedFile_enabledInMain() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here.
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rule_pos' is incompatible with ''rule_neg''.
+''',
+      getFile('/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+  }
+
   test_linter_rules_incompatible_map_includedFile_mixedCase() {
     assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
@@ -1472,6 +1494,29 @@ linter:
     - rule_poS
 //    ^^^^^^^^
 // [context 1] The rule 'rule_poS' is enabled here.
+''',
+    });
+  }
+
+  test_linter_rules_incompatible_multipleIncludes_enabledInSecondInclude() {
+    assertAnalysisOptionsDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /included2.yaml(40..47): The rule 'rule_pos' is incompatible with ''rule_neg''.
+''',
+      getFile('/included1.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+      getFile('/included2.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+    rule_pos: true
 ''',
     });
   }
@@ -1675,11 +1720,6 @@ linter:
     });
   }
 
-  // TODO(scheglov): Enable when linter rule validation preserves the source
-  // location of a rule that overrides a rule from an included file.
-  @SkippedTest(
-    reason: 'Enable when linter rule validation preserves override locations.',
-  )
   test_linter_rules_incompatible_nestedInclude_enabledInIncludedFile_listOverridesMap() {
     assertAnalysisOptionsDiagnosticsInFiles({
       analysisOptionsFile: '''
