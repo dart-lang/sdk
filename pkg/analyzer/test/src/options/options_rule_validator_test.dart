@@ -634,6 +634,21 @@ linter:
 ''', sdk: dart3);
   }
 
+  void test_rules_empty() {
+    assertDiagnostics('''
+linter:
+  rules:
+''');
+  }
+
+  void test_rules_nullValue() {
+    assertDiagnostics('''
+linter:
+  rules:
+    -
+''');
+  }
+
   void test_stable_rule() {
     assertDiagnostics('''
 linter:
