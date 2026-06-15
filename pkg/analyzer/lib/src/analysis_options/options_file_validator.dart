@@ -2,27 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/formatter_options.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_validator.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart';
+part of 'analysis_options_validator.dart';
 
 /// Validates `analyzer` options.
-class AnalyzerOptionsValidator extends _CompositeValidator {
-  AnalyzerOptionsValidator()
+class _AnalyzerOptionsValidator extends _CompositeValidator {
+  _AnalyzerOptionsValidator()
     : super([
         _AnalyzerTopLevelOptionsValidator(),
         _StrongModeOptionValueValidator(),
@@ -32,47 +16,6 @@ class AnalyzerOptionsValidator extends _CompositeValidator {
         _OptionalChecksValueValidator(),
         _CannotIgnoreOptionValidator(),
       ]);
-}
-
-/// Validates options defined in an analysis options file.
-class OptionsFileValidator {
-  final List<OptionsValidator> _validators;
-
-  OptionsFileValidator(
-    Source source, {
-    VersionConstraint? sdkVersionConstraint,
-    required String contextRoot,
-    required bool isPrimarySource,
-    required AnalysisOptionsProvider optionsProvider,
-    required ResourceProvider resourceProvider,
-    required SourceFactory sourceFactory,
-    required AnalysisOptionsCache analysisOptionsCache,
-  }) : _validators = [
-         AnalyzerOptionsValidator(),
-         _CodeStyleOptionsValidator(),
-         _FormatterOptionsValidator(),
-         _LinterTopLevelOptionsValidator(),
-         LinterRuleOptionsValidator(
-           resourceProvider: resourceProvider,
-           optionsProvider: optionsProvider,
-           sourceFactory: sourceFactory,
-           sdkVersionConstraint: sdkVersionConstraint,
-           isPrimarySource: isPrimarySource,
-           analysisOptionsCache: analysisOptionsCache,
-         ),
-         _PluginsOptionsValidator(
-           contextRoot: contextRoot,
-           filePath: source.fullName,
-           isPrimarySource: isPrimarySource,
-           resourceProvider: resourceProvider,
-         ),
-       ];
-
-  void validate(YamlMap options, DiagnosticReporter reporter) {
-    for (var validator in _validators) {
-      validator.validate(reporter, options);
-    }
-  }
 }
 
 /// Validates `analyzer` top-level options.
@@ -620,6 +563,47 @@ class _OptionalChecksValueValidator extends OptionsValidator {
               .atSourceSpan(v.span),
         );
       }
+    }
+  }
+}
+
+/// Validates options defined in an analysis options file.
+class _OptionsFileValidator {
+  final List<OptionsValidator> _validators;
+
+  _OptionsFileValidator(
+    Source source, {
+    VersionConstraint? sdkVersionConstraint,
+    required String contextRoot,
+    required bool isPrimarySource,
+    required AnalysisOptionsProvider optionsProvider,
+    required ResourceProvider resourceProvider,
+    required SourceFactory sourceFactory,
+    required AnalysisOptionsCache analysisOptionsCache,
+  }) : _validators = [
+         _AnalyzerOptionsValidator(),
+         _CodeStyleOptionsValidator(),
+         _FormatterOptionsValidator(),
+         _LinterTopLevelOptionsValidator(),
+         _LinterRuleOptionsValidator(
+           resourceProvider: resourceProvider,
+           optionsProvider: optionsProvider,
+           sourceFactory: sourceFactory,
+           sdkVersionConstraint: sdkVersionConstraint,
+           isPrimarySource: isPrimarySource,
+           analysisOptionsCache: analysisOptionsCache,
+         ),
+         _PluginsOptionsValidator(
+           contextRoot: contextRoot,
+           filePath: source.fullName,
+           isPrimarySource: isPrimarySource,
+           resourceProvider: resourceProvider,
+         ),
+       ];
+
+  void validate(YamlMap options, DiagnosticReporter reporter) {
+    for (var validator in _validators) {
+      validator.validate(reporter, options);
     }
   }
 }

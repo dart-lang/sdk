@@ -2,23 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
+
+part 'linter_rule_options_validator.dart';
+part 'options_file_validator.dart';
 
 /// Returns the name of the first legacy plugin, if one is specified in
 /// [options], otherwise `null`.
@@ -102,7 +114,7 @@ final class AnalysisOptionsValidator {
 /// [AnalysisOptionsValidator] itself: the current source, reporter/listener
 /// pair, include chain, first include span, and included legacy plugin state.
 /// It deliberately delegates validation of a single already-parsed YAML map to
-/// [OptionsFileValidator]; its responsibility is parsing, include traversal,
+/// [_OptionsFileValidator]; its responsibility is parsing, include traversal,
 /// source ownership, and converting diagnostics from included files into
 /// diagnostics reported at the original `include` directive.
 final class _AnalysisOptionsValidatorWalker {
@@ -181,7 +193,7 @@ final class _AnalysisOptionsValidatorWalker {
 
   // Validates the specified options and any included option files.
   void _validate(YamlMap options) {
-    OptionsFileValidator(
+    _OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
       contextRoot: contextRoot,

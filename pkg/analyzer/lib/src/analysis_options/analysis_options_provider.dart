@@ -117,8 +117,8 @@ class AnalysisOptionsProvider {
     try {
       options = getOptionsFromString(source.stringContents);
     } on Exception {
-      // A YAML-parsing exception is hopefully reported by the
-      // `OptionsFileValidator`.
+      // A YAML-parsing exception is hopefully reported by the analysis-options
+      // validation path.
       return YamlMap();
     }
 
