@@ -7,12 +7,11 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'http_enable_timeline_logging_service_lib.dart' as testee_lib;
 
 const String kHttpEnableTimelineLogging =
     'ext.dart.io.httpEnableTimelineLogging';
-
-Future<void> setup() async {}
 
 Future<void> waitForStreamEvent(
   VmService service,
@@ -35,31 +34,28 @@ Future<void> waitForStreamEvent(
   await service.streamCancel(EventStreams.kExtension);
 }
 
-var tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolate = await service.getIsolate(isolateRef.id!);
-    // Ensure all HTTP service extensions are registered.
-    expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(2));
-    expect(isolate.extensionRPCs!.contains(kHttpEnableTimelineLogging), isTrue);
-  },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    dynamic response = await service.httpEnableTimelineLogging(isolateId, null);
-    expect(response.enabled, false);
-
-    await waitForStreamEvent(service, isolateRef, true);
-    response = await service.httpEnableTimelineLogging(isolateId, null);
-    expect(response.enabled, true);
-
-    await waitForStreamEvent(service, isolateRef, false);
-    response = await service.httpEnableTimelineLogging(isolateId);
-    expect(response.enabled, false);
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'http_enable_timeline_logging_service_lib.dart',
       args,
-      tests,
-      'http_enable_timeline_logging_service_test.dart',
-      testeeBefore: setup,
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolate = await service.getIsolate(isolateRef.id!);
+      // Ensure all HTTP service extensions are registered.
+      expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(2));
+      expect(
+        isolate.extensionRPCs!.contains(kHttpEnableTimelineLogging),
+        isTrue,
+      );
+    }).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      dynamic response =
+          await service.httpEnableTimelineLogging(isolateId, null);
+      expect(response.enabled, false);
+
+      await waitForStreamEvent(service, isolateRef, true);
+      response = await service.httpEnableTimelineLogging(isolateId, null);
+      expect(response.enabled, true);
+
+      await waitForStreamEvent(service, isolateRef, false);
+      response = await service.httpEnableTimelineLogging(isolateId);
+      expect(response.enabled, false);
+    }).run(testeeMain: testee_lib.main);

@@ -4,16 +4,81 @@
 
 part of 'analysis_options_validator.dart';
 
-class _IncompatibleRuleData {
-  final _RuleData ruleData;
+/// The linter rule state exported by an options file after applying its own
+/// includes and local overrides.
+///
+/// Both enabled and disabled rules are retained because a local disable must
+/// hide a lower-priority enabled rule when this state is merged into an
+/// including file. The maps are keyed by the canonical rule object returned by
+/// the registry, not by the spelling used in YAML.
+final class _EffectiveLinterRules {
+  final Map<AbstractAnalysisRule, _RuleData> enabled = {};
+  final Map<AbstractAnalysisRule, _RuleData> disabled = {};
 
-  final YamlScalar? file;
-  _IncompatibleRuleData(this.ruleData, {this.file});
+  _EffectiveLinterRules();
+
+  _EffectiveLinterRules.from(_EffectiveLinterRules other) {
+    enabled.addAll(other.enabled);
+    disabled.addAll(other.disabled);
+  }
+
+  _EffectiveLinterRules.fromLocal(_LocalLinterRules localRules) {
+    applyLocal(localRules);
+  }
+
+  void apply(_EffectiveLinterRules other) {
+    for (var ruleData in other.disabled.values) {
+      enabled.remove(ruleData.rule);
+      disabled[ruleData.rule] = ruleData;
+    }
+    for (var ruleData in other.enabled.values) {
+      disabled.remove(ruleData.rule);
+      enabled[ruleData.rule] = ruleData;
+    }
+  }
+
+  void applyLocal(_LocalLinterRules localRules) {
+    for (var ruleData in localRules.disabled) {
+      enabled.remove(ruleData.rule);
+      disabled[ruleData.rule] = ruleData;
+    }
+    for (var ruleData in localRules.enabled) {
+      disabled.remove(ruleData.rule);
+      enabled[ruleData.rule] = ruleData;
+    }
+  }
+
+  _EffectiveLinterRules copy() => _EffectiveLinterRules.from(this);
 }
 
-/// Validates `linter` rule configurations.
+/// The effective linter rule state contributed through one `include` entry.
+///
+/// The [includeNode] is the include site in the current file, not the source of
+/// the rules themselves. Keeping it with the effective rules lets
+/// [diag.incompatibleLintIncluded] point at the include that introduced the
+/// conflicting subtree while its context messages still point at actual rule
+/// nodes.
+final class _IncludedLinterRules {
+  final YamlScalar includeNode;
+  final _EffectiveLinterRules rules;
+
+  _IncludedLinterRules({required this.includeNode, required this.rules});
+}
+
+/// An enabled rule together with the include entry that made it visible.
+///
+/// This is only needed while comparing sibling includes. The rule data carries
+/// the precise YAML location; the include node carries the current-file
+/// provenance needed for the primary diagnostic and file-count calculation.
+final class _IncludedRuleData {
+  final YamlScalar includeNode;
+  final _RuleData ruleData;
+
+  _IncludedRuleData({required this.includeNode, required this.ruleData});
+}
+
+/// Validates `linter` rule configurations in a single options file.
 class _LinterRuleOptionsValidator extends OptionsValidator {
-  static const _includeKey = 'include';
   static const _linter = 'linter';
   static const _rulesKey = 'rules';
 
@@ -43,26 +108,17 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
   /// whether it is not being analyzed as part of a chain of 'include's.
   final bool _isPrimarySource;
 
-  final AnalysisOptionsProvider _optionsProvider;
-  final ResourceProvider _resourceProvider;
-  final SourceFactory _sourceFactory;
+  final File _file;
 
-  /// A cache of options file contents.
-  final AnalysisOptionsCache _analysisOptionsCache;
+  _LocalLinterRules localRules = _LocalLinterRules.empty;
 
   _LinterRuleOptionsValidator({
-    required ResourceProvider resourceProvider,
-    required AnalysisOptionsProvider optionsProvider,
-    required SourceFactory sourceFactory,
+    required File file,
     VersionConstraint? sdkVersionConstraint,
     bool isPrimarySource = true,
-    required AnalysisOptionsCache analysisOptionsCache,
-  }) : _sourceFactory = sourceFactory,
-       _resourceProvider = resourceProvider,
-       _optionsProvider = optionsProvider,
+  }) : _file = file,
        _isPrimarySource = isPrimarySource,
-       _sdkVersionConstraint = sdkVersionConstraint,
-       _analysisOptionsCache = analysisOptionsCache;
+       _sdkVersionConstraint = sdkVersionConstraint;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -72,48 +128,7 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
     if (node is YamlMap) {
       rules = node.valueAt(_rulesKey);
     }
-    _validateRules(rules, reporter, options.valueAt(_includeKey));
-  }
-
-  Uri? _actualIncludePath(String includePath, Uri? sourceUri) {
-    var (first, last) = (
-      includePath.codeUnits.firstOrNull,
-      includePath.codeUnits.lastOrNull,
-    );
-    if ((first == 0x0022 || first == 0x0027) && first == last) {
-      // The URI begins and ends with either a double quote or single quote
-      // i.e. the value of the "include" field is quoted.
-      includePath = includePath.substring(1, includePath.length - 1);
-    }
-
-    if (includePath.isEmpty) return null;
-
-    if (sourceUri != null) {
-      var source = FileSource(_fileFromFileUri(sourceUri));
-      var resolved = _sourceFactory.resolveUri(source, includePath);
-      if (resolved is FileSource) {
-        return resolved.file.toUri();
-      }
-    }
-
-    var uri = Uri.parse(includePath);
-    if (uri == sourceUri) {
-      // The URI is the same as the source URI, so we don't need to resolve it.
-      return null;
-    }
-
-    if (uri.isAbsolute) {
-      // The URI is absolute, so we don't need to resolve it.
-      return uri;
-    }
-
-    if (sourceUri == null) {
-      // The URI is relative, but we don't have a base URI to resolve it
-      // against.
-      return null;
-    }
-
-    return uriCache.resolveRelative(sourceUri, uri);
+    localRules = _validateRules(rules, reporter);
   }
 
   bool _beforeCurrentConstraint(Version? since) {
@@ -124,80 +139,6 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
       VersionRange(min: var min?) => since <= min,
       _ => false,
     };
-  }
-
-  Set<YamlScalar> _collectRules(YamlNode? rules) {
-    var includeRules = <YamlScalar>{};
-    if (rules is YamlList) {
-      for (var ruleNode in rules.nodes) {
-        var value = ruleNode.value;
-        if (value is String) {
-          var rule = _getRegisteredLint(value);
-          if (rule != null && ruleNode is YamlScalar) {
-            includeRules.add(ruleNode);
-          }
-        }
-      }
-    } else if (rules is YamlMap) {
-      for (var entry in rules.nodeMap.entries) {
-        var value = entry.key.value as Object?;
-        if (value is! String) {
-          continue;
-        }
-        var enabled = entry.value.value;
-        if (enabled is! bool) {
-          continue;
-        }
-        if (enabled) {
-          var rule = _getRegisteredLint(value);
-          if (entry.key case YamlScalar yaml when rule != null) {
-            includeRules.add(yaml);
-          }
-        }
-      }
-    }
-    return includeRules;
-  }
-
-  File _fileFromFileUri(Uri uri) {
-    var path = fileUriToNormalizedPath(_resourceProvider.pathContext, uri);
-    return _resourceProvider.getFile(path);
-  }
-
-  /// Returns the first rule that is incompatible with the given [rule].
-  ///
-  /// If the rule is found in the [rules] map, it returns the file path
-  /// and the rule name.
-  List<_IncompatibleRuleData> _findIncompatibleRules(
-    AbstractAnalysisRule rule, {
-    required Map<YamlScalar?, Set<YamlScalar>> rules,
-  }) {
-    List<_IncompatibleRuleData> incompatibleRules = [];
-    for (var incompatibleRule in rule.incompatibleRules) {
-      for (var MapEntry(:key, value: rules) in rules.entries) {
-        if (rules
-            .map((node) => _safeToLower(node.value))
-            .contains(incompatibleRule.toLowerCase())) {
-          var list = rules.where(
-            (scalar) =>
-                _safeToLower(scalar.value) == incompatibleRule.toLowerCase(),
-          );
-          for (var scalar in list) {
-            var rule = _getRegisteredLint(scalar.value.toString())!;
-            incompatibleRules.add(
-              _IncompatibleRuleData(
-                _RuleData(rule, scalar, isEnabled: true),
-                file: key,
-              ),
-            );
-          }
-        }
-      }
-    }
-    if (incompatibleRules.isNotEmpty) {
-      return incompatibleRules;
-    }
-    return const [];
   }
 
   AbstractAnalysisRule? _getRegisteredLint(String value) =>
@@ -211,56 +152,28 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
 
   /// Processes an enabled rule by checking for incompatible rules and reporting
   /// any issues found.
-  ///
-  /// The [ruleData] contains information about the rule being processed.
-  ///
-  /// The [rules] map contains rules from included files which were not
-  /// disabled by the current file. When the [YamlScalar] ([MapEntry.key]) is
-  /// `null`, it indicates that the rule is from the current file.
-  ///
-  /// The [reporter] is used to report any issues found during processing.
   void _processEnabledRule({
     required _RuleData ruleData,
-    required Map<YamlScalar?, Set<YamlScalar>> rules,
+    required Map<AbstractAnalysisRule, _RuleData> activeRules,
     required DiagnosticReporter reporter,
   }) {
     String value = ruleData.node.value.toString();
-    var incompatible = _findIncompatibleRules(ruleData.rule, rules: rules);
+    var incompatible = _findIncompatibleRules(
+      ruleData.rule,
+      rules: activeRules.values,
+    );
     if (incompatible.isNotEmpty) {
-      if (incompatible.where((data) => data.file == null)
-          case var localIncompatible when localIncompatible.isNotEmpty) {
-        reporter.report(
-          _diagnosticFactory.incompatibleLint(
-            source: FileSource(_fileFromFileUri(ruleData.node.span.sourceUrl!)),
-            reference: ruleData.node,
-            incompatibleRules: {
-              for (var data in localIncompatible)
-                if (ruleData.node.span.sourceUrl case var uri?)
-                  _fileFromFileUri(uri).path: data.ruleData.node,
-            },
-          ),
-        );
-      }
-      if (incompatible.where((data) => data.file != null)
-          case var includedIncompatible when includedIncompatible.isNotEmpty) {
-        reporter.report(
-          _diagnosticFactory.incompatibleLintFiles(
-            source: FileSource(_fileFromFileUri(ruleData.node.span.sourceUrl!)),
-            reference: ruleData.node,
-            incompatibleRules: {
-              for (var data in includedIncompatible)
-                if (data.file?.value case String value)
-                  if (_actualIncludePath(value, data.file?.span.sourceUrl)
-                      case var uri?)
-                    _fileFromFileUri(uri).path: data.ruleData.node,
-            },
-          ),
-        );
-      }
+      reporter.report(
+        _diagnosticFactory.incompatibleLint(
+          source: reporter.source,
+          reference: ruleData.node,
+          incompatibleRules: {
+            for (var data in incompatible) data.file.path: data.node,
+          },
+        ),
+      );
     }
-    if (rules[null]!
-        .map((e) => _safeToLower(e.value))
-        .contains(_safeToLower(ruleData.node.value))) {
+    if (activeRules.containsKey(ruleData.rule)) {
       reporter.report(
         diag.duplicateRule
             .withArguments(ruleName: value)
@@ -269,101 +182,9 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
     }
   }
 
-  Map<YamlScalar, Set<YamlScalar>> _processIncludes(
-    YamlNode includeNode,
-    DiagnosticReporter reporter,
-    List<AbstractAnalysisRule> disabledRules,
-  ) {
-    var seenRules = <YamlScalar, Set<YamlScalar>>{};
-    var includes = <(YamlScalar, String)>[];
-    if (includeNode is YamlScalar) {
-      includes.add((includeNode, includeNode.value.toString()));
-    } else if (includeNode is YamlList) {
-      for (var node in includeNode.nodes) {
-        if (node is YamlScalar) {
-          includes.add((node, node.value.toString()));
-        }
-      }
-    }
-
-    var uri = includeNode.span.sourceUrl;
-    for (var (includeNode, includePath) in includes) {
-      File file;
-      try {
-        var pathStr = _actualIncludePath(includePath, uri);
-        if (pathStr == null) continue;
-        if (pathStr.path == uri?.path) {
-          continue;
-        }
-        file = _fileFromFileUri(pathStr);
-      } catch (_) {
-        // if files are invalid, we ignore them
-        continue;
-      }
-      var includedOptions = _optionsProvider.getOptionsFromFile(
-        file,
-        analysisOptionsCache: _analysisOptionsCache,
-      );
-      var linterNode = includedOptions.valueAt(_linter);
-      if (linterNode is! YamlMap) {
-        continue;
-      }
-      var rulesNode = linterNode.valueAt(_rulesKey);
-      var rules = _collectRules(rulesNode);
-      Set<_IncompatibleRuleData> incompatible = {};
-      for (var rule in rules.toList()) {
-        var value = rule.value;
-        if (value is! String) {
-          continue;
-        }
-        var lintRule = _getRegisteredLint(value);
-        if (lintRule == null || disabledRules.contains(lintRule)) {
-          rules.remove(rule);
-          continue;
-        }
-        var incompatibleRules = _findIncompatibleRules(
-          lintRule,
-          rules: seenRules,
-        );
-        if (incompatibleRules.isEmpty) {
-          continue;
-        }
-        incompatible.add(
-          _IncompatibleRuleData(
-            _RuleData(lintRule, rule, isEnabled: true),
-            file: includeNode,
-          ),
-        );
-        incompatible.addAll(incompatibleRules);
-      }
-      if (incompatible.isNotEmpty) {
-        reporter.report(
-          _diagnosticFactory.incompatibleLintIncluded(
-            source: FileSource(_fileFromFileUri(includeNode.span.sourceUrl!)),
-            reference: includeNode,
-            incompatibleRules: {
-              for (var data in incompatible)
-                if (data.file?.value case String value)
-                  if (_actualIncludePath(value, data.file?.span.sourceUrl)
-                      case var uri?)
-                    _fileFromFileUri(uri).path: data.ruleData.node,
-            },
-            fileCount: incompatible.map((data) => data.file).toSet().length,
-          ),
-        );
-      }
-      seenRules[includeNode] = rules;
-    }
-    return seenRules;
-  }
-
-  Object? _safeToLower(Object? value) =>
-      value is String ? value.toLowerCase() : value;
-
-  void _validateRules(
+  _LocalLinterRules _validateRules(
     YamlNode? rules,
     DiagnosticReporter reporter,
-    YamlNode? includeNode,
   ) {
     if (rules is! YamlList &&
         rules is! YamlMap &&
@@ -373,7 +194,7 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
         (rules is! YamlScalar || rules.value != null) &&
         // We accept 'null' for triggering `INCOMPATIBLE_LINT_INCLUDED`
         rules != null) {
-      return;
+      return _LocalLinterRules.empty;
     }
 
     _RuleData? validateRule(YamlScalar node, Object? enabled) {
@@ -467,11 +288,11 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
         }
       }
 
-      return _RuleData(rule, node, isEnabled: enabledValue);
+      return _RuleData(rule, node, file: _file, isEnabled: enabledValue);
     }
 
-    var activeRules = <YamlScalar>{};
-    var disabledRules = <AbstractAnalysisRule>[];
+    var activeRules = <AbstractAnalysisRule, _RuleData>{};
+    var disabledRules = <_RuleData>[];
     var ruleDataList = <_RuleData>[];
 
     var entries = switch (rules) {
@@ -491,35 +312,202 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
       if (rule.isEnabled) {
         ruleDataList.add(rule);
       } else {
-        disabledRules.add(rule.rule);
+        disabledRules.add(rule);
       }
     }
 
-    if (ruleDataList.isNotEmpty) {
-      for (var rule in ruleDataList) {
-        _processEnabledRule(
-          ruleData: rule,
-          reporter: reporter,
-          rules: {
-            null: activeRules,
-            if (includeNode != null)
-              ..._processIncludes(includeNode, reporter, disabledRules),
-          },
-        );
-        activeRules.add(rule.node);
+    for (var rule in ruleDataList) {
+      _processEnabledRule(
+        ruleData: rule,
+        reporter: reporter,
+        activeRules: activeRules,
+      );
+      activeRules[rule.rule] = rule;
+    }
+
+    return _LocalLinterRules(enabled: ruleDataList, disabled: disabledRules);
+  }
+
+  /// Reports conflicts between rules introduced by different include entries.
+  ///
+  /// [includedRules] must be in include-list order. Rules enabled or disabled
+  /// by a higher-priority entry replace matching rules from lower-priority
+  /// includes before incompatible-rule comparison. Rules disabled in the
+  /// current file suppress conflicts from all includes.
+  static void reportIncompatibleIncluded({
+    required DiagnosticReporter reporter,
+    required List<_IncludedLinterRules> includedRules,
+    required List<_RuleData> disabledRules,
+  }) {
+    var seenRules = <AbstractAnalysisRule, _IncludedRuleData>{};
+    var disabledRuleSet = disabledRules
+        .map((ruleData) => ruleData.rule)
+        .toSet();
+    for (var current in includedRules) {
+      for (var ruleData in current.rules.disabled.values) {
+        seenRules.remove(ruleData.rule);
       }
-    } else {
-      if (includeNode != null) {
-        _processIncludes(includeNode, reporter, disabledRules);
+      for (var ruleData in current.rules.enabled.values) {
+        seenRules.remove(ruleData.rule);
+      }
+      for (var rule in disabledRuleSet) {
+        seenRules.remove(rule);
+      }
+
+      var incompatible = <_IncludedRuleData>[];
+      void add(_IncludedRuleData data) {
+        if (!incompatible.any((existing) {
+          return identical(existing.ruleData.node, data.ruleData.node);
+        })) {
+          incompatible.add(data);
+        }
+      }
+
+      for (var ruleData in current.rules.enabled.values) {
+        if (disabledRuleSet.contains(ruleData.rule)) {
+          continue;
+        }
+        var previousIncompatible = _findIncompatibleRules(
+          ruleData.rule,
+          rules: seenRules.values.map((data) => data.ruleData),
+        );
+        if (previousIncompatible.isEmpty) {
+          continue;
+        }
+        add(
+          _IncludedRuleData(
+            includeNode: current.includeNode,
+            ruleData: ruleData,
+          ),
+        );
+        for (var previousRule in previousIncompatible) {
+          var previousIncludedRule = seenRules[previousRule.rule];
+          if (previousIncludedRule != null) {
+            add(previousIncludedRule);
+          }
+        }
+      }
+
+      if (incompatible.isNotEmpty) {
+        reporter.report(
+          _diagnosticFactory.incompatibleLintIncluded(
+            source: reporter.source,
+            reference: current.includeNode,
+            incompatibleRules: {
+              for (var data in incompatible)
+                data.ruleData.file.path: data.ruleData.node,
+            },
+            fileCount: incompatible
+                .map((data) => data.includeNode)
+                .toSet()
+                .length,
+          ),
+        );
+      }
+
+      for (var ruleData in current.rules.enabled.values) {
+        if (disabledRuleSet.contains(ruleData.rule)) {
+          continue;
+        }
+        seenRules[ruleData.rule] = _IncludedRuleData(
+          includeNode: current.includeNode,
+          ruleData: ruleData,
+        );
       }
     }
   }
+
+  /// Reports conflicts between local enabled rules and effective included rules.
+  ///
+  /// Local enabled and disabled rules are applied before comparison so that
+  /// local declarations replace inherited declarations. The primary diagnostic
+  /// is reported on the local rule node; context messages point at the
+  /// included rule nodes.
+  static void reportIncompatibleWithIncluded({
+    required DiagnosticReporter reporter,
+    required _LocalLinterRules localRules,
+    required _EffectiveLinterRules includedRules,
+  }) {
+    var activeIncludedRules = includedRules.copy();
+    for (var localRule in localRules.enabled) {
+      activeIncludedRules.enabled.remove(localRule.rule);
+    }
+    for (var disabledRule in localRules.disabled) {
+      activeIncludedRules.enabled.remove(disabledRule.rule);
+    }
+
+    for (var ruleData in localRules.enabled) {
+      var incompatible = _findIncompatibleRules(
+        ruleData.rule,
+        rules: activeIncludedRules.enabled.values,
+      );
+      if (incompatible.isEmpty) {
+        continue;
+      }
+      reporter.report(
+        _diagnosticFactory.incompatibleLintFiles(
+          source: reporter.source,
+          reference: ruleData.node,
+          incompatibleRules: {
+            for (var data in incompatible) data.file.path: data.node,
+          },
+        ),
+      );
+    }
+  }
+
+  static List<_RuleData> _findIncompatibleRules(
+    AbstractAnalysisRule rule, {
+    required Iterable<_RuleData> rules,
+  }) {
+    List<_RuleData> incompatibleRules = [];
+    for (var incompatibleRuleName in rule.incompatibleRules) {
+      var incompatibleRule = Registry.ruleRegistry[incompatibleRuleName];
+      if (incompatibleRule == null) {
+        continue;
+      }
+      for (var ruleData in rules) {
+        if (ruleData.rule == incompatibleRule) {
+          incompatibleRules.add(ruleData);
+        }
+      }
+    }
+    return incompatibleRules;
+  }
 }
 
-class _RuleData {
+/// Linter rule declarations found directly in one physical options file.
+///
+/// This is intentionally not an effective view: it does not know about includes
+/// and it preserves the local enabled/disabled declarations after syntax and
+/// rule-name validation. The walker combines these local facts with included
+/// effective state using analysis-options precedence.
+final class _LocalLinterRules {
+  static const _LocalLinterRules empty = .new(enabled: [], disabled: []);
+
+  final List<_RuleData> enabled;
+  final List<_RuleData> disabled;
+
+  const _LocalLinterRules({required this.enabled, required this.disabled});
+}
+
+/// A source-preserving occurrence of a registered linter rule.
+///
+/// [rule] provides canonical identity and compatibility metadata, while [node]
+/// preserves the user's spelling and offset for diagnostics. [file] is stored
+/// explicitly so cross-file diagnostics can avoid depending on URI details from
+/// YAML spans.
+final class _RuleData {
   final AbstractAnalysisRule rule;
 
   final YamlScalar node;
+  final File file;
   final bool isEnabled;
-  _RuleData(this.rule, this.node, {required this.isEnabled});
+
+  _RuleData(
+    this.rule,
+    this.node, {
+    required this.file,
+    required this.isEnabled,
+  });
 }

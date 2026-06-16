@@ -2,46 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'evaluate_in_async_activation_lib.dart' as testee_lib;
 
-const LINE_A = 19;
-const LINE_B = LINE_A + 2;
-
-Future<int> testFunction() async {
-  final x = 3;
-  final y = 4;
-  debugger();
-  final z = await Future(() => x + y);
-  debugger();
-  return z;
-}
-
-final tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    await evaluateInFrameAndExpect(service, isolateId, 'x', '3');
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B),
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    await evaluateInFrameAndExpect(service, isolateId, 'z', '7');
-  },
-  resumeIsolate,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'evaluate_in_async_activation_test.dart',
-      testeeConcurrent: testFunction,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('evaluate_in_async_activation_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_A')
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+          final isolateId = isolateRef.id!;
+          await evaluateInFrameAndExpect(service, isolateId, 'x', '3');
+        })
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_B')
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+          final isolateId = isolateRef.id!;
+          await evaluateInFrameAndExpect(service, isolateId, 'z', '7');
+        })
+        .resumeIsolate()
+        .run(testeeMain: testee_lib.main);

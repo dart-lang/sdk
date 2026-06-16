@@ -7,48 +7,17 @@
 // and `FutureRecordN` wait extensions.
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'pause_on_unhandled_exceptions_future_extensions_lib.dart' as testee_lib;
 
-Future<void> throwAsync() async {
-  await Future.delayed(const Duration(milliseconds: 100));
-  throw 'Throw from throwAsync!';
-}
-
-Future<void> testeeMain() async {
-  try {
-    await [throwAsync()].wait;
-  } catch (e) {
-    // Ignore.
-  }
-
-  try {
-    await (throwAsync(), throwAsync()).wait;
-  } catch (e) {
-    // Ignore.
-  }
-
-  await [throwAsync()].wait.catchError((e) {
-    // Ignore.
-    return [];
-  });
-
-  await (throwAsync(), throwAsync()).wait.catchError((e) {
-    // Ignore.
-    return (null, null);
-  });
-}
-
-final tests = <IsolateTest>[
-  // We shouldn't get any debugger breaks before exit as all exceptions are
-  // caught.
-  hasStoppedAtExit,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'pause_on_unhandled_exceptions_future_extensions_lib.dart',
       args,
-      tests,
-      'pause_on_unhandled_exceptions_future_extensions_test.dart',
-      pauseOnUnhandledExceptions: true,
-      pauseOnExit: true,
-      testeeConcurrent: testeeMain,
-    );
+    )
+        // We shouldn't get any debugger breaks before exit as all exceptions are
+        // caught.
+        .hasStoppedAtExit()
+        .run(
+          testeeMain: testee_lib.main,
+          pauseOnUnhandledExceptions: true,
+          pauseOnExit: true,
+        );

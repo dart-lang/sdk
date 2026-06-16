@@ -20,11 +20,8 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -63,27 +60,37 @@ void _validateLegacyPluginsOption(
   ).validate(diagnosticReporter, options);
 }
 
+/// Cache of raw parsed analysis options files used during validation.
+///
+/// Unlike [AnalysisOptionsCache], this cache stores the unmerged YAML tree for
+/// each physical options file. Validation walks include edges itself so that it
+/// can report diagnostics against the file where they originate and summarize
+/// included-file diagnostics at the including directive.
+final class AnalysisOptionsValidationCache {
+  final Map<File, _YamlFileParseResult> _map = {};
+}
+
 /// Validates analysis options files and produces user-visible diagnostics.
 final class AnalysisOptionsValidator {
   final SourceFactory sourceFactory;
   final ResourceProvider resourceProvider;
   final String contextRoot;
   final VersionConstraint? sdkVersionConstraint;
-  final AnalysisOptionsCache _analysisOptionsCache;
+  final AnalysisOptionsValidationCache _validationCache;
 
   AnalysisOptionsValidator({
     required this.sourceFactory,
     required this.resourceProvider,
     required this.contextRoot,
     this.sdkVersionConstraint,
-    AnalysisOptionsCache? analysisOptionsCache,
-  }) : _analysisOptionsCache = analysisOptionsCache ?? {};
+    AnalysisOptionsValidationCache? validationCache,
+  }) : _validationCache = validationCache ?? AnalysisOptionsValidationCache();
 
   List<Diagnostic> validateContent({
     required File file,
     required String content,
   }) {
-    var initialSource = sourceFactory.forUri2(file.toUri()) ?? FileSource(file);
+    var initialSource = FileSource(file);
     var initialDiagnosticListener = RecordingDiagnosticListener();
     var initialDiagnosticReporter = DiagnosticReporter(
       initialDiagnosticListener,
@@ -94,12 +101,14 @@ final class AnalysisOptionsValidator {
       initialDiagnosticReporter: initialDiagnosticReporter,
       diagnosticListener: initialDiagnosticListener,
       diagnosticReporter: initialDiagnosticReporter,
+      file: file,
+      initialFile: file,
       sourceFactory: sourceFactory,
       contextRoot: contextRoot,
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
       optionsProvider: AnalysisOptionsProvider(sourceFactory),
-      analysisOptionsCache: _analysisOptionsCache,
+      validationCache: _validationCache,
     ).validate(content: content);
   }
 
@@ -111,8 +120,8 @@ final class AnalysisOptionsValidator {
 /// Walks the initial options file and its includes for one validation request.
 ///
 /// This class owns the mutable traversal state that is awkward to keep on
-/// [AnalysisOptionsValidator] itself: the current source, reporter/listener
-/// pair, include chain, first include span, and included legacy plugin state.
+/// [AnalysisOptionsValidator] itself: the current file, reporter/listener pair,
+/// include chain, first include span, and included legacy plugin state.
 /// It deliberately delegates validation of a single already-parsed YAML map to
 /// [_OptionsFileValidator]; its responsibility is parsing, include traversal,
 /// source ownership, and converting diagnostics from included files into
@@ -122,10 +131,13 @@ final class _AnalysisOptionsValidatorWalker {
   final DiagnosticReporter initialDiagnosticReporter;
   DiagnosticListener diagnosticListener;
   DiagnosticReporter diagnosticReporter;
+  File file;
+  final File initialFile;
   final SourceFactory sourceFactory;
   final String contextRoot;
   final VersionConstraint? sdkVersionConstraint;
   final ResourceProvider resourceProvider;
+  final AnalysisOptionsValidationCache validationCache;
 
   /// The span of the first `include` directive in the include chain currently
   /// being visited.
@@ -137,31 +149,30 @@ final class _AnalysisOptionsValidatorWalker {
   /// current file's includes.
   String? firstPluginName;
 
-  /// Map whose keys are source files containing an `include` directive that is
-  /// currently being visited, and whose values are the corresponding
-  /// [SourceSpan]s of those `include` directives.
-  final Map<Source, SourceSpan> includeChain = {};
-
-  final AnalysisOptionsCache _analysisOptionsCache;
+  /// Map whose keys are files containing an `include` directive that is
+  /// currently being visited, and whose values are the corresponding spans of
+  /// those `include` directives.
+  final Map<File, SourceSpan> includeChain = {};
 
   _AnalysisOptionsValidatorWalker({
     required this.initialDiagnosticListener,
     required this.initialDiagnosticReporter,
     required this.diagnosticListener,
     required this.diagnosticReporter,
+    required this.file,
+    required this.initialFile,
     required this.sourceFactory,
     required this.contextRoot,
     required this.sdkVersionConstraint,
     required this.resourceProvider,
     required this.optionsProvider,
-    required AnalysisOptionsCache analysisOptionsCache,
-  }) : _analysisOptionsCache = analysisOptionsCache;
+    required this.validationCache,
+  });
 
   Source get initialSource => initialDiagnosticReporter.source;
 
-  /// Whether the source file currently being visited is the initial source
-  /// file.
-  bool get isPrimarySource => source == initialSource;
+  /// Whether the file currently being visited is the initial file.
+  bool get isPrimarySource => file == initialFile;
 
   Source get source => diagnosticReporter.source;
 
@@ -180,10 +191,11 @@ final class _AnalysisOptionsValidatorWalker {
             .atSourceSpan(span),
       );
     }
-    // Make sure `initialIncludeSpan`, `source`, `includeChain`,
+    // Make sure `initialIncludeSpan`, `file`, `source`, `includeChain`,
     // `diagnosticListener`, and `diagnosticReporter` have been restored to
     // their original states.
     assert(initialIncludeSpan == null);
+    assert(file == initialFile);
     assert(identical(source, initialSource));
     assert(includeChain.isEmpty);
     assert(identical(diagnosticListener, initialDiagnosticListener));
@@ -191,17 +203,47 @@ final class _AnalysisOptionsValidatorWalker {
     return initialDiagnosticListener.diagnostics;
   }
 
-  // Validates the specified options and any included option files.
-  void _validate(YamlMap options) {
-    _OptionsFileValidator(
-      source,
+  _EffectiveLinterRules _mergeIncludedLinterRules(
+    List<_IncludedLinterRules> includedRules,
+  ) {
+    var result = _EffectiveLinterRules();
+    for (var included in includedRules) {
+      result.apply(included.rules);
+    }
+    return result;
+  }
+
+  YamlMap _parseIncludedOptions(FileSource source) {
+    var file = source.file;
+    var result = validationCache._map[file];
+    if (result == null) {
+      try {
+        result = _ParsedYamlFile(
+          optionsProvider.getOptionsFromString(
+            file.readAsStringSync(),
+            sourceUrl: source.uri,
+          ),
+        );
+      } on OptionsFormatException catch (exception) {
+        result = _InvalidYamlFile(exception);
+      }
+      validationCache._map[file] = result;
+    }
+
+    return switch (result) {
+      _ParsedYamlFile(:var map) => map,
+      _InvalidYamlFile(:var exception) => throw exception,
+    };
+  }
+
+  /// Validates the specified options and any included option files.
+  _EffectiveLinterRules _validate(YamlMap options) {
+    var validationResult = _OptionsFileValidator(
+      file,
       sdkVersionConstraint: sdkVersionConstraint,
       contextRoot: contextRoot,
       isPrimarySource: isPrimarySource,
-      optionsProvider: optionsProvider,
-      sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
-      analysisOptionsCache: _analysisOptionsCache,
     ).validate(options, diagnosticReporter);
 
     var includeNode = options.valueAt(AnalysisOptionsFileKeys.include);
@@ -209,7 +251,7 @@ final class _AnalysisOptionsValidatorWalker {
       // Validate the 'plugins' option in [options], understanding that no other
       // options are included.
       _validateLegacyPluginsOption(diagnosticReporter, options: options);
-      return;
+      return _EffectiveLinterRules.fromLocal(validationResult.linterRules);
     }
 
     var includes = switch (includeNode) {
@@ -218,79 +260,116 @@ final class _AnalysisOptionsValidatorWalker {
       _ => const <YamlScalar>[],
     };
 
+    var includedLinterRules = <_IncludedLinterRules>[];
     for (var includeValue in includes) {
       var previousInitialIncludeSpan = initialIncludeSpan;
       try {
         var includeSpan = includeValue.span;
         initialIncludeSpan ??= includeSpan;
-        _validateInclude(options, includeSpan);
+        var result = _validateInclude(includeValue);
+        if (result != null) {
+          includedLinterRules.add(result);
+        }
       } finally {
         initialIncludeSpan = previousInitialIncludeSpan;
       }
     }
+
+    _validateLegacyPluginsOption(
+      diagnosticReporter,
+      options: options,
+      firstEnabledPluginName: firstPluginName,
+    );
+
+    _LinterRuleOptionsValidator.reportIncompatibleIncluded(
+      reporter: diagnosticReporter,
+      includedRules: includedLinterRules,
+      disabledRules: validationResult.linterRules.disabled,
+    );
+
+    var includedEffectiveRules = _mergeIncludedLinterRules(includedLinterRules);
+    _LinterRuleOptionsValidator.reportIncompatibleWithIncluded(
+      reporter: diagnosticReporter,
+      localRules: validationResult.linterRules,
+      includedRules: includedEffectiveRules,
+    );
+
+    return includedEffectiveRules..applyLocal(validationResult.linterRules);
   }
 
-  void _validateInclude(YamlMap options, SourceSpan includeSpan) {
+  _IncludedLinterRules? _validateInclude(YamlScalar includeNode) {
     assert(initialIncludeSpan != null);
-    var includeUri = includeSpan.text;
-    var (first, last) = (
-      includeUri.codeUnits.firstOrNull,
-      includeUri.codeUnits.lastOrNull,
-    );
-    if ((first == 0x0022 || first == 0x0027) && first == last) {
-      // The URI begins and ends with either a double quote or single quote
-      // i.e. the value of the "include" field is quoted.
-      includeUri = includeUri.substring(1, includeUri.length - 1);
+    Object? includeValue = includeNode.value;
+    if (includeValue is! String) {
+      return null;
     }
 
+    var includeSpan = includeNode.span;
+    var includeUri = includeValue;
     var includedSource = sourceFactory.resolveUri(source, includeUri);
-    if (includedSource == initialSource) {
-      initialDiagnosticReporter.report(
-        diag.recursiveIncludeFile
-            .withArguments(
-              includedUri: includeUri,
-              includingFilePath: source.fullName,
-            )
-            .atSourceSpan(initialIncludeSpan!),
-      );
-      return;
-    }
-    if (includedSource == null || !includedSource.exists()) {
+    if (includedSource is! FileSource) {
       initialDiagnosticReporter.report(
         diag.includeFileNotFound
             .withArguments(
               includedUri: includeUri,
-              includingFilePath: source.fullName,
+              includingFilePath: file.path,
               contextRootPath: contextRoot,
             )
             .atSourceSpan(initialIncludeSpan!),
       );
-      return;
+      return null;
+    }
+
+    var includedFile = includedSource.file;
+    if (includedFile == initialFile) {
+      initialDiagnosticReporter.report(
+        diag.recursiveIncludeFile
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: file.path,
+            )
+            .atSourceSpan(initialIncludeSpan!),
+      );
+      return null;
+    }
+
+    if (!includedFile.exists) {
+      initialDiagnosticReporter.report(
+        diag.includeFileNotFound
+            .withArguments(
+              includedUri: includeUri,
+              includingFilePath: file.path,
+              contextRootPath: contextRoot,
+            )
+            .atSourceSpan(initialIncludeSpan!),
+      );
+      return null;
     }
 
     try {
-      var includedOptions = optionsProvider.getOptionsFromString(
-        includedSource.stringContents,
-      );
+      var includedOptions = _parseIncludedOptions(includedSource);
       var previousDiagnosticListener = diagnosticListener;
       var previousDiagnosticReporter = diagnosticReporter;
+      var previousFile = file;
+      late _EffectiveLinterRules includedLinterRules;
       try {
-        assert(includeChain[source] == null);
-        includeChain[source] = includeSpan;
-        var spanInChain = includeChain[includedSource];
+        assert(includeChain[file] == null);
+        includeChain[file] = includeSpan;
+        var spanInChain = includeChain[includedFile];
         if (spanInChain != null) {
           initialDiagnosticReporter.report(
             diag.includedFileWarning
                 .withArguments(
-                  includingFilePath: includedSource.fullName,
+                  includingFilePath: includedFile.path,
                   startOffset: spanInChain.start.offset,
                   endOffset: spanInChain.end.offset - 1,
                   warningMessage: 'The file includes itself recursively.',
                 )
                 .atSourceSpan(initialIncludeSpan!),
           );
-          return;
+          return null;
         }
+        file = includedFile;
         diagnosticListener = _IncludedDiagnosticListener(
           source: includedSource,
           initialDiagnosticReporter: initialDiagnosticReporter,
@@ -300,19 +379,17 @@ final class _AnalysisOptionsValidatorWalker {
           diagnosticListener,
           includedSource,
         );
-        _validate(includedOptions);
+        includedLinterRules = _validate(includedOptions);
       } finally {
+        file = previousFile;
         diagnosticListener = previousDiagnosticListener;
         diagnosticReporter = previousDiagnosticReporter;
-        includeChain.remove(source);
+        includeChain.remove(file);
       }
       firstPluginName ??= _firstPluginName(includedOptions);
-      // Validate the 'plugins' option in [options], taking into account any
-      // plugins enabled by [includedOptions].
-      _validateLegacyPluginsOption(
-        diagnosticReporter,
-        options: options,
-        firstEnabledPluginName: firstPluginName,
+      return _IncludedLinterRules(
+        includeNode: includeNode,
+        rules: includedLinterRules,
       );
     } on OptionsFormatException catch (e) {
       // Report diagnostics for included option files on the `include` directive
@@ -320,13 +397,14 @@ final class _AnalysisOptionsValidatorWalker {
       initialDiagnosticReporter.report(
         diag.includedFileParseError
             .withArguments(
-              includingFilePath: includedSource.fullName,
+              includingFilePath: includedFile.path,
               startOffset: e.span!.start.offset,
               endOffset: e.span!.end.offset,
               errorMessage: e.message,
             )
             .atSourceSpan(initialIncludeSpan!),
       );
+      return null;
     }
   }
 }
@@ -369,6 +447,16 @@ final class _IncludedDiagnosticListener implements DiagnosticListener {
           .atSourceSpan(initialIncludeSpan),
     );
   }
+}
+
+/// A YAML file that could be read but could not be parsed as options YAML.
+///
+/// The original exception keeps the source span from parsing so each including
+/// file can report the same included-file parse error at its own include site.
+final class _InvalidYamlFile extends _YamlFileParseResult {
+  final OptionsFormatException exception;
+
+  _InvalidYamlFile(this.exception);
 }
 
 /// Validates `analyzer` plugins configuration options.
@@ -467,3 +555,20 @@ final class _LegacyPluginsOptionValidator extends OptionsValidator {
     }
   }
 }
+
+/// A successfully parsed YAML file.
+///
+/// The map is the raw file contents, before include merging or interpretation
+/// as an analysis options object.
+final class _ParsedYamlFile extends _YamlFileParseResult {
+  final YamlMap map;
+
+  _ParsedYamlFile(this.map);
+}
+
+/// The cached outcome of parsing one YAML file.
+///
+/// Validation caches failures as well as successful parses because a broken
+/// shared include should not be reread and reparsed for every options file
+/// that includes it during a context rebuild.
+sealed class _YamlFileParseResult {}

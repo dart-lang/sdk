@@ -2,23 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer';
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
-
-String leafFunction() {
-  return 'some constant';
-}
-
-void testFunction() {
-  debugger();
-  leafFunction();
-  debugger();
-}
+import 'coverage_leaf_function_lib.dart' as testee_lib;
 
 bool allRangesCompiled(coverage) {
   for (int i = 0; i < coverage['ranges'].length; i++) {
@@ -42,8 +30,11 @@ IsolateTest coverageTest(
     expect(stack.frames!.length, greaterThanOrEqualTo(1));
     expect(stack.frames![0].function!.name, 'testFunction');
 
-    final root =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+    final root = await service.getObject(
+        isolateId,
+        isolate.libraries!
+            .firstWhere((l) => l.uri!.contains('coverage_leaf_function_lib'))
+            .id!) as Library;
     final FuncRef funcRef =
         root.functions!.singleWhere((f) => f.name == 'leafFunction');
     final Func func = await service.getObject(isolateId, funcRef.id!) as Func;
@@ -63,72 +54,74 @@ IsolateTest coverageTest(
     expect(report.scripts!.length, 1);
     expect(
       report.scripts![0].uri,
-      endsWith('coverage_leaf_function_test.dart'),
+      endsWith('coverage_leaf_function_lib.dart'),
     );
   };
 }
 
-var tests = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  coverageTest(
-    {
-      'scriptIndex': 0,
-      'startPos': 399,
-      'endPos': 449,
-      'compiled': true,
-      'coverage': {
-        'hits': [],
-        'misses': [399],
-      },
-    },
-    reportLines: false,
-  ),
-  coverageTest(
-    {
-      'scriptIndex': 0,
-      'startPos': 399,
-      'endPos': 449,
-      'compiled': true,
-      'coverage': {
-        'hits': [],
-        'misses': [13],
-      },
-    },
-    reportLines: true,
-  ),
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  coverageTest(
-    {
-      'scriptIndex': 0,
-      'startPos': 399,
-      'endPos': 449,
-      'compiled': true,
-      'coverage': {
-        'hits': [399],
-        'misses': [],
-      },
-    },
-    reportLines: false,
-  ),
-  coverageTest(
-    {
-      'scriptIndex': 0,
-      'startPos': 399,
-      'endPos': 449,
-      'compiled': true,
-      'coverage': {
-        'hits': [13],
-        'misses': [],
-      },
-    },
-    reportLines: true,
-  ),
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'coverage_leaf_function_test.dart',
-      testeeConcurrent: testFunction,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('coverage_leaf_function_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        .addCustomTest(
+          coverageTest(
+            {
+              'scriptIndex': 0,
+              'startPos': 277,
+              'endPos': 327,
+              'compiled': true,
+              'coverage': {
+                'hits': [],
+                'misses': [277],
+              },
+            },
+            reportLines: false,
+          ),
+        )
+        .addCustomTest(
+          coverageTest(
+            {
+              'scriptIndex': 0,
+              'startPos': 277,
+              'endPos': 327,
+              'compiled': true,
+              'coverage': {
+                'hits': [],
+                'misses': [8],
+              },
+            },
+            reportLines: true,
+          ),
+        )
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        .addCustomTest(
+          coverageTest(
+            {
+              'scriptIndex': 0,
+              'startPos': 277,
+              'endPos': 327,
+              'compiled': true,
+              'coverage': {
+                'hits': [277],
+                'misses': [],
+              },
+            },
+            reportLines: false,
+          ),
+        )
+        .addCustomTest(
+          coverageTest(
+            {
+              'scriptIndex': 0,
+              'startPos': 277,
+              'endPos': 327,
+              'compiled': true,
+              'coverage': {
+                'hits': [8],
+                'misses': [],
+              },
+            },
+            reportLines: true,
+          ),
+        )
+        .run(testeeMain: testee_lib.main);
