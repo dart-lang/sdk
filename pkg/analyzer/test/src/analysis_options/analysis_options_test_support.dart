@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -79,6 +80,45 @@ abstract class AbstractAnalysisOptionsTest
       printPrettyDiff(expected, actual);
     }
     expect(actual, expected);
+  }
+
+  AnalysisOptionsImpl parseAnalysisOptionsFilesWithDiagnostics(
+    Map<File, String> codeByFile, {
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    if (codeByFile.isEmpty) {
+      fail('Cannot parse analysis options: no content was provided.');
+    }
+    var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
+    var initialEntry = cleanCodeByFile.entries.first;
+    var initialFile = initialEntry.key;
+    var cleanContent = initialEntry.value;
+
+    var diagnostics = AnalysisOptionsValidator(
+      sourceFactory: sourceFactory,
+      contextRoot: convertPath('/'),
+      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
+      resourceProvider: resourceProvider,
+    ).validateContent(file: initialFile, content: cleanContent);
+
+    _assertDiagnosticMarkersInFiles(
+      codeByFile: codeByFile,
+      diagnostics: diagnostics,
+    );
+
+    return AnalysisOptionsProvider(sourceFactory).getAnalysisOptionsFromFile(
+      initialFile,
+      resourceProvider: resourceProvider,
+    );
+  }
+
+  AnalysisOptionsImpl parseAnalysisOptionsWithDiagnostics(
+    String code, {
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    return parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: code,
+    }, sdkVersionConstraint: sdkVersionConstraint);
   }
 
   void setUp() {

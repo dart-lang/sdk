@@ -188,6 +188,16 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsWithDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsFilesWithDiagnostics',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
       methodName: 'assertAnalysisOptionsText',
       argument: _ArgumentIndex(1),
     ),
