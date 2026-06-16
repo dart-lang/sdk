@@ -8,8 +8,9 @@ part of "dart:convert";
 ///
 /// The [Converter] class provides a default implementation for every method
 /// other than [convert].
-abstract mixin class const Converter<S, T>()
-    implements StreamTransformerBase<S, T> {
+abstract mixin class Converter<S, T> implements StreamTransformerBase<S, T> {
+  const Converter();
+
   /// Adapts [source] to be a `Converter<TS, TT>`.
   ///
   /// This allows [source] to be used at the new type, but at run-time it

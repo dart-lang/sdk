@@ -252,7 +252,7 @@ abstract interface class Future<T> {
   ///
   /// If a non-future value is returned, the returned future is completed
   /// with that value.
-  factory(FutureOr<T> computation()) {
+  factory Future(FutureOr<T> computation()) {
     _Future<T> result = _Future<T>();
     Timer.run(() {
       FutureOr<T> computationResult;
@@ -279,7 +279,7 @@ abstract interface class Future<T> {
   ///
   /// If calling [computation] returns a non-future value,
   /// the returned future is completed with that value.
-  factory microtask(FutureOr<T> computation()) {
+  factory Future.microtask(FutureOr<T> computation()) {
     _Future<T> result = _Future<T>();
     scheduleMicrotask(() {
       FutureOr<T> computationResult;
@@ -319,7 +319,7 @@ abstract interface class Future<T> {
   ///
   /// To create a future with a known value, use [Future.syncValue] instead,
   /// as `Future.syncValue(12)`.
-  factory sync(FutureOr<T> computation()) {
+  factory Future.sync(FutureOr<T> computation()) {
     FutureOr<T> result;
     try {
       result = computation();
@@ -339,7 +339,7 @@ abstract interface class Future<T> {
   /// a `try`/`catch`, you can use [Future.sync] which catches an error
   /// into its returned future, as `Future.sync(() => computation())`.
   @Since("3.10")
-  factory syncValue(T value) => _Future<T>().._setValue(value);
+  factory Future.syncValue(T value) => _Future<T>().._setValue(value);
 
   /// Creates a future completed with [value].
   ///
@@ -368,7 +368,7 @@ abstract interface class Future<T> {
   /// ```
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
-  factory value([FutureOr<T>? value]) {
+  factory Future.value([FutureOr<T>? value]) {
     return _Future<T>.immediate(value == null ? value as T : value);
   }
 
@@ -389,7 +389,7 @@ abstract interface class Future<T> {
   ///
   /// final error = await getFuture(); // Throws.
   /// ```
-  factory error(Object error, [StackTrace? stackTrace]) =>
+  factory Future.error(Object error, [StackTrace? stackTrace]) =>
       _Future<T>.immediateError(_interceptUserError(error, stackTrace));
 
   /// Creates a future that runs its computation after a delay.
@@ -427,7 +427,10 @@ abstract interface class Future<T> {
   /// });
   /// print(now.difference(later)); // At least a second.
   /// ```
-  factory delayed(Duration duration, [FutureOr<T> Function()? computation]) {
+  factory Future.delayed(
+    Duration duration, [
+    FutureOr<T> Function()? computation,
+  ]) {
     if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
         null,
@@ -1232,7 +1235,7 @@ abstract interface class Completer<T> {
   ///   completer.complete('completion value');
   /// }
   /// ```
-  factory() => _AsyncCompleter<T>();
+  factory Completer() => _AsyncCompleter<T>();
 
   /// Completes the future synchronously.
   ///
@@ -1283,7 +1286,7 @@ abstract interface class Completer<T> {
   ///   foo();  // In this case, foo() runs after bar().
   /// });
   /// ```
-  factory sync() => _SyncCompleter<T>();
+  factory Completer.sync() => _SyncCompleter<T>();
 
   /// The future that is completed by this completer.
   ///

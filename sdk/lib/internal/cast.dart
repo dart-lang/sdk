@@ -6,7 +6,7 @@ part of "dart:_internal";
 
 // Casting wrappers for collection classes.
 
-abstract class _CastIterableBase<S, T>() extends Iterable<T> {
+abstract class _CastIterableBase<S, T> extends Iterable<T> {
   Iterable<S> get _source;
 
   Iterator<T> get iterator => CastIterator<S, T>(_source.iterator);
@@ -57,13 +57,18 @@ abstract class _CastIterableBase<S, T>() extends Iterable<T> {
   String toString() => _source.toString();
 }
 
-class CastIterator<S, T>(final Iterator<S> _source) implements Iterator<T> {
+class CastIterator<S, T> implements Iterator<T> {
+  Iterator<S> _source;
+  CastIterator(this._source);
   bool moveNext() => _source.moveNext();
   T get current => _source.current as T;
 }
 
-class CastIterable<S, T>._(final Iterable<S> _source)
-    extends _CastIterableBase<S, T> {
+class CastIterable<S, T> extends _CastIterableBase<S, T> {
+  final Iterable<S> _source;
+
+  CastIterable._(this._source);
+
   factory CastIterable(Iterable<S> source) {
     if (source is EfficientLengthIterable<S>) {
       return _EfficientLengthCastIterable<S, T>(source);
@@ -74,17 +79,15 @@ class CastIterable<S, T>._(final Iterable<S> _source)
   Iterable<R> cast<R>() => CastIterable<S, R>(_source);
 }
 
-class _EfficientLengthCastIterable<S, T>(
-  EfficientLengthIterable<S> super.source,
-) extends CastIterable<S, T>
+class _EfficientLengthCastIterable<S, T> extends CastIterable<S, T>
     implements EfficientLengthIterable<T>, HideEfficientLengthIterable<T> {
-  this : super._();
+  _EfficientLengthCastIterable(EfficientLengthIterable<S> source)
+    : super._(source);
 }
 
-class CastList<S, T>(final List<S> _source)
-    extends _CastIterableBase<S, T>
+abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
     with ListMixin<T> {
-  List<R> cast<R>() => CastList<S, R>(_source);
+  List<S> get _source;
 
   // Using the default implementation from ListMixin:
   // * reversed
@@ -169,9 +172,23 @@ class CastList<S, T>(final List<S> _source)
   }
 }
 
-class CastSet<S, T>(final Set<S> _source, final Set<R> Function<R>()? _emptySet)
-    extends _CastIterableBase<S, T>
-    implements Set<T> {
+class CastList<S, T> extends _CastListBase<S, T> {
+  final List<S> _source;
+  CastList(this._source);
+
+  List<R> cast<R>() => CastList<S, R>(_source);
+}
+
+class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
+  final Set<S> _source;
+
+  /// Creates a new empty set of the same *kind* as [_source],
+  /// but with `<R>` as type argument.
+  /// Used by [toSet] and [union].
+  final Set<R> Function<R>()? _emptySet;
+
+  CastSet(this._source, this._emptySet);
+
   Set<R> cast<R>() => CastSet<S, R>(_source, _emptySet);
   bool add(T value) => _source.add(value as S);
 
@@ -237,7 +254,11 @@ class CastSet<S, T>(final Set<S> _source, final Set<R> Function<R>()? _emptySet)
   T lookup(Object? key) => _source.lookup(key) as T;
 }
 
-class CastMap<SK, SV, K, V>(final Map<SK, SV> _source) extends MapBase<K, V> {
+class CastMap<SK, SV, K, V> extends MapBase<K, V> {
+  final Map<SK, SV> _source;
+
+  CastMap(this._source);
+
   Map<RK, RV> cast<RK, RV>() => CastMap<SK, SV, RK, RV>(_source);
 
   bool containsValue(Object? value) => _source.containsValue(value);
@@ -308,9 +329,9 @@ class CastMap<SK, SV, K, V>(final Map<SK, SV> _source) extends MapBase<K, V> {
   }
 }
 
-class CastQueue<S, T>(final Queue<S> _source)
-    extends _CastIterableBase<S, T>
-    implements Queue<T> {
+class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
+  final Queue<S> _source;
+  CastQueue(this._source);
   Queue<R> cast<R>() => CastQueue<S, R>(_source);
 
   T removeFirst() => _source.removeFirst() as T;

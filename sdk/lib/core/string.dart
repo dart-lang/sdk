@@ -128,7 +128,7 @@ abstract final class String implements Comparable<String>, Pattern {
   /// and if [end] is omitted, all char-codes after [start] are included.
   /// If [charCodes] does not have [end], or even [start], elements,
   /// the specified char-codes may be shorter than `end - start`, or even empty.
-  external factory fromCharCodes(
+  external factory String.fromCharCodes(
     Iterable<int> charCodes, [
     int start = 0,
     int? end,
@@ -142,7 +142,7 @@ abstract final class String implements Comparable<String>, Pattern {
   /// [fromCharCodes].
   ///
   /// Creating a [String] with one half of a surrogate pair is allowed.
-  external factory fromCharCode(int charCode);
+  external factory String.fromCharCode(int charCode);
 
   /// Value for [name] in the compilation configuration environment declaration.
   ///
@@ -185,7 +185,7 @@ abstract final class String implements Comparable<String>, Pattern {
   /// The compilation configuration environment is not the same as the
   /// environment variables of a POSIX process. Those can be accessed on
   /// native platforms using `Platform.environment` from the `dart:io` library.
-  external const factory fromEnvironment(
+  external const factory String.fromEnvironment(
     String name, {
     String defaultValue = "",
   });

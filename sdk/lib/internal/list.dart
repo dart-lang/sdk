@@ -254,10 +254,12 @@ final class ReversedListIterable<E> extends ListIterable<E> {
   E elementAt(int index) => _source.elementAt(_source.length - 1 - index);
 }
 
-/// Creates errors thrown by unmodifiable lists when they are attempted modified.
-///
-/// This class creates [UnsupportedError]s with specialized messages.
-abstract interface class UnmodifiableListError {
+/**
+ * Creates errors thrown by unmodifiable lists when they are attempted modified.
+ *
+ * This class creates [UnsupportedError]s with specialized messages.
+ */
+abstract class UnmodifiableListError {
   /** Error thrown when trying to add elements to an unmodifiable list. */
   static UnsupportedError add() =>
       UnsupportedError("Cannot add to unmodifiable List");
@@ -275,10 +277,12 @@ abstract interface class UnmodifiableListError {
       UnsupportedError("Cannot remove from unmodifiable List");
 }
 
-/// Creates errors thrown by non-growable lists when attempted modified.
-///
-/// This class creates [UnsupportedError]s with specialized messages.
-abstract interface class NonGrowableListError {
+/**
+ * Creates errors thrown by non-growable lists when they are attempted modified.
+ *
+ * This class creates [UnsupportedError]s with specialized messages.
+ */
+abstract class NonGrowableListError {
   /** Error thrown when trying to add elements to an non-growable list. */
   static UnsupportedError add() =>
       UnsupportedError("Cannot add to non-growable List");

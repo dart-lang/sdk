@@ -16,7 +16,9 @@ part of "dart:convert";
 /// The [Codec] class provides a default implementation of
 /// [encode], [decode], [fuse] and [inverted].
 /// Subclasses can choose to provide more efficient implementations of these.
-abstract mixin class const Codec<S, T>() {
+abstract mixin class Codec<S, T> {
+  const Codec();
+
   /// Encodes [input].
   ///
   /// The input is encoded as if by `encoder.convert`.

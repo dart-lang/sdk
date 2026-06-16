@@ -134,7 +134,9 @@ typedef void _TimerCallback();
 /// to return `true` if it wants to signal that it behaves like a broadcast
 /// stream.
 @vmIsolateUnsendable
-abstract mixin class const Stream<T>() {
+abstract mixin class Stream<T> {
+  const Stream();
+
   /// Creates an empty broadcast stream.
   ///
   /// This is a stream which does nothing except sending a done event
@@ -160,7 +162,7 @@ abstract mixin class const Stream<T>() {
   ///
   /// The stream can be listened to more than once,
   /// whether it reports itself as broadcast or not.
-  const factory empty({@Since("3.2") bool broadcast}) = _EmptyStream<T>;
+  const factory Stream.empty({@Since("3.2") bool broadcast}) = _EmptyStream<T>;
 
   /// Creates a stream which emits a single data event before closing.
   ///
@@ -179,7 +181,7 @@ abstract mixin class const Stream<T>() {
   ///
   /// The returned stream is effectively equivalent to one created by
   /// `(() async* { yield value; } ())` or `Future<T>.value(value).asStream()`.
-  factory value(T value) =>
+  factory Stream.value(T value) =>
       (_AsyncStreamController<T>(null, null, null, null)
             .._add(value)
             .._closeUnchecked())
@@ -207,7 +209,7 @@ abstract mixin class const Stream<T>() {
   /// `Future<T>.error(error, stackTrace).asStream()`, by or
   /// `(() async* { throw error; } ())`, except that you can control the
   /// stack trace as well.
-  factory error(Object error, [StackTrace? stackTrace]) {
+  factory Stream.error(Object error, [StackTrace? stackTrace]) {
     AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     return (_AsyncStreamController<T>(null, null, null, null)
           .._addError(error, stackTrace)
@@ -235,7 +237,7 @@ abstract mixin class const Stream<T>() {
   /// // "Future complete" after 'futureTask' finished.
   /// // "Done" when stream completed.
   /// ```
-  factory fromFuture(Future<T> future) {
+  factory Stream.fromFuture(Future<T> future) {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
     // to wait for a listener before doing the `then` on the future.
@@ -292,7 +294,7 @@ abstract mixin class const Stream<T>() {
   /// // "Future complete" after 'doneTask' finished.
   /// // "Done" when stream completed.
   /// ```
-  factory fromFutures(Iterable<Future<T>> futures) {
+  factory Stream.fromFutures(Iterable<Future<T>> futures) {
     _StreamController<T> controller = _SyncStreamController<T>(
       null,
       null,
@@ -349,60 +351,61 @@ abstract mixin class const Stream<T>() {
   /// final numbers = [1, 2, 3, 5, 6, 7];
   /// final stream = Stream.fromIterable(numbers);
   /// ```
-  factory fromIterable(Iterable<T> elements) => Stream<T>.multi((controller) {
-    Iterator<T> iterator;
-    try {
-      iterator = elements.iterator;
-    } catch (e, s) {
-      var error = _interceptCaughtError(e, s);
-      controller.addError(error.error, error.stackTrace);
-      controller.close();
-      return;
-    }
-    var zone = Zone.current;
-    var isScheduled = true;
-
-    void next() {
-      if (!controller.hasListener || controller.isPaused) {
-        // Cancelled or paused since scheduled.
-        isScheduled = false;
-        return;
-      }
-      bool hasNext;
-      try {
-        hasNext = iterator.moveNext();
-      } catch (e, s) {
-        var error = _interceptCaughtError(e, s);
-        controller.addErrorSync(error.error, error.stackTrace);
-        controller.closeSync();
-        return;
-      }
-      if (hasNext) {
+  factory Stream.fromIterable(Iterable<T> elements) =>
+      Stream<T>.multi((controller) {
+        Iterator<T> iterator;
         try {
-          controller.addSync(iterator.current);
+          iterator = elements.iterator;
         } catch (e, s) {
           var error = _interceptCaughtError(e, s);
-          controller.addErrorSync(error.error, error.stackTrace);
+          controller.addError(error.error, error.stackTrace);
+          controller.close();
+          return;
         }
-        if (controller.hasListener && !controller.isPaused) {
-          zone.scheduleMicrotask(next);
-        } else {
-          isScheduled = false;
-        }
-      } else {
-        controller.closeSync();
-      }
-    }
+        var zone = Zone.current;
+        var isScheduled = true;
 
-    controller.onResume = () {
-      if (!isScheduled) {
-        isScheduled = true;
+        void next() {
+          if (!controller.hasListener || controller.isPaused) {
+            // Cancelled or paused since scheduled.
+            isScheduled = false;
+            return;
+          }
+          bool hasNext;
+          try {
+            hasNext = iterator.moveNext();
+          } catch (e, s) {
+            var error = _interceptCaughtError(e, s);
+            controller.addErrorSync(error.error, error.stackTrace);
+            controller.closeSync();
+            return;
+          }
+          if (hasNext) {
+            try {
+              controller.addSync(iterator.current);
+            } catch (e, s) {
+              var error = _interceptCaughtError(e, s);
+              controller.addErrorSync(error.error, error.stackTrace);
+            }
+            if (controller.hasListener && !controller.isPaused) {
+              zone.scheduleMicrotask(next);
+            } else {
+              isScheduled = false;
+            }
+          } else {
+            controller.closeSync();
+          }
+        }
+
+        controller.onResume = () {
+          if (!isScheduled) {
+            isScheduled = true;
+            zone.scheduleMicrotask(next);
+          }
+        };
+
         zone.scheduleMicrotask(next);
-      }
-    };
-
-    zone.scheduleMicrotask(next);
-  });
+      });
 
   /// Creates a multi-subscription stream.
   ///
@@ -467,7 +470,7 @@ abstract mixin class const Stream<T>() {
   ///   }
   /// }
   /// ```
-  factory multi(
+  factory Stream.multi(
     void Function(MultiStreamController<T>) onListen, {
     bool isBroadcast = false,
   }) {
@@ -495,7 +498,10 @@ abstract mixin class const Stream<T>() {
   ///
   /// stream.forEach(print); // Outputs event values 0,1,4,9,16.
   /// ```
-  factory periodic(Duration period, [T computation(int computationCount)?]) {
+  factory Stream.periodic(
+    Duration period, [
+    T computation(int computationCount)?,
+  ]) {
     if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
         null,
@@ -585,7 +591,7 @@ abstract mixin class const Stream<T>() {
   /// stringStream.transform(DuplicationTransformer());
   /// ```
   /// The resulting stream is a broadcast stream if [source] is.
-  factory eventTransformed(
+  factory Stream.eventTransformed(
     Stream<dynamic> source,
     EventSink<dynamic> mapSink(EventSink<T> sink),
   ) {
@@ -2303,7 +2309,7 @@ abstract interface class EventSink<T> implements Sink<T> {
 class StreamView<T> extends Stream<T> {
   final Stream<T> _stream;
 
-  const new(Stream<T> stream) : _stream = stream;
+  const StreamView(Stream<T> stream) : _stream = stream;
 
   bool get isBroadcast => _stream.isBroadcast;
 
@@ -2509,7 +2515,7 @@ abstract interface class StreamTransformer<S, T> {
   /// // Use as follows:
   /// intStream.transform(duplicator);
   /// ```
-  const factory(
+  const factory StreamTransformer(
     StreamSubscription<T> onListen(Stream<S> stream, bool cancelOnError),
   ) = _StreamSubscriptionTransformer<S, T>;
 
@@ -2597,7 +2603,7 @@ abstract interface class StreamTransformer<S, T> {
   /// // Error 5: Worst
   /// // Error 6: Worst
   /// ```
-  factory fromHandlers({
+  factory StreamTransformer.fromHandlers({
     void handleData(S data, EventSink<T> sink)?,
     void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
     void handleDone(EventSink<T> sink)?,
@@ -2613,7 +2619,7 @@ abstract interface class StreamTransformer<S, T> {
   /// final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
   ///     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
   /// ```
-  factory fromBind(Stream<T> Function(Stream<S>) bind) =
+  factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 
   /// Adapts [source] to be a `StreamTransformer<TS, TT>`.
@@ -2671,8 +2677,9 @@ abstract interface class StreamTransformer<S, T> {
 /// Base class for implementing [StreamTransformer].
 ///
 /// Contains default implementations of every method except [bind].
-abstract class const StreamTransformerBase<S, T>()
-    implements StreamTransformer<S, T> {
+abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
+  const StreamTransformerBase();
+
   StreamTransformer<RS, RT> cast<RS, RT>() =>
       StreamTransformer.castFrom<S, T, RS, RT>(this);
 }
@@ -2689,7 +2696,7 @@ abstract class const StreamTransformerBase<S, T>()
 /// has completed with `true`, and only until [moveNext] is called again.
 abstract interface class StreamIterator<T> {
   /// Create a [StreamIterator] on [stream].
-  factory(Stream<T> stream) =>
+  factory StreamIterator(Stream<T> stream) =>
       // TODO(lrn): use redirecting factory constructor when type
       // arguments are supported.
       _StreamIterator<T>(stream);

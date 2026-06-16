@@ -171,7 +171,7 @@ class Duration implements Comparable<Duration> {
   ///   milliseconds: 30, microseconds: 10);
   /// print(duration); // 32:56:59.030010
   /// ```
-  const new({
+  const Duration({
     int days = 0,
     int hours = 0,
     int minutes = 0,
@@ -190,7 +190,7 @@ class Duration implements Comparable<Duration> {
   // Fast path internal direct constructor to avoids the optional arguments
   // and [_microseconds] recomputation.
   // The `+ 0` prevents -0.0 on the web, if the incoming duration happens to be -0.0.
-  const new _microseconds(int duration) : _duration = duration + 0;
+  const Duration._microseconds(int duration) : _duration = duration + 0;
 
   /// Adds this Duration and [other] and
   /// returns the sum as a new Duration object.

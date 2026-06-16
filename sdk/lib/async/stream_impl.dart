@@ -5,7 +5,7 @@
 part of "dart:async";
 
 /// Abstract and private interface for a place to put events.
-abstract interface class _EventSink<T> {
+abstract class _EventSink<T> {
   void _add(T data);
   void _addError(Object error, StackTrace stackTrace);
   void _close();
@@ -16,7 +16,7 @@ abstract interface class _EventSink<T> {
 /// Used by event buffering to finally dispatch the pending event, where
 /// [_EventSink] is where the event first enters the stream subscription,
 /// and may yet be buffered.
-abstract interface class _EventDispatch<T> {
+abstract class _EventDispatch<T> {
   void _sendData(T data);
   void _sendError(Object error, StackTrace stackTrace);
   void _sendDone();
@@ -502,7 +502,7 @@ class _BufferingStreamSubscription<T>
 // -------------------------------------------------------------------
 // Common base class for single and multi-subscription streams.
 // -------------------------------------------------------------------
-abstract class _StreamImpl<T>() extends Stream<T> {
+abstract class _StreamImpl<T> extends Stream<T> {
   // ------------------------------------------------------------------
   // Stream interface.
 
@@ -557,7 +557,7 @@ void _nullErrorHandler(Object error, StackTrace stackTrace) {
 void _nullDoneHandler() {}
 
 /// A delayed event on a buffering stream subscription.
-abstract class _DelayedEvent<T>() {
+abstract class _DelayedEvent<T> {
   /// Added as a linked list on the [StreamController].
   _DelayedEvent? next;
 
@@ -566,22 +566,28 @@ abstract class _DelayedEvent<T>() {
 }
 
 /// A delayed data event.
-class _DelayedData<T>(final T value) extends _DelayedEvent<T> {
+class _DelayedData<T> extends _DelayedEvent<T> {
+  final T value;
+  _DelayedData(this.value);
   void perform(_EventDispatch<T> dispatch) {
     dispatch._sendData(value);
   }
 }
 
 /// A delayed error event.
-class _DelayedError(final Object error, final StackTrace stackTrace)
-    extends _DelayedEvent {
+class _DelayedError extends _DelayedEvent {
+  final Object error;
+  final StackTrace stackTrace;
+
+  _DelayedError(this.error, this.stackTrace);
   void perform(_EventDispatch dispatch) {
     dispatch._sendError(error, stackTrace);
   }
 }
 
 /// A delayed done event.
-class const _DelayedDone() implements _DelayedEvent {
+class _DelayedDone implements _DelayedEvent {
+  const _DelayedDone();
   void perform(_EventDispatch dispatch) {
     dispatch._sendDone();
   }
@@ -594,7 +600,7 @@ class const _DelayedDone() implements _DelayedEvent {
 }
 
 /// Container and manager of pending events for a stream subscription.
-class _PendingEvents<T>() {
+class _PendingEvents<T> {
   // No async event has been scheduled.
   static const int stateUnscheduled = 0;
   // An async event has been scheduled to run a function.

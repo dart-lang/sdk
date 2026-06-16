@@ -164,7 +164,7 @@ void scheduleMicrotask(void Function() callback) {
   Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
 }
 
-abstract interface class _AsyncRun {
+class _AsyncRun {
   /// Schedule the given callback before any other event in the event-loop.
   external static void _scheduleImmediate(void Function() callback);
 }

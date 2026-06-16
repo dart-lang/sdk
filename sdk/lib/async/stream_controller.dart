@@ -108,7 +108,7 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   ///
   /// If the stream is canceled before the controller needs data the
   /// [onResume] call might not be executed.
-  factory({
+  factory StreamController({
     void onListen()?,
     void onPause()?,
     void onResume()?,
@@ -169,7 +169,11 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// and the [onCancel] is called when there are no longer any active listeners.
   /// If a listener is added again later, after the [onCancel] was called,
   /// the [onListen] will be called again.
-  factory broadcast({void onListen()?, void onCancel()?, bool sync = false}) {
+  factory StreamController.broadcast({
+    void onListen()?,
+    void onCancel()?,
+    bool sync = false,
+  }) {
     return sync
         ? _SyncBroadcastStreamController<T>(onListen, onCancel)
         : _AsyncBroadcastStreamController<T>(onListen, onCancel);
@@ -398,25 +402,25 @@ abstract interface class SynchronousStreamController<T>
   Future close();
 }
 
-abstract interface class _StreamControllerLifecycle<T> {
+abstract class _StreamControllerLifecycle<T> {
   StreamSubscription<T> _subscribe(
     void onData(T data)?,
     Function? onError,
     void onDone()?,
     bool cancelOnError,
   );
-  void _recordPause(StreamSubscription<T> subscription);
-  void _recordResume(StreamSubscription<T> subscription);
-  Future<void>? _recordCancel(StreamSubscription<T> subscription);
+  void _recordPause(StreamSubscription<T> subscription) {}
+  void _recordResume(StreamSubscription<T> subscription) {}
+  Future<void>? _recordCancel(StreamSubscription<T> subscription) => null;
 }
 
 // Base type for implementations of stream controllers.
-abstract interface class _StreamControllerBase<T>
+abstract class _StreamControllerBase<T>
     implements
         StreamController<T>,
         _StreamControllerLifecycle<T>,
         _EventSink<T>,
-        _EventDispatch<T>;
+        _EventDispatch<T> {}
 
 /// Default implementation of [StreamController].
 ///
