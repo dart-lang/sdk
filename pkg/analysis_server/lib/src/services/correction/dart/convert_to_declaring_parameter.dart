@@ -38,29 +38,33 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parameter = node;
-    if (parameter is! FormalParameter) {
-      // The assist only applies to formal parameters.
-      return;
+    FormalParameter parameter;
+    var n = node;
+    if (n is FormalParameter) {
+      var parameterName = n.name;
+      if (parameterName == null) {
+        // The assist only applies to formal parameters with a name.
+        return;
+      }
+
+      var inName = parameterName.sourceRange.contains(selectionOffset);
+      var inThisPrefix =
+          n is FieldFormalParameter &&
+          range.startEnd(n.thisKeyword, n.period).contains(selectionOffset);
+      if (!inName && !inThisPrefix) {
+        // The assist only applies if the name or the `this.` prefix of the
+        // parameter is selected.
+        return;
+      }
+      parameter = n;
+    } else {
+      var resolved = _resolveParameterFromFieldNode(n);
+      if (resolved == null) return;
+      parameter = resolved;
     }
 
     var parameterName = parameter.name;
-    if (parameterName == null) {
-      // The assist only applies to formal parameters with a name.
-      return;
-    }
-
-    var inName = parameterName.sourceRange.contains(selectionOffset);
-    var inThisPrefix =
-        parameter is FieldFormalParameter &&
-        range
-            .startEnd(parameter.thisKeyword, parameter.period)
-            .contains(selectionOffset);
-    if (!inName && !inThisPrefix) {
-      // The assist only applies if the name or the `this.` prefix of the
-      // parameter is selected.
-      return;
-    }
+    if (parameterName == null) return;
 
     var classMembers = _getClassMembers(parameter);
     if (classMembers == null) {
@@ -441,5 +445,56 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   /// Whether the [node] has either a documentation comment or metadata.
   bool _hasCommentOrMetadata(AnnotatedNode node) {
     return node.documentationComment != null || node.metadata.isNotEmpty;
+  }
+
+  /// Returns the primary constructor parameter that initializes the field
+  /// declared by [node], or `null` if no such parameter exists.
+  FormalParameter? _resolveParameterFromFieldNode(AstNode node) {
+    if (node is! VariableDeclaration) return null;
+
+    var variableList = node.parent;
+    if (variableList is! VariableDeclarationList) return null;
+
+    if (variableList.parent is! FieldDeclaration) return null;
+
+    var classOrEnum = node.thisOrAncestorMatching(
+      (n) => n is ClassDeclaration || n is EnumDeclaration,
+    );
+
+    var primaryConstructor = switch (classOrEnum) {
+      ClassDeclaration() => classOrEnum.namePart,
+      EnumDeclaration() => classOrEnum.namePart,
+      _ => null,
+    };
+    if (primaryConstructor is! PrimaryConstructorDeclaration) return null;
+
+    var fieldElement = node.declaredFragment?.element;
+    if (fieldElement is! FieldElement) return null;
+
+    for (var parameter in primaryConstructor.formalParameters.parameters) {
+      if (parameter is FieldFormalParameter) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FieldFormalParameterElement &&
+            element.field == fieldElement) {
+          return parameter;
+        }
+      } else if (parameter is RegularFormalParameter) {
+        var paramElement = parameter.declaredFragment?.element;
+        if (paramElement == null) continue;
+        var body = primaryConstructor.body;
+        if (body == null) continue;
+        for (var init in body.initializers) {
+          if (init is ConstructorFieldInitializer) {
+            var expression = init.expression;
+            if (init.fieldName.element == fieldElement &&
+                expression is SimpleIdentifier &&
+                expression.element == paramElement) {
+              return parameter;
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 }
