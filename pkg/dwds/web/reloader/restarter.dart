@@ -4,6 +4,26 @@
 
 import 'dart:js_interop';
 
+/// A Restarter that supports a hot restart over two phases.
+///
+/// The APIs here should be used in place of [Restarter.restart].
+///
+/// This is a temporary interface that is only useful while there are
+/// `Restarter`s that don't use the two phase restart.
+// TODO(nshahan): Move these members into `Restarter` when all have been
+// migrated to the two phase restart.
+abstract class TwoPhaseRestarter implements Restarter {
+  /// Starts a hot restart operation.
+  ///
+  /// Passes the [reloadedSourcesPath] through to the `DartDevEmbedder` and
+  /// bubbles up the returned array of scripts that were actually requested.
+  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath);
+
+  /// Finishes the hot restart operation that must have been previously started
+  /// by [hotRestartBegin].
+  void hotRestartEnd();
+}
+
 abstract class Restarter {
   /// Attempts to perform a hot restart.
   ///
@@ -30,6 +50,8 @@ abstract class Restarter {
   /// Returns a record containing whether the hot restart succeeded and either
   /// the JS version of the list of maps from [reloadedSourcesPath] if
   /// [reloadedSourcesPath] is non-null and null otherwise.
+  // TODO(nshahan): Remove after migrating to hotRestartBegin/hotRestartEnd.
+  // https://github.com/dart-lang/webdev/issues/2826
   Future<(bool, JSArray<JSObject>?)> restart({
     String? runId,
     Future? readyToRunMain,

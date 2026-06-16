@@ -13,6 +13,35 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 
+/// A load strategy that supports reading from a URI to find the sources needed
+/// to complete the hot reload or hot restart operation.
+abstract class ReloadableLoadStrategy implements LoadStrategy {
+  /// The [Uri] of the file that contains a JSONified list of maps which follows
+  /// the following format:
+  ///
+  /// ```json
+  /// [
+  ///   {
+  ///     "src": "/<file_name>",
+  ///     "module": "<module_name>",
+  ///     "libraries": ["<lib1>", "<lib2>"],
+  ///   },
+  /// ]
+  /// ```
+  ///
+  /// `src`: A string that corresponds to the file path relative to the app base
+  /// URL root that contains the DDC library bundle.
+  /// `module`: The name of the library bundle in `src`.
+  /// `libraries`: An array of strings containing the libraries that were
+  /// compiled in `src`.
+  ///
+  /// This is needed for hot reloads and restarts in order to tell the module
+  /// loader what files need to be loaded and what libraries need to be
+  /// reloaded. The contents of the file this [Uri] points to should be updated
+  /// whenever a hot reload or hot restart is executed.
+  Uri? get reloadedSourcesUri;
+}
+
 abstract class LoadStrategy {
   final AssetReader _assetReader;
   final String? _packageConfigPath;

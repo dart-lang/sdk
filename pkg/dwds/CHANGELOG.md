@@ -1,4 +1,9 @@
-## 27.1.2-wip
+## 27.1.2
+
+- Bump the min sdk to 3.13.0-107.0.dev.
+- Internal only changes.
+
+- Allow package_config `3.x.x`.
 
 ## 27.1.1
 

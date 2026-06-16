@@ -15,7 +15,6 @@ import 'package:dwds/src/debugging/libraries.dart';
 import 'package:dwds/src/debugging/location.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/utilities/conversions.dart';
 import 'package:dwds/src/utilities/dart_uri.dart';
@@ -265,7 +264,7 @@ class ChromeAppInspector extends AppInspector {
     if (libraryUri == null) {
       throwInvalidParam('invoke', 'library uri is null');
     }
-    return globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy
+    return globalToolConfiguration.loadStrategy.id == 'ddc-library-bundle'
         ? _evaluateLibraryMethodWithDdcLibraryBundle(
             libraryUri,
             selector,
