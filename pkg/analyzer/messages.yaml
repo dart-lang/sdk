@@ -2716,7 +2716,7 @@ CompileTimeErrorCode:
     parameters:
       String className: the name of the class being used as a mixin
     problemMessage: "The class '#className' can't be used as a mixin because it declares a generative constructor."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3213,7 +3213,7 @@ CompileTimeErrorCode:
 
       The following code produces this diagnostic because `C` is defined to
       implement both `I<int>` (because it extends `A`) and `I<String>` (because
-      it implements`B`), but `int` and `String` aren't the same type:
+      it implements `B`), but `int` and `String` aren't the same type:
 
       ```dart
       class I<T> {}
@@ -11825,7 +11825,7 @@ CompileTimeErrorCode:
       String name: the name of the mixin class
     problemMessage: "The class '#name' can't be declared a mixin because it has a 'with' clause."
     correctionMessage: Try removing the 'with' clause or removing the 'mixin' modifier from the class.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11868,7 +11868,7 @@ CompileTimeErrorCode:
       String name: the name of the mixin class
     problemMessage: "The mixin application class '#name' can only have a single mixin."
     correctionMessage: Try removing all but one mixin.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11973,7 +11973,7 @@ CompileTimeErrorCode:
     parameters:
       String className: the name of the mixin class
     problemMessage: "The mixin class '#className' can't declare a non-trivial generative constructor."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15366,7 +15366,7 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "A primary constructor can't be a redirecting constructor."
     correctionMessage: "Try removing the redirect."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16534,8 +16534,8 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because the`rethrow` statement
-      is outside of a `catch` clause:
+      The following code produces this diagnostic because the
+      `rethrow` statement is outside of a `catch` clause:
 
       ```dart
       void f() {
@@ -24791,7 +24791,7 @@ ScannerErrorCode:
     parameters: none
     problemMessage: "Returning a 'Future' without 'await' inside a try block."
     correctionMessage: "Try adding an 'await'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -28248,7 +28248,7 @@ WarningCode:
       Type expectedType: the expected return type as defined by the type of the Future
     sharedName: invalidReturnTypeForThen
     problemMessage: "A value of type '#actualType' can't be returned by the 'onError' handler because it must be assignable to '#expectedType', as required by 'Future.then'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   returnTypeInvalidForThen:
     type: staticWarning
     parameters:
@@ -28256,7 +28256,7 @@ WarningCode:
       Type expectedType: the expected return type as defined by the type of the Future
     sharedName: invalidReturnTypeForThen
     problemMessage: "The return type '#actualType' isn't assignable to '#expectedType', as required by 'Future.then'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

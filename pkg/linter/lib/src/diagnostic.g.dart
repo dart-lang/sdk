@@ -350,6 +350,7 @@ const LinterLintWithoutArguments asyncReturnWithNoAwait =
       name: 'async_return_with_no_await',
       problemMessage: "Returning a 'Future' without 'await'.",
       correctionMessage: "Try adding an 'await' or making the body non-async.",
+      hasPublishedDocs: true,
       uniqueName: 'async_return_with_no_await',
       expectedTypes: [],
     );
@@ -1323,6 +1324,7 @@ emptyContainerBodies = LinterLintTemplate(
   problemMessage:
       "Empty {0} bodies should be written using a ';' rather than '{}'.",
   correctionMessage: "Try replacing the {0} body with ';'.",
+  hasPublishedDocs: true,
   uniqueName: 'empty_container_bodies',
   withArguments: _withArgumentsEmptyContainerBodies,
   expectedTypes: [ExpectedType.string],
@@ -1482,6 +1484,7 @@ const LinterLintWithoutArguments initializeInFieldDeclaration =
       name: 'initialize_in_field_declaration',
       problemMessage: "Field should be initialized in the field declaration.",
       correctionMessage: "Try initializing the field where it's declared.",
+      hasPublishedDocs: true,
       uniqueName: 'initialize_in_field_declaration',
       expectedTypes: [],
     );
@@ -1961,6 +1964,7 @@ noRawTypes = LinterLintTemplate(
   problemMessage:
       "The generic type '{0}' should have explicit type arguments but doesn't.",
   correctionMessage: "Use explicit type arguments for '{0}'.",
+  hasPublishedDocs: true,
   uniqueName: 'no_raw_types',
   withArguments: _withArgumentsNoRawTypes,
   expectedTypes: [ExpectedType.type],
@@ -3448,6 +3452,7 @@ const LinterLintWithoutArguments unnecessaryPrimaryConstructorBody =
       name: 'unnecessary_primary_constructor_body',
       problemMessage: "Unnecessary primary constructor body.",
       correctionMessage: "Try removing the body.",
+      hasPublishedDocs: true,
       uniqueName: 'unnecessary_primary_constructor_body',
       expectedTypes: [],
     );
@@ -3703,6 +3708,7 @@ const LinterLintWithoutArguments useDeclaringParameters =
       name: 'use_declaring_parameters',
       problemMessage: "Use a declaring parameter.",
       correctionMessage: "Try using a declaring parameter.",
+      hasPublishedDocs: true,
       uniqueName: 'use_declaring_parameters',
       expectedTypes: [],
     );
