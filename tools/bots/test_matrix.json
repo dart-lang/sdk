@@ -1617,31 +1617,27 @@
     },
     {
       "builders": [
-        "vm-gcc-linux-x64",
-        "vm-gcc-linux-arm",
-        "vm-gcc-linux-arm64",
-        "vm-gcc-linux-riscv64",
-        "vm-msvc-win-x64",
-        "vm-msvc-win-arm64"
+        "vm-gcc-linux-debug-x64",
+        "vm-gcc-linux-release-x64",
+        "vm-gcc-linux-debug-arm",
+        "vm-gcc-linux-release-arm",
+        "vm-gcc-linux-debug-arm64",
+        "vm-gcc-linux-release-arm64",
+        "vm-gcc-linux-debug-riscv64",
+        "vm-gcc-linux-release-riscv64",
+        "vm-msvc-win-debug-x64",
+        "vm-msvc-win-release-x64",
+        "vm-msvc-win-debug-arm64",
+        "vm-msvc-win-release-arm64"
       ],
       "meta": {
         "description": "This configuration builds the SDK with GCC/MSVC."
       },
       "steps": [
         {
-          "name": "build dart debug - split to avoid timeout",
+          "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=debug",
-            "--no-clang",
-            "create_sdk"
-          ]
-        },
-        {
-          "name": "build dart release - split to avoid timeout",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
             "--no-clang",
             "create_sdk"
           ]
