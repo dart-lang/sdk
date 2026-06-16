@@ -118,125 +118,64 @@ template("application_snapshot") {
     gen_kernel_args += invoker.gen_kernel_args
   }
 
-  if (precompile_tools) {
-    action(target_name + "_dill") {
-      mnemonic = "GEN_KERNEL"
-      if (defined(invoker.pool)) {
-        pool = invoker.pool
-      } else if (_is_dart) {
-        pool = "//build/toolchain:local_action_pool($host_toolchain)"
-      } else {
-        pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
-      }
-
-      gen_kernel_tool = "$_dart_root/utils:bootstrap_gen_kernel.exe"
-      gen_kernel_exe = get_label_info(gen_kernel_tool, "root_out_dir") +
-                       "/bootstrap_gen_kernel.exe"
-
-      deps = extra_deps + [
-               "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
-               "$_dart_root/runtime/vm:vm_platform",
-               gen_kernel_tool,
-             ]
-      platform_dill = "$root_out_dir/vm_platform.dill"
-
-      inputs = extra_inputs + [
-                 gen_kernel_exe,
-                 platform_dill,
-                 main_dart,
-                 package_config,
-               ]
-      output = "$target_out_dir/$name.jit.dill"
-      outputs = [ output ]
-
-      depfile = "$output.d"
-
-      script = "$_dart_root/build/gn_run_binary.py"
-      is_product_flag = dart_runtime_mode == "release"
-
-      args = [
-        rebase_path(gen_kernel_exe, root_build_dir),
-        "--packages=" + rebase_path(package_config, root_build_dir),
-        "--platform=" + rebase_path(platform_dill, root_build_dir),
-        "--no-aot",
-        "--no-embed-sources",
-        "--no-link-platform",
-        "--output=" + rebase_path(output, root_build_dir),
-        "--depfile=" + rebase_path(depfile, root_build_dir),
-
-        # Ensure the compiled application (e.g. kernel-service, frontend-server,
-        # ...) will use this SDK hash when consuming/producing kernel.
-        #
-        # (Instead of ensuring every user of the "application_snapshot" /
-        # "kernel_snapshot" passes this if needed, we always pass it)
-        "-Dsdk_hash=$sdk_hash",
-        "-Ddart.vm.product=$is_product_flag",
-        "-Ddart.vm.asan=$is_asan",
-        "-Ddart.vm.msan=$is_msan",
-        "-Ddart.vm.tsan=$is_tsan",
-      ]
-      args += gen_kernel_args
-      args += [ rebase_path(main_dart, root_build_dir) ]
+  action(target_name + "_dill") {
+    mnemonic = "GEN_KERNEL"
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    } else if (_is_dart) {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+    } else {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
-  } else {
-    prebuilt_dart_action(target_name + "_dill") {
-      mnemonic = "GEN_KERNEL"
-      if (defined(invoker.pool)) {
-        pool = invoker.pool
-      }
-      deps = extra_deps + [
-               "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
-               "$_dart_root/runtime/vm:vm_platform",
-               "$_dart_root/utils:bootstrap_gen_kernel.dill",
+
+    gen_kernel_tool = "$_dart_root/utils:bootstrap_gen_kernel.exe"
+    gen_kernel_exe = get_label_info(gen_kernel_tool, "root_out_dir") +
+                     "/bootstrap_gen_kernel.exe"
+
+    deps = extra_deps + [
+             "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
+             "$_dart_root/runtime/vm:vm_platform",
+             gen_kernel_tool,
+           ]
+    platform_dill = "$root_out_dir/vm_platform.dill"
+
+    inputs = extra_inputs + [
+               gen_kernel_exe,
+               platform_dill,
+               main_dart,
+               package_config,
              ]
-      gen_kernel_kernel =
-          get_label_info("$_dart_root/utils:bootstrap_gen_kernel.dill",
-                         "target_out_dir") + "/bootstrap_gen_kernel.dill"
-      platform_dill = "$root_out_dir/vm_platform.dill"
+    output = "$target_out_dir/$name.jit.dill"
+    outputs = [ output ]
 
-      inputs = extra_inputs + [
-                 gen_kernel_kernel,
-                 platform_dill,
-                 main_dart,
-                 package_config,
-               ]
-      output = "$target_out_dir/$name.jit.dill"
-      outputs = [ output ]
+    depfile = "$output.d"
 
-      depfile = "$output.d"
+    script = "$_dart_root/build/gn_run_binary.py"
+    is_product_flag = dart_runtime_mode == "release"
 
-      vm_args = [
-        # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
-        # kernel.
-        "-Dsdk_hash=$sdk_hash",
-      ]
+    args = [
+      rebase_path(gen_kernel_exe, root_build_dir),
+      "--packages=" + rebase_path(package_config, root_build_dir),
+      "--platform=" + rebase_path(platform_dill, root_build_dir),
+      "--no-aot",
+      "--no-embed-sources",
+      "--no-link-platform",
+      "--output=" + rebase_path(output, root_build_dir),
+      "--depfile=" + rebase_path(depfile, root_build_dir),
 
-      script = gen_kernel_kernel
-      is_product_flag = dart_runtime_mode == "release"
-
-      args = [
-        "--packages=" + rebase_path(package_config, root_build_dir),
-        "--platform=" + rebase_path(platform_dill, root_build_dir),
-        "--no-aot",
-        "--no-embed-sources",
-        "--no-link-platform",
-        "--output=" + rebase_path(output, root_build_dir),
-        "--depfile=" + rebase_path(depfile, root_build_dir),
-
-        # Ensure the compiled application (e.g. kernel-service, frontend-server,
-        # ...) will use this SDK hash when consuming/producing kernel.
-        #
-        # (Instead of ensuring every user of the "application_snapshot" /
-        # "kernel_snapshot" passes this if needed, we always pass it)
-        "-Dsdk_hash=$sdk_hash",
-        "-Ddart.vm.product=$is_product_flag",
-        "-Ddart.vm.asan=$is_asan",
-        "-Ddart.vm.msan=$is_msan",
-        "-Ddart.vm.tsan=$is_tsan",
-      ]
-      args += gen_kernel_args
-      args += [ rebase_path(main_dart, root_build_dir) ]
-    }
+      # Ensure the compiled application (e.g. kernel-service, frontend-server,
+      # ...) will use this SDK hash when consuming/producing kernel.
+      #
+      # (Instead of ensuring every user of the "application_snapshot" /
+      # "kernel_snapshot" passes this if needed, we always pass it)
+      "-Dsdk_hash=$sdk_hash",
+      "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.vm.asan=$is_asan",
+      "-Ddart.vm.msan=$is_msan",
+      "-Ddart.vm.tsan=$is_tsan",
+    ]
+    args += gen_kernel_args
+    args += [ rebase_path(main_dart, root_build_dir) ]
   }
 
   # Create a snapshot from kernel built above.

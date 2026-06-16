@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis_options/test_all.dart' as analysis_options;
 import 'clients/test_all.dart' as clients;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
@@ -14,7 +15,6 @@ import 'hint/test_all.dart' as hint;
 import 'ignore_comments/test_all.dart' as ignore_comments;
 import 'lint/test_all.dart' as lint;
 import 'manifest/test_all.dart' as manifest;
-import 'options/test_all.dart' as options;
 import 'pubspec/test_all.dart' as pubspec;
 import 'services/test_all.dart' as services;
 import 'source/test_all.dart' as source;
@@ -28,6 +28,7 @@ import 'workspace/test_all.dart' as workspace;
 
 main() {
   defineReflectiveSuite(() {
+    analysis_options.main();
     clients.main();
     context.main();
     dart.main();
@@ -38,7 +39,6 @@ main() {
     ignore_comments.main();
     lint.main();
     manifest.main();
-    options.main();
     pubspec.main();
     services.main();
     source.main();

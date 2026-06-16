@@ -517,6 +517,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     required TypeProvider typeProvider,
   });
 
+  /// Deletes the given [member] from its declaring class or enum.
+  ///
+  /// Throws a [StateError] if the parent of the [member] is neither a
+  /// [ClassBody] nor an [EnumBody].
+  void deleteClassMember(ClassMember member);
+
   /// Formats the code covered by the [range].
   ///
   /// If there are any edits that are in the [range], these edits are applied

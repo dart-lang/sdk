@@ -30,8 +30,7 @@ class C {
 }
 ''');
     await assertHasFix('''
-class C.n() {
-}
+class C.n();
 ''');
   }
 
@@ -42,8 +41,7 @@ class C {
 }
 ''');
     await assertHasFix('''
-class C() {
-}
+class C();
 ''');
   }
 
@@ -109,8 +107,7 @@ class C {
 }
 ''');
     await assertHasFix('''
-class const C() {
-}
+class const C();
 ''');
   }
 
@@ -141,10 +138,8 @@ class C {
   factory C.c() => C();
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C() {
-
   factory C.c() => C();
 }
 ''');
@@ -158,10 +153,8 @@ class C {
   C.c() : this();
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C() {
-
   C.c() : this();
 }
 ''');
@@ -194,11 +187,9 @@ class C {
   C({this.x = 0});
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C({this.x = 0}) {
   int x;
-
 }
 ''');
   }
@@ -231,8 +222,7 @@ class B({required this.x}) {
 }
 ''');
     await assertHasFix('''
-class C({super.x = 0}) extends B {
-}
+class C({super.x = 0}) extends B;
 
 class B({required this.x}) {
   int x;
@@ -248,11 +238,9 @@ class C {
   C([this.x = 0]);
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C([this.x = 0]) {
   int x;
-
 }
 ''');
   }
@@ -285,8 +273,7 @@ class B(this.x) {
 }
 ''');
     await assertHasFix('''
-class C([super.x = 0]) extends B {
-}
+class C([super.x = 0]) extends B;
 
 class B(this.x) {
   int x;
@@ -302,11 +289,9 @@ class C {
   C({required this.x});
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C({required this.x}) {
   int x;
-
 }
 ''');
   }
@@ -339,8 +324,7 @@ class B({required this.x}) {
 }
 ''');
     await assertHasFix('''
-class C({required super.x}) extends B {
-}
+class C({required super.x}) extends B;
 
 class B({required this.x}) {
   int x;
@@ -356,11 +340,9 @@ class C {
   C(this.x);
 }
 ''');
-    // TODO(brianwilkerson): Remove the extra whitespace.
     await assertHasFix('''
 class C(this.x) {
   int x;
-
 }
 ''');
   }
@@ -393,8 +375,7 @@ class B(this.x) {
 }
 ''');
     await assertHasFix('''
-class C(super.x) extends B {
-}
+class C(super.x) extends B;
 
 class B(this.x) {
   int x;
@@ -421,8 +402,7 @@ enum E {
 ''');
     await assertHasFix('''
 enum E() {
-  a, b;
-
+  a, b
 }
 ''');
   }

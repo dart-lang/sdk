@@ -97,9 +97,7 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
           'this',
         );
       } else {
-        // TODO(brianwilkerson): We need a method that will remove either the
-        //  leading or trailing empty lines, but will leave the other.
-        builder.addDeletion(utils.getLinesRange(constructor.sourceRange));
+        builder.deleteClassMember(constructor);
       }
     });
   }
@@ -116,6 +114,7 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
     return switch (parent) {
       ClassDeclaration(:var namePart) ||
       EnumDeclaration(:var namePart) => _ContainerData(
+        container: parent!,
         name: namePart.typeName,
         typeParameters: namePart.typeParameters,
         hasPrimaryConstructor: namePart is PrimaryConstructorDeclaration,
@@ -148,6 +147,9 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
 /// Information about the class or enum declaration containing the constructor
 /// to be converted.
 class _ContainerData {
+  /// The class or enum declaration.
+  AstNode container;
+
   /// The name of the class or enum.
   Token name;
 
@@ -166,6 +168,7 @@ class _ContainerData {
   bool isEnum;
 
   new({
+    required this.container,
     required this.name,
     required this.typeParameters,
     required this.hasPrimaryConstructor,

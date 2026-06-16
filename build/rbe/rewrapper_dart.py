@@ -835,6 +835,7 @@ def main(argv):
 
     # Until the depfiles are fixed so they don't contain absoiute paths, we need
     # to rewrite the absoute paths appropriately.
+    # TODO(63495, 63546): Remove this and treat depfiles like ordinary outputs.
     for depfile in rewrapper.depfiles:
         lines = []
         try:

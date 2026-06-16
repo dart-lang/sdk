@@ -835,6 +835,25 @@
     },
     {
       "builders": [
+        "vm-aot-android-debug-x64c",
+        "vm-aot-android-release-x64c"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm precomp builders on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-aot-android-debug-arm64c",
         "vm-aot-android-debug-arm_x64",
         "vm-aot-android-release-arm64c",

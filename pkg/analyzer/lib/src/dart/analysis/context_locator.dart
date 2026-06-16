@@ -5,15 +5,12 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/basic.dart';
@@ -523,12 +520,9 @@ class _ContextLocator {
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
       var analysisOptionsCache = _getCache(workspace.partialSourceFactory);
-      var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(
-          optionsFile,
-          analysisOptionsCache: analysisOptionsCache,
-        ),
-        file: optionsFile,
+      var options = provider.getAnalysisOptionsFromFile(
+        optionsFile,
+        analysisOptionsCache: analysisOptionsCache,
         resourceProvider: _resourceProvider,
       );
 
@@ -549,25 +543,22 @@ class _ContextLocator {
   ) {
     if (optionsFile == null) return const [];
 
-    YamlMap options;
+    List<String> excludePatterns;
     try {
       var analysisOptionsCache = _getCache(sourceFactory);
-      options = AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(
-        optionsFile,
-        analysisOptionsCache: analysisOptionsCache,
-      );
+      var options = AnalysisOptionsProvider(sourceFactory)
+          .getAnalysisOptionsFromFile(
+            optionsFile,
+            analysisOptionsCache: analysisOptionsCache,
+            resourceProvider: _resourceProvider,
+          );
+      excludePatterns = options.excludePatterns;
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.
       return const [];
     }
 
-    var analyzerOptions = options.valueAt(AnalysisOptionsFileKeys.analyzer);
-    if (analyzerOptions is! YamlMap) return const [];
-    var excludeOptions = analyzerOptions.valueAt(
-      AnalysisOptionsFileKeys.exclude,
-    );
-    if (excludeOptions is! YamlList) return const [];
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
 
@@ -578,7 +569,7 @@ class _ContextLocator {
       );
     }
 
-    for (String excludedPath in excludeOptions.whereType<String>()) {
+    for (String excludedPath in excludePatterns) {
       var excludedComponents = posix.split(excludedPath);
       addGlob(excludedComponents);
       if (excludedComponents.length > 1 && excludedComponents.last == '**') {
