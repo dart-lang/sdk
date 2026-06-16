@@ -65,7 +65,7 @@ def _nightly_builder(name, category, channels = ["try"], properties = {}, **kwar
 def _misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
     dart.ci_sandbox_builder(
         name,
-        category = category,
+        category = None,  # Don't add to main console.
         channels = channels,
         properties = properties,
         triggered_by = ["dart-vm-gitiles-trigger-%s"],
@@ -75,7 +75,7 @@ def _misc_builder(name, category, channels = ["try"], properties = {}, **kwargs)
 
 def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
     properties = union({"bisection_enabled": True}, properties)
-    cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
+    cron.nightly_builder(name, category = None, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     luci.console_view_entry(console_view = "misc", builder = name, category = category)
 
 def _postponed_alt_console_entry(name, category):
@@ -590,7 +590,7 @@ _nightly_misc_builder(
 )
 _nightly_misc_builder(
     "vm-msvc-win-arm64",
-    category = "msvc|x64",
+    category = "msvc|arm64",
     dimensions = windows,
     rbe = False,
 )
