@@ -65,18 +65,19 @@ class JumpTarget {
   void resolveBreaks(LabeledStatement target, Statement targetStatement) {
     assert(isBreakTarget);
     for (Statement user in users) {
-      BreakStatementImpl breakStatement = user as BreakStatementImpl;
+      InternalBreakStatement breakStatement = user as InternalBreakStatement;
       breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
     }
     users.clear();
   }
 
-  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
     assert(isContinueTarget);
-    List<BreakStatementImpl> statements = <BreakStatementImpl>[];
+    List<InternalContinueStatement> statements = <InternalContinueStatement>[];
     for (Statement user in users) {
-      BreakStatementImpl breakStatement = user as BreakStatementImpl;
+      InternalContinueStatement breakStatement =
+          user as InternalContinueStatement;
       breakStatement.target = target;
       statements.add(breakStatement);
     }
@@ -168,7 +169,7 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
     return continueTarget.resolveContinues(target);
   }
 

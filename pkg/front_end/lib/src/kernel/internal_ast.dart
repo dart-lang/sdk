@@ -326,27 +326,64 @@ class InternalRegularSwitchStatement extends InternalStatement
   }
 }
 
-class BreakStatementImpl extends BreakStatement {
-  Statement? targetStatement;
-  final bool isContinue;
+class InternalBreakStatement extends InternalStatement {
+  final String? label;
+  late Statement targetStatement;
+  late LabeledStatement target;
 
-  new({required this.isContinue}) : super(dummyLabeledStatement);
+  new({required this.label, required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
 
   @override
-  String toString() {
-    return "BreakStatementImpl(${toStringInternal()})";
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalBreakStatement(this);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    if (isContinue) {
-      printer.write('continue ');
-    } else {
-      printer.write('break ');
+    printer.write('break');
+    if (label != null) {
+      printer.write(' ');
+      printer.write(label!);
     }
-    printer.write(printer.getLabelName(target));
     printer.write(';');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalContinueStatement extends InternalStatement {
+  final String? label;
+  late Statement targetStatement;
+  late LabeledStatement target;
+
+  new({required this.label, required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalContinueStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('continue');
+    if (label != null) {
+      printer.write(' ');
+      printer.write(label!);
+    }
+    printer.write(';');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
   }
 }
 

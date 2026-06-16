@@ -1329,17 +1329,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  StatementInferenceResult visitBreakStatement(
-    covariant BreakStatementImpl node,
+  // Coverage-ignore(suite): Not run.
+  StatementInferenceResult visitBreakStatement(BreakStatement node) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalBreakStatement(
+    InternalBreakStatement node,
   ) {
-    // TODO(johnniwinther): Refactor break/continue encoding.
-    assert(node.targetStatement != null);
-    if (node.isContinue) {
-      flowAnalysis.handleContinue(node.targetStatement);
-    } else {
-      flowAnalysis.handleBreak(node.targetStatement);
-    }
-    return const StatementInferenceResult();
+    flowAnalysis.handleBreak(node.targetStatement);
+    return new StatementInferenceResult.single(
+      extern.createBreakStatement(node.target, fileOffset: node.fileOffset),
+    );
+  }
+
+  StatementInferenceResult visitInternalContinueStatement(
+    InternalContinueStatement node,
+  ) {
+    flowAnalysis.handleContinue(node.targetStatement);
+    return new StatementInferenceResult.single(
+      extern.createBreakStatement(node.target, fileOffset: node.fileOffset),
+    );
   }
 
   ExpressionInferenceResult visitCascade(Cascade node, DartType typeContext) {
@@ -13442,10 +13452,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Statement body = lastCase.body;
         if (body is Block) {
           body.addStatement(
-            new BreakStatementImpl(isContinue: false)
-              ..target = breakTarget
-              ..targetStatement = node
-              ..fileOffset = node.fileOffset,
+            extern.createBreakStatement(
+              breakTarget,
+              fileOffset: node.fileOffset,
+            ),
           );
         }
       }

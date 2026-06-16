@@ -1,0 +1,36 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# As of 2026-06-15 BreakStatementImpl has a targetStatement that points to
+# InternalPatternSwitchStatement from which we can reach the old library,
+# i.e. we have a leak.
+
+type: newworld
+worlds:
+  - entry: a.dart
+    sources:
+      a.dart: |
+        import "b.dart";
+        void foo(String s) {
+          switch (Bar(s).bar) {
+            case "hello":
+              break;
+            default:
+              print("hello");
+          }
+        }
+      b.dart: |
+        class Bar {
+          final String bar;
+          Bar(this.bar);
+        }
+    expectedLibraryCount: 2
+
+  - entry: a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - b.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly
