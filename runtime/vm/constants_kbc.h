@@ -36,7 +36,7 @@ namespace dart {
 //
 #define PUBLIC_KERNEL_BYTECODES_LIST(V)                                        \
   V(Trap,                                  0, ORDN, ___, ___, ___)             \
-  V(Unused00,                              0, RESV, ___, ___, ___)             \
+  V(Dup,                                   0, ORDN, ___, ___, ___)             \
   V(Entry,                                 D, ORDN, num, ___, ___)             \
   V(Entry_Wide,                            D, WIDE, num, ___, ___)             \
   V(EntryOptional,                     A_B_C, ORDN, num, num, num)             \
@@ -207,8 +207,8 @@ namespace dart {
   V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
   V(FfiCall,                               D, ORDN, lit, ___, ___)             \
   V(FfiCall_Wide,                          D, WIDE, lit, ___, ___)             \
-  V(RecordCoverage,                        A_E, ORDN, num, num, ___)           \
-  V(RecordCoverage_Wide,                   A_E, WIDE, num, num, ___)           \
+  V(RecordCoverage,                      A_E, ORDN, num, num, ___)             \
+  V(RecordCoverage_Wide,                 A_E, WIDE, num, num, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.

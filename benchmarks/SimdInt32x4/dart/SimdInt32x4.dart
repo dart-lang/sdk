@@ -150,6 +150,33 @@ class SubSimd extends SimdBench {
   }
 }
 
+class LaneSumScalar extends SimdBench {
+  LaneSumScalar() : super('laneSumScalar');
+  @override
+  void run() {
+    final n = a.length;
+    int acc = 0;
+    for (int i = 0; i < n; i++) {
+      acc += a[i];
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
+class LaneSumSimd extends SimdBench {
+  LaneSumSimd() : super('laneSumSimd');
+  @override
+  void run() {
+    final la = Int32x4List.view(a.buffer, a.offsetInBytes, a.length >> 2);
+    int acc = 0;
+    for (int j = 0; j < la.length; j++) {
+      final v = la[j];
+      acc += v.x + v.y + v.z + v.w;
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
 void main() {
   final benchmarks = <BenchmarkBase Function()>[
     OrScalar.new,
@@ -162,6 +189,8 @@ void main() {
     AddSimd.new,
     SubScalar.new,
     SubSimd.new,
+    LaneSumScalar.new,
+    LaneSumSimd.new,
   ];
 
   for (final bm in benchmarks) {

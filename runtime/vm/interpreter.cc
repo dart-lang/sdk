@@ -2096,6 +2096,13 @@ SwitchDispatchNoSingleStep:
 
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
+    BYTECODE(Dup, 0);
+    SP[1] = SP[0];
+    SP++;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Entry, D);
     const intptr_t num_locals = rD;
 
@@ -2999,6 +3006,7 @@ SwitchDispatchNoSingleStep:
     // This is unused, since the negative case throws an exception.
     SP++;
     ObjectPtr* result_slot = SP;
+    *result_slot = 0;
 
     Exit(thread, FP, SP + 1, pc);
     INVOKE_RUNTIME(DRT_SubtypeCheck,

@@ -4016,12 +4016,16 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_sub")
   external Int32x4 operator -(Int32x4 other);
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getY")
   external int get y;
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getZ")
   external int get z;
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getW")
   external int get w;
   @pragma("vm:recognized", "other")

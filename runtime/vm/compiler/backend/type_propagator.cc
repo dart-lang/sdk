@@ -1745,6 +1745,12 @@ CompileType DoubleTestOpInstr::ComputeType() const {
 
 static const intptr_t simd_op_result_cids[] = {
 #define kInt8Cid kSmiCid
+// Int32 lane getters produce an unboxed int32 whose boxed type depends on the
+// target word size (Smi on 64-bit, possibly Mint on 32-bit). The placeholder
+// keeps the table well-formed; ComputeType() below handles these kinds
+// directly using the unboxed representation so the type is correct on all
+// architectures.
+#define kInt32Cid kIllegalCid
 #define CASE(Arity, Mask, Name, Args, Result) k##Result##Cid,
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
@@ -1752,7 +1758,15 @@ static const intptr_t simd_op_result_cids[] = {
 };
 
 CompileType SimdOpInstr::ComputeType() const {
-  return CompileType::FromCid(simd_op_result_cids[kind()]);
+  switch (kind()) {
+    case kInt32x4GetX:
+    case kInt32x4GetY:
+    case kInt32x4GetZ:
+    case kInt32x4GetW:
+      return CompileType::FromUnboxedRepresentation(kUnboxedInt32);
+    default:
+      return CompileType::FromCid(simd_op_result_cids[kind()]);
+  }
 }
 
 CompileType MathMinMaxInstr::ComputeType() const {
