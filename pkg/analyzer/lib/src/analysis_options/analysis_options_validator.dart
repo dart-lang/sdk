@@ -48,6 +48,15 @@ String? _firstPluginName(YamlMap options) {
   }
 }
 
+YamlMap _parseOptionsFromString(String content, {Uri? sourceUrl}) {
+  try {
+    var doc = loadYamlNode(content, sourceUrl: sourceUrl);
+    return doc is YamlMap ? doc : YamlMap();
+  } on YamlException catch (e) {
+    throw OptionsFormatException(e.message, e.span);
+  }
+}
+
 /// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
 void _validateLegacyPluginsOption(
@@ -107,7 +116,6 @@ final class AnalysisOptionsValidator {
       contextRoot: contextRoot,
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
-      optionsProvider: AnalysisOptionsProvider(sourceFactory),
       validationCache: _validationCache,
     ).validate(content: content);
   }
@@ -143,8 +151,6 @@ final class _AnalysisOptionsValidatorWalker {
   /// being visited.
   SourceSpan? initialIncludeSpan;
 
-  final AnalysisOptionsProvider optionsProvider;
-
   /// The first legacy plugin enabled by an included file while walking the
   /// current file's includes.
   String? firstPluginName;
@@ -165,7 +171,6 @@ final class _AnalysisOptionsValidatorWalker {
     required this.contextRoot,
     required this.sdkVersionConstraint,
     required this.resourceProvider,
-    required this.optionsProvider,
     required this.validationCache,
   });
 
@@ -178,7 +183,7 @@ final class _AnalysisOptionsValidatorWalker {
 
   List<Diagnostic> validate({required String content}) {
     try {
-      YamlMap options = optionsProvider.getOptionsFromString(
+      YamlMap options = _parseOptionsFromString(
         content,
         sourceUrl: initialSource.uri,
       );
@@ -219,7 +224,7 @@ final class _AnalysisOptionsValidatorWalker {
     if (result == null) {
       try {
         result = _ParsedYamlFile(
-          optionsProvider.getOptionsFromString(
+          _parseOptionsFromString(
             file.readAsStringSync(),
             sourceUrl: source.uri,
           ),

@@ -16,14 +16,14 @@ part of "dart:core";
 /// section of the [introduction to `dart:core`](https://dart.dev/libraries/dart-core).
 @pragma("vm:entry-point")
 @pragma('dyn-module:language-impl:extendable')
-class const Object() {
+class Object {
   /// Creates a new [Object] instance.
   ///
   /// [Object] instances have no meaningful state, and are only useful
   /// through their identity. An [Object] instance is equal to itself
   /// only.
   @pragma("vm:recognized", "other")
-  this;
+  const Object();
 
   /// The equality operator.
   ///

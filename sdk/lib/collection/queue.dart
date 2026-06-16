@@ -6,8 +6,8 @@ part of "dart:collection";
 
 /// Helper interface to hide [EfficientLengthIterable] from the public
 /// declaration of [Queue].
-abstract interface class _QueueIterable<E>
-    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E>;
+abstract class _QueueIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
 
 /// A [Queue] is a collection that can be manipulated at both ends. One
 /// can iterate over the elements of a queue through [forEach] or with
@@ -39,7 +39,7 @@ abstract interface class _QueueIterable<E>
 /// ```
 abstract interface class Queue<E> implements Iterable<E>, _QueueIterable<E> {
   /// Creates a queue.
-  factory() = ListQueue<E>;
+  factory Queue() = ListQueue<E>;
 
   /// Creates a queue containing all [elements].
   ///
@@ -54,13 +54,13 @@ abstract interface class Queue<E> implements Iterable<E>, _QueueIterable<E> {
   /// Queue<SubType> subQueue =
   ///     Queue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
-  factory from(Iterable elements) = ListQueue<E>.from;
+  factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
   /// Creates a queue from [elements].
   ///
   /// The element order in the queue is as if the elements were added using
   /// [addLast] in the order provided by [elements].iterator.
-  factory of(Iterable<E> elements) = ListQueue<E>.of;
+  factory Queue.of(Iterable<E> elements) = ListQueue<E>.of;
 
   /// Adapts [source] to be a `Queue<T>`.
   ///
@@ -145,7 +145,7 @@ abstract interface class Queue<E> implements Iterable<E>, _QueueIterable<E> {
 ///
 /// Both the [_DoubleLinkedQueueElement] and [_DoubleLinkedQueueSentinel]
 /// implement this interface.
-abstract class _DoubleLinkedQueueEntry<E>() {
+abstract class _DoubleLinkedQueueEntry<E> {
   _DoubleLinkedQueueEntry<E>? _previousLink;
   _DoubleLinkedQueueEntry<E>? _nextLink;
 
@@ -290,7 +290,7 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// Queue<SubType> subQueue =
   ///     DoubleLinkedQueue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
-  factory from(Iterable<dynamic> elements) {
+  factory DoubleLinkedQueue.from(Iterable<dynamic> elements) {
     DoubleLinkedQueue<E> list = DoubleLinkedQueue<E>();
     for (final e in elements) {
       list.addLast(e as E);
@@ -302,7 +302,8 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   ///
   /// The element order in the queue is as if the elements were added using
   /// [addLast] in the order provided by [elements].iterator.
-  factory of(Iterable<E> elements) => DoubleLinkedQueue<E>()..addAll(elements);
+  factory DoubleLinkedQueue.of(Iterable<E> elements) =>
+      DoubleLinkedQueue<E>()..addAll(elements);
 
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
 
@@ -634,7 +635,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// final queue = ListQueue<int>.from(numbers);
   /// print(queue); // {10, 20, 30}
   /// ```
-  factory from(Iterable<dynamic> elements) {
+  factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
       int length = elements.length;
       ListQueue<E> queue = ListQueue<E>(length + 1);
@@ -667,7 +668,8 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// final numQueue = ListQueue<num>.of(baseQueue);
   /// print(numQueue); // {1.0, 2.0, 3.0}
   /// ```
-  factory of(Iterable<E> elements) => ListQueue<E>()..addAll(elements);
+  factory ListQueue.of(Iterable<E> elements) =>
+      ListQueue<E>()..addAll(elements);
 
   // Iterable interface.
 

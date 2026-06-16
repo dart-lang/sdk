@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/handlers/injected_client_js.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
+import 'package:dwds/src/loaders/strategy.dart';
 import 'package:dwds/src/version.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -189,7 +189,7 @@ Future<String> _injectedClientSnippet(
   final buildSettings = loadStrategy.buildSettings;
   final appMetadata = globalToolConfiguration.appMetadata;
   final debugSettings = globalToolConfiguration.debugSettings;
-  final reloadedSourcesPath = loadStrategy is DdcLibraryBundleStrategy
+  final reloadedSourcesPath = loadStrategy is ReloadableLoadStrategy
       ? 'window.\$reloadedSourcesPath = "${loadStrategy.reloadedSourcesUri}";\n'
       : '';
 

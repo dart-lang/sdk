@@ -21,12 +21,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
@@ -129,7 +127,7 @@ class EditGetFixesHandler extends LegacyHandler
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
     ).validateContent(file: optionsFile, content: content);
-    var options = _getOptions(sourceFactory, content);
+    var options = _getOptions(content);
     if (options == null) {
       return errorFixesList;
     }
@@ -341,11 +339,11 @@ error.errorCode: ${diagnostic.diagnosticCode}
     return <AnalysisErrorFixes>[];
   }
 
-  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+  YamlMap? _getOptions(String content) {
     try {
-      return optionsProvider.getOptionsFromString(content);
-    } on OptionsFormatException {
+      var node = loadYamlNode(content);
+      return node is YamlMap ? node : YamlMap();
+    } on YamlException {
       return null;
     }
   }

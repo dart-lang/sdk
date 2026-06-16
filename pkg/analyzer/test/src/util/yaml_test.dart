@@ -10,6 +10,27 @@ import 'package:yaml/yaml.dart';
 
 main() {
   group('yaml', () {
+    group('parse', () {
+      test('bad yaml throws', () {
+        var src = '''
+    analyzer: # <= bang
+strong-mode: true
+''';
+
+        expect(() => loadYamlNode(src), throwsA(TypeMatcher<YamlException>()));
+      });
+
+      test('missing space ok', () {
+        var src = '''
+analyzer:
+  strong-mode:true # missing space (sdk/issues/24885)
+''';
+
+        var options = loadYamlNode(src);
+        expect(options, isNotNull);
+      });
+    });
+
     group('merge', () {
       test('map', () {
         expect(
@@ -71,6 +92,47 @@ main() {
           'one': {'a': true, 'b': false, 'c': true},
         };
         expect(merge(map1, map2), wrap(map3));
+      });
+
+      test('map w/ analysis options shape', () {
+        expect(
+          merge(
+            {
+              'analyzer': {
+                'plugins': ['p1', 'p2'],
+                'errors': {'unused_local_variable': 'error'},
+              },
+              'linter': {
+                'rules': ['camel_case_types', 'one_member_abstracts'],
+              },
+            },
+            {
+              'analyzer': {
+                'plugins': ['p3'],
+                'errors': {'unused_local_variable': 'ignore'},
+              },
+              'linter': {
+                'rules': {
+                  'one_member_abstracts': false,
+                  'always_specify_return_types': true,
+                },
+              },
+            },
+          ),
+          wrap({
+            'analyzer': {
+              'plugins': ['p1', 'p2', 'p3'],
+              'errors': {'unused_local_variable': 'ignore'},
+            },
+            'linter': {
+              'rules': {
+                'camel_case_types': true,
+                'one_member_abstracts': false,
+                'always_specify_return_types': true,
+              },
+            },
+          }),
+        );
       });
 
       test('map w/ no promotion', () {

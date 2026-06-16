@@ -4,11 +4,18 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/analysis/analyzer_diagnostic_expectations.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the set of external names referenced in the [unit].
-Set<String> computeReferencedNames(CompilationUnit unit) {
-  _ReferencedNamesComputer computer = _ReferencedNamesComputer();
+Set<String> computeReferencedNames(
+  CompilationUnit unit, {
+  bool includeAnalyzerDiagnosticExpectations = false,
+}) {
+  _ReferencedNamesComputer computer = _ReferencedNamesComputer(
+    includeAnalyzerDiagnosticExpectations:
+        includeAnalyzerDiagnosticExpectations,
+  );
   unit.accept(computer);
   return computer.names;
 }
@@ -212,14 +219,15 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
-  static final RegExp _analyzerExpectedDiagnosticPattern = RegExp(
-    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
-  );
-
+  final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
 
   _LocalNameScope localScope = _LocalNameScope(null);
+
+  _ReferencedNamesComputer({
+    required this.includeAnalyzerDiagnosticExpectations,
+  });
 
   @override
   void visitBlock(Block node) {
@@ -381,10 +389,11 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    var lexeme = node.literal.lexeme;
-    var matches = _analyzerExpectedDiagnosticPattern.allMatches(lexeme);
-    for (var match in matches) {
-      names.add(match.group(1)!);
+    if (includeAnalyzerDiagnosticExpectations) {
+      var lexeme = node.literal.lexeme;
+      for (var reference in analyzerDiagnosticExpectationReferences(lexeme)) {
+        names.add(reference.name);
+      }
     }
     super.visitSimpleStringLiteral(node);
   }

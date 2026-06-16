@@ -70,24 +70,24 @@ const HtmlEscape htmlEscape = HtmlEscape();
 /// escaped = htmlEscape.convert(unescaped);
 /// print(escaped); // Path: /system/
 /// ```
-final class const HtmlEscapeMode._(
-  final String _name,
+final class HtmlEscapeMode {
+  final String _name;
 
   /// Whether to escape '<' and '>'.
-  final bool escapeLtGt,
+  final bool escapeLtGt;
 
   /// Whether to escape '"' (quote).
-  final bool escapeQuot,
+  final bool escapeQuot;
 
   /// Whether to escape "'" (apostrophe).
-  final bool escapeApos,
+  final bool escapeApos;
 
   /// Whether to escape "/" (forward slash, solidus).
   ///
   /// Escaping a slash is recommended to avoid cross-site scripting attacks by
   /// [the Open Web Application Security Project](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content)
-  final bool escapeSlash,
-) {
+  final bool escapeSlash;
+
   /// Default escaping mode, which escapes all characters.
   ///
   /// The result of such an escaping is usable both in element content and
@@ -151,6 +151,14 @@ final class const HtmlEscapeMode._(
     false,
   );
 
+  const HtmlEscapeMode._(
+    this._name,
+    this.escapeLtGt,
+    this.escapeQuot,
+    this.escapeApos,
+    this.escapeSlash,
+  );
+
   /// Create a custom escaping mode.
   ///
   /// The [_name] is only used as the result of [toString],
@@ -159,13 +167,13 @@ final class const HtmlEscapeMode._(
   /// All modes escape `&`.
   /// The mode can further be set to escape `<` and `>` ([escapeLtGt]),
   /// `"` ([escapeQuot]), `'` ([escapeApos]), and/or `/` ([escapeSlash]).
-  const new({
-    String name = "custom",
-    bool escapeLtGt = false,
-    bool escapeQuot = false,
-    bool escapeApos = false,
-    bool escapeSlash = false,
-  }) : this._(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash);
+  const HtmlEscapeMode({
+    this._name = "custom",
+    this.escapeLtGt = false,
+    this.escapeQuot = false,
+    this.escapeApos = false,
+    this.escapeSlash = false,
+  });
 
   String toString() => _name;
 }
@@ -223,7 +231,7 @@ final class HtmlEscape extends Converter<String, String> {
   /// [HtmlEscapeMode.element], only the corresponding subset of HTML
   /// characters is escaped.
   /// The default is to escape all HTML characters.
-  const new([this.mode = HtmlEscapeMode.unknown]);
+  const HtmlEscape([this.mode = HtmlEscapeMode.unknown]);
 
   String convert(String text) {
     var val = _convert(text, 0, text.length);

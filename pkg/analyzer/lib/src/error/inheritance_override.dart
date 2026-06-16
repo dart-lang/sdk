@@ -484,7 +484,9 @@ class _ClassVerifier {
         );
       }
 
-      _reportInheritedAbstractMembers(inheritedAbstract);
+      if (identical(classFragment, element.firstFragment)) {
+        _reportInheritedAbstractMembers(inheritedAbstract);
+      }
     }
 
     return false;

@@ -39,7 +39,7 @@ class G extends core::_Enum /*isEnum*/  {
     return "G.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(final core::int index, final core::String _name) → self::_E&_Enum&M
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M
     : super core::_Enum::•(index, _name)
     ;
   method mixinMethod() → void {}

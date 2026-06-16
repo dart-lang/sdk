@@ -17,7 +17,10 @@ import 'fixtures/context.dart';
 import 'fixtures/project.dart';
 import 'fixtures/utilities.dart';
 
-void testWithDwds({required TestSdkConfigurationProvider provider}) {
+void testWithDwds({
+  required TestSdkConfigurationProvider provider,
+  required CompilationMode compilationMode,
+}) {
   final context = TestContext(TestProject.test, provider);
 
   group(
@@ -70,13 +73,17 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
           pipe(eventStream, timeout: const Timeout.factor(5)),
           emitsThrough(
             matchesEvent(DwdsEventKind.compilerUpdateDependencies, {
-              'entrypoint': 'hello_world/main.dart.bootstrap.js',
+              if (compilationMode == CompilationMode.frontendServer)
+                'entrypoint': 'example/hello_world/main_module.bootstrap.js'
+              else
+                'entrypoint': 'hello_world/main.dart.bootstrap.js',
               'elapsedMilliseconds': isNotNull,
             }),
           ),
         );
         await context.setUp(
           testSettings: TestSettings(
+            compilationMode: compilationMode,
             enableExpressionEvaluation: true,
             moduleFormat: provider.ddcModuleFormat,
             verboseCompiler: provider.verbose,
@@ -93,22 +100,18 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
         await context.tearDown();
       });
 
-      test(
-        'emits DEBUGGER_READY and DEVTOOLS_LOAD events',
-        () async {
-          await expectEventsDuring([
-            matchesEvent(DwdsEventKind.debuggerReady, {
-              'elapsedMilliseconds': isNotNull,
-              'screen': equals('debugger'),
-            }),
-            matchesEvent(DwdsEventKind.devToolsLoad, {
-              'elapsedMilliseconds': isNotNull,
-              'screen': equals('debugger'),
-            }),
-          ], () => keyboard.sendChord([Keyboard.alt, 'd']));
-        },
-        skip: 'https://github.com/dart-lang/webdev/issues/2394',
-      );
+      test('emits DEBUGGER_READY and DEVTOOLS_LOAD events', () async {
+        await expectEventsDuring([
+          matchesEvent(DwdsEventKind.debuggerReady, {
+            'elapsedMilliseconds': isNotNull,
+            'screen': equals('debugger'),
+          }),
+          matchesEvent(DwdsEventKind.devToolsLoad, {
+            'elapsedMilliseconds': isNotNull,
+            'screen': equals('debugger'),
+          }),
+        ], () => keyboard.sendChord([Keyboard.alt, 'd']));
+      }, skip: 'https://github.com/dart-lang/webdev/issues/2394');
 
       test('emits DEVTOOLS_LAUNCH event', () async {
         await expectEventDuring(
@@ -392,7 +395,6 @@ void testWithDwds({required TestSdkConfigurationProvider provider}) {
           final hotRestart = context.getRegisteredServiceExtension(
             'hotRestart',
           );
-
           await expectEventDuring(
             matchesEvent(DwdsEventKind.hotRestart, {
               'elapsedMilliseconds': isNotNull,

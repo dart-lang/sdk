@@ -31,7 +31,7 @@ abstract final class ZoneSpecification {
   /// If the [handleUncaughtError] is provided, the new zone will be a new
   /// "error zone" which will prevent errors from flowing into other
   /// error zones (see [Zone.errorZone], [Zone.inSameErrorZone]).
-  const factory({
+  const factory ZoneSpecification({
     HandleUncaughtErrorHandler? handleUncaughtError,
     RunHandler? run,
     RunUnaryHandler? runUnary,
@@ -53,7 +53,7 @@ abstract final class ZoneSpecification {
   /// and any individually provided handlers.
   /// If a handler is provided both through [other] and individually,
   /// the individually provided handler overrides the one from [other].
-  factory from(
+  factory ZoneSpecification.from(
     ZoneSpecification other, {
     HandleUncaughtErrorHandler? handleUncaughtError,
     RunHandler? run,

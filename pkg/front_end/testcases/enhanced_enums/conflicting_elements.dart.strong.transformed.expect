@@ -173,19 +173,19 @@ class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
     return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E8&_Enum&A8 extends core::_Enum implements self::A8 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(final core::int index, final core::String _name) → self::_E8&_Enum&A8
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&A8
     : super core::_Enum::•(index, _name)
     ;
   set element(dynamic value) → void {}
 }
 abstract class _E9&_Enum&A9 extends core::_Enum implements self::A9 /*isAnonymousMixin,isEliminatedMixin*/  {
   field core::int element = 42;
-  synthetic constructor •(final core::int index, final core::String _name) → self::_E9&_Enum&A9
+  synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E10&_Enum&A10 extends core::_Enum implements self::A10 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(final core::int index, final core::String _name) → self::_E10&_Enum&A10
+  const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10
     : super core::_Enum::•(index, _name)
     ;
   method element() → void {}

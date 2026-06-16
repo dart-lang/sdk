@@ -14,7 +14,8 @@ import 'package:shelf/shelf.dart';
 
 // TODO(srujzs): This is mostly a copy of `DdcStrategy`. Some of the
 // functionality in here may not make sense with the library bundle format yet.
-class DdcLibraryBundleStrategy extends LoadStrategy {
+class DdcLibraryBundleStrategy extends LoadStrategy
+    implements ReloadableLoadStrategy {
   @override
   final ReloadConfiguration reloadConfiguration;
 
@@ -104,29 +105,7 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
 
   final BuildSettings _buildSettings;
 
-  /// The [Uri] of the file that contains a JSONified list of maps which follows
-  /// the following format:
-  ///
-  /// ```json
-  /// [
-  ///   {
-  ///     "src": "<base_uri>/<file_name>",
-  ///     "module": "<module_name>",
-  ///     "libraries": ["<lib1>", "<lib2>"],
-  ///   },
-  /// ]
-  /// ```
-  ///
-  /// `src`: A string that corresponds to the file path containing a DDC library
-  /// bundle.
-  /// `module`: The name of the library bundle in `src`.
-  /// `libraries`: An array of strings containing the libraries that were
-  /// compiled in `src`.
-  ///
-  /// This is needed for hot reloads and restarts in order to tell the module
-  /// loader what files need to be loaded and what libraries need to be
-  /// reloaded. The contents of the file this [Uri] points to should be updated
-  /// whenever a hot reload or hot restart is executed.
+  @override
   final Uri? reloadedSourcesUri;
 
   /// When enabled, injects the script loader into the bootstrapper from

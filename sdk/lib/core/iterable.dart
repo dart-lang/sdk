@@ -89,10 +89,12 @@ part of "dart:core";
 /// An implementation of the `Iterable` interface should
 /// provide a more efficient implementation of the members of `Iterable`
 /// when it can do so.
-abstract mixin class const Iterable<E>() {
+abstract mixin class Iterable<E> {
   // This class has methods copied verbatim into:
   // - SetMixin
   // If changing a method here, also change other copies.
+
+  const Iterable();
 
   /// Creates an `Iterable` which generates its elements dynamically.
   ///
@@ -107,7 +109,7 @@ abstract mixin class const Iterable<E>() {
   ///
   /// As an `Iterable`, `Iterable.generate(n, generator))` is equivalent to
   /// `const [0, ..., n - 1].map(generator)`.
-  factory generate(int count, [E generator(int index)?]) {
+  factory Iterable.generate(int count, [E generator(int index)?]) {
     // Always OK to omit generator when count is zero.
     if (count <= 0) return EmptyIterable<E>();
     if (generator == null) {
@@ -140,14 +142,14 @@ abstract mixin class const Iterable<E>() {
   /// print(numbers.toList()); // [1, 2, 3]
   /// ```
   @Since("3.8")
-  factory withIterator(Iterator<E> Function() iteratorFactory) =
+  factory Iterable.withIterator(Iterator<E> Function() iteratorFactory) =
       _WithIteratorIterable<E>;
 
   /// Creates an empty iterable.
   ///
   /// The empty iterable has no elements, and iterating it always stops
   /// immediately.
-  const factory empty() = EmptyIterable<E>;
+  const factory Iterable.empty() = EmptyIterable<E>;
 
   /// Adapts [source] to be an `Iterable<T>`.
   ///
@@ -909,15 +911,18 @@ abstract mixin class const Iterable<E>() {
   }
 }
 
-class _GeneratorIterable<E>(
-  /// The length of the generated iterable.
-  final int length,
-
-  /// The function mapping indices to values.
-  final E Function(int) _generator,
-) extends ListIterable<E> {
+class _GeneratorIterable<E> extends ListIterable<E> {
   // Methods have efficient implementations from `ListIterable`,
   // based on `length` and `elementAt`.
+
+  /// The length of the generated iterable.
+  final int length;
+
+  /// The function mapping indices to values.
+  final E Function(int) _generator;
+
+  /// Creates the generated iterable.
+  _GeneratorIterable(this.length, this._generator);
 
   E elementAt(int index) {
     IndexError.check(index, length, indexable: this);
@@ -932,8 +937,13 @@ class _GeneratorIterable<E>(
 ///
 /// This class implements [Iterable] by delegating the iterator creation
 /// to the provided function.
-class _WithIteratorIterable<E>(final Iterator<E> Function() _iteratorFactory)
-    extends Iterable<E> {
+class _WithIteratorIterable<E> extends Iterable<E> {
+  final Iterator<E> Function() _iteratorFactory;
+
+  /// Creates an iterable that gets its elements from iterators created by
+  /// the provided factory function.
+  _WithIteratorIterable(this._iteratorFactory);
+
   Iterator<E> get iterator => _iteratorFactory();
 }
 

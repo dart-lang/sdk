@@ -192,7 +192,7 @@ final class JsonCodec extends Codec<Object?, String> {
   ///
   /// If [_toEncodable] is omitted, it defaults to a function that returns the
   /// result of calling `.toJson()` on the unencodable object.
-  const new({this._reviver, this._toEncodable});
+  const JsonCodec({this._reviver, this._toEncodable});
 
   /// Creates a `JsonCodec` with the given reviver.
   ///
@@ -297,7 +297,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on
   /// the object.
-  const new([Object? Function(dynamic object)? toEncodable])
+  const JsonEncoder([Object? Function(dynamic object)? toEncodable])
     : indent = null,
       _toEncodable = toEncodable;
 
@@ -317,7 +317,7 @@ final class JsonEncoder extends Converter<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on
   /// the object.
-  const new withIndent(
+  const JsonEncoder.withIndent(
     this.indent, [
     Object? Function(dynamic object)? toEncodable,
   ]) : _toEncodable = toEncodable;
@@ -621,7 +621,7 @@ final class JsonDecoder extends Converter<String, Object?> {
   /// Constructs a new JsonDecoder.
   ///
   /// The [reviver] may be `null`.
-  const new([Object? Function(Object? key, Object? value)? reviver])
+  const JsonDecoder([Object? Function(Object? key, Object? value)? reviver])
     : _reviver = reviver;
 
   /// Converts the given JSON-string [input] to its corresponding object.

@@ -71,9 +71,8 @@ class SearchTest extends PubPackageResolutionTest {
   final OperationPerformanceImpl performance = OperationPerformanceImpl(
     '<root>',
   );
+  late AnalysisDriver driver = driverFor(testFile);
   Set<Uri>? includedLibraryUris;
-
-  AnalysisDriver get driver => driverFor(testFile);
 
   String get testUriStr => 'package:test/test.dart';
 
@@ -1852,30 +1851,39 @@ class C {
   }
 
   test_searchReferences_analyzer_diagnosticCode() async {
-    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+    var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
+    writePackageConfig(
+      analyzerPackageRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
+    );
+
+    var analyzerPackageLibPath = '$analyzerPackageRootPath/lib';
+    var analyzerPackageTestPath = '$analyzerPackageRootPath/test';
+    var diagnosticFile = newFile(
+      '$analyzerPackageLibPath/src/diagnostic/diagnostic.dart',
+      r'''
 const myDiagnosticCode = 0;
-''');
+''',
+    );
 
     var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
     var element = diagnosticLibrary.topLevelVariables.firstWhere(
       (v) => v.name == 'myDiagnosticCode',
     );
 
-    newFile('$testPackageLibPath/helper.dart', r'''
-import 'diagnostic.dart';
-''');
-
-    await resolveTestCode(r'''
-import 'helper.dart';
-
+    var analyzerTestFile = newFile('$analyzerPackageTestPath/test.dart', r'''
 void f() {
   '// [diag.myDiagnosticCode]';
 }
 ''');
+    driver = driverFor(analyzerTestFile);
+    driver.addFile2(analyzerTestFile);
+    await driver.applyPendingFileChanges();
 
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> f@28
-  46 4:13 |myDiagnosticCode| REFERENCE qualified
+test.dart f@5
+  23 2:13 |myDiagnosticCode| REFERENCE qualified
 ''');
   }
 

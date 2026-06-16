@@ -9,11 +9,14 @@ part of "dart:convert";
 ///
 /// Instead of limiting the interface to one non-chunked list of bytes it
 /// accepts its input in chunks (themselves being lists of bytes).
-abstract mixin class const ByteConversionSink()
+abstract mixin class ByteConversionSink
     implements ChunkedConversionSink<List<int>> {
-  factory withCallback(void Function(List<int> accumulated) callback) =
-      _ByteCallbackSink;
-  factory from(Sink<List<int>> sink) = _ByteAdapterSink;
+  const ByteConversionSink();
+
+  factory ByteConversionSink.withCallback(
+    void Function(List<int> accumulated) callback,
+  ) = _ByteCallbackSink;
+  factory ByteConversionSink.from(Sink<List<int>> sink) = _ByteAdapterSink;
 
   /// Adds the next [chunk] to `this`.
   ///
