@@ -12,11 +12,10 @@ Function 'foo1', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Allocate             CP#0
-  StoreLocal           r0
-  Push                 r0
+  Dup
   PushConstant         CP#1
   DirectCall           CP#2, 2
   Drop1
@@ -35,13 +34,12 @@ Function 'foo2', static, reflectable, debuggable
     return-type void
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   PushConstant         CP#1
   PushConstant         CP#0
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  Dup
   PushConstant         CP#2
   DirectCall           CP#3, 2
   Drop1
@@ -49,8 +47,7 @@ Bytecode {
   PushConstant         CP#6
   PushConstant         CP#5
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  Dup
   DirectCall           CP#7, 1
   Drop1
   Drop1
@@ -76,7 +73,7 @@ Function 'foo3', static, reflectable, debuggable
     return-type void
 
 Bytecode {
-  Entry                2
+  Entry                1
   CheckFunctionTypeArgs 1, r0
   CheckStack           0
   PushNull
@@ -84,8 +81,7 @@ Bytecode {
   InstantiateTypeArgumentsTOS 0, CP#1
   PushConstant         CP#0
   AllocateT
-  StoreLocal           r1
-  Push                 r1
+  Dup
   DirectCall           CP#2, 1
   Drop1
   Drop1
@@ -223,7 +219,7 @@ Function '', constructor, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base::TypeParam/1 >
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Push                 FP[-5]
   DirectCall           CP#0, 1
@@ -231,23 +227,22 @@ Bytecode {
   PushNull
   PushInt              4
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  Dup
   PushInt              0
   PushConstant         CP#2
   StoreIndexedTOS
-  Push                 r0
+  Dup
   PushInt              1
   Push                 FP[-5]
   LoadTypeArgumentsField CP#3
   PushNull
   InstantiateType      CP#4
   StoreIndexedTOS
-  Push                 r0
+  Dup
   PushInt              2
   PushConstant         CP#5
   StoreIndexedTOS
-  Push                 r0
+  Dup
   PushInt              3
   Push                 FP[-5]
   LoadTypeArgumentsField CP#3
@@ -307,7 +302,7 @@ Function '', constructor, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B::TypeParam/0 >
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Push                 FP[-5]
   DirectCall           CP#0, 1
@@ -315,12 +310,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  Dup
   PushInt              0
   PushConstant         CP#2
   StoreIndexedTOS
-  Push                 r0
+  Dup
   PushInt              1
   Push                 FP[-5]
   LoadTypeArgumentsField CP#3
@@ -354,7 +348,7 @@ Function '', constructor, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::C
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Push                 FP[-6]
   DirectCall           CP#0, 1
@@ -362,12 +356,11 @@ Bytecode {
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  Dup
   PushInt              0
   PushConstant         CP#2
   StoreIndexedTOS
-  Push                 r0
+  Dup
   PushInt              1
   Push                 FP[-5]
   StoreIndexedTOS
@@ -501,7 +494,7 @@ Function 'testFactory', factory, static, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::G < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::G::testFactory (constructor)::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::G::testFactory (constructor)::TypeParam/1 >
 
 Bytecode {
-  Entry                2
+  Entry                1
   CheckFunctionTypeArgs 2, r0
   CheckStack           0
   PushNull
@@ -509,8 +502,7 @@ Bytecode {
   InstantiateTypeArgumentsTOS 0, CP#1
   PushConstant         CP#0
   AllocateT
-  StoreLocal           r1
-  Push                 r1
+  Dup
   DirectCall           CP#2, 1
   Drop1
   ReturnTOS
@@ -576,11 +568,10 @@ Bytecode {
   EntryOptional        0, 0, 1
   LoadConstant         r0, CP#0
   LoadConstant         r0, CP#1
-  Frame                1
+  Frame                0
   CheckStack           0
   Allocate             CP#2
-  StoreLocal           r1
-  Push                 r1
+  Dup
   Push                 r0
   DirectCall           CP#3, 2
   Drop1
@@ -622,11 +613,10 @@ Function '', factory, static, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::J
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Allocate             CP#0
-  StoreLocal           r0
-  Push                 r0
+  Dup
   DirectCall           CP#1, 1
   Drop1
   ReturnTOS
@@ -648,14 +638,13 @@ Function '', factory, static, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L < DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L:: (constructor)::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::L:: (constructor)::TypeParam/1 >
 
 Bytecode {
-  Entry                2
+  Entry                1
   CheckFunctionTypeArgs 2, r0
   CheckStack           0
   Push                 r0
   PushConstant         CP#0
   AllocateT
-  StoreLocal           r1
-  Push                 r1
+  Dup
   DirectCall           CP#1, 1
   Drop1
   ReturnTOS

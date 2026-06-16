@@ -73,8 +73,7 @@ Bytecode {
   Push                 FP[-5]
   StoreContextVar      0, 0
   AllocateClosure      CP#6
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2
@@ -129,8 +128,7 @@ Bytecode {
   Push                 FP[-5]
   StoreContextVar      0, 0
   AllocateClosure      CP#6
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2

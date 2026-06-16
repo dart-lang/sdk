@@ -9,11 +9,10 @@ Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/async.dart'
 Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < Null >, getter = 'get:asyncInFieldInitializer', reflectable, static, is-late, has-initializer
     initializer
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
   AllocateClosure      CP#15
-  StoreLocal           r2
-  Push                 r2
+  Dup
   Push                 r0
   StoreClosureElement  0
   ReturnTOS
@@ -530,7 +529,7 @@ Function 'closure', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                4
+  Entry                3
   CheckStack           0
   AllocateContext      0, 2
   PopLocal             r0
@@ -541,8 +540,7 @@ Bytecode {
   PushInt              3
   StoreContextVar      0, 1
   AllocateClosure      CP#15
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2

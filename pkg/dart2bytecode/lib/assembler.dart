@@ -535,6 +535,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitDup() {
+    _emitInstruction0(Opcode.kDup);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadConstant(int ra, int re) {
     _emitInstructionAE(Opcode.kLoadConstant, ra, re);
   }

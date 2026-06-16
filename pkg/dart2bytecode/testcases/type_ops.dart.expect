@@ -64,7 +64,7 @@ Function 'foo5', static, reflectable, debuggable
     return-type void
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#0
@@ -403,7 +403,7 @@ Function '', factory, static, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E < DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E:: (constructor)::TypeParam/0 >
 
 Bytecode {
-  Entry                2
+  Entry                1
   CheckFunctionTypeArgs 1, r0
   JumpIfNotZeroTypeArgs L1
   PushConstant         CP#0
@@ -413,8 +413,7 @@ L1:
   Push                 r0
   PushConstant         CP#1
   AllocateT
-  StoreLocal           r1
-  Push                 r1
+  Dup
   DirectCall           CP#2, 1
   Drop1
   ReturnTOS
