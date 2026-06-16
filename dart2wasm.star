@@ -13,6 +13,7 @@ load(
     "emscripten",
     "firefox",
     "flute",
+    "jammy",
     "js_engines",
     "mac",
     "safari_26_5",
@@ -63,12 +64,14 @@ _dart2wasm_builder(
 _dart2wasm_builder(
     "dart2wasm-asserts-linux-chrome",
     category = "dart2wasm|browser|ca",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-chrome",
     category = "dart2wasm|browser|c",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 
@@ -96,5 +99,6 @@ _dart2wasm_builder(
 _dart2wasm_builder(
     "dart2wasm-linux-standalone-chrome",
     category = "dart2wasm|sc",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )

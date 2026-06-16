@@ -12,6 +12,7 @@ load(
     "arm64",
     "chrome",
     "firefox",
+    "jammy",
     "mac",
     "safari_17_6",
     "windows",
@@ -23,6 +24,7 @@ dart.poller("ddc-gitiles-trigger", branches = ["main"], paths = paths.ddc)
 dart.ci_sandbox_builder(
     "ddc-linux-chrome",
     category = "ddc|chrome|l",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
     location_filters = paths.to_location_filters(paths.ddc),
 )
@@ -61,6 +63,7 @@ cron.nightly_builder(
     "ddc-canary-linux-chrome",
     category = "ddc|c",
     channels = ["try"],
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 

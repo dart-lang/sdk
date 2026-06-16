@@ -12,6 +12,7 @@ load(
     "arm64",
     "chrome",
     "firefox",
+    "jammy",
     "mac",
     "safari_17_6",
     "windows",
@@ -24,6 +25,7 @@ dart.ci_sandbox_builder(
     "dart2js-canary-linux",
     category = "dart2js|c",
     channels = ["try"],
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
     triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
@@ -47,12 +49,14 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "dart2js-linux-chrome",
     category = "dart2js|chrome|l",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     location_filters = paths.to_location_filters(paths.dart2js),
     properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "dart2js-minified-csp-linux-chrome",
     category = "dart2js|chrome|csp",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 cron.nightly_builder(
