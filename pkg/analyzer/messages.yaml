@@ -15391,18 +15391,18 @@ CompileTimeErrorCode:
 
       ```dart
       class C(int x) {
-        C.named() : this(0);
+        new named() : this(0);
         this : assert(x > 0);
       }
       ```
 
       If the redirection is necessary, then convert the primary constructor into
-      a secondary constructor, and rework other constructors as necessary:
+      an in-body constructor, and rework other constructors as necessary:
 
       ```dart
       class C {
-        C.named();
-        C(int x) : this.named();
+        new named();
+        new(int x) : this.named();
       }
       ```
   privateCollisionInMixinApplication:

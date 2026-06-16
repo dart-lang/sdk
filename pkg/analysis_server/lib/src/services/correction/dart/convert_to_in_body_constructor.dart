@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
+class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
   new({required super.context});
 
   @override
@@ -21,7 +21,7 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind? get assistKind => DartAssistKind.convertToSecondaryConstructor;
+  AssistKind? get assistKind => DartAssistKind.convertToInBodyConstructor;
 
   PrimaryConstructorDeclaration? get primaryConstructorDeclaration {
     AstNode? node = this.node;
@@ -141,7 +141,7 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
               parameterList: parameterList,
               needsBlankLine: fieldOffset != leftBracket.end,
             );
-            _writeFullSecondaryConstructor(builder, declaration, body);
+            _writeFullInBodyConstructor(builder, declaration, body);
             if (members.isNotEmpty || leftBracket.end == rightBracket.offset) {
               builder.writeln();
             }
@@ -161,7 +161,7 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
             if (members.isNotEmpty) {
               builder.writeln();
             }
-            _writeFullSecondaryConstructor(builder, declaration, body);
+            _writeFullInBodyConstructor(builder, declaration, body);
             if (constructorOffset == rightBracket.offset) {
               builder.writeln();
             }
@@ -212,7 +212,7 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
           parameterList: parameterList,
           needsBlankLine: false,
         );
-        _writeFullSecondaryConstructor(builder, declaration, body);
+        _writeFullInBodyConstructor(builder, declaration, body);
         builder.writeln();
         builder.write('}');
       });
@@ -260,8 +260,8 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Write a full secondary constructor to the [builder].
-  void _writeFullSecondaryConstructor(
+  /// Write a full in-body constructor to the [builder].
+  void _writeFullInBodyConstructor(
     DartEditBuilder builder,
     PrimaryConstructorDeclaration declaration,
     PrimaryConstructorBody? body,

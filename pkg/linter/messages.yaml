@@ -14338,7 +14338,7 @@ LinterLintCode:
       ```
 
       The following code produces this diagnostic because the keyword `const` in
-      the enum's secondary constructor isn't needed:
+      the enum's in-body constructor isn't needed:
 
       ```dart
       %experiments=primary-constructors
@@ -14367,7 +14367,7 @@ LinterLintCode:
       enum E {
         a(1), b(2);
 
-        E(this.i);
+        new(this.i);
 
         final int i;
       }
@@ -15871,7 +15871,7 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a secondary constructor
+      The analyzer produces this diagnostic when an in-body constructor
       declaration includes a type name.
 
       #### Examples
