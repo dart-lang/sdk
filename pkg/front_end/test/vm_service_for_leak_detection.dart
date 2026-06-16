@@ -76,7 +76,7 @@ Future<void> main(List<String> args) async {
       Platform.script.resolve("incremental_suite.dart").toString(),
       "-DaddDebugBreaks=true",
       "--",
-      "incremental/no_outline_change_38",
+      "incremental/break_statement_leak",
     ]);
   }
 }

@@ -1,0 +1,33 @@
+main = <No Member>;
+library from "org-dartlang-test:///a.dart" as a {
+
+  import "org-dartlang-test:///b.dart";
+
+  static method foo(dart.core::String s) → void {
+    #L1:
+    switch(new b::Bar::•(s).{b::Bar::bar}{dart.core::String}) /* dart.core::String */ {
+      #L2:
+      case #C1:
+        {
+          break #L1;
+        }
+      #L3:
+      default:
+        {
+          dart.core::print("hello");
+        }
+    }
+  }
+}
+library from "org-dartlang-test:///b.dart" as b {
+
+  class Bar extends dart.core::Object {
+    final field dart.core::String bar;
+    constructor •(initializing-formal dart.core::String bar) → b::Bar
+      : b::Bar::bar = bar, super dart.core::Object::•()
+      ;
+  }
+}
+constants  {
+  #C1 = "hello"
+}
