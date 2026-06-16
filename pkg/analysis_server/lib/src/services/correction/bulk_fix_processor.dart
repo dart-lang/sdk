@@ -560,13 +560,14 @@ class BulkFixProcessor {
       resourceProvider: _workspace.resourceProvider,
       byteStore: _byteStore,
       sdkPath: originalContext.sdkRoot?.path,
-      updateAnalysisOptions4: ({required AnalysisOptionsImpl analysisOptions}) {
-        analysisOptions.lint = true;
-        analysisOptions.lintRules = [
-          ...analysisOptions.lintRules,
-          ..._additionalLintRules,
-        ];
-      },
+      configureAnalysisOptionsBuilder:
+          ({required AnalysisOptionsBuilder analysisOptionsBuilder}) {
+            analysisOptionsBuilder.lint = true;
+            analysisOptionsBuilder.lintRules = [
+              ...analysisOptionsBuilder.lintRules,
+              ..._additionalLintRules,
+            ];
+          },
     );
 
     return collection.contextFor(originalContext.contextRoot.root.path);

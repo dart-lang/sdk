@@ -110,10 +110,9 @@ abstract class AbstractAnalysisOptionsTest
       diagnostics: diagnostics,
     );
 
-    return AnalysisOptionsProvider(sourceFactory).getAnalysisOptionsFromFile(
-      initialFile,
-      resourceProvider: resourceProvider,
-    );
+    return AnalysisOptionsProvider(
+      sourceFactory,
+    ).getAnalysisOptionsFromFile(initialFile);
   }
 
   AnalysisOptionsImpl parseAnalysisOptionsWithDiagnostics(

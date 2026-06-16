@@ -838,7 +838,7 @@ class FileResolver {
 
     var result = options ?? AnalysisOptionsImpl();
     if (isThirdParty) {
-      result.warning = false;
+      result = (AnalysisOptionsBuilder.from(result)..warning = false).build();
     }
 
     return result;

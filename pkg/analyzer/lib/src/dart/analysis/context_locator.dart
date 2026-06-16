@@ -523,7 +523,6 @@ class _ContextLocator {
       var options = provider.getAnalysisOptionsFromFile(
         optionsFile,
         analysisOptionsCache: analysisOptionsCache,
-        resourceProvider: _resourceProvider,
       );
 
       return options.enabledLegacyPluginNames.toSet();
@@ -550,7 +549,6 @@ class _ContextLocator {
           .getAnalysisOptionsFromFile(
             optionsFile,
             analysisOptionsCache: analysisOptionsCache,
-            resourceProvider: _resourceProvider,
           );
       excludePatterns = options.excludePatterns;
     } catch (exception) {

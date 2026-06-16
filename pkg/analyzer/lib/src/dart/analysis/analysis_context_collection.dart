@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/sdk.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -55,27 +54,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     List<String> enabledExperiments = const [],
-    @Deprecated('Use updateAnalysisOptions4 instead')
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
-    updateAnalysisOptions3,
+    @Deprecated('Use configureAnalysisOptionsBuilder instead.')
     void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions4,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
            resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
-
-    if (updateAnalysisOptions3 != null && updateAnalysisOptions4 != null) {
-      throw ArgumentError(
-        'Only one of updateAnalysisOptions3 and updateAnalysisOptions4 may be '
-        'given',
-      );
-    }
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -102,16 +91,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       resourceProvider: this.resourceProvider,
     );
 
-    // While users can use the deprecated `updateAnalysisOptions3` and the new
-    // `updateAnalysisOptions4` parameter, prefer `updateAnalysisOptions4`, but
-    // create a new closure with the signature of the old.
-    var updateAnalysisOptions = updateAnalysisOptions4 != null
-        ? ({
-            required AnalysisOptionsImpl analysisOptions,
-            required DartSdk sdk,
-          }) => updateAnalysisOptions4(analysisOptions: analysisOptions)
-        : updateAnalysisOptions3;
-
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
@@ -126,7 +105,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions3: updateAnalysisOptions,
+        updateAnalysisOptions4: updateAnalysisOptions4,
+        configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         ownedFiles: ownedFiles,

@@ -35,7 +35,7 @@ class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
     var file = getFile(filePath);
     return AnalysisOptionsProvider(
       sourceFactory,
-    ).getAnalysisOptionsFromFile(file, resourceProvider: resourceProvider);
+    ).getAnalysisOptionsFromFile(file);
   }
 
   test_fromFile_analyzer_plugins_chooseFirstLegacyPlugin() {
@@ -515,10 +515,7 @@ analyzer:
     });
     var sig1 = options.signature;
     for (var i = 0; i < 100; i++) {
-      var options2 = optionsProvider.getAnalysisOptionsFromFile(
-        mainOptions,
-        resourceProvider: resourceProvider,
-      );
+      var options2 = optionsProvider.getAnalysisOptionsFromFile(mainOptions);
       var sig2 = options2.signature;
       expect(sig1, sig2);
     }

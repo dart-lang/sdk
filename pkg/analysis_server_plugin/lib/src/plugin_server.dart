@@ -726,11 +726,11 @@ class PluginServer {
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(_resourceProvider),
-      updateAnalysisOptions4:
+      configureAnalysisOptionsBuilder:
           // Disable extra warning computation and lint computation, because
           // these are reported in the main analysis server isolate, not in the
           // plugins isolate.
-          ({required AnalysisOptionsImpl analysisOptions}) => analysisOptions
+          ({required analysisOptionsBuilder}) => analysisOptionsBuilder
             ..warning = false
             ..lint = false,
       withFineDependencies: true,

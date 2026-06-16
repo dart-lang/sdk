@@ -608,7 +608,7 @@ class _AnalysisContextProvider {
       packageConfigFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions4: _updateAnalysisOptions,
+      configureAnalysisOptionsBuilder: _configureAnalysisOptionsBuilder,
       fileContentCache: _fileContentCache,
       withFineDependencies: true,
     );
@@ -640,11 +640,15 @@ class _AnalysisContextProvider {
     _pathList = pathList;
   }
 
-  void _setContextForPath(String path) {
-    _analysisContext = _collection!.contextFor(path);
+  void _configureAnalysisOptionsBuilder({
+    required AnalysisOptionsBuilder analysisOptionsBuilder,
+  }) {
+    _commandLineOptions!.configureAnalysisOptionsBuilder(
+      analysisOptionsBuilder,
+    );
   }
 
-  void _updateAnalysisOptions({required AnalysisOptionsImpl analysisOptions}) {
-    _commandLineOptions!.updateAnalysisOptions(analysisOptions);
+  void _setContextForPath(String path) {
+    _analysisContext = _collection!.contextFor(path);
   }
 }
