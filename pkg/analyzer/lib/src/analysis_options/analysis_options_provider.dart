@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -42,7 +41,7 @@ class AnalysisOptionsProvider {
     ResourceProvider? resourceProvider,
   }) {
     return AnalysisOptionsImpl.fromYaml(
-      optionsMap: getOptionsFromFile(
+      optionsMap: _getOptionsFromFile(
         file,
         analysisOptionsCache: analysisOptionsCache,
       ),
@@ -62,7 +61,7 @@ class AnalysisOptionsProvider {
   /// options files from disk. A cache should only be passed which is used
   /// during an atomic task (like locating contexts) and which has [YamlMap]
   /// contents derived from this [_sourceFactory].
-  YamlMap getOptionsFromFile(
+  YamlMap _getOptionsFromFile(
     File file, {
     AnalysisOptionsCache? analysisOptionsCache,
   }) {
@@ -73,50 +72,6 @@ class AnalysisOptionsProvider {
       analysisOptionsCache: analysisOptionsCache ?? {},
     );
   }
-
-  /// Provides the options found in [source].
-  ///
-  /// Recursively merges options referenced by any `include` directives and
-  /// removes any `include` directives from the resulting options map. Returns
-  /// an empty options map if the file does not exist or cannot be parsed.
-  YamlMap getOptionsFromSource(Source source, path.Context pathContext) {
-    return _getOptionsFromSource(
-      source,
-      pathContext,
-      handled: {},
-      analysisOptionsCache: {},
-    );
-  }
-
-  /// Provide the options found in [content].
-  ///
-  /// Any 'include' directives, if present, will be left intact, and the
-  /// referenced options will NOT be merged into the result. Returns an empty
-  /// options map if the content is not a YAML map, or if a [YamlException] is
-  /// thrown.
-  YamlMap getOptionsFromString(String content, {Uri? sourceUrl}) {
-    try {
-      var doc = loadYamlNode(content, sourceUrl: sourceUrl);
-      return doc is YamlMap ? doc : YamlMap();
-    } on YamlException catch (e) {
-      throw OptionsFormatException(e.message, e.span);
-    }
-  }
-
-  /// Merge the given options contents where the values in [defaults] may be
-  /// overridden by [overrides].
-  ///
-  /// Some notes about merge semantics:
-  ///
-  ///   * lists are merged (without duplicates).
-  ///   * lists of scalar values can be promoted to simple maps when merged with
-  ///     maps of strings to booleans (e.g., ['opt1', 'opt2'] becomes
-  ///     {'opt1': true, 'opt2': true}.
-  ///   * maps are merged recursively.
-  ///   * if map values cannot be merged, the overriding value is taken.
-  @visibleForTesting
-  YamlMap merge(YamlMap defaults, YamlMap overrides) =>
-      Merger().mergeMap(defaults, overrides);
 
   /// Provides the options found in [source].
   ///
@@ -135,7 +90,7 @@ class AnalysisOptionsProvider {
     }
     YamlMap options;
     try {
-      options = getOptionsFromString(
+      options = _parseOptionsFromString(
         source.stringContents,
         sourceUrl: source.uri,
       );
@@ -184,11 +139,28 @@ class AnalysisOptionsProvider {
         analysisOptionsCache[(containingUri: source.uri, uri: uri)] =
             includedOptions;
       }
-      return merge(currentOptions, includedOptions);
+      return _merge(currentOptions, includedOptions);
     });
-    options = merge(includeOptions, options);
+    options = _merge(includeOptions, options);
     analysisOptionsCache[(containingUri: null, uri: source.uri)] = options;
     return options;
+  }
+
+  YamlMap _merge(YamlMap defaults, YamlMap overrides) =>
+      Merger().mergeMap(defaults, overrides);
+
+  /// Parses the options found in [content].
+  ///
+  /// Any 'include' directives, if present, will be left intact, and the
+  /// referenced options will NOT be merged into the result. Returns an empty
+  /// options map if the content is not a YAML map.
+  YamlMap _parseOptionsFromString(String content, {Uri? sourceUrl}) {
+    try {
+      var doc = loadYamlNode(content, sourceUrl: sourceUrl);
+      return doc is YamlMap ? doc : YamlMap();
+    } on YamlException catch (e) {
+      throw OptionsFormatException(e.message, e.span);
+    }
   }
 
   /// Walks [options] with semantic knowledge about where paths may appear in an
@@ -221,7 +193,7 @@ class AnalysisOptionsProvider {
         }
       }
     });
-    return merge(options, YamlMap.wrap({'plugins': plugins}));
+    return _merge(options, YamlMap.wrap({'plugins': plugins}));
   }
 }
 

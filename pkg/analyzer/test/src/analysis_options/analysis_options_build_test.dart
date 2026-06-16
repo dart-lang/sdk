@@ -7,18 +7,15 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:linter/src/rules.dart' as linter_rules;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:yaml/yaml.dart';
 
 import 'analysis_options_test_support.dart';
 
@@ -32,103 +29,28 @@ main() {
   });
 }
 
-bool containsKey(Map<Object, YamlNode> map, Object key) =>
-    _getValue(map, key) != null;
-
-void expectEquals(YamlNode? actual, YamlNode? expected) {
-  if (expected is YamlScalar) {
-    actual!;
-    expect(actual, TypeMatcher<YamlScalar>());
-    expect(expected.value, actual.value);
-  } else if (expected is YamlList) {
-    if (actual is YamlList) {
-      expect(actual.length, expected.length);
-      List<YamlNode> expectedNodes = expected.nodes;
-      List<YamlNode> actualNodes = actual.nodes;
-      for (int i = 0; i < expectedNodes.length; i++) {
-        expectEquals(actualNodes[i], expectedNodes[i]);
-      }
-    } else {
-      fail('Expected a YamlList, found ${actual.runtimeType}');
-    }
-  } else if (expected is YamlMap) {
-    if (actual is YamlMap) {
-      expect(actual.length, expected.length);
-      var expectedNodes = expected.nodes.cast<Object, YamlNode>();
-      var actualNodes = actual.nodes.cast<Object, YamlNode>();
-      for (var expectedKey in expectedNodes.keys) {
-        if (!containsKey(actualNodes, expectedKey)) {
-          fail('Missing key $expectedKey');
-        }
-      }
-      for (var actualKey in actualNodes.keys) {
-        if (!containsKey(expectedNodes, actualKey)) {
-          fail('Extra key $actualKey');
-        }
-      }
-      for (var expectedKey in expectedNodes.keys) {
-        expectEquals(
-          _getValue(actualNodes, expectedKey),
-          _getValue(expectedNodes, expectedKey),
-        );
-      }
-    } else {
-      fail('Expected a YamlMap, found ${actual.runtimeType}');
-    }
-  } else {
-    fail('Unknown type of node: ${expected.runtimeType}');
-  }
-}
-
-Object? valueOf(Object object) => object is YamlNode ? object.value : object;
-
-YamlNode? _getValue(Map<Object, YamlNode?> map, Object key) {
-  var keyValue = valueOf(key);
-  for (var existingKey in map.keys) {
-    if (valueOf(existingKey) == keyValue) {
-      return map[existingKey];
-    }
-  }
-  return null;
-}
-
 @reflectiveTest
 class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
-  final AnalysisOptionsProvider stringOptionsProvider = AnalysisOptionsProvider(
-    SourceFactoryImpl([]),
-  );
-
   late AnalysisOptionsProvider provider;
 
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
   String get optionsFilePath => '/analysis_options.yaml';
 
-  AnalysisOptionsImpl buildOptionsFromFolder(String folderPath) {
-    var file = getFolder(folderPath).getFile(file_paths.analysisOptionsYaml);
-    return provider.getAnalysisOptionsFromFile(file);
+  AnalysisOptionsImpl getAnalysisOptionsFromFileContent(String content) {
+    var file = newFile('/project/analysis_options.yaml', content);
+    return provider.getAnalysisOptionsFromFile(
+      file,
+      resourceProvider: resourceProvider,
+    );
   }
 
-  void expectMergesTo(String defaults, String overrides, String expected) {
-    var defaultOptions = stringOptionsProvider.getOptionsFromString(defaults);
-    var overrideOptions = stringOptionsProvider.getOptionsFromString(overrides);
-    var merged = stringOptionsProvider.merge(defaultOptions, overrideOptions);
-    expectEquals(merged, stringOptionsProvider.getOptionsFromString(expected));
-  }
-
-  // TODO(srawlins): Add tests that exercise
-  // `AnalysisOptionsProvider.getOptionsFromString` throwing an exception.
-  AnalysisOptionsImpl fromYaml(String content) => AnalysisOptionsImpl.fromYaml(
-    optionsMap: stringOptionsProvider.getOptionsFromString(content),
-    file: getFile('/project/analysis_options.yaml'),
-    resourceProvider: resourceProvider,
-  );
-
-  YamlMap mergedYamlFromFolder(String posixPath) {
-    var folder = getFolder(posixPath);
-    var file = folder.getFile(file_paths.analysisOptionsYaml);
-    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
-    return AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(file);
+  AnalysisOptionsImpl getAnalysisOptionsFromFilePath(String filePath) {
+    var file = getFile(filePath);
+    return provider.getAnalysisOptionsFromFile(
+      file,
+      resourceProvider: resourceProvider,
+    );
   }
 
   @override
@@ -162,11 +84,21 @@ analyzer:
     - plugin_ccc
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
     plugin_ddd
+''');
+  }
+
+  test_fromFile_empty() {
+    newFile('/$analysisOptionsYaml', r'''#empty''');
+
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
 ''');
   }
 
@@ -183,7 +115,7 @@ analyzer:
     lowlevelerror: warning
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -209,7 +141,7 @@ analyzer:
 include: second_options.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -236,7 +168,7 @@ include:
   - second_options.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -260,7 +192,7 @@ analyzer:
     error_1: ignore
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -289,7 +221,7 @@ include:
   - second_options.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -312,7 +244,7 @@ analyzer:
     - lowlevelexclude.dart
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -335,7 +267,7 @@ analyzer:
     strict-inference: true
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -355,12 +287,36 @@ analyzer:
 include: other_options.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
     toplevelplugin
+''');
+  }
+
+  test_fromFile_include_linterRules_emptyLocal() {
+    newFile('/foo.yaml', r'''
+linter:
+  rules:
+    - included_lint
+''');
+    newFile('/$analysisOptionsYaml', r'''
+include: foo.yaml
+linter:
+  rules:
+    # local_lint: false
+''');
+
+    registerLintRule(TestRule.withName('included_lint'));
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    included_lint
 ''');
   }
 
@@ -380,7 +336,7 @@ linter:
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
     registerLintRules([lowLevelLint, topLevelLint]);
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -407,7 +363,7 @@ linter:
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
     registerLintRules([lowLevelLint, topLevelLint]);
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -433,36 +389,26 @@ linter:
 
     var topLevelLint = TestRule.withName('top_level_lint');
     registerLintRule(topLevelLint);
-    var options = buildOptionsFromFolder('/');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
 ''');
   }
 
-  test_fromFile_include_plugins_pathRebased() {
-    newFile('/project/analysis_options.yaml', '''
-plugins:
-  plugin_one:
-    path: foo/bar
-''');
-    newFile('/project/foo/analysis_options.yaml', r'''
-include: ../analysis_options.yaml
+  test_fromFile_include_missing() {
+    newFile('/$analysisOptionsYaml', r'''
+include: /foo.yaml
 ''');
 
-    var options = buildOptionsFromFolder('/project/foo');
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
-    assertAnalysisOptionsText(options, '''
+    assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: PathPluginSource
-          path: ${convertPath('/project/foo/bar')}
 ''');
   }
 
-  test_fromFile_sameAsMergedYaml() {
+  test_fromFile_include_multipleSections_merged() {
     newFile('/included_options.yaml', '''
 analyzer:
   errors:
@@ -471,7 +417,7 @@ linter:
   rules:
     - included_lint
 ''');
-    var file = newFile(optionsFilePath, r'''
+    newFile(optionsFilePath, r'''
 include: included_options.yaml
 analyzer:
   errors:
@@ -489,14 +435,9 @@ linter:
       TestRule.withName('included_lint'),
       TestRule.withName('main_lint'),
     ]);
-    var fromFile = provider.getAnalysisOptionsFromFile(file);
-    var fromMergedYaml = AnalysisOptionsImpl.fromYaml(
-      optionsMap: provider.getOptionsFromFile(file),
-      file: file,
-      resourceProvider: resourceProvider,
-    );
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
 
-    var expected = r'''
+    assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
     included_error: warning
@@ -508,9 +449,53 @@ AnalysisOptionsImpl
   strictCasts: true
   codeStyleOptions
     useFormatter: true
-''';
-    assertAnalysisOptionsText(fromFile, expected);
-    assertAnalysisOptionsText(fromMergedYaml, expected);
+''');
+  }
+
+  test_fromFile_include_plugins_pathRebased() {
+    newFile('/project/analysis_options.yaml', '''
+plugins:
+  plugin_one:
+    path: foo/bar
+''');
+    newFile('/project/foo/analysis_options.yaml', r'''
+include: ../analysis_options.yaml
+''');
+
+    var options = getAnalysisOptionsFromFilePath(
+      '/project/foo/analysis_options.yaml',
+    );
+
+    assertAnalysisOptionsText(options, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      plugin_one
+        source: PathPluginSource
+          path: ${convertPath('/project/foo/bar')}
+''');
+  }
+
+  test_fromFile_invalidYaml() {
+    newFile('/$analysisOptionsYaml', r''':''');
+
+    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_fromFile_missing() {
+    newFolder('/notFile');
+
+    var options = getAnalysisOptionsFromFilePath(
+      '/notFile/analysis_options.yaml',
+    );
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_fromFile_signature_mergeStable() {
@@ -551,8 +536,32 @@ analyzer:
     }
   }
 
+  test_fromFile_usesRequestedFile() {
+    newFolder('/foo/bar');
+    newFile('/foo/$analysisOptionsYaml', r'''
+analyzer:
+  errors:
+    foo_error: warning
+''');
+    newFile('/foo/bar/$analysisOptionsYaml', r'''
+analyzer:
+  errors:
+    bar_error: ignore
+''');
+
+    var options = getAnalysisOptionsFromFilePath(
+      '/foo/bar/analysis_options.yaml',
+    );
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    bar_error: ignore
+''');
+  }
+
   test_fromYaml_analyzer_cannotIgnore() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   cannot-ignore:
     - one_error_code
@@ -568,7 +577,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   cannot-ignore:
     - error
@@ -580,7 +589,7 @@ analyzer:
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity_withProcessor() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     unused_import: error
@@ -593,7 +602,7 @@ analyzer:
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity_withProcessor_oldSeverity() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     unused_import: error
@@ -608,7 +617,7 @@ analyzer:
   }
 
   test_fromYaml_analyzer_errors_cannotBeIgnoredByUniqueName() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     return_type_invalid_for_catch_error: ignore
@@ -636,7 +645,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_severityIsError() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     unused_local_variable: error
@@ -663,7 +672,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_severityIsIgnore() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     invalid_assignment: ignore
@@ -691,7 +700,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_sharedNameAppliesToAllSharedCodes() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     invalid_return_type_for_catch_error: ignore
@@ -719,7 +728,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_exclude() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   exclude:
     - foo/bar.dart
@@ -735,7 +744,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_exclude_withNonStrings() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   exclude:
     - foo/bar.dart
@@ -752,7 +761,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks
@@ -764,7 +773,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks_map() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks : true
@@ -776,7 +785,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_default() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
 ''');
@@ -786,7 +795,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_empty() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions
@@ -798,7 +807,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_false() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions: false
@@ -809,7 +818,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_true() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions: true
@@ -823,7 +832,7 @@ AnalysisOptionsImpl
   test_fromYaml_analyzer_plugins_legacy_list() {
     // TODO(srawlins): Test legacy plugins as a list of non-scalar values
     // (`- angular2: yes`).
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   plugins:
     - angular2
@@ -840,7 +849,7 @@ AnalysisOptionsImpl
   test_fromYaml_analyzer_plugins_legacy_map() {
     // TODO(srawlins): Test legacy plugins as a map of scalar values
     // (`angular2: yes`).
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   plugins:
     angular2:
@@ -855,7 +864,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_plugins_legacy_string() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 analyzer:
   plugins:
     angular2
@@ -869,7 +878,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_codeStyle_format_false() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 code-style:
   format: false
 ''');
@@ -879,7 +888,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_codeStyle_format_true() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 code-style:
   format: true
 ''');
@@ -892,7 +901,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysDeclareReturnTypes() {
     registerLintRule(TestRule.withName('always_declare_return_types'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - always_declare_return_types
@@ -912,7 +921,7 @@ AnalysisOptionsImpl
     registerLintRule(
       TestRule.withName('always_put_required_named_parameters_first'),
     );
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - always_put_required_named_parameters_first
@@ -930,7 +939,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysSpecifyTypes() {
     registerLintRule(TestRule.withName('always_specify_types'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - always_specify_types
@@ -949,7 +958,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysUsePackageImports() {
     registerLintRule(TestRule.withName('always_use_package_imports'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - always_use_package_imports
@@ -967,7 +976,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_avoidAnnotatingWithDynamic() {
     registerLintRule(TestRule.withName('avoid_annotating_with_dynamic'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - avoid_annotating_with_dynamic
@@ -985,7 +994,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_avoidRenamingMethodParameters() {
     registerLintRule(TestRule.withName('avoid_renaming_method_parameters'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - avoid_renaming_method_parameters
@@ -1003,7 +1012,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_combinatorsOrdering() {
     registerLintRule(TestRule.withName('combinators_ordering'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - combinators_ordering
@@ -1021,7 +1030,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferConstDeclarations() {
     registerLintRule(TestRule.withName('prefer_const_declarations'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_const_declarations
@@ -1039,7 +1048,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferDoubleQuotes() {
     registerLintRule(TestRule.withName('prefer_double_quotes'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_double_quotes
@@ -1057,7 +1066,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferFinalInForEach() {
     registerLintRule(TestRule.withName('prefer_final_in_for_each'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_final_in_for_each
@@ -1075,7 +1084,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferFinalLocals() {
     registerLintRule(TestRule.withName('prefer_final_locals'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_final_locals
@@ -1093,7 +1102,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferIntLiterals() {
     registerLintRule(TestRule.withName('prefer_int_literals'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_int_literals
@@ -1111,7 +1120,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferRelativeImports() {
     registerLintRule(TestRule.withName('prefer_relative_imports'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - prefer_relative_imports
@@ -1129,7 +1138,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_requireTrailingCommas() {
     registerLintRule(TestRule.withName('require_trailing_commas'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - require_trailing_commas
@@ -1147,7 +1156,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_sortConstructorsFirst() {
     registerLintRule(TestRule.withName('sort_constructors_first'));
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
     - sort_constructors_first
@@ -1164,7 +1173,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_dependencyOverrides_git() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one: ^1.2.3
   dependency_overrides:
@@ -1190,7 +1199,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_dependencyOverrides_relative() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     path: foo/bar
@@ -1219,7 +1228,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_dependencyOverrides_versionConstraintHosted() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one: ^1.2.3
   dependency_overrides:
@@ -1244,7 +1253,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
@@ -1261,7 +1270,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git_full() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     git:
@@ -1285,7 +1294,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git_scalar() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
@@ -1302,7 +1311,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_path() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     path: /foo/bar
@@ -1319,7 +1328,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_path_relative() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     path: foo/bar
@@ -1336,7 +1345,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_path_relativeNonNormal() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     path: .././foo/bar/../baz
@@ -1353,7 +1362,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_scalar() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one: ^1.2.3
 ''');
@@ -1369,7 +1378,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_version() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1386,7 +1395,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_versionHosted() {
-    var analysisOptions = fromYaml('''
+    var analysisOptions = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1405,7 +1414,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_signature_differsForHostedPlugin() {
-    var options = fromYaml('''
+    var options = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1414,7 +1423,7 @@ plugins:
     var sig1 = options.signature;
 
     for (var i = 0; i < 10; i++) {
-      var options2 = fromYaml('''
+      var options2 = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one: ^1.2.3
 ''');
@@ -1424,7 +1433,7 @@ plugins:
   }
 
   test_fromYaml_signature_errorOrderingStable() {
-    var options = fromYaml('''
+    var options = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     a: warning
@@ -1433,7 +1442,7 @@ analyzer:
 ''');
     var sig1 = options.signature;
     for (var i = 0; i < 10; i++) {
-      var options2 = fromYaml('''
+      var options2 = getAnalysisOptionsFromFileContent('''
 analyzer:
   errors:
     b: ignore
@@ -1450,7 +1459,7 @@ analyzer:
     var knownRules = Registry.ruleRegistry.rules
         .map((rule) => "    - ${rule.name}")
         .toList(growable: false);
-    var options = fromYaml('''
+    var options = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
 ${knownRules.reversed.join("\n")}
@@ -1458,7 +1467,7 @@ ${knownRules.reversed.join("\n")}
     var sig1 = options.signature;
     for (var i = 0; i < 10; i++) {
       knownRules.shuffle();
-      var options2 = fromYaml('''
+      var options2 = getAnalysisOptionsFromFileContent('''
 linter:
   rules:
 ${knownRules.join("\n")}
@@ -1469,7 +1478,7 @@ ${knownRules.join("\n")}
   }
 
   test_fromYaml_signature_pluginOrderingStable() {
-    var options = fromYaml('''
+    var options = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_one: ^1.2.3
   plugin_two: ^1.2.3
@@ -1477,7 +1486,7 @@ plugins:
 ''');
     var sig1 = options.signature;
     for (var i = 0; i < 10; i++) {
-      var options2 = fromYaml('''
+      var options2 = getAnalysisOptionsFromFileContent('''
 plugins:
   plugin_three: ^1.2.3
   plugin_one: ^1.2.3
@@ -1486,182 +1495,6 @@ plugins:
       var sig2 = options2.signature;
       expect(sig1, sig2);
     }
-  }
-
-  test_mergedYaml_getOptions_crawlUp_hasInFolder() {
-    newFolder('/foo/bar');
-    newFile('/foo/$analysisOptionsYaml', r'''
-analyzer:
-  ignore:
-    - foo
-''');
-    newFile('/foo/bar/$analysisOptionsYaml', r'''
-analyzer:
-  ignore:
-    - bar
-''');
-    YamlMap options = mergedYamlFromFolder('/foo/bar');
-    expect(options, hasLength(1));
-    {
-      var analyzer = options.valueAt('analyzer') as YamlMap;
-      expect(analyzer, isNotNull);
-      expect(analyzer.valueAt('ignore'), unorderedEquals(['bar']));
-    }
-  }
-
-  test_mergedYaml_getOptions_doesNotExist() {
-    newFolder('/notFile');
-    YamlMap options = mergedYamlFromFolder('/notFile');
-    expect(options, isEmpty);
-  }
-
-  test_mergedYaml_getOptions_empty() {
-    newFile('/$analysisOptionsYaml', r'''#empty''');
-    YamlMap options = mergedYamlFromFolder('/');
-    expect(options, isNotNull);
-    expect(options, isEmpty);
-  }
-
-  test_mergedYaml_getOptions_include() {
-    newFile('/foo.yaml', r'''
-analyzer:
-  ignore:
-    - ignoreme.dart
-    - 'sdk_ext/**'
-''');
-    newFile('/$analysisOptionsYaml', r'''
-include: foo.yaml
-''');
-    var options = mergedYamlFromFolder('/');
-    expect(options, hasLength(2));
-
-    var analyzer = options.valueAt('analyzer') as YamlMap;
-    expect(analyzer, hasLength(1));
-
-    var ignore = analyzer.valueAt('ignore') as YamlList;
-    expect(ignore, hasLength(2));
-    expect(ignore[0], 'ignoreme.dart');
-    expect(ignore[1], 'sdk_ext/**');
-  }
-
-  test_mergedYaml_getOptions_include_emptyLints() {
-    newFile('/foo.yaml', r'''
-linter:
-  rules:
-    - prefer_single_quotes
-''');
-    newFile('/$analysisOptionsYaml', r'''
-include: foo.yaml
-linter:
-  rules:
-    # avoid_print: false
-''');
-    var options = mergedYamlFromFolder('/');
-    expect(options, hasLength(2));
-
-    var linter = options.valueAt('linter') as YamlMap;
-    expect(linter, hasLength(1));
-
-    var rules = linter.valueAt('rules') as YamlList;
-    expect(rules, hasLength(1));
-    expect(rules[0], 'prefer_single_quotes');
-  }
-
-  test_mergedYaml_getOptions_include_missing() {
-    newFile('/$analysisOptionsYaml', r'''
-include: /foo.yaml
-''');
-    var options = mergedYamlFromFolder('/');
-    expect(options, hasLength(1));
-  }
-
-  test_mergedYaml_getOptions_invalidYaml() {
-    newFile('/$analysisOptionsYaml', r''':''');
-    var options = mergedYamlFromFolder('/');
-    expect(options, hasLength(1));
-  }
-
-  test_mergedYaml_getOptions_simple() {
-    newFile('/$analysisOptionsYaml', r'''
-analyzer:
-  ignore:
-    - ignoreme.dart
-    - 'sdk_ext/**'
-''');
-    var options = mergedYamlFromFolder('/');
-    expect(options, hasLength(1));
-
-    var analyzer = options.valueAt('analyzer') as YamlMap;
-    expect(analyzer, hasLength(1));
-
-    var ignore = analyzer.valueAt('ignore') as YamlList;
-    expect(ignore, hasLength(2));
-    expect(ignore[0], 'ignoreme.dart');
-    expect(ignore[1], 'sdk_ext/**');
-  }
-
-  test_mergedYaml_merge_integration() {
-    expectMergesTo(
-      '''
-analyzer:
-  plugins:
-    - p1
-    - p2
-  errors:
-    unused_local_variable : error
-linter:
-  rules:
-    - camel_case_types
-    - one_member_abstracts
-''',
-      '''
-analyzer:
-  plugins:
-    - p3
-  errors:
-    unused_local_variable : ignore # overrides error
-linter:
-  rules:
-    one_member_abstracts: false # promotes and disables
-    always_specify_return_types: true
-''',
-      '''
-analyzer:
-  plugins:
-    - p1
-    - p2
-    - p3
-  errors:
-    unused_local_variable : ignore
-linter:
-  rules:
-    camel_case_types: true
-    one_member_abstracts: false
-    always_specify_return_types: true
-''',
-    );
-  }
-
-  test_mergedYaml_parse_badYaml_throws() {
-    var src = '''
-    analyzer: # <= bang
-strong-mode: true
-''';
-
-    expect(
-      () => stringOptionsProvider.getOptionsFromString(src),
-      throwsA(TypeMatcher<OptionsFormatException>()),
-    );
-  }
-
-  test_mergedYaml_parse_missingSpace_ok() {
-    var src = '''
-analyzer:
-  strong-mode:true # missing space (sdk/issues/24885)
-''';
-
-    var options = stringOptionsProvider.getOptionsFromString(src);
-    expect(options, isNotNull);
   }
 }
 
