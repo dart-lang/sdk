@@ -32,9 +32,13 @@ abstract class AbstractAnalysisOptionsTest
   late SourceFactory sourceFactory;
   Map<String, String>? dependencies;
 
-  late File analysisOptionsFile = getFile('/analysis_options.yaml');
+  late File analysisOptionsFile = getFile(
+    '$testPackageRootPath/analysis_options.yaml',
+  );
 
   VersionConstraint? get sdkVersionConstraint => null;
+
+  String get testPackageRootPath => '/home/test';
 
   List<Diagnostic> assertAnalysisOptionsDiagnostics(
     String code, {
@@ -59,7 +63,7 @@ abstract class AbstractAnalysisOptionsTest
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath('/'),
+      contextRoot: convertPath(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
     ).validateContent(file: initialFile, content: cleanContent);
@@ -96,7 +100,7 @@ abstract class AbstractAnalysisOptionsTest
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath('/'),
+      contextRoot: convertPath(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
     ).validateContent(file: initialFile, content: cleanContent);

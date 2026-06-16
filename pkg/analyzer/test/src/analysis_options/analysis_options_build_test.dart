@@ -11,9 +11,7 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:linter/src/rules.dart' as linter_rules;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,60 +29,54 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
-  late AnalysisOptionsProvider provider;
-
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
-  String get optionsFilePath => '/analysis_options.yaml';
-
-  AnalysisOptionsImpl getAnalysisOptionsFromFileContent(String content) {
-    var file = newFile('/project/analysis_options.yaml', content);
-    return provider.getAnalysisOptionsFromFile(
-      file,
-      resourceProvider: resourceProvider,
-    );
-  }
-
-  AnalysisOptionsImpl getAnalysisOptionsFromFilePath(String filePath) {
+  AnalysisOptionsImpl getAnalysisOptionsFromMissingFile(String filePath) {
     var file = getFile(filePath);
-    return provider.getAnalysisOptionsFromFile(
-      file,
-      resourceProvider: resourceProvider,
-    );
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    provider = AnalysisOptionsProvider(sourceFactory);
+    return AnalysisOptionsProvider(
+      sourceFactory,
+    ).getAnalysisOptionsFromFile(file, resourceProvider: resourceProvider);
   }
 
   test_fromFile_analyzer_plugins_chooseFirstLegacyPlugin() {
-    newFile('/more_options.yaml', '''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(44..53): Multiple plugins can't be enabled.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(61..70): Multiple plugins can't be enabled.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(71..80): Multiple plugins can't be enabled.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(88..97): Multiple plugins can't be enabled.
 analyzer:
   plugins:
-    - plugin_ddd
-    - plugin_ggg
-    - plugin_aaa
-''');
-    newFile('/other_options.yaml', '''
+    - plugin_fff
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+    - plugin_iii
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+    - plugin_ccc
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
 include: more_options.yaml
 analyzer:
   plugins:
     - plugin_eee
     - plugin_hhh
     - plugin_bbb
-''');
-    newFile(optionsFilePath, r'''
-include: other_options.yaml
+''',
+      getFile('$testPackageRootPath/more_options.yaml'): '''
 analyzer:
   plugins:
-    - plugin_fff
-    - plugin_iii
-    - plugin_ccc
-''');
+    - plugin_ddd
+    - plugin_ggg
+    - plugin_aaa
+''',
+    });
 
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
@@ -93,9 +85,9 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_empty() {
-    newFile('/$analysisOptionsYaml', r'''#empty''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''#empty''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -103,148 +95,148 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_analyzerErrors_merged() {
-    newFile('/other_options.yaml', '''
-analyzer:
-  errors:
-    toplevelerror: warning
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 analyzer:
   errors:
-    lowlevelerror: warning
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+    invalid_assignment: warning
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+analyzer:
+  errors:
+    unused_import: warning
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    toplevelerror: warning
-    lowlevelerror: warning
+    unused_import: warning
+    invalid_assignment: warning
 ''');
   }
 
   test_fromFile_include_analyzerErrors_merged_chainOfIncludes() {
-    newFile('/first_options.yaml', '''
-analyzer:
-  errors:
-    error_1: error
-''');
-    newFile('/second_options.yaml', '''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: second_options.yaml
+''',
+      getFile('$testPackageRootPath/second_options.yaml'): '''
 include: first_options.yaml
 analyzer:
   errors:
-    error_2: warning
-''');
-    newFile(optionsFilePath, r'''
-include: second_options.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+    unused_import: warning
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: error
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    error_1: error
-    error_2: warning
+    invalid_assignment: error
+    unused_import: warning
 ''');
   }
 
   test_fromFile_include_analyzerErrors_merged_multipleIncludes() {
-    newFile('/first_options.yaml', '''
-analyzer:
-  errors:
-    error_1: error
-''');
-    newFile('/second_options.yaml', '''
-analyzer:
-  errors:
-    error_2: warning
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include:
   - first_options.yaml
   - second_options.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: error
+''',
+      getFile('$testPackageRootPath/second_options.yaml'): '''
+analyzer:
+  errors:
+    unused_import: warning
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    error_1: error
-    error_2: warning
+    invalid_assignment: error
+    unused_import: warning
 ''');
   }
 
   test_fromFile_include_analyzerErrors_outermostWins() {
-    newFile('/other_options.yaml', '''
-analyzer:
-  errors:
-    error_1: warning
-    error_2: warning
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 analyzer:
   errors:
-    error_1: ignore
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+    invalid_assignment: ignore
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+    unused_import: warning
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    error_1: ignore
-    error_2: warning
+    invalid_assignment: ignore
+    unused_import: warning
 ''');
   }
 
   test_fromFile_include_analyzerErrors_subsequentIncludeWins() {
-    newFile('/first_options.yaml', '''
-analyzer:
-  errors:
-    error_1: warning
-    error_2: warning
-''');
-    newFile('/second_options.yaml', '''
-analyzer:
-  errors:
-    error_1: ignore
-    error_2: warning
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include:
   - first_options.yaml
   - second_options.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+    unused_import: warning
+''',
+      getFile('$testPackageRootPath/second_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: ignore
+    unused_import: warning
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    error_1: ignore
-    error_2: warning
+    invalid_assignment: ignore
+    unused_import: warning
 ''');
   }
 
   test_fromFile_include_analyzerExclude_merged() {
-    newFile('/other_options.yaml', '''
-analyzer:
-  exclude:
-    - toplevelexclude.dart
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+analyzer:
+  exclude:
+    - toplevelexclude.dart
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -255,19 +247,19 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_analyzerLanguage_merged() {
-    newFile('/other_options.yaml', '''
-analyzer:
-  language:
-    strict-casts: true
-''');
-    newFile(optionsFilePath, r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 analyzer:
   language:
     strict-inference: true
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+analyzer:
+  language:
+    strict-casts: true
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -277,17 +269,17 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_analyzerPlugins_legacyPlugin() {
-    newFile('/other_options.yaml', '''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: other_options.yaml
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
 analyzer:
   plugins:
     toplevelplugin:
       enabled: true
-''');
-    newFile(optionsFilePath, r'''
-include: other_options.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -297,20 +289,20 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_linterRules_emptyLocal() {
-    newFile('/foo.yaml', r'''
-linter:
-  rules:
-    - included_lint
-''');
-    newFile('/$analysisOptionsYaml', r'''
+    registerLintRule(TestRule.withName('included_lint'));
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: foo.yaml
 linter:
   rules:
     # local_lint: false
-''');
-
-    registerLintRule(TestRule.withName('included_lint'));
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/foo.yaml'): r'''
+linter:
+  rules:
+    - included_lint
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -321,22 +313,22 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_linterRules_merged() {
-    newFile('/other_options.yaml', '''
-linter:
-  rules:
-    - top_level_lint
-''');
-    newFile(optionsFilePath, r'''
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRules([lowLevelLint, topLevelLint]);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 linter:
   rules:
     - low_level_lint
-''');
-
-    var lowLevelLint = TestRule.withName('low_level_lint');
-    var topLevelLint = TestRule.withName('top_level_lint');
-    registerLintRules([lowLevelLint, topLevelLint]);
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+linter:
+  rules:
+    - top_level_lint
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -348,22 +340,22 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_linterRules_merged_differentFormats() {
-    newFile('/other_options.yaml', '''
-linter:
-  rules:
-    top_level_lint: true
-''');
-    newFile(optionsFilePath, r'''
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRules([lowLevelLint, topLevelLint]);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 linter:
   rules:
     - low_level_lint
-''');
-
-    var lowLevelLint = TestRule.withName('low_level_lint');
-    var topLevelLint = TestRule.withName('top_level_lint');
-    registerLintRules([lowLevelLint, topLevelLint]);
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+linter:
+  rules:
+    top_level_lint: true
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -375,21 +367,21 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_linterRules_outermostWins() {
-    newFile('/other_options.yaml', '''
-linter:
-  rules:
-    - top_level_lint
-''');
-    newFile(optionsFilePath, r'''
+    var topLevelLint = TestRule.withName('top_level_lint');
+    registerLintRule(topLevelLint);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: other_options.yaml
 linter:
   rules:
     top_level_lint: false
-''');
-
-    var topLevelLint = TestRule.withName('top_level_lint');
-    registerLintRule(topLevelLint);
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+linter:
+  rules:
+    - top_level_lint
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -397,11 +389,13 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_missing() {
-    newFile('/$analysisOptionsYaml', r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: /foo.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+//       ^^^^^^^^^
+// [diag.includeFileNotFound] The URI '/foo.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -409,19 +403,16 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_multipleSections_merged() {
-    newFile('/included_options.yaml', '''
-analyzer:
-  errors:
-    included_error: warning
-linter:
-  rules:
-    - included_lint
-''');
-    newFile(optionsFilePath, r'''
+    registerLintRules([
+      TestRule.withName('included_lint'),
+      TestRule.withName('main_lint'),
+    ]);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
 include: included_options.yaml
 analyzer:
   errors:
-    main_error: ignore
+    invalid_assignment: ignore
   language:
     strict-casts: true
 code-style:
@@ -429,19 +420,22 @@ code-style:
 linter:
   rules:
     - main_lint
-''');
-
-    registerLintRules([
-      TestRule.withName('included_lint'),
-      TestRule.withName('main_lint'),
-    ]);
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+''',
+      getFile('$testPackageRootPath/included_options.yaml'): '''
+analyzer:
+  errors:
+    unused_import: warning
+linter:
+  rules:
+    - included_lint
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    included_error: warning
-    main_error: ignore
+    unused_import: warning
+    invalid_assignment: ignore
   lint: true
   lintRules
     included_lint
@@ -453,18 +447,16 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_include_plugins_pathRebased() {
-    newFile('/project/analysis_options.yaml', '''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      getFile('$testPackageRootPath/foo/analysis_options.yaml'): r'''
+include: ../analysis_options.yaml
+''',
+      analysisOptionsFile: '''
 plugins:
   plugin_one:
     path: foo/bar
-''');
-    newFile('/project/foo/analysis_options.yaml', r'''
-include: ../analysis_options.yaml
-''');
-
-    var options = getAnalysisOptionsFromFilePath(
-      '/project/foo/analysis_options.yaml',
-    );
+''',
+    });
 
     assertAnalysisOptionsText(options, '''
 AnalysisOptionsImpl
@@ -472,14 +464,14 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/project/foo/bar')}
+          path: ${convertPath('$testPackageRootPath/foo/bar')}
 ''');
   }
 
   test_fromFile_invalidYaml() {
-    newFile('/$analysisOptionsYaml', r''':''');
-
-    var options = getAnalysisOptionsFromFilePath(optionsFilePath);
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r''':''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -489,7 +481,7 @@ AnalysisOptionsImpl
   test_fromFile_missing() {
     newFolder('/notFile');
 
-    var options = getAnalysisOptionsFromFilePath(
+    var options = getAnalysisOptionsFromMissingFile(
       '/notFile/analysis_options.yaml',
     );
 
@@ -501,30 +493,26 @@ AnalysisOptionsImpl
   test_fromFile_signature_mergeStable() {
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-    var otherOptions = resourceProvider.getFile(
-      convertPath("/project/analysis_options_helper.yaml"),
+    var otherOptions = getFile(
+      '$testPackageRootPath/analysis_options_helper.yaml',
     );
-    otherOptions.writeAsStringSync('''
-analyzer:
-  errors:
-    a: warning
-    b: ignore
-    c: ignore
-''');
-    var mainOptions = resourceProvider.getFile(
-      convertPath("/project/analysis_options.yaml"),
-    );
-    mainOptions.writeAsStringSync('''
+    var mainOptions = analysisOptionsFile;
+
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      mainOptions: '''
 include: analysis_options_helper.yaml
 analyzer:
   errors:
-    d: ignore
-''');
-
-    var options = optionsProvider.getAnalysisOptionsFromFile(
-      mainOptions,
-      resourceProvider: resourceProvider,
-    );
+    dead_code: ignore
+''',
+      otherOptions: '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+    unused_import: ignore
+    unused_local_variable: ignore
+''',
+    });
     var sig1 = options.signature;
     for (var i = 0; i < 100; i++) {
       var options2 = optionsProvider.getAnalysisOptionsFromFile(
@@ -537,47 +525,44 @@ analyzer:
   }
 
   test_fromFile_usesRequestedFile() {
-    newFolder('/foo/bar');
-    newFile('/foo/$analysisOptionsYaml', r'''
+    newFile('$testPackageRootPath/foo/$analysisOptionsYaml', r'''
 analyzer:
   errors:
-    foo_error: warning
+    invalid_assignment: warning
 ''');
-    newFile('/foo/bar/$analysisOptionsYaml', r'''
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      getFile('$testPackageRootPath/foo/bar/analysis_options.yaml'): r'''
 analyzer:
   errors:
-    bar_error: ignore
-''');
-
-    var options = getAnalysisOptionsFromFilePath(
-      '/foo/bar/analysis_options.yaml',
-    );
+    unused_import: ignore
+''',
+    });
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
   errorProcessors
-    bar_error: ignore
+    unused_import: ignore
 ''');
   }
 
   test_fromYaml_analyzer_cannotIgnore() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
-    - one_error_code
-    - another
+    - invalid_assignment
+    - unused_import
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   unignorableDiagnosticCodeNames
-    another
-    one_error_code
+    invalid_assignment
+    unused_import
 ''');
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     - error
@@ -589,7 +574,7 @@ analyzer:
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity_withProcessor() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     unused_import: error
@@ -602,7 +587,7 @@ analyzer:
   }
 
   test_fromYaml_analyzer_cannotIgnore_severity_withProcessor_oldSeverity() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     unused_import: error
@@ -617,10 +602,12 @@ analyzer:
   }
 
   test_fromYaml_analyzer_errors_cannotBeIgnoredByUniqueName() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     return_type_invalid_for_catch_error: ignore
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unrecognizedErrorCode] 'return_type_invalid_for_catch_error' isn't a recognized diagnostic code.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -645,7 +632,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_severityIsError() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     unused_local_variable: error
@@ -672,7 +659,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_severityIsIgnore() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     invalid_assignment: ignore
@@ -700,7 +687,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_errors_sharedNameAppliesToAllSharedCodes() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     invalid_return_type_for_catch_error: ignore
@@ -728,7 +715,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_exclude() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   exclude:
     - foo/bar.dart
@@ -744,7 +731,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_exclude_withNonStrings() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   exclude:
     - foo/bar.dart
@@ -761,7 +748,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks
@@ -773,7 +760,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_chromeOsManifestChecks_map() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks : true
@@ -784,18 +771,8 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_default() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
-analyzer:
-  optional-checks:
-''');
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_empty() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions
@@ -807,7 +784,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_false() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions: false
@@ -818,7 +795,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_optionalChecks_propagateLinterExceptions_true() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions: true
@@ -832,11 +809,13 @@ AnalysisOptionsImpl
   test_fromYaml_analyzer_plugins_legacy_list() {
     // TODO(srawlins): Test legacy plugins as a list of non-scalar values
     // (`- angular2: yes`).
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
     - angular2
     - intl
+//    ^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -849,7 +828,7 @@ AnalysisOptionsImpl
   test_fromYaml_analyzer_plugins_legacy_map() {
     // TODO(srawlins): Test legacy plugins as a map of scalar values
     // (`angular2: yes`).
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
     angular2:
@@ -864,7 +843,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_analyzer_plugins_legacy_string() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
     angular2
@@ -878,7 +857,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_codeStyle_format_false() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: false
 ''');
@@ -888,7 +867,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_codeStyle_format_true() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: true
 ''');
@@ -901,7 +880,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysDeclareReturnTypes() {
     registerLintRule(TestRule.withName('always_declare_return_types'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - always_declare_return_types
@@ -921,7 +900,7 @@ AnalysisOptionsImpl
     registerLintRule(
       TestRule.withName('always_put_required_named_parameters_first'),
     );
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - always_put_required_named_parameters_first
@@ -939,7 +918,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysSpecifyTypes() {
     registerLintRule(TestRule.withName('always_specify_types'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - always_specify_types
@@ -958,7 +937,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_alwaysUsePackageImports() {
     registerLintRule(TestRule.withName('always_use_package_imports'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - always_use_package_imports
@@ -976,7 +955,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_avoidAnnotatingWithDynamic() {
     registerLintRule(TestRule.withName('avoid_annotating_with_dynamic'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - avoid_annotating_with_dynamic
@@ -994,7 +973,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_avoidRenamingMethodParameters() {
     registerLintRule(TestRule.withName('avoid_renaming_method_parameters'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - avoid_renaming_method_parameters
@@ -1012,7 +991,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_combinatorsOrdering() {
     registerLintRule(TestRule.withName('combinators_ordering'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - combinators_ordering
@@ -1030,7 +1009,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferConstDeclarations() {
     registerLintRule(TestRule.withName('prefer_const_declarations'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_const_declarations
@@ -1048,7 +1027,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferDoubleQuotes() {
     registerLintRule(TestRule.withName('prefer_double_quotes'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_double_quotes
@@ -1066,7 +1045,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferFinalInForEach() {
     registerLintRule(TestRule.withName('prefer_final_in_for_each'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_final_in_for_each
@@ -1084,7 +1063,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferFinalLocals() {
     registerLintRule(TestRule.withName('prefer_final_locals'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_final_locals
@@ -1102,7 +1081,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferIntLiterals() {
     registerLintRule(TestRule.withName('prefer_int_literals'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_int_literals
@@ -1120,7 +1099,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_preferRelativeImports() {
     registerLintRule(TestRule.withName('prefer_relative_imports'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - prefer_relative_imports
@@ -1138,7 +1117,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_requireTrailingCommas() {
     registerLintRule(TestRule.withName('require_trailing_commas'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - require_trailing_commas
@@ -1156,7 +1135,7 @@ AnalysisOptionsImpl
 
   test_fromYaml_codeStyle_lint_sortConstructorsFirst() {
     registerLintRule(TestRule.withName('sort_constructors_first'));
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - sort_constructors_first
@@ -1173,7 +1152,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_dependencyOverrides_git() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one: ^1.2.3
   dependency_overrides:
@@ -1199,7 +1178,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_dependencyOverrides_relative() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     path: foo/bar
@@ -1216,19 +1195,19 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/project/foo/bar')}
+          path: ${convertPath('/home/test/foo/bar')}
     dependencyOverrides
       some_package1
         source: PathPluginSource
-          path: ${convertPath('/some_package1')}
+          path: ${convertPath('/home/some_package1')}
       some_package2
         source: PathPluginSource
-          path: ${convertPath('/project/sub_folder/some_package2')}
+          path: ${convertPath('/home/test/sub_folder/some_package2')}
 ''');
   }
 
   test_fromYaml_plugins_dependencyOverrides_versionConstraintHosted() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one: ^1.2.3
   dependency_overrides:
@@ -1253,7 +1232,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
@@ -1270,7 +1249,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git_full() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     git:
@@ -1294,7 +1273,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_git_scalar() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
@@ -1311,7 +1290,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_path() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     path: /foo/bar
@@ -1328,7 +1307,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_path_relative() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     path: foo/bar
@@ -1340,12 +1319,12 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/project/foo/bar')}
+          path: ${convertPath('/home/test/foo/bar')}
 ''');
   }
 
   test_fromYaml_plugins_path_relativeNonNormal() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     path: .././foo/bar/../baz
@@ -1357,12 +1336,12 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/foo/baz')}
+          path: ${convertPath('/home/foo/baz')}
 ''');
   }
 
   test_fromYaml_plugins_scalar() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one: ^1.2.3
 ''');
@@ -1378,7 +1357,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_version() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1395,7 +1374,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_plugins_versionHosted() {
-    var analysisOptions = getAnalysisOptionsFromFileContent('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1414,7 +1393,7 @@ AnalysisOptionsImpl
   }
 
   test_fromYaml_signature_differsForHostedPlugin() {
-    var options = getAnalysisOptionsFromFileContent('''
+    var options = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one:
     version: ^1.2.3
@@ -1423,7 +1402,7 @@ plugins:
     var sig1 = options.signature;
 
     for (var i = 0; i < 10; i++) {
-      var options2 = getAnalysisOptionsFromFileContent('''
+      var options2 = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one: ^1.2.3
 ''');
@@ -1433,21 +1412,21 @@ plugins:
   }
 
   test_fromYaml_signature_errorOrderingStable() {
-    var options = getAnalysisOptionsFromFileContent('''
+    var options = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
-    a: warning
-    b: ignore
-    c: ignore
+    invalid_assignment: warning
+    unused_import: ignore
+    dead_code: ignore
 ''');
     var sig1 = options.signature;
     for (var i = 0; i < 10; i++) {
-      var options2 = getAnalysisOptionsFromFileContent('''
+      var options2 = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
-    b: ignore
-    a: warning
-    c: ignore
+    unused_import: ignore
+    invalid_assignment: warning
+    dead_code: ignore
 ''');
       var sig2 = options2.signature;
       expect(sig1, sig2);
@@ -1455,30 +1434,33 @@ analyzer:
   }
 
   test_fromYaml_signature_lintsOrderingStable() {
-    linter_rules.registerLintRules();
-    var knownRules = Registry.ruleRegistry.rules
-        .map((rule) => "    - ${rule.name}")
-        .toList(growable: false);
-    var options = getAnalysisOptionsFromFileContent('''
+    registerLintRules([
+      TestRule.withName('signature_lint_a'),
+      TestRule.withName('signature_lint_b'),
+      TestRule.withName('signature_lint_c'),
+    ]);
+    var options = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
-${knownRules.reversed.join("\n")}
+    - signature_lint_a
+    - signature_lint_b
+    - signature_lint_c
 ''');
     var sig1 = options.signature;
-    for (var i = 0; i < 10; i++) {
-      knownRules.shuffle();
-      var options2 = getAnalysisOptionsFromFileContent('''
+
+    var options2 = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
-${knownRules.join("\n")}
+    - signature_lint_c
+    - signature_lint_a
+    - signature_lint_b
 ''');
-      var sig2 = options2.signature;
-      expect(sig1, sig2);
-    }
+    var sig2 = options2.signature;
+    expect(sig1, sig2);
   }
 
   test_fromYaml_signature_pluginOrderingStable() {
-    var options = getAnalysisOptionsFromFileContent('''
+    var options = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_one: ^1.2.3
   plugin_two: ^1.2.3
@@ -1486,7 +1468,7 @@ plugins:
 ''');
     var sig1 = options.signature;
     for (var i = 0; i < 10; i++) {
-      var options2 = getAnalysisOptionsFromFileContent('''
+      var options2 = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   plugin_three: ^1.2.3
   plugin_one: ^1.2.3

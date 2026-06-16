@@ -32,7 +32,7 @@ class AnalysisOptionsValidationTest extends AbstractAnalysisOptionsTest {
   void newEmptyIncludedOptionsFile() {
     // TODO(scheglov): Remove this file and the unnecessary include directives
     // in these value-only tests.
-    newFile('/included.yaml', '');
+    newFile('$testPackageRootPath/included.yaml', '');
   }
 
   @override
@@ -573,7 +573,7 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_list() {
-    newFile(convertPath('/other_options.yaml'), '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
@@ -595,7 +595,7 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_map() {
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
@@ -618,7 +618,7 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_scalar() {
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
@@ -639,12 +639,12 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondDirect() {
-    newFile('/more_options.yaml', '''
+    newFile('$testPackageRootPath/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 include: more_options.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
@@ -664,12 +664,12 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondIncluded() {
-    newFile('/more_options.yaml', '''
+    newFile('$testPackageRootPath/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 include: more_options.yaml
 analyzer:
   plugins:
@@ -678,7 +678,13 @@ analyzer:
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options.yaml(54..63): Multiple plugins can't be enabled.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -997,7 +1003,7 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'other_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'other_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1006,13 +1012,17 @@ AnalysisOptionsImpl
   }
 
   test_include_missing_nested() {
-    newFile('/other_options1.yaml', r'''
+    newFile('$testPackageRootPath/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'other_options2.yaml' included in '/other_options1.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'other_options2.yaml' included in '/home/test/other_options1.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1025,7 +1035,11 @@ AnalysisOptionsImpl
 # We don't depend on pedantic, but we should consider adding it.
 include: "package:pedantic/analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1040,10 +1054,10 @@ AnalysisOptionsImpl
 include:
   - package:pedantic/analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
   - included1.yaml
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1059,9 +1073,9 @@ include:
   - included1.yaml
   - package:pedantic/analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1074,7 +1088,11 @@ AnalysisOptionsImpl
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1087,7 +1105,11 @@ AnalysisOptionsImpl
 # We don't depend on pedantic, but we should consider adding it.
 include: 'package:pedantic/analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1096,7 +1118,7 @@ AnalysisOptionsImpl
   }
 
   test_include_parse_duplicateKey_inIncludedFile() {
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 formatter:
   page_width: 80
   page_width: 90
@@ -1104,7 +1126,11 @@ formatter:
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileParseError] Duplicate mapping key. in /other_options.yaml(30..40)
+// [diag.includedFileParseError] Duplicate mapping key. in /home/test/other_options.yaml(30..40)
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1116,13 +1142,17 @@ AnalysisOptionsImpl
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include another options file which in turn includes
     // `analysis_options.yaml`.
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 include: analysis_options.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/other_options.yaml' includes '/other_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/other_options.yaml' includes '/home/test/other_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1136,10 +1166,10 @@ AnalysisOptionsImpl
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options1.yaml', r'''
+    newFile('$testPackageRootPath/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
-    newFile('/other_options2.yaml', r'''
+    newFile('$testPackageRootPath/other_options2.yaml', r'''
 # comment
 include: other_options1.yaml
 ''');
@@ -1148,7 +1178,11 @@ include: other_options1.yaml
 # comment
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options1.yaml(9..27): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options1.yaml(9..27): The file includes itself recursively.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1161,12 +1195,12 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(9..14): The file includes itself recursively.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: a.yaml
 ''',
     });
@@ -1181,9 +1215,9 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(9..14): The file includes itself recursively.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: a.yaml
 ''',
     });
@@ -1198,12 +1232,12 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
     });
@@ -1220,15 +1254,15 @@ include:
   - empty.yaml
   - a.yaml
 //  ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
-      getFile('/empty.yaml'): '''
+      getFile('$testPackageRootPath/empty.yaml'): '''
 ''',
     });
 
@@ -1242,17 +1276,17 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include:
   - empty.yaml
   - b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
-      getFile('/empty.yaml'): '''
+      getFile('$testPackageRootPath/empty.yaml'): '''
 ''',
     });
 
@@ -1266,11 +1300,11 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: c.yaml
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '',
-      getFile('/c.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '',
+      getFile('$testPackageRootPath/c.yaml'): '''
 include:
   - a.yaml
   - b.yaml
@@ -1289,10 +1323,10 @@ include:
   - a.yaml
   - b.yaml
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '',
+      getFile('$testPackageRootPath/b.yaml'): '',
     });
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1306,7 +1340,11 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1318,7 +1356,11 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: "./analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1330,7 +1372,11 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1343,7 +1389,11 @@ AnalysisOptionsImpl
 include:
   - analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1357,14 +1407,18 @@ AnalysisOptionsImpl
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 include: other_options.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 # comment
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options.yaml(9..26): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(9..26): The file includes itself recursively.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1378,10 +1432,10 @@ AnalysisOptionsImpl
 include:
   - ./analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
   - included1.yaml
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1396,9 +1450,9 @@ include:
   - included1.yaml
   - ./analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1410,7 +1464,11 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: ./analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1422,7 +1480,11 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: './analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1435,9 +1497,9 @@ AnalysisOptionsImpl
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(12..20): The option 'something' isn't supported by 'analyzer'.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(12..20): The option 'something' isn't supported by 'analyzer'.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 analyzer:
   something: bad
 ''',
@@ -1466,7 +1528,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_deprecated_inIncludedFile_ok() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - deprecated_lint
@@ -1646,7 +1708,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_duplicate_inIncludedFile_ok() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - stable_lint
@@ -1697,12 +1759,12 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_include_multipleCompatible() {
-    newFile('/included1.yaml', '''
+    newFile('$testPackageRootPath/included1.yaml', '''
 linter:
   rules:
     rule_pos: true
 ''');
-    newFile('/included2.yaml', '''
+    newFile('$testPackageRootPath/included2.yaml', '''
 linter:
   rules:
     rule_pos: true
@@ -1743,7 +1805,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_invalidMap_noDiagnostic() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
@@ -1777,12 +1839,12 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 linter:
   rules:
     rule_neg: true
 //  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
 ''',
     });
 
@@ -1843,12 +1905,12 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 linter:
   rules:
     rule_neg: true
 //  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
 ''',
     });
 
@@ -1862,7 +1924,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_map_includedFile_disabledInMain() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
@@ -1898,7 +1960,7 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLint][context 1] The rule 'rule_pos' is incompatible with ''rule_neg''.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -1925,12 +1987,12 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'Rule_pos' is incompatible with 'rulE_neg'.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 linter:
   rules:
     rulE_neg: true
 //  ^^^^^^^^
-// [context 1] The rule 'rulE_neg' is enabled here in the file '/included.yaml'.
+// [context 1] The rule 'rulE_neg' is enabled here in the file '/home/test/included.yaml'.
 ''',
     });
 
@@ -1994,14 +2056,14 @@ include:
 //  ^^^^^^^^^^^^^^
 // [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
     rule_neg: true
 //  ^^^^^^^^
 // [context 2] The rule 'rule_neg' is enabled here.
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     rule_pos: true
@@ -2020,12 +2082,12 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_multipleIncludes_disabledInMain() {
-    newFile('/included1.yaml', '''
+    newFile('$testPackageRootPath/included1.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    newFile('/included2.yaml', '''
+    newFile('$testPackageRootPath/included2.yaml', '''
 linter:
   rules:
     rule_pos: true
@@ -2060,14 +2122,14 @@ include:
 linter:
   rules:
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
     - rule_neg
 //    ^^^^^^^^
 // [context 2] The rule 'rule_neg' is enabled here.
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     - rule_pos
@@ -2098,14 +2160,14 @@ include:
 linter:
   rules:
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
     - ruLe_neg
 //    ^^^^^^^^
 // [context 2] The rule 'ruLe_neg' is enabled here.
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     - rule_poS
@@ -2130,14 +2192,14 @@ include:
   - included1.yaml
   - included2.yaml
 //  ^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /included2.yaml(40..47): The rule 'rule_pos' is incompatible with ''rule_neg''.
+// [diag.includedFileWarning] Warning in the included options file /home/test/included2.yaml(40..47): The rule 'rule_pos' is incompatible with ''rule_neg''.
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
     rule_neg: true
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -2163,14 +2225,14 @@ include:
 //  ^^^^^^^^^^^^^^
 // [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
     - rule_neg
 //    ^^^^^^^^
 // [context 2] The rule 'rule_neg' is enabled here.
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     - rule_pos
@@ -2197,17 +2259,17 @@ include:
 //  ^^^^^^^^^^^^^^
 // [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 include: nested.yaml
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
 //  ^^^^^^^^
 // [context 2] The rule 'rule_neg' is enabled here.
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     rule_pos: true
@@ -2232,19 +2294,19 @@ include:
   - included1.yaml
   - included2.yaml
 ''',
-      getFile('/included1.yaml'): '''
+      getFile('$testPackageRootPath/included1.yaml'): '''
 include: nested.yaml
 
 linter:
   rules:
     rule_neg: false
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     rule_pos: true
@@ -2270,15 +2332,15 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
 //  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/nested.yaml'.
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/nested.yaml'.
 ''',
     });
 
@@ -2300,14 +2362,14 @@ linter:
   rules:
     rule_pos: true
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 
 linter:
   rules:
     rule_neg: false
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -2331,14 +2393,14 @@ linter:
   rules:
     rule_pos: true
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 
 linter:
   rules:
     rule_neg: ignore
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -2363,14 +2425,14 @@ linter:
   rules:
     rule_pos: true
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 
 linter:
   rules:
     rule_neg: false
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     - rule_neg
@@ -2395,10 +2457,10 @@ linter:
     rule_pos: true
     rule_neg: false
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -2424,16 +2486,16 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 
 linter:
   rules:
     - rule_neg
 //    ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: false
@@ -2459,10 +2521,10 @@ linter:
     rule_pos: true
     rule_neg: ignore
 ''',
-      getFile('/included.yaml'): '''
+      getFile('$testPackageRootPath/included.yaml'): '''
 include: nested.yaml
 ''',
-      getFile('/nested.yaml'): '''
+      getFile('$testPackageRootPath/nested.yaml'): '''
 linter:
   rules:
     rule_neg: true
@@ -2479,12 +2541,8 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_packageInclude() {
-    var testProjectPath = '/test';
-    var testAnalysisOptionsFile = getFile(
-      '$testProjectPath/analysis_options.yaml',
-    );
     var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
-      testAnalysisOptionsFile: '''
+      analysisOptionsFile: '''
 include:
   - package:other/analysis_options.yaml
 
@@ -2542,7 +2600,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_removed_inIncludedFile_ok() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - removed_in_2_12_lint
@@ -2852,7 +2910,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_unsupported_withIncompatibleIncludedRule() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
@@ -2878,7 +2936,7 @@ AnalysisOptionsImpl
 
   void
   test_linter_rules_value_unsupported_withIncompatibleIncludedRule_mixedCase() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rUle_neg: true
@@ -3133,11 +3191,13 @@ AnalysisOptionsImpl
   }
 
   test_plugins_innerOptions() {
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
-    var innerOptionsFile = getFile('/inner/analysis_options.yaml');
+    var innerOptionsFile = getFile(
+      '$testPackageRootPath/inner/analysis_options.yaml',
+    );
     var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       innerOptionsFile: '''
 plugins:
@@ -3157,15 +3217,17 @@ AnalysisOptionsImpl
   }
 
   test_plugins_innerOptions_included() {
-    newFile('/analysis_options.yaml', '''
+    newFile('$testPackageRootPath/analysis_options.yaml', '''
 plugins:
   one: ^1.0.0
 ''');
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
-    var innerOptionsFile = getFile('/inner/analysis_options.yaml');
+    var innerOptionsFile = getFile(
+      '$testPackageRootPath/inner/analysis_options.yaml',
+    );
     var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       innerOptionsFile: '''
 include: ../analysis_options.yaml
@@ -3183,13 +3245,13 @@ AnalysisOptionsImpl
   }
 
   test_plugins_innerOptions_included_notAtContextRoot() {
-    var inner1Path = '/inner1/analysis_options.yaml';
-    var inner2Path = '/inner2/analysis_options.yaml';
+    var inner1Path = '$testPackageRootPath/inner1/analysis_options.yaml';
+    var inner2Path = '$testPackageRootPath/inner2/analysis_options.yaml';
     newFile(inner2Path, '''
 plugins:
   one: ^1.0.0
 ''');
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
@@ -3243,13 +3305,13 @@ plugins:
     path: foo/bar
 ''');
 
-    assertAnalysisOptionsText(analysisOptions, r'''
+    assertAnalysisOptionsText(analysisOptions, '''
 AnalysisOptionsImpl
   pluginsOptions
     configurations
       one
         source: PathPluginSource
-          path: /foo/bar
+          path: ${convertPath('$testPackageRootPath/foo/bar')}
 ''');
   }
 
