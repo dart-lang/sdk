@@ -801,7 +801,6 @@ const d = 3;
 
     await assertHasAssist('''
 class C(
-  /**/
   @c
   @d
   @a
