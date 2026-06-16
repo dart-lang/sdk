@@ -156,11 +156,8 @@ BoolLiteral createBoolLiteral(int fileOffset, bool value) {
 }
 
 /// Return a representation of a break statement.
-Statement createBreakStatement(int fileOffset, Object? label) {
-  // TODO(johnniwinther): Use [label]?
-  return new BreakStatementImpl(isContinue: false)
-    ..fileOffset = fileOffset
-    ..target = label is LabeledStatement ? label : dummyLabeledStatement;
+Statement createBreakStatement(int fileOffset, String? label) {
+  return new InternalBreakStatement(label: label, fileOffset: fileOffset);
 }
 
 InternalPattern createCastPattern(
@@ -244,9 +241,8 @@ ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
 }
 
 /// Return a representation of a continue statement.
-Statement createContinueStatement(int fileOffset, Object? label) {
-  // TODO(johnniwinther): Use [label]?
-  return new BreakStatementImpl(isContinue: true)..fileOffset = fileOffset;
+Statement createContinueStatement(int fileOffset, String? label) {
+  return new InternalContinueStatement(label: label, fileOffset: fileOffset);
 }
 
 Statement createContinueSwitchStatement({required int fileOffset}) {

@@ -149,7 +149,8 @@ void main() {
     _testTryStatement();
     _testInternalForInStatement();
     _testSwitchCaseImpl();
-    _testBreakStatementImpl();
+    _testBreakStatement();
+    _testContinueStatement();
     _testCascade();
     _testDeferredCheck();
     _testFactoryConstructorInvocation();
@@ -916,25 +917,32 @@ switch (null) { case 0 => 4, case 1 => 5, case 2 when 3 => 6 }''',
   );
 }
 
-void _testBreakStatementImpl() {
-  WhileStatement whileStatement = new WhileStatement(
-    new BoolLiteral(true),
-    new Block([]),
-  );
-  LabeledStatement labeledStatement = new LabeledStatement(whileStatement);
+void _testBreakStatement() {
   testStatement(
-    new BreakStatementImpl(isContinue: false)
-      ..target = labeledStatement
-      ..targetStatement = whileStatement,
+    new InternalBreakStatement(label: null, fileOffset: TreeNode.noOffset),
     '''
-break label0;''',
+break;''',
   );
   testStatement(
-    new BreakStatementImpl(isContinue: true)
-      ..target = labeledStatement
-      ..targetStatement = whileStatement,
+    new InternalBreakStatement(label: 'label', fileOffset: TreeNode.noOffset),
     '''
-continue label0;''',
+break label;''',
+  );
+}
+
+void _testContinueStatement() {
+  testStatement(
+    new InternalContinueStatement(label: null, fileOffset: TreeNode.noOffset),
+    '''
+continue;''',
+  );
+  testStatement(
+    new InternalContinueStatement(
+      label: 'label',
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+continue label;''',
   );
 }
 
