@@ -30,6 +30,7 @@ _FIREFOX = {"custom_vars": {"download_firefox": True}}
 _FUCHSIA_DEPS = {"custom_vars": {"download_fuchsia_deps": True}}
 _JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 _FLUTE = {"custom_vars": {"checkout_flute": True}}
+_SLOW_BUILD = {"$dart/build": {"timeout": (60 * time.minute) // time.second}}
 _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 _ARM64 = {"cpu": "arm64"}
@@ -75,6 +76,7 @@ firefox = _FIREFOX
 flute = _FLUTE
 fuchsia_deps = _FUCHSIA_DEPS
 js_engines = _JS_ENGINES
+slow_build = _SLOW_BUILD
 slow_shards = _SLOW_SHARDS
 no_caches = _NO_CACHES
 no_reclient = _NO_RECLIENT

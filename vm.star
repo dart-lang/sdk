@@ -17,6 +17,7 @@ load(
     "mac",
     "no_reclient",
     "resolute",
+    "slow_build",
     "slow_shards",
     "windows",
 )
@@ -560,48 +561,56 @@ _nightly_misc_builder(
     "vm-gcc-linux-debug-x64",
     category = "gcc|x64|d",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-x64",
     category = "gcc|x64|r",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-arm",
     category = "gcc|arm|d",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-arm",
     category = "gcc|arm|r",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-arm64",
     category = "gcc|arm64|d",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-arm64",
     category = "gcc|arm64|r",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-riscv64",
     category = "gcc|riscv64|d",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-riscv64",
     category = "gcc|riscv64|r",
     dimensions = resolute,
+    properties = slow_build,
     rbe = False,
 )
 
@@ -610,23 +619,27 @@ _nightly_misc_builder(
     "vm-msvc-win-debug-x64",
     category = "msvc|x64|d",
     dimensions = windows,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-release-x64",
     category = "msvc|x64|r",
     dimensions = windows,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-debug-arm64",
     category = "msvc|arm64|d",
     dimensions = windows,
+    properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-release-arm64",
     category = "msvc|arm64|r",
     dimensions = windows,
+    properties = slow_build,
     rbe = False,
 )

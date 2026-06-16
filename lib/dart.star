@@ -16,6 +16,7 @@ load(
     "resolute",
     "windows",
 )
+load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
 
@@ -65,9 +66,7 @@ def _with_rbe(rbe, properties):
     """
     updated_properties = dict(properties)
     if rbe == False:
-        updated_properties = dict(properties)
-        updated_properties.setdefault("$dart/build", {})
-        updated_properties["$dart/build"].setdefault("disable_rbe", True)
+        updated_properties = union({"$dart/build": {"disable_rbe": True}}, properties)
     return updated_properties
 
 def _try_builder(
