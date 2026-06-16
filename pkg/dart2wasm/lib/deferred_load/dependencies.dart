@@ -135,13 +135,19 @@ class DependenciesCollector {
 
   LibraryDependency? _recognizeDeferredLoadingGuard(StaticInvocation node) {
     final target = node.target;
-    if (target == _checkLibraryIsLoadedFromLoadId ||
-        target == _loadLibraryFromLoadId) {
-      final args = node.arguments.positional;
-      final loadId = (args[0] as IntLiteral).value;
-      return _loadingMap.loadIdToDeferredImport[loadId];
+    if (target != _loadLibraryFromLoadId &&
+        target != _checkLibraryIsLoadedFromLoadId) {
+      return null;
     }
-    return null;
+    if (target == _loadLibraryFromLoadId && node.parent is! AwaitExpression) {
+      // Only a `await D.loadLibrary()` guarantees `D` is loaded.
+      // A `var future = D.loadLibrary()` doesn't guarantee `D` is loaded.
+      return null;
+    }
+
+    final args = node.arguments.positional;
+    final loadId = (args[0] as IntLiteral).value;
+    return _loadingMap.loadIdToDeferredImport[loadId];
   }
 
   bool _disableAllGuards(StaticInvocation node) {
