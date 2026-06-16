@@ -2401,6 +2401,22 @@ class SimdLowering : public ValueObject {
         Gather(4);
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4GetX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(0, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(1, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(2, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(3, kUnboxedInt32);
+        return true;
       case MethodRecognizer::kInt32x4GetFlagX:
         UnboxVector(0, kUnboxedInt32, kMintCid, 4);
         IntToBool();
@@ -3390,6 +3406,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kInt32x4FromBools:
     case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4GetW:
+    case MethodRecognizer::kInt32x4GetX:
+    case MethodRecognizer::kInt32x4GetY:
+    case MethodRecognizer::kInt32x4GetZ:
     case MethodRecognizer::kInt32x4GetFlagW:
     case MethodRecognizer::kInt32x4GetFlagX:
     case MethodRecognizer::kInt32x4GetFlagY:

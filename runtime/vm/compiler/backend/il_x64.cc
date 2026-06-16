@@ -4454,21 +4454,43 @@ static void EmitToBoolean(FlowGraphCompiler* compiler, Register out) {
           compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
 }
 
-DEFINE_EMIT(Int32x4GetFlagZorW,
-            (Register out, XmmRegister value, Temp<XmmRegister> temp)) {
-  __ movhlps(temp, value);  // extract upper half.
-  __ MoveFpuRegisterToRegister(out, temp);
-  if (instr->kind() == SimdOpInstr::kInt32x4GetFlagW) {
-    __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
+// Extracts the [lane_index]th lane of [value] into [result] without going
+// through memory.
+static void EmitInt32x4GetLane(FlowGraphCompiler* compiler,
+                               Register result,
+                               XmmRegister value,
+                               intptr_t lane_index,
+                               bool sign_extend) {
+  ASSERT(0 <= lane_index && lane_index < 4);
+  XmmRegister half = value;
+  if (lane_index >= 2) {
+    __ movhlps(FpuTMP, value);  // Extract the upper half.
+    half = FpuTMP;
   }
-  EmitToBoolean(compiler, out);
+  __ MoveFpuRegisterToRegister(result, half);
+  if ((lane_index & 1) == 1) {
+    __ shrq(result, compiler::Immediate(32));  // Extract the upper 32 bits.
+  }
+  if (sign_extend) {
+    __ movsxd(result, result);
+  }
 }
 
-DEFINE_EMIT(Int32x4GetFlagXorY, (Register out, XmmRegister value)) {
-  __ MoveFpuRegisterToRegister(out, value);
-  if (instr->kind() == SimdOpInstr::kInt32x4GetFlagY) {
-    __ shrq(out, compiler::Immediate(32));  // extract upper 32bits.
-  }
+DEFINE_EMIT(Int32x4GetLane, (Register result, XmmRegister value)) {
+  COMPILE_ASSERT(SimdOpInstr::kInt32x4GetY == (SimdOpInstr::kInt32x4GetX + 1) &&
+                 SimdOpInstr::kInt32x4GetZ == (SimdOpInstr::kInt32x4GetX + 2) &&
+                 SimdOpInstr::kInt32x4GetW == (SimdOpInstr::kInt32x4GetX + 3));
+  EmitInt32x4GetLane(compiler, result, value,
+                     instr->kind() - SimdOpInstr::kInt32x4GetX, true);
+}
+
+DEFINE_EMIT(Int32x4GetFlag, (Register out, XmmRegister value)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4GetFlagY == (SimdOpInstr::kInt32x4GetFlagX + 1) &&
+      SimdOpInstr::kInt32x4GetFlagZ == (SimdOpInstr::kInt32x4GetFlagX + 2) &&
+      SimdOpInstr::kInt32x4GetFlagW == (SimdOpInstr::kInt32x4GetFlagX + 3));
+  EmitInt32x4GetLane(compiler, out, value,
+                     instr->kind() - SimdOpInstr::kInt32x4GetFlagX, false);
   EmitToBoolean(compiler, out);
 }
 
@@ -4561,12 +4583,16 @@ DEFINE_EMIT(Int32x4Select,
   SIMPLE(Float64x2Zero)                                                        \
   SIMPLE(Float32x4Clamp)                                                       \
   SIMPLE(Float64x2Clamp)                                                       \
+  CASE(Int32x4GetX)                                                            \
+  CASE(Int32x4GetY)                                                            \
+  CASE(Int32x4GetZ)                                                            \
+  CASE(Int32x4GetW)                                                            \
+  ____(Int32x4GetLane)                                                         \
   CASE(Int32x4GetFlagX)                                                        \
   CASE(Int32x4GetFlagY)                                                        \
-  ____(Int32x4GetFlagXorY)                                                     \
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
-  ____(Int32x4GetFlagZorW)                                                     \
+  ____(Int32x4GetFlag)                                                         \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
