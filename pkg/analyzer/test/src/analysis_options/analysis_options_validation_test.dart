@@ -3311,7 +3311,7 @@ AnalysisOptionsImpl
     configurations
       one
         source: PathPluginSource
-          path: ${convertPath('$testPackageRootPath/foo/bar')}
+          path: /home/test/foo/bar
 ''');
   }
 

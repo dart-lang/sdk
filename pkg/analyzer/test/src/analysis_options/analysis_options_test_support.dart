@@ -288,6 +288,13 @@ final class _AnalysisOptionsTextWriter {
     return _buffer.toString();
   }
 
+  String _toPosixPath(String filePath) {
+    if (filePath.startsWith(r'C:\')) {
+      return filePath.substring(2).replaceAll(r'\', '/');
+    }
+    return filePath;
+  }
+
   void _writeBool(String name, bool value, bool defaultValue) {
     if (value != defaultValue) {
       _sink.writelnWithIndent('$name: $value');
@@ -470,7 +477,7 @@ final class _AnalysisOptionsTextWriter {
   void _writePathPluginSource(PathPluginSource source) {
     _sink.writelnWithIndent('source: PathPluginSource');
     _sink.withIndent(() {
-      _sink.writelnWithIndent('path: ${source.path}');
+      _sink.writelnWithIndent('path: ${_toPosixPath(source.path)}');
     });
   }
 
