@@ -7184,6 +7184,18 @@ wasmExternMemoryMissingAnnotation:
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
   correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
 
+wasmConstantLaneOutOfRange:
+  parameters:
+    String name: The lane name.
+    int value: The invalid value.
+    String size: The expected size (e.g., "8-bit").
+  problemMessage: "WasmV128 constant lane '#name' value '#value' does not fit in a signed #size integer."
+  script: |
+    import 'dart:_wasm';
+    void main() {
+      const WasmV128.i8x16(128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
+
 wasmExternInvalidLoad:
   parameters: none
   problemMessage: "WebAssembly elements may only be referenced to directly call a method on them."

@@ -4,6 +4,8 @@
 
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:typed_data';
+
 import '../../source_map.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
@@ -2095,6 +2097,175 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.F64Const(value));
+  }
+
+  void v128_const(Uint8List bytes) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const', bytes],
+      ),
+    );
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_f64x2(double value0, double value1) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const f64x2', value0, value1],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setFloat64(0, value0, Endian.little);
+    data.setFloat64(8, value1, Endian.little);
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_i64x2(int value0, int value1) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const i64x2', value0, value1],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setInt64(0, value0, Endian.little);
+    data.setInt64(8, value1, Endian.little);
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_f32x4(double v0, double v1, double v2, double v3) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const f32x4', v0, v1, v2, v3],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setFloat32(0, v0, Endian.little);
+    data.setFloat32(4, v1, Endian.little);
+    data.setFloat32(8, v2, Endian.little);
+    data.setFloat32(12, v3, Endian.little);
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_i32x4(int v0, int v1, int v2, int v3) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const i32x4', v0, v1, v2, v3],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setInt32(0, v0, Endian.little);
+    data.setInt32(4, v1, Endian.little);
+    data.setInt32(8, v2, Endian.little);
+    data.setInt32(12, v3, Endian.little);
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_i16x8(
+    int v0,
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+  ) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: ['v128.const i16x8', v0, v1, v2, v3, v4, v5, v6, v7],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setInt16(0, v0, Endian.little);
+    data.setInt16(2, v1, Endian.little);
+    data.setInt16(4, v2, Endian.little);
+    data.setInt16(6, v3, Endian.little);
+    data.setInt16(8, v4, Endian.little);
+    data.setInt16(10, v5, Endian.little);
+    data.setInt16(12, v6, Endian.little);
+    data.setInt16(14, v7, Endian.little);
+    _add(ir.V128Const(bytes));
+  }
+
+  void v128_const_i8x16(
+    int v0,
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+  ) {
+    assert(
+      _verifyTypes(
+        const [],
+        const [ir.NumType.v128],
+        trace: [
+          'v128.const i8x16',
+          v0,
+          v1,
+          v2,
+          v3,
+          v4,
+          v5,
+          v6,
+          v7,
+          v8,
+          v9,
+          v10,
+          v11,
+          v12,
+          v13,
+          v14,
+          v15,
+        ],
+      ),
+    );
+    final bytes = Uint8List(16);
+    final data = ByteData.view(bytes.buffer);
+    data.setInt8(0, v0);
+    data.setInt8(1, v1);
+    data.setInt8(2, v2);
+    data.setInt8(3, v3);
+    data.setInt8(4, v4);
+    data.setInt8(5, v5);
+    data.setInt8(6, v6);
+    data.setInt8(7, v7);
+    data.setInt8(8, v8);
+    data.setInt8(9, v9);
+    data.setInt8(10, v10);
+    data.setInt8(11, v11);
+    data.setInt8(12, v12);
+    data.setInt8(13, v13);
+    data.setInt8(14, v14);
+    data.setInt8(15, v15);
+    _add(ir.V128Const(bytes));
   }
 
   /// Emit an `i32.eqz` instruction.

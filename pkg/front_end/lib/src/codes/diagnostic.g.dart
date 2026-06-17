@@ -12954,6 +12954,35 @@ const MessageCode voidExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
+    required String name,
+    required int value,
+    required String size,
+  })
+>
+wasmConstantLaneOutOfRange = const Template(
+  "WasmConstantLaneOutOfRange",
+  withArguments: _withArgumentsWasmConstantLaneOutOfRange,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmConstantLaneOutOfRange({
+  required String name,
+  required int value,
+  required String size,
+}) {
+  var name_0 = conversions.validateString(name);
+  var size_0 = conversions.validateString(size);
+  return new Message(
+    wasmConstantLaneOutOfRange,
+    problemMessage:
+        """WasmV128 constant lane '${name_0}' value '${value}' does not fit in a signed ${size_0} integer.""",
+    arguments: {'name': name, 'value': value, 'size': size},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternInvalidLoad = const MessageCode(
   "WasmExternInvalidLoad",
   problemMessage:
