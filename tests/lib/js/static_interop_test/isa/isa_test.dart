@@ -10,8 +10,6 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-const isJSBackend = const bool.fromEnvironment('dart.library.html');
-
 const isJSCompiler =
     const bool.fromEnvironment('dart.library._ddc_only') ||
     const bool.fromEnvironment('dart.tool.dart2js');
@@ -99,8 +97,8 @@ void testIsJSUnsafeObject(JSUnsafeObject any) {
 }
 
 void testIsJSUnsafeObjectOnJSBackend(Object any) {
-  Expect.equals(isJSBackend, any.isA<JSUnsafeObject>());
-  Expect.equals(isJSBackend, any.isA<JSUnsafeObject?>());
+  Expect.equals(isJSCompiler, any.isA<JSUnsafeObject>());
+  Expect.equals(isJSCompiler, any.isA<JSUnsafeObject?>());
 }
 
 void testIsJSAny(JSAny any) {

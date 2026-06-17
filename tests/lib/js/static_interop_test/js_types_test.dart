@@ -27,6 +27,11 @@ external JSAny any;
 @JS()
 external JSObject obj;
 
+@JS('Object')
+extension type JSUnsafeObjectRepType._(JSUnsafeObject _) implements JSUnsafeObject {
+  external JSUnsafeObjectRepType();
+}
+
 @JS()
 @staticInterop
 class SimpleObject {}
@@ -194,6 +199,8 @@ void syncTests() {
   // [JSUnsafeObject]
   Expect.isTrue(obj is JSUnsafeObject);
   Expect.isTrue(confuse(obj) is JSUnsafeObject);
+  Expect.isTrue(JSUnsafeObjectRepType() is JSUnsafeObject);
+  Expect.isTrue(confuse(JSUnsafeObjectRepType()) is JSUnsafeObject);
 
   if (isJSBackend) {
     Expect.isTrue(Object() is JSUnsafeObject);

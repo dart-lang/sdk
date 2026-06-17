@@ -14,12 +14,20 @@
 /// around issues and help with migration from older JS interop libraries.
 ///
 /// > [!NOTE]
-/// > As the name suggests, usage of this library *can* be unsafe. This means
-/// > that safe usage of these methods cannot necessarily be verified
-/// > statically. Prefer using statically analyzable values like constants or
-/// > literals for property or method names so that usage can be verified. This
-/// > library should be used cautiously and only when the same effect cannot be
-/// > achieved with static interop.
+
+/// > As the name suggests, usage of this library *can* be unsafe. This can mean
+/// > one of two things:
+/// >
+/// > * The safe usage of some of these APIs cannot necessarily be verified
+/// >   statically. Prefer using statically analyzable values like constants or
+/// >   literals for property or method names so that usage can be verified.
+/// >
+/// > * Some of these APIs only only have uesful functionality on one of the
+/// >   JavaScript or WASM backends, not both. These should only be used on the
+/// >   supported backend.
+/// >
+/// > This library should be used cautiously and only when the same effect
+/// > cannot be achieved without it.
 ///
 /// {@category Web}
 library;
@@ -27,13 +35,21 @@ library;
 import 'dart:_js_types';
 import 'dart:js_interop';
 
-/// A JavaScript `Object`s *or* a Dart object's JavaScript representation.
+import 'package:meta/meta.dart';
+
+/// A JavaScript `Object` *or* a non-primitive Dart object's JavaScript
+/// representation.
 ///
 /// This can always be safely used as a type for real [JSObject]s, and in a WASM
 /// context those are its only instances. When compiled to JS, though, this is
 /// also the type of Dart objects and their prototype chains. JS considers these
 /// to be `instanceof Object`, while Dart does not consider them to be
 /// `isA<JSObject>` but does consider them to be `isA<JSUnsafeObject>`.
+///
+/// **Note:** The precise shape of a Dart object's JavaScript representation
+/// depends on the specific compiler in use, and is not guaranteed by the
+/// language or core library.
+@experimental
 extension type JSUnsafeObject._(JSAnyType _) implements JSAny {}
 
 /// Utility methods to check, get, set, and call properties on a [JSObject].
