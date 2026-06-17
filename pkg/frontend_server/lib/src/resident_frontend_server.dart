@@ -672,9 +672,9 @@ class ResidentFrontendServer {
       // [request] as overrides.
       final String cachedCompilerOptionsContents = cachedCompilerOptions
           .readAsStringSync();
-      final List<String> cachedCompilerOptionsAsList =
-          (jsonDecode(cachedCompilerOptionsContents) as List<dynamic>)
-              .cast<String>();
+      final List<String> cachedCompilerOptionsAsList = (jsonDecode(
+        cachedCompilerOptionsContents,
+      ) as List<dynamic>).cast<String>();
       final ArgResults cachedOptions = argParser.parse(
         cachedCompilerOptionsAsList,
       );
@@ -899,7 +899,7 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
       client.listen(
         (Uint8List data) async {
           String result = await ResidentFrontendServer.handleRequest(
-            new String.fromCharCodes(data),
+            utf8.decode(data),
           );
           client.write(result);
           shutdownTimer.cancel();
