@@ -3678,7 +3678,12 @@ inference_failure_on_instance_creation:
 inference_failure_on_uninitialized_variable:
   status: noFix
 inference_failure_on_untyped_parameter:
-  status: noFix
+  status: needsFix
+  notes:
+    The fix is to add a type for the parameter. The simple version of that is to
+    use `AddTypeAnnotation`, which will add `Object?` as the type. Longer term
+    we could consider looking at uses of the parameter to try to get a more
+    accurate type.
 invalid_annotation_target:
   status: hasFix
 invalid_await_not_required_annotation:
