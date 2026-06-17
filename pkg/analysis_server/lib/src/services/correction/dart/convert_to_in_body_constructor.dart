@@ -6,6 +6,8 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -103,14 +105,21 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
     required NodeList<ClassMember> members,
     required Token rightBracket,
   }) async {
+    // Verify the parameters and collect the corresponding elements.
     var parameterList = declaration.formalParameters;
-
+    var parameterElements = <FormalParameterElement>[];
     for (var parameter in parameterList.parameters) {
-      if (parameter.name == null ||
-          parameter.declaredFragment?.element == null) {
+      var parameterElement = parameter.declaredFragment?.element;
+      if (parameter.name == null || parameterElement == null) {
         return;
       }
+      parameterElements.add(parameterElement);
     }
+
+    var referencingFields = _fieldsReferencingParameters(
+      members,
+      parameterElements,
+    );
 
     await builder.addDartFileEdit(file, (builder) {
       var fieldOffset = leftBracket.end;
@@ -141,7 +150,12 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
               parameterList: parameterList,
               needsBlankLine: fieldOffset != leftBracket.end,
             );
-            _writeFullInBodyConstructor(builder, declaration, body);
+            _writeFullInBodyConstructor(
+              builder,
+              declaration,
+              referencingFields,
+              body,
+            );
             if (members.isNotEmpty || leftBracket.end == rightBracket.offset) {
               builder.writeln();
             }
@@ -161,7 +175,12 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
             if (members.isNotEmpty) {
               builder.writeln();
             }
-            _writeFullInBodyConstructor(builder, declaration, body);
+            _writeFullInBodyConstructor(
+              builder,
+              declaration,
+              referencingFields,
+              body,
+            );
             if (constructorOffset == rightBracket.offset) {
               builder.writeln();
             }
@@ -186,6 +205,10 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
 
       // Remove the primary constructor that was converted.
       _removePrimaryConstructor(builder: builder, declaration: declaration);
+
+      // Remove the initializers that reference parameters from the primary
+      // constructor.
+      _removeFieldInitializers(builder, referencingFields);
     });
   }
 
@@ -195,14 +218,18 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
     required PrimaryConstructorBody? body,
     required Token semicolon,
   }) async {
+    // Verify the parameters and collect the corresponding elements.
     var parameterList = declaration.formalParameters;
-
+    var parameterElements = <FormalParameterElement>[];
     for (var parameter in parameterList.parameters) {
-      if (parameter.name == null ||
-          parameter.declaredFragment?.element == null) {
+      var parameterElement = parameter.declaredFragment?.element;
+      if (parameter.name == null || parameterElement == null) {
         return;
       }
+      parameterElements.add(parameterElement);
     }
+
+    var referencingFields = _fieldsReferencingParameters([], parameterElements);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.token(semicolon), (builder) {
@@ -212,14 +239,45 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
           parameterList: parameterList,
           needsBlankLine: false,
         );
-        _writeFullInBodyConstructor(builder, declaration, body);
+        _writeFullInBodyConstructor(
+          builder,
+          declaration,
+          referencingFields,
+          body,
+        );
         builder.writeln();
         builder.write('}');
       });
 
       // Remove the primary constructor that was converted.
       _removePrimaryConstructor(builder: builder, declaration: declaration);
+
+      // Remove the initializers that reference parameters from the primary
+      // constructor.
+      _removeFieldInitializers(builder, referencingFields);
     });
+  }
+
+  List<VariableDeclaration> _fieldsReferencingParameters(
+    List<ClassMember> members,
+    List<FormalParameterElement> parameterElements,
+  ) {
+    var referencingFields = <VariableDeclaration>[];
+    for (var member in members) {
+      if (member is FieldDeclaration) {
+        for (var field in member.fields.variables) {
+          var initializer = field.initializer;
+          if (initializer != null) {
+            var checker = _ReferenceChecker(parameterElements);
+            initializer.accept(checker);
+            if (checker.hasReference) {
+              referencingFields.add(field);
+            }
+          }
+        }
+      }
+    }
+    return referencingFields;
   }
 
   /// Returns the offset at which a constructor should be inserted based on the
@@ -239,6 +297,17 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
       previousMember = member;
     }
     return defaultOffset;
+  }
+
+  /// Removes the field initializers that reference parameters in the primary
+  /// constructor.
+  void _removeFieldInitializers(
+    DartFileEditBuilder builder,
+    List<VariableDeclaration> referencingFields,
+  ) {
+    for (var field in referencingFields) {
+      builder.addDeletion(range.endEnd(field.name, field.initializer!));
+    }
   }
 
   void _removePrimaryConstructor({
@@ -264,23 +333,34 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
   void _writeFullInBodyConstructor(
     DartEditBuilder builder,
     PrimaryConstructorDeclaration declaration,
+    List<VariableDeclaration> referencingFields,
     PrimaryConstructorBody? body,
   ) {
     builder.writeln();
     builder.write('  ');
     _writeNameAndParameterList(builder, declaration);
-    int start;
     if (body != null) {
-      if (body.colon != null) {
-        start = body.colon!.offset;
-      } else {
-        start = body.body.offset;
+      var colon = body.colon;
+      if (colon != null) {
+        var initializerText = utils.getRangeText(
+          range.startEnd(colon, body.initializers.last),
+        );
+        builder.write(initializerText);
+        if (referencingFields.isNotEmpty) {
+          builder.write(', ');
+          _writeReferencingFields(builder, referencingFields);
+        }
+      } else if (referencingFields.isNotEmpty) {
+        builder.write(' : ');
+        _writeReferencingFields(builder, referencingFields);
       }
-      var bodyText = utils.getRangeText(
-        range.startOffsetEndOffset(start, body.end),
-      );
+      var bodyText = utils.getRangeText(range.node(body.body));
       builder.write(bodyText);
     } else {
+      if (referencingFields.isNotEmpty) {
+        builder.write(' : ');
+        _writeReferencingFields(builder, referencingFields);
+      }
       builder.write(';');
     }
   }
@@ -371,6 +451,42 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
       builder.write(groupEnd);
     }
     builder.write(')');
+  }
+
+  /// Writes constructor initializers for all of the fields whose initializer
+  /// references one of the parameters from the primary constructor.
+  void _writeReferencingFields(
+    DartEditBuilder builder,
+    List<VariableDeclaration> referencingFields,
+  ) {
+    var needsComma = false;
+    for (var field in referencingFields) {
+      var initializerText = utils.getRangeText(
+        range.startEnd(field.name, field.initializer!),
+      );
+      if (needsComma) {
+        builder.write(', ');
+      }
+      builder.write(initializerText);
+      needsComma = true;
+    }
+  }
+}
+
+class _ReferenceChecker extends RecursiveAstVisitor<void> {
+  List<FormalParameterElement> parameterElements;
+
+  bool hasReference = false;
+
+  new(this.parameterElements);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.element;
+    if (parameterElements.contains(element)) {
+      hasReference = true;
+    }
+    super.visitSimpleIdentifier(node);
   }
 }
 
