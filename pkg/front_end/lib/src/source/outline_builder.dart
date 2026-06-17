@@ -1836,6 +1836,7 @@ class OutlineBuilder extends StackListenerImpl {
       int? firstOptionalPositionalParameterOffset;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
+        List<MetadataBuilder>? metadata = formal.takeMetadata();
         Modifiers modifiers = formal.modifiers;
         if (kind == DeclarationKind.ExtensionType) {
           // Extension type representation fields are implicitly final.
@@ -1918,11 +1919,7 @@ class OutlineBuilder extends StackListenerImpl {
         }
         if (modifiers.isDeclaringParameter) {
           _builderFactory.addPrimaryConstructorField(
-            // TODO(johnniwinther): Support annotations on annotations on fields
-            // defined through a primary constructor. This is not needed for
-            // extension types where the field is not part of the AST but will
-            // be needed when primary constructors are generally supported.
-            metadata: null,
+            metadata: metadata,
             modifiers: modifiers,
             type: formal.type,
             name: formal.name,

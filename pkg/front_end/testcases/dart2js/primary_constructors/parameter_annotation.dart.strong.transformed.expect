@@ -17,6 +17,7 @@ class Base extends core::Object {
     return new self::Base::•(x);
 }
 class MyComponent extends self::Base {
+  @#C1
   final field core::int? x;
   constructor •(@#C1 final initializing-formal core::int? x) → self::MyComponent
     : self::MyComponent::x = x, super self::Base::•(42)

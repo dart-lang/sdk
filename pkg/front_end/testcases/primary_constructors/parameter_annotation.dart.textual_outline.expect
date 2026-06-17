@@ -1,0 +1,9 @@
+class const Self();
+
+class Base {
+  Base(int x);
+}
+
+class MyComponent(@Self() final int? x) extends Base {
+  this : super(42);
+}
