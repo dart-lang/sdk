@@ -7,8 +7,10 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -206,13 +208,15 @@ YamlMap _parseYamlMap(String content) {
   return node is YamlMap ? node : YamlMap();
 }
 
-class _TestContext {
+class _TestContext with ResourceProviderMixin {
   late AnalysisOptions analysisOptions;
 
   void configureOptions(String options) {
-    analysisOptions = AnalysisOptionsImpl.fromYaml(
-      optionsMap: _parseYamlMap(options),
-    );
+    var optionsFile = newFile('/analysis_options.yaml', options);
+    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    analysisOptions = AnalysisOptionsProvider(
+      sourceFactory,
+    ).getAnalysisOptionsFromFile(optionsFile);
   }
 
   ErrorProcessor? getProcessor(Diagnostic diagnostic) {

@@ -38,7 +38,6 @@ class AnalysisOptionsProvider {
   AnalysisOptionsImpl getAnalysisOptionsFromFile(
     File file, {
     AnalysisOptionsCache? analysisOptionsCache,
-    ResourceProvider? resourceProvider,
   }) {
     return AnalysisOptionsImpl.fromYaml(
       optionsMap: _getOptionsFromFile(
@@ -46,7 +45,6 @@ class AnalysisOptionsProvider {
         analysisOptionsCache: analysisOptionsCache,
       ),
       file: file,
-      resourceProvider: resourceProvider ?? file.provider,
     );
   }
 

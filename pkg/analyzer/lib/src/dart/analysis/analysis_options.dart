@@ -31,17 +31,19 @@ import 'package:yaml/yaml.dart';
 final class AnalysisOptionsBuilder {
   File? file;
 
-  ExperimentStatus contextFeatures = ExperimentStatus();
+  ExperimentStatus _contextFeatures = ExperimentStatus();
 
   FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
-  List<String> enabledLegacyPluginNames = const [];
+  List<String> enabledLegacyPluginNames = [];
 
   List<ErrorProcessor> errorProcessors = [];
 
   List<String> excludePatterns = [];
 
   bool lint = false;
+
+  bool warning = true;
 
   List<AbstractAnalysisRule> lintRules = [];
 
@@ -62,31 +64,85 @@ final class AnalysisOptionsBuilder {
   Set<String> unignorableDiagnosticCodeNames = {};
 
   PluginsOptions pluginsOptions = PluginsOptions(
-    configurations: const [],
+    configurations: [],
     dependencyOverrides: null,
   );
 
   String? pluginDependencyOverrides;
 
+  /// Creates a builder initialized with default options.
+  AnalysisOptionsBuilder();
+
+  /// Creates a builder initialized from an existing options object.
+  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options) {
+    file = options.file;
+    contextFeatures = options.contextFeatures;
+    nonPackageFeatureSet = options.nonPackageFeatureSet;
+    enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
+    pluginsOptions = PluginsOptions(
+      configurations: options.pluginsOptions.configurations.toList(),
+      dependencyOverrides: options.pluginsOptions.dependencyOverrides == null
+          ? null
+          : Map.of(options.pluginsOptions.dependencyOverrides!),
+    );
+    errorProcessors = options.errorProcessors.toList();
+    excludePatterns = options.excludePatterns.toList();
+    lint = options.lint;
+    warning = options.warning;
+    lintRules = options.lintRules.toList();
+    propagateLinterExceptions = options.propagateLinterExceptions;
+    strictCasts = options.strictCasts;
+    strictInference = options.strictInference;
+    strictRawTypes = options.strictRawTypes;
+    chromeOsManifestChecks = options.chromeOsManifestChecks;
+    codeStyleOptions = CodeStyleOptionsImpl(
+      useFormatter: options.codeStyleOptions.useFormatter,
+    );
+    formatterOptions = FormatterOptions(
+      pageWidth: options.formatterOptions.pageWidth,
+      trailingCommas: options.formatterOptions.trailingCommas,
+    );
+    unignorableDiagnosticCodeNames = options.unignorableDiagnosticCodeNames
+        .toSet();
+  }
+
+  FeatureSet get contextFeatures => _contextFeatures;
+
+  set contextFeatures(FeatureSet featureSet) {
+    _contextFeatures = featureSet as ExperimentStatus;
+    nonPackageFeatureSet = featureSet;
+  }
+
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
-      contextFeatures: contextFeatures,
+      contextFeatures: _contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
-      enabledLegacyPluginNames: enabledLegacyPluginNames,
-      pluginsOptions: pluginsOptions,
-      errorProcessors: errorProcessors,
-      excludePatterns: excludePatterns,
+      enabledLegacyPluginNames: enabledLegacyPluginNames.toList(),
+      pluginsOptions: PluginsOptions(
+        configurations: pluginsOptions.configurations.toList(),
+        dependencyOverrides: pluginsOptions.dependencyOverrides == null
+            ? null
+            : Map.of(pluginsOptions.dependencyOverrides!),
+      ),
+      errorProcessors: errorProcessors.toList(),
+      excludePatterns: excludePatterns.toList(),
       lint: lint,
-      lintRules: lintRules,
+      warning: warning,
+      lintRules: lintRules.toList(),
       propagateLinterExceptions: propagateLinterExceptions,
       strictCasts: strictCasts,
       strictInference: strictInference,
       strictRawTypes: strictRawTypes,
       chromeOsManifestChecks: chromeOsManifestChecks,
-      codeStyleOptions: codeStyleOptions,
-      formatterOptions: formatterOptions,
-      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
+      codeStyleOptions: CodeStyleOptionsImpl(
+        useFormatter: codeStyleOptions.useFormatter,
+      ),
+      formatterOptions: FormatterOptions(
+        pageWidth: formatterOptions.pageWidth,
+        trailingCommas: formatterOptions.trailingCommas,
+      ),
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames.toSet(),
     );
   }
 
@@ -213,10 +269,7 @@ final class AnalysisOptionsBuilder {
     }
   }
 
-  void _applyPluginsOptions(
-    YamlNode? plugins,
-    ResourceProvider? resourceProvider,
-  ) {
+  void _applyPluginsOptions(YamlNode? plugins) {
     if (plugins is! YamlMap) {
       return;
     }
@@ -237,7 +290,7 @@ final class AnalysisOptionsBuilder {
           if (nameNode is! YamlScalar) {
             return;
           }
-          var source = _getSource(dependencyOverride, resourceProvider);
+          var source = _getSource(dependencyOverride);
           if (source == null) return;
           (dependencyOverrides ??= {})[nameNode.toString()] = source;
         });
@@ -245,7 +298,7 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var source = _getSource(pluginNode, resourceProvider);
+      var source = _getSource(pluginNode);
       if (source == null) return;
 
       if (pluginNode is! YamlMap) {
@@ -302,10 +355,7 @@ final class AnalysisOptionsBuilder {
     }
   }
 
-  PluginSource? _getSource(
-    YamlNode pluginNode,
-    ResourceProvider? resourceProvider,
-  ) {
+  PluginSource? _getSource(YamlNode pluginNode) {
     // If it just maps to a String, then that is the version constraint.
     if (pluginNode case YamlScalar(:String value)) {
       return VersionedPluginSource(constraint: value);
@@ -357,16 +407,16 @@ final class AnalysisOptionsBuilder {
         "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
         'plugins are specified with path constraints.',
       );
-      if (file != null &&
-          resourceProvider != null &&
-          resourceProvider.pathContext.isRelative(pathValue)) {
+      if (file == null) {
+        return null;
+      }
+
+      var pathContext = file.provider.pathContext;
+      if (pathContext.isRelative(pathValue)) {
         // We need to store the absolute path, before this value is used in
         // a synthetic pub package.
-        pathValue = resourceProvider.pathContext.join(
-          file.parent.path,
-          pathValue,
-        );
-        pathValue = resourceProvider.pathContext.normalize(pathValue);
+        pathValue = pathContext.join(file.parent.path, pathValue);
+        pathValue = pathContext.normalize(pathValue);
       }
       return PathPluginSource(path: pathValue);
     }
@@ -399,7 +449,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// If a library is in a package, this feature set is *not* used, even if the
   /// package does not specify the language version. Instead [contextFeatures]
   /// is used.
-  FeatureSet nonPackageFeatureSet = ExperimentStatus();
+  FeatureSet nonPackageFeatureSet;
 
   @override
   final List<String> enabledLegacyPluginNames;
@@ -416,18 +466,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
 
-  @override
-  bool lint = false;
+  bool _lint;
 
-  @override
-  bool warning = true;
+  bool _warning;
 
-  @override
-  List<AbstractAnalysisRule> lintRules = [];
+  List<AbstractAnalysisRule> _lintRules;
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
-  bool propagateLinterExceptions;
+  final bool propagateLinterExceptions;
 
   @override
   final bool strictCasts;
@@ -464,11 +511,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// Returns a newly instantiated [AnalysisOptionsImpl], as parsed from
   /// [optionsMap].
   ///
-  /// Optionally pass [file] as the file where the YAML can be found.
+  /// [file] is the file where the YAML can be found.
   factory AnalysisOptionsImpl.fromYaml({
     required YamlMap optionsMap,
-    File? file,
-    ResourceProvider? resourceProvider,
+    required File file,
   }) {
     var builder = AnalysisOptionsBuilder()..file = file;
 
@@ -527,7 +573,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     // Process the 'plugins' option.
     var plugins = optionsMap.valueAt(AnalysisOptionsFileKeys.plugins);
-    builder._applyPluginsOptions(plugins, resourceProvider);
+    builder._applyPluginsOptions(plugins);
 
     var ruleConfigs = parseLinterSection(optionsMap);
     if (ruleConfigs != null) {
@@ -553,8 +599,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
-    required this.lint,
-    required this.lintRules,
+    required bool lint,
+    required bool warning,
+    required List<AbstractAnalysisRule> lintRules,
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
@@ -563,7 +610,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.codeStyleOptions,
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
-  }) : _contextFeatures = contextFeatures {
+  }) : _contextFeatures = contextFeatures,
+       _lint = lint,
+       _warning = warning,
+       _lintRules = lintRules {
     assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
@@ -571,9 +621,31 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   FeatureSet get contextFeatures => _contextFeatures;
 
+  // TODO(scheglov): Remove these compatibility setters after clients migrate
+  // to AnalysisOptionsBuilder.
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
+    _clearCachedSignatures();
+  }
+
+  @override
+  bool get lint => _lint;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lint(bool value) {
+    _lint = value;
+    _clearCachedSignatures();
+  }
+
+  @override
+  List<AbstractAnalysisRule> get lintRules => _lintRules;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lintRules(List<AbstractAnalysisRule> value) {
+    _lintRules = value;
+    _clearCachedSignatures();
   }
 
   /// The language version to use for libraries that are not in a package.
@@ -724,6 +796,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
+  bool get warning => _warning;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set warning(bool value) {
+    _warning = value;
+    _clearCachedSignatures();
+  }
+
+  @override
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
@@ -773,6 +854,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
           ),
         },
     };
+  }
+
+  void _clearCachedSignatures() {
+    _unlinkedSignature = null;
+    _signature = null;
+    _signatureForElements = null;
   }
 }
 

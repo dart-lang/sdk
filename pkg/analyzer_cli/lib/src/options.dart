@@ -155,19 +155,19 @@ class CommandLineOptions {
     return _argResults.multiOption(_enableExperimentOption);
   }
 
-  /// Update the [analysisOptions] with flags that the user specified
-  /// explicitly. The [analysisOptions] are usually loaded from one of
-  /// `analysis_options.yaml` files, possibly with includes. We consider
-  /// flags that the user specified as command line options more important,
-  /// so override the corresponding options.
-  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+  /// Configure the [analysisOptionsBuilder] with flags that the user specified
+  /// explicitly. The builder is usually initialized from one of
+  /// `analysis_options.yaml` files, possibly with includes. We consider flags
+  /// that the user specified as command line options more important, so
+  /// override the corresponding options.
+  void configureAnalysisOptionsBuilder(
+    AnalysisOptionsBuilder analysisOptionsBuilder,
+  ) {
     if (enabledExperiments.isNotEmpty) {
-      analysisOptions.contextFeatures =
-          FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: enabledExperiments,
-              )
-              as ExperimentStatus;
+      analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: enabledExperiments,
+      ) as ExperimentStatus;
     }
   }
 
