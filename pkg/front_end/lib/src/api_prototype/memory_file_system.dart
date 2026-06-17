@@ -55,14 +55,10 @@ class MemoryFileSystem implements FileSystem {
 
 /// Concrete implementation of [FileSystemEntity] for use by
 /// [MemoryFileSystem].
-class MemoryFileSystemEntity implements FileSystemEntity {
-  final MemoryFileSystem _fileSystem;
-
-  @override
-  final Uri uri;
-
-  new _(this._fileSystem, this.uri);
-
+class MemoryFileSystemEntity._(
+  final MemoryFileSystem _fileSystem,
+  @override final Uri uri,
+) implements FileSystemEntity {
   @override
   int get hashCode => uri.hashCode;
 

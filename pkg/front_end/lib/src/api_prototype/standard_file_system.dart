@@ -16,7 +16,8 @@ import 'file_system.dart';
 /// data: URIs return their data contents.
 ///
 /// Not intended to be implemented or extended by clients.
-class StandardFileSystem implements FileSystem {
+class StandardFileSystem._(final FileSystemDependencyTracker? tracker)
+    implements FileSystem {
   /// This instance is without file tracking. If file tracking is wanted use
   /// [instanceWithTracking] instead.
   static final StandardFileSystem instance = new StandardFileSystem._(null);
@@ -25,10 +26,6 @@ class StandardFileSystem implements FileSystem {
   static StandardFileSystem instanceWithTracking(
     FileSystemDependencyTracker tracker,
   ) => new StandardFileSystem._(tracker);
-
-  final FileSystemDependencyTracker? tracker;
-
-  new _(this.tracker);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -51,14 +48,10 @@ class StandardFileSystem implements FileSystem {
 }
 
 /// Concrete implementation of [FileSystemEntity] for file: URIs.
-class _IoFileSystemEntity implements FileSystemEntity {
-  FileSystemDependencyTracker? tracker;
-
-  @override
-  final Uri uri;
-
-  new(this.tracker, this.uri);
-
+class _IoFileSystemEntity(
+  var FileSystemDependencyTracker? tracker,
+  @override final Uri uri,
+) implements FileSystemEntity {
   @override
   int get hashCode => uri.hashCode;
 

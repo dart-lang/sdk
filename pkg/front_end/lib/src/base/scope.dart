@@ -45,21 +45,13 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   String toString() => "$runtimeType()";
 }
 
-class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
-  @override
-  final NameSpace _nameSpace;
+class NameSpaceLookupScope(
+  @override final NameSpace _nameSpace, {
+  @override final LookupScope? _parent,
+}) extends BaseNameSpaceLookupScope;
 
-  @override
-  final LookupScope? _parent;
-
-  new(this._nameSpace, {LookupScope? parent}) : _parent = parent;
-}
-
-abstract class AbstractTypeParameterScope implements LookupScope {
-  final LookupScope _parent;
-
-  new(this._parent);
-
+abstract class AbstractTypeParameterScope(final LookupScope _parent)
+    implements LookupScope {
   TypeParameterBuilder? getTypeParameter(String name);
 
   @override
@@ -72,11 +64,10 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   String toString() => "$runtimeType(type parameter)";
 }
 
-class TypeParameterScope extends AbstractTypeParameterScope {
-  final Map<String, TypeParameterBuilder> _typeParameters;
-
-  new(super._parent, this._typeParameters);
-
+class TypeParameterScope(
+  super._parent,
+  final Map<String, TypeParameterBuilder> _typeParameters,
+) extends AbstractTypeParameterScope {
   @override
   TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
 
@@ -102,12 +93,10 @@ class TypeParameterScope extends AbstractTypeParameterScope {
 /// [SourceLibraryBuilder.parentScope] is used as the parent. This is not a
 /// normal Dart scope, but instead a synthesized scope used for expression
 /// compilation.
-class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
-  final SourceCompilationUnit _compilationUnit;
-  final NameSpace _importNameSpace;
-
-  new(this._compilationUnit, this._importNameSpace);
-
+class CompilationUnitImportScope(
+  final SourceCompilationUnit _compilationUnit,
+  final NameSpace _importNameSpace,
+) extends BaseNameSpaceLookupScope {
   @override
   NameSpace get _nameSpace => _importNameSpace;
 
@@ -125,37 +114,23 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
 /// imports with prefixes declared in this compilation unit. The grand parent
 /// scope is the import scope of the compilation  unit implemented through
 /// [CompilationUnitImportScope].
-class CompilationUnitScope extends BaseNameSpaceLookupScope {
-  final SourceCompilationUnit _compilationUnit;
-
-  @override
-  final LookupScope? _parent;
-
-  new(this._compilationUnit, {LookupScope? parent}) : _parent = parent;
-
+class CompilationUnitScope(
+  final SourceCompilationUnit _compilationUnit, {
+  @override final LookupScope? _parent,
+}) extends BaseNameSpaceLookupScope {
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
 }
 
 /// The scope containing the prefixes imported into a compilation unit.
-class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
-  @override
-  final ComputedNameSpace _nameSpace;
+class CompilationUnitPrefixScope(
+  @override final ComputedNameSpace _nameSpace, {
+  @override required final CompilationUnitImportScope? _parent,
+}) extends BaseNameSpaceLookupScope;
 
-  @override
-  final LookupScope? _parent;
-
-  new(this._nameSpace, {required CompilationUnitImportScope? parent})
-    : _parent = parent;
-}
-
-class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
+class DeclarationBuilderScope(@override final LookupScope? _parent)
+    extends BaseNameSpaceLookupScope {
   DeclarationBuilder? _declarationBuilder;
-
-  @override
-  final LookupScope? _parent;
-
-  new(this._parent);
 
   @override
   NameSpace get _nameSpace {
@@ -418,12 +393,10 @@ class LookupResultIterator implements Iterator<NamedBuilder> {
 }
 
 /// Filtered builder [Iterator].
-class FilteredIterator<T extends NamedBuilder> implements Iterator<T> {
-  final Iterator<NamedBuilder> _iterator;
-  final bool includeDuplicates;
-
-  new(this._iterator, {required this.includeDuplicates});
-
+class FilteredIterator<T extends NamedBuilder>(
+  final Iterator<NamedBuilder> _iterator, {
+  required final bool includeDuplicates,
+}) implements Iterator<T> {
   bool _include(NamedBuilder element) {
     if (!includeDuplicates && (element.isDuplicate)) {
       return false;

@@ -197,22 +197,11 @@ mixin ImmutableLocalScopeMixin implements LocalScope {
   Map<String, List<int>>? get usedNames => null;
 }
 
-final class LocalTypeParameterScope extends BaseLocalScope
-    with ImmutableLocalScopeMixin {
-  final LocalScope? _parent;
-
-  @override
-  final LocalScopeKind kind;
-
-  final Map<String, TypeParameterBuilder>? _local;
-
-  new({
-    required this.kind,
-    LocalScope? parent,
-    Map<String, TypeParameterBuilder>? local,
-  }) : _parent = parent,
-       _local = local;
-
+final class LocalTypeParameterScope({
+  @override required final LocalScopeKind kind,
+  final LocalScope? _parent,
+  final Map<String, TypeParameterBuilder>? _local,
+}) extends BaseLocalScope with ImmutableLocalScopeMixin {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<VariableBuilder> get localVariables => const [];
@@ -230,36 +219,23 @@ final class LocalTypeParameterScope extends BaseLocalScope
   String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
-final class FixedLocalScope extends BaseLocalScope
-    with ImmutableLocalScopeMixin, LocalScopeMixin {
-  @override
-  final LocalScope? _parent;
-  @override
-  final LocalScopeKind kind;
-  @override
-  final Map<String, VariableBuilder>? _local;
-
-  new({
-    required this.kind,
-    LocalScope? parent,
-    Map<String, VariableBuilder>? local,
-  }) : _parent = parent,
-       _local = local;
-
+final class FixedLocalScope({
+  @override required final LocalScopeKind kind,
+  @override final LocalScope? _parent,
+  @override final Map<String, VariableBuilder>? _local,
+}) extends BaseLocalScope with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
   String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
-final class FormalParameterScope extends BaseLocalScope
-    with ImmutableLocalScopeMixin, LocalScopeMixin {
+final class FormalParameterScope({
+  required LookupScope parent,
+  @override final Map<String, VariableBuilder>? _local,
+}) extends BaseLocalScope with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
   final LocalScope? _parent;
-  @override
-  final Map<String, VariableBuilder>? _local;
 
-  new({required LookupScope parent, Map<String, VariableBuilder>? local})
-    : _parent = new EnclosingLocalScope(parent),
-      _local = local;
+  this : _parent = new EnclosingLocalScope(parent);
 
   @override
   LocalScopeKind get kind => LocalScopeKind.formals;
@@ -269,12 +245,9 @@ final class FormalParameterScope extends BaseLocalScope
       "$runtimeType(${kind}, formal parameter, ${_local?.keys})";
 }
 
-final class EnclosingLocalScope extends BaseLocalScope
+final class EnclosingLocalScope(final LookupScope _scope)
+    extends BaseLocalScope
     with ImmutableLocalScopeMixin {
-  final LookupScope _scope;
-
-  new(this._scope);
-
   @override
   LocalScopeKind get kind => LocalScopeKind.enclosing;
 

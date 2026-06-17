@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Configuration {
-  final int charOffset;
-  final String dottedName;
-  final String condition;
-  final String importUri;
-
-  new(this.charOffset, this.dottedName, this.condition, this.importUri);
-}
+class Configuration(
+  final int charOffset,
+  final String dottedName,
+  final String condition,
+  final String importUri,
+);

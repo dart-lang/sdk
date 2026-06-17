@@ -653,13 +653,7 @@ class OutlineBuilder extends StackListenerImpl {
       // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
-      push(
-        new CombinatorBuilder.hide(
-          names as Iterable<String>,
-          hideKeyword.charOffset,
-          _compilationUnit.fileUri,
-        ),
-      );
+      push(new CombinatorBuilder.hide(names as Iterable<String>));
     }
   }
 
@@ -671,13 +665,7 @@ class OutlineBuilder extends StackListenerImpl {
       // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
-      push(
-        new CombinatorBuilder.show(
-          names as Iterable<String>,
-          showKeyword.charOffset,
-          _compilationUnit.fileUri,
-        ),
-      );
+      push(new CombinatorBuilder.show(names as Iterable<String>));
     }
   }
 
