@@ -1779,7 +1779,8 @@ abstract interface class HttpClientRequest implements IOSink {
   ///
   /// All headers added to the request will be added to the redirection
   /// request(s) except when forwarding sensitive headers like
-  /// "Authorization", "WWW-Authenticate", and "Cookie". Those headers
+  /// "Authorization", "WWW-Authenticate", "Proxy-Authorization",
+  /// "Proxy-Authenticate", and "Cookie". Those headers
   /// will be skipped if following a redirect to a domain that is not a
   /// subdomain match or exact match of the initial domain.
   /// For example, a redirect from "foo.com" to either "foo.com" or
