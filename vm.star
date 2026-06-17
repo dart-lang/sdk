@@ -72,12 +72,14 @@ def _misc_builder(name, category, channels = ["try"], properties = {}, **kwargs)
         triggered_by = ["dart-vm-gitiles-trigger-%s"],
         **kwargs
     )
-    luci.console_view_entry(console_view = "misc", builder = name, category = category)
+    console_category, _, short_name = category.rpartition("|")
+    luci.console_view_entry(console_view = "misc", builder = name, category = console_category, short_name = short_name)
 
 def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
     properties = union({"bisection_enabled": True}, properties)
     cron.nightly_builder(name, category = None, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
-    luci.console_view_entry(console_view = "misc", builder = name, category = category)
+    console_category, _, short_name = category.rpartition("|")
+    luci.console_view_entry(console_view = "misc", builder = name, category = console_category, short_name = short_name)
 
 def _postponed_alt_console_entry(name, category):
     if category:
@@ -95,83 +97,83 @@ def add_postponed_alt_console_entries():
 # vm|jit
 _vm_builder(
     "vm-linux-debug-x64",
-    category = "vm|jit|d",
+    category = "vm|jit|linux|d",
     on_cq = True,
 )
 _vm_builder(
     "vm-linux-release-x64",
-    category = "vm|jit|r",
+    category = "vm|jit|linux|r",
 )
 _nightly_builder(
     "vm-linux-debug-ia32",
-    category = "vm|jit|d3",
+    category = "vm|jit|linux|d3",
 )
 _vm_builder(
     "vm-linux-release-ia32",
-    category = "vm|jit|r3",
+    category = "vm|jit|linux|r3",
 )
 _vm_builder(
     "vm-linux-release-simarm",
-    category = "vm|jit|ra",
+    category = "vm|jit|linux|ra",
 )
 _nightly_builder(
     "vm-linux-debug-simriscv32",
-    category = "vm|jit|rv",
+    category = "vm|jit|linux|rv",
 )
 _vm_builder(
     "vm-linux-debug-simriscv64",
-    category = "vm|jit|rv",
+    category = "vm|jit|linux|rv",
 )
 _nightly_builder(
     "vm-linux-debug-arm64",
-    category = "vm|jit|da",
+    category = "vm|jit|linux|da",
     dimensions = [arm64],
 )
 _vm_builder(
     "vm-linux-release-arm64",
-    category = "vm|jit|ra",
+    category = "vm|jit|linux|ra",
     dimensions = [arm64],
 )
 _vm_builder(
     "vm-mac-debug-x64",
-    category = "vm|jit|md",
+    category = "vm|jit|mac|d",
     dimensions = mac,
 )
 _vm_builder(
     "vm-mac-release-x64",
-    category = "vm|jit|mr",
+    category = "vm|jit|mac|r",
     dimensions = mac,
 )
 _nightly_builder(
     "vm-mac-debug-arm64",
-    category = "vm|jit|mda",
+    category = "vm|jit|mac|da",
     dimensions = [mac, arm64],
 )
 _vm_builder(
     "vm-mac-release-arm64",
-    category = "vm|jit|mra",
+    category = "vm|jit|mac|ra",
     dimensions = [mac, arm64],
 )
 _vm_builder(
     "vm-win-debug-x64",
-    category = "vm|jit|wd",
+    category = "vm|jit|windows|d",
     dimensions = windows,
 )
 _vm_builder(
     "vm-win-release-x64",
-    category = "vm|jit|wr",
+    category = "vm|jit|windows|r",
     dimensions = windows,
     on_cq = True,
 )
 _nightly_builder(
     "vm-win-debug-arm64",
-    category = "vm|jit|wad",
+    category = "vm|jit|windows|ad",
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
-    category = "vm|jit|war",
+    category = "vm|jit|windows|ar",
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
@@ -193,78 +195,78 @@ _nightly_builder(
 # vm|aot
 _nightly_builder(
     "vm-aot-linux-debug-x64",
-    category = "vm|aot|d",
+    category = "vm|aot|linux|d",
 )
 _vm_builder(
     "vm-aot-linux-release-x64",
-    category = "vm|aot|r",
+    category = "vm|aot|linux|r",
     on_cq = True,
 )
 _vm_builder(
     "vm-aot-linux-debug-simarm_x64",
-    category = "vm|aot|da",
+    category = "vm|aot|linux|da",
 )
 _vm_builder(
     "vm-aot-linux-release-simarm_x64",
-    category = "vm|aot|ra",
+    category = "vm|aot|linux|ra",
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv32",
-    category = "vm|aot|rv",
+    category = "vm|aot|linux|rv",
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv64",
-    category = "vm|aot|rv",
+    category = "vm|aot|linux|rv",
 )
 _nightly_builder(
     "vm-aot-linux-debug-arm64",
-    category = "vm|aot|da",
+    category = "vm|aot|linux|da",
     dimensions = [arm64],
 )
 _vm_builder(
     "vm-aot-linux-release-arm64",
-    category = "vm|aot|ra",
+    category = "vm|aot|linux|ra",
     dimensions = [arm64],
 )
 _nightly_builder(
     "vm-aot-mac-debug-x64",
-    category = "vm|aot|md",
+    category = "vm|aot|mac|d",
     dimensions = mac,
 )
 _vm_builder(
     "vm-aot-mac-release-x64",
-    category = "vm|aot|mr",
+    category = "vm|aot|mac|r",
     dimensions = mac,
 )
 _nightly_builder(
     "vm-aot-mac-debug-arm64",
-    category = "vm|aot|mda",
+    category = "vm|aot|mac|da",
     dimensions = [mac, arm64],
 )
 _vm_builder(
     "vm-aot-mac-release-arm64",
-    category = "vm|aot|mra",
+    category = "vm|aot|mac|ra",
     dimensions = [mac, arm64],
 )
 _nightly_builder(
     "vm-aot-win-debug-x64",
-    category = "vm|aot|wd",
+    category = "vm|aot|windows|d",
     dimensions = windows,
 )
 _vm_builder(
     "vm-aot-win-release-x64",
-    category = "vm|aot|wr",
+    category = "vm|aot|windows|r",
     dimensions = windows,
 )
 _nightly_builder(
     "vm-aot-win-debug-arm64",
-    category = "vm|aot|wad",
+    category = "vm|aot|windows|ad",
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
-    category = "vm|aot|war",
+    category = "vm|aot|windows|ar",
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
@@ -559,56 +561,56 @@ _nightly_misc_builder(
 # Our RBE setup doesn't work with GCC.
 _nightly_misc_builder(
     "vm-gcc-linux-debug-x64",
-    category = "gcc|x64|d",
+    category = "toolchain|gcc|x64|d",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-x64",
-    category = "gcc|x64|r",
+    category = "toolchain|gcc|x64|r",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-arm",
-    category = "gcc|arm|d",
+    category = "toolchain|gcc|arm|d",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-arm",
-    category = "gcc|arm|r",
+    category = "toolchain|gcc|arm|r",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-arm64",
-    category = "gcc|arm64|d",
+    category = "toolchain|gcc|arm64|d",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-arm64",
-    category = "gcc|arm64|r",
+    category = "toolchain|gcc|arm64|r",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-debug-riscv64",
-    category = "gcc|riscv64|d",
+    category = "toolchain|gcc|riscv64|d",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-gcc-linux-release-riscv64",
-    category = "gcc|riscv64|r",
+    category = "toolchain|gcc|riscv64|r",
     dimensions = resolute,
     properties = slow_build,
     rbe = False,
@@ -617,28 +619,28 @@ _nightly_misc_builder(
 # Our RBE setup doesn't work with MSVC.
 _nightly_misc_builder(
     "vm-msvc-win-debug-x64",
-    category = "msvc|x64|d",
+    category = "toolchain|msvc|x64|d",
     dimensions = windows,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-release-x64",
-    category = "msvc|x64|r",
+    category = "toolchain|msvc|x64|r",
     dimensions = windows,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-debug-arm64",
-    category = "msvc|arm64|d",
+    category = "toolchain|msvc|arm64|d",
     dimensions = windows,
     properties = slow_build,
     rbe = False,
 )
 _nightly_misc_builder(
     "vm-msvc-win-release-arm64",
-    category = "msvc|arm64|r",
+    category = "toolchain|msvc|arm64|r",
     dimensions = windows,
     properties = slow_build,
     rbe = False,
