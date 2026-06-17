@@ -100,9 +100,7 @@ class LazyMapping extends Mapping {
 
 LazyMapping? _mapping;
 
-final List<String> roots = _rootDirectories.toDart
-    .map((s) => s.toDart)
-    .toList();
+final List<String> roots = _rootDirectories.toDart;
 
 String mapper(String rawStackTrace) {
   var mapping = _mapping;

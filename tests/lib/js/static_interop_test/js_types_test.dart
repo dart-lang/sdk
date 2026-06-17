@@ -388,6 +388,134 @@ void syncTests() {
     Expect.equals(dartArrN.toJS, arrN);
   }
 
+  // [JSArray<JSNumber>] <-> [List<double>]
+  final listOfDoubles = <double>[1.0, 2.0];
+  final arrayOfDoubles = listOfDoubles.toJS;
+  Expect.isTrue(arrayOfDoubles is JSArray<JSNumber>);
+  Expect.isTrue(confuse(arrayOfDoubles) is JSArray<JSNumber>);
+
+  final dartArrayOfDoubles = arrayOfDoubles.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfDoubles, listOfDoubles);
+    Expect.equals(dartArrayOfDoubles.toJS, listOfDoubles);
+  } else {
+    Expect.notEquals(dartArrayOfDoubles, listOfDoubles);
+    Expect.notEquals(dartArrayOfDoubles.toJS, listOfDoubles);
+  }
+
+  // [JSArray<JSNumber>] <-> [List<int>]
+  final listOfInts = <int>[1, 2];
+  final arrayOfInts = listOfInts.toJS;
+  Expect.isTrue(arrayOfInts is JSArray<JSNumber>);
+  Expect.isTrue(confuse(arrayOfInts) is JSArray<JSNumber>);
+
+  final dartArrayOfInts = arrayOfInts.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfInts, listOfInts);
+    Expect.equals(dartArrayOfInts.toJS, listOfInts);
+  } else {
+    Expect.notEquals(dartArrayOfInts, listOfInts);
+    Expect.notEquals(dartArrayOfInts.toJS, listOfInts);
+  }
+
+  // Copy the list to elicit an error even on platforms where this only throws
+  // lazily.
+  Expect.throws(() => List.of([1.5.toJS].toJS.toDartOfInt));
+
+  // [JSArray<JSString>] <-> [List<String>]
+  final listOfStrings = ["foo", "bar"];
+  final arrayOfStrings = listOfStrings.toJS;
+  Expect.isTrue(arrayOfStrings is JSArray<JSString>);
+  Expect.isTrue(confuse(arrayOfStrings) is JSArray<JSString>);
+
+  final dartArrayOfStrings = arrayOfStrings.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfStrings, listOfStrings);
+    Expect.equals(dartArrayOfStrings.toJS, listOfStrings);
+  } else {
+    Expect.notEquals(dartArrayOfStrings, listOfStrings);
+    Expect.notEquals(dartArrayOfStrings.toJS, listOfStrings);
+  }
+
+  // [JSArray<JSBoolean>] <-> [List<bool>]
+  final listOfBools = [true, false];
+  final arrayOfBooleans = listOfBools.toJS;
+  Expect.isTrue(arrayOfBooleans is JSArray<JSBoolean>);
+  Expect.isTrue(confuse(arrayOfBooleans) is JSArray<JSBoolean>);
+
+  final dartArrayOfBooleans = arrayOfBooleans.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfBooleans, listOfBools);
+    Expect.equals(dartArrayOfBooleans.toJS, listOfBools);
+  } else {
+    Expect.notEquals(dartArrayOfBooleans, listOfBools);
+    Expect.notEquals(dartArrayOfBooleans.toJS, listOfBools);
+  }
+
+  // [JSArray<JSNumber?>] <-> [List<double?>]
+  final listOfNullableDoubles = <double?>[1.0, null];
+  final arrayOfNullableDoubles = listOfNullableDoubles.toJS;
+  Expect.isTrue(arrayOfNullableDoubles is JSArray<JSNumber?>);
+  Expect.isTrue(confuse(arrayOfNullableDoubles) is JSArray<JSNumber?>);
+
+  final dartArrayOfNullableDoubles = arrayOfNullableDoubles.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfNullableDoubles, listOfNullableDoubles);
+    Expect.equals(dartArrayOfNullableDoubles.toJS, listOfNullableDoubles);
+  } else {
+    Expect.notEquals(dartArrayOfNullableDoubles, listOfNullableDoubles);
+    Expect.notEquals(dartArrayOfNullableDoubles.toJS, listOfNullableDoubles);
+  }
+
+  // [JSArray<JSNumber>] <-> [List<int?>]
+  final listOfNullableInts = <int?>[1, null];
+  final arrayOfNullableInts = listOfNullableInts.toJS;
+  Expect.isTrue(arrayOfNullableInts is JSArray<JSNumber?>);
+  Expect.isTrue(confuse(arrayOfNullableInts) is JSArray<JSNumber?>);
+
+  final dartArrayOfNullableInts = arrayOfNullableInts.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfNullableInts, listOfNullableInts);
+    Expect.equals(dartArrayOfNullableInts.toJS, listOfNullableInts);
+  } else {
+    Expect.notEquals(dartArrayOfNullableInts, listOfNullableInts);
+    Expect.notEquals(dartArrayOfNullableInts.toJS, listOfNullableInts);
+  }
+
+  // Copy the list to elicit an error even on platforms where this only throws
+  // lazily.
+  Expect.throws(() => List.of([1.5.toJS, null].toJS.toDartOfInt));
+
+  // [JSArray<JSString?>] <-> [List<String?>]
+  final listOfNullableStrings = ["foo", null];
+  final arrayOfNullableStrings = listOfNullableStrings.toJS;
+  Expect.isTrue(arrayOfNullableStrings is JSArray<JSString?>);
+  Expect.isTrue(confuse(arrayOfNullableStrings) is JSArray<JSString?>);
+
+  final dartArrayOfNullableStrings = arrayOfNullableStrings.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfNullableStrings, listOfNullableStrings);
+    Expect.equals(dartArrayOfNullableStrings.toJS, listOfNullableStrings);
+  } else {
+    Expect.notEquals(dartArrayOfNullableStrings, listOfNullableStrings);
+    Expect.notEquals(dartArrayOfNullableStrings.toJS, listOfNullableStrings);
+  }
+
+  // [JSArray<JSBoolean>] <-> [List<bool>]
+  final listOfNullableBools = [true, null];
+  final arrayOfNullableBooleans = listOfNullableBools.toJS;
+  Expect.isTrue(arrayOfNullableBooleans is JSArray<JSBoolean?>);
+  Expect.isTrue(confuse(arrayOfNullableBooleans) is JSArray<JSBoolean?>);
+
+  final dartArrayOfNullableBooleans = arrayOfNullableBooleans.toDart;
+  if (isJSBackend) {
+    Expect.equals(dartArrayOfNullableBooleans, listOfNullableBools);
+    Expect.equals(dartArrayOfNullableBooleans.toJS, listOfNullableBools);
+  } else {
+    Expect.notEquals(dartArrayOfNullableBooleans, listOfNullableBools);
+    Expect.notEquals(dartArrayOfNullableBooleans.toJS, listOfNullableBools);
+  }
+
   // [ArrayBuffer] <-> [ByteBuffer]
   buf = Uint8List.fromList([0, 255, 0, 255]).buffer.toJS;
   Expect.isTrue(buf is JSArrayBuffer);
