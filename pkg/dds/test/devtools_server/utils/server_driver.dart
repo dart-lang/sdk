@@ -113,7 +113,10 @@ class DevToolsServerTestController {
 
   late Uri emptyDartAppRoot;
   late Uri packageWithExtensionsRoot;
-  late CliAppFixture appFixture;
+  CliAppFixture? _appFixture;
+  // ignore: unnecessary_getters_setters
+  CliAppFixture get appFixture => _appFixture!;
+  set appFixture(CliAppFixture? value) => _appFixture = value;
 
   late DevToolsServerDriver server;
 
@@ -144,7 +147,12 @@ class DevToolsServerTestController {
 
   late StreamSubscription<Map<String, dynamic>?> stdoutSub;
 
-  Future<void> setUp({bool runPubGet = false}) async {
+  Future<void> setUp({bool runPubGet = false, bool withApp = true}) async {
+    emptyDartAppRoot =
+        resolveTestRelativePath('devtools_server/fixtures/empty_dart_app/');
+    packageWithExtensionsRoot = resolveTestRelativePath(
+        'devtools_server/fixtures/package_with_extensions/');
+
     serverStartedEvent = Completer<Map<String, dynamic>>();
     eventController = StreamController<Map<String, dynamic>>.broadcast();
 
@@ -169,7 +177,9 @@ class DevToolsServerTestController {
     });
 
     await serverStartedEvent.future;
-    await startApp(runPubGet: runPubGet);
+    if (withApp) {
+      await startApp(runPubGet: runPubGet);
+    }
   }
 
   Future<void> tearDown() async {
@@ -185,7 +195,7 @@ class DevToolsServerTestController {
     await stdoutSub.cancel();
     await stderrSub.cancel();
     server.kill();
-    await appFixture.teardown();
+    await _appFixture?.teardown();
   }
 
   Future<Map<String, dynamic>> sendLaunchDevToolsRequest({
@@ -251,22 +261,23 @@ class DevToolsServerTestController {
     return chromeProcess;
   }
 
-  Future<void> startApp({bool runPubGet = false}) async {
+  Future<void> runPubGet() async {
     emptyDartAppRoot =
         resolveTestRelativePath('devtools_server/fixtures/empty_dart_app/');
-    packageWithExtensionsRoot = resolveTestRelativePath(
-        'devtools_server/fixtures/package_with_extensions/');
+    final pubResult = await Process.run(
+        Platform.resolvedExecutable, ['pub', 'get'],
+        workingDirectory: emptyDartAppRoot.toFilePath());
+    if (pubResult.exitCode != 0) {
+      throw 'Failed to run "dart pub get" in test fixture:\n'
+              '${utf8.decode(pubResult.stdout)}\n'
+              '${utf8.decode(pubResult.stderr)}'
+          .trim();
+    }
+  }
 
+  Future<void> startApp({bool runPubGet = false}) async {
     if (runPubGet) {
-      final pubResult = await Process.run(
-          Platform.resolvedExecutable, ['pub', 'get'],
-          workingDirectory: emptyDartAppRoot.toFilePath());
-      if (pubResult.exitCode != 0) {
-        throw 'Failed to run "dart pub get" in test fixture:\n'
-                '${utf8.decode(pubResult.stdout)}\n'
-                '${utf8.decode(pubResult.stderr)}'
-            .trim();
-      }
+      await this.runPubGet();
     }
 
     final appUri = emptyDartAppRoot.resolveUri(Uri.parse('bin/main.dart'));

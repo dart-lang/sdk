@@ -9,19 +9,8 @@ import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
 
-late final DevToolsServerTestController testController;
-
 void main() {
-  testController = DevToolsServerTestController();
   final baseHrefRegex = RegExp('<base href="([^"]+)"');
-
-  setUp(() async {
-    await testController.setUp();
-  });
-
-  tearDown(() async {
-    await testController.tearDown();
-  });
 
   group('serves index.html', () {
     DevToolsServerDriver? server;
