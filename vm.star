@@ -348,70 +348,6 @@ _nightly_builder(
 )
 
 _nightly_builder(
-    "vm-asan-linux-release-x64",
-    category = "vm|misc|sanitizer|a",
-)
-_nightly_builder(
-    "vm-msan-linux-release-x64",
-    category = "vm|misc|sanitizer|m",
-)
-_nightly_builder(
-    "vm-tsan-linux-release-x64",
-    category = "vm|misc|sanitizer|t",
-)
-_nightly_builder(
-    "vm-ubsan-linux-release-x64",
-    category = "vm|misc|sanitizer|u",
-)
-_nightly_builder(
-    "vm-asan-linux-release-arm64",
-    category = "vm|misc|sanitizer|a",
-    dimensions = [arm64],
-)
-_nightly_builder(
-    "vm-msan-linux-release-arm64",
-    category = "vm|misc|sanitizer|m",
-    dimensions = [arm64],
-)
-_nightly_builder(
-    "vm-tsan-linux-release-arm64",
-    category = "vm|misc|sanitizer|t",
-    dimensions = [arm64],
-    properties = [slow_shards],
-)
-_nightly_builder(
-    "vm-ubsan-linux-release-arm64",
-    category = "vm|misc|sanitizer|u",
-    dimensions = [arm64],
-)
-_nightly_builder(
-    "vm-asan-mac-release-arm64",
-    category = "vm|misc|sanitizer|a",
-    dimensions = [mac, arm64],
-)
-_nightly_builder(
-    "vm-tsan-mac-release-arm64",
-    category = "vm|misc|sanitizer|t",
-    dimensions = [mac, arm64],
-    properties = [slow_shards],
-)
-_nightly_builder(
-    "vm-ubsan-mac-release-arm64",
-    category = "vm|misc|sanitizer|u",
-    dimensions = [mac, arm64],
-)
-_nightly_builder(
-    "vm-asan-win-release-x64",
-    category = "vm|misc|sanitizer|a",
-    dimensions = [windows],
-)
-_nightly_builder(
-    "vm-ubsan-win-release-x64",
-    category = "vm|misc|sanitizer|u",
-    dimensions = [windows],
-)
-
-_nightly_builder(
     "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
 )
@@ -554,6 +490,70 @@ _nightly_misc_builder(
     "iso-stress-linux-arm64",
     category = "iso|arm64",
     dimensions = [arm64],
+)
+
+_nightly_misc_builder(
+    "vm-asan-linux-release-x64",
+    category = "sanitizer|linux|a",
+)
+_nightly_misc_builder(
+    "vm-msan-linux-release-x64",
+    category = "sanitizer|linux|m",
+)
+_nightly_misc_builder(
+    "vm-tsan-linux-release-x64",
+    category = "sanitizer|linux|t",
+)
+_nightly_misc_builder(
+    "vm-ubsan-linux-release-x64",
+    category = "sanitizer|linux|u",
+)
+_nightly_misc_builder(
+    "vm-asan-linux-release-arm64",
+    category = "sanitizer|linux|a",
+    dimensions = [arm64],
+)
+_nightly_misc_builder(
+    "vm-msan-linux-release-arm64",
+    category = "sanitizer|linux|m",
+    dimensions = [arm64],
+)
+_nightly_misc_builder(
+    "vm-tsan-linux-release-arm64",
+    category = "sanitizer|linux|t",
+    dimensions = [arm64],
+    properties = [slow_shards],
+)
+_nightly_misc_builder(
+    "vm-ubsan-linux-release-arm64",
+    category = "sanitizer|linux|u",
+    dimensions = [arm64],
+)
+_nightly_misc_builder(
+    "vm-asan-mac-release-arm64",
+    category = "sanitizer|mac|a",
+    dimensions = [mac, arm64],
+)
+_nightly_misc_builder(
+    "vm-tsan-mac-release-arm64",
+    category = "sanitizer|mac|t",
+    dimensions = [mac, arm64],
+    properties = [slow_shards],
+)
+_nightly_misc_builder(
+    "vm-ubsan-mac-release-arm64",
+    category = "sanitizer|mac|u",
+    dimensions = [mac, arm64],
+)
+_nightly_misc_builder(
+    "vm-asan-win-release-x64",
+    category = "sanitizer|win|a",
+    dimensions = [windows],
+)
+_nightly_misc_builder(
+    "vm-ubsan-win-release-x64",
+    category = "sanitizer|win|u",
+    dimensions = [windows],
 )
 
 # Our RBE setup doesn't work with GCC.
