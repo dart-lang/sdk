@@ -710,6 +710,69 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       b.f64_const(value);
       return w.NumType.f64;
     }
+    if (constant.classNode.superclass == translator.wasmV128Class) {
+      final classNode = constant.classNode;
+      if (classNode == translator.wasmI8x16ImplClass) {
+        final laneRefs = translator.wasmI8x16Lanes;
+        int lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as IntConstant).value;
+        b.v128_const_i8x16(
+          lane(0),
+          lane(1),
+          lane(2),
+          lane(3),
+          lane(4),
+          lane(5),
+          lane(6),
+          lane(7),
+          lane(8),
+          lane(9),
+          lane(10),
+          lane(11),
+          lane(12),
+          lane(13),
+          lane(14),
+          lane(15),
+        );
+      } else if (classNode == translator.wasmI16x8ImplClass) {
+        final laneRefs = translator.wasmI16x8Lanes;
+        int lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as IntConstant).value;
+        b.v128_const_i16x8(
+          lane(0),
+          lane(1),
+          lane(2),
+          lane(3),
+          lane(4),
+          lane(5),
+          lane(6),
+          lane(7),
+        );
+      } else if (classNode == translator.wasmI32x4ImplClass) {
+        final laneRefs = translator.wasmI32x4Lanes;
+        int lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as IntConstant).value;
+        b.v128_const_i32x4(lane(0), lane(1), lane(2), lane(3));
+      } else if (classNode == translator.wasmI64x2ImplClass) {
+        final laneRefs = translator.wasmI64x2Lanes;
+        int lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as IntConstant).value;
+        b.v128_const_i64x2(lane(0), lane(1));
+      } else if (classNode == translator.wasmF32x4ImplClass) {
+        final laneRefs = translator.wasmF32x4Lanes;
+        double lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as DoubleConstant).value;
+        b.v128_const_f32x4(lane(0), lane(1), lane(2), lane(3));
+      } else if (classNode == translator.wasmF64x2ImplClass) {
+        final laneRefs = translator.wasmF64x2Lanes;
+        double lane(int index) =>
+            (constant.fieldValues[laneRefs[index]] as DoubleConstant).value;
+        b.v128_const_f64x2(lane(0), lane(1));
+      } else {
+        throw Exception('Unexpected WasmV128 subclass: ${classNode.name}');
+      }
+      return w.NumType.v128;
+    }
     return super.visitInstanceConstant(constant);
   }
 }
@@ -850,7 +913,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     if (cls == translator.immutableWasmArrayClass) {
       return _makeWasmArrayLiteral(constant, mutable: false);
     }
-    if (cls == translator.wasmI32Class) {
+    if (cls == translator.wasmI32Class ||
+        cls == translator.wasmI64Class ||
+        cls == translator.wasmF32Class ||
+        cls == translator.wasmF64Class ||
+        cls == translator.wasmV128Class ||
+        cls.superclass == translator.wasmV128Class) {
       return null;
     }
 

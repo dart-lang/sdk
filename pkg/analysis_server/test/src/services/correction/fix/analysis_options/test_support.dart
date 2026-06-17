@@ -47,10 +47,9 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var sourceFactory = SourceFactory([]);
     var errors = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: '/',
+      contextRoot: getFolder('/'),
       sdkVersionConstraint: dart2_12,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: optionsFile, content: content);
+    ).validate(optionsFile);
     if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');

@@ -81,10 +81,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var errors = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: contextRoot.root.path,
+      contextRoot: contextRoot.root,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: optionsFile, content: content);
+    ).validate(optionsFile);
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {

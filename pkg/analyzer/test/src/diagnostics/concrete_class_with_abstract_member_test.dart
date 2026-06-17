@@ -34,16 +34,6 @@ class A {
 ''');
   }
 
-  test_direct() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {
-  m();
-//^^^^
-// [diag.concreteClassWithAbstractMember] 'm' must have a method body because 'A' isn't abstract.
-}
-''');
-  }
-
   test_external_field() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -60,15 +50,50 @@ class A {
 ''');
   }
 
+  test_method() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_method_hasClassAugmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+
+augment class A {
+}
+''');
+  }
+
+  test_method_hasClassAugmentation_withMethodDeclaration() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+augment class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
   test_noSuchMethod_interface() async {
     await resolveTestCodeWithDiagnostics('''
 class I {
   noSuchMethod(v) => '';
 }
 class A implements I {
-  m();
-//^^^^
-// [diag.concreteClassWithAbstractMember] 'm' must have a method body because 'A' isn't abstract.
+  foo();
+//^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
 }
 ''');
   }

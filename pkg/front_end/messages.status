@@ -161,6 +161,7 @@ front_end/UnsoundSwitchExpressionError/example: missingExample # Used in throw i
 front_end/UnsoundSwitchStatementError/example: missingExample # Used in throw in code, but not issued as a message.
 front_end/Unspecified/example: missingExample # This should generally not be used.
 front_end/UnterminatedToken/example: missingExample # This is a fall-back message that shouldn't happen.
+front_end/WasmConstantLaneOutOfRange/script: hasOnlyUnrelatedMessages # Wasm private library access.
 front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
 front_end/WasmExternInvalidLoad/example: missingExample # only issued by wasm build
 front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm build

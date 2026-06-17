@@ -9,7 +9,7 @@
   (type $_Type <...>)
   (global $"\")\"_9" (import "$" "/") (ref $JSExternWrapper))
   (global $_InterfaceType (import "$" "-") (ref $_InterfaceType))
-  (table $$.$ (import "$" "$") 765 funcref)
+  (table $$.$ (import "$" "$") 758 funcref)
   (table $$.% (import "$" "%") 20 funcref)
   (global $"\">.takeT(\"" (ref $JSExternWrapper) <...>)
   (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)
@@ -150,7 +150,7 @@
       local.get $var1
       local.get $var4
       struct.get $_Type $field0
-      i32.const 467
+      i32.const 499
       i32.add
       call_indirect $$.$ (param (ref $_Type) (ref $#Top)) (result i32)
     end $label0

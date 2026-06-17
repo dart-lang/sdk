@@ -686,12 +686,6 @@ AnalysisOptionsImpl
   enabledLegacyPluginNames
     plugin_one
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
-''');
   }
 
   test_analyzer_unsupportedOption() {
@@ -1024,10 +1018,6 @@ include: other_options1.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_missing_packageUri_doubleQuoted() {
@@ -1036,10 +1026,6 @@ AnalysisOptionsImpl
 include: "package:pedantic/analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1094,10 +1080,6 @@ include: package:pedantic/analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_missing_packageUri_singleQuoted() {
@@ -1106,10 +1088,6 @@ AnalysisOptionsImpl
 include: 'package:pedantic/analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1132,10 +1110,6 @@ include: other_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_cycle_direct() {
@@ -1149,10 +1123,6 @@ include: analysis_options.yaml
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/other_options.yaml' includes '/home/test/other_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1179,10 +1149,6 @@ include: other_options1.yaml
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options1.yaml(9..27): The file includes itself recursively.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1346,10 +1312,6 @@ include: analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_doubleQuoted() {
@@ -1357,10 +1319,6 @@ AnalysisOptionsImpl
 include: "./analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1378,10 +1336,6 @@ include: analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_fileNameInList() {
@@ -1390,10 +1344,6 @@ include:
   - analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1415,10 +1365,6 @@ include: other_options.yaml
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(9..26): The file includes itself recursively.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1470,10 +1416,6 @@ include: ./analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_singleQuoted() {
@@ -1481,10 +1423,6 @@ AnalysisOptionsImpl
 include: './analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -3311,7 +3249,7 @@ AnalysisOptionsImpl
     configurations
       one
         source: PathPluginSource
-          path: ${convertPath('$testPackageRootPath/foo/bar')}
+          path: /home/test/foo/bar
 ''');
   }
 

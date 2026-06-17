@@ -57,16 +57,13 @@ abstract class AbstractAnalysisOptionsTest
       fail('Cannot validate analysis options: no content was provided.');
     }
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
+    var initialFile = cleanCodeByFile.keys.first;
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
+      contextRoot: getFolder(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
+    ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
@@ -94,16 +91,13 @@ abstract class AbstractAnalysisOptionsTest
       fail('Cannot parse analysis options: no content was provided.');
     }
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
+    var initialFile = cleanCodeByFile.keys.first;
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
+      contextRoot: getFolder(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
+    ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
@@ -288,6 +282,13 @@ final class _AnalysisOptionsTextWriter {
     return _buffer.toString();
   }
 
+  String _toPosixPath(String filePath) {
+    if (filePath.startsWith(r'C:\')) {
+      return filePath.substring(2).replaceAll(r'\', '/');
+    }
+    return filePath;
+  }
+
   void _writeBool(String name, bool value, bool defaultValue) {
     if (value != defaultValue) {
       _sink.writelnWithIndent('$name: $value');
@@ -470,7 +471,7 @@ final class _AnalysisOptionsTextWriter {
   void _writePathPluginSource(PathPluginSource source) {
     _sink.writelnWithIndent('source: PathPluginSource');
     _sink.withIndent(() {
-      _sink.writelnWithIndent('path: ${source.path}');
+      _sink.writelnWithIndent('path: ${_toPosixPath(source.path)}');
     });
   }
 

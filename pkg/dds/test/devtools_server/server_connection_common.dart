@@ -85,6 +85,7 @@ void runTest({required bool useVmService}) {
       final devToolsUri =
           'http://${event['params']['host']}:${event['params']['port']}';
       final chromeProcess = await testController.launchChrome(devToolsUri);
+
       final stdoutSub =
           chromeProcess.stdout.transform(utf8.decoder).listen((e) {
         print('[CHROME STDOUT]: $e');

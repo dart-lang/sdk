@@ -15,11 +15,13 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'analysis_options_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsBuildTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
 
     // TODO(srawlins): add tests for multiple includes.
     // TODO(srawlins): add tests with duplicate legacy plugin names.
@@ -464,7 +466,7 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('$testPackageRootPath/foo/bar')}
+          path: /home/test/foo/bar
 ''');
   }
 
@@ -1192,14 +1194,14 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/home/test/foo/bar')}
+          path: /home/test/foo/bar
     dependencyOverrides
       some_package1
         source: PathPluginSource
-          path: ${convertPath('/home/some_package1')}
+          path: /home/some_package1
       some_package2
         source: PathPluginSource
-          path: ${convertPath('/home/test/sub_folder/some_package2')}
+          path: /home/test/sub_folder/some_package2
 ''');
   }
 
@@ -1316,7 +1318,7 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/home/test/foo/bar')}
+          path: /home/test/foo/bar
 ''');
   }
 
@@ -1333,7 +1335,7 @@ AnalysisOptionsImpl
     configurations
       plugin_one
         source: PathPluginSource
-          path: ${convertPath('/home/foo/baz')}
+          path: /home/foo/baz
 ''');
   }
 

@@ -87,6 +87,7 @@ jsany
 jsexport
 jsobject
 lang
+lane
 libraries.json
 list.filled
 loadlibrary
@@ -165,5 +166,6 @@ unsupportederror
 v
 wasm:export
 wasm:import
+wasmv
 webassembly
 x
