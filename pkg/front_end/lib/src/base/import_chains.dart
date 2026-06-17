@@ -238,11 +238,7 @@ abstract class CodeLocation {
 /// A code location defined by the scheme of the uri.
 ///
 /// Used for non-package uris, such as 'dart', 'file', and 'http'.
-class SchemeLocation implements CodeLocation {
-  final Uri uri;
-
-  new(this.uri);
-
+class SchemeLocation(final Uri uri) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) {
     return this.uri.scheme == uri.scheme;
@@ -258,11 +254,7 @@ class SchemeLocation implements CodeLocation {
 ///
 /// Used for package uris, separated by their `package names`, that is, the
 /// 'foo' of 'package:foo/bar.dart'.
-class PackageLocation implements CodeLocation {
-  final String packageName;
-
-  new(this.packageName);
-
+class PackageLocation(final String packageName) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) {
     return uri.scheme == 'package' && uri.path.startsWith('$packageName/');
@@ -275,11 +267,7 @@ class PackageLocation implements CodeLocation {
 /// A code location defined by the whole uri.
 ///
 /// Used for package uris with no package name. For instance 'package:foo.dart'.
-class UriLocation implements CodeLocation {
-  final Uri uri;
-
-  new(this.uri);
-
+class UriLocation(final Uri uri) implements CodeLocation {
   @override
   bool inSameLocation(Uri uri) => this.uri == uri;
 

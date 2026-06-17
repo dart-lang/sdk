@@ -151,9 +151,4 @@ Future<LanguageVersionToken?> scanBytesForLanguageVersionAnnotation(
 }
 
 // Coverage-ignore(suite): Not run.
-class VersionAndPackageUri {
-  final Version version;
-  final Uri packageUri;
-
-  new(this.version, this.packageUri);
-}
+class VersionAndPackageUri(final Version version, final Uri packageUri);

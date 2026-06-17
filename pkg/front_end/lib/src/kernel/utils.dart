@@ -279,12 +279,7 @@ List<Combinator>? toCombinators(List<CombinatorBuilder>? combinatorBuilders) {
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
-final CombinatorBuilder dummyCombinator = new CombinatorBuilder(
-  false,
-  {},
-  -1,
-  dummyUri,
-);
+final CombinatorBuilder dummyCombinator = new CombinatorBuilder(false, {});
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
   dummyToken,
   dummyUri,

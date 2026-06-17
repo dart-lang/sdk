@@ -21,11 +21,15 @@ part of "dart:core";
 /// and its subclasses.
 @pragma('flutter:keep-to-string-in-subtypes')
 abstract interface class Exception {
-  factory([message]) => _Exception(message);
+  factory Exception([message]) => _Exception(message);
 }
 
 /// Default implementation of [Exception] which carries a message.
-class _Exception([final dynamic message]) implements Exception {
+class _Exception implements Exception {
+  final dynamic message;
+
+  _Exception([this.message]);
+
   String toString() {
     Object? message = this.message;
     if (message == null) return "Exception";
@@ -36,9 +40,9 @@ class _Exception([final dynamic message]) implements Exception {
 /// Exception thrown when a string or some other data does not have an expected
 /// format and cannot be parsed or processed.
 @pragma("vm:entry-point")
-class const FormatException([
+class FormatException implements Exception {
   /// A message describing the format error.
-  final String message = "",
+  final String message;
 
   /// The actual source input which caused the error.
   ///
@@ -46,7 +50,7 @@ class const FormatException([
   /// If it is a string, parts of it may be included in the [toString] message.
   ///
   /// The source is `null` if omitted or unknown.
-  final dynamic source,
+  final dynamic source;
 
   /// The offset in [source] where the error was detected.
   ///
@@ -59,14 +63,14 @@ class const FormatException([
   /// or at the end of the string.
   ///
   /// May be omitted. If present, [source] should also be present if possible.
-  final int? offset,
-]) implements Exception {
+  final int? offset;
+
   /// Creates a new `FormatException` with an optional error [message].
   ///
   /// Optionally also supply the actual [source] with the incorrect format,
   /// and the [offset] in the format where a problem was detected.
   @pragma("vm:entry-point")
-  this;
+  const FormatException([this.message = "", this.source, this.offset]);
 
   /// Returns a description of the format exception.
   ///
@@ -169,11 +173,10 @@ class const FormatException([
 // TODO(30743): Should be removed, and division by zero should just throw an
 // [UnsupportedError].
 @Deprecated("Use UnsupportedError instead")
-class const IntegerDivisionByZeroException()
-    implements Exception, UnsupportedError {
+class IntegerDivisionByZeroException implements Exception, UnsupportedError {
   String? get message => "Division resulted in non-finite value";
   StackTrace? get stackTrace => null;
   @pragma("vm:entry-point")
-  this;
+  const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";
 }

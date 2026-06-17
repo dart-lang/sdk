@@ -13,29 +13,9 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
-import 'evaluate_activation_in_method_class_other.dart';
-
-var topLevel = 'TestLibrary';
-
-class Subclass extends Superclass1 {
-  final _instVar = 'Subclass';
-  @override
-  var instVar = 'Subclass';
-  @override
-  String method() => 'Subclass';
-  static String staticMethod() => 'Subclass';
-  @override
-  String suppressWarning() => _instVar;
-}
-
-void testeeDo() {
-  final obj = Subclass();
-  obj.test();
-}
+import 'evaluate_activation_in_method_class_lib.dart' as testee_lib;
 
 Future<void> testerDo(VmService service, IsolateRef isolateRef) async {
-  await hasStoppedAtBreakpoint(service, isolateRef);
   final isolateId = isolateRef.id!;
 
   // Make sure we are in the right place.
@@ -101,9 +81,8 @@ Future<void> testerDo(VmService service, IsolateRef isolateRef) async {
   expect(result.valueAsString, equals('OtherLibrary'));
 }
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      [testerDo],
-      'evaluate_activation_in_method_class_test.dart',
-      testeeConcurrent: testeeDo,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('evaluate_activation_in_method_class_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        .addCustomTest(testerDo)
+        .run(testeeMain: testee_lib.main);

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
@@ -38,11 +39,11 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart';
 
 class CiderFileContent implements FileContent {
   final CiderFileContentStrategy strategy;
@@ -797,7 +798,7 @@ class FileResolver {
     required String path,
     required OperationPerformanceImpl performance,
   }) {
-    YamlMap? optionMap;
+    AnalysisOptionsImpl? options;
 
     var separator = resourceProvider.pathContext.separator;
     var isThirdParty =
@@ -812,57 +813,35 @@ class FileResolver {
       });
     }
 
-    if (optionsFile != null) {
-      performance.run('getOptionsFromFile', (_) {
-        try {
-          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-          optionMap = optionsProvider.getOptionsFromFile(optionsFile!);
-        } catch (_) {}
-      });
-    } else {
+    if (optionsFile == null) {
       var source = performance.run('defaultOptions', (_) {
         if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-          if (isThirdParty) {
-            return sourceFactory.forUri(
-              WorkspaceWithDefaultAnalysisOptions.thirdPartyUri,
-            );
-          } else {
-            return sourceFactory.forUri(
-              WorkspaceWithDefaultAnalysisOptions.uri,
-            );
-          }
+          var uri = isThirdParty
+              ? WorkspaceWithDefaultAnalysisOptions.thirdPartyUri
+              : WorkspaceWithDefaultAnalysisOptions.uri;
+          return sourceFactory.forUri(uri);
         }
         return null;
       });
 
-      if (source != null && source.exists()) {
-        performance.run('getOptionsFromFile', (_) {
-          try {
-            var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-            optionMap = optionsProvider.getOptionsFromSource(
-              source,
-              resourceProvider.pathContext,
-            );
-          } catch (_) {}
-        });
-      }
+      optionsFile = source.tryCast<FileSource>()?.file;
     }
 
-    late AnalysisOptionsImpl options;
-
-    if (optionMap case YamlMap map) {
-      performance.run('applyToAnalysisOptions', (_) {
-        options = AnalysisOptionsImpl.fromYaml(optionsMap: map);
+    if (optionsFile case var file?) {
+      performance.run('getAnalysisOptionsFromFile', (_) {
+        try {
+          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+          options = optionsProvider.getAnalysisOptionsFromFile(file);
+        } catch (_) {}
       });
-    } else {
-      options = AnalysisOptionsImpl();
     }
 
+    var result = options ?? AnalysisOptionsImpl();
     if (isThirdParty) {
-      options.warning = false;
+      result = (AnalysisOptionsBuilder.from(result)..warning = false).build();
     }
 
-    return options;
+    return result;
   }
 
   void _loadLibraryAndDocLibraryImports({

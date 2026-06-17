@@ -1062,6 +1062,34 @@ Script2: ${script2.uri}
   );
 
   test(
+    'resident compiler works with non-ASCII filenames',
+    () async {
+      p = project();
+      p.file('æble.dart', r'''
+Future<void> main() async {
+  print("Hello, æble!");
+}
+''');
+
+      var script = File(path.join(p.dir.path, 'æble.dart'));
+      expect(script.existsSync(), true);
+      print(script);
+
+      ProcessResult result = await p.run([
+        'run',
+        '--resident',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+        'æble.dart',
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      String stdout = result.stdout.toString().trim();
+      expect(stdout, 'Hello, æble!');
+    },
+  );
+
+  test(
     'passing --resident is a prerequisite for passing --resident-compiler-info-file',
     () async {
       p = project(mainSrc: 'void main() {}');

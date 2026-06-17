@@ -273,7 +273,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
       // On Android the Dill file will be pushed to a different directory on the
       // device. Use that one instead.
-      filename = "${DartkAdbRuntimeConfiguration.deviceTestDir}/out.dill";
+      filename = "<deviceTestDir>/out.dill";
     }
 
     return [
@@ -1378,7 +1378,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different
       // directory on the device, use that one instead.
-      dir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
+      dir = "<deviceTestDir>";
     }
     originalArguments = _replaceDartFiles(originalArguments, tempAOTFile(dir));
 

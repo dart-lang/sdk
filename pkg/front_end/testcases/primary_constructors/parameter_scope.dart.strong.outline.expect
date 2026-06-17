@@ -33,6 +33,7 @@ class E2 extends core::_Enum /*isEnum*/  {
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 extension type ET1(core::int x) {
+  @self::ET1|m
   abstract extension-type-member representation-field get x() → core::int;
   static field m = self::ET1|m;
   constructor • = self::ET1|constructor#;
@@ -63,5 +64,6 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_scope.dart
 Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_scope.dart:13:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_scope.dart:19:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_scope.dart:18:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///parameter_scope.dart:23:22 -> IntConstant(42)
 Evaluated: StaticGet @ org-dartlang-testcase:///parameter_scope.dart:23:32 -> IntConstant(42)
-Extra constant evaluation: evaluated: 21, effectively constant: 7
+Extra constant evaluation: evaluated: 22, effectively constant: 8

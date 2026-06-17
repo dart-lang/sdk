@@ -30,7 +30,11 @@ export 'src/loaders/frontend_server_strategy_provider.dart'
         FrontendServerRequireStrategyProvider;
 export 'src/loaders/require.dart' show RequireStrategy;
 export 'src/loaders/strategy.dart'
-    show BuildSettings, LoadStrategy, ReloadConfiguration;
+    show
+        BuildSettings,
+        LoadStrategy,
+        ReloadConfiguration,
+        ReloadableLoadStrategy;
 export 'src/readers/asset_reader.dart' show AssetReader, PackageUriMapper;
 export 'src/readers/frontend_server_asset_reader.dart'
     show FrontendServerAssetReader;

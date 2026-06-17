@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -70,31 +71,36 @@ class IndexTest extends PubPackageResolutionTest {
   }
 
   test_analyzer_diagnosticCode() async {
-    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+    var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
+    writePackageConfig(
+      analyzerPackageRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
+    );
+
+    var analyzerPackageLibPath = '$analyzerPackageRootPath/lib';
+    var analyzerPackageTestPath = '$analyzerPackageRootPath/test';
+    var diagnosticFile = newFile(
+      '$analyzerPackageLibPath/src/diagnostic/diagnostic.dart',
+      r'''
 const myDiagnosticCode = 0;
-''');
+''',
+    );
 
     var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
     var element = diagnosticLibrary.topLevelVariables.firstWhere(
       (v) => v.name == 'myDiagnosticCode',
     );
 
-    newFile('$testPackageLibPath/helper.dart', r'''
-import 'diagnostic.dart';
-''');
-
-    var result = await _indexTestCode(r'''
-import 'helper.dart';
-//     ^^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'helper.dart'.
-
+    var testFile = getFile('$analyzerPackageTestPath/test.dart');
+    var result = await _indexFileWithDiagnostics(testFile, r'''
 void f() {
   '// [diag.myDiagnosticCode] message';
 }
 ''');
 
     assertElementIndexText(result, element, r'''
-46 4:13 |myDiagnosticCode| IS_REFERENCED_BY qualified
+23 2:13 |myDiagnosticCode| IS_REFERENCED_BY qualified
 ''');
   }
 

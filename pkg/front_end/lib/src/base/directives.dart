@@ -5,22 +5,16 @@
 import '../builder/compilation_unit.dart';
 
 /// Information about a part directive.
-class Part {
+class Part({
   /// The file URI at which the part directive occurs.
-  final Uri fileUri;
+  required final Uri fileUri,
 
   /// The file offset at which the part directive occurs.
-  final int fileOffset;
+  required final int fileOffset,
 
   /// The [CompilationUnit] referenced by the part directive.
-  final CompilationUnit compilationUnit;
-
-  new({
-    required this.fileUri,
-    required this.fileOffset,
-    required this.compilationUnit,
-  });
-}
+  required final CompilationUnit compilationUnit,
+});
 
 /// Information about a part-of directive.
 class PartOf {
@@ -54,15 +48,13 @@ class PartOf {
 }
 
 /// Information about a library directive.
-class LibraryDirective {
+class LibraryDirective({
   /// The file URI at which the library directive occurs.
-  final Uri fileUri;
+  required final Uri fileUri,
 
   /// The file offset at which the library directive occurs.
-  final int fileOffset;
+  required final int fileOffset,
 
   /// The library name provided in the library directive, if any.
-  final String? name;
-
-  new({required this.fileUri, required this.fileOffset, required this.name});
-}
+  required final String? name,
+});

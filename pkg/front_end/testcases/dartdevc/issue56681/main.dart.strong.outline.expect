@@ -26,7 +26,7 @@ class SomeEnum extends self2::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
     ;
 }
 abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self2::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(final core::int index, final core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
+  const synthetic constructor •(core::int index, core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
     : super core::_Enum::•(index, _name)
     ;
   abstract synthetic mixin-stub get someField() → core::String; -> self2::HasSomeField::someField

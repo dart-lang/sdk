@@ -21,6 +21,241 @@ void main() {
 
 @reflectiveTest
 class RemoveConstructorNameInClassTest extends _RemoveConstructorNameTest {
+  Future<void> test_inBody_factory_onKeyword() async {
+    var originalSource = '''
+class C {
+  factory^ name() => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  factory() => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_factory_onName() async {
+    var originalSource = '''
+class C {
+  factory nam^e() => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  factory() => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_factory_unnamed() async {
+    var originalSource = '''
+class C {
+  factory^() => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_new_onKeyword() async {
+    var originalSource = '''
+class C {
+  new^ name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_new_onName() async {
+    var originalSource = '''
+class C {
+  new ^name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_new_unnamed() async {
+    var originalSource = '''
+class C {
+  new^();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_simple_hasConflict_withInBody() async {
+    var originalSource = '''
+class C {
+  C.na^me();
+  C();
+}
+''';
+    await _assertRefactoringFails(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_simple_hasConflict_withPrimary() async {
+    var originalSource = '''
+class C() {
+  C.na^me();
+}
+}
+''';
+    await _assertRefactoringFails(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_simple_onClassName() async {
+    var originalSource = '''
+class C {
+  C^.name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  C();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple_onConstructorName() async {
+    var originalSource = '''
+class C {
+  C.na^me();
+}
+
+void f() {
+  C.name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  C();
+}
+
+void f() {
+  C();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_notAvailable_inBody_unnamed_declaration() async {
+    var originalSource = '''
+class C {
+  C^();
+}
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
+  Future<void> test_notAvailable_inBody_unnamed_invocation() async {
+    var originalSource = '''
+class C {
+  C();
+}
+
+var x = C^();
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
   Future<void> test_notAvailable_primary_unnamed_declaration() async {
     var originalSource = '''
 class C^();
@@ -35,34 +270,6 @@ class C^();
   Future<void> test_notAvailable_primary_unnamed_invocation() async {
     var originalSource = '''
 class C();
-
-var x = C^();
-''';
-
-    await assertNoRefactoring(
-      originalSource: originalSource,
-      refactoringTitle: refactoringTitle,
-    );
-  }
-
-  Future<void> test_notAvailable_secondary_unnamed_declaration() async {
-    var originalSource = '''
-class C {
-  C^();
-}
-''';
-
-    await assertNoRefactoring(
-      originalSource: originalSource,
-      refactoringTitle: refactoringTitle,
-    );
-  }
-
-  Future<void> test_notAvailable_secondary_unnamed_invocation() async {
-    var originalSource = '''
-class C {
-  C();
-}
 
 var x = C^();
 ''';
@@ -138,217 +345,54 @@ void f() {
 ''';
     await _assertNoRefactoring(originalSource: originalSource);
   }
-
-  Future<void> test_secondary_factory_onKeyword() async {
-    var originalSource = '''
-class C {
-  factory^ name() => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  factory() => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_factory_onName() async {
-    var originalSource = '''
-class C {
-  factory nam^e() => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  factory() => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_factory_unnamed() async {
-    var originalSource = '''
-class C {
-  factory^() => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_new_onKeyword() async {
-    var originalSource = '''
-class C {
-  new^ name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  new();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_new_onName() async {
-    var originalSource = '''
-class C {
-  new ^name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  new();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_new_unnamed() async {
-    var originalSource = '''
-class C {
-  new^();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_simple_hasConflict_withPrimary() async {
-    var originalSource = '''
-class C() {
-  C.na^me();
-}
-}
-''';
-    await _assertRefactoringFails(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_simple_hasConflict_withSecondary() async {
-    var originalSource = '''
-class C {
-  C.na^me();
-  C();
-}
-''';
-    await _assertRefactoringFails(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_simple_onClassName() async {
-    var originalSource = '''
-class C {
-  C^.name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  C();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple_onConstructorName() async {
-    var originalSource = '''
-class C {
-  C.na^me();
-}
-
-void f() {
-  C.name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  C();
-}
-
-void f() {
-  C();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
 }
 
 @reflectiveTest
 class RemoveConstructorNameInEnumTest extends _RemoveConstructorNameTest {
+  Future<void> test_inBody_new() async {
+    var originalSource = '''
+enum E {
+  a.name();
+
+  new ^name();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+enum E {
+  a();
+
+  new();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple() async {
+    var originalSource = '''
+enum E {
+  a.named();
+
+  E.n^amed();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+enum E {
+  a();
+
+  E();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
   Future<void> test_primary() async {
     var originalSource = '''
 enum E.name^() {
@@ -374,50 +418,6 @@ enum E^() {
 }
 ''';
     await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_new() async {
-    var originalSource = '''
-enum E {
-  a.name();
-
-  new ^name();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-enum E {
-  a();
-
-  new();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple() async {
-    var originalSource = '''
-enum E {
-  a.named();
-
-  E.n^amed();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-enum E {
-  a();
-
-  E();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
   }
 }
 

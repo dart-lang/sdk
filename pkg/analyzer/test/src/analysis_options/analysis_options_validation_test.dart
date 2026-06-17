@@ -32,7 +32,7 @@ class AnalysisOptionsValidationTest extends AbstractAnalysisOptionsTest {
   void newEmptyIncludedOptionsFile() {
     // TODO(scheglov): Remove this file and the unnecessary include directives
     // in these value-only tests.
-    newFile('/included.yaml', '');
+    newFile('$testPackageRootPath/included.yaml', '');
   }
 
   @override
@@ -61,97 +61,154 @@ class AnalysisOptionsValidationTest extends AbstractAnalysisOptionsTest {
   }
 
   test_analyzer_cannotIgnore_badValue() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     - not_an_error_code
 //    ^^^^^^^^^^^^^^^^^
 // [diag.unrecognizedErrorCode] 'not_an_error_code' isn't a recognized diagnostic code.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    not_an_error_code
+''');
   }
 
   test_analyzer_cannotIgnore_goodValue() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     - invalid_annotation
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    invalid_annotation
 ''');
   }
 
   test_analyzer_cannotIgnore_lintRule() {
     registerLintRule(TestRule());
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     - fantastic_test_rule
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    fantastic_test_rule
+''');
   }
 
   test_analyzer_cannotIgnore_notAList() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     one_error_code: true
 // [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'cannot-ignore' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_cannotIgnore_severity() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     - error
 ''');
+
+    // Keep this as a broad probe: `error` should include all diagnostics with
+    // error severity, not just a single named code.
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('invalid_annotation'));
+    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_cannotIgnore_valueNotAString() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
     one_error_code:
 // [diag.invalidSectionFormat][column 5][length 31] Invalid format for the 'cannot-ignore' section.
       foo: bar
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_empty() {
     registerLintRule(TestRule());
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_analyzer_enableExperiment_badValue() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   enable-experiment:
     - not-an-experiment
 //    ^^^^^^^^^^^^^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'not-an-experiment' isn't supported by 'enable-experiment'.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_enableExperiment_mapValue() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   enable-experiment:
     experiment: true
 // [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'enable-experiment' section.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_enableExperiment_scalarValue() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   enable-experiment: 7
 // [diag.invalidSectionFormat][column 22][length 6] Invalid format for the 'enable-experiment' section.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_errors_code_supported() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
+    unused_local_variable: ignore
+    invalid_assignment: warning
+    assignment_of_do_not_store: error
+    dead_code: info
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
     unused_local_variable: ignore
     invalid_assignment: warning
     assignment_of_do_not_store: error
@@ -160,82 +217,94 @@ analyzer:
   }
 
   test_analyzer_errors_code_supported_badValue() {
-    var diagnostics = assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     unused_local_variable: ftw
 //                         ^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'ftw' isn't supported by 'errors'.
     ''');
-    expect(
-      diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("The option 'ftw'"),
-    );
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_errors_code_supported_nullValue() {
-    var diagnostics = assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     unused_local_variable: null
 //                         ^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'null' isn't supported by 'errors'.
     ''');
-    expect(
-      diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("The option 'null'"),
-    );
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_errors_code_unsupported() {
-    var diagnostics = assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     not_supported: ignore
 //  ^^^^^^^^^^^^^
 // [diag.unrecognizedErrorCode] 'not_supported' isn't a recognized diagnostic code.
     ''');
-    expect(
-      diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'not_supported' isn't a recognized diagnostic code"),
-    );
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    not_supported: ignore
+''');
   }
 
   test_analyzer_errors_code_unsupported_null() {
-    var diagnostics = assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     null: ignore
 //  ^^^^
 // [diag.unrecognizedErrorCode] 'null' isn't a recognized diagnostic code.
     ''');
-    expect(
-      diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'null' isn't a recognized diagnostic code"),
-    );
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_errors_lintCode_recognized() {
     registerLintRule(TestRule());
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
+    fantastic_test_rule: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
     fantastic_test_rule: ignore
 ''');
   }
 
   test_analyzer_errors_notMap() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     - invalid_annotation
 // [diag.invalidSectionFormat][column 5][length 45] Invalid format for the 'enable-experiment' section.
     - unused_import
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_errors_valueNotScalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
     invalid_annotation: ignore
@@ -243,124 +312,186 @@ analyzer:
 //                 ^^^^^^^^^
 // [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_annotation: ignore
+''');
   }
 
   test_analyzer_exclude_supported() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    test/_data/p4/lib/lib1.dart
+''');
   }
 
   test_analyzer_language_notMap_list() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language:
     - notAnOption: true
 // [diag.invalidSectionFormat][column 5][length 20] Invalid format for the 'language' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_language_notMap_scalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language: true
 //          ^^^^
 // [diag.invalidSectionFormat] Invalid format for the 'language' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   // TODO(srawlins): Enable when we deprecate strict-raw-types.
   @SkippedTest(reason: 'Enable when we deprecate strict-raw-types')
   test_analyzer_language_strictRawTypes_deprecated() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language:
     strict-raw-types: true
 //  ^^^^^^^^^^^^^^^^
 // [diag.analysisOptionDeprecated] The option 'strict-raw-types' is no longer supported.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_language_strictRawTypes_notDeprecatedIfFalse() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language:
     strict-raw-types: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_language_supports_empty() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_analyzer_language_unsupportedKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   language:
     unsupported: true
 //  ^^^^^^^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'unsupported' isn't supported by 'language'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_notMap() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer: 7
 // [diag.invalidSectionFormat][column 11][length 6] Invalid format for the 'cannot-ignore' section.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_optionalChecks_chromeOsManifestChecks() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  chromeOsManifestChecks: true
+''');
   }
 
   test_analyzer_optionalChecks_chromeOsManifestChecks_invalid() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     chromeos-manifest
 //  ^^^^^^^^^^^^^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'chromeos-manifest' isn't supported by ''chrome-os-manifest-checks' or 'propagate-linter-exceptions''.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_optionalChecks_chromeOsManifestChecks_notMap() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     - chrome-os-manifest-checks
 // [diag.invalidSectionFormat][column 5][length 28] Invalid format for the 'enable-experiment' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_optionalChecks_propagateLinterExceptions() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  propagateLinterExceptions: true
+''');
   }
 
   test_analyzer_optionalChecks_propagateLinterExceptions_mapKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     propagate-linter-exceptions: true
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  propagateLinterExceptions: true
+''');
   }
 
   test_analyzer_plugins_multiple_directList() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
     - plugin_one
@@ -370,84 +501,106 @@ analyzer:
     - plugin_three
 //    ^^^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_directList_nonString() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
     - 7
     - plugin_one
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_directList_sameName() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
     - plugin_one
     - plugin_one
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_directMap() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_two: sure
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_directMap_sameName() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
     plugin_one: yes
     plugin_one: sure
 //  ^^^^^^^^^^
 // [diag.parseError] Duplicate mapping key.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_list() {
-    newFile(convertPath('/other_options.yaml'), '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_map() {
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
@@ -455,250 +608,367 @@ analyzer:
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
       foo: bar
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_two
+''');
   }
 
   test_analyzer_plugins_multiple_firstIncludedSecondDirect_scalar() {
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins: plugin_two
 //         ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_two
+''');
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondDirect() {
-    newFile('/more_options.yaml', '''
+    newFile('$testPackageRootPath/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 include: more_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 analyzer:
   plugins:
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondIncluded() {
-    newFile('/more_options.yaml', '''
+    newFile('$testPackageRootPath/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    newFile('/other_options.yaml', '''
+    newFile('$testPackageRootPath/other_options.yaml', '''
 include: more_options.yaml
 analyzer:
   plugins:
     - plugin_two
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options.yaml(54..63): Multiple plugins can't be enabled.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
   }
 
   test_analyzer_unsupportedOption() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   not_supported: true
 //^^^^^^^^^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'not_supported' isn't supported by 'analyzer'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_codeStyle_format_bool_false() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: false
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_codeStyle_format_bool_true() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: true
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
 ''');
   }
 
   test_codeStyle_format_invalid() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: 80
 //        ^^
 // [diag.unsupportedValue] The value '80' isn't supported by 'format'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_codeStyle_format_string_false() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: "false"
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_codeStyle_format_string_true() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: "true"
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
 ''');
   }
 
   test_codeStyle_format_string_true_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: "True"
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
 ''');
   }
 
   test_codeStyle_format_string_true_upperCase() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   format: "TRUE"
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
 ''');
   }
 
   test_codeStyle_notMap() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style: 7
 //          ^
 // [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_codeStyle_notMap_list() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   - format
 // [diag.invalidSectionFormat][column 3][length 9] Invalid format for the 'code-style' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_codeStyle_notMap_scalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style: format
 //          ^^^^^^
 // [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_codeStyle_unsupportedOption() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   not_supported: true
 //^^^^^^^^^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'not_supported' isn't supported by 'code-style'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_pageWidth_invalid_decimal() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   page_width: 123.45
 //            ^^^^^^
 // [diag.invalidOption] Invalid option specified for 'page_width': "page_width" must be a positive integer.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_pageWidth_invalid_negativeInteger() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   page_width: -123
 //            ^^^^
 // [diag.invalidOption] Invalid option specified for 'page_width': "page_width" must be a positive integer.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_pageWidth_invalid_string() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   page_width: "123"
 //            ^^^^^
 // [diag.invalidOption] Invalid option specified for 'page_width': "page_width" must be a positive integer.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_pageWidth_invalid_zero() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   page_width: 0
 //            ^
 // [diag.invalidOption] Invalid option specified for 'page_width': "page_width" must be a positive integer.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_pageWidth_valid_integer() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   page_width: 123
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 123
 ''');
   }
 
   test_formatter_trailingCommas_invalid_map() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   trailing_commas:
     a: b
 // [diag.invalidOption][column 5][length 5] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_trailingCommas_invalid_numeric() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   trailing_commas: 1
 //                 ^
 // [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_trailingCommas_invalid_string() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   trailing_commas: foo
 //                 ^^^
 // [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_trailingCommas_valid() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   trailing_commas: automate
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    trailingCommas: automate
 ''');
   }
 
   test_formatter_unsupportedKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   wrong: 123
 //^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'wrong' isn't supported by 'formatter'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_unsupportedKeys() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   wrong: 123
 //^^^^^
@@ -707,121 +977,157 @@ formatter:
 //^^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'wrong2' isn't supported by 'formatter'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_formatter_valid_empty() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_include_missing_direct() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'other_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includeFileNotFound] The URI 'other_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_include_missing_nested() {
-    newFile('/other_options1.yaml', r'''
+    newFile('$testPackageRootPath/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'other_options2.yaml' included in '/other_options1.yaml' can't be found when analyzing '/'.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includeFileNotFound] The URI 'other_options2.yaml' included in '/home/test/other_options1.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_missing_packageUri_doubleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_doubleQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: "package:pedantic/analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_missing_packageUri_listFirst() async {
-    await assertDiagnosticsInFiles({
+  test_include_missing_packageUri_listFirst() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 # We don't depend on pedantic, but we should consider adding it.
 include:
   - package:pedantic/analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
   - included1.yaml
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_missing_packageUri_listSecond() async {
-    await assertDiagnosticsInFiles({
+  test_include_missing_packageUri_listSecond() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 # We don't depend on pedantic, but we should consider adding it.
 include:
   - included1.yaml
   - package:pedantic/analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_missing_packageUri_notQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_notQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_missing_packageUri_singleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_missing_packageUri_singleQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 # We don't depend on pedantic, but we should consider adding it.
 include: 'package:pedantic/analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/analysis_options.yaml' can't be found when analyzing '/'.
+// [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_include_parse_duplicateKey_inIncludedFile() {
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 formatter:
   page_width: 80
   page_width: 90
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileParseError] Duplicate mapping key. in /other_options.yaml(30..40)
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includedFileParseError] Duplicate mapping key. in /home/test/other_options.yaml(30..40)
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_include_recursive_cycle_direct() {
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include another options file which in turn includes
     // `analysis_options.yaml`.
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 include: analysis_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/other_options.yaml' includes '/other_options.yaml', creating a circular reference.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/other_options.yaml' includes '/home/test/other_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_include_recursive_cycle_inIncludedFiles() {
@@ -830,175 +1136,218 @@ include: other_options.yaml
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options1.yaml', r'''
+    newFile('$testPackageRootPath/other_options1.yaml', r'''
 include: other_options2.yaml
 ''');
-    newFile('/other_options2.yaml', r'''
+    newFile('$testPackageRootPath/other_options2.yaml', r'''
 # comment
 include: other_options1.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 # comment
 # comment
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options1.yaml(9..27): The file includes itself recursively.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options1.yaml(9..27): The file includes itself recursively.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_includedCycle() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_includedCycle() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(9..14): The file includes itself recursively.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: a.yaml
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_includedFileSelf() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_includedFileSelf() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(9..14): The file includes itself recursively.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: a.yaml
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_initialThroughChain() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_initialThroughChain_listAtTop() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain_listAtTop() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - empty.yaml
   - a.yaml
 //  ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
-      getFile('/empty.yaml'): '''
+      getFile('$testPackageRootPath/empty.yaml'): '''
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void>
-  test_include_recursive_initialThroughChain_listInIncludedFile() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_initialThroughChain_listInIncludedFile() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/b.yaml' includes '/home/test/b.yaml', creating a circular reference.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include:
   - empty.yaml
   - b.yaml
 ''',
-      getFile('/b.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '''
 include: analysis_options.yaml
 ''',
-      getFile('/empty.yaml'): '''
+      getFile('$testPackageRootPath/empty.yaml'): '''
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_none_nestedSiblingIncludes() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_none_nestedSiblingIncludes() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: c.yaml
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '',
-      getFile('/c.yaml'): '''
+      getFile('$testPackageRootPath/b.yaml'): '',
+      getFile('$testPackageRootPath/c.yaml'): '''
 include:
   - a.yaml
   - b.yaml
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_none_siblingIncludes() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_none_siblingIncludes() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - a.yaml
   - b.yaml
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 include: b.yaml
 ''',
-      getFile('/b.yaml'): '',
+      getFile('$testPackageRootPath/b.yaml'): '',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_include_recursive_self_direct() {
     // Test that the appropriate error is issued if `analysis_options.yaml`
     // tries to include itself.
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_self_doubleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_doubleQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: "./analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_recursive_self_fileName() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_fileName() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_recursive_self_fileNameInList() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_fileNameInList() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include:
   - analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
@@ -1008,185 +1357,278 @@ include:
     // Note: comments ensure that the `include` directives in each file are at
     // different file offsets, so that we can validate that the reported source
     // ranges are correct.
-    newFile('/other_options.yaml', r'''
+    newFile('$testPackageRootPath/other_options.yaml', r'''
 include: other_options.yaml
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 # comment
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /other_options.yaml(9..26): The file includes itself recursively.
-''',
-    }, initialFile: analysisOptionsFile);
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(9..26): The file includes itself recursively.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_self_listFirst() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_self_listFirst() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - ./analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
   - included1.yaml
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_self_listSecond() async {
-    await assertDiagnosticsInFiles({
+  test_include_recursive_self_listSecond() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - included1.yaml
   - ./analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
 ''',
-      getFile('/included1.yaml'): '',
+      getFile('$testPackageRootPath/included1.yaml'): '',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  Future<void> test_include_recursive_self_notQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_notQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: ./analysis_options.yaml
 //       ^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_recursive_self_singleQuoted() async {
-    await assertDiagnosticsInCode('''
+  test_include_recursive_self_singleQuoted() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: './analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+// [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
-  Future<void> test_include_warning_fromIncludedFile() async {
-    await assertDiagnosticsInFiles({
+  test_include_warning_fromIncludedFile() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: a.yaml
 //       ^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /a.yaml(12..20): The option 'something' isn't supported by 'analyzer'.
+// [diag.includedFileWarning] Warning in the included options file /home/test/a.yaml(12..20): The option 'something' isn't supported by 'analyzer'.
 ''',
-      getFile('/a.yaml'): '''
+      getFile('$testPackageRootPath/a.yaml'): '''
 analyzer:
   something: bad
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_deprecated() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_lint
 //    ^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecated_lint' is deprecated and shouldn't be enabled.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_lint
+''');
   }
 
-  Future<void> test_linter_rules_deprecated_inIncludedFile_ok() async {
-    newFile('/included.yaml', '''
+  test_linter_rules_deprecated_inIncludedFile_ok() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - deprecated_lint
 ''');
 
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_lint
 ''');
   }
 
-  void test_linter_rules_deprecated_map() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_map() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     deprecated_lint: false
 //  ^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecated_lint' is deprecated and shouldn't be enabled.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_deprecated_map_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_map_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     deprecated_lInt: false
 //  ^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecated_lInt' is deprecated and shouldn't be enabled.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_deprecated_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecAted_lint
 //    ^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecAted_lint' is deprecated and shouldn't be enabled.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_lint
+''');
   }
 
-  void test_linter_rules_deprecated_previousSdk() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_previousSdk() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecated_since_3_lint' is deprecated and shouldn't be enabled.
 ''', sdkVersionConstraint: dart3_3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_since_3_lint
+''');
   }
 
-  void test_linter_rules_deprecated_since_inCurrentSdk() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_since_inCurrentSdk() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.deprecatedLint] The lint rule 'deprecated_since_3_lint' is deprecated and shouldn't be enabled.
 ''', sdkVersionConstraint: dart3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_since_3_lint
+''');
   }
 
-  void test_linter_rules_deprecated_since_notInCurrentSdk() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_since_notInCurrentSdk() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
 ''', sdkVersionConstraint: Version(2, 17, 0));
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_since_3_lint
+''');
   }
 
-  void test_linter_rules_deprecated_since_unknownSdk() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_since_unknownSdk() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_since_3_lint
+''');
   }
 
-  void test_linter_rules_deprecated_withReplacement() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_withReplacement() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_lint_with_replacement
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.deprecatedLintWithReplacement] The lint rule 'deprecated_lint_with_replacement' is deprecated and replaced by 'replacing_lint'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_lint_with_replacement
+''');
   }
 
-  void test_linter_rules_deprecated_withReplacement_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_deprecated_withReplacement_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - deprecated_lint_with_rePlacement
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.deprecatedLintWithReplacement] The lint rule 'deprecated_lint_with_rePlacement' is deprecated and replaced by 'replacing_lint'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    deprecated_lint_with_replacement
+''');
   }
 
-  void test_linter_rules_duplicate() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_duplicate() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - stable_lint
@@ -1194,25 +1636,39 @@ linter:
 //    ^^^^^^^^^^^
 // [diag.duplicateRule] The rule 'stable_lint' is already enabled and doesn't need to be enabled again.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
+''');
   }
 
-  void test_linter_rules_duplicate_inIncludedFile_ok() {
-    newFile('/included.yaml', '''
+  test_linter_rules_duplicate_inIncludedFile_ok() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - stable_lint
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     - stable_lint
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
+''');
   }
 
-  void test_linter_rules_duplicate_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_duplicate_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - stable_lint
@@ -1220,35 +1676,53 @@ linter:
 //    ^^^^^^^^^^^
 // [diag.duplicateRule] The rule 'staBle_lint' is already enabled and doesn't need to be enabled again.
 ''');
-  }
 
-  void test_linter_rules_empty() {
-    assertAnalysisOptionsDiagnostics('''
-linter:
-  rules:
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
 ''');
   }
 
-  void test_linter_rules_include_multipleCompatible() {
-    newFile('/included1.yaml', '''
+  test_linter_rules_empty() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+linter:
+  rules:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_linter_rules_include_multipleCompatible() {
+    newFile('$testPackageRootPath/included1.yaml', '''
 linter:
   rules:
     rule_pos: true
 ''');
-    newFile('/included2.yaml', '''
+    newFile('$testPackageRootPath/included2.yaml', '''
 linter:
   rules:
     rule_pos: true
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include:
   - included1.yaml
   - included2.yaml
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - rule_pos
@@ -1258,15 +1732,23 @@ linter:
 //    ^^^^^^^^
 // [diag.incompatibleLint][context 1] The rule 'rule_neg' is incompatible with ''rule_pos''.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  void test_linter_rules_incompatible_invalidMap_noDiagnostic() {
-    newFile('/included.yaml', '''
+  test_linter_rules_incompatible_invalidMap_noDiagnostic() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
@@ -1274,17 +1756,17 @@ linter:
     rule_neg: true
     rule_pos:
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+''');
   }
 
-  void test_linter_rules_incompatible_invalidMap_reports() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
-linter:
-  rules:
-    rule_neg: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
-''',
+  test_linter_rules_incompatible_invalidMap_reports() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1295,11 +1777,26 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_map() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_map() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     rule_pos: true
@@ -1309,26 +1806,34 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLint][context 1] The rule 'rule_neg' is incompatible with ''rule_pos''.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  void test_linter_rules_incompatible_map_disabled() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_incompatible_map_disabled() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     rule_pos: true
     rule_neg: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_map_includedFile() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
-linter:
-  rules:
-    rule_neg: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
-''',
+  test_linter_rules_incompatible_map_includedFile() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1338,17 +1843,31 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_map_includedFile_disabledInMain() async {
-    newFile('/included.yaml', '''
+  test_linter_rules_incompatible_map_includedFile_disabledInMain() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    await assertDiagnosticsInCode('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
@@ -1356,18 +1875,47 @@ linter:
     rule_pos: true
     rule_neg: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_map_includedFile_mixedCase() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included.yaml'): '''
+  test_linter_rules_incompatible_map_includedFile_enabledInMain() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
 linter:
   rules:
-    rulE_neg: true
+    rule_neg: true
 //  ^^^^^^^^
-// [context 1] The rule 'rulE_neg' is enabled here in the file '/included.yaml'.
+// [context 1] The rule 'rule_neg' is enabled here.
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rule_pos' is incompatible with ''rule_neg''.
 ''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_map_includedFile_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include: included.yaml
 
@@ -1377,11 +1925,26 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'Rule_pos' is incompatible with 'rulE_neg'.
 ''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+linter:
+  rules:
+    rulE_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rulE_neg' is enabled here in the file '/home/test/included.yaml'.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_map_mixedCase() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_map_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     Rule_pos: true
@@ -1391,10 +1954,18 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLint][context 1] The rule 'rUle_neg' is incompatible with ''Rule_pos''.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_mixedCase() async {
-    await assertDiagnosticsInCode('''
+  test_linter_rules_incompatible_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - rule_Pos
@@ -1404,24 +1975,18 @@ linter:
 //    ^^^^^^^^
 // [diag.incompatibleLint][context 1] The rule 'rule_neG' is incompatible with ''rule_Pos''.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_multipleIncludes() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included1.yaml'): '''
-linter:
-  rules:
-    rule_neg: true
-//  ^^^^^^^^
-// [context 2] The rule 'rule_neg' is enabled here.
-''',
-      getFile('/included2.yaml'): '''
-linter:
-  rules:
-    rule_pos: true
-//  ^^^^^^^^
-// [context 1] The rule 'rule_pos' is enabled here.
-''',
+  test_linter_rules_incompatible_multipleIncludes() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - included1.yaml
@@ -1429,22 +1994,43 @@ include:
 //  ^^^^^^^^^^^^^^
 // [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_disabledInMain() async {
-    newFile('/included1.yaml', '''
+  test_linter_rules_incompatible_multipleIncludes_disabledInMain() {
+    newFile('$testPackageRootPath/included1.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    newFile('/included2.yaml', '''
+    newFile('$testPackageRootPath/included2.yaml', '''
 linter:
   rules:
     rule_pos: true
 ''');
-    await assertDiagnosticsInCode('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include:
   - included1.yaml
   - included2.yaml
@@ -1453,25 +2039,17 @@ linter:
   rules:
     rule_neg: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules() async {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/included1.yaml'): '''
-linter:
-  rules:
-    - rule_neg
-//    ^^^^^^^^
-// [context 2] The rule 'rule_neg' is enabled here.
-''',
-      getFile('/included2.yaml'): '''
-linter:
-  rules:
-    - rule_pos
-//    ^^^^^^^^
-// [context 1] The rule 'rule_pos' is enabled here.
-''',
+  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - included1.yaml
@@ -1482,26 +2060,34 @@ include:
 linter:
   rules:
 ''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+linter:
+  rules:
+    - rule_neg
+//    ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
+linter:
+  rules:
+    - rule_pos
+//    ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void>
-  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules_mixedCase() async {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/included1.yaml'): '''
-linter:
-  rules:
-    - ruLe_neg
-//    ^^^^^^^^
-// [context 2] The rule 'ruLe_neg' is enabled here.
-''',
-      getFile('/included2.yaml'): '''
-linter:
-  rules:
-    - rule_poS
-//    ^^^^^^^^
-// [context 1] The rule 'rule_poS' is enabled here.
-''',
+  void
+  test_linter_rules_incompatible_multipleIncludes_emptyLinterRules_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - included1.yaml
@@ -1512,25 +2098,64 @@ include:
 linter:
   rules:
 ''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+linter:
+  rules:
+    - ruLe_neg
+//    ^^^^^^^^
+// [context 2] The rule 'ruLe_neg' is enabled here.
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
+linter:
+  rules:
+    - rule_poS
+//    ^^^^^^^^
+// [context 1] The rule 'rule_poS' is enabled here.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  Future<void> test_linter_rules_incompatible_multipleIncludes_list() async {
-    await assertDiagnosticsInFiles({
-      getFile('/included1.yaml'): '''
+  test_linter_rules_incompatible_multipleIncludes_enabledInSecondInclude() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/included2.yaml(40..47): The rule 'rule_pos' is incompatible with ''rule_neg''.
+''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
 linter:
   rules:
-    - rule_neg
-//    ^^^^^^^^
-// [context 2] The rule 'rule_neg' is enabled here.
+    rule_neg: true
 ''',
-      getFile('/included2.yaml'): '''
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
-    - rule_pos
-//    ^^^^^^^^
-// [context 1] The rule 'rule_pos' is enabled here.
+    rule_neg: true
+    rule_pos: true
 ''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_multipleIncludes_list() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: '''
 include:
   - included1.yaml
@@ -1538,23 +2163,324 @@ include:
 //  ^^^^^^^^^^^^^^
 // [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 ''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+linter:
+  rules:
+    - rule_neg
+//    ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
+linter:
+  rules:
+    - rule_pos
+//    ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  void test_linter_rules_incompatible_packageInclude() {
-    var testProjectPath = '/test';
-    var testAnalysisOptionsFile = getFile(
-      '$testProjectPath/analysis_options.yaml',
-    );
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('$otherLib/analysis_options.yaml'): '''
+  test_linter_rules_incompatible_multipleIncludes_nestedFirst() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+include: nested.yaml
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
 linter:
   rules:
     rule_pos: true
 //  ^^^^^^^^
-// [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
+// [context 1] The rule 'rule_pos' is enabled here.
 ''',
-      testAnalysisOptionsFile: '''
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_multipleIncludes_nestedFirst_disabled() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+''',
+      getFile('$testPackageRootPath/included1.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+      getFile('$testPackageRootPath/included2.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/nested.yaml'.
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile_ignore() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: ignore
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInIncludedFile_listToMap() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    rule_neg: false
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    - rule_neg
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_disabledInMain() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: false
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_enabledInIncludedFile_listOverridesMap() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+
+linter:
+  rules:
+    - rule_neg
+//    ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/home/test/included.yaml'.
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: false
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_nestedInclude_mainIgnore() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: ignore
+''',
+      getFile('$testPackageRootPath/included.yaml'): '''
+include: nested.yaml
+''',
+      getFile('$testPackageRootPath/nested.yaml'): '''
+linter:
+  rules:
+    rule_neg: true
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
+  }
+
+  test_linter_rules_incompatible_packageInclude() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: '''
 include:
   - package:other/analysis_options.yaml
 
@@ -1564,220 +2490,370 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_neg' is incompatible with 'rule_pos'.
 ''',
-    }, initialFile: testAnalysisOptionsFile);
+      getFile('$otherLib/analysis_options.yaml'): '''
+linter:
+  rules:
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  void test_linter_rules_nullValue() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_nullValue() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     -
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_removed() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_removed() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
 //    ^^^^^^^^^^^^^^^^^^^^
 // [diag.removedLint] 'removed_in_2_12_lint' was removed in Dart '2.12.0'
 ''', sdkVersionConstraint: dart2_12);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
   }
 
-  Future<void> test_linter_rules_removed_inIncludedFile_ok() async {
-    newFile('/included.yaml', '''
+  test_linter_rules_removed_inIncludedFile_ok() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     - removed_in_2_12_lint
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
 ''');
   }
 
-  void test_linter_rules_removed_notYet_ok() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_removed_notYet_ok() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
 ''', sdkVersionConstraint: Version(2, 11, 0));
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
   }
 
   /// https://github.com/dart-lang/sdk/issues/59869
   test_linter_rules_removed_previousSdk() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
 //    ^^^^^^^^^^^^^^^^^^^^
 // [diag.removedLint] 'removed_in_2_12_lint' was removed in Dart '2.12.0'
 ''', sdkVersionConstraint: dart3_3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
   }
 
   test_linter_rules_removed_previousSdk_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - remOved_in_2_12_lint
 //    ^^^^^^^^^^^^^^^^^^^^
 // [diag.removedLint] 'remOved_in_2_12_lint' was removed in Dart '2.12.0'
 ''', sdkVersionConstraint: dart3_3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
   }
 
-  void test_linter_rules_replaced() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_replaced() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - replaced_lint
 //    ^^^^^^^^^^^^^
 // [diag.replacedLint] 'replaced_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
 ''', sdkVersionConstraint: dart3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    replaced_lint
+''');
   }
 
-  void test_linter_rules_replaced_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_replaced_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - replaCed_lint
 //    ^^^^^^^^^^^^^
 // [diag.replacedLint] 'replaCed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
 ''', sdkVersionConstraint: dart3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    replaced_lint
+''');
   }
 
-  void test_linter_rules_stable() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_stable() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - stable_lint
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
+''');
   }
 
-  void test_linter_rules_stable_map() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_stable_map() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     stable_lint: true
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
+''');
   }
 
-  void test_linter_rules_stable_map_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_stable_map_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     sTable_lint: true
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
+''');
   }
 
-  void test_linter_rules_stable_mixedCase() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_stable_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - Stable_lint
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    stable_lint
 ''');
   }
 
   test_linter_rules_supported() {
     registerLintRule(TestRule());
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - fantastic_test_rule
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    fantastic_test_rule
+''');
   }
 
-  void test_linter_rules_undefined() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_undefined() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     - this_rule_does_not_exist
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.undefinedLint] 'this_rule_does_not_exist' isn't a recognized lint rule.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_undefined_map() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_undefined_map() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     this_rule_does_not_exist: false
 //  ^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.undefinedLint] 'this_rule_does_not_exist' isn't a recognized lint rule.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_value_error() {
+  test_linter_rules_value_error() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: error
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_false() {
+  test_linter_rules_value_false() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
-  void test_linter_rules_value_ignore() {
+  test_linter_rules_value_ignore() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: ignore
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_info() {
+  test_linter_rules_value_info() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: info
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_true() {
+  test_linter_rules_value_true() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: true
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_unsupported() {
-    assertAnalysisOptionsDiagnostics('''
+  test_linter_rules_value_unsupported() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
     rule_pos: invalid_value
 //            ^^^^^^^^^^^^^
 // [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'rule_pos'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_unsupported_withIncompatibleIncludedRule() {
-    newFile('/included.yaml', '''
+  test_linter_rules_value_unsupported_withIncompatibleIncludedRule() {
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rule_neg: true
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
@@ -1786,16 +2862,24 @@ linter:
 //            ^^^^^^^^^^^^^
 // [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'rule_pos'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
   void
   test_linter_rules_value_unsupported_withIncompatibleIncludedRule_mixedCase() {
-    newFile('/included.yaml', '''
+    newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
     rUle_neg: true
 ''');
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
@@ -1804,42 +2888,63 @@ linter:
 //            ^^^^^^^^^^^^^
 // [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'Rule_pos'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_neg
+    rule_pos
+''');
   }
 
-  void test_linter_rules_value_warning() {
+  test_linter_rules_value_warning() {
     newEmptyIncludedOptionsFile();
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: warning
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    rule_pos
+''');
   }
 
   test_linter_unsupportedOption() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   unsupported: true
 //^^^^^^^^^^^
 // [diag.unsupportedOptionWithLegalValue] The option 'unsupported' isn't supported by 'linter'.
     ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_parse_duplicateKey_initialFile() {
-    assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: r'''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 formatter:
   page_width: 80
   page_width: 90
 //^^^^^^^^^^
 // [diag.parseError] Duplicate mapping key.
-''',
-    }, initialFile: analysisOptionsFile);
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_dependencyOverrides_invalidKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   dependency_overrides:
     one:
@@ -1847,19 +2952,32 @@ plugins:
 //    ^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'ppath' isn't supported by 'plugins/dependency_overrides/one'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_dependencyOverrides_valid() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   dependency_overrides:
     one:
       git: https://github.com/dart-lang/linter.git
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    dependencyOverrides
+      one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/linter.git
+''');
   }
 
   test_plugins_diagnostics_invalid() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     diagnostics:
@@ -1867,20 +2985,28 @@ plugins:
 //          ^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'abc' isn't supported by 'plugins/one/diagnostics'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_diagnostics_notAMap() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     diagnostics: 7
 //               ^
 // [diag.invalidSectionFormat] Invalid format for the 'plugins/one/diagnostics' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_diagnostics_supported_severity() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     diagnostics:
@@ -1889,26 +3015,38 @@ plugins:
       code3: error
       code4: info
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_diagnostics_supported_trueOrFalse() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     diagnostics:
       code1: true
       code2: false
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_empty() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
   test_plugins_git_invalid_key() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git:
@@ -1917,10 +3055,19 @@ plugins:
 //    ^^^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'invalid' isn't supported by 'plugins/one/git'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/linter.git
+''');
   }
 
   test_plugins_git_invalid_value() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git:
@@ -1929,10 +3076,19 @@ plugins:
 //         ^
 // [diag.invalidSectionFormat] Invalid format for the 'plugins/one/git/ref' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/linter.git
+''');
   }
 
   test_plugins_git_map() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git:
@@ -1941,94 +3097,175 @@ plugins:
       path: pkg/linter
       tag_pattern: 'v*'
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/linter.git
+          ref: main
+          path: pkg/linter
+          tagPattern: v*
+''');
   }
 
   test_plugins_git_scalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git: https://github.com/dart-lang/linter.git
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: GitPluginSource
+          url: https://github.com/dart-lang/linter.git
+''');
   }
 
   test_plugins_innerOptions() {
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/inner/analysis_options.yaml'): '''
+    var innerOptionsFile = getFile(
+      '$testPackageRootPath/inner/analysis_options.yaml',
+    );
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      innerOptionsFile: '''
 plugins:
   one: ^1.0.0
 // [diag.pluginsInInnerOptions][column 3][length 12] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
 ''',
-    }, initialFile: getFile('/inner/analysis_options.yaml'));
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: VersionedPluginSource
+          constraint: ^1.0.0
+''');
   }
 
   test_plugins_innerOptions_included() {
-    newFile('/analysis_options.yaml', '''
+    newFile('$testPackageRootPath/analysis_options.yaml', '''
 plugins:
   one: ^1.0.0
 ''');
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile('/inner/analysis_options.yaml'): '''
+    var innerOptionsFile = getFile(
+      '$testPackageRootPath/inner/analysis_options.yaml',
+    );
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      innerOptionsFile: '''
 include: ../analysis_options.yaml
 ''',
-    }, initialFile: getFile('/inner/analysis_options.yaml'));
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: VersionedPluginSource
+          constraint: ^1.0.0
+''');
   }
 
   test_plugins_innerOptions_included_notAtContextRoot() {
-    var inner1Path = '/inner1/analysis_options.yaml';
-    var inner2Path = '/inner2/analysis_options.yaml';
+    var inner1Path = '$testPackageRootPath/inner1/analysis_options.yaml';
+    var inner2Path = '$testPackageRootPath/inner2/analysis_options.yaml';
     newFile(inner2Path, '''
 plugins:
   one: ^1.0.0
 ''');
-    newFile('/pubspec.yaml', '''
+    newFile('$testPackageRootPath/pubspec.yaml', '''
 name: test
 version: 0.0.1
 ''');
-    assertAnalysisOptionsDiagnosticsInFiles({
-      getFile(inner1Path): '''
+    var inner1File = getFile(inner1Path);
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      inner1File: '''
 include: ../inner2/analysis_options.yaml
 ''',
-    }, initialFile: getFile(inner1Path));
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: VersionedPluginSource
+          constraint: ^1.0.0
+''');
   }
 
   test_plugins_notMap_scalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins: 7
 //       ^
 // [diag.invalidSectionFormat] Invalid format for the 'plugins' section.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_plugin_invalidKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     ppath: foo/bar
 //  ^^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'ppath' isn't supported by 'plugins/one'.
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
   }
 
   test_plugins_plugin_validKey() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     path: foo/bar
 ''');
+
+    assertAnalysisOptionsText(analysisOptions, '''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: PathPluginSource
+          path: /home/test/foo/bar
+''');
   }
 
   test_plugins_plugin_validScalar() {
-    assertAnalysisOptionsDiagnostics('''
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one: ^1.2.3
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  pluginsOptions
+    configurations
+      one
+        source: VersionedPluginSource
+          constraint: ^1.2.3
 ''');
   }
 }

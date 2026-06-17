@@ -46,9 +46,10 @@ class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
     Map<Id, ActualData<String>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new DefiniteUnassignmentDataExtractor(
         testResultData.compilerResult,

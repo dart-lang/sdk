@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/utilities/string_search.dart';
 
 /// Information about the directives found in Dartdoc comments.
 class DartdocDirectiveInfo {
@@ -56,7 +57,7 @@ class DartdocDirectiveInfo {
     // Find all matches to "{@template\s+(.+?)}([\s\S]+?){@endtemplate}".
     int from = 0;
     while (true) {
-      from = _nextAtTemplate(comment, from);
+      from = DartdocDirectiveSearchHelper.nextAtTemplate(comment, from);
       if (from < 0) return;
 
       // If the string isn't actually long enough to match we can return.
@@ -99,7 +100,10 @@ class DartdocDirectiveInfo {
       i++;
 
       // Find the end.
-      int endIndex = from = _nextAtEndtemplate(comment, i);
+      int endIndex = from = DartdocDirectiveSearchHelper.nextAtEndtemplate(
+        comment,
+        i,
+      );
       if (endIndex < 0) return;
       // The endIndex is after the match - don't include the string
       // "{@endtemplate}" though.
@@ -168,50 +172,6 @@ class DartdocDirectiveInfo {
       return true;
     }
     return false;
-  }
-
-  int _nextAtEndtemplate(String comment, int offset) {
-    int end = comment.length;
-    while (true) {
-      for (; offset < end; offset++) {
-        if (comment.codeUnitAt(offset) == $OPEN_CURLY_BRACKET) break;
-      }
-      if (offset + 13 >= end) return -1;
-      if (comment.codeUnitAt(++offset) != $AT) continue;
-      if (comment.codeUnitAt(++offset) != $e) continue;
-      if (comment.codeUnitAt(++offset) != $n) continue;
-      if (comment.codeUnitAt(++offset) != $d) continue;
-      if (comment.codeUnitAt(++offset) != $t) continue;
-      if (comment.codeUnitAt(++offset) != $e) continue;
-      if (comment.codeUnitAt(++offset) != $m) continue;
-      if (comment.codeUnitAt(++offset) != $p) continue;
-      if (comment.codeUnitAt(++offset) != $l) continue;
-      if (comment.codeUnitAt(++offset) != $a) continue;
-      if (comment.codeUnitAt(++offset) != $t) continue;
-      if (comment.codeUnitAt(++offset) != $e) continue;
-      if (comment.codeUnitAt(++offset) != $CLOSE_CURLY_BRACKET) continue;
-      return offset + 1;
-    }
-  }
-
-  int _nextAtTemplate(String comment, int offset) {
-    int end = comment.length;
-    while (true) {
-      for (; offset < end; offset++) {
-        if (comment.codeUnitAt(offset) == $OPEN_CURLY_BRACKET) break;
-      }
-      if (offset + 9 >= end) return -1;
-      if (comment.codeUnitAt(++offset) != $AT) continue;
-      if (comment.codeUnitAt(++offset) != $t) continue;
-      if (comment.codeUnitAt(++offset) != $e) continue;
-      if (comment.codeUnitAt(++offset) != $m) continue;
-      if (comment.codeUnitAt(++offset) != $p) continue;
-      if (comment.codeUnitAt(++offset) != $l) continue;
-      if (comment.codeUnitAt(++offset) != $a) continue;
-      if (comment.codeUnitAt(++offset) != $t) continue;
-      if (comment.codeUnitAt(++offset) != $e) continue;
-      return offset + 1;
-    }
   }
 
   int _skipWhitespaceBackward(

@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -32,17 +31,19 @@ import 'package:yaml/yaml.dart';
 final class AnalysisOptionsBuilder {
   File? file;
 
-  ExperimentStatus contextFeatures = ExperimentStatus();
+  ExperimentStatus _contextFeatures = ExperimentStatus();
 
   FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
-  List<String> enabledLegacyPluginNames = const [];
+  List<String> enabledLegacyPluginNames = [];
 
   List<ErrorProcessor> errorProcessors = [];
 
   List<String> excludePatterns = [];
 
   bool lint = false;
+
+  bool warning = true;
 
   List<AbstractAnalysisRule> lintRules = [];
 
@@ -63,31 +64,85 @@ final class AnalysisOptionsBuilder {
   Set<String> unignorableDiagnosticCodeNames = {};
 
   PluginsOptions pluginsOptions = PluginsOptions(
-    configurations: const [],
+    configurations: [],
     dependencyOverrides: null,
   );
 
   String? pluginDependencyOverrides;
 
+  /// Creates a builder initialized with default options.
+  AnalysisOptionsBuilder();
+
+  /// Creates a builder initialized from an existing options object.
+  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options) {
+    file = options.file;
+    contextFeatures = options.contextFeatures;
+    nonPackageFeatureSet = options.nonPackageFeatureSet;
+    enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
+    pluginsOptions = PluginsOptions(
+      configurations: options.pluginsOptions.configurations.toList(),
+      dependencyOverrides: options.pluginsOptions.dependencyOverrides == null
+          ? null
+          : Map.of(options.pluginsOptions.dependencyOverrides!),
+    );
+    errorProcessors = options.errorProcessors.toList();
+    excludePatterns = options.excludePatterns.toList();
+    lint = options.lint;
+    warning = options.warning;
+    lintRules = options.lintRules.toList();
+    propagateLinterExceptions = options.propagateLinterExceptions;
+    strictCasts = options.strictCasts;
+    strictInference = options.strictInference;
+    strictRawTypes = options.strictRawTypes;
+    chromeOsManifestChecks = options.chromeOsManifestChecks;
+    codeStyleOptions = CodeStyleOptionsImpl(
+      useFormatter: options.codeStyleOptions.useFormatter,
+    );
+    formatterOptions = FormatterOptions(
+      pageWidth: options.formatterOptions.pageWidth,
+      trailingCommas: options.formatterOptions.trailingCommas,
+    );
+    unignorableDiagnosticCodeNames = options.unignorableDiagnosticCodeNames
+        .toSet();
+  }
+
+  FeatureSet get contextFeatures => _contextFeatures;
+
+  set contextFeatures(FeatureSet featureSet) {
+    _contextFeatures = featureSet as ExperimentStatus;
+    nonPackageFeatureSet = featureSet;
+  }
+
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
-      contextFeatures: contextFeatures,
+      contextFeatures: _contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
-      enabledLegacyPluginNames: enabledLegacyPluginNames,
-      pluginsOptions: pluginsOptions,
-      errorProcessors: errorProcessors,
-      excludePatterns: excludePatterns,
+      enabledLegacyPluginNames: enabledLegacyPluginNames.toList(),
+      pluginsOptions: PluginsOptions(
+        configurations: pluginsOptions.configurations.toList(),
+        dependencyOverrides: pluginsOptions.dependencyOverrides == null
+            ? null
+            : Map.of(pluginsOptions.dependencyOverrides!),
+      ),
+      errorProcessors: errorProcessors.toList(),
+      excludePatterns: excludePatterns.toList(),
       lint: lint,
-      lintRules: lintRules,
+      warning: warning,
+      lintRules: lintRules.toList(),
       propagateLinterExceptions: propagateLinterExceptions,
       strictCasts: strictCasts,
       strictInference: strictInference,
       strictRawTypes: strictRawTypes,
       chromeOsManifestChecks: chromeOsManifestChecks,
-      codeStyleOptions: codeStyleOptions,
-      formatterOptions: formatterOptions,
-      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
+      codeStyleOptions: CodeStyleOptionsImpl(
+        useFormatter: codeStyleOptions.useFormatter,
+      ),
+      formatterOptions: FormatterOptions(
+        pageWidth: formatterOptions.pageWidth,
+        trailingCommas: formatterOptions.trailingCommas,
+      ),
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames.toSet(),
     );
   }
 
@@ -214,10 +269,7 @@ final class AnalysisOptionsBuilder {
     }
   }
 
-  void _applyPluginsOptions(
-    YamlNode? plugins,
-    ResourceProvider? resourceProvider,
-  ) {
+  void _applyPluginsOptions(YamlNode? plugins) {
     if (plugins is! YamlMap) {
       return;
     }
@@ -238,7 +290,7 @@ final class AnalysisOptionsBuilder {
           if (nameNode is! YamlScalar) {
             return;
           }
-          var source = _getSource(dependencyOverride, resourceProvider);
+          var source = _getSource(dependencyOverride);
           if (source == null) return;
           (dependencyOverrides ??= {})[nameNode.toString()] = source;
         });
@@ -246,7 +298,7 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var source = _getSource(pluginNode, resourceProvider);
+      var source = _getSource(pluginNode);
       if (source == null) return;
 
       if (pluginNode is! YamlMap) {
@@ -303,10 +355,7 @@ final class AnalysisOptionsBuilder {
     }
   }
 
-  PluginSource? _getSource(
-    YamlNode pluginNode,
-    ResourceProvider? resourceProvider,
-  ) {
+  PluginSource? _getSource(YamlNode pluginNode) {
     // If it just maps to a String, then that is the version constraint.
     if (pluginNode case YamlScalar(:String value)) {
       return VersionedPluginSource(constraint: value);
@@ -358,16 +407,16 @@ final class AnalysisOptionsBuilder {
         "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
         'plugins are specified with path constraints.',
       );
-      if (file != null &&
-          resourceProvider != null &&
-          resourceProvider.pathContext.isRelative(pathValue)) {
+      if (file == null) {
+        return null;
+      }
+
+      var pathContext = file.provider.pathContext;
+      if (pathContext.isRelative(pathValue)) {
         // We need to store the absolute path, before this value is used in
         // a synthetic pub package.
-        pathValue = resourceProvider.pathContext.join(
-          file.parent.path,
-          pathValue,
-        );
-        pathValue = resourceProvider.pathContext.normalize(pathValue);
+        pathValue = pathContext.join(file.parent.path, pathValue);
+        pathValue = pathContext.normalize(pathValue);
       }
       return PathPluginSource(path: pathValue);
     }
@@ -400,7 +449,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// If a library is in a package, this feature set is *not* used, even if the
   /// package does not specify the language version. Instead [contextFeatures]
   /// is used.
-  FeatureSet nonPackageFeatureSet = ExperimentStatus();
+  FeatureSet nonPackageFeatureSet;
 
   @override
   final List<String> enabledLegacyPluginNames;
@@ -417,18 +466,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
 
-  @override
-  bool lint = false;
+  bool _lint;
 
-  @override
-  bool warning = true;
+  bool _warning;
 
-  @override
-  List<AbstractAnalysisRule> lintRules = [];
+  List<AbstractAnalysisRule> _lintRules;
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
-  bool propagateLinterExceptions;
+  final bool propagateLinterExceptions;
 
   @override
   final bool strictCasts;
@@ -465,11 +511,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// Returns a newly instantiated [AnalysisOptionsImpl], as parsed from
   /// [optionsMap].
   ///
-  /// Optionally pass [file] as the file where the YAML can be found.
+  /// [file] is the file where the YAML can be found.
   factory AnalysisOptionsImpl.fromYaml({
     required YamlMap optionsMap,
-    File? file,
-    ResourceProvider? resourceProvider,
+    required File file,
   }) {
     var builder = AnalysisOptionsBuilder()..file = file;
 
@@ -528,7 +573,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     // Process the 'plugins' option.
     var plugins = optionsMap.valueAt(AnalysisOptionsFileKeys.plugins);
-    builder._applyPluginsOptions(plugins, resourceProvider);
+    builder._applyPluginsOptions(plugins);
 
     var ruleConfigs = parseLinterSection(optionsMap);
     if (ruleConfigs != null) {
@@ -554,8 +599,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
-    required this.lint,
-    required this.lintRules,
+    required bool lint,
+    required bool warning,
+    required List<AbstractAnalysisRule> lintRules,
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
@@ -564,7 +610,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.codeStyleOptions,
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
-  }) : _contextFeatures = contextFeatures {
+  }) : _contextFeatures = contextFeatures,
+       _lint = lint,
+       _warning = warning,
+       _lintRules = lintRules {
     assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
@@ -572,9 +621,31 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   FeatureSet get contextFeatures => _contextFeatures;
 
+  // TODO(scheglov): Remove these compatibility setters after clients migrate
+  // to AnalysisOptionsBuilder.
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
+    _clearCachedSignatures();
+  }
+
+  @override
+  bool get lint => _lint;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lint(bool value) {
+    _lint = value;
+    _clearCachedSignatures();
+  }
+
+  @override
+  List<AbstractAnalysisRule> get lintRules => _lintRules;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lintRules(List<AbstractAnalysisRule> value) {
+    _lintRules = value;
+    _clearCachedSignatures();
   }
 
   /// The language version to use for libraries that are not in a package.
@@ -631,21 +702,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addBool(pluginConfiguration.isEnabled);
         switch (pluginConfiguration.source) {
           case GitPluginSource source:
-            buffer.addString(source._url);
-            if (source._path case var path?) {
+            buffer.addString(source.url);
+            if (source.path case var path?) {
               buffer.addString(path);
             }
-            if (source._ref case var ref?) {
+            if (source.ref case var ref?) {
               buffer.addString(ref);
             }
-            if (source._tagPattern case var tagPattern?) {
+            if (source.tagPattern case var tagPattern?) {
               buffer.addString(tagPattern);
             }
           case PathPluginSource source:
-            buffer.addString(source._path);
+            buffer.addString(source.path);
           case VersionedPluginSource source:
-            buffer.addString(source._constraint);
-            if (source._hostedUrl case var hostedUrl?) {
+            buffer.addString(source.constraint);
+            if (source.hostedUrl case var hostedUrl?) {
               buffer.addString(hostedUrl);
             }
         }
@@ -662,20 +733,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             buffer.addString(pluginDependencyOverrideEntry.key);
             switch (pluginDependencyOverrideEntry.value) {
               case GitPluginSource source:
-                buffer.addString(source._url);
-                if (source._path case var path?) {
+                buffer.addString(source.url);
+                if (source.path case var path?) {
                   buffer.addString(path);
                 }
-                if (source._ref case var ref?) {
+                if (source.ref case var ref?) {
                   buffer.addString(ref);
                 }
-                if (source._tagPattern case var tagPattern?) {
+                if (source.tagPattern case var tagPattern?) {
                   buffer.addString(tagPattern);
                 }
               case PathPluginSource source:
-                buffer.addString(source._path);
+                buffer.addString(source.path);
               case VersionedPluginSource source:
-                buffer.addString(source._constraint);
+                buffer.addString(source.constraint);
             }
           }
         }
@@ -722,6 +793,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       return buffer.toUint32List();
     }
     return _unlinkedSignature!;
+  }
+
+  @override
+  bool get warning => _warning;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set warning(bool value) {
+    _warning = value;
+    _clearCachedSignatures();
   }
 
   @override
@@ -775,6 +855,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         },
     };
   }
+
+  void _clearCachedSignatures() {
+    _unlinkedSignature = null;
+    _signature = null;
+    _signatureForElements = null;
+  }
 }
 
 /// A code block for use as "debug information."
@@ -793,68 +879,51 @@ final class DebugLink {
   DebugLink(this.text, this.url);
 }
 
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class GitPluginSource implements PluginSource {
-  final String _url;
+  final String url;
 
-  final String? _path;
+  final String? path;
 
-  final String? _ref;
+  final String? ref;
 
-  final String? _tagPattern;
+  final String? tagPattern;
 
-  GitPluginSource({
-    required String url,
-    String? path,
-    String? ref,
-    String? tagPattern,
-  }) : _url = url,
-       _path = path,
-       _ref = ref,
-       _tagPattern = tagPattern;
+  GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
   String toYaml({required String name}) {
     var buffer = StringBuffer()
       ..writeln('  $name:')
       ..writeln('    git:')
-      ..writeln('      url: $_url');
-    if (_ref != null) {
-      buffer.writeln('      ref: $_ref');
+      ..writeln('      url: $url');
+    if (ref != null) {
+      buffer.writeln('      ref: $ref');
     }
-    if (_path != null) {
-      buffer.writeln('      path: $_path');
+    if (path != null) {
+      buffer.writeln('      path: $path');
     }
-    if (_tagPattern != null) {
-      buffer.writeln('      tag_pattern: $_tagPattern');
+    if (tagPattern != null) {
+      buffer.writeln('      tag_pattern: $tagPattern');
     }
     return buffer.toString();
   }
 }
 
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class PathPluginSource implements PluginSource {
-  final String _path;
+  final String path;
 
-  PathPluginSource({required String path}) : _path = path;
+  PathPluginSource({required this.path});
 
   @override
   String toYaml({required String name}) =>
       '''
   $name:
-    path: $_path
+    path: $path
 ''';
 }
 
 /// The configuration of a Dart Analysis Server plugin, as specified by
 /// analysis options.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class PluginConfiguration {
   /// The name of the plugin being configured.
   final String name;
@@ -863,13 +932,11 @@ final class PluginConfiguration {
   final PluginSource source;
 
   /// The list of specified [DiagnosticConfig]s.
-  // ignore: analyzer_public_api_bad_type
   final Map<String, DiagnosticConfig> diagnosticConfigs;
 
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
-  // ignore: analyzer_public_api_bad_type
   PluginConfiguration({
     required this.name,
     required this.source,
@@ -907,9 +974,6 @@ final class PluginsOptions {
 ///
 /// We support all of the source formats documented at
 /// https://dart.dev/tools/pub/dependencies.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 sealed class PluginSource {
   /// Returns the YAML-formatted source, using [name] as a key, for writing into
   /// a pubspec 'dependencies' section.
@@ -918,28 +982,23 @@ sealed class PluginSource {
 
 /// A plugin source using a version constraint, hosted either at pub.dev or
 /// another host.
-@AnalyzerPublicApi(
-  message: 'exported by lib/dart/analysis/analysis_options.dart',
-)
 final class VersionedPluginSource implements PluginSource {
   /// The specified version constraint.
-  final String _constraint;
-  final String? _hostedUrl;
+  final String constraint;
+  final String? hostedUrl;
 
-  VersionedPluginSource({required String constraint, String? hostedUrl})
-    : _constraint = constraint,
-      _hostedUrl = hostedUrl;
+  VersionedPluginSource({required this.constraint, this.hostedUrl});
 
   @override
   String toYaml({required String name}) {
-    if (_hostedUrl == null) {
-      return '  $name: $_constraint\n';
+    if (hostedUrl == null) {
+      return '  $name: $constraint\n';
     }
 
     var buffer = StringBuffer()
       ..writeln('  $name:')
-      ..writeln('    version: $_constraint')
-      ..writeln('    hosted: $_hostedUrl');
+      ..writeln('    version: $constraint')
+      ..writeln('    hosted: $hostedUrl');
 
     return buffer.toString();
   }

@@ -129,7 +129,7 @@ abstract final class WeakReference<T extends Object> {
   /// The [target] must be an object supported as an [Expando] key,
   /// which means [target] cannot be a number, a string, a boolean, a record,
   /// the `null` value, or certain other types of special objects.
-  external factory(T target);
+  external factory WeakReference(T target);
 
   /// The current object weakly referenced by this [WeakReference], if any.
   ///
@@ -225,7 +225,7 @@ abstract final class Finalizer<T> {
   ///
   /// The [callback] is bound to the current zone
   /// when the [Finalizer] is created, and will run in that zone when called.
-  external factory(void Function(T) callback);
+  external factory Finalizer(void Function(T) callback);
 
   /// Attaches this finalizer to [value].
   ///

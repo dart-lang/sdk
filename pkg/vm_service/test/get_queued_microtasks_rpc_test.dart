@@ -2,48 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'get_queued_microtasks_rpc_lib.dart' as testee_lib;
 
-const String shortFile = 'get_queued_microtasks_rpc_test.dart';
+const String shortFile = 'get_queued_microtasks_rpc_lib.dart';
 const int numberOfMicrotasksToSchedule = 5;
 
-Future<void> testeeMain() async {
-  for (int i = 0; i < numberOfMicrotasksToSchedule; i++) {
-    scheduleMicrotask(() {});
-    debugger();
-    // Give the microtask that we just scheduled an opportunity to run.
-    await Future.delayed(const Duration(milliseconds: 1));
-  }
-}
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('get_queued_microtasks_rpc_lib.dart', args)
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      for (int i = 0; i < numberOfMicrotasksToSchedule; i++) {
+        await hasStoppedAtBreakpoint(service, isolateRef);
+        final result = await service.getQueuedMicrotasks(
+          isolateRef.id!,
+        );
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    for (int i = 0; i < numberOfMicrotasksToSchedule; i++) {
-      await hasStoppedAtBreakpoint(service, isolateRef);
-      final result = await service.getQueuedMicrotasks(
-        isolateRef.id!,
-      );
-
-      expect(result.timestamp, isPositive);
-      expect(result.microtasks!.length, 1);
-      expect(result.microtasks!.first.id, i);
-      expect(result.microtasks!.first.stackTrace, contains(shortFile));
-      await service.resume(isolateRef.id!);
-    }
-  },
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      shortFile,
-      testeeConcurrent: testeeMain,
+        expect(result.timestamp, isPositive);
+        expect(result.microtasks!.length, 1);
+        expect(result.microtasks!.first.id, i);
+        expect(result.microtasks!.first.stackTrace, contains(shortFile));
+        await service.resume(isolateRef.id!);
+      }
+    }).run(
+      testeeMain: testee_lib.main,
       extraArgs: ['--profile-microtasks'],
     );

@@ -7,14 +7,15 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'reload_sources_rpc_triggers_isolate_reload_event_lib.dart'
+    as testee_lib;
 
-void testMain() {
-  print(123);
-}
-
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
+void main([List<String> args = const <String>[]]) {
+  IsolateTestHarness(
+    'reload_sources_rpc_triggers_isolate_reload_event_lib.dart',
+    args,
+  ).addCustomTest((VmService service, IsolateRef isolateRef) async {
     // Set up a subscription that will complete [completer] when an
     // [IsolateReload] event is received.
     final completer = Completer<void>();
@@ -36,12 +37,5 @@ final tests = <IsolateTest>[
       pause: true,
     );
     await completer.future;
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'reload_sources_rpc_triggers_isolate_reload_event_test.dart',
-      testeeConcurrent: testMain,
-    );
+  }).run(testeeMain: testee_lib.main);
+}

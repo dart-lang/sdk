@@ -5,19 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
-
-int fib(n) {
-  if (n < 0) return 0;
-  if (n == 0) return 1;
-  return fib(n - 1) + fib(n - 2);
-}
-
-void testeeDo() {
-  print('Testee doing something.');
-  fib(44);
-  print('Testee did something.');
-}
+import 'common/service_test_common.dart';
+import 'get_cpu_samples_rpc_lib.dart' as testee_lib;
 
 Future<void> checkSamples(VmService service, IsolateRef isolate) async {
   // Grab all the samples.
@@ -49,10 +38,6 @@ Future<void> checkSamples(VmService service, IsolateRef isolate) async {
   expect(sample.stack, isList);
 }
 
-final tests = <IsolateTest>[
-  checkSamples,
-];
-
 const vmArgs = <String>[
   '--profiler=true',
   // Crank up the sampling rate to make sure we get samples.
@@ -60,10 +45,7 @@ const vmArgs = <String>[
   '--profile-vm=false', // So this also works with KBC.
 ];
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'get_cpu_samples_rpc_test.dart',
-      testeeBefore: testeeDo,
-      extraArgs: vmArgs,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('get_cpu_samples_rpc_lib.dart', args)
+        .addCustomTest(checkSamples)
+        .run(testeeMain: testee_lib.main, extraArgs: vmArgs);

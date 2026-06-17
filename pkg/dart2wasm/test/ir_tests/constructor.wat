@@ -116,7 +116,7 @@
     local.get $var0
     local.get $onlyUsedInSuper
     local.set $var3
-    i32.const 85
+    i32.const 94
     local.get $var3
     struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.named (initializer)"
@@ -248,7 +248,7 @@
     global.get $"\", \""
     local.get $onlyUsedInSubBody
     local.set $var4
-    i32.const 85
+    i32.const 94
     local.get $var4
     struct.new $BoxedInt
     array.new_fixed $Array<Object?> 6
@@ -273,7 +273,7 @@
     local.get $var0
     local.get $onlyUsedInSuper1
     local.set $var3
-    i32.const 85
+    i32.const 94
     local.get $var3
     struct.new $BoxedInt
     local.get $onlyUsedInSuper2
@@ -328,7 +328,7 @@
     local.get $var0
     local.get $onlyUsedInSuper1
     local.set $var3
-    i32.const 85
+    i32.const 94
     local.get $var3
     struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.sub2 (initializer)"
@@ -356,7 +356,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 170
+    i32.const 167
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType
@@ -420,7 +420,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 174
+    i32.const 165
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType
@@ -449,7 +449,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 162
+    i32.const 176
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType

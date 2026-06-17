@@ -123,16 +123,17 @@ import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:watcher/watcher.dart';
 
-/// A function that can be executed to create a handler for a request.
-typedef HandlerGenerator =
-    LegacyHandler Function(
-      LegacyAnalysisServer,
-      Request,
-      CancellationToken,
-      OperationPerformanceImpl,
-    );
+typedef AnalysisOptionsBuilderUpdater = void Function(
+  AnalysisOptionsBuilder analysisOptionsBuilder,
+);
 
-typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
+/// A function that can be executed to create a handler for a request.
+typedef HandlerGenerator = LegacyHandler Function(
+  LegacyAnalysisServer,
+  Request,
+  CancellationToken,
+  OperationPerformanceImpl,
+);
 
 /// Various IDE options.
 class AnalysisServerOptions {
@@ -1103,28 +1104,31 @@ class LegacyAnalysisServer extends AnalysisServer {
     });
   }
 
-  /// Use the given updaters to update the values of the options in every
-  /// existing analysis context.
-  void updateOptions(List<OptionUpdater> optionUpdaters) {
+  /// Use the given updaters to configure the analysis options builders for
+  /// existing analysis contexts.
+  void updateOptions(List<AnalysisOptionsBuilderUpdater> builderUpdaters) {
     // TODO(scheglov): implement for the new analysis driver
     //    //
     //    // Update existing contexts.
     //    //
     //    for (AnalysisContext context in analysisContexts) {
-    //      AnalysisOptionsImpl options =
-    //          new AnalysisOptionsImpl.from(context.analysisOptions);
-    //      optionUpdaters.forEach((OptionUpdater optionUpdater) {
-    //        optionUpdater(options);
+    //      var builder = AnalysisOptionsBuilder.from(context.analysisOptions);
+    //      builderUpdaters.forEach((
+    //        AnalysisOptionsBuilderUpdater builderUpdater,
+    //      ) {
+    //        builderUpdater(builder);
     //      });
-    //      context.analysisOptions = options;
+    //      context.analysisOptions = builder.build();
     //      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
     //      // to be scheduled for this context.
     //    }
     //    //
     //    // Update the defaults used to create new contexts.
     //    //
-    //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
-    //      optionUpdater(defaultContextOptions);
+    //    builderUpdaters.forEach((
+    //      AnalysisOptionsBuilderUpdater builderUpdater,
+    //    ) {
+    //      builderUpdater(defaultContextOptions);
     //    });
   }
 

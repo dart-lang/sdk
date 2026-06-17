@@ -316,21 +316,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
+            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
             if (testSettings.moduleFormat == ModuleFormat.ddc &&
                 buildSettings.canaryFeatures) {
-              _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
-                assetServerPort,
-              );
-              assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
-            } else {
-              _assetHandler = _createBuildRunnerAmdAssetHandler(
-                assetServerPort,
-              );
-              assetReader = ProxyServerAssetReader(
-                assetServerPort,
-                root: project.directoryToServe,
-              );
+              _assetHandler = _handleReloadedSources(_assetHandler!);
             }
+            assetReader = ProxyServerAssetReader(
+              assetServerPort,
+              root: project.directoryToServe,
+            );
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -513,10 +507,15 @@ class TestContext {
             final assetServerPort = daemonPort(
               project.absolutePackageDirectory,
             );
-            _assetHandler = _createBuildRunnerDdcLibraryBundleAssetHandler(
+            _assetHandler = _createBuildRunnerProxyHandler(assetServerPort);
+            if (testSettings.moduleFormat == ModuleFormat.ddc &&
+                buildSettings.canaryFeatures) {
+              _assetHandler = _handleReloadedSources(_assetHandler!);
+            }
+            assetReader = ProxyServerAssetReader(
               assetServerPort,
+              root: project.directoryToServe,
             );
-            assetReader = ProxyServerAssetReader.fromHandler(_assetHandler!);
 
             if (testSettings.enableExpressionEvaluation) {
               ddcService = ExpressionCompilerService(
@@ -833,33 +832,22 @@ class TestContext {
     _updateReloadedSources(file.path);
   }
 
-  /// Returns a handler for build runner + DDC AMD module system.
-  Handler _createBuildRunnerAmdAssetHandler(int assetServerPort) {
+  Handler _createBuildRunnerProxyHandler(int assetServerPort) {
     return proxyHandler(
       'http://localhost:$assetServerPort/${project.directoryToServe}/',
       client: client,
     );
   }
 
-  /// Returns a handler for build runner + the DDC Library Bundle module
-  /// system.
-  ///
-  /// This handler:
-  /// - serves the reloaded_sources.json file for reloads/restarts.
-  /// - serves the application directory and entrypoint from
-  ///   `project.directoryToServe`.
-  Handler _createBuildRunnerDdcLibraryBundleAssetHandler(int assetServerPort) {
-    final entrypointProxy = proxyHandler(
-      'http://localhost:$assetServerPort/${project.directoryToServe}/',
-      client: client,
-    );
-
+  /// Wraps a handler to serve the reloaded_sources.json file for
+  /// reloads/restarts in the DDC Library Bundle module system.
+  Handler _handleReloadedSources(Handler proxy) {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(WebDevFS.reloadedSourcesFileName)) {
         return shelf.Response.ok(jsonEncode(_reloadedSources));
       }
-      return entrypointProxy(request);
+      return proxy(request);
     };
   }
 
@@ -896,11 +884,9 @@ class TestContext {
   }
 
   Future<void> _buildDebugExtension() async {
-    final process = await Process.run(
-      'tool/build_extension.sh',
-      ['prod'],
-      workingDirectory: absolutePath(pathFromDwds: 'debug_extension'),
-    );
+    final process = await Process.run('tool/build_extension.sh', [
+      'prod',
+    ], workingDirectory: absolutePath(pathFromDwds: 'debug_extension'));
     print(process.stdout);
   }
 
@@ -933,9 +919,10 @@ class TestContext {
     String isolateId,
     ScriptRef scriptRef,
   ) async {
-    final script =
-        await debugConnection.vmService.getObject(isolateId, scriptRef.id!)
-            as Script;
+    final script = await debugConnection.vmService.getObject(
+      isolateId,
+      scriptRef.id!,
+    ) as Script;
     final lines = LineSplitter.split(script.source!).toList();
     final lineNumber = lines.indexWhere(
       (l) => l.endsWith('// Breakpoint: $breakpointId'),

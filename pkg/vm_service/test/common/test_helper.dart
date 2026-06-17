@@ -16,6 +16,12 @@ import 'service_test_common.dart';
 
 export 'service_test_common.dart' show IsolateTest, VMTest;
 
+const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
+const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
+bool _isTestee() {
+  return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
+}
+
 /// The extra arguments to use
 const List<String> extraDebuggingArgs = [];
 
@@ -24,25 +30,13 @@ const List<String> extraDebuggingArgs = [];
 late String serviceHttpAddress;
 late String serviceWebsocketAddress;
 
-const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
-const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
-bool _isTestee() {
-  return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
-}
-
 Uri _getTestUri(String script) {
   if (io.Platform.script.isScheme('data')) {
     // If running from pub we can assume that we're in the root of the package
     // directory.
     return Uri.parse('test/$script');
-  } else if (!io.Platform.script.toFilePath().endsWith('.dart')) {
-    // We're running an AOT test. In this case, we need to use the exact URI we
-    // launched with.
-    return io.Platform.script;
   } else {
-    // Resolve the script to ensure that test will fail if the provided script
-    // name doesn't match the actual script.
-    return io.Platform.script.resolve(script);
+    return io.Platform.script;
   }
 }
 
@@ -124,6 +118,7 @@ class _ServiceTesteeLauncher {
     String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
   ) {
     return _spawnDartProcess(
       pauseOnStart,
@@ -134,6 +129,7 @@ class _ServiceTesteeLauncher {
       residentCompilerInfoFilePath,
       experiments,
       extraArgs,
+      testeeEnvironment,
     );
   }
 
@@ -152,15 +148,19 @@ class _ServiceTesteeLauncher {
     String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
   ) {
     final String dartExecutable = io.Platform.executable;
 
     final fullArgs = <String>[];
+    final environment = <String, String>{...?testeeEnvironment};
     if (pauseOnStart) {
       fullArgs.add('--pause-isolates-on-start');
+      environment['PAUSE_ON_START'] = 'true';
     }
     if (pauseOnExit) {
       fullArgs.add('--pause-isolates-on-exit');
+      environment['PAUSE_ON_EXIT'] = 'true';
     }
     if (!useAuthToken) {
       fullArgs.add('--disable-service-auth-codes');
@@ -190,7 +190,7 @@ class _ServiceTesteeLauncher {
     }
     fullArgs.addAll(args);
 
-    return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
+    return _spawnCommon(dartExecutable, fullArgs, environment);
   }
 
   Future<io.Process> _spawnCommon(
@@ -227,6 +227,7 @@ class _ServiceTesteeLauncher {
     String? residentCompilerInfoFilePath,
     List<String>? experiments,
     List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
   ) {
     return _spawnProcess(
       pauseOnStart,
@@ -237,6 +238,7 @@ class _ServiceTesteeLauncher {
       residentCompilerInfoFilePath,
       experiments,
       extraArgs,
+      testeeEnvironment,
     ).then((p) {
       final Completer<Uri> completer = Completer<Uri>();
       process = p;
@@ -299,6 +301,7 @@ class _ServiceTesterRunner {
     List<String>? experiments,
     List<VMTest>? vmTests,
     List<IsolateTest>? isolateTests,
+    Map<String, String>? testeeEnvironment,
     required String scriptName,
     bool pauseOnStart = false,
     bool pauseOnExit = false,
@@ -306,13 +309,13 @@ class _ServiceTesterRunner {
     bool pauseOnUnhandledExceptions = false,
     bool testeeControlsServer = false,
     bool useAuthToken = false,
-    bool shouldTesteeBeLaunchedWithDartRunResident = false,
+    bool launchTesteeWithDartRunResident = false,
     bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
     final tempDir = io.Directory.systemTemp.createTempSync();
     final String? residentCompilerInfoFilePath;
-    if (shouldTesteeBeLaunchedWithDartRunResident) {
+    if (launchTesteeWithDartRunResident) {
       residentCompilerInfoFilePath =
           '${tempDir.path}${io.Platform.pathSeparator}'
           'resident_compiler_info.txt';
@@ -334,6 +337,7 @@ class _ServiceTesterRunner {
         residentCompilerInfoFilePath,
         experiments,
         extraArgs,
+        testeeEnvironment,
       )
           .then((Uri serverAddress) async {
         if (mainArgs!.contains('--gdb')) {
@@ -398,7 +402,7 @@ $st
     });
 
     final exitCode = await process.exitCode;
-    if (shouldTesteeBeLaunchedWithDartRunResident) {
+    if (launchTesteeWithDartRunResident) {
       print(
         '** Shutting down resident frontend compiler associated with '
         '$residentCompilerInfoFilePath that was used by VM '
@@ -456,6 +460,34 @@ $st
   }
 }
 
+Future<void> startServiceTest({
+  Function()? testeeBefore,
+  Function()? testeeConcurrent,
+}) async {
+  final pauseOnStart = bool.fromEnvironment('PAUSE_ON_START');
+  final pauseOnExit = bool.fromEnvironment('PAUSE_ON_EXIT');
+  await _ServiceTesteeRunner().run(
+    testeeBefore: testeeBefore,
+    testeeConcurrent: testeeConcurrent,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+  );
+}
+
+void enterIsolateTestSync({
+  Function()? testeeBefore,
+  Function()? testeeConcurrent,
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+}) {
+  _ServiceTesteeRunner().runSync(
+    testeeBeforeSync: testeeBefore,
+    testeeConcurrentSync: testeeConcurrent,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+  );
+}
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
@@ -464,47 +496,40 @@ Future<void> runIsolateTests(
   List<String> mainArgs,
   List<IsolateTest> tests,
   String scriptName, {
-  Function()? testeeBefore,
-  Function()? testeeConcurrent,
   bool pauseOnStart = false,
   bool pauseOnExit = false,
   bool verboseVm = false,
   bool pauseOnUnhandledExceptions = false,
   bool testeeControlsServer = false,
   bool useAuthToken = false,
+  required Future<void> Function(List<String> args) testeeMain,
 
   /// If [true], `dart run --resident` will be used to launch the testee.
-  bool shouldTesteeBeLaunchedWithDartRunResident = false,
+  bool launchTesteeWithDartRunResident = false,
   bool allowForNonZeroExitCode = false,
   List<String>? experiments,
   List<String>? extraArgs,
+  Map<String, String>? testeeEnvironment,
 }) async {
-  assert(!pauseOnStart || testeeBefore == null);
   if (_isTestee()) {
-    await _ServiceTesteeRunner().run(
-      testeeBefore: testeeBefore,
-      testeeConcurrent: testeeConcurrent,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-    );
-  } else {
-    await _ServiceTesterRunner().run(
-      mainArgs: mainArgs,
-      scriptName: scriptName,
-      extraArgs: extraArgs,
-      isolateTests: tests,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-      verboseVm: verboseVm,
-      experiments: experiments,
-      pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
-      testeeControlsServer: testeeControlsServer,
-      useAuthToken: useAuthToken,
-      shouldTesteeBeLaunchedWithDartRunResident:
-          shouldTesteeBeLaunchedWithDartRunResident,
-      allowForNonZeroExitCode: allowForNonZeroExitCode,
-    );
+    return testeeMain(mainArgs);
   }
+  await _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    testeeEnvironment: testeeEnvironment,
+    isolateTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    experiments: experiments,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+    testeeControlsServer: testeeControlsServer,
+    useAuthToken: useAuthToken,
+    launchTesteeWithDartRunResident: launchTesteeWithDartRunResident,
+    allowForNonZeroExitCode: allowForNonZeroExitCode,
+  );
 }
 
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
@@ -520,34 +545,26 @@ void runIsolateTestsSynchronous(
   List<String> mainArgs,
   List<IsolateTest> tests,
   String scriptName, {
-  void Function()? testeeBefore,
-  void Function()? testeeConcurrent,
   bool pauseOnStart = false,
   bool pauseOnExit = false,
   bool verboseVm = false,
   bool pauseOnUnhandledExceptions = false,
   List<String>? extraArgs,
+  required void Function(List<String> args) testeeMain,
 }) {
-  assert(!pauseOnStart || testeeBefore == null);
   if (_isTestee()) {
-    _ServiceTesteeRunner().runSync(
-      testeeBeforeSync: testeeBefore,
-      testeeConcurrentSync: testeeConcurrent,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-    );
-  } else {
-    _ServiceTesterRunner().run(
-      mainArgs: mainArgs,
-      scriptName: scriptName,
-      extraArgs: extraArgs,
-      isolateTests: tests,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-      verboseVm: verboseVm,
-      pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
-    );
+    return testeeMain(mainArgs);
   }
+  _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    isolateTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+  );
 }
 
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
@@ -558,33 +575,26 @@ Future<void> runVMTests(
   List<String> mainArgs,
   List<VMTest> tests,
   String scriptName, {
-  Function()? testeeBefore,
-  Function()? testeeConcurrent,
   bool pauseOnStart = false,
   bool pauseOnExit = false,
   bool verboseVm = false,
   bool pauseOnUnhandledExceptions = false,
   List<String>? extraArgs,
   VmServiceFactory serviceFactory = VmService.defaultFactory,
+  required Future<void> Function(List<String> args) testeeMain,
 }) async {
   if (_isTestee()) {
-    await _ServiceTesteeRunner().run(
-      testeeBefore: testeeBefore,
-      testeeConcurrent: testeeConcurrent,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-    );
-  } else {
-    await _ServiceTesterRunner().run(
-      mainArgs: mainArgs,
-      scriptName: scriptName,
-      extraArgs: extraArgs,
-      vmTests: tests,
-      pauseOnStart: pauseOnStart,
-      pauseOnExit: pauseOnExit,
-      verboseVm: verboseVm,
-      pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
-      serviceFactory: serviceFactory,
-    );
+    return testeeMain(mainArgs);
   }
+  await _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    vmTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+    serviceFactory: serviceFactory,
+  );
 }

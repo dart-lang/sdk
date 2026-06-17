@@ -39,7 +39,7 @@ abstract interface class Timer {
   ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
   /// // Outputs after 5 seconds: "Timer finished".
   /// ```
-  factory(Duration duration, void Function() callback) {
+  factory Timer(Duration duration, void Function() callback) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
@@ -85,7 +85,7 @@ abstract interface class Timer {
   /// // 3
   /// // "Cancel timer"
   /// ```
-  factory periodic(Duration duration, void callback(Timer timer)) {
+  factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.

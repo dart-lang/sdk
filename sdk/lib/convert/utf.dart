@@ -25,8 +25,9 @@ const Utf8Codec utf8 = Utf8Codec();
 
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
 /// UTF-8 code units to strings.
-final class const Utf8Codec({final bool _allowMalformed = false})
-    extends Encoding {
+final class Utf8Codec extends Encoding {
+  final bool _allowMalformed;
+
   /// Instantiates a new [Utf8Codec].
   ///
   /// The optional [_allowMalformed] argument defines how [decoder] (and [decode])
@@ -36,7 +37,7 @@ final class const Utf8Codec({final bool _allowMalformed = false})
   /// the [decoder] replace invalid (or unterminated) octet
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// they throw a [FormatException].
-  this;
+  const Utf8Codec({this._allowMalformed = false});
 
   /// The name of this codec is "utf-8".
   String get name => "utf-8";
@@ -85,7 +86,9 @@ final class const Utf8Codec({final bool _allowMalformed = false})
 /// final encodedSample = utf8Encoder.convert(sample);
 /// print(encodedSample);
 /// ```
-final class const Utf8Encoder() extends Converter<String, List<int>> {
+final class Utf8Encoder extends Converter<String, List<int>> {
+  const Utf8Encoder();
+
   /// Converts [string] to its UTF-8 code units (a list of
   /// unsigned 8-bit integers).
   ///
@@ -331,7 +334,7 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   /// If it is `true`, [convert] replaces invalid (or unterminated) character
   /// sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
   /// it throws a [FormatException].
-  const new({this._allowMalformed = false});
+  const Utf8Decoder({this._allowMalformed = false});
 
   /// Converts the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
   /// corresponding string.

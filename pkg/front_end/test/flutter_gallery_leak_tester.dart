@@ -99,12 +99,10 @@ Future<void> main(List<String> args) async {
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
         interests: interests,
         prettyPrints: [
-          new helper.Interest(
-            Uri.parse("package:kernel/ast.dart"),
-            "Library",
-            ["fileUri", "libraryIdForTesting"],
-            expectToAlwaysFind: true,
-          ),
+          new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library", [
+            "fileUri",
+            "libraryIdForTesting",
+          ], expectToAlwaysFind: true),
         ],
         throwOnPossibleLeak: true,
       );

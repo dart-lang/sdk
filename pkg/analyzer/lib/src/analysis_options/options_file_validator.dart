@@ -567,44 +567,62 @@ class _OptionalChecksValueValidator extends OptionsValidator {
   }
 }
 
-/// Validates options defined in an analysis options file.
+final class _OptionsFileValidationResult {
+  final _LocalLinterRules linterRules;
+
+  _OptionsFileValidationResult({required this.linterRules});
+}
+
+/// Validates one physical analysis options file.
+///
+/// This class does not follow `include` directives. It reports diagnostics that
+/// can be decided from the current file alone and returns the local facts that
+/// the include walker needs to validate rules whose meaning depends on the
+/// surrounding include graph.
 class _OptionsFileValidator {
-  final List<OptionsValidator> _validators;
+  late final _LinterRuleOptionsValidator _linterRuleOptionsValidator;
+  late final List<OptionsValidator> _validators;
 
   _OptionsFileValidator(
-    Source source, {
+    File file, {
     VersionConstraint? sdkVersionConstraint,
-    required String contextRoot,
+    required Folder contextRoot,
     required bool isPrimarySource,
-    required AnalysisOptionsProvider optionsProvider,
-    required ResourceProvider resourceProvider,
-    required SourceFactory sourceFactory,
-    required AnalysisOptionsCache analysisOptionsCache,
-  }) : _validators = [
-         _AnalyzerOptionsValidator(),
-         _CodeStyleOptionsValidator(),
-         _FormatterOptionsValidator(),
-         _LinterTopLevelOptionsValidator(),
-         _LinterRuleOptionsValidator(
-           resourceProvider: resourceProvider,
-           optionsProvider: optionsProvider,
-           sourceFactory: sourceFactory,
-           sdkVersionConstraint: sdkVersionConstraint,
-           isPrimarySource: isPrimarySource,
-           analysisOptionsCache: analysisOptionsCache,
-         ),
-         _PluginsOptionsValidator(
-           contextRoot: contextRoot,
-           filePath: source.fullName,
-           isPrimarySource: isPrimarySource,
-           resourceProvider: resourceProvider,
-         ),
-       ];
+  }) {
+    _linterRuleOptionsValidator = _LinterRuleOptionsValidator(
+      file: file,
+      sdkVersionConstraint: sdkVersionConstraint,
+      isPrimarySource: isPrimarySource,
+    );
+    _validators = [
+      _AnalyzerOptionsValidator(),
+      _CodeStyleOptionsValidator(),
+      _FormatterOptionsValidator(),
+      _LinterTopLevelOptionsValidator(),
+      _linterRuleOptionsValidator,
+      _PluginsOptionsValidator(
+        contextRoot: contextRoot,
+        file: file,
+        isPrimarySource: isPrimarySource,
+      ),
+    ];
+  }
 
-  void validate(YamlMap options, DiagnosticReporter reporter) {
+  /// Reports single-file diagnostics for [options] and returns local rule data.
+  ///
+  /// The returned data is intentionally source-preserving: callers use it to
+  /// merge linter rule state across includes without losing the YAML nodes that
+  /// should appear in context messages.
+  _OptionsFileValidationResult validate(
+    YamlMap options,
+    DiagnosticReporter reporter,
+  ) {
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
+    return _OptionsFileValidationResult(
+      linterRules: _linterRuleOptionsValidator.localRules,
+    );
   }
 }
 
@@ -618,35 +636,30 @@ class _PluginsOptionsValidator extends OptionsValidator {
     AnalysisOptionsFileKeys.gitOptions,
   );
 
-  final String _contextRoot;
+  final Folder _contextRoot;
 
-  final String _filePath;
+  final File _file;
 
   final bool _isPrimarySource;
 
-  final ResourceProvider _resourceProvider;
-
   _PluginsOptionsValidator({
-    required String contextRoot,
-    required String filePath,
+    required Folder contextRoot,
+    required File file,
     required bool isPrimarySource,
-    required ResourceProvider resourceProvider,
   }) : _contextRoot = contextRoot,
-       _filePath = filePath,
-       _isPrimarySource = isPrimarySource,
-       _resourceProvider = resourceProvider;
+       _file = file,
+       _isPrimarySource = isPrimarySource;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var plugins = options.valueAt(AnalysisOptionsFileKeys.plugins);
     switch (plugins) {
       case YamlMap():
-        var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
-        var isAtContextRoot = sourceDir == _contextRoot;
+        var isAtContextRoot = _file.parent == _contextRoot;
         if (!isAtContextRoot && _isPrimarySource) {
           reporter.report(
             diag.pluginsInInnerOptions
-                .withArguments(contextRoot: _contextRoot)
+                .withArguments(contextRoot: _contextRoot.path)
                 .atSourceSpan(plugins.span),
           );
         }

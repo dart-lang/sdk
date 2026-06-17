@@ -64,10 +64,10 @@ const int _paddingChar = 0x3d; // '='.
 /// It does not allow invalid characters when decoding and it requires,
 /// and generates, padding so that the input is always a multiple of four
 /// characters.
-final class const Base64Codec._(final Base64Encoder _encoder)
-    extends Codec<List<int>, String> {
-  const new() : this._(const Base64Encoder());
-  const new urlSafe() : this._(const Base64Encoder.urlSafe());
+final class Base64Codec extends Codec<List<int>, String> {
+  final Base64Encoder _encoder;
+  const Base64Codec() : _encoder = const Base64Encoder();
+  const Base64Codec.urlSafe() : _encoder = const Base64Encoder.urlSafe();
 
   Base64Encoder get encoder => _encoder;
 
@@ -254,10 +254,11 @@ final class const Base64Codec._(final Base64Encoder _encoder)
 /// final encodedSample = base64Encoder.convert(sample.codeUnits);
 /// print(encodedSample); // RGFydCBpcyBvcGVuIHNvdXJjZQ==
 /// ```
-final class const Base64Encoder._(final bool _urlSafe)
-    extends Converter<List<int>, String> {
-  const new() : this._(false);
-  const new urlSafe() : this._(true);
+final class Base64Encoder extends Converter<List<int>, String> {
+  final bool _urlSafe;
+
+  const Base64Encoder() : _urlSafe = false;
+  const Base64Encoder.urlSafe() : _urlSafe = true;
 
   String convert(List<int> input) {
     if (input.isEmpty) return "";
@@ -461,7 +462,7 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
   }
 }
 
-abstract class _Base64EncoderSink() extends ByteConversionSink {
+abstract class _Base64EncoderSink extends ByteConversionSink {
   void add(List<int> source) {
     _add(source, 0, source.length, false);
   }
@@ -535,7 +536,9 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 /// // Print as string using UTF-8 decoder
 /// print(utf8.decode(decodedBytes)); // Dart is open source
 /// ```
-final class const Base64Decoder() extends Converter<String, List<int>> {
+final class Base64Decoder extends Converter<String, List<int>> {
+  const Base64Decoder();
+
   /// Decodes the characters of [input] from [start] to [end] as base64.
   ///
   /// If [start] is omitted, it defaults to the start of [input].
@@ -559,7 +562,7 @@ final class const Base64Decoder() extends Converter<String, List<int>> {
 }
 
 /// Helper class implementing base64 decoding with intermediate state.
-class _Base64Decoder() {
+class _Base64Decoder {
   /// Shift-count to extract the values stored in [_state].
   static const int _valueShift = 2;
 

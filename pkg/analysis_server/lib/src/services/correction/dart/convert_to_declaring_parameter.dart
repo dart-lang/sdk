@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -38,29 +40,33 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parameter = node;
-    if (parameter is! FormalParameter) {
-      // The assist only applies to formal parameters.
-      return;
+    FormalParameter parameter;
+    var n = node;
+    if (n is FormalParameter) {
+      var parameterName = n.name;
+      if (parameterName == null) {
+        // The assist only applies to formal parameters with a name.
+        return;
+      }
+
+      var inName = parameterName.sourceRange.contains(selectionOffset);
+      var inThisPrefix =
+          n is FieldFormalParameter &&
+          range.startEnd(n.thisKeyword, n.period).contains(selectionOffset);
+      if (!inName && !inThisPrefix) {
+        // The assist only applies if the name or the `this.` prefix of the
+        // parameter is selected.
+        return;
+      }
+      parameter = n;
+    } else {
+      var resolved = _resolveParameterFromFieldNode(n);
+      if (resolved == null) return;
+      parameter = resolved;
     }
 
     var parameterName = parameter.name;
-    if (parameterName == null) {
-      // The assist only applies to formal parameters with a name.
-      return;
-    }
-
-    var inName = parameterName.sourceRange.contains(selectionOffset);
-    var inThisPrefix =
-        parameter is FieldFormalParameter &&
-        range
-            .startEnd(parameter.thisKeyword, parameter.period)
-            .contains(selectionOffset);
-    if (!inName && !inThisPrefix) {
-      // The assist only applies if the name or the `this.` prefix of the
-      // parameter is selected.
-      return;
-    }
+    if (parameterName == null) return;
 
     var classMembers = _getClassMembers(parameter);
     if (classMembers == null) {
@@ -108,8 +114,18 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         var metadata = member.metadata;
         var docComment = member.documentationComment;
         if (metadata.isNotEmpty || docComment != null) {
-          var text = _getMetadataText(member, eol: eol);
-          builder.addSimpleInsertion(parameter.offset, '$eol$text  ');
+          var text = _getMetadataText(member);
+          var prefix =
+              // Insert a newline/indent if there is metadata and this parameter
+              // is not already the first thing on the line.
+              text.isNotEmpty &&
+                  utils.getLineContentStart(parameter.offset) !=
+                      utils.getLineThis(parameter.offset)
+              ? '$eol  '
+              : '';
+          var suffix = '$eol  ';
+
+          builder.addSimpleInsertion(parameter.offset, '$prefix$text$suffix');
         }
       }
 
@@ -336,23 +352,34 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     return linesRange;
   }
 
-  String _getMetadataText(AnnotatedNode node, {required String eol}) {
-    // It might be better to grab all of the text in order to preserve the
-    // current formatting and comments. Depends, in part, on how the formatter
-    // handles wrapping primary constructor parameter lists.
-    var buffer = StringBuffer();
+  /// Gets the metadata text without any leading/trailing newlines/whitespace.
+  String _getMetadataText(AnnotatedNode node) {
     var docComment = node.documentationComment;
-    if (docComment != null) {
-      buffer.write('  ');
-      buffer.write(utils.getNodeText(docComment));
-      buffer.write(eol);
+    var metadata = node.metadata.isNotEmpty
+        ? (
+            offset: node.metadata.beginToken!.offset,
+            end: node.metadata.endToken!.end,
+          )
+        : null;
+
+    if (docComment == null && metadata == null) {
+      return '';
     }
-    for (var annotation in node.metadata) {
-      buffer.write('  ');
-      buffer.write(utils.getNodeText(annotation));
-      buffer.write(eol);
+
+    int start, end;
+    if (docComment != null && metadata != null) {
+      // Handle doc comments / metadata in any order.
+      start = math.min(docComment.offset, metadata.offset);
+      end = math.max(docComment.end, metadata.end);
+    } else if (docComment != null) {
+      start = docComment.offset;
+      end = docComment.end;
+    } else {
+      start = metadata!.offset;
+      end = metadata.end;
     }
-    return buffer.toString();
+
+    return utils.getText(start, end - start);
   }
 
   _RefactorData? _getRefactorData(FormalParameter parameter) {
@@ -441,5 +468,56 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   /// Whether the [node] has either a documentation comment or metadata.
   bool _hasCommentOrMetadata(AnnotatedNode node) {
     return node.documentationComment != null || node.metadata.isNotEmpty;
+  }
+
+  /// Returns the primary constructor parameter that initializes the field
+  /// declared by [node], or `null` if no such parameter exists.
+  FormalParameter? _resolveParameterFromFieldNode(AstNode node) {
+    if (node is! VariableDeclaration) return null;
+
+    var variableList = node.parent;
+    if (variableList is! VariableDeclarationList) return null;
+
+    if (variableList.parent is! FieldDeclaration) return null;
+
+    var classOrEnum = node.thisOrAncestorMatching(
+      (n) => n is ClassDeclaration || n is EnumDeclaration,
+    );
+
+    var primaryConstructor = switch (classOrEnum) {
+      ClassDeclaration() => classOrEnum.namePart,
+      EnumDeclaration() => classOrEnum.namePart,
+      _ => null,
+    };
+    if (primaryConstructor is! PrimaryConstructorDeclaration) return null;
+
+    var fieldElement = node.declaredFragment?.element;
+    if (fieldElement is! FieldElement) return null;
+
+    for (var parameter in primaryConstructor.formalParameters.parameters) {
+      if (parameter is FieldFormalParameter) {
+        var element = parameter.declaredFragment?.element;
+        if (element is FieldFormalParameterElement &&
+            element.field == fieldElement) {
+          return parameter;
+        }
+      } else if (parameter is RegularFormalParameter) {
+        var paramElement = parameter.declaredFragment?.element;
+        if (paramElement == null) continue;
+        var body = primaryConstructor.body;
+        if (body == null) continue;
+        for (var init in body.initializers) {
+          if (init is ConstructorFieldInitializer) {
+            var expression = init.expression;
+            if (init.fieldName.element == fieldElement &&
+                expression is SimpleIdentifier &&
+                expression.element == paramElement) {
+              return parameter;
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 }

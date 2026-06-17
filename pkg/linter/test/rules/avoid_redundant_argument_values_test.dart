@@ -55,16 +55,7 @@ class A {
 ''');
   }
 
-  Future<void> test_constructor_primary_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
-void f() {
-  A(p: [!true!]);
-}
-class A({bool p = true});
-''');
-  }
-
-  Future<void> test_constructor_secondary_redundant() async {
+  Future<void> test_constructor_inBody_redundant() async {
     await assertDiagnosticsFromMarkdown(r'''
 void f() {
   A(p: [!true!]);
@@ -75,7 +66,7 @@ class A {
 ''');
   }
 
-  Future<void> test_constructor_secondary_tearoff_redundant() async {
+  Future<void> test_constructor_inBody_tearoff_redundant() async {
     await assertDiagnosticsFromMarkdown(r'''
 void f() {
   var aNew = A.new;
@@ -84,6 +75,15 @@ void f() {
 class A {
   A({bool p = true});
 }
+''');
+  }
+
+  Future<void> test_constructor_primary_redundant() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f() {
+  A(p: [!true!]);
+}
+class A({bool p = true});
 ''');
   }
 

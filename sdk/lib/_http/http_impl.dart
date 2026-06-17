@@ -3074,6 +3074,8 @@ class _HttpClient implements HttpClient {
     const sensitiveHeaders = [
       "authorization",
       "www-authenticate",
+      "proxy-authorization",
+      "proxy-authenticate",
       "cookie",
       "cookie2",
     ];

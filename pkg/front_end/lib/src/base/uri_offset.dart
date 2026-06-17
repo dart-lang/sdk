@@ -5,37 +5,31 @@
 import 'messages.dart';
 
 /// Source location pointer used for messaging.
-class UriOffset implements UriOffsetLength {
+class UriOffset(
   /// The file URI of the location.
-  @override
-  final Uri fileUri;
+  @override final Uri fileUri,
 
   /// The character offset for the location with [fileUri].
-  @override
-  final int fileOffset;
-
-  new(this.fileUri, this.fileOffset);
-
+  @override final int fileOffset,
+) implements UriOffsetLength {
   @override
   int get length => noLength;
 }
 
 /// Source location pointer used for messaging.
-class UriOffsetLength {
+class UriOffsetLength(
   /// The file URI of the location.
-  final Uri fileUri;
+  final Uri fileUri,
 
   /// The character offset for the location with [fileUri].
-  final int fileOffset;
+  final int fileOffset,
 
   /// The length of the location.
   ///
   /// This is used to emitted the correct number of `^` characters in the
   /// message output for the source location.
-  final int length;
-
-  new(this.fileUri, this.fileOffset, this.length);
-}
+  final int length,
+);
 
 extension ProblemReportingExtension on ProblemReporting {
   /// Helper method for calling [ProblemReporting.addProblem] with a

@@ -1032,6 +1032,19 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "empty_container_bodies",
+    "description": "Use `;` instead of `{}` for empty container bodies.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use `;` instead of `{}` for empty container (class, enum, etc.) bodies.",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "empty_statements",
     "description": "Avoid empty statements.",
     "categories": [
@@ -1158,6 +1171,19 @@
     "fixStatus": "hasFix",
     "details": "Using an `interface`, `base`, `final`, or `sealed` modifier on a class,\nor a `base` modifier on a mixin,\nauthors can control whether classes and mixins allow being implemented,\nextended, and/or mixed in from outside of the library where they're defined.\nIn some cases, it's possible for an author to inadvertently relax these controls\nand implicitly \"reopen\" a class. (A similar reopening cannot occur with a mixin.)\n\nThis lint guards against unintentionally reopening a class by requiring such\ncases to be made explicit with the\n[`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)\nannotation in `package:meta`.\n\n**BAD:**\n```dart\ninterface class I {}\n\nclass C extends I {} // LINT\n```\n\n**GOOD:**\n```dart\ninterface class I {}\n\nfinal class C extends I {}\n```\n\n```dart\nimport 'package:meta/meta.dart';\n\ninterface class I {}\n\n@reopen\nclass C extends I {}\n```",
     "sinceDartSdk": "3.0"
+  },
+  {
+    "name": "initialize_in_field_declaration",
+    "description": "Initialize the field in the field's initializer.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Initialize fields where they're declared when possible.",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "invalid_case_patterns",
@@ -2725,7 +2751,7 @@
       "brevity",
       "style"
     ],
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
@@ -2962,10 +2988,10 @@
       "brevity",
       "style"
     ],
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Don't include an empty primary constructor body.\n\n**BAD:**\n```dart\nclass C() {\n  this;\n}\n```\n\n**GOOD:**\n```dart\nclass C();\n```",
     "sinceDartSdk": "3.13"
   },
@@ -3177,6 +3203,19 @@
     "sinceDartSdk": "2.17"
   },
   {
+    "name": "use_declaring_parameters",
+    "description": "Use a declaring parameter.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use a declaring parameter everywhere it's valid to do so.",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "use_decorated_box",
     "description": "Use `DecoratedBox`.",
     "categories": [
@@ -3310,6 +3349,19 @@
     "fixStatus": "hasFix",
     "details": "Where possible, use null-aware elements in collection literals.\n\n**BAD:**\n```dart\nf(String? key) => {if (key != null) key: \"value\"};\n```\n\n**GOOD:**\n```dart\nf(String? key) => {?key: \"value\"};\n```",
     "sinceDartSdk": "3.8"
+  },
+  {
+    "name": "use_primary_constructors",
+    "description": "Use a primary constructor.",
+    "categories": [
+      "style"
+    ],
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use a primary constructor everywhere it's valid to do so.",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "use_raw_strings",

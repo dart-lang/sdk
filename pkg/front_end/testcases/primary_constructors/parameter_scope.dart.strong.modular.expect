@@ -50,6 +50,7 @@ class E2 extends core::_Enum /*isEnum*/  {
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 extension type ET1(core::int x) {
+  @#C1
   abstract extension-type-member representation-field get x() → core::int;
   static field m = self::ET1|m;
   constructor • = self::ET1|constructor#;

@@ -9,15 +9,15 @@ part of "dart:core";
 /// This is the type of objects passed to [Object.noSuchMethod] when
 /// an object doesn't support the member invocation that was attempted
 /// on it.
-// TODO: Deprecated extending. There is no implementation to inherit,
-// so just implement.
-abstract class Invocation() {
+abstract class Invocation {
+  Invocation();
+
   /// Creates an invocation corresponding to a method invocation.
   ///
   /// The method invocation has no type arguments.
   /// If the named arguments are omitted, they default to no named arguments.
   @pragma("wasm:entry-point")
-  factory method(
+  factory Invocation.method(
     Symbol memberName,
     Iterable<Object?>? positionalArguments, [
     Map<Symbol, Object?>? namedArguments,
@@ -32,7 +32,7 @@ abstract class Invocation() {
   ///
   /// If the named arguments are omitted, they default to no named arguments.
   @pragma("wasm:entry-point")
-  factory genericMethod(
+  factory Invocation.genericMethod(
     Symbol memberName,
     Iterable<Type>? typeArguments,
     Iterable<Object?>? positionalArguments, [
@@ -46,7 +46,7 @@ abstract class Invocation() {
 
   /// Creates an invocation corresponding to a getter invocation.
   @pragma("wasm:entry-point")
-  factory getter(Symbol name) = _Invocation.getter;
+  factory Invocation.getter(Symbol name) = _Invocation.getter;
 
   /// Creates an invocation corresponding to a setter invocation.
   ///
@@ -57,7 +57,8 @@ abstract class Invocation() {
   /// Invocation.setter(const Symbol("member="), value)
   /// ```
   @pragma("wasm:entry-point")
-  factory setter(Symbol memberName, Object? argument) = _Invocation.setter;
+  factory Invocation.setter(Symbol memberName, Object? argument) =
+      _Invocation.setter;
 
   /// The name of the invoked member.
   Symbol get memberName;

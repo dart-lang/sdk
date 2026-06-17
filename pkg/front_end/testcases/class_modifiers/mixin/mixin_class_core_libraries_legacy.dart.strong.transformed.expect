@@ -6,8 +6,8 @@ library;
 // class B with Error {} /* Error */
 //       ^
 // sdk/lib/core/errors.dart:*: Context: This constructor prevents using 'Error' as a mixin.
-// class Error() {
-//            ^
+//   Error(); // Prevent use as mixin.
+//   ^
 //
 import self as self;
 import "dart:core" as core;

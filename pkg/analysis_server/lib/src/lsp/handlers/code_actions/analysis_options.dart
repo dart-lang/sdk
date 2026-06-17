@@ -9,9 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_acti
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
@@ -70,7 +68,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     }
     var lineInfo = LineInfo.fromContent(content);
 
-    var options = _getOptions(sourceFactory, content);
+    var options = _getOptions(content);
     if (options == null) {
       return [];
     }
@@ -83,10 +81,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var errors = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: contextRoot.root.path,
+      contextRoot: contextRoot.root,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: optionsFile, content: content);
+    ).validate(optionsFile);
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {
@@ -137,11 +134,11 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   @override
   Future<List<CodeAction>> getSourceActions() async => [];
 
-  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+  YamlMap? _getOptions(String content) {
     try {
-      return optionsProvider.getOptionsFromString(content);
-    } on OptionsFormatException {
+      var node = loadYamlNode(content);
+      return node is YamlMap ? node : YamlMap();
+    } on YamlException {
       return null;
     }
   }

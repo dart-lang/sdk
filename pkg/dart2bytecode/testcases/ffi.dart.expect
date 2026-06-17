@@ -13,7 +13,7 @@ Function 'testVoidNoArg', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
@@ -25,8 +25,7 @@ Bytecode {
   Push                 r2
   StoreContextVar      0, 0
   AllocateClosure      CP#7
-  StoreLocal           r5
-  Push                 r5
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r4
@@ -75,7 +74,7 @@ Function 'testIntInt', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
@@ -87,8 +86,7 @@ Bytecode {
   Push                 r2
   StoreContextVar      0, 0
   AllocateClosure      CP#10
-  StoreLocal           r5
-  Push                 r5
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r4

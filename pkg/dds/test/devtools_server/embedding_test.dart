@@ -8,19 +8,7 @@ import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
 
-late final DevToolsServerTestController testController;
-
 void main() {
-  testController = DevToolsServerTestController();
-
-  setUp(() async {
-    await testController.setUp();
-  });
-
-  tearDown(() async {
-    await testController.tearDown();
-  });
-
   test('allows embedding without flag', () async {
     final server = await DevToolsServerDriver.create();
     final httpClient = HttpClient();

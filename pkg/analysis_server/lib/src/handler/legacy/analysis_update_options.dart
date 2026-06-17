@@ -23,20 +23,20 @@ class AnalysisUpdateOptionsHandler extends LegacyHandler {
       clientUriConverter: server.uriConverter,
     );
     var newOptions = params.options;
-    var updaters = <OptionUpdater>[];
+    var builderUpdaters = <AnalysisOptionsBuilderUpdater>[];
     var generateHints = newOptions.generateHints;
     if (generateHints != null) {
-      updaters.add((AnalysisOptionsImpl options) {
-        options.warning = generateHints;
+      builderUpdaters.add((AnalysisOptionsBuilder analysisOptionsBuilder) {
+        analysisOptionsBuilder.warning = generateHints;
       });
     }
     var generateLints = newOptions.generateLints;
     if (generateLints != null) {
-      updaters.add((AnalysisOptionsImpl options) {
-        options.lint = generateLints;
+      builderUpdaters.add((AnalysisOptionsBuilder analysisOptionsBuilder) {
+        analysisOptionsBuilder.lint = generateLints;
       });
     }
-    server.updateOptions(updaters);
+    server.updateOptions(builderUpdaters);
     sendResult(AnalysisUpdateOptionsResult());
   }
 }

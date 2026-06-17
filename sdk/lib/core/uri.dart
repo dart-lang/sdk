@@ -204,7 +204,7 @@ abstract interface class Uri {
   ///     queryParameters: {'subject': 'Example'});
   /// print(mailtoUri); // mailto:John.Doe@example.com?subject=Example
   /// ```
-  factory({
+  factory Uri({
     String? scheme,
     String? userInfo,
     String? host,
@@ -247,7 +247,7 @@ abstract interface class Uri {
   ///
   /// The `query` component is set from the optional [queryParameters]
   /// argument.
-  factory http(
+  factory Uri.http(
     String authority, [
     String unencodedPath,
     Map<String, dynamic /*String?|Iterable<String>*/>? queryParameters,
@@ -272,7 +272,7 @@ abstract interface class Uri {
   /// uri = Uri.https('example.org', '/a%2F');
   /// print(uri); // https://example.org/a%252F
   /// ```
-  factory https(
+  factory Uri.https(
     String authority, [
     String unencodedPath,
     Map<String, dynamic>? queryParameters,
@@ -357,7 +357,7 @@ abstract interface class Uri {
   /// ```
   ///
   /// If the path passed is not a valid file path, an error is thrown.
-  factory file(String path, {bool? windows}) = _Uri.file;
+  factory Uri.file(String path, {bool? windows}) = _Uri.file;
 
   /// Like [Uri.file] except that a non-empty URI path ends in a slash.
   ///
@@ -374,7 +374,7 @@ abstract interface class Uri {
   ///    Uri.directory(r'C:\data\images', windows: true);
   /// print(fileDirectoryWindows); // file:///C:/data/images/
   /// ```
-  factory directory(String path, {bool? windows}) = _Uri.directory;
+  factory Uri.directory(String path, {bool? windows}) = _Uri.directory;
 
   /// Creates a `data:` URI containing the [content] string.
   ///
@@ -412,7 +412,7 @@ abstract interface class Uri {
   /// );
   /// print(uri); // data:;search=name;max=10,example%20content
   /// ```
-  factory dataFromString(
+  factory Uri.dataFromString(
     String content, {
     String? mimeType,
     Encoding? encoding,
@@ -449,7 +449,7 @@ abstract interface class Uri {
   /// final uri = Uri.dataFromBytes([68, 97, 114, 116]);
   /// print(uri); // data:application/octet-stream;base64,RGFydA==
   /// ```
-  factory dataFromBytes(
+  factory Uri.dataFromBytes(
     List<int> bytes, {
     String mimeType = "application/octet-stream",
     Map<String, String>? parameters,
@@ -1794,7 +1794,7 @@ abstract interface class Uri {
 }
 
 // Superclass of the two implementation types.
-sealed class _PlatformUri implements Uri;
+sealed class _PlatformUri implements Uri {}
 
 final class _Uri implements _PlatformUri {
   // We represent the missing scheme as an empty string.
@@ -3742,7 +3742,7 @@ final class UriData {
   ///
   /// Equivalent to `Uri.dataFromString(...).data`, but may
   /// be more efficient if the [uri] itself isn't used.
-  factory fromString(
+  factory UriData.fromString(
     String content, {
     String? mimeType,
     Encoding? encoding,
@@ -3779,7 +3779,7 @@ final class UriData {
   ///
   /// Equivalent to `Uri.dataFromBytes(...).data`, but may
   /// be more efficient if the [uri] itself isn't used.
-  factory fromBytes(
+  factory UriData.fromBytes(
     List<int> bytes, {
     String mimeType = "application/octet-stream",
     Map<String, String>? parameters,
@@ -3808,7 +3808,7 @@ final class UriData {
   /// The [uri] must have scheme `data` and no authority or fragment,
   /// and the path (concatenated with the query, if there is one) must be valid
   /// as data URI content with the same rules as [parse].
-  factory fromUri(Uri uri) {
+  factory UriData.fromUri(Uri uri) {
     if (!uri.isScheme("data")) {
       throw ArgumentError.value(uri, "uri", "Scheme must be 'data'");
     }

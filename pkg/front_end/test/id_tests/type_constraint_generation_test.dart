@@ -53,9 +53,10 @@ class InferredTypeArgumentDataComputer
     Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new TypeConstraintGenerationDataExtractor(
         testResultData.compilerResult,

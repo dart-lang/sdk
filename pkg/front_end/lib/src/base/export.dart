@@ -10,24 +10,15 @@ import '../builder/library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'uri_offset.dart';
 
-class Export {
+class Export(
   /// The compilation unit that is exporting [exported].
-  final SourceCompilationUnit exporter;
+  final SourceCompilationUnit exporter,
 
   /// The library being exported.
-  CompilationUnit exportedCompilationUnit;
-
-  final List<CombinatorBuilder>? combinators;
-
-  final int charOffset;
-
-  new(
-    this.exporter,
-    this.exportedCompilationUnit,
-    this.combinators,
-    this.charOffset,
-  );
-
+  var CompilationUnit exportedCompilationUnit,
+  final List<CombinatorBuilder>? combinators,
+  final int charOffset,
+) {
   LibraryBuilder get exportedLibraryBuilder =>
       exportedCompilationUnit.libraryBuilder;
 

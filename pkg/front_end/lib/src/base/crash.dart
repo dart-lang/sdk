@@ -14,18 +14,13 @@ bool hasCrashed = false;
 /// [resetCrashReporting].
 Uri? firstSourceUri;
 
-class Crash {
-  final Uri? uri;
-
-  final int? charOffset;
-
-  final Object error;
-
-  final StackTrace? trace;
-
+class Crash(
+  final Uri? uri,
+  final int? charOffset,
+  final Object error,
+  final StackTrace? trace,
+) {
   bool _hasBeenReported = false;
-
-  new(this.uri, this.charOffset, this.error, this.trace);
 
   @override
   String toString() {

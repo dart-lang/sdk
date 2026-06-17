@@ -1004,16 +1004,12 @@ class _Allocator extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _allocateVariable(node.variable);
-    _allocateTemp(node);
     _visitFunction(node);
-    _freeTemp(node);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _allocateTemp(node);
     _visitFunction(node);
-    _freeTemp(node);
   }
 
   @override
@@ -1097,7 +1093,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1105,7 +1101,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1113,12 +1109,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
-  }
-
-  @override
-  void visitStringConcatenation(StringConcatenation node) {
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1188,11 +1179,6 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitStaticSet(StaticSet node) {
-    _visit(node, temps: 1);
-  }
-
-  @override
   void visitTryCatch(TryCatch node) {
     _visit(node, temps: 2);
   }
@@ -1200,11 +1186,6 @@ class _Allocator extends RecursiveVisitor {
   @override
   void visitTryFinally(TryFinally node) {
     _visit(node, temps: 2);
-  }
-
-  @override
-  void visitNullCheck(NullCheck node) {
-    _visit(node, temps: 1);
   }
 
   @override

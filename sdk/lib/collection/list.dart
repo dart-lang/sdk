@@ -31,7 +31,9 @@ part of "dart:collection";
 /// to the growable list, or, if possible, use `DelegatingList` from
 /// "package:collection/collection.dart" instead of a `ListMixin`.
 // TODO: @Deprecated("Use List instead")
-abstract mixin class const ListBase<E>() implements List<E> {
+abstract mixin class ListBase<E> implements List<E> {
+  const ListBase();
+
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
   // of redeclaring everything.

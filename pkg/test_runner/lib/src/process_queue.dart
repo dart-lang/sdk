@@ -19,7 +19,6 @@ import 'command_output.dart';
 import 'configuration.dart';
 import 'dependency_graph.dart';
 import 'output_log.dart';
-import 'runtime_configuration.dart';
 import 'test_case.dart';
 import 'test_file.dart';
 import 'test_progress.dart';
@@ -668,9 +667,11 @@ class CommandExecutorImpl implements CommandExecutor {
     var processTest = command.processTestFilename;
     var abstractSocketTest = command.abstractSocketTestFilename;
     var testdir = command.precompiledTestDirectory;
-    var arguments = command.arguments;
-    var devicedir = DartPrecompiledAdbRuntimeConfiguration.deviceDir;
-    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
+    var deviceDir = device.deviceDir;
+    var deviceTestDir = "$deviceDir/test";
+    var arguments = command.arguments.map(
+      (argument) => argument.replaceAll("<deviceTestDir>", deviceTestDir),
+    );
 
     // We copy all the files which the vm precompiler puts into the test
     // directory.
@@ -689,33 +690,33 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(
       () => device.pushCachedData(
         '$buildPath/exe.stripped/dartaotruntime',
-        '$devicedir/dartaotruntime',
+        '$deviceDir/dartaotruntime',
       ),
     );
     steps.add(
       () => device.pushCachedData(
         '$buildPath/dartaotruntime.sym',
-        '$devicedir/dartaotruntime.sym',
+        '$deviceDir/dartaotruntime.sym',
       ),
     );
     steps.add(
-      () => device.pushCachedData(processTest, '$devicedir/process_test'),
+      () => device.pushCachedData(processTest, '$deviceDir/process_test'),
     );
     steps.add(
       () => device.pushCachedData(
         abstractSocketTest,
-        '$devicedir/abstract_socket_test',
+        '$deviceDir/abstract_socket_test',
       ),
     );
     steps.add(
       () => device.runAdbShellCommand([
         'chmod',
         '777',
-        '$devicedir/dartaotruntime $devicedir/process_test $devicedir/abstract_socket_test',
+        '$deviceDir/dartaotruntime $deviceDir/process_test $deviceDir/abstract_socket_test',
       ]),
     );
 
-    steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
+    steps.addAll(_pushLibraries(command, device, deviceDir, deviceTestDir));
 
     for (var file in files) {
       steps.add(
@@ -731,7 +732,7 @@ class CommandExecutorImpl implements CommandExecutor {
       () => device.runAdbShellCommand([
         'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
             'export TEST_COMPILATION_DIR=$deviceTestDir;'
-            '$devicedir/dartaotruntime',
+            '$deviceDir/dartaotruntime',
         '--android-log-to-stderr',
         ...arguments,
       ], timeout: timeoutDuration),
@@ -793,9 +794,11 @@ class CommandExecutorImpl implements CommandExecutor {
   ) async {
     var buildPath = command.buildPath;
     var hostKernelFile = command.kernelFile;
-    var arguments = command.arguments;
-    var devicedir = DartkAdbRuntimeConfiguration.deviceDir;
-    var deviceTestDir = DartkAdbRuntimeConfiguration.deviceTestDir;
+    var deviceDir = device.deviceDir;
+    var deviceTestDir = "$deviceDir/test";
+    var arguments = command.arguments.map(
+      (argument) => argument.replaceAll("<deviceTestDir>", deviceTestDir),
+    );
 
     var timeoutDuration = Duration(seconds: timeout);
 
@@ -804,12 +807,12 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
     steps.add(
-      () => device.pushCachedData('$buildPath/dartvm', '$devicedir/dartvm'),
+      () => device.pushCachedData('$buildPath/dartvm', '$deviceDir/dartvm'),
     );
     steps.add(
       () => device.pushCachedData(
         '$buildPath/dartvm.sym',
-        '$devicedir/dartvm.sym',
+        '$deviceDir/dartvm.sym',
       ),
     );
     steps.add(
@@ -820,12 +823,12 @@ class CommandExecutorImpl implements CommandExecutor {
       ]),
     );
 
-    steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
+    steps.addAll(_pushLibraries(command, device, deviceDir, deviceTestDir));
 
     steps.add(
       () => device.runAdbShellCommand([
         'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
-            '$devicedir/dartvm',
+            '$deviceDir/dartvm',
         '--android-log-to-stderr',
         ...arguments,
       ], timeout: timeoutDuration),

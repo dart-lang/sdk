@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'common/test_helper.dart';
-import 'reload_sources_test_common.dart' show reloadSourcesTests, testeeMain;
+import 'reload_sources_lib.dart' as testee_lib;
+import 'reload_sources_test_common.dart';
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      reloadSourcesTests,
-      'reload_sources_test.dart',
-      testeeConcurrent: testeeMain,
-    );
+void main([args = const <String>[]]) =>
+    createHarness(args).run(testeeMain: testee_lib.main);

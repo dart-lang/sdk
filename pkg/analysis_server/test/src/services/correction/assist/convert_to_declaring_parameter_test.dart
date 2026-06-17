@@ -180,6 +180,91 @@ class C(var int x) {
 ''');
   }
 
+  Future<void> test_field_alreadyDeclaringParameter() async {
+    await resolveTestCode('''
+class C(var int x) {
+  late int y^;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_fieldFormalParameter() async {
+    await resolveTestCode('''
+class C(this.x) {
+  int x^;
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+}
+''');
+  }
+
+  Future<void> test_field_initializerList() async {
+    await resolveTestCode('''
+class C(int x) {
+  int x^;
+
+  this : x = x;
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+}
+''');
+  }
+
+  Future<void> test_field_noConstructor() async {
+    await resolveTestCode('''
+class C {
+  late int x^;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_notInitialized() async {
+    await resolveTestCode('''
+class C(int y) {
+  late int x^;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_typeMismatch() async {
+    await resolveTestCode('''
+class C(int x) {
+  num x^;
+
+  this : x = x;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_withInitializer() async {
+    await resolveTestCode('''
+class C(int x) {
+  int x^ = DateTime.now().millisecondsSinceEpoch;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_field_withType() async {
+    await resolveTestCode('''
+class C(this.x) {
+  final int x^;
+}
+''');
+    await assertHasAssist('''
+class C(final int x) {
+}
+''');
+  }
+
   Future<void> test_first() async {
     await resolveTestCode('''
 class C(int x^, int y) {
@@ -801,7 +886,6 @@ const d = 3;
 
     await assertHasAssist('''
 class C(
-  /**/
   @c
   @d
   @a

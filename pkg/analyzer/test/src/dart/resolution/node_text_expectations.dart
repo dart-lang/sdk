@@ -178,16 +178,6 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AbstractAnalysisOptionsTest',
-      methodName: 'assertDiagnosticsInCode',
-      argument: _ArgumentIndex(0),
-    ),
-    _AssertMethod(
-      className: 'AbstractAnalysisOptionsTest',
-      methodName: 'assertDiagnosticsInFiles',
-      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
-    ),
-    _AssertMethod(
-      className: 'AbstractAnalysisOptionsTest',
       methodName: 'assertAnalysisOptionsDiagnostics',
       argument: _ArgumentIndex(0),
     ),
@@ -195,6 +185,21 @@ class NodeTextExpectationsCollector {
       className: 'AbstractAnalysisOptionsTest',
       methodName: 'assertAnalysisOptionsDiagnosticsInFiles',
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsWithDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsFilesWithDiagnostics',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertAnalysisOptionsText',
+      argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'PubspecDiagnosticTest',

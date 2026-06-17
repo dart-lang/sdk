@@ -333,7 +333,7 @@ final class _ExpectedDiagnosticsUpdater {
   }
 
   static String _toPosixPaths(String message) {
-    return message.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]+)'), (match) {
+    return message.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]*)'), (match) {
       var path = match.group(1)!;
       var posixPath = path.replaceAll(r'\', '/');
       return '/$posixPath';

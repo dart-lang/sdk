@@ -178,7 +178,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// and `isValidKey` is omitted, the resulting map is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [HashMap.identity].
-  external factory({
+  external factory HashMap({
     bool Function(K, K)? equals,
     int Function(K)? hashCode,
     bool Function(dynamic)? isValidKey,
@@ -193,7 +193,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// ```dart
   /// HashMap<K, V>(equals: identical, hashCode: identityHashCode)
   /// ```
-  external factory identity();
+  external factory HashMap.identity();
 
   /// Creates a [HashMap] that contains all key/value pairs of [other].
   ///
@@ -204,7 +204,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// final fromBaseMap = HashMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
-  factory from(Map<dynamic, dynamic> other) {
+  factory HashMap.from(Map<dynamic, dynamic> other) {
     HashMap<K, V> result = HashMap<K, V>();
     other.forEach((dynamic k, dynamic v) {
       result[k as K] = v as V;
@@ -219,7 +219,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// final mapOf = HashMap<num, Object>.of(baseMap);
   /// print(mapOf); // {1: A, 2: B, 3: C}
   /// ```
-  factory of(Map<K, V> other) => HashMap<K, V>()..addAll(other);
+  factory HashMap.of(Map<K, V> other) => HashMap<K, V>()..addAll(other);
 
   /// Creates a [HashMap] where the keys and values are computed from the
   /// [iterable].
@@ -239,7 +239,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   ///     key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory fromIterable(
+  factory HashMap.fromIterable(
     Iterable iterable, {
     K Function(dynamic element)? key,
     V Function(dynamic element)? value,
@@ -266,7 +266,7 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// print(mapFromIterables);
   /// // {Earth: 1, Mercury: 0.06, Mars: 0.11, Venus: 0.81}
   /// ```
-  factory fromIterables(Iterable<K> keys, Iterable<V> values) {
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     HashMap<K, V> map = HashMap<K, V>();
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
@@ -286,6 +286,6 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// final map = HashMap.fromEntries(numbers.map((i) => MapEntry(i, i * i)));
   /// print(map); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory fromEntries(Iterable<MapEntry<K, V>> entries) =>
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       HashMap<K, V>()..addEntries(entries);
 }

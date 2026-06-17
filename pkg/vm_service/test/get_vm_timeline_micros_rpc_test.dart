@@ -5,17 +5,12 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'get_vm_timeline_micros_rpc_lib.dart' as testee_lib;
 
-final tests = <VMTest>[
-  (VmService service) async {
-    final result = await service.getVMTimelineMicros();
-    expect(result.timestamp, isPositive);
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'get_vm_timeline_micros_rpc_test.dart',
-    );
+void main([args = const <String>[]]) =>
+    VMTestHarness('get_vm_timeline_micros_rpc_lib.dart', args)
+        .addTest((VmService service) async {
+      final result = await service.getVMTimelineMicros();
+      expect(result.timestamp, isPositive);
+    }).run(testeeMain: testee_lib.main);

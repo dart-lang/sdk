@@ -64,6 +64,22 @@ class ReloadingManager {
     return result.$2;
   }
 
+  bool get supportsTwoPhaseHotRestart => _restarter is TwoPhaseRestarter;
+
+  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath) async {
+    final requestedSources = await (_restarter as TwoPhaseRestarter)
+        .hotRestartBegin(reloadedSourcesPath);
+    // Notify package:dwds that the isolate is exiting and a new isolate will
+    // be created.
+    _beforeRestart();
+    _afterRestart(true);
+    return requestedSources;
+  }
+
+  void hotRestartEnd() {
+    (_restarter as TwoPhaseRestarter).hotRestartEnd();
+  }
+
   /// After a previous call to [hotReloadStart], completes the hot
   /// reload by pushing the libraries into the Dart runtime.
   Future<void> hotReloadEnd() async {

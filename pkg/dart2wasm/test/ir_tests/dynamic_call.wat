@@ -46,7 +46,7 @@
   (table $dtable0 3 i31ref)
   (table $dtable2 3 funcref)
   (global $1 (ref $BoxedInt)
-    (i32.const 85)
+    (i32.const 94)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $true (ref $BoxedBool)

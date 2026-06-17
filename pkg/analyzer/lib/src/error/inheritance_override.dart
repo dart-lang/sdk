@@ -438,6 +438,9 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
+          if (interfaceElement.enclosingElement == classElement) {
+            continue;
+          }
           if (_isNotImplementedInConcreteSuperClass(name)) {
             continue;
           }
@@ -484,7 +487,9 @@ class _ClassVerifier {
         );
       }
 
-      _reportInheritedAbstractMembers(inheritedAbstract);
+      if (identical(classFragment, element.firstFragment)) {
+        _reportInheritedAbstractMembers(inheritedAbstract);
+      }
     }
 
     return false;

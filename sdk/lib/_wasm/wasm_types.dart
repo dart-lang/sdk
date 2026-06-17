@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: unused_field
+
 library dart._wasm;
 
 // TODO(63166): Remove this export after migrating Flutter to import that
@@ -295,7 +297,125 @@ class WasmF64 extends _WasmBase {
 
 /// The Wasm `v128` type.
 @pragma("wasm:entry-point")
-final class WasmV128 extends _WasmBase {}
+final class WasmV128 extends _WasmBase {
+  const WasmV128._();
+
+  const factory WasmV128.i8x16(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+    int l8,
+    int l9,
+    int l10,
+    int l11,
+    int l12,
+    int l13,
+    int l14,
+    int l15,
+  ) = _WasmI8x16Impl;
+
+  const factory WasmV128.i16x8(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+  ) = _WasmI16x8Impl;
+
+  const factory WasmV128.i32x4(int l0, int l1, int l2, int l3) = _WasmI32x4Impl;
+
+  const factory WasmV128.i64x2(int l0, int l1) = _WasmI64x2Impl;
+
+  const factory WasmV128.f32x4(double l0, double l1, double l2, double l3) =
+      _WasmF32x4Impl;
+
+  const factory WasmV128.f64x2(double l0, double l1) = _WasmF64x2Impl;
+}
+
+final class _WasmI8x16Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0,
+      l1,
+      l2,
+      l3,
+      l4,
+      l5,
+      l6,
+      l7,
+      l8,
+      l9,
+      l10,
+      l11,
+      l12,
+      l13,
+      l14,
+      l15;
+  const _WasmI8x16Impl(
+    this.l0,
+    this.l1,
+    this.l2,
+    this.l3,
+    this.l4,
+    this.l5,
+    this.l6,
+    this.l7,
+    this.l8,
+    this.l9,
+    this.l10,
+    this.l11,
+    this.l12,
+    this.l13,
+    this.l14,
+    this.l15,
+  ) : super._();
+}
+
+final class _WasmI16x8Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1, l2, l3, l4, l5, l6, l7;
+  const _WasmI16x8Impl(
+    this.l0,
+    this.l1,
+    this.l2,
+    this.l3,
+    this.l4,
+    this.l5,
+    this.l6,
+    this.l7,
+  ) : super._();
+}
+
+final class _WasmI32x4Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1, l2, l3;
+  const _WasmI32x4Impl(this.l0, this.l1, this.l2, this.l3) : super._();
+}
+
+final class _WasmI64x2Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1;
+  const _WasmI64x2Impl(this.l0, this.l1) : super._();
+}
+
+final class _WasmF32x4Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final double l0, l1, l2, l3;
+  const _WasmF32x4Impl(this.l0, this.l1, this.l2, this.l3) : super._();
+}
+
+final class _WasmF64x2Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final double l0, l1;
+  const _WasmF64x2Impl(this.l0, this.l1) : super._();
+}
 
 extension WasmV128Extension on WasmV128 {
   /// Wasm `v128.not` instruction.
@@ -329,7 +449,27 @@ extension WasmV128Extension on WasmV128 {
   external bool get anyTrue;
 }
 
-extension type WasmI8x16(WasmV128 value) implements WasmV128 {
+extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI8x16.fromInts(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+    int l8,
+    int l9,
+    int l10,
+    int l11,
+    int l12,
+    int l13,
+    int l14,
+    int l15,
+  );
+
   @pragma("wasm:intrinsic")
   external factory WasmI8x16.splat(WasmI32 value);
 
@@ -352,7 +492,19 @@ extension type WasmI8x16(WasmV128 value) implements WasmV128 {
   external WasmI8x16 eq(WasmI8x16 other);
 }
 
-extension type WasmI16x8(WasmV128 value) implements WasmV128 {
+extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI16x8.fromInts(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+  );
+
   @pragma("wasm:intrinsic")
   external factory WasmI16x8.splat(WasmI32 value);
 
@@ -380,7 +532,10 @@ extension type WasmI16x8(WasmV128 value) implements WasmV128 {
   external WasmI16x8 eq(WasmI16x8 other);
 }
 
-extension type WasmI32x4(WasmV128 value) implements WasmV128 {
+extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI32x4.fromInts(int l0, int l1, int l2, int l3);
+
   @pragma("wasm:intrinsic")
   external factory WasmI32x4.splat(WasmI32 value);
   @pragma("wasm:intrinsic")
@@ -402,7 +557,10 @@ extension type WasmI32x4(WasmV128 value) implements WasmV128 {
   external WasmI32x4 eq(WasmI32x4 other);
 }
 
-extension type WasmI64x2(WasmV128 value) implements WasmV128 {
+extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI64x2.fromInts(int l0, int l1);
+
   @pragma("wasm:intrinsic")
   external factory WasmI64x2.splat(WasmI64 value);
   @pragma("wasm:intrinsic")
@@ -426,7 +584,15 @@ extension type WasmI64x2(WasmV128 value) implements WasmV128 {
   external bool get allTrue;
 }
 
-extension type WasmF32x4(WasmV128 value) implements WasmV128 {
+extension type const WasmF32x4(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.fromDoubles(
+    double l0,
+    double l1,
+    double l2,
+    double l3,
+  );
+
   @pragma("wasm:intrinsic")
   external factory WasmF32x4.fromLaneValues(
     WasmF32 lane0,
@@ -485,7 +651,10 @@ extension type WasmF32x4(WasmV128 value) implements WasmV128 {
   external WasmI32x4 eq(WasmF32x4 other);
 }
 
-extension type WasmF64x2(WasmV128 value) implements WasmV128 {
+extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmF64x2.fromDoubles(double l0, double l1);
+
   @pragma("wasm:intrinsic")
   external factory WasmF64x2.fromLaneValues(WasmF64 lane0, WasmF64 lane1);
   @pragma("wasm:intrinsic")

@@ -22,14 +22,14 @@ List<LocatedMessage> verifyComponent(
   CfeVerificationErrorListener listener = new CfeVerificationErrorListener(
     context,
   );
-  VerifyingVisitor verifier = new VerifyingVisitor(
+  VerifyingVisitor.check(
     context.options.target,
     stage,
+    component,
     skipPlatform: skipPlatform,
     librarySkipFilter: librarySkipFilter,
     listener: listener,
   );
-  component.accept(verifier);
   return listener.errors;
 }
 

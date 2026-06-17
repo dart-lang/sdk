@@ -78,11 +78,10 @@ class ContextBuilderImpl {
     AnalysisDriverScheduler? scheduler,
     required String sdkPath,
     String? sdkSummaryPath,
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
-    updateAnalysisOptions3,
+    void Function({required AnalysisOptionsImpl analysisOptions})?
+    updateAnalysisOptions4,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     OwnedFiles? ownedFiles,
@@ -134,7 +133,8 @@ class ContextBuilderImpl {
           optionsFile,
           analysisOptionsProvider,
           sdk,
-          updateAnalysisOptions3,
+          updateAnalysisOptions4,
+          configureAnalysisOptionsBuilder,
           enabledExperiments,
         ),
       );
@@ -144,8 +144,8 @@ class ContextBuilderImpl {
       analysisOptionsMap = _createOptionsMap(
         contextRoot,
         analysisOptionsProvider,
-        updateAnalysisOptions3,
-        sdk,
+        updateAnalysisOptions4,
+        configureAnalysisOptionsBuilder,
       );
     }
 
@@ -187,19 +187,18 @@ class ContextBuilderImpl {
   AnalysisOptionsMap _createOptionsMap(
     ContextRootImpl contextRoot,
     AnalysisOptionsProvider analysisOptionsProvider,
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
-    updateAnalysisOptions,
-    DartSdk sdk,
+    void Function({required AnalysisOptionsImpl analysisOptions})?
+    updateAnalysisOptions4,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
   ) {
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
-      var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: analysisOptionsProvider.getOptionsFromFile(file),
-        file: file,
-        resourceProvider: resourceProvider,
+      var options = analysisOptionsProvider.getAnalysisOptionsFromFile(file);
+      options = _updatedAnalysisOptions(
+        options,
+        updateAnalysisOptions4,
+        configureAnalysisOptionsBuilder,
       );
 
       for (var folder in folders) {
@@ -207,10 +206,14 @@ class ContextBuilderImpl {
       }
     }
 
-    for (var options in _optionsMap.options) {
-      if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
-      }
+    if (_optionsMap.folders.isEmpty) {
+      return AnalysisOptionsMap.forSharedOptions(
+        _updatedAnalysisOptions(
+          AnalysisOptionsImpl(),
+          updateAnalysisOptions4,
+          configureAnalysisOptionsBuilder,
+        ),
+      );
     }
     return _optionsMap;
   }
@@ -274,35 +277,61 @@ class ContextBuilderImpl {
     File optionsFile,
     AnalysisOptionsProvider analysisOptionsProvider,
     DartSdk sdk,
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
-    updateAnalysisOptions,
+    void Function({required AnalysisOptionsImpl analysisOptions})?
+    updateAnalysisOptions4,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
     List<String> enabledExperiments,
   ) {
     AnalysisOptionsImpl options;
 
     try {
-      options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: analysisOptionsProvider.getOptionsFromFile(optionsFile),
-        file: optionsFile,
-        resourceProvider: resourceProvider,
-      );
+      options = analysisOptionsProvider.getAnalysisOptionsFromFile(optionsFile);
     } catch (e) {
       // Ignore exception.
       options = AnalysisOptionsImpl(file: optionsFile);
     }
 
-    options.contextFeatures = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: sdk.languageVersion,
-      flags: enabledExperiments,
-    );
+    var analysisOptionsBuilder = AnalysisOptionsBuilder.from(options)
+      ..contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: sdk.languageVersion,
+        flags: enabledExperiments,
+      );
 
-    if (updateAnalysisOptions != null) {
-      updateAnalysisOptions(analysisOptions: options, sdk: sdk);
+    options = analysisOptionsBuilder.build();
+    if (updateAnalysisOptions4 != null) {
+      updateAnalysisOptions4(analysisOptions: options);
     }
 
-    return options;
+    analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
+    if (configureAnalysisOptionsBuilder != null) {
+      configureAnalysisOptionsBuilder(
+        analysisOptionsBuilder: analysisOptionsBuilder,
+      );
+    }
+
+    return analysisOptionsBuilder.build();
+  }
+
+  AnalysisOptionsImpl _updatedAnalysisOptions(
+    AnalysisOptionsImpl options,
+    void Function({required AnalysisOptionsImpl analysisOptions})?
+    updateAnalysisOptions4,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
+  ) {
+    if (updateAnalysisOptions4 != null) {
+      updateAnalysisOptions4(analysisOptions: options);
+    }
+
+    if (configureAnalysisOptionsBuilder == null) {
+      return options;
+    }
+
+    var analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
+    configureAnalysisOptionsBuilder(
+      analysisOptionsBuilder: analysisOptionsBuilder,
+    );
+    return analysisOptionsBuilder.build();
   }
 }

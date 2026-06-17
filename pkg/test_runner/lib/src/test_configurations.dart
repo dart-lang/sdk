@@ -193,6 +193,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
         configuration.architecture.name,
       );
     }
+    if (configuration.system == System.android &&
+        (configuration.architecture == Architecture.x64 ||
+            configuration.architecture == Architecture.x64c)) {
+      await AndroidEmulators.start();
+    }
   }
 
   for (var service in services) {
@@ -220,6 +225,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       return configuration.system == System.fuchsia;
     })) {
       FuchsiaEmulator.instance().stop(firstConf.isVerbose);
+    }
+    if (configurations.any((configuration) {
+      return configuration.system == System.android;
+    })) {
+      AndroidEmulators.stop();
     }
 
     DebugLogger.close();

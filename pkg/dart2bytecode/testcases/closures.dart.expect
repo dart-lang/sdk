@@ -20,8 +20,7 @@ Bytecode {
   PushInt              5
   StoreContextVar      0, 0
   AllocateClosure      CP#5
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2
@@ -134,14 +133,13 @@ Function 'callA', static, reflectable, debuggable
     return-type void
 
 Bytecode {
-  Entry                1
+  Entry                0
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#2
   PushConstant         CP#1
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  Dup
   DirectCall           CP#3, 1
   Drop1
   InterfaceCall        CP#5, 2
@@ -150,8 +148,7 @@ Bytecode {
   PushConstant         CP#2
   PushConstant         CP#1
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  Dup
   DirectCall           CP#3, 1
   Drop1
   InterfaceCall        CP#5, 2
@@ -160,8 +157,7 @@ Bytecode {
   PushConstant         CP#8
   PushConstant         CP#1
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  Dup
   DirectCall           CP#3, 1
   Drop1
   InterfaceCall        CP#5, 2
@@ -187,22 +183,21 @@ Function 'testPartialInstantiation', static, reflectable, debuggable
     return-type FunctionType (dart:core::int) -> void
 
 Bytecode {
-  Entry                5
+  Entry                4
   CheckStack           0
   AllocateClosure      CP#8
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushConstant         CP#1
   StoreClosureElement  0
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  1
   PopLocal             r2
   Push                 r2
   PushConstant         CP#10
   DirectCall           CP#11, 2
-  PopLocal             r4
-  Push                 r4
+  PopLocal             r3
+  Push                 r3
   ReturnTOS
 }
 ConstantPool {
@@ -486,18 +481,17 @@ Bytecode {
   Push                 FP[-5]
   StoreContextVar      0, 0
   AllocateClosure      CP#34
-  StoreLocal           r4
-  Push                 r4
+  Dup
   PushConstant         CP#1
   StoreClosureElement  0
-  Push                 r4
+  Dup
   Push                 FP[-5]
   LoadTypeArgumentsField CP#7
   StoreClosureElement  1
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  2
-  Push                 r4
+  Dup
   Push                 r1
   StoreClosureElement  3
   PopLocal             r3
@@ -579,19 +573,18 @@ L2:
   DirectCall           CP#2, 4
   PopLocal             r0
   AllocateClosure      CP#28
-  StoreLocal           r4
-  Push                 r4
+  Dup
   PushConstant         CP#1
   StoreClosureElement  0
-  Push                 r4
+  Dup
   Push                 r1
   LoadContextVar       0, 0
   LoadTypeArgumentsField CP#7
   StoreClosureElement  1
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  2
-  Push                 r4
+  Dup
   Push                 r1
   StoreClosureElement  3
   PopLocal             r3
@@ -634,16 +627,15 @@ L2:
   DirectCall           CP#2, 4
   PopLocal             r0
   AllocateClosure      CP#24
-  StoreLocal           r4
-  Push                 r4
+  Dup
   Push                 r1
   LoadContextVar       0, 0
   LoadTypeArgumentsField CP#7
   StoreClosureElement  0
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  1
-  Push                 r4
+  Dup
   Push                 r1
   StoreClosureElement  2
   PopLocal             r3
@@ -760,8 +752,7 @@ Bytecode {
   PushInt              3
   StoreContextVar      0, 2
   AllocateClosure      CP#14
-  StoreLocal           r4
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r3
@@ -792,8 +783,7 @@ Bytecode {
   PushInt              42
   StoreContextVar      0, 3
   AllocateClosure      CP#21
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2
@@ -838,8 +828,7 @@ ClosureCode {
   PopLocal             r0
   CheckStack           0
   AllocateContext      1, 2
-  StoreLocal           r1
-  Push                 r1
+  Dup
   Push                 r0
   StoreContextParent
   PopLocal             r0
@@ -872,8 +861,7 @@ L1:
   PushInt              4
   StoreContextVar      1, 1
   AllocateClosure      CP#8
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2
@@ -979,8 +967,7 @@ Bytecode {
   DirectCall           CP#1, 2
   PopLocal             r3
   AllocateContext      1, 1
-  StoreLocal           r1
-  Push                 r1
+  Dup
   Push                 r0
   StoreContextParent
   PopLocal             r0
@@ -996,16 +983,14 @@ L2:
   JumpIfFalse          L1
   Push                 r2
   AllocateClosure      CP#5
-  StoreLocal           r4
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  0
   InstantiatedInterfaceCall CP#7, 2
   Drop1
   Push                 r3
   AllocateClosure      CP#15
-  StoreLocal           r4
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  0
   InstantiatedInterfaceCall CP#7, 2
@@ -1021,6 +1006,8 @@ L2:
   StoreLocal           r4
   StoreContextVar      1, 0
   Push                 r4
+  PushNull
+  PopLocal             r4
   Drop1
   Jump                 L2
 L1:
@@ -1118,8 +1105,7 @@ L2:
   InterfaceCall        CP#4, 1
   StoreContextVar      0, 0
   AllocateClosure      CP#8
-  StoreLocal           r4
-  Push                 r4
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r3
@@ -1201,7 +1187,7 @@ Function 'foo', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -1219,12 +1205,11 @@ Bytecode {
   Drop1
 L1:
   AllocateClosure      CP#6
-  StoreLocal           r2
-  Push                 r2
+  Dup
   Push                 FP[-6]
   LoadTypeArgumentsField CP#1
   StoreClosureElement  0
-  Push                 r2
+  Dup
   Push                 r0
   StoreClosureElement  1
   ReturnTOS
@@ -1258,7 +1243,7 @@ Function 'bar', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -1266,12 +1251,11 @@ Bytecode {
   Push                 FP[-5]
   StoreContextVar      0, 0
   AllocateClosure      CP#8
-  StoreLocal           r2
-  Push                 r2
+  Dup
   Push                 FP[-5]
   LoadTypeArgumentsField CP#5
   StoreClosureElement  0
-  Push                 r2
+  Dup
   Push                 r0
   StoreClosureElement  1
   ReturnTOS
@@ -1296,13 +1280,12 @@ ClosureCode {
   PopLocal             r0
   CheckStack           0
   AllocateClosure      CP#3
-  StoreLocal           r3
-  Push                 r3
+  Dup
   Push                 r0
   LoadContextVar       0, 0
   LoadTypeArgumentsField CP#5
   StoreClosureElement  0
-  Push                 r3
+  Dup
   Push                 r0
   StoreClosureElement  1
   PopLocal             r2

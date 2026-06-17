@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "ba5777c42fcc391253f5d51089a3b503654b53d7",
+  "co19_rev": "949eef23885c3eb8ca5ca5ef09bae9cb6ba0d4a9",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -135,7 +135,7 @@ vars = {
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
   "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
-  "dartdoc_rev": "d0fac90eb4213db3d5f8d8ff360a4f4bcb4b7ae2",
+  "dartdoc_rev": "77a52b6125ce8cc8a88a8a399d80701254e43838",
   "ecosystem_rev": "319ff812d463fc194999a0d4b682097450279332",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "c140dc012da1df74b0fb99230b8736438b8eba6a",
@@ -550,6 +550,16 @@ deps = {
        {
         "package": "flutter/android/sdk/all/${{platform}}",
         "version": "version:36v3"
+       }
+     ],
+     "condition": "download_android_deps",
+     "dep_type": "cipd",
+   },
+  Var("dart_root") + "/third_party/openjdk": {
+     "packages": [
+       {
+        "package": "flutter/java/openjdk/${{platform}}",
+        "version": "version:21"
        }
      ],
      "condition": "download_android_deps",

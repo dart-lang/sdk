@@ -13,8 +13,8 @@ library;
 // final class LegacyImplementFinal implements LegacyImplementFinalCore {
 //                                             ^
 // sdk/lib/core/map.dart:*: Context: The type 'LegacyImplementFinalCore' is a subtype of 'MapEntry', and 'MapEntry' is defined here.
-// final class const MapEntry<K, V>(
-//                   ^
+// final class MapEntry<K, V> {
+//             ^
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:20:16: Error: The type 'LegacyImplementBaseNoModifier' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
@@ -32,8 +32,8 @@ library;
 // class LegacyImplementFinalNoModifier implements LegacyImplementFinalCore {
 //                                                 ^
 // sdk/lib/core/map.dart:*: Context: The type 'LegacyImplementFinalCore' is a subtype of 'MapEntry', and 'MapEntry' is defined here.
-// final class const MapEntry<K, V>(
-//                   ^
+// final class MapEntry<K, V> {
+//             ^
 //
 import self as self;
 import "dart:collection" as col;

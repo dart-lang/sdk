@@ -251,6 +251,23 @@ void f(int foo) {
 ''');
   }
 
+  Future<void> test_parameter_inBodyConstructor() async {
+    await resolveTestCode('''
+class C {
+  C(int _foo) {
+    print(_foo);
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  C(int foo) {
+    print(foo);
+  }
+}
+''');
+  }
+
   Future<void> test_parameter_method() async {
     await resolveTestCode('''
 class A {
@@ -286,23 +303,6 @@ void f([int? _foo]) {
     await assertHasFix('''
 void f([int? foo]) {
   print(foo);
-}
-''');
-  }
-
-  Future<void> test_parameter_secondaryConstructor() async {
-    await resolveTestCode('''
-class C {
-  C(int _foo) {
-    print(_foo);
-  }
-}
-''');
-    await assertHasFix('''
-class C {
-  C(int foo) {
-    print(foo);
-  }
 }
 ''');
   }

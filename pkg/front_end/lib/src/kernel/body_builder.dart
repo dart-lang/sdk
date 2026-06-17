@@ -4101,7 +4101,7 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = intern.createLabeledStatement(body);
       continueStatements = continueTarget.resolveContinues(labeledStatement);
@@ -4122,7 +4122,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     assignedVariables.storeInfo(forStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = forStatement;
       }
     }
@@ -8212,7 +8212,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement body = popStatement(doKeyword);
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = intern.createLabeledStatement(body);
       continueStatements = continueTarget.resolveContinues(labeledStatement);
@@ -8226,7 +8226,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the [beginNode] call in [beginDoWhileStatement].
     assignedVariables.endNode(doStatement);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = doStatement;
       }
     }
@@ -8529,7 +8529,7 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = intern.createLabeledStatement(body);
       continueStatements = continueTarget.resolveContinues(labeledStatement);
@@ -8550,7 +8550,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = forInStatement;
       }
     }
@@ -8611,10 +8611,12 @@ class BodyBuilderImpl extends StackListenerImpl
         statement = intern.createLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement, statement);
-      List<BreakStatementImpl>? continueStatements = target.continueTarget
+      List<InternalContinueStatement>? continueStatements = target
+          .continueTarget
           .resolveContinues(statement);
       if (continueStatements != null) {
-        for (BreakStatementImpl continueStatement in continueStatements) {
+        for (InternalContinueStatement continueStatement
+            in continueStatements) {
           continueStatement.targetStatement = statement;
           Statement labelStatementBody = statement.body;
           if (labelStatementBody is LoopStatement) {
@@ -8704,7 +8706,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
       LabeledStatement labeledStatement = intern.createLabeledStatement(body);
       continueStatements = continueTarget.resolveContinues(labeledStatement);
@@ -8716,7 +8718,7 @@ class BodyBuilderImpl extends StackListenerImpl
       body,
     );
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = whileStatement;
       }
     }
@@ -9631,7 +9633,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       Statement statement = intern.createBreakStatement(
         offsetForToken(breakKeyword),
-        identifier,
+        identifier?.name,
       );
       target.addBreak(statement);
       push(statement);
@@ -9730,7 +9732,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       Statement statement = intern.createContinueStatement(
         offsetForToken(continueKeyword),
-        identifier,
+        identifier?.name,
       );
       target.addContinue(statement);
       push(statement);

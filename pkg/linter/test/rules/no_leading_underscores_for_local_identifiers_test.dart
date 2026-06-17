@@ -290,6 +290,23 @@ void f(int [!_p!]) {}
 ''');
   }
 
+  test_parameter_inBody_factory() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C {
+  factory (int [!_x!]) => C._();
+  C._();
+}
+''');
+  }
+
+  test_parameter_inBody_new() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C {
+  new (int [!_x!]);
+}
+''');
+  }
+
   test_parameter_internalUnderscore() async {
     await assertNoDiagnostics(r'''
 void f(int p_p) {}
@@ -333,23 +350,6 @@ class C(final int _x) {
   test_parameter_primary_simple() async {
     await assertDiagnosticsFromMarkdown(r'''
 class C(int [!_x!]) {}
-''');
-  }
-
-  test_parameter_secondary_factory() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class C {
-  factory (int [!_x!]) => C._();
-  C._();
-}
-''');
-  }
-
-  test_parameter_secondary_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class C {
-  new (int [!_x!]);
-}
 ''');
   }
 

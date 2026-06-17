@@ -19,7 +19,6 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -393,7 +392,7 @@ class ContextManagerImpl implements ContextManager {
     AnalysisDriver driver,
     WorkspacePackageImpl? package,
     String path, {
-    required AnalysisOptionsCache analysisOptionsCache,
+    AnalysisOptionsValidationCache? validationCache,
   }) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
@@ -406,12 +405,10 @@ class ContextManagerImpl implements ContextManager {
           : null;
       var errors = AnalysisOptionsValidator(
         sourceFactory: driver.sourceFactory,
-        contextRoot:
-            driver.currentSession.analysisContext.contextRoot.root.path,
+        contextRoot: driver.currentSession.analysisContext.contextRoot.root,
         sdkVersionConstraint: sdkVersionConstraint,
-        resourceProvider: resourceProvider,
-        analysisOptionsCache: analysisOptionsCache,
-      ).validateContent(file: file, content: content);
+        validationCache: validationCache,
+      ).validate(file);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
         errors,
@@ -611,6 +608,7 @@ class ContextManagerImpl implements ContextManager {
           withFineDependencies: withFineDependencies,
         );
 
+        var analysisOptionsValidationCache = AnalysisOptionsValidationCache();
         for (var analysisContext in collection.contexts) {
           var driver = analysisContext.driver;
 
@@ -632,11 +630,6 @@ class ContextManagerImpl implements ContextManager {
 
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
-          // Use a single cache for analysis options found in this context. (All
-          // of the AnalysisOptionsProviders instantiated in
-          // `_analyzeAnalysisOptionsYaml` share the same SourceFactory.)
-          AnalysisOptionsCache analysisOptionsCache = {};
-
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
             if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
               var package = analysisContext.contextRoot.workspace
@@ -645,7 +638,7 @@ class ContextManagerImpl implements ContextManager {
                 driver,
                 package,
                 file,
-                analysisOptionsCache: analysisOptionsCache,
+                validationCache: analysisOptionsValidationCache,
               );
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);

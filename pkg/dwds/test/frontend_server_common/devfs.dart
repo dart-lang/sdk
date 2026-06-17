@@ -173,6 +173,9 @@ class WebDevFS {
       }
 
       assetServer.writeFile('main_module.digests', '{}');
+      // Write an empty array of scripts to reload to handle the case where
+      // a test triggers a hot restart before any other action.
+      assetServer.writeFile('reloaded_sources.json', '[]');
 
       final sdk = dartSdk;
       final sdkSourceMap = dartSdkSourcemap;
@@ -263,9 +266,8 @@ class WebDevFS {
     for (final module in modules) {
       final metadata = ModuleMetadata.fromJson(
         json.decode(
-              utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
-            )
-            as Map<String, dynamic>,
+          utf8.decode(assetServer.getMetadata('$module.metadata').toList()),
+        ) as Map<String, dynamic>,
       );
       final libraries = metadata.libraries.keys.toList();
       moduleToLibrary.add(

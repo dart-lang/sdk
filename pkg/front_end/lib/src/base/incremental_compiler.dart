@@ -2177,16 +2177,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             combinators.add(
               combinator.isShow
-                  ? new CombinatorBuilder.show(
-                      combinator.names,
-                      combinator.fileOffset,
-                      libraryBuilder.fileUri,
-                    )
-                  : new CombinatorBuilder.hide(
-                      combinator.names,
-                      combinator.fileOffset,
-                      libraryBuilder.fileUri,
-                    ),
+                  ? new CombinatorBuilder.show(combinator.names)
+                  : new CombinatorBuilder.hide(combinator.names),
             );
           }
 

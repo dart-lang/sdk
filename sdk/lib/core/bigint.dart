@@ -140,7 +140,7 @@ abstract final class BigInt implements Comparable<BigInt> {
   /// bigInteger = BigInt.from(0.9999); // 0
   /// bigInteger = BigInt.from(-10.99); // -10
   /// ```
-  external factory from(num value);
+  external factory BigInt.from(num value);
 
   /// Returns the absolute value of this integer.
   ///

@@ -40,7 +40,7 @@ abstract interface class Map<K, V> {
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
   // TODO: @Deprecated("Use literal <K, V>{} instead")
-  external factory();
+  external factory Map();
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].
   ///
@@ -61,7 +61,7 @@ abstract interface class Map<K, V> {
   /// final mapFrom = Map<int, String>.from(planets);
   /// print(mapFrom); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
   /// ```
-  factory from(Map other) = LinkedHashMap<K, V>.from;
+  factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].
   ///
@@ -73,7 +73,7 @@ abstract interface class Map<K, V> {
   /// final mapOf = Map<num, String>.of(planets);
   /// print(mapOf); // {1: Mercury, 2: Venus, 3: Earth}
   /// ```
-  factory of(Map<K, V> other) = LinkedHashMap<K, V>.of;
+  factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
 
   /// Creates an unmodifiable hash-based map containing the entries of [other].
   ///
@@ -93,7 +93,7 @@ abstract interface class Map<K, V> {
   /// unmodifiableMap[4] = 'Mars'; // Throws
   /// ```
   // @Deprecated("Use Map.unmodifiableOf instead")
-  external factory unmodifiable(Map<dynamic, dynamic> other);
+  external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
   /// Creates an unmodifiable hash-based map containing the entries of [other].
   ///
@@ -110,7 +110,7 @@ abstract interface class Map<K, V> {
   /// unmodifiableMap[4] = 'Mars'; // Throws
   /// ```
   @Since("3.13")
-  factory unmodifiableOf(Map<K, V> other) = Map<K, V>.unmodifiable;
+  factory Map.unmodifiableOf(Map<K, V> other) = Map<K, V>.unmodifiable;
 
   /// Creates an identity map with the default implementation, [LinkedHashMap].
   ///
@@ -119,7 +119,7 @@ abstract interface class Map<K, V> {
   /// [Object.hashCode] of the keys.
   ///
   /// The map iterates in key insertion order.
-  factory identity() = LinkedHashMap<K, V>.identity;
+  factory Map.identity() = LinkedHashMap<K, V>.identity;
 
   /// Creates a Map instance in which the keys and values are computed from the
   /// [iterable].
@@ -164,7 +164,7 @@ abstract interface class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
-  factory fromIterable(
+  factory Map.fromIterable(
     Iterable iterable, {
     K key(dynamic element)?,
     V value(dynamic element)?,
@@ -189,7 +189,7 @@ abstract interface class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
-  factory fromIterables(Iterable<K> keys, Iterable<V> values) =
+  factory Map.fromIterables(Iterable<K> keys, Iterable<V> values) =
       LinkedHashMap<K, V>.fromIterables;
 
   /// Adapts [source] to be a `Map<K2, V2>`.
@@ -230,7 +230,7 @@ abstract interface class Map<K, V> {
   ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14};
   /// final map = Map.fromEntries(moonCount.entries);
   /// ```
-  factory fromEntries(Iterable<MapEntry<K, V>> entries) =>
+  factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
 
   /// Provides a view of this map as having [RK] keys and [RV] instances,
@@ -502,7 +502,7 @@ abstract interface class Map<K, V> {
 /// the `MapEntry` class will be changed to such a type,
 /// and will likely no longer be able to be implemented or extended
 /// by classes.
-final class const MapEntry<K, V>(
+final class MapEntry<K, V> {
   /// The key of the entry.
   ///
   /// ```dart
@@ -510,7 +510,7 @@ final class const MapEntry<K, V>(
   /// var entry = map.entries.first; // MapEntry<String, String>
   /// print(entry.key); // 'theKey'
   /// ```
-  final K key,
+  final K key;
 
   /// The value associated to [key] in a map.
   ///
@@ -519,10 +519,12 @@ final class const MapEntry<K, V>(
   /// var entry = map.entries.first; // MapEntry<String, String>
   /// print(entry.value); // 'theValue'
   /// ```
-  final V value,
-) {
+  final V value;
+
   /// Creates an entry with [key] and [value].
-  this;
+  const factory MapEntry(K key, V value) = MapEntry<K, V>._;
+
+  const MapEntry._(this.key, this.value);
 
   /// String representation intended for debugging only.
   ///

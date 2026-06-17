@@ -271,7 +271,7 @@ abstract interface class RegExp implements Pattern {
   /// Pattern keyValuePattern(String anyStringKey) =>
   ///     RegExp('${RegExp.escape(anyStringKey)}=(\\w+)');
   /// ```
-  external factory(
+  external factory RegExp(
     String source, {
     bool multiLine = false,
     bool caseSensitive = true,

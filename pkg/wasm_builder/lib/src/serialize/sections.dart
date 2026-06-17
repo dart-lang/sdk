@@ -1204,7 +1204,10 @@ class BinaryenInlineHintSection extends CustomSection {
         if (hint < 0 || hint > 127) {
           throw StateError('Expected hint in range [0..127] but got $hint');
         }
-        functions[functionIndex].inlineHint = hint;
+        // Stale indices from post-optimized binaries are ignored.
+        if (functionIndex < functions.length) {
+          functions[functionIndex].inlineHint = hint;
+        }
       }
     }
   }

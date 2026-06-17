@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/analyzer_diagnostic_expectations.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -538,10 +539,6 @@ class _IndexAssembler {
 
 /// Visits a resolved AST and adds relationships into the [assembler].
 class _IndexContributor extends GeneralizingAstVisitor {
-  static final _expectationPattern = RegExp(
-    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
-  );
-
   final _IndexAssembler assembler;
   final CompilationUnit unit;
 
@@ -1220,18 +1217,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // Index analyzer diagnostic expectations inside string literals.
     if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {
       var lexeme = node.literal.lexeme;
-      var matches = _expectationPattern.allMatches(lexeme);
       var tokenOffset = node.literal.offset;
-      for (var match in matches) {
-        var name = match.group(1)!;
-        var start = (match.end - 1) - name.length;
-        var element = diagnosticLibrary.exportNamespace.get2(name);
+      for (var reference in analyzerDiagnosticExpectationReferences(lexeme)) {
+        var element = diagnosticLibrary.exportNamespace.get2(reference.name);
         if (element is GetterElement) {
           recordRelationOffset(
             element.variable,
             IndexRelationKind.IS_REFERENCED_BY,
-            tokenOffset + start,
-            name.length,
+            tokenOffset + reference.offsetInLexeme,
+            reference.name.length,
             true,
           );
         }
@@ -1381,10 +1375,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var unitLibrary = unit.declaredFragment!.element;
 
     var uriStr = unitLibrary.uri.toString();
-    var isAnalyzerTest =
-        uriStr.startsWith('package:test/') ||
-        uriStr.contains('/pkg/analyzer/test/');
-    if (!isAnalyzerTest) {
+    if (!canContainAnalyzerDiagnosticExpectations(uriStr)) {
       return null;
     }
 
@@ -1392,12 +1383,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var elementFactory = unitLibrary.session.elementFactory;
       var diagnosticLibrary = elementFactory.libraryOfUri(
         Uri.parse('package:analyzer/src/diagnostic/diagnostic.dart'),
-      );
-      if (diagnosticLibrary != null) {
-        return diagnosticLibrary;
-      }
-      diagnosticLibrary = elementFactory.libraryOfUri(
-        Uri.parse('package:test/diagnostic.dart'),
       );
       if (diagnosticLibrary != null) {
         return diagnosticLibrary;
