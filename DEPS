@@ -555,6 +555,16 @@ deps = {
      "condition": "download_android_deps",
      "dep_type": "cipd",
    },
+  Var("dart_root") + "/third_party/openjdk": {
+     "packages": [
+       {
+        "package": "flutter/java/openjdk/${{platform}}",
+        "version": "version:21"
+       }
+     ],
+     "condition": "download_android_deps",
+     "dep_type": "cipd",
+   },
 
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [

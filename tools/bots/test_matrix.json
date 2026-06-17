@@ -199,12 +199,15 @@
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM64C/",
       "out/DebugAndroidARM_X64/",
+      "out/DebugAndroidX64C/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64C/",
       "out/ProductAndroidARM_X64/",
+      "out/ProductAndroidX64C/",
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM64C/",
       "out/ReleaseAndroidARM_X64/",
+      "out/ReleaseAndroidX64C/",
       "pkg/",
       "runtime/tests/",
       "runtime/tools/heapsnapshot/",
@@ -212,7 +215,8 @@
       "sdk/",
       "tests/",
       "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
-      "third_party/android_tools/sdk/platform-tools",
+      "third_party/android_tools/sdk/",
+      "third_party/openjdk/",
       "third_party/pkg/",
       "tools/"
     ],
@@ -849,6 +853,17 @@
             "--os=android",
             "android_bot"
           ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-android-${mode}-${arch}",
+            "ffi",
+            "standalone",
+            "vm"
+          ],
+          "fileset": "android",
+          "shards": 4
         }
       ]
     },

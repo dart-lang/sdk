@@ -479,6 +479,7 @@ class TestConfiguration {
     if (system == System.android &&
         !(architecture == Architecture.ia32 ||
             architecture == Architecture.x64 ||
+            architecture == Architecture.x64c ||
             architecture == Architecture.arm ||
             architecture == Architecture.arm_x64 ||
             architecture == Architecture.arm64 ||
