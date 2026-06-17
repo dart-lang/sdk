@@ -95,10 +95,7 @@ final class AnalysisOptionsValidator {
     AnalysisOptionsValidationCache? validationCache,
   }) : _validationCache = validationCache ?? AnalysisOptionsValidationCache();
 
-  List<Diagnostic> validateContent({
-    required File file,
-    required String content,
-  }) {
+  List<Diagnostic> validate(File file) {
     var initialSource = FileSource(file);
     var initialDiagnosticListener = RecordingDiagnosticListener();
     var initialDiagnosticReporter = DiagnosticReporter(
@@ -117,11 +114,7 @@ final class AnalysisOptionsValidator {
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
       validationCache: _validationCache,
-    ).validate(content: content);
-  }
-
-  List<Diagnostic> validateFile(File file) {
-    return validateContent(file: file, content: file.readAsStringSync());
+    ).validate(content: file.readAsStringSync());
   }
 }
 

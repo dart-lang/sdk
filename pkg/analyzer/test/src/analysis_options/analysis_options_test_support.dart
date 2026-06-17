@@ -57,16 +57,14 @@ abstract class AbstractAnalysisOptionsTest
       fail('Cannot validate analysis options: no content was provided.');
     }
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
+    var initialFile = cleanCodeByFile.keys.first;
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: convertPath(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
+    ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
@@ -94,16 +92,14 @@ abstract class AbstractAnalysisOptionsTest
       fail('Cannot parse analysis options: no content was provided.');
     }
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
+    var initialFile = cleanCodeByFile.keys.first;
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: convertPath(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
+    ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,

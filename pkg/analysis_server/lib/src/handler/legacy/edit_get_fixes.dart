@@ -126,7 +126,7 @@ class EditGetFixesHandler extends LegacyHandler
       contextRoot: analysisContext.contextRoot.root.path,
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).validateContent(file: optionsFile, content: content);
+    ).validate(optionsFile);
     var options = _getOptions(content);
     if (options == null) {
       return errorFixesList;

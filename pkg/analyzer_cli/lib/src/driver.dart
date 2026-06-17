@@ -280,7 +280,7 @@ class Driver implements CommandLineStarter {
             contextRoot: contextRoot.root.path,
             sdkVersionConstraint: sdkVersionConstraint,
             resourceProvider: resourceProvider,
-          ).validateContent(file: file, content: content);
+          ).validate(file);
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(

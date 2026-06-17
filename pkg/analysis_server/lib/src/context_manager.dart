@@ -410,7 +410,7 @@ class ContextManagerImpl implements ContextManager {
         sdkVersionConstraint: sdkVersionConstraint,
         resourceProvider: resourceProvider,
         validationCache: validationCache,
-      ).validateContent(file: file, content: content);
+      ).validate(file);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
         errors,

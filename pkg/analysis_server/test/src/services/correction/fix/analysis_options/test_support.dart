@@ -50,7 +50,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       contextRoot: '/',
       sdkVersionConstraint: dart2_12,
       resourceProvider: resourceProvider,
-    ).validateContent(file: optionsFile, content: content);
+    ).validate(optionsFile);
     if (diagnosticFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');
