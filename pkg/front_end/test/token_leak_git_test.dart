@@ -230,9 +230,10 @@ Future<Map<vmService.Class, int>> findAndPrintRetainingPaths(
       }
     }
     if (!foundMatch) continue;
-    vmService.Class c =
-        await serviceClient.getObject(isolateId, member.classRef!.id!)
-            as vmService.Class;
+    vmService.Class c = await serviceClient.getObject(
+      isolateId,
+      member.classRef!.id!,
+    ) as vmService.Class;
     int? instancesCurrent = member.instancesCurrent;
     if (instancesCurrent == null) continue;
     foundInstances[c] = instancesCurrent;

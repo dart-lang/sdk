@@ -82,9 +82,10 @@ class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
         if (member.classRef!.name == "") continue;
         if (member.instancesCurrent == 0) continue;
       }
-      vmService.Class c =
-          await serviceClient.getObject(isolateId, member.classRef!.id!)
-              as vmService.Class;
+      vmService.Class c = await serviceClient.getObject(
+        isolateId,
+        member.classRef!.id!,
+      ) as vmService.Class;
       if (c.location?.script?.uri == null) continue;
       print("${member.classRef!.name}: ${member.instancesCurrent}");
     }
@@ -101,9 +102,10 @@ class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
         .getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members!) {
       if (member.classRef!.name != filter) continue;
-      vmService.Class c =
-          await serviceClient.getObject(isolateId, member.classRef!.id!)
-              as vmService.Class;
+      vmService.Class c = await serviceClient.getObject(
+        isolateId,
+        member.classRef!.id!,
+      ) as vmService.Class;
       if (c.location?.script?.uri == null) continue;
       print("${member.classRef!.name}: ${member.instancesCurrent}");
       print(c.location!.script!.uri);
@@ -149,9 +151,10 @@ class VMServiceHeapHelperPrinter extends vmService.VMServiceHelper {
         .getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members!) {
       if (member.classRef!.name != filter) continue;
-      vmService.Class c =
-          await serviceClient.getObject(isolateId, member.classRef!.id!)
-              as vmService.Class;
+      vmService.Class c = await serviceClient.getObject(
+        isolateId,
+        member.classRef!.id!,
+      ) as vmService.Class;
       print("Found ${c.name} (location: ${c.location})");
       print(
         "${member.classRef!.name}: "

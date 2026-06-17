@@ -91,9 +91,9 @@ class F implements D<int, bool>;""",
       final DillLoader loader = target.loader;
       loader.appendLibraries(component);
       target.buildOutlines();
-      ClassBuilder objectClass =
-          loader.coreLibrary.lookupRequiredLocalMember("Object")
-              as ClassBuilder;
+      ClassBuilder objectClass = loader.coreLibrary.lookupRequiredLocalMember(
+        "Object",
+      ) as ClassBuilder;
       ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
         objectClass,
         loader,

@@ -3220,15 +3220,13 @@ ComplexTypeInfo computeComplex(
   List<ExpectedError>? expectedErrors,
 ) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeInfo typeInfo =
-      compute(
-            const TypeMatcher<ComplexTypeInfo>(),
-            source,
-            start,
-            required,
-            inDeclaration: inDeclaration,
-          )
-          as ComplexTypeInfo;
+  ComplexTypeInfo typeInfo = compute(
+    const TypeMatcher<ComplexTypeInfo>(),
+    source,
+    start,
+    required,
+    inDeclaration: inDeclaration,
+  ) as ComplexTypeInfo;
   expect(typeInfo.start, start.next, reason: source);
   expect(typeInfo.couldBeExpression, couldBeExpression);
   expectEnd(expectedAfter, typeInfo.skipType(start));
@@ -3266,14 +3264,12 @@ void expectComplexTypeArg(
 }) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeParamOrArgInfo typeVarInfo =
-      computeVar(
-            const TypeMatcher<ComplexTypeParamOrArgInfo>(),
-            source,
-            start,
-            inDeclaration,
-          )
-          as ComplexTypeParamOrArgInfo;
+  ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
+    const TypeMatcher<ComplexTypeParamOrArgInfo>(),
+    source,
+    start,
+    inDeclaration,
+  ) as ComplexTypeParamOrArgInfo;
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
@@ -3313,14 +3309,12 @@ void expectComplexTypeParam(
 }) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeParamOrArgInfo typeVarInfo =
-      computeVar(
-            const TypeMatcher<ComplexTypeParamOrArgInfo>(),
-            source,
-            start,
-            inDeclaration,
-          )
-          as ComplexTypeParamOrArgInfo;
+  ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
+    const TypeMatcher<ComplexTypeParamOrArgInfo>(),
+    source,
+    start,
+    inDeclaration,
+  ) as ComplexTypeParamOrArgInfo;
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
