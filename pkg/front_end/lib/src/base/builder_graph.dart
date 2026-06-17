@@ -6,12 +6,9 @@ import 'package:kernel/util/graph.dart' show Graph;
 
 import '../builder/library_builder.dart';
 
-class BuilderGraph implements Graph<Uri> {
-  final Map<Uri, LibraryBuilder> libraryBuilders;
-
+class BuilderGraph(final Map<Uri, LibraryBuilder> libraryBuilders)
+    implements Graph<Uri> {
   final Map<Uri, List<Uri>> _neighborsCache = {};
-
-  new(this.libraryBuilders);
 
   @override
   Iterable<Uri> get vertices => libraryBuilders.keys;

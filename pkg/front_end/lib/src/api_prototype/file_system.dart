@@ -97,19 +97,13 @@ abstract class FileSystemEntity {
 /**
  * Base class for all file system exceptions.
  */
-class FileSystemException implements Exception {
-  final Uri uri;
-  final String message;
-
-  new(this.uri, this.message);
-
+class FileSystemException(final Uri uri, final String message)
+    implements Exception {
   @override
   String toString() => 'FileSystemException(uri=$uri; message=$message)';
 }
 
-class NullFileSystem implements FileSystem {
-  const new();
-
+class const NullFileSystem() implements FileSystem {
   @override
   FileSystemEntity entityForUri(Uri uri) {
     throw new UnsupportedError('$runtimeType.entityForUri');

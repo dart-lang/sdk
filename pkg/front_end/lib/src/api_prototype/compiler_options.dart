@@ -428,16 +428,12 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
   return flags;
 }
 
-class InvocationMode {
+class const InvocationMode(final String name) {
   /// This mode is used for when the CFE is invoked in order to compile an
   /// executable.
   ///
   /// If used, a message about the null safety compilation mode will be emitted.
   static const InvocationMode compile = const InvocationMode('compile');
-
-  final String name;
-
-  const new(this.name);
 
   /// Returns the set of information modes from a comma-separated list of
   /// invocation mode names.
@@ -486,7 +482,7 @@ class InvocationMode {
 }
 
 /// Verbosity level used for filtering messages during compilation.
-class Verbosity {
+class const Verbosity(final String name, final String help) {
   /// Only error messages are emitted.
   static const Verbosity error = const Verbosity(
     'error',
@@ -594,11 +590,6 @@ class Verbosity {
   }
 
   static const String defaultValue = 'all';
-
-  final String name;
-  final String help;
-
-  const new(this.name, this.help);
 
   @override
   String toString() => 'Verbosity($name)';

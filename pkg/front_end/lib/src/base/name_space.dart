@@ -37,16 +37,10 @@ abstract class ComputedMutableNameSpace
   });
 }
 
-abstract class DeclarationNameSpace implements NameSpace {
-  final Map<String, MemberLookupResult> _content;
-  final Map<String, MemberLookupResult> _constructors;
-
-  new({
-    required Map<String, MemberLookupResult> content,
-    required Map<String, MemberLookupResult> constructors,
-  }) : _content = content,
-       _constructors = constructors;
-
+abstract class DeclarationNameSpace({
+  required final Map<String, MemberLookupResult> _content,
+  required final Map<String, MemberLookupResult> _constructors,
+}) implements NameSpace {
   @override
   MemberLookupResult? lookup(String name) => _content[name];
 
@@ -157,11 +151,9 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   LookupResult? lookup(String name) => _content?[name];
 }
 
-final class LibraryNameSpace implements NameSpace {
-  final Map<String, LookupResult> _content;
-
-  new({required Map<String, LookupResult> content}) : _content = content;
-
+final class LibraryNameSpace({
+  required final Map<String, LookupResult> _content,
+}) implements NameSpace {
   void addLocalMember(String name, LookupResult member) {
     assert(
       !_content.containsKey(name),
@@ -246,9 +238,10 @@ String? areNameSpacesEquivalent({
   return sb.toString();
 }
 
-final class SourceDeclarationNameSpace extends DeclarationNameSpace {
-  new({required super.content, required super.constructors});
-
+final class SourceDeclarationNameSpace({
+  required super.content,
+  required super.constructors,
+}) extends DeclarationNameSpace {
   void addConstructor(String name, MemberLookupResult constructor) {
     assert(
       !_constructors.containsKey(name),
@@ -267,9 +260,10 @@ final class SourceDeclarationNameSpace extends DeclarationNameSpace {
   }
 }
 
-final class DillDeclarationNameSpace extends DeclarationNameSpace {
-  new({required super.content, required super.constructors});
-}
+final class DillDeclarationNameSpace({
+  required super.content,
+  required super.constructors,
+}) extends DeclarationNameSpace;
 
 final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
   new() : super._();

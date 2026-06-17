@@ -38,11 +38,9 @@ class ExtensionsBuilder implements Extensions {
   }
 }
 
-final class LibraryExtensions implements Extensions {
-  final Set<ExtensionBuilder>? _extensions;
-
-  new({required Set<ExtensionBuilder> extensions}) : _extensions = extensions;
-
+final class LibraryExtensions({
+  required final Set<ExtensionBuilder>? _extensions,
+}) implements Extensions {
   @override
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
@@ -70,22 +68,15 @@ abstract class BaseExtensionScope implements ExtensionScope {
 ///
 /// This is used for expression compilation to give access to extensions
 /// declared in the library that the expression should be resolved in.
-class ParentLibraryExtensionScope extends BaseExtensionScope {
-  @override
-  final Extensions _localExtensions;
+class ParentLibraryExtensionScope(
+  @override final Extensions _localExtensions, {
+  @override final ExtensionScope? _parent,
+}) extends BaseExtensionScope;
 
-  @override
-  final ExtensionScope? _parent;
-
-  new(this._localExtensions, {ExtensionScope? parent}) : _parent = parent;
-}
-
-class CompilationUnitImportExtensionScope extends BaseExtensionScope {
-  final SourceCompilationUnit _compilationUnit;
-  final Extensions _importNameSpace;
-
-  new(this._compilationUnit, this._importNameSpace);
-
+class CompilationUnitImportExtensionScope(
+  final SourceCompilationUnit _compilationUnit,
+  final Extensions _importNameSpace,
+) extends BaseExtensionScope {
   @override
   Extensions get _localExtensions => _importNameSpace;
 
@@ -95,14 +86,10 @@ class CompilationUnitImportExtensionScope extends BaseExtensionScope {
       _compilationUnit.libraryBuilder.parentExtensionScope;
 }
 
-class CompilationUnitExtensionScope extends BaseExtensionScope {
-  final SourceCompilationUnit _compilationUnit;
-
-  @override
-  final ExtensionScope? _parent;
-
-  new(this._compilationUnit, {ExtensionScope? parent}) : _parent = parent;
-
+class CompilationUnitExtensionScope(
+  final SourceCompilationUnit _compilationUnit, {
+  @override final ExtensionScope? _parent,
+}) extends BaseExtensionScope {
   @override
   Extensions get _localExtensions =>
       _compilationUnit.libraryBuilder.libraryExtensions;
@@ -122,14 +109,10 @@ class CompilationUnitExtensionScope extends BaseExtensionScope {
   }
 }
 
-class CompilationUnitPrefixExtensionScope implements ExtensionScope {
-  final ComputedNameSpace _prefixNameSpace;
-
-  final ExtensionScope _parent;
-
-  new(this._prefixNameSpace, {required ExtensionScope parent})
-    : _parent = parent;
-
+class CompilationUnitPrefixExtensionScope(
+  final ComputedNameSpace _prefixNameSpace, {
+  required final ExtensionScope _parent,
+}) implements ExtensionScope {
   /// Set of extension declarations in scope. This is computed lazily in
   /// [forEachExtension].
   Set<ExtensionBuilder>? _extensions;

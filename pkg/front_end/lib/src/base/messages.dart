@@ -49,12 +49,8 @@ abstract interface class ProblemReporting {
 }
 
 /// [ProblemReporting] that registers the messages on a [Library] node.
-class LibraryProblemReporting implements ProblemReporting {
-  final SourceLoader _loader;
-  final Uri _fileUri;
-
-  new(this._loader, this._fileUri);
-
+class LibraryProblemReporting(final SourceLoader _loader, final Uri _fileUri)
+    implements ProblemReporting {
   /// Problems in this [Library] encoded as json objects.
   ///
   /// Note that this field can be null, and by convention should be null if the

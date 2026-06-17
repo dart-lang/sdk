@@ -51,22 +51,15 @@ export '../type_inference/type_schema_environment.dart'
 export 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 
-class DdcResult {
-  final Component component;
-  final Component? sdkSummary;
-  final List<Component> additionalDillModules;
-  final ClassHierarchy classHierarchy;
-  final Set<Library>? neededDillLibraries;
+class DdcResult(
+  final Component component,
+  final Component? sdkSummary,
+  final List<Component> additionalDillModules,
+  final ClassHierarchy classHierarchy,
+  final Set<Library>? neededDillLibraries,
+) {
   late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
   late final Component compiledLibraries = _computeCompiledLibraries();
-
-  new(
-    this.component,
-    this.sdkSummary,
-    this.additionalDillModules,
-    this.classHierarchy,
-    this.neededDillLibraries,
-  );
 
   Set<Library> _computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();

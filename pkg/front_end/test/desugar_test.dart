@@ -67,9 +67,9 @@ void checkIsRedirectingFactory(
     (l) => l.importUri.path.endsWith(uriPath),
   );
   var cls = lib.classes.firstWhere((c) => c.name == className);
-  ir.Procedure member =
-      cls.members.firstWhere((m) => m.name.text == constructorName)
-          as ir.Procedure;
+  ir.Procedure member = cls.members.firstWhere(
+    (m) => m.name.text == constructorName,
+  ) as ir.Procedure;
   Expect.isTrue(
     member.kind == ir.ProcedureKind.Factory,
     "$member is not a factory",

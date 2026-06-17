@@ -9,39 +9,25 @@ import '../base/incremental_compiler.dart' show IncrementalCompiler;
 import '../base/processed_options.dart' show ProcessedOptions;
 
 // Coverage-ignore(suite): Not run.
-class InitializedCompilerState {
-  final CompilerOptions options;
-  final ProcessedOptions processedOpts;
-  final Map<Uri, WorkerInputComponent>? workerInputCache;
+class InitializedCompilerState(
+  final CompilerOptions options,
+  final ProcessedOptions processedOpts, {
+  final Map<Uri, WorkerInputComponent>? workerInputCache,
 
   /// A map from library import uri to dill uri, i.e. where a library came from,
   /// for all cached libraries.
-  final Map<Uri, Uri>? workerInputCacheLibs;
-  final IncrementalCompiler? incrementalCompiler;
-  final Set<String>? tags;
-  final Map<Uri, Uri>? libraryToInputDill;
-
-  new(
-    this.options,
-    this.processedOpts, {
-    this.workerInputCache,
-    this.workerInputCacheLibs,
-    this.incrementalCompiler,
-    this.tags,
-    this.libraryToInputDill,
-  });
-}
+  final Map<Uri, Uri>? workerInputCacheLibs,
+  final IncrementalCompiler? incrementalCompiler,
+  final Set<String>? tags,
+  final Map<Uri, Uri>? libraryToInputDill,
+});
 
 // Coverage-ignore(suite): Not run.
 /// A cached [Component] for a summary input file.
 ///
 /// Tracks the originally marked "external" libs so that they can be restored,
 /// since the kernel generator mutates the state.
-class WorkerInputComponent {
-  final List<int> digest;
-  final Component component;
-  new(this.digest, this.component);
-}
+class WorkerInputComponent(final List<int> digest, final Component component);
 
 // Coverage-ignore(suite): Not run.
 bool digestsEqual(List<int>? a, List<int>? b) {

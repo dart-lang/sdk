@@ -51,9 +51,10 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
     Map<Id, ActualData<List<DartType>>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,

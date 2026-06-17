@@ -14,12 +14,11 @@ import '../api_prototype/standard_file_system.dart';
 
 /// A file system that mixes files from memory and a physical file system. All
 /// memory entities take priority over file system entities.
-class HybridFileSystem implements FileSystem {
-  final MemoryFileSystem memory;
+class HybridFileSystem(final MemoryFileSystem memory, [FileSystem? _physical])
+    implements FileSystem {
   final FileSystem physical;
 
-  new(this.memory, [FileSystem? _physical])
-    : physical = _physical ?? StandardFileSystem.instance;
+  this : physical = _physical ?? StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) =>
@@ -28,13 +27,11 @@ class HybridFileSystem implements FileSystem {
 
 /// Entity that delegates to an underlying memory or physical file system
 /// entity.
-class HybridFileSystemEntity implements FileSystemEntity {
-  @override
-  final Uri uri;
+class HybridFileSystemEntity(
+  @override final Uri uri,
+  final HybridFileSystem _fs,
+) implements FileSystemEntity {
   FileSystemEntity? _delegate;
-  final HybridFileSystem _fs;
-
-  new(this.uri, this._fs);
 
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) {
