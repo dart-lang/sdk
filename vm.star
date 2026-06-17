@@ -325,14 +325,6 @@ _nightly_builder(
 
 # vm|aot
 _nightly_builder(
-    "vm-aot-obfuscate-linux-release-x64",
-    category = "vm|aot|o",
-)
-_nightly_builder(
-    "vm-aot-dwarf-linux-product-x64",
-    category = "vm|aot|dw",
-)
-_nightly_builder(
     "vm-modaot-mac-debug-arm64",
     category = "vm|aot|mod",
     dimensions = [mac, arm64],
@@ -340,57 +332,6 @@ _nightly_builder(
 )
 
 # vm|misc
-_nightly_builder(
-    "vm-eager-optimization-linux-release-x64",
-    category = "vm|misc|j",
-)
-_nightly_builder(
-    "vm-aot-optimization-level-linux-release-x64",
-    category = "vm|misc|a",
-)
-
-_nightly_builder(
-    "vm-reload-linux-debug-x64",
-    category = "vm|misc|reload|d",
-)
-_nightly_builder(
-    "vm-reload-linux-release-x64",
-    category = "vm|misc|reload|r",
-)
-_nightly_builder(
-    "vm-linux-debug-x64c",
-    category = "vm|misc|compressed|jl",
-)
-_nightly_builder(
-    "vm-aot-linux-debug-x64c",
-    category = "vm|misc|compressed|al",
-)
-_nightly_builder(
-    "vm-win-debug-x64c",
-    category = "vm|misc|compressed|jw",
-    dimensions = windows,
-)
-_nightly_builder(
-    "vm-aot-win-debug-x64c",
-    category = "vm|misc|compressed|aw",
-    dimensions = windows,
-)
-_vm_builder(
-    "vm-fuchsia-release-arm64",
-    category = "vm|misc|f",
-    channels = ["try"],
-    properties = [fuchsia_deps],
-    location_filters = paths.to_location_filters(paths.fuchsia),
-)
-_vm_builder(
-    "vm-fuchsia-release-x64",
-    category = "vm|misc|f",
-    channels = ["try"],
-    dimensions = [linux, {"host_class": "virtualization"}],
-    properties = [fuchsia_deps],
-    location_filters = paths.to_location_filters(paths.fuchsia),
-)
-
 _vm_builder(
     "vm-aot-dyn-linux-debug-x64",
     category = "vm|misc|dyn|d",
@@ -419,33 +360,48 @@ _nightly_builder(
 
 # vm|ffi
 _vm_builder(
+    "vm-fuchsia-release-arm64",
+    category = "vm|ffi|f",
+    channels = ["try"],
+    properties = [fuchsia_deps],
+    location_filters = paths.to_location_filters(paths.fuchsia),
+)
+_vm_builder(
+    "vm-fuchsia-release-x64",
+    category = "vm|ffi|f",
+    channels = ["try"],
+    dimensions = [linux, {"host_class": "virtualization"}],
+    properties = [fuchsia_deps],
+    location_filters = paths.to_location_filters(paths.fuchsia),
+)
+_vm_builder(
     "vm-ffi-android-debug-arm",
-    category = "vm|ffi|d32",
+    category = "vm|ffi|d3",
     properties = [android_deps],
 )
 _vm_builder(
     "vm-ffi-android-release-arm",
-    category = "vm|ffi|r32",
+    category = "vm|ffi|r3",
     properties = [android_deps],
 )
 _vm_builder(
     "vm-ffi-android-product-arm",
-    category = "vm|ffi|p32",
+    category = "vm|ffi|p3",
     properties = [android_deps],
 )
 _vm_builder(
     "vm-ffi-android-debug-arm64c",
-    category = "vm|ffi|d64",
+    category = "vm|ffi|d6",
     properties = [android_deps],
 )
 _vm_builder(
     "vm-ffi-android-release-arm64c",
-    category = "vm|ffi|r64",
+    category = "vm|ffi|r6",
     properties = [android_deps],
 )
 _vm_builder(
     "vm-ffi-android-product-arm64c",
-    category = "vm|ffi|p64",
+    category = "vm|ffi|p6",
     properties = [android_deps],
 )
 _vm_builder(
@@ -481,6 +437,54 @@ _nightly_builder(
     category = "vm|ffi|dr",
     channels = ["try"],
     dimensions = [mac, arm64],
+)
+
+# Misc console
+_nightly_misc_builder(
+    "vm-linux-debug-x64c",
+    category = "compressed|jl",
+)
+_nightly_misc_builder(
+    "vm-aot-linux-debug-x64c",
+    category = "compressed|al",
+)
+_nightly_misc_builder(
+    "vm-win-debug-x64c",
+    category = "compressed|jw",
+    dimensions = windows,
+)
+_nightly_misc_builder(
+    "vm-aot-win-debug-x64c",
+    category = "compressed|aw",
+    dimensions = windows,
+)
+
+_nightly_misc_builder(
+    "vm-eager-optimization-linux-release-x64",
+    category = "misc|e",
+)
+
+_nightly_misc_builder(
+    "vm-aot-obfuscate-linux-release-x64",
+    category = "misc|o",
+)
+_nightly_misc_builder(
+    "vm-aot-dwarf-linux-product-x64",
+    category = "misc|dw",
+)
+
+_nightly_misc_builder(
+    "vm-aot-optimization-level-linux-release-x64",
+    category = "misc|a",
+)
+
+_nightly_misc_builder(
+    "vm-reload-linux-debug-x64",
+    category = "reload|d",
+)
+_nightly_misc_builder(
+    "vm-reload-linux-release-x64",
+    category = "reload|r",
 )
 
 # Isolate stress test builder
