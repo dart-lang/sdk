@@ -197,7 +197,8 @@ class SourceEditMappingTest extends AbstractLspAnalysisServerTest {
   }
 
   lsp.TextEdit _unwrapEdit(
-    lsp.Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit> edit,
+    lsp.Either3<lsp.AnnotatedTextEdit, lsp.SnippetableTextEdit, lsp.TextEdit>
+    edit,
   ) {
     // All types extend from TextEdit.
     return edit.map((e) => e, (e) => e, (e) => e);
