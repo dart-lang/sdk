@@ -6,25 +6,19 @@ class Self extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::Self
     : super core::Object::•()
     ;
-  static synthetic method _#new#tearOff() → self::Self
-    return new self::Self::•();
 }
 class Base extends core::Object {
   constructor •(core::int x) → self::Base
     ;
-  static synthetic method _#new#tearOff(core::int x) → self::Base
-    return new self::Base::•(x);
 }
 class MyComponent extends self::Base {
   @self::Self::•()
   final field core::int? x;
   constructor •(final initializing-formal core::int? x) → self::MyComponent
     ;
-  static synthetic method _#new#tearOff(core::int? x) → self::MyComponent
-    return new self::MyComponent::•(x);
 }
 
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_annotation.dart:11:20 -> InstanceConstant(const Self{})
-Extra constant evaluation: evaluated: 6, effectively constant: 1
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -292,6 +292,7 @@ class ConstantsTransformer extends RemovingTransformer {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformTypeParameterList(node.typeParameters, node);
+      transformProcedureList(node.procedures, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;

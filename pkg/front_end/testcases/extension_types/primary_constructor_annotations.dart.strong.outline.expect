@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int id) {
+  @self::annotation
   abstract extension-type-member representation-field get id() → core::int;
   constructor • = self::ExtensionType|constructor#;
   constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
@@ -15,5 +16,6 @@ static extension-type-member synthetic method ExtensionType|constructor#_#new#te
 
 
 Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///primary_constructor_annotations.dart:7:31 -> InstanceConstant(const Object{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///primary_constructor_annotations.dart:5:26 -> InstanceConstant(const Object{})
-Extra constant evaluation: evaluated: 3, effectively constant: 1
+Extra constant evaluation: evaluated: 4, effectively constant: 2

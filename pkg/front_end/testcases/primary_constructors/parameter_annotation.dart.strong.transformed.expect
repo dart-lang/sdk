@@ -6,15 +6,11 @@ class Self extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::Self
     : super core::Object::•()
     ;
-  static synthetic method _#new#tearOff() → self::Self
-    return new self::Self::•();
 }
 class Base extends core::Object {
   constructor •(core::int x) → self::Base
     : super core::Object::•()
     ;
-  static synthetic method _#new#tearOff(core::int x) → self::Base
-    return new self::Base::•(x);
 }
 class MyComponent extends self::Base {
   @#C1
@@ -22,8 +18,6 @@ class MyComponent extends self::Base {
   constructor •(@#C1 final initializing-formal core::int? x) → self::MyComponent
     : self::MyComponent::x = x, super self::Base::•(42)
     ;
-  static synthetic method _#new#tearOff(core::int? x) → self::MyComponent
-    return new self::MyComponent::•(x);
 }
 
 constants  {
@@ -34,4 +28,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///parameter_annotation.dart:
 - Self. (from org-dartlang-testcase:///parameter_annotation.dart:5:17)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
