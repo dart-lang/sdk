@@ -10,16 +10,16 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToSecondaryConstructorClassTest);
-    defineReflectiveTests(ConvertToSecondaryConstructorEnumTest);
-    defineReflectiveTests(ConvertToSecondaryConstructorExtensionTypeTest);
+    defineReflectiveTests(ConvertToInBodyConstructorClassTest);
+    defineReflectiveTests(ConvertToInBodyConstructorEnumTest);
+    defineReflectiveTests(ConvertToInBodyConstructorExtensionTypeTest);
   });
 }
 
 @reflectiveTest
-class ConvertToSecondaryConstructorClassTest extends AssistProcessorTest {
+class ConvertToInBodyConstructorClassTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.convertToSecondaryConstructor;
+  AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 
   Future<void> test_body() async {
     await resolveTestCode('''
@@ -487,9 +487,9 @@ class C {
 }
 
 @reflectiveTest
-class ConvertToSecondaryConstructorEnumTest extends AssistProcessorTest {
+class ConvertToInBodyConstructorEnumTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.convertToSecondaryConstructor;
+  AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 
   Future<void> test_initializer() async {
     await resolveTestCode('''
@@ -544,10 +544,9 @@ enum E {
 }
 
 @reflectiveTest
-class ConvertToSecondaryConstructorExtensionTypeTest
-    extends AssistProcessorTest {
+class ConvertToInBodyConstructorExtensionTypeTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.convertToSecondaryConstructor;
+  AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 
   Future<void> test_simple() async {
     await resolveTestCode('''

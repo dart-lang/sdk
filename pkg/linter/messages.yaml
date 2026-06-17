@@ -135,8 +135,9 @@ LinterLintCode:
 
       ```dart
       void f(bool b) {
-        if (b)
+        if (b) {
           return;
+        }
       }
       ```
     deprecatedDetails: |-
@@ -755,11 +756,11 @@ LinterLintCode:
 
       ```dart
       class C {
-        void f() { }
+        void f() {}
       }
 
       extension type E(C c) implements C {
-        void [!f!]() { }
+        void [!f!]() {}
       }
       ```
 
@@ -771,12 +772,12 @@ LinterLintCode:
       import 'package:meta/meta.dart';
 
       class C {
-        void f() { }
+        void f() {}
       }
 
       extension type E(C c) implements C {
         @redeclare
-        void f() { }
+        void f() {}
       }
       ```
     deprecatedDetails: |-
@@ -822,7 +823,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -1018,7 +1019,7 @@ LinterLintCode:
       If the then expression is a boolean literal, replace it with one of the following:
 
       ```dart
-      bool f(bool a, bool b) => a || b;  // replaces: a ? true : b
+      bool f(bool a, bool b) => a || b; // replaces: a ? true : b
       bool g(bool a, bool b) => !a && b; // replaces: a ? false : b
       ```
 
@@ -1026,7 +1027,7 @@ LinterLintCode:
 
       ```dart
       bool f(bool a, bool b) => !a || b; // replaces: a ? b : true
-      bool g(bool a, bool b) => a && b;  // replaces: a ? b : false
+      bool g(bool a, bool b) => a && b; // replaces: a ? b : false
       ```
     deprecatedDetails: |-
       **AVOID** `bool` literals in conditional expressions.
@@ -1447,8 +1448,9 @@ LinterLintCode:
       void f(int x, int y) {
         if (x > y)
           print("1");
-        else [!;!]
-          print("2");
+        else
+          [!;!]
+        print("2");
       }
       ```
 
@@ -1471,8 +1473,7 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y)
-          print("1");
+        if (x > y) print("1");
         print("2");
       }
       ```
@@ -3288,14 +3289,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget buildRow() {
-        return [!Container!](
-          child: Row(
-            children: [
-              Text('a'),
-              Text('b'),
-            ],
-          )
-        );
+        return [!Container!](child: Row(children: [Text('a'), Text('b')]));
       }
       ```
 
@@ -3310,12 +3304,7 @@ LinterLintCode:
       Widget buildRow() {
         return Container(
           color: Colors.red.shade100,
-          child: Row(
-            children: [
-              Text('a'),
-              Text('b'),
-            ],
-          )
+          child: Row(children: [Text('a'), Text('b')]),
         );
       }
       ```
@@ -3326,12 +3315,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget buildRow() {
-        return Row(
-          children: [
-            Text('a'),
-            Text('b'),
-          ],
-        );
+        return Row(children: [Text('a'), Text('b')]);
       }
       ```
     deprecatedDetails: |-
@@ -3419,7 +3403,7 @@ LinterLintCode:
       class C {
         int x;
 
-        C(int a, int b, [!int c!]): x = a + b {
+        C(int a, int b, [!int c!]) : x = a + b {
           print(x);
         }
       }
@@ -3444,7 +3428,7 @@ LinterLintCode:
       class C {
         int x;
 
-        C(int a, int b): x = a + b {
+        C(int a, int b) : x = a + b {
           print(x);
         }
       }
@@ -4054,7 +4038,7 @@ LinterLintCode:
       type of the list `l`:
 
       ```dart
-      bool f(List<int> l)  => l.contains([!'1'!]);
+      bool f(List<int> l) => l.contains([!'1'!]);
       ```
 
       #### Common fixes
@@ -4063,13 +4047,13 @@ LinterLintCode:
       type:
 
       ```dart
-      bool f(List<int> l)  => l.contains(1);
+      bool f(List<int> l) => l.contains(1);
       ```
 
       If the argument type is correct, then change the element type:
 
       ```dart
-      bool f(List<String> l)  => l.contains('1');
+      bool f(List<String> l) => l.contains('1');
       ```
     deprecatedDetails: |-
       **DON'T** invoke certain collection method with an argument with an unrelated
@@ -5323,7 +5307,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5378,8 +5362,8 @@ LinterLintCode:
 
       ```dart
       void f(bool condition) {
-        while (condition)[!;!]
-          g();
+        while (condition) [!;!]
+        g();
       }
 
       void g() {}
@@ -5703,9 +5687,7 @@ LinterLintCode:
 
         @override
         bool operator [!==!](Object other) =>
-            other is C &&
-            other.runtimeType == runtimeType &&
-            other.value == value;
+            other is C && other.runtimeType == runtimeType && other.value == value;
       }
       ```
 
@@ -5722,9 +5704,7 @@ LinterLintCode:
 
         @override
         bool operator ==(Object other) =>
-            other is C &&
-            other.runtimeType == runtimeType &&
-            other.value == value;
+            other is C && other.runtimeType == runtimeType && other.value == value;
 
         @override
         int get hashCode => value.hashCode;
@@ -5979,7 +5959,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7450,8 +7430,8 @@ LinterLintCode:
 
       ```dart
       var s =
-        [!'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'!]
-        'do eiusmod tempor incididunt ut labore et dolore magna';
+          [!'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'!]
+          'do eiusmod tempor incididunt ut labore et dolore magna';
       ```
 
       #### Common fixes
@@ -7461,8 +7441,8 @@ LinterLintCode:
 
       ```dart
       var s =
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed '
-        'do eiusmod tempor incididunt ut labore et dolore magna';
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed '
+          'do eiusmod tempor incididunt ut labore et dolore magna';
       ```
     deprecatedDetails: |-
       Add a trailing whitespace to prevent missing whitespace between adjacent
@@ -7507,7 +7487,11 @@ LinterLintCode:
       `'b'` are adjacent:
 
       ```dart
-      List<String> list = [[!'a' 'b'!], 'c'];
+      List<String> list = [
+        [!'a'
+            'b'!],
+        'c',
+      ];
       ```
 
       #### Common fixes
@@ -7986,7 +7970,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8000,6 +7984,7 @@ LinterLintCode:
 
       ```dart
       class C<T> {}
+
       [!C!] c = C<int>();
       ```
 
@@ -8009,6 +7994,7 @@ LinterLintCode:
 
       ```dart
       class C<T> {}
+
       C<int> c = C<int>();
       ```
     deprecatedDetails: |-
@@ -9262,7 +9248,9 @@ LinterLintCode:
       Remove the operator:
 
       ```dart
-      var s = 'a' 'b';
+      var s =
+          'a'
+          'b';
       ```
     deprecatedDetails: |-
       **DO** use adjacent strings to concatenate string literals.
@@ -10604,10 +10592,7 @@ LinterLintCode:
 
       ```dart
       void f(Iterable<String> data) {
-        <String, int>{
-          for (var element in data)
-            element: element.length
-        };
+        <String, int>{for (var element in data) element: element.length};
       }
       ```
     deprecatedDetails: |-
@@ -10620,7 +10605,6 @@ LinterLintCode:
       - Readability
       - Improved type inference
       - Improved interaction with null safety
-
 
       **BAD:**
       ```dart
@@ -12416,13 +12400,8 @@ LinterLintCode:
         return Row(
           children: <Widget>[
             const Text('...'),
-            [!Container!](
-              width: 4,
-              child: Text('...'),
-            ),
-            const Expanded(
-              child: Text('...'),
-            ),
+            [!Container!](width: 4, child: Text('...')),
+            const Expanded(child: Text('...')),
           ],
         );
       }
@@ -12439,13 +12418,8 @@ LinterLintCode:
         return Row(
           children: <Widget>[
             Text('...'),
-            SizedBox(
-              width: 4,
-              child: Text('...'),
-            ),
-            Expanded(
-              child: Text('...'),
-            ),
+            SizedBox(width: 4, child: Text('...')),
+            Expanded(child: Text('...')),
           ],
         );
       }
@@ -12511,11 +12485,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget build() {
-        return [!SizedBox!](
-          height: 0.0,
-          width: 0.0,
-          child: const Text(''),
-        );
+        return [!SizedBox!](height: 0.0, width: 0.0, child: const Text(''));
       }
       ```
 
@@ -12542,9 +12512,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget build() {
-        return SizedBox.shrink(
-          child: const Text(''),
-        );
+        return SizedBox.shrink(child: const Text(''));
       }
       ```
 
@@ -12554,9 +12522,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget build() {
-        return SizedBox.expand(
-          child: const Text(''),
-        );
+        return SizedBox.expand(child: const Text(''));
       }
       ```
     deprecatedDetails: |-
@@ -12689,10 +12655,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget createWidget() {
-        return Center(
-          [!child: Text('...')!],
-          widthFactor: 0.5,
-        );
+        return Center([!child: Text('...')!], widthFactor: 0.5);
       }
       ```
 
@@ -12704,10 +12667,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget createWidget() {
-        return Center(
-          widthFactor: 0.5,
-          child: Text('...'),
-        );
+        return Center(widthFactor: 0.5, child: Text('...'));
       }
       ```
     deprecatedDetails: |-
@@ -14333,17 +14293,19 @@ LinterLintCode:
       ```dart
       %experiments=primary-constructors
       enum [!const!] E(final int i) {
-        a(1), b(2);
+        a(1),
+        b(2);
       }
       ```
 
       The following code produces this diagnostic because the keyword `const` in
-      the enum's secondary constructor isn't needed:
+      the enum's in-body constructor isn't needed:
 
       ```dart
       %experiments=primary-constructors
       enum E {
-        a(1), b(2);
+        a(1),
+        b(2);
 
         [!const!] E(this.i);
 
@@ -14358,16 +14320,18 @@ LinterLintCode:
       ```dart
       %experiments=primary-constructors
       enum E(final int i) {
-        a(1), b(2);
+        a(1),
+        b(2);
       }
       ```
 
       ```dart
       %experiments=primary-constructors
       enum E {
-        a(1), b(2);
+        a(1),
+        b(2);
 
-        E(this.i);
+        new(this.i);
 
         final int i;
       }
@@ -15052,8 +15016,7 @@ LinterLintCode:
       remove the assignment:
 
       ```dart
-      void f(String? s) {
-      }
+      void f(String? s) {}
       ```
     deprecatedDetails: |-
       **AVOID** `null` in `null`-aware assignment.
@@ -15466,7 +15429,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15583,8 +15546,7 @@ LinterLintCode:
       If the expression doesn't need to be computed, then remove it:
 
       ```dart
-      void f(int Function() first, int Function() second) {
-      }
+      void f(int Function() first, int Function() second) {}
       ```
 
       If the value of the expression is needed, then make use of it, possibly
@@ -15826,9 +15788,7 @@ LinterLintCode:
 
       ```dart
       List<String> toLowercase(List<String> strings) {
-        return [
-          ...strings.map((String s) => s.toLowerCase()).[!toList!](),
-        ];
+        return [...strings.map((String s) => s.toLowerCase()).[!toList!]()];
       }
       ```
 
@@ -15838,9 +15798,7 @@ LinterLintCode:
 
       ```dart
       List<String> toLowercase(List<String> strings) {
-        return [
-          ...strings.map((String s) => s.toLowerCase()),
-        ];
+        return [...strings.map((String s) => s.toLowerCase())];
       }
       ```
     deprecatedDetails: |-
@@ -15871,7 +15829,7 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a secondary constructor
+      The analyzer produces this diagnostic when an in-body constructor
       declaration includes a type name.
 
       #### Examples
@@ -15906,7 +15864,7 @@ LinterLintCode:
       ```dart
       %experiments=primary-constructors
       class C {
-        new ();
+        new();
       }
       ```
 
@@ -15915,7 +15873,7 @@ LinterLintCode:
       ```dart
       %experiments=primary-constructors
       class C {
-        factory () => C._();
+        factory() => C._();
 
         new _() {}
       }
@@ -16033,7 +15991,7 @@ LinterLintCode:
       The following code produces this diagnostic because the `__` parameter is unused:
 
       ```dart
-      void function(int [!__!]) { }
+      void function(int [!__!]) {}
       ```
 
       #### Common fixes
@@ -16041,21 +15999,20 @@ LinterLintCode:
       Replace the name with a single underscore:
 
       ```dart
-      void function(int _) { }
+      void function(int _) {}
       ```
     deprecatedDetails: |-
       **AVOID** using multiple underscores when a single wildcard will do.
 
       **BAD:**
       ```dart
-      void function(int __) { }
+      void function(int __) {}
       ```
 
       **GOOD:**
       ```dart
-      void function(int _) { }
+      void function(int _) {}
       ```
-
   unreachableFromMain:
     type: lint
     parameters:
@@ -16652,10 +16609,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget build() {
-        return [!Container!](
-          color: Colors.red,
-          child: const Text('hello'),
-        );
+        return [!Container!](color: Colors.red, child: const Text('hello'));
       }
       ```
 
@@ -16667,10 +16621,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       Widget build() {
-        return ColoredBox(
-          color: Colors.red,
-          child: const Text('hello'),
-        );
+        return ColoredBox(color: Colors.red, child: const Text('hello'));
       }
       ```
     deprecatedDetails: |-
@@ -16706,7 +16657,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16763,9 +16714,7 @@ LinterLintCode:
         return [!Container!](
           decoration: const BoxDecoration(
             color: Colors.red,
-            borderRadius: BorderRadius.all(
-              Radius.circular(5),
-            ),
+            borderRadius: BorderRadius.all(Radius.circular(5)),
           ),
           child: const Text('...'),
         );
@@ -16783,9 +16732,7 @@ LinterLintCode:
         return DecoratedBox(
           decoration: const BoxDecoration(
             color: Colors.red,
-            borderRadius: BorderRadius.all(
-              Radius.circular(5),
-            ),
+            borderRadius: BorderRadius.all(Radius.circular(5)),
           ),
           child: const Text('...'),
         );
@@ -17625,6 +17572,7 @@ LinterLintCode:
       class A {
         A({int? x, int? y});
       }
+
       class B extends A {
         [!B!]({int? x, int? y}) : super(x: x, y: y);
       }
@@ -17638,6 +17586,7 @@ LinterLintCode:
       class A {
         A({int? x, int? y});
       }
+
       class B extends A {
         B({super.x, super.y});
       }
@@ -18016,7 +17965,7 @@ LinterLintCode:
 
       ```dart
       class A<T> {
-        void m(T p) { }
+        void m(T p) {}
       }
 
       void f(A<void> a) {

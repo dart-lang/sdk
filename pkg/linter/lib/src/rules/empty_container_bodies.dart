@@ -21,7 +21,7 @@ class EmptyContainerBodies extends AnalysisRule {
     : super(
         name: LintNames.empty_container_bodies,
         description: _desc,
-        state: .experimental(since: .new(3, 13, 0)),
+        state: .stable(since: .new(3, 13, 0)),
       );
 
   @override

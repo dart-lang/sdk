@@ -42,6 +42,8 @@ import 'convert_to_if_case_statement_chain_test.dart'
     as convert_to_if_case_statement_chain;
 import 'convert_to_if_case_statement_test.dart' as convert_to_if_case_statement;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_in_body_constructor_test.dart'
+    as convert_to_in_body_constructor;
 import 'convert_to_initializing_formal_test.dart'
     as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
@@ -51,8 +53,6 @@ import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_primary_constructor_test.dart'
     as convert_to_primary_constructor;
-import 'convert_to_secondary_constructor_test.dart'
-    as convert_to_secondary_constructor;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -163,7 +163,7 @@ void main() {
     convert_to_null_aware.main();
     convert_to_package_import.main();
     convert_to_primary_constructor.main();
-    convert_to_secondary_constructor.main();
+    convert_to_in_body_constructor.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();

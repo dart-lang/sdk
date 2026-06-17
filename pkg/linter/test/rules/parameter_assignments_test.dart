@@ -117,20 +117,20 @@ void f(int p) {
 ''');
   }
 
-  test_constructor_primary_assignment() async {
+  test_constructor_inBody_assignment() async {
     await assertDiagnosticsFromMarkdown(r'''
-class C(int x) {
-  this {
+class C {
+  C(int x) {
     [!x = 4!];
   }
 }
 ''');
   }
 
-  test_constructor_secondary_assignment() async {
+  test_constructor_primary_assignment() async {
     await assertDiagnosticsFromMarkdown(r'''
-class C {
-  C(int x) {
+class C(int x) {
+  this {
     [!x = 4!];
   }
 }

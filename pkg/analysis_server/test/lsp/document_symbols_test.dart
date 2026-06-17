@@ -224,6 +224,74 @@ class MyClass {
     expect(method.kind, equals(SymbolKind.Method));
   }
 
+  Future<void> test_hierarchical_constructor_inBody_new() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  /*[1*/new/*1]*/();
+  new /*[2*/named/*2]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [
+          _isConstructor('MyClass', code.ranges[1]),
+          _isConstructor('MyClass.named', code.ranges[2]),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_inBody_typeName() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  /*[1*/MyClass/*1]*/();
+  MyClass./*[2*/named/*2]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [
+          _isConstructor('MyClass', code.ranges[1]),
+          _isConstructor('MyClass.named', code.ranges[2]),
+        ],
+      ),
+    ]);
+  }
+
+  Future<void> test_hierarchical_constructor_inBody_typeName_new() async {
+    setHierarchicalDocumentSymbolSupport();
+
+    const content = '''
+class /*[0*/MyClass/*0]*/ {
+  MyClass./*[1*/new/*1]*/();
+}
+''';
+    var code = TestCode.parse(content);
+    var symbols = await _getSymbols(code.code);
+
+    expect(symbols, [
+      _isClass(
+        'MyClass',
+        code.ranges[0],
+        children: [_isConstructor('MyClass', code.ranges[1])],
+      ),
+    ]);
+  }
+
   Future<void> test_hierarchical_constructor_primary() async {
     setHierarchicalDocumentSymbolSupport();
 
@@ -280,74 +348,6 @@ class /*[0*/MyClass/*0]*//*[1*/.named/*1]*/();
         'MyClass',
         code.ranges[0],
         children: [_isConstructor('MyClass.named', code.ranges[1])],
-      ),
-    ]);
-  }
-
-  Future<void> test_hierarchical_constructor_secondary_new() async {
-    setHierarchicalDocumentSymbolSupport();
-
-    const content = '''
-class /*[0*/MyClass/*0]*/ {
-  /*[1*/new/*1]*/();
-  new /*[2*/named/*2]*/();
-}
-''';
-    var code = TestCode.parse(content);
-    var symbols = await _getSymbols(code.code);
-
-    expect(symbols, [
-      _isClass(
-        'MyClass',
-        code.ranges[0],
-        children: [
-          _isConstructor('MyClass', code.ranges[1]),
-          _isConstructor('MyClass.named', code.ranges[2]),
-        ],
-      ),
-    ]);
-  }
-
-  Future<void> test_hierarchical_constructor_secondary_typeName() async {
-    setHierarchicalDocumentSymbolSupport();
-
-    const content = '''
-class /*[0*/MyClass/*0]*/ {
-  /*[1*/MyClass/*1]*/();
-  MyClass./*[2*/named/*2]*/();
-}
-''';
-    var code = TestCode.parse(content);
-    var symbols = await _getSymbols(code.code);
-
-    expect(symbols, [
-      _isClass(
-        'MyClass',
-        code.ranges[0],
-        children: [
-          _isConstructor('MyClass', code.ranges[1]),
-          _isConstructor('MyClass.named', code.ranges[2]),
-        ],
-      ),
-    ]);
-  }
-
-  Future<void> test_hierarchical_constructor_secondary_typeName_new() async {
-    setHierarchicalDocumentSymbolSupport();
-
-    const content = '''
-class /*[0*/MyClass/*0]*/ {
-  MyClass./*[1*/new/*1]*/();
-}
-''';
-    var code = TestCode.parse(content);
-    var symbols = await _getSymbols(code.code);
-
-    expect(symbols, [
-      _isClass(
-        'MyClass',
-        code.ranges[0],
-        children: [_isConstructor('MyClass', code.ranges[1])],
       ),
     ]);
   }

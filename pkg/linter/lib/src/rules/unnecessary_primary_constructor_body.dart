@@ -20,7 +20,7 @@ class UnnecessaryPrimaryConstructorBody extends AnalysisRule {
     : super(
         name: LintNames.unnecessary_primary_constructor_body,
         description: _desc,
-        state: .experimental(since: .new(3, 13, 0)),
+        state: .stable(since: .new(3, 13, 0)),
       );
 
   @override

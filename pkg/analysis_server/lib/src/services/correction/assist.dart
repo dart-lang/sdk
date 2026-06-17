@@ -201,10 +201,10 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Convert to relative import',
   );
-  static const convertToSecondaryConstructor = AssistKind(
-    'dart.assist.convert.toSecondaryConstructor',
+  static const convertToInBodyConstructor = AssistKind(
+    'dart.assist.convert.toInBodyConstructor',
     DartAssistKindPriority.default_,
-    'Convert to secondary constructor',
+    'Convert to in-body constructor',
   );
   static const convertToSetLiteral = AssistKind(
     'dart.assist.convert.toSetLiteral',

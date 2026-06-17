@@ -182,45 +182,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_createChange_change_primary() async {
-    await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
-class A.^test() {
-  factory A._() = A.test;
-}
-class B extends A {
-  B() : super.test() {}
-}
-void f() {
-  new A.test();
-  A.test;
-}
-''');
-    // configure refactoring
-    _createConstructorDeclarationRefactoring();
-    expect(refactoring.refactoringName, 'Rename Constructor');
-    expect(refactoring.elementKindName, 'constructor');
-    expect(refactoring.oldName, 'test');
-    // validate change
-    refactoring.newName = 'newName';
-    return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
-class A.newName() {
-  factory A._() = A.newName;
-}
-class B extends A {
-  B() : super.newName() {}
-}
-void f() {
-  new A.newName();
-  A.newName;
-}
-''');
-  }
-
-  Future<void> test_createChange_change_secondary_factory() async {
+  Future<void> test_createChange_change_inBody_factory() async {
     await indexTestUnit('''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
@@ -254,7 +216,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_createChange_change_secondary_full() async {
+  Future<void> test_createChange_change_inBody_full() async {
     await indexTestUnit('''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
@@ -294,7 +256,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_createChange_change_secondary_new() async {
+  Future<void> test_createChange_change_inBody_new() async {
     await indexTestUnit('''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
@@ -322,6 +284,44 @@ void f() {
 /// Documentation for [A.newName] and [new A.newName]
 class A {
   new newName() {}
+  factory A._() = A.newName;
+}
+class B extends A {
+  B() : super.newName() {}
+}
+void f() {
+  new A.newName();
+  A.newName;
+}
+''');
+  }
+
+  Future<void> test_createChange_change_primary() async {
+    await indexTestUnit('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A.test] and [new A.test]
+class A.^test() {
+  factory A._() = A.test;
+}
+class B extends A {
+  B() : super.test() {}
+}
+void f() {
+  new A.test();
+  A.test;
+}
+''');
+    // configure refactoring
+    _createConstructorDeclarationRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'test');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+// ignore: deprecated_new_in_comment_reference
+/// Documentation for [A.newName] and [new A.newName]
+class A.newName() {
   factory A._() = A.newName;
 }
 class B extends A {
@@ -1279,6 +1279,108 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_inBody_add() async {
+    await indexTestUnit('''
+/// [E.new]
+extension type E.named(int it) {
+  ^E() : this.named(0);
+  E.other() : this();
+}
+
+void f() {
+  E();
+  E.new;
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+extension type E.named(int it) {
+  E.newName() : this.named(0);
+  E.other() : this.newName();
+}
+
+void f() {
+  E.newName();
+  E.newName;
+}
+''');
+  }
+
+  Future<void> test_createChange_inBody_change() async {
+    await indexTestUnit('''
+/// [E.test]
+extension type E(int it) {
+  E.^test() : this(0);
+  E.other() : this.test();
+}
+
+void f() {
+  E.test();
+  E.test;
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'test');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+/// [E.newName]
+extension type E(int it) {
+  E.newName() : this(0);
+  E.other() : this.newName();
+}
+
+void f() {
+  E.newName();
+  E.newName;
+}
+''');
+  }
+
+  Future<void> test_createChange_inBody_remove() async {
+    await indexTestUnit('''
+/// [E.test]
+extension type E.named(int it) {
+  ^E.test() : this.named(0);
+  E.other() : this.test();
+}
+
+void f() {
+  E.test();
+  E.test;
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, 'test');
+    // validate change
+    refactoring.newName = '';
+    return assertSuccessfulRefactoring('''
+/// [E]
+extension type E.named(int it) {
+  E() : this.named(0);
+  E.other() : this();
+}
+
+void f() {
+  E();
+  E.new;
+}
+''');
+  }
+
   Future<void> test_createChange_primary_add() async {
     await indexTestUnit('''
 /// [E.new]
@@ -1370,108 +1472,6 @@ extension type E(int it) {
 
 void f() {
   E(0);
-  E.new;
-}
-''');
-  }
-
-  Future<void> test_createChange_secondary_add() async {
-    await indexTestUnit('''
-/// [E.new]
-extension type E.named(int it) {
-  ^E() : this.named(0);
-  E.other() : this();
-}
-
-void f() {
-  E();
-  E.new;
-}
-''');
-    // configure refactoring
-    createRenameRefactoring();
-    expect(refactoring.refactoringName, 'Rename Constructor');
-    expect(refactoring.elementKindName, 'constructor');
-    expect(refactoring.oldName, '');
-    // validate change
-    refactoring.newName = 'newName';
-    return assertSuccessfulRefactoring('''
-/// [E.newName]
-extension type E.named(int it) {
-  E.newName() : this.named(0);
-  E.other() : this.newName();
-}
-
-void f() {
-  E.newName();
-  E.newName;
-}
-''');
-  }
-
-  Future<void> test_createChange_secondary_change() async {
-    await indexTestUnit('''
-/// [E.test]
-extension type E(int it) {
-  E.^test() : this(0);
-  E.other() : this.test();
-}
-
-void f() {
-  E.test();
-  E.test;
-}
-''');
-    // configure refactoring
-    createRenameRefactoring();
-    expect(refactoring.refactoringName, 'Rename Constructor');
-    expect(refactoring.elementKindName, 'constructor');
-    expect(refactoring.oldName, 'test');
-    // validate change
-    refactoring.newName = 'newName';
-    return assertSuccessfulRefactoring('''
-/// [E.newName]
-extension type E(int it) {
-  E.newName() : this(0);
-  E.other() : this.newName();
-}
-
-void f() {
-  E.newName();
-  E.newName;
-}
-''');
-  }
-
-  Future<void> test_createChange_secondary_remove() async {
-    await indexTestUnit('''
-/// [E.test]
-extension type E.named(int it) {
-  ^E.test() : this.named(0);
-  E.other() : this.test();
-}
-
-void f() {
-  E.test();
-  E.test;
-}
-''');
-    // configure refactoring
-    createRenameRefactoring();
-    expect(refactoring.refactoringName, 'Rename Constructor');
-    expect(refactoring.elementKindName, 'constructor');
-    expect(refactoring.oldName, 'test');
-    // validate change
-    refactoring.newName = '';
-    return assertSuccessfulRefactoring('''
-/// [E]
-extension type E.named(int it) {
-  E() : this.named(0);
-  E.other() : this();
-}
-
-void f() {
-  E();
   E.new;
 }
 ''');

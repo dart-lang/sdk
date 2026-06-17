@@ -22,7 +22,7 @@ class UsePrimaryConstructors extends AnalysisRule {
     : super(
         name: LintNames.use_primary_constructors,
         description: _desc,
-        state: .experimental(since: .new(3, 13, 0)),
+        state: .testing(since: .new(3, 13, 0)),
       );
 
   @override

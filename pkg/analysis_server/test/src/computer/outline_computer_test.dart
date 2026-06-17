@@ -978,6 +978,94 @@ void f() {
     );
   }
 
+  Future<void> test_inBodyConstructor_factoryKeyword() async {
+    var unitOutline = await _computeOutline('''
+class C {
+  C._();
+  factory() => C._();
+  factory named() => C._();
+}
+''');
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(3));
+
+    var defaultFactory = outlines_C[1].element;
+    expect(defaultFactory.kind, ElementKind.CONSTRUCTOR);
+    expect(defaultFactory.name, 'C');
+    expect(defaultFactory.parameters, '()');
+    expect(defaultFactory.location!.offset, testCode.indexOf('factory()'));
+    expect(defaultFactory.location!.length, 'factory'.length);
+
+    var namedFactory = outlines_C[2].element;
+    expect(namedFactory.kind, ElementKind.CONSTRUCTOR);
+    expect(namedFactory.name, 'C.named');
+    expect(namedFactory.parameters, '()');
+    expect(namedFactory.location!.offset, testCode.indexOf('named()'));
+    expect(namedFactory.location!.length, 'named'.length);
+  }
+
+  Future<void> test_inBodyConstructor_newKeyword() async {
+    var unitOutline = await _computeOutline('''
+class C {
+  new();
+  new named();
+}
+''');
+    var topOutlines = unitOutline.children!;
+
+    expect(topOutlines, hasLength(1));
+    var outline_C = topOutlines[0];
+    var element_C = outline_C.element;
+    expect(element_C.kind, ElementKind.CLASS);
+    expect(element_C.name, 'C');
+
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(2));
+
+    var defaultConstructor = outlines_C[0].element;
+    expect(defaultConstructor.kind, ElementKind.CONSTRUCTOR);
+    expect(defaultConstructor.name, 'C');
+    expect(defaultConstructor.parameters, '()');
+    expect(defaultConstructor.location!.offset, testCode.indexOf('new();'));
+    expect(defaultConstructor.location!.length, 'new'.length);
+
+    var namedConstructor = outlines_C[1].element;
+    expect(namedConstructor.kind, ElementKind.CONSTRUCTOR);
+    expect(namedConstructor.name, 'C.named');
+    expect(namedConstructor.parameters, '()');
+    expect(namedConstructor.location!.offset, testCode.indexOf('named();'));
+    expect(namedConstructor.location!.length, 'named'.length);
+  }
+
+  Future<void> test_inBodyConstructor_typeName_newKeyword() async {
+    var unitOutline = await _computeOutline('''
+class C {
+  C.new();
+}
+''');
+    var topOutlines = unitOutline.children!;
+
+    expect(topOutlines, hasLength(1));
+    var outline_C = topOutlines[0];
+    var outlines_C = outline_C.children!;
+    expect(outlines_C, hasLength(1));
+
+    var defaultConstructor = outlines_C[0].element;
+    expect(defaultConstructor.kind, ElementKind.CONSTRUCTOR);
+    expect(defaultConstructor.name, 'C');
+    expect(defaultConstructor.parameters, '()');
+    expect(defaultConstructor.location!.offset, testCode.indexOf('new();'));
+    expect(defaultConstructor.location!.length, 'new'.length);
+  }
+
   /// Code like this caused NPE in the past.
   ///
   /// https://code.google.com/p/dart/issues/detail?id=21373
@@ -1558,94 +1646,6 @@ class C {
     // declared.
     // See: https://github.com/dart-lang/sdk/issues/62608
     expect(element_ctor.parameters, '({this._x})');
-  }
-
-  Future<void> test_secondaryConstructor_factoryKeyword() async {
-    var unitOutline = await _computeOutline('''
-class C {
-  C._();
-  factory() => C._();
-  factory named() => C._();
-}
-''');
-    var topOutlines = unitOutline.children!;
-    expect(topOutlines, hasLength(1));
-
-    var outline_C = topOutlines[0];
-    var element_C = outline_C.element;
-    expect(element_C.kind, ElementKind.CLASS);
-    expect(element_C.name, 'C');
-
-    var outlines_C = outline_C.children!;
-    expect(outlines_C, hasLength(3));
-
-    var defaultFactory = outlines_C[1].element;
-    expect(defaultFactory.kind, ElementKind.CONSTRUCTOR);
-    expect(defaultFactory.name, 'C');
-    expect(defaultFactory.parameters, '()');
-    expect(defaultFactory.location!.offset, testCode.indexOf('factory()'));
-    expect(defaultFactory.location!.length, 'factory'.length);
-
-    var namedFactory = outlines_C[2].element;
-    expect(namedFactory.kind, ElementKind.CONSTRUCTOR);
-    expect(namedFactory.name, 'C.named');
-    expect(namedFactory.parameters, '()');
-    expect(namedFactory.location!.offset, testCode.indexOf('named()'));
-    expect(namedFactory.location!.length, 'named'.length);
-  }
-
-  Future<void> test_secondaryConstructor_newKeyword() async {
-    var unitOutline = await _computeOutline('''
-class C {
-  new();
-  new named();
-}
-''');
-    var topOutlines = unitOutline.children!;
-
-    expect(topOutlines, hasLength(1));
-    var outline_C = topOutlines[0];
-    var element_C = outline_C.element;
-    expect(element_C.kind, ElementKind.CLASS);
-    expect(element_C.name, 'C');
-
-    var outlines_C = outline_C.children!;
-    expect(outlines_C, hasLength(2));
-
-    var defaultConstructor = outlines_C[0].element;
-    expect(defaultConstructor.kind, ElementKind.CONSTRUCTOR);
-    expect(defaultConstructor.name, 'C');
-    expect(defaultConstructor.parameters, '()');
-    expect(defaultConstructor.location!.offset, testCode.indexOf('new();'));
-    expect(defaultConstructor.location!.length, 'new'.length);
-
-    var namedConstructor = outlines_C[1].element;
-    expect(namedConstructor.kind, ElementKind.CONSTRUCTOR);
-    expect(namedConstructor.name, 'C.named');
-    expect(namedConstructor.parameters, '()');
-    expect(namedConstructor.location!.offset, testCode.indexOf('named();'));
-    expect(namedConstructor.location!.length, 'named'.length);
-  }
-
-  Future<void> test_secondaryConstructor_typeName_newKeyword() async {
-    var unitOutline = await _computeOutline('''
-class C {
-  C.new();
-}
-''');
-    var topOutlines = unitOutline.children!;
-
-    expect(topOutlines, hasLength(1));
-    var outline_C = topOutlines[0];
-    var outlines_C = outline_C.children!;
-    expect(outlines_C, hasLength(1));
-
-    var defaultConstructor = outlines_C[0].element;
-    expect(defaultConstructor.kind, ElementKind.CONSTRUCTOR);
-    expect(defaultConstructor.name, 'C');
-    expect(defaultConstructor.parameters, '()');
-    expect(defaultConstructor.location!.offset, testCode.indexOf('new();'));
-    expect(defaultConstructor.location!.length, 'new'.length);
   }
 
   Future<void> test_sourceRanges_fields() async {
