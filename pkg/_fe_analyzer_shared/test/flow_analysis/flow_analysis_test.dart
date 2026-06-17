@@ -12970,7 +12970,7 @@ main() {
             .invokeAnonymousMethod(isParameterless: false, parameter: p, [
               checkNotPromoted(p.property('_subField')),
               p.property('_subField').as_('int'),
-        ], returnType: 'void'),
+            ], returnType: 'void'),
         checkPromoted(this_.property('_field').property('_subField'), 'num'),
       ]);
     });
@@ -12980,10 +12980,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.eq(nullLiteral).not.invokeAnonymousMethod(isParameterless: true, [
-          this_.conditional(
-            checkPromoted(x, 'int'),
-            expr('bool'),
-          ),
+          this_.conditional(checkPromoted(x, 'int'), expr('bool')),
         ], returnType: 'bool'),
       ]);
     });
