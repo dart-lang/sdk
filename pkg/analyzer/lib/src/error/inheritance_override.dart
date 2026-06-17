@@ -438,6 +438,9 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
+          if (interfaceElement.enclosingElement == classElement) {
+            continue;
+          }
           if (_isNotImplementedInConcreteSuperClass(name)) {
             continue;
           }
