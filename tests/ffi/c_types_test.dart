@@ -156,10 +156,10 @@ void printSizes() {
 void testSizes() {
   cTypes.forEach((element) {
     print(element);
-    Expect.equals(element.size, element.ffiSize);
+    Expect.equals(element.size, element.ffiSize, "$element");
     final ffiIsSigned = element.ffiIsSigned;
     if (ffiIsSigned != null) {
-      Expect.equals(element.isSigned, ffiIsSigned);
+      Expect.equals(element.isSigned, ffiIsSigned, "$element");
     }
   });
 }
