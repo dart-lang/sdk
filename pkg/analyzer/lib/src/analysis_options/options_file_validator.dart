@@ -586,9 +586,8 @@ class _OptionsFileValidator {
   _OptionsFileValidator(
     File file, {
     VersionConstraint? sdkVersionConstraint,
-    required String contextRoot,
+    required Folder contextRoot,
     required bool isPrimarySource,
-    required ResourceProvider resourceProvider,
   }) {
     _linterRuleOptionsValidator = _LinterRuleOptionsValidator(
       file: file,
@@ -603,9 +602,8 @@ class _OptionsFileValidator {
       _linterRuleOptionsValidator,
       _PluginsOptionsValidator(
         contextRoot: contextRoot,
-        filePath: file.path,
+        file: file,
         isPrimarySource: isPrimarySource,
-        resourceProvider: resourceProvider,
       ),
     ];
   }
@@ -638,35 +636,30 @@ class _PluginsOptionsValidator extends OptionsValidator {
     AnalysisOptionsFileKeys.gitOptions,
   );
 
-  final String _contextRoot;
+  final Folder _contextRoot;
 
-  final String _filePath;
+  final File _file;
 
   final bool _isPrimarySource;
 
-  final ResourceProvider _resourceProvider;
-
   _PluginsOptionsValidator({
-    required String contextRoot,
-    required String filePath,
+    required Folder contextRoot,
+    required File file,
     required bool isPrimarySource,
-    required ResourceProvider resourceProvider,
   }) : _contextRoot = contextRoot,
-       _filePath = filePath,
-       _isPrimarySource = isPrimarySource,
-       _resourceProvider = resourceProvider;
+       _file = file,
+       _isPrimarySource = isPrimarySource;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var plugins = options.valueAt(AnalysisOptionsFileKeys.plugins);
     switch (plugins) {
       case YamlMap():
-        var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
-        var isAtContextRoot = sourceDir == _contextRoot;
+        var isAtContextRoot = _file.parent == _contextRoot;
         if (!isAtContextRoot && _isPrimarySource) {
           reporter.report(
             diag.pluginsInInnerOptions
-                .withArguments(contextRoot: _contextRoot)
+                .withArguments(contextRoot: _contextRoot.path)
                 .atSourceSpan(plugins.span),
           );
         }

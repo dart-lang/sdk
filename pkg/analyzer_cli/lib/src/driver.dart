@@ -277,9 +277,8 @@ class Driver implements CommandLineStarter {
               : null;
           var errors = AnalysisOptionsValidator(
             sourceFactory: analysisDriver.sourceFactory,
-            contextRoot: contextRoot.root.path,
+            contextRoot: contextRoot.root,
             sdkVersionConstraint: sdkVersionConstraint,
-            resourceProvider: resourceProvider,
           ).validate(file);
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([

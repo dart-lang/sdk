@@ -405,10 +405,8 @@ class ContextManagerImpl implements ContextManager {
           : null;
       var errors = AnalysisOptionsValidator(
         sourceFactory: driver.sourceFactory,
-        contextRoot:
-            driver.currentSession.analysisContext.contextRoot.root.path,
+        contextRoot: driver.currentSession.analysisContext.contextRoot.root,
         sdkVersionConstraint: sdkVersionConstraint,
-        resourceProvider: resourceProvider,
         validationCache: validationCache,
       ).validate(file);
       var converter = AnalyzerConverter();

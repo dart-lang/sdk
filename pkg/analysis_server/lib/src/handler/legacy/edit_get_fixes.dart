@@ -123,9 +123,8 @@ class EditGetFixesHandler extends LegacyHandler
         : null;
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: analysisContext.contextRoot.root.path,
+      contextRoot: analysisContext.contextRoot.root,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
     ).validate(optionsFile);
     var options = _getOptions(content);
     if (options == null) {

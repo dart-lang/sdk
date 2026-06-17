@@ -61,9 +61,8 @@ abstract class AbstractAnalysisOptionsTest
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
+      contextRoot: getFolder(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
     ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
@@ -96,9 +95,8 @@ abstract class AbstractAnalysisOptionsTest
 
     var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
+      contextRoot: getFolder(testPackageRootPath),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
     ).validate(initialFile);
 
     _assertDiagnosticMarkersInFiles(
