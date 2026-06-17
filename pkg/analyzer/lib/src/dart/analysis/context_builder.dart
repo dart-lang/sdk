@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/builder.dart' show locateEmbedderYamlFor;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
@@ -122,7 +123,7 @@ class ContextBuilderImpl {
 
     var optionsFile = contextRoot.optionsFile;
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
-    var analysisOptionsProvider = AnalysisOptionsProvider(sourceFactory);
+    var analysisOptionsParseSession = AnalysisOptionsParseSession();
 
     AnalysisOptionsMap analysisOptionsMap;
     // If there's an options file defined (as, e.g. passed into the
@@ -131,7 +132,9 @@ class ContextBuilderImpl {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
         _getAnalysisOptions(
           optionsFile,
-          analysisOptionsProvider,
+          analysisOptionsParseSession,
+          sourceFactory,
+          contextRoot.root,
           sdk,
           updateAnalysisOptions4,
           configureAnalysisOptionsBuilder,
@@ -143,7 +146,8 @@ class ContextBuilderImpl {
       // context root.
       analysisOptionsMap = _createOptionsMap(
         contextRoot,
-        analysisOptionsProvider,
+        analysisOptionsParseSession,
+        sourceFactory,
         updateAnalysisOptions4,
         configureAnalysisOptionsBuilder,
       );
@@ -186,7 +190,8 @@ class ContextBuilderImpl {
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
   AnalysisOptionsMap _createOptionsMap(
     ContextRootImpl contextRoot,
-    AnalysisOptionsProvider analysisOptionsProvider,
+    AnalysisOptionsParseSession analysisOptionsParseSession,
+    SourceFactory sourceFactory,
     void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
@@ -194,7 +199,13 @@ class ContextBuilderImpl {
   ) {
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
-      var options = analysisOptionsProvider.getAnalysisOptionsFromFile(file);
+      var options = analysisOptionsParseSession
+          .parse(
+            sourceFactory: sourceFactory,
+            contextRoot: contextRoot.root,
+            file: file,
+          )
+          .analysisOptions;
       options = _updatedAnalysisOptions(
         options,
         updateAnalysisOptions4,
@@ -275,7 +286,9 @@ class ContextBuilderImpl {
   // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
     File optionsFile,
-    AnalysisOptionsProvider analysisOptionsProvider,
+    AnalysisOptionsParseSession analysisOptionsParseSession,
+    SourceFactory sourceFactory,
+    Folder contextRoot,
     DartSdk sdk,
     void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions4,
@@ -286,7 +299,13 @@ class ContextBuilderImpl {
     AnalysisOptionsImpl options;
 
     try {
-      options = analysisOptionsProvider.getAnalysisOptionsFromFile(optionsFile);
+      options = analysisOptionsParseSession
+          .parse(
+            sourceFactory: sourceFactory,
+            contextRoot: contextRoot,
+            file: optionsFile,
+          )
+          .analysisOptions;
     } catch (e) {
       // Ignore exception.
       options = AnalysisOptionsImpl(file: optionsFile);

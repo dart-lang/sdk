@@ -7,8 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -59,17 +58,16 @@ abstract class AbstractAnalysisOptionsTest
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
     var initialFile = cleanCodeByFile.keys.first;
 
-    var diagnostics = AnalysisOptionsValidator(
-      sourceFactory: sourceFactory,
-      contextRoot: getFolder(testPackageRootPath),
-      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-    ).validate(initialFile);
+    var result = _parseAnalysisOptions(
+      initialFile,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
-      diagnostics: diagnostics,
+      diagnostics: result.diagnostics,
     );
-    return diagnostics;
+    return result.diagnostics;
   }
 
   void assertAnalysisOptionsText(AnalysisOptionsImpl options, String expected) {
@@ -93,20 +91,17 @@ abstract class AbstractAnalysisOptionsTest
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
     var initialFile = cleanCodeByFile.keys.first;
 
-    var diagnostics = AnalysisOptionsValidator(
-      sourceFactory: sourceFactory,
-      contextRoot: getFolder(testPackageRootPath),
-      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-    ).validate(initialFile);
+    var result = _parseAnalysisOptions(
+      initialFile,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
-      diagnostics: diagnostics,
+      diagnostics: result.diagnostics,
     );
 
-    return AnalysisOptionsProvider(
-      sourceFactory,
-    ).getAnalysisOptionsFromFile(initialFile);
+    return result.analysisOptions;
   }
 
   AnalysisOptionsImpl parseAnalysisOptionsWithDiagnostics(
@@ -195,6 +190,18 @@ abstract class AbstractAnalysisOptionsTest
     }
 
     return diagnosticsByFile;
+  }
+
+  AnalysisOptionsParseResult _parseAnalysisOptions(
+    File initialFile, {
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    return AnalysisOptionsParseSession().parse(
+      sourceFactory: sourceFactory,
+      contextRoot: getFolder(testPackageRootPath),
+      file: initialFile,
+      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
+    );
   }
 
   Map<File, String> _writeFilesWithoutDiagnosticExpectations(

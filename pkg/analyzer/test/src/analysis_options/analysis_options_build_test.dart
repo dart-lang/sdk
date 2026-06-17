@@ -6,7 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -35,9 +35,13 @@ class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
 
   AnalysisOptionsImpl getAnalysisOptionsFromMissingFile(String filePath) {
     var file = getFile(filePath);
-    return AnalysisOptionsProvider(
-      sourceFactory,
-    ).getAnalysisOptionsFromFile(file);
+    return AnalysisOptionsParseSession()
+        .parse(
+          sourceFactory: sourceFactory,
+          contextRoot: getFolder(testPackageRootPath),
+          file: file,
+        )
+        .analysisOptions;
   }
 
   test_fromFile_analyzer_plugins_chooseFirstLegacyPlugin() {
@@ -494,7 +498,7 @@ AnalysisOptionsImpl
 
   test_fromFile_signature_mergeStable() {
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+    var parseSession = AnalysisOptionsParseSession();
     var otherOptions = getFile(
       '$testPackageRootPath/analysis_options_helper.yaml',
     );
@@ -517,7 +521,13 @@ analyzer:
     });
     var sig1 = options.signature;
     for (var i = 0; i < 100; i++) {
-      var options2 = optionsProvider.getAnalysisOptionsFromFile(mainOptions);
+      var options2 = parseSession
+          .parse(
+            sourceFactory: sourceFactory,
+            contextRoot: getFolder(testPackageRootPath),
+            file: mainOptions,
+          )
+          .analysisOptions;
       var sig2 = options2.signature;
       expect(sig1, sig2);
     }

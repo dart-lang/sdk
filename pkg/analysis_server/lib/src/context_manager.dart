@@ -19,7 +19,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -392,29 +392,30 @@ class ContextManagerImpl implements ContextManager {
     AnalysisDriver driver,
     WorkspacePackageImpl? package,
     String path, {
-    AnalysisOptionsValidationCache? validationCache,
+    required AnalysisOptionsParseSession parseSession,
   }) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
-      var analysisOptions = driver.getAnalysisOptionsForFile(file);
-      var content = file.readAsStringSync();
-      var lineInfo = LineInfo.fromContent(content);
       var sdkVersionConstraint = (package is PubPackage)
           ? package.sdkVersionConstraint
           : null;
-      var errors = AnalysisOptionsValidator(
+      var parseResult = parseSession.parse(
         sourceFactory: driver.sourceFactory,
         contextRoot: driver.currentSession.analysisContext.contextRoot.root,
+        file: file,
         sdkVersionConstraint: sdkVersionConstraint,
-        validationCache: validationCache,
-      ).validate(file);
-      var converter = AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(
-        errors,
-        lineInfo: lineInfo,
-        options: analysisOptions,
       );
+      var fileContent = parseResult.content;
+      if (fileContent != null) {
+        var lineInfo = fileContent.lineInfo;
+        var converter = AnalyzerConverter();
+        convertedErrors = converter.convertAnalysisErrors(
+          parseResult.diagnostics,
+          lineInfo: lineInfo,
+          options: parseResult.analysisOptions,
+        );
+      }
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -608,7 +609,7 @@ class ContextManagerImpl implements ContextManager {
           withFineDependencies: withFineDependencies,
         );
 
-        var analysisOptionsValidationCache = AnalysisOptionsValidationCache();
+        var analysisOptionsParseSession = AnalysisOptionsParseSession();
         for (var analysisContext in collection.contexts) {
           var driver = analysisContext.driver;
 
@@ -638,7 +639,7 @@ class ContextManagerImpl implements ContextManager {
                 driver,
                 package,
                 file,
-                validationCache: analysisOptionsValidationCache,
+                parseSession: analysisOptionsParseSession,
               );
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);

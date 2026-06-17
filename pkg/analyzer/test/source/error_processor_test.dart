@@ -7,7 +7,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -214,9 +214,13 @@ class _TestContext with ResourceProviderMixin {
   void configureOptions(String options) {
     var optionsFile = newFile('/analysis_options.yaml', options);
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
-    analysisOptions = AnalysisOptionsProvider(
-      sourceFactory,
-    ).getAnalysisOptionsFromFile(optionsFile);
+    analysisOptions = AnalysisOptionsParseSession()
+        .parse(
+          sourceFactory: sourceFactory,
+          contextRoot: getFolder('/'),
+          file: optionsFile,
+        )
+        .analysisOptions;
   }
 
   ErrorProcessor? getProcessor(Diagnostic diagnostic) {

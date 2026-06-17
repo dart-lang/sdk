@@ -80,6 +80,7 @@ final class AnalysisOptionsValidationCache {
 }
 
 /// Validates analysis options files and produces user-visible diagnostics.
+@Deprecated('Use AnalysisOptionsParseSession.parse instead.')
 final class AnalysisOptionsValidator {
   final SourceFactory sourceFactory;
   final Folder contextRoot;
@@ -90,10 +91,10 @@ final class AnalysisOptionsValidator {
     required this.sourceFactory,
     required this.contextRoot,
     this.sdkVersionConstraint,
-    AnalysisOptionsValidationCache? validationCache,
-  }) : _validationCache = validationCache ?? AnalysisOptionsValidationCache();
+    required AnalysisOptionsValidationCache validationCache,
+  }) : _validationCache = validationCache;
 
-  List<Diagnostic> validate(File file) {
+  List<Diagnostic> validate({required File file, required String content}) {
     var initialSource = FileSource(file);
     var initialDiagnosticListener = RecordingDiagnosticListener();
     var initialDiagnosticReporter = DiagnosticReporter(
@@ -111,15 +112,15 @@ final class AnalysisOptionsValidator {
       contextRoot: contextRoot,
       sdkVersionConstraint: sdkVersionConstraint,
       validationCache: _validationCache,
-    ).validate(content: file.readAsStringSync());
+    ).validate(content: content);
   }
 }
 
 /// Walks the initial options file and its includes for one validation request.
 ///
-/// This class owns the mutable traversal state that is awkward to keep on
-/// [AnalysisOptionsValidator] itself: the current file, reporter/listener pair,
-/// include chain, first include span, and included legacy plugin state.
+/// This class owns the mutable traversal state for the diagnostic validator:
+/// the current file, reporter/listener pair, include chain, first include span,
+/// and included legacy plugin state.
 /// It deliberately delegates validation of a single already-parsed YAML map to
 /// [_OptionsFileValidator]; its responsibility is parsing, include traversal,
 /// source ownership, and converting diagnostics from included files into

@@ -5,14 +5,13 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -21,7 +20,6 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart';
 
 /// Returns a list of the context roots that should be used to analyze the
 /// files that are included by the list of [includedPaths].
@@ -112,8 +110,8 @@ class _ContextLocator {
 
   final File? _defaultPackageConfigFile;
 
-  /// A cache of options file contents for each [SourceFactory].
-  final Map<SourceFactory, AnalysisOptionsCache> _analysisOptionsCaches = {};
+  /// A parse session for one context-location operation.
+  final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
 
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
@@ -478,39 +476,6 @@ class _ContextLocator {
     return null;
   }
 
-  Map<({Uri? containingUri, Uri uri}), YamlMap> _getCache(
-    SourceFactory sourceFactory,
-  ) {
-    return _analysisOptionsCaches.putIfAbsent(
-      sourceFactory,
-      () => CanonicalizedMap(
-        (key) {
-          var (:containingUri, :uri) = key;
-          if (uri.isScheme('package')) return uri;
-          if (uri.isScheme('file') || uri.scheme.isEmpty) {
-            if (uri.isAbsolute) return uri;
-            if (containingUri != null) {
-              return uriCache.resolveRelative(containingUri, uri);
-            }
-          }
-          return uri;
-        },
-        isValidKey: (key) {
-          // We can canonicalize a URI if it is a 'package:' URI (as this is per
-          // SourceFactory), or if it is an absolute 'file:' URI, or if it is a
-          // relative 'file:' URI and we have a "containing" URI which it is
-          // relative to (via `UriCache.resolveRelative`).
-          var (:containingUri, :uri) = key;
-          if (uri.isScheme('package')) return true;
-          if (uri.isScheme('file') || uri.scheme.isEmpty) {
-            return uri.isAbsolute || containingUri != null;
-          }
-          return false;
-        },
-      ),
-    );
-  }
-
   /// Gets the set of enabled legacy plugins for [optionsFile], taking into
   /// account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
@@ -518,12 +483,13 @@ class _ContextLocator {
       return const {};
     }
     try {
-      var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-      var analysisOptionsCache = _getCache(workspace.partialSourceFactory);
-      var options = provider.getAnalysisOptionsFromFile(
-        optionsFile,
-        analysisOptionsCache: analysisOptionsCache,
-      );
+      var options = _analysisOptionsParseSession
+          .parse(
+            sourceFactory: workspace.partialSourceFactory,
+            contextRoot: optionsFile.parent,
+            file: optionsFile,
+          )
+          .analysisOptions;
 
       return options.enabledLegacyPluginNames.toSet();
     } catch (_) {
@@ -544,12 +510,13 @@ class _ContextLocator {
 
     List<String> excludePatterns;
     try {
-      var analysisOptionsCache = _getCache(sourceFactory);
-      var options = AnalysisOptionsProvider(sourceFactory)
-          .getAnalysisOptionsFromFile(
-            optionsFile,
-            analysisOptionsCache: analysisOptionsCache,
-          );
+      var options = _analysisOptionsParseSession
+          .parse(
+            sourceFactory: sourceFactory,
+            contextRoot: optionsFile.parent,
+            file: optionsFile,
+          )
+          .analysisOptions;
       excludePatterns = options.excludePatterns;
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
