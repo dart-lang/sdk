@@ -272,16 +272,17 @@ class FormalParameters(
       TypeUse.returnType,
     );
     int requiredParameterCount = 0;
-    List<InternalVariable> positionalParameters = [];
-    List<InternalVariable> namedParameters = [];
+    List<InternalPositionalParameter> positionalParameters = [];
+    List<InternalNamedParameter> namedParameters = [];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        InternalVariable parameter = formal.build(libraryBuilder);
-        if (formal.isPositional) {
-          positionalParameters.add(parameter);
-          if (formal.isRequiredPositional) requiredParameterCount++;
-        } else if (formal.isNamed) {
-          namedParameters.add(parameter);
+        InternalFunctionParameter parameter = formal.build(libraryBuilder);
+        switch (parameter) {
+          case InternalPositionalParameter():
+            positionalParameters.add(parameter);
+            if (formal.isRequiredPositional) requiredParameterCount++;
+          case InternalNamedParameter():
+            namedParameters.add(parameter);
         }
       }
       namedParameters.sort((InternalVariable a, InternalVariable b) {

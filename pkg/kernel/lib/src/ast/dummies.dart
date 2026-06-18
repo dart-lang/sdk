@@ -28,6 +28,22 @@ final List<Variable> emptyListOfVariable = List.filled(
   growable: false,
 );
 
+/// Almost const <PositionalParameter>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<PositionalParameter> emptyListOfPositionalParameter = List.filled(
+  0,
+  dummyPositionalParameter,
+  growable: false,
+);
+
+/// Almost const <NamedParameter>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedParameter> emptyListOfNamedParameter = List.filled(
+  0,
+  dummyNamedParameter,
+  growable: false,
+);
+
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Combinator> emptyListOfCombinator = List.filled(
@@ -522,6 +538,17 @@ final CatchVariable dummyCatchVariable = new CatchVariable(
 /// constructor.
 final PositionalParameter dummyPositionalParameter = new PositionalParameter(
   cosmeticName: null,
+  type: const DynamicType(),
+  defaultValue: null,
+);
+
+/// Non-nullable [NamedParameter] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final NamedParameter dummyNamedParameter = new NamedParameter(
+  parameterName: '',
   type: const DynamicType(),
   defaultValue: null,
 );

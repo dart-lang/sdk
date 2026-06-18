@@ -94,27 +94,31 @@ class CallbackSpecializer {
     // before being invoked. The second argument will be a `double` indicating
     // the number of arguments passed. The third argument is a cast closure if
     // needed.
-    final callbackVariable = SyntheticVariable(
+    final callbackVariable = PositionalParameter(
       cosmeticName: 'callback',
       type: _util.nonNullableWasmExternRefType,
+      isSynthesized: true,
     );
-    final argumentsLengthWasmI32 = SyntheticVariable(
+    final argumentsLengthWasmI32 = PositionalParameter(
       cosmeticName: 'argumentsLengthWasmI32',
       type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
+      isSynthesized: true,
     );
-    final castClosure = SyntheticVariable(
+    final castClosure = PositionalParameter(
       cosmeticName: 'castClosure',
       type: _util.nonNullableObjectType,
+      isSynthesized: true,
     );
 
     // Initialize variable declarations.
-    List<Variable> positionalParameters = [];
+    List<PositionalParameter> positionalParameters = [];
     List<Expression> castClosureArguments = [];
     final positionalParametersLength = function.positionalParameters.length;
     for (int i = 0; i < positionalParametersLength; i++) {
-      final parameter = SyntheticVariable(
+      final parameter = PositionalParameter(
         cosmeticName: 'x${i + 1}',
         type: _util.nullableWasmExternRefType,
+        isSynthesized: true,
       );
       positionalParameters.add(parameter);
       if (_needCastClosure(function.positionalParameters[i])) {
@@ -320,18 +324,21 @@ class CallbackSpecializer {
       FunctionNode(
         null,
         positionalParameters: [
-          SyntheticVariable(
+          PositionalParameter(
             cosmeticName: 'wasmFunction',
             type: _util.nonNullableWasmFuncRefType,
+            isSynthesized: true,
           ),
-          SyntheticVariable(
+          PositionalParameter(
             cosmeticName: 'dartFunction',
             type: _util.nonNullableWasmExternRefType,
+            isSynthesized: true,
           ),
           if (needsCastClosure)
-            SyntheticVariable(
+            PositionalParameter(
               cosmeticName: 'castClosure',
               type: _util.nonNullableWasmExternRefType,
+              isSynthesized: true,
             ),
         ],
         returnType: _util.nonNullableWasmExternRefType,
@@ -373,14 +380,15 @@ class CallbackSpecializer {
   /// Returns the cast closure if needed. Otherwise, returns `null`.
   FunctionExpression? _createCastClosure(FunctionType functionType) {
     final positionalParameters = functionType.positionalParameters;
-    List<Variable> castClosureParameters = [];
+    List<PositionalParameter> castClosureParameters = [];
     List<Statement> casts = [];
     for (int i = 0; i < positionalParameters.length; i++) {
       final type = positionalParameters[i];
       if (_needCastClosure(type)) {
-        final parameter = SyntheticVariable(
+        final parameter = PositionalParameter(
           cosmeticName: 'x${i + 1}',
           type: _util.nullableJSValueType,
+          isSynthesized: true,
         );
         castClosureParameters.add(parameter);
         casts.add(

@@ -638,7 +638,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     Reference? reference, {
     required bool isCovariantByDeclaration,
   }) {
-    Variable parameter = extern.createPositionalParameter(
+    PositionalParameter parameter = extern.createPositionalParameter(
       cosmeticName: "${_fragment.name}#param",
       isCovariantByDeclaration: isCovariantByDeclaration,
       type: const DynamicType(),
@@ -1276,7 +1276,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
           .attachMember(_getter!);
       if (_fragment.hasSetter) {
-        Variable parameter = extern.createPositionalParameter(
+        PositionalParameter parameter = extern.createPositionalParameter(
           cosmeticName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
@@ -1332,7 +1332,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           )
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
-        Variable parameter = extern.createPositionalParameter(
+        PositionalParameter parameter = extern.createPositionalParameter(
           cosmeticName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
@@ -1841,7 +1841,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
         .attachMember(_getter!);
     if (_fragment.hasSetter) {
-      Variable parameter = extern.createPositionalParameter(
+      PositionalParameter parameter = extern.createPositionalParameter(
         cosmeticName: "#externalFieldValue",
         type: const DynamicType(),
         isSynthesized: true,

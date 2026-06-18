@@ -2119,8 +2119,8 @@ class BinaryBuilder {
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
     int variableStackHeight = variableStack.length;
-    List<Variable> positional = readAndPushVariableList();
-    List<Variable> named = readAndPushVariableList();
+    List<PositionalParameter> positional = readAndPushPositionalParameterList();
+    List<NamedParameter> named = readAndPushNamedParameterList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
@@ -4463,6 +4463,34 @@ class BinaryBuilder {
     );
   }
 
+  List<PositionalParameter> readAndPushPositionalParameterList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfPositionalParameter;
+    }
+    return new List<PositionalParameter>.generate(
+      length,
+      (_) => readAndPushPositionalParameter(),
+      growable: useGrowableLists,
+    );
+  }
+
+  List<NamedParameter> readAndPushNamedParameterList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfNamedParameter;
+    }
+    return new List<NamedParameter>.generate(
+      length,
+      (_) => readAndPushNamedParameter(),
+      growable: useGrowableLists,
+    );
+  }
+
   Variable? readAndPushVariableOption() {
     return readAndCheckOptionTag() ? readAndPushVariable() : null;
   }
@@ -4471,6 +4499,26 @@ class BinaryBuilder {
     Variable variable = readVariable();
     variableStack.add(variable);
     return variable;
+  }
+
+  PositionalParameter readAndPushPositionalParameter() {
+    PositionalParameter variable = readPositionalParameter();
+    variableStack.add(variable);
+    return variable;
+  }
+
+  NamedParameter readAndPushNamedParameter() {
+    NamedParameter variable = readNamedParameter();
+    variableStack.add(variable);
+    return variable;
+  }
+
+  PositionalParameter readPositionalParameter() {
+    return readVariable() as PositionalParameter;
+  }
+
+  NamedParameter readNamedParameter() {
+    return readVariable() as NamedParameter;
   }
 
   Variable readVariable() {

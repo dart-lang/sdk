@@ -550,7 +550,7 @@ abstract class CombinedMemberSignatureBase {
       fileUri = declarationNode.fileUri;
       fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
-    Variable setterParameter =
+    PositionalParameter setterParameter =
         new PositionalParameter(
             cosmeticName: parameter?.name ?? 'value',
             type: type,
@@ -607,36 +607,40 @@ abstract class CombinedMemberSignatureBase {
       fileOffset = fileStartOffset = fileEndOffset = declarationNode.fileOffset;
     }
     FunctionNode function = procedure.function;
-    List<Variable> positionalParameters = [];
+    List<PositionalParameter> positionalParameters = [];
     FreshTypeParametersFromStructuralParameters freshTypeParameters =
         getFreshTypeParametersFromStructuralParameters(
           functionType.typeParameters,
         );
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < function.positionalParameters.length; i++) {
-      Variable parameter = function.positionalParameters[i];
+      PositionalParameter parameter = function.positionalParameters[i];
       DartType parameterType = freshTypeParameters.substitute(
         functionType.positionalParameters[i],
       );
-      Variable positionalParameter = extern.createPositionalParameter(
-        cosmeticName: parameter.name,
-        type: parameterType,
-        isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-        defaultValue: cloner.cloneOptional(parameter.initializer),
-        hasDeclaredDefaultValue: parameter.hasDeclaredInitializer,
-        isCovariantByClass: parameter.isCovariantByClass,
-        fileOffset: copyLocation
-            ?
-              // Coverage-ignore(suite): Not run.
-              parameter.fileOffset
-            : fileOffset,
-      );
+      PositionalParameter positionalParameter = extern
+          .createPositionalParameter(
+            cosmeticName: parameter.name,
+            type: parameterType,
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+            defaultValue: cloner.cloneOptional(parameter.initializer),
+            hasDeclaredDefaultValue: parameter.hasDeclaredInitializer,
+            isCovariantByClass: parameter.isCovariantByClass,
+            fileOffset: copyLocation
+                ?
+                  // Coverage-ignore(suite): Not run.
+                  parameter.fileOffset
+                : fileOffset,
+          );
       positionalParameters.add(positionalParameter);
     }
 
-    Variable cloneNamedParameter(Variable parameter, NamedType namedType) {
+    NamedParameter cloneNamedParameter(
+      NamedParameter parameter,
+      NamedType namedType,
+    ) {
       return extern.createNamedParameter(
-        parameterName: parameter.name!,
+        parameterName: parameter.parameterName,
         type: freshTypeParameters.substitute(namedType.type),
         isRequired: namedType.isRequired,
         isCovariantByDeclaration: parameter.isCovariantByDeclaration,
@@ -651,11 +655,11 @@ abstract class CombinedMemberSignatureBase {
       );
     }
 
-    List<Variable> namedParameters = [];
+    List<NamedParameter> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
     if (namedParameterCount == 1) {
       NamedType namedType = functionType.namedParameters.first;
-      Variable parameter = function.namedParameters.first;
+      NamedParameter parameter = function.namedParameters.first;
       namedParameters.add(cloneNamedParameter(parameter, namedType));
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
@@ -663,7 +667,7 @@ abstract class CombinedMemberSignatureBase {
         namedTypes[namedType.name] = namedType;
       }
       for (int i = 0; i < namedParameterCount; i++) {
-        Variable parameter = function.namedParameters[i];
+        NamedParameter parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
         namedParameters.add(cloneNamedParameter(parameter, namedParameterType));
       }

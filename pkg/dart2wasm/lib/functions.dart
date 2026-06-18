@@ -698,7 +698,7 @@ List<w.ValueType> _getConstructorInputTypes(
   Translator translator,
   Constructor member,
   List<TypeParameter> typeParameters,
-  List<Variable> parameters,
+  List<FunctionParameter> parameters,
   w.ValueType Function(DartType) translateType,
 ) {
   final List<w.ValueType> inputs = [];
@@ -711,7 +711,9 @@ List<w.ValueType> _getConstructorInputTypes(
 
   final List<DartType> params = parameters.map((p) {
     final function = p.parent as FunctionNode;
-    final positionalIndex = function.positionalParameters.indexOf(p);
+    final positionalIndex = p is PositionalParameter
+        ? function.positionalParameters.indexOf(p)
+        : -1;
     final isRequired = positionalIndex != -1
         ? positionalIndex < function.requiredParameterCount
         : p.isRequired;

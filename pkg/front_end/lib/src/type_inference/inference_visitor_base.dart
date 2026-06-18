@@ -2393,12 +2393,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bodyResult,
       implicitReturnOffset,
     );
-    List<Variable> positionalParameters = [
-      for (InternalVariable parameter in function.positionalParameters)
+    List<PositionalParameter> positionalParameters = [
+      for (InternalPositionalParameter parameter
+          in function.positionalParameters)
         parameter.astVariable,
     ];
-    List<Variable> namedParameters = [
-      for (InternalVariable parameter in function.namedParameters)
+    List<NamedParameter> namedParameters = [
+      for (InternalNamedParameter parameter in function.namedParameters)
         parameter.astVariable,
     ];
     if (libraryBuilder.loader.dataForTesting != null) {
@@ -6291,8 +6292,8 @@ class PatternForInData {
 
 class LocalFunctionResult {
   final DartType returnType;
-  final List<Variable> positionalParameters;
-  final List<Variable> namedParameters;
+  final List<PositionalParameter> positionalParameters;
+  final List<NamedParameter> namedParameters;
   final Statement? body;
   final DartType? emittedValueType;
 

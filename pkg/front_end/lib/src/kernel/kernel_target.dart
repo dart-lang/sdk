@@ -1073,27 +1073,38 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    Variable copyFormal(Variable formal, {required bool isPositional}) {
-      Variable copy;
-      if (isPositional) {
-        copy = extern.createPositionalParameter(
-          cosmeticName: formal.name,
-          type: const UnknownType(),
-          isFinal: formal.isFinal,
-          isRequired: formal.isRequired,
-          hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
-          fileOffset: TreeNode.noOffset,
-        );
+    PositionalParameter copyPositionalParameter(
+      PositionalParameter formal, {
+      required bool isPositional,
+    }) {
+      PositionalParameter copy = extern.createPositionalParameter(
+        cosmeticName: formal.name,
+        type: const UnknownType(),
+        isFinal: formal.isFinal,
+        isRequired: formal.isRequired,
+        hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+        fileOffset: TreeNode.noOffset,
+      );
+      if (!hasTypeDependency && formal.type is! UnknownType) {
+        copy.type = substitution.substituteType(formal.type);
       } else {
-        copy = extern.createNamedParameter(
-          parameterName: formal.name!,
-          type: const UnknownType(),
-          isFinal: formal.isFinal,
-          isRequired: formal.isRequired,
-          hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
-          fileOffset: TreeNode.noOffset,
-        );
+        hasTypeDependency = true;
       }
+      return copy;
+    }
+
+    NamedParameter copyNamedParameter(
+      NamedParameter formal, {
+      required bool isPositional,
+    }) {
+      NamedParameter copy = extern.createNamedParameter(
+        parameterName: formal.parameterName,
+        type: const UnknownType(),
+        isFinal: formal.isFinal,
+        isRequired: formal.isRequired,
+        hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+        fileOffset: TreeNode.noOffset,
+      );
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);
       } else {
@@ -1112,17 +1123,20 @@ class KernelTarget {
         }
       }
     }
-    List<Variable> positionalParameters = <Variable>[];
-    List<Variable> namedParameters = <Variable>[];
+    List<PositionalParameter> positionalParameters = [];
+    List<NamedParameter> namedParameters = [];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
 
-    for (Variable formal in superConstructor.function.positionalParameters) {
-      positionalParameters.add(copyFormal(formal, isPositional: true));
+    for (PositionalParameter formal
+        in superConstructor.function.positionalParameters) {
+      positionalParameters.add(
+        copyPositionalParameter(formal, isPositional: true),
+      );
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (Variable formal in superConstructor.function.namedParameters) {
-      Variable clone = copyFormal(formal, isPositional: false);
+    for (NamedParameter formal in superConstructor.function.namedParameters) {
+      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(

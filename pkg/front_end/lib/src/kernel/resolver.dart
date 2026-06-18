@@ -897,13 +897,14 @@ class Resolver {
         : new List<FormalParameterBuilder>.generate(
             expressionCompilerDataCarrier.positionalParameters.length,
             (int i) {
-              Variable parameter =
+              PositionalParameter parameter =
                   expressionCompilerDataCarrier.positionalParameters[i];
-              InternalVariable formal = new InternalPositionalParameter(
-                astVariable: parameter as PositionalParameter,
-                isImplicitlyTyped: false,
-                fileOffset: parameter.fileOffset,
-              );
+              InternalPositionalParameter formal =
+                  new InternalPositionalParameter(
+                    astVariable: parameter,
+                    isImplicitlyTyped: false,
+                    fileOffset: parameter.fileOffset,
+                  );
               String formalName = formal.cosmeticName!;
               bool isWildcard =
                   libraryFeatures.wildcardVariables.isEnabled &&

@@ -6830,8 +6830,8 @@ bool _isFormalParameter(Variable variable) {
   if (variable is FunctionParameter) {
     return true;
   } else if (parent is FunctionNode) {
+    // Coverage-ignore-block(suite): Not run.
     return parent.positionalParameters.contains(variable) ||
-        // Coverage-ignore(suite): Not run.
         parent.namedParameters.contains(variable);
   }
   return false;

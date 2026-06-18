@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 133;
+  UInt32 formatVersion = 134;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -527,8 +527,8 @@ type FunctionNode {
   List<TypeParameter> typeParameters;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<Variable> positionalParameters;
-  List<Variable> namedParameters;
+  List<PositionalParameter> positionalParameters;
+  List<NamedParameter> namedParameters;
   DartType returnType;
   Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;

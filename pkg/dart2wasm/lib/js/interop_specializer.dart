@@ -94,7 +94,7 @@ abstract class _Specializer {
   Procedure _getRawInteropProcedure() {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
-    List<Variable> dartPositionalParameters = [];
+    List<PositionalParameter> dartPositionalParameters = [];
     for (int i = 0; i < parameters.length; i++) {
       final Variable parameter = parameters[i];
       final DartType parameterType = parameter.type;

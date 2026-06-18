@@ -370,6 +370,11 @@ class _Transform extends RecursiveVisitor {
   final Set<Variable> unusedParams = {};
   final List<LocalInitializer> addedInitializers = [];
 
+  /// Map from named parameters to their corresponding positional parameters for
+  /// named parameters that have been converted to position parameters in the
+  /// member currently being visited.
+  Map<NamedParameter, PositionalParameter>? _parameterReplacement;
+
   _Transform(this.shaker);
 
   void eliminateUsedParameter(
@@ -395,7 +400,9 @@ class _Transform extends RecursiveVisitor {
     eliminatedParams[variable] = shaker.treeShakeConstant(value);
   }
 
-  void transformMemberSignature(Member member) {
+  Map<NamedParameter, PositionalParameter>? transformMemberSignature(
+    Member member,
+  ) {
     typeContext = StaticTypeContext(
       member,
       shaker.typeFlowAnalysis.environment,
@@ -404,14 +411,14 @@ class _Transform extends RecursiveVisitor {
     unusedParams.clear();
 
     final _ProcedureInfo? info = shaker._infoForMember(member);
-    if (info == null || !info.eligible || info.callCount == 0) return;
+    if (info == null || !info.eligible || info.callCount == 0) return null;
 
     final FunctionNode function = member.function!;
 
-    if (!info.transformNeeded(function)) return;
+    if (!info.transformNeeded(function)) return null;
 
-    final List<Variable> positional = [];
-    final List<Variable> named = [];
+    final List<PositionalParameter> positional = [];
+    final List<NamedParameter> named = [];
     // 1. All positional parameters that are always passed and can't be
     //    eliminated, as required positional parameters.
     int firstNotAlwaysPassed = function.positionalParameters.length;
@@ -421,7 +428,7 @@ class _Transform extends RecursiveVisitor {
         firstNotAlwaysPassed = i;
         break;
       }
-      final Variable variable = function.positionalParameters[i];
+      final PositionalParameter variable = function.positionalParameters[i];
       if (param.isUsed) {
         if (param.canBeEliminated) {
           eliminateUsedParameter(member, param, variable);
@@ -436,19 +443,34 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<Variable> sortedNamed = function.namedParameters.toList()
-      ..sort((var1, var2) => var1.name!.compareTo(var2.name!));
-    for (Variable variable in sortedNamed) {
-      final _ParameterInfo param = info.named[variable.name!]!;
+    final List<NamedParameter> sortedNamed = function.namedParameters.toList()
+      ..sort((var1, var2) => var1.parameterName.compareTo(var2.parameterName));
+    Map<NamedParameter, PositionalParameter>? parameterReplacements;
+    for (NamedParameter variable in sortedNamed) {
+      final _ParameterInfo param = info.named[variable.parameterName]!;
       if (param.isAlwaysPassed) {
         if (param.isUsed) {
           if (param.canBeEliminated) {
             eliminateUsedParameter(member, param, variable);
           } else {
-            variable.initializer = null;
-            variable.hasDeclaredInitializer = false;
-            variable.isRequired = false;
-            positional.add(variable);
+            var replacement =
+                PositionalParameter(
+                    cosmeticName: variable.parameterName,
+                    type: variable.type,
+                    isCovariantByClass: variable.isCovariantByClass,
+                    isCovariantByDeclaration: variable.isCovariantByDeclaration,
+                    isSynthesized: variable.isSynthesized,
+                    isFinal: variable.isFinal,
+                    isLowered: variable.isLowered,
+                    isInitializingFormal: variable.isInitializingFormal,
+                    isSuperInitializingFormal:
+                        variable.isSuperInitializingFormal,
+                    isWildcard: variable.isWildcard,
+                  )
+                  ..fileOffset = variable.fileOffset
+                  ..parent = function;
+            positional.add(replacement);
+            (parameterReplacements ??= {})[variable] = replacement;
           }
         } else {
           unusedParams.add(variable);
@@ -466,7 +488,7 @@ class _Transform extends RecursiveVisitor {
     ) {
       final _ParameterInfo param = info.positional[i];
       assert(!param.isAlwaysPassed);
-      final Variable variable = function.positionalParameters[i];
+      final PositionalParameter variable = function.positionalParameters[i];
       if (param.isUsed) {
         if (param.canBeEliminated) {
           eliminateUsedParameter(member, param, variable);
@@ -486,8 +508,8 @@ class _Transform extends RecursiveVisitor {
     }
     // 4. All named parameters that are not always passed and can't be
     //    eliminated, as named parameters in alphabetical order.
-    for (Variable variable in sortedNamed) {
-      final _ParameterInfo param = info.named[variable.name!]!;
+    for (NamedParameter variable in sortedNamed) {
+      final _ParameterInfo param = info.named[variable.parameterName]!;
       if (!param.isAlwaysPassed) {
         if (param.isUsed) {
           if (param.canBeEliminated) {
@@ -507,6 +529,8 @@ class _Transform extends RecursiveVisitor {
     function.namedParameters = named;
 
     shaker.typeFlowAnalysis.adjustFunctionParameters(member);
+
+    return parameterReplacements;
   }
 
   @override
@@ -516,13 +540,28 @@ class _Transform extends RecursiveVisitor {
       node.replaceWith(
         ConstantExpression(constantValue, constantValue.getType(typeContext)),
       );
+    } else {
+      PositionalParameter? replacement = _parameterReplacement?[node.variable];
+      if (replacement != null) {
+        node.variable = replacement;
+      }
     }
   }
 
   @override
+  void visitVariableSet(VariableSet node) {
+    PositionalParameter? replacement = _parameterReplacement?[node.variable];
+    if (replacement != null) {
+      node.variable = replacement;
+    }
+    super.visitVariableSet(node);
+  }
+
+  @override
   void visitConstructor(Constructor node) {
-    transformMemberSignature(node);
+    _parameterReplacement = transformMemberSignature(node);
     super.visitConstructor(node);
+    _parameterReplacement = null;
     if (addedInitializers.isNotEmpty) {
       // Insert hoisted constructor arguments before this/super initializer.
       assert(
@@ -539,8 +578,9 @@ class _Transform extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    transformMemberSignature(node);
+    _parameterReplacement = transformMemberSignature(node);
     super.visitProcedure(node);
+    _parameterReplacement = null;
   }
 
   @override

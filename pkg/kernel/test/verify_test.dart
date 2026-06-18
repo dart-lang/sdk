@@ -56,7 +56,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable redeclared', (TestHarness test) {
-    Variable variable = test.makeVariable();
+    PositionalParameter variable = test.makePositionalParameter();
     test.addNode(
       Procedure(
         new Name('bar'),
@@ -935,6 +935,8 @@ class TestHarness {
   }
 
   Variable makeVariable() => new SyntheticVariable();
+
+  PositionalParameter makePositionalParameter() => new PositionalParameter();
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectRawType, const DynamicType());

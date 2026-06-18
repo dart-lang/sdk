@@ -39,8 +39,8 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
 
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
-  List<Variable> positionalParameters;
-  List<Variable> namedParameters;
+  List<PositionalParameter> positionalParameters;
+  List<NamedParameter> namedParameters;
   Variable? thisVariable;
   DartType returnType; // Not null.
   Statement? _body;
@@ -104,18 +104,18 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   new(
     this._body, {
     List<TypeParameter>? typeParameters,
-    List<Variable>? positionalParameters,
-    List<Variable>? namedParameters,
+    List<PositionalParameter>? positionalParameters,
+    List<NamedParameter>? namedParameters,
     int? requiredParameterCount,
     this.returnType = const DynamicType(),
     this.asyncMarker = AsyncMarker.Sync,
     AsyncMarker? dartAsyncMarker,
     this.emittedValueType,
     this.thisVariable,
-  }) : this.positionalParameters = positionalParameters ?? <Variable>[],
+  }) : this.positionalParameters = positionalParameters ?? [],
        this.requiredParameterCount =
            requiredParameterCount ?? positionalParameters?.length ?? 0,
-       this.namedParameters = namedParameters ?? <Variable>[],
+       this.namedParameters = namedParameters ?? [],
        this.typeParameters = typeParameters ?? <TypeParameter>[],
        this.dartAsyncMarker = dartAsyncMarker ?? asyncMarker {
     setParents(this.typeParameters, this);

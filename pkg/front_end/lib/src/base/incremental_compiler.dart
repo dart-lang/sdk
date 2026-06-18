@@ -61,7 +61,8 @@ import 'package:kernel/kernel.dart'
         Variable,
         VisitorDefault,
         VisitorVoidMixin,
-        Version;
+        Version,
+        PositionalParameter;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -2228,13 +2229,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Prepare for having a different set of parameters for compiling vs in
       // the output (for when the VM tells us about a variable we don't actually
       // have).
-      Variable? extensionThis;
-      List<Variable> positionalParametersUsedForCompiling = [];
-      List<Variable> positionalParameters = [];
+      PositionalParameter? extensionThis;
+      List<PositionalParameter> positionalParametersUsedForCompiling = [];
+      List<PositionalParameter> positionalParameters = [];
       for (MapEntry<String, DartType> def in usedDefinitions.entries) {
         String name = def.key;
         DartType type = def.value;
-        Variable variable = extern.createPositionalParameter(
+        PositionalParameter variable = extern.createPositionalParameter(
           cosmeticName: name,
           type: type,
           fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,

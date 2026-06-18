@@ -312,9 +312,9 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<Variable> positionalParameters = List.generate(
+    final List<PositionalParameter> positionalParameters = List.generate(
       fields.length,
-      (i) => SyntheticVariable(cosmeticName: 'field$i'),
+      (i) => PositionalParameter(cosmeticName: 'field$i', isSynthesized: true),
     );
 
     final List<Initializer> initializers = List.generate(
@@ -473,9 +473,10 @@ class _RecordClassGenerator {
       Nullability.nonNullable,
     );
 
-    final Variable parameter = SyntheticVariable(
+    final PositionalParameter parameter = PositionalParameter(
       cosmeticName: 'other',
       type: nullableObjectType,
+      isSynthesized: true,
     );
 
     final List<Statement> statements = [];
@@ -544,13 +545,15 @@ class _RecordClassGenerator {
 
   /// Generate `_checkRecordType` member.
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
-    final typesParameter = SyntheticVariable(
+    final typesParameter = PositionalParameter(
       cosmeticName: 'types',
       type: wasmArrayOfType,
+      isSynthesized: true,
     );
-    final namesParameter = SyntheticVariable(
+    final namesParameter = PositionalParameter(
       cosmeticName: 'names',
       type: immutableWasmArrayOfString,
+      isSynthesized: true,
     );
 
     final List<Statement> statements = [];
