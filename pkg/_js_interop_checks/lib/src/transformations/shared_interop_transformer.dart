@@ -135,7 +135,6 @@ class SharedInteropTransformer extends Transformer {
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
       _isNullableJSUnsafeObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSUnsafeObject'),
-        ),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
