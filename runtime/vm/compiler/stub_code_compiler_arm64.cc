@@ -3750,9 +3750,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
-         kUnsignedTwoBytes);
+         kFourBytes);
   __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
-         kUnsignedTwoBytes);
+         kFourBytes);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);
