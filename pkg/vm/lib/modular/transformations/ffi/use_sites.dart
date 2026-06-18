@@ -872,23 +872,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     ];
 
     final closure = FunctionDeclaration(
-      SyntheticVariable(
-        cosmeticName: closureName,
-        type: dartSignature,
-      )..addAnnotation(
-        ConstantExpression(
-          InstanceConstant(coreTypes.pragmaClass.reference, [], {
-            coreTypes.pragmaName.fieldReference: StringConstant(
-              'vm:ffi:call-closure',
-            ),
-            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-              ffiCallClass.reference,
-              [nativeSignature],
-              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-            ),
-          }),
+      SyntheticVariable(cosmeticName: closureName, type: dartSignature)
+        ..addAnnotation(
+          ConstantExpression(
+            InstanceConstant(coreTypes.pragmaClass.reference, [], {
+              coreTypes.pragmaName.fieldReference: StringConstant(
+                'vm:ffi:call-closure',
+              ),
+              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+                ffiCallClass.reference,
+                [nativeSignature],
+                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+              ),
+            }),
+          ),
         ),
-      ),
       FunctionNode(
         Block([
           for (final param in positionalParameters)
@@ -1125,11 +1123,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final targetType = node.arguments.types[0] as FunctionType;
 
     // void _handler(List args) => target(args[0], args[1], ...)
-    final args = SyntheticVariable(
+    final args = PositionalParameter(
       cosmeticName: 'args',
       type: listType,
       isFinal: true,
-      isSynthesized: false,
     )..fileOffset = node.fileOffset;
     final targetArgs = <Expression>[];
     for (int i = 0; i < targetType.positionalParameters.length; ++i) {
@@ -1691,13 +1688,15 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeTypeCfe =
         NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
 
-    final arrayLoadVar = SyntheticVariable(
+    final arrayLoadVar = PositionalParameter(
       cosmeticName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexLoadVar = SyntheticVariable(
+    final indexLoadVar = PositionalParameter(
       cosmeticName: "#index",
       type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final loadClosure = FunctionExpression(
       FunctionNode(
@@ -1721,17 +1720,20 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ),
     );
 
-    final arrayStoreVar = SyntheticVariable(
+    final arrayStoreVar = PositionalParameter(
       cosmeticName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final indexStoreVar = SyntheticVariable(
+    final indexStoreVar = PositionalParameter(
       cosmeticName: "#index",
       type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
-    final valueStoreVar = SyntheticVariable(
+    final valueStoreVar = PositionalParameter(
       cosmeticName: "#value",
       type: coreTypes.intNullableRawType,
+      isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final storeClosure = FunctionExpression(
       FunctionNode(
@@ -2122,7 +2124,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final numParams = parameterTypes.length;
     String methodPostfix = '';
     final newArguments = <Expression>[];
-    final newParameters = <Variable>[];
+    final newParameters = <PositionalParameter>[];
     bool isTransformed = false;
     for (int i = 0; i < numParams; i++) {
       final parameter = target.function.positionalParameters[i];

@@ -24,17 +24,6 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsValidationTest extends AbstractAnalysisOptionsTest {
-  static const otherLib = '/other/lib';
-
-  @override
-  get dependencies => {'other': otherLib};
-
-  void newEmptyIncludedOptionsFile() {
-    // TODO(scheglov): Remove this file and the unnecessary include directives
-    // in these value-only tests.
-    newFile('$testPackageRootPath/included.yaml', '');
-  }
-
   @override
   void setUp() {
     registerLintRules([
@@ -2479,8 +2468,9 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_packageInclude() {
-    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
-      analysisOptionsFile: '''
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics(
+      {
+        analysisOptionsFile: '''
 include:
   - package:other/analysis_options.yaml
 
@@ -2490,14 +2480,16 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_neg' is incompatible with 'rule_pos'.
 ''',
-      getFile('$otherLib/analysis_options.yaml'): '''
+        getFile('/other/lib/analysis_options.yaml'): '''
 linter:
   rules:
     rule_pos: true
 //  ^^^^^^^^
 // [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
 ''',
-    });
+      },
+      packageMap: {'other': getFolder('/other/lib')},
+    );
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -2744,10 +2736,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_error() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: error
@@ -2762,10 +2751,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_false() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: false
@@ -2777,10 +2763,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_ignore() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: ignore
@@ -2795,10 +2778,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_info() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: info
@@ -2813,10 +2793,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_true() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: true
@@ -2899,10 +2876,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_warning() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: warning

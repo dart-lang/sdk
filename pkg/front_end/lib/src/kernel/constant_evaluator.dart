@@ -6504,18 +6504,12 @@ class StatementConstantEvaluator
   ExecutionStatus visitThisVariable(ThisVariable node) => visitVariable(node);
 }
 
-class ConstantCoverage {
-  final Map<Uri, Set<Reference>> constructorCoverage;
+class ConstantCoverage(final Map<Uri, Set<Reference>> constructorCoverage);
 
-  new(this.constructorCoverage);
-}
-
-class ConstantEvaluationData {
-  final ConstantCoverage coverage;
-  final Set<Library> visitedLibraries;
-
-  new(this.coverage, this.visitedLibraries);
-}
+class ConstantEvaluationData(
+  final ConstantCoverage coverage,
+  final Set<Library> visitedLibraries,
+);
 
 /// Holds the necessary information for a constant object, namely
 ///   * the [klass] being instantiated
@@ -6670,204 +6664,113 @@ class RedundantFileUriExpressionRemover extends Transformer {
 }
 
 /// Location that stores a value in the [ConstantEvaluator].
-class EvaluationReference {
-  Constant value;
-
-  new(this.value);
-}
+class EvaluationReference(var Constant value);
 
 /// Represents a status for statement execution.
-abstract class ExecutionStatus {
-  const new();
-}
+abstract class const ExecutionStatus();
 
 /// Status that the statement completed execution successfully.
-class ProceedStatus extends ExecutionStatus {
-  const new();
-}
+class const ProceedStatus() extends ExecutionStatus;
 
 /// Status that the statement returned a valid [Constant] value.
-class ReturnStatus extends ExecutionStatus {
-  final Constant? value;
-
-  new(this.value);
-}
+class ReturnStatus(final Constant? value) extends ExecutionStatus;
 
 /// Status with an exception or error that the statement has thrown.
-class AbortStatus extends ExecutionStatus {
-  final AbortConstant error;
-
-  new(this.error);
-}
+class AbortStatus(final AbortConstant error) extends ExecutionStatus;
 
 /// Status that the statement breaks out of an enclosing [LabeledStatement].
-class BreakStatus extends ExecutionStatus {
-  final LabeledStatement target;
-
-  new(this.target);
-}
+class BreakStatus(final LabeledStatement target) extends ExecutionStatus;
 
 /// Mutable lists used within the [ConstantEvaluator].
-class MutableListConstant extends ListConstant {
-  new(DartType typeArgument, List<Constant> entries)
-    : super(typeArgument, entries);
-
+class MutableListConstant(super.typeArgument, super.entries)
+    extends ListConstant {
   @override
   String toString() => 'MutableListConstant(${toStringInternal()})';
 }
 
+abstract class _EvaluatorConstant implements AuxiliaryConstant {
+  @override
+  R accept<R>(ConstantVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnimplementedError();
+  }
+}
+
 /// An intermediate result that is used for invoking function nodes with their
 /// respective environment within the [ConstantEvaluator].
-class FunctionValue implements AuxiliaryConstant {
-  final FunctionNode function;
-  final EvaluationEnvironment? environment;
+class FunctionValue(
+  final FunctionNode function,
+  final EvaluationEnvironment? environment,
+) extends _EvaluatorConstant;
 
-  new(this.function, this.environment);
+sealed class AbortConstant extends _EvaluatorConstant;
 
-  @override
-  R accept<R>(ConstantVisitor<R> v) {
-    throw new UnimplementedError();
-  }
+class _AbortDueToErrorConstant(
+  final TreeNode node,
+  final Message message, {
+  final List<LocatedMessage>? context,
+  required final bool isEvaluationError,
+}) extends AbortConstant;
 
-  @override
-  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
+class _AbortDueToInvalidExpressionConstant(final InvalidExpression node)
+    extends AbortConstant;
 
-  @override
-  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
-    throw new UnimplementedError();
-  }
+class _AbortDueToInvalidInitializerConstant(final InvalidInitializer node)
+    extends AbortConstant;
 
-  @override
-  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
+class _AbortDueToThrowConstant(final TreeNode node, final Object throwValue)
+    extends AbortConstant;
 
-  @override
-  DartType getType(StaticTypeContext context) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toStringInternal() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnimplementedError();
-  }
-}
-
-sealed class AbortConstant implements AuxiliaryConstant {
-  @override
-  R accept<R>(ConstantVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  DartType getType(StaticTypeContext context) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toStringInternal() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnimplementedError();
-  }
-}
-
-class _AbortDueToErrorConstant extends AbortConstant {
-  final TreeNode node;
-  final Message message;
-  final List<LocatedMessage>? context;
-  final bool isEvaluationError;
-
-  new(this.node, this.message, {this.context, required this.isEvaluationError});
-}
-
-class _AbortDueToInvalidExpressionConstant extends AbortConstant {
-  final InvalidExpression node;
-
-  new(this.node);
-}
-
-class _AbortDueToInvalidInitializerConstant extends AbortConstant {
-  final InvalidInitializer node;
-
-  new(this.node);
-}
-
-class _AbortDueToThrowConstant extends AbortConstant {
-  final TreeNode node;
-  final Object throwValue;
-
-  new(this.node, this.throwValue);
-}
-
-abstract class ErrorReporter {
-  const new();
-
+abstract class const ErrorReporter() {
   void report(LocatedMessage message, [List<LocatedMessage>? context]);
 
   /// `true` if the reporter supports a query to [hasSeenError].
@@ -6877,9 +6780,7 @@ abstract class ErrorReporter {
   bool get hasSeenError;
 }
 
-class SimpleErrorReporter implements ErrorReporter {
-  const new();
-
+class const SimpleErrorReporter() implements ErrorReporter {
   @override
   // Coverage-ignore(suite): Not run.
   bool get supportsTrackingReportedErrors => false;
@@ -6929,8 +6830,8 @@ bool _isFormalParameter(Variable variable) {
   if (variable is FunctionParameter) {
     return true;
   } else if (parent is FunctionNode) {
+    // Coverage-ignore-block(suite): Not run.
     return parent.positionalParameters.contains(variable) ||
-        // Coverage-ignore(suite): Not run.
         parent.namedParameters.contains(variable);
   }
   return false;
@@ -6941,29 +6842,23 @@ class _InlinedBlock extends Block {
 }
 
 /// Information about a currently transformed [PatternSwitchStatement].
-class _PatternSwitchStatementInfo {
+class _PatternSwitchStatementInfo(
   /// The variable used as the switch expression in the generated
   /// [SwitchStatement].
-  final Variable switchIndexVariable;
+  final Variable switchIndexVariable,
 
   /// The labeled statement that wraps the case matching.
   ///
   /// This is used as a break target to jump to the generated switch statement
   /// for a continue statement from outside the generated switch statement.
-  final LabeledStatement innerLabeledStatement;
+  final LabeledStatement innerLabeledStatement,
 
   /// Map from [PatternSwitchCase]s that are continue targets to the index
   /// used for there body in the generated [SwitchStatement].
-  final Map<PatternSwitchCase, int> switchCaseIndexMap;
-
+  final Map<PatternSwitchCase, int> switchCaseIndexMap,
+) {
   /// The [PatternSwitchCase] currently being transformed.
   PatternSwitchCase? currentSwitchCase;
-
-  new(
-    this.switchIndexVariable,
-    this.innerLabeledStatement,
-    this.switchCaseIndexMap,
-  );
 }
 
 enum PrimitiveEquality { None, EqualsOnly, HashCodeOnly, EqualsAndHashCode }

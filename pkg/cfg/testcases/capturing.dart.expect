@@ -400,6 +400,52 @@ B0 = EntryBlock()
   StoreInstanceField(#context-field:d, v3, v6)
   Return(v8)
 
+--- foo44
+B0 = EntryBlock()
+  v4 = Constant(<dynamic>)
+  v9 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v3 = TypeParameters(v1)
+  v5 = AllocateClosure()
+  StoreInstanceField(#closure-field[1], v5, v3)
+  v7 = InstantiateClosure(v4, v5)
+  DirectCall callClosure(v7)
+  Return(v9)
+
+--- closure FunctionExpression(Null <U extends Object?>() {
+  callClosure(void () {
+    print(_GrowableList.<foo44.T%>(0));
+    print(U%);
+  });
+}) at foo44
+B0 = EntryBlock()
+  v10 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(#closure)
+  v5 = LoadInstanceField(#closure-field[1], v2)
+  v6 = TypeParameters(v1, v5)
+  v7 = AllocateClosure()
+  StoreInstanceField(#closure-field[0], v7, v6)
+  DirectCall callClosure(v7)
+  Return(v10)
+
+--- closure FunctionExpression(void () {
+  print(_GrowableList.<foo44.T%>(0));
+  print(U%);
+}) at foo44
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v7 = Constant(0)
+  v1 = Parameter(#closure)
+  v3 = LoadInstanceField(#closure-field[0], v1)
+  v4 = TypeParameters(v3)
+  v6 = TypeArguments(v5, v4, <foo44.T%>)
+  v8 = DirectCall _GrowableList.(v6, v7)
+  DirectCall print(v8)
+  v10 = TypeLiteral(U%, v5, v4)
+  DirectCall print(v10)
+  Return(v5)
+
 --- foo45
 B0 = EntryBlock() dominates:(B11, B13, B10)
   v2 = Constant(10)

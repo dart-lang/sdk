@@ -287,6 +287,9 @@ final class Simplification extends Pass
   }
 
   @override
+  Instruction visitInstantiateClosure(InstantiateClosure instr) => instr;
+
+  @override
   Instruction visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
       instr;
 

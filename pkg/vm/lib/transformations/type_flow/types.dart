@@ -1077,45 +1077,43 @@ class Closure {
         ? member.enclosingClass!.typeParameters
         : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
-    List<Variable> convertParameters(
-      List<Variable> params, {
-      required bool isPositional,
-    }) => [
+    List<PositionalParameter> convertPositionalParameters(
+      List<PositionalParameter> params,
+    ) => [
       for (final p in params)
-        isPositional
-            ? (PositionalParameter(
-                cosmeticName: p.name,
-                defaultValue: (p.initializer != null)
-                    ? ConstantExpression(
-                        (p.initializer as ConstantExpression).constant,
-                      )
-                    : null,
-                type: freshTypeParameters.substitute(p.type),
-              )..flags = p.flags)
-            : (NamedParameter(
-                parameterName: p.name!,
-                defaultValue: (p.initializer != null)
-                    ? ConstantExpression(
-                        (p.initializer as ConstantExpression).constant,
-                      )
-                    : null,
-                type: freshTypeParameters.substitute(p.type),
-              )..flags = p.flags),
+        PositionalParameter(
+          cosmeticName: p.cosmeticName,
+          defaultValue: (p.initializer != null)
+              ? ConstantExpression(
+                  (p.initializer as ConstantExpression).constant,
+                )
+              : null,
+          type: freshTypeParameters.substitute(p.type),
+        )..flags = p.flags,
     ];
+    List<NamedParameter> convertNamedParameters(List<NamedParameter> params) =>
+        [
+          for (final p in params)
+            NamedParameter(
+              parameterName: p.parameterName,
+              defaultValue: (p.initializer != null)
+                  ? ConstantExpression(
+                      (p.initializer as ConstantExpression).constant,
+                    )
+                  : null,
+              type: freshTypeParameters.substitute(p.type),
+            )..flags = p.flags,
+        ];
     return Procedure(
       Name.callName,
       ProcedureKind.Method,
       FunctionNode(
         null,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        positionalParameters: convertParameters(
+        positionalParameters: convertPositionalParameters(
           functionNode.positionalParameters,
-          isPositional: true,
         ),
-        namedParameters: convertParameters(
-          functionNode.namedParameters,
-          isPositional: false,
-        ),
+        namedParameters: convertNamedParameters(functionNode.namedParameters),
         requiredParameterCount: functionNode.requiredParameterCount,
         returnType: freshTypeParameters.substitute(functionNode.returnType),
       ),

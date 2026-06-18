@@ -36,7 +36,6 @@ enum TypeParametersStyle {
 ///  - tear-offs;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
-///  - record access and literals;
 ///  - deferred libraries.
 ///
 class AstToIr extends ast.RecursiveVisitor {
@@ -1921,6 +1920,17 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _translateClosure(node, _typeTranslator.translate(node.variable.type));
     _writeVariable(node.variable);
+  }
+
+  @override
+  void visitInstantiation(ast.Instantiation node) {
+    builder.addTypeArguments(
+      node.typeArguments,
+      typeParameters: _typeParametersForTypes(node.typeArguments),
+    );
+    _translateNode(node.expression);
+    if (_handleUnreachableExpression(2)) return;
+    builder.addInstantiateClosure(_staticType(node));
   }
 
   @override

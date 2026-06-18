@@ -17676,8 +17676,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           isLowered: true,
           fileOffset: fileOffset,
         );
-        Variable setterParameter = extern.createUninitializedVariable(
-          name: "${internalVariable.cosmeticName}#param",
+        PositionalParameter setterParameter = extern.createPositionalParameter(
+          cosmeticName: "${internalVariable.cosmeticName}#param",
           type: internalVariable.type,
           isSynthesized: false,
           fileOffset: fileOffset,
@@ -17712,7 +17712,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                       isSetEncoding: isSetEncoding,
                     )
               ..fileOffset = fileOffset,
-            positionalParameters: <Variable>[setterParameter],
+            positionalParameters: [setterParameter],
           ),
         )
         // TODO(johnniwinther): Reinsert the file offset when the vm doesn't

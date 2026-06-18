@@ -25,10 +25,10 @@ void main() {
     new FunctionNode(
       null,
       namedParameters: [
-        new PositionalParameter(cosmeticName: 'file'),
-        new PositionalParameter(cosmeticName: 'line'),
-        new PositionalParameter(cosmeticName: 'column'),
-        new PositionalParameter(cosmeticName: 'name'),
+        new NamedParameter(parameterName: 'file'),
+        new NamedParameter(parameterName: 'line'),
+        new NamedParameter(parameterName: 'column'),
+        new NamedParameter(parameterName: 'name'),
       ],
     ),
     name: new Name('_', developerLib),

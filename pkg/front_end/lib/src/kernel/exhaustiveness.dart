@@ -38,28 +38,18 @@ class ExhaustivenessDataForTesting {
 }
 
 // Coverage-ignore(suite): Not run.
-class ExhaustivenessResult {
-  final StaticType scrutineeType;
-  final List<Space> caseSpaces;
-  final List<int> caseOffsets;
-  final Set<int> unreachableCases;
-  final NonExhaustiveness? nonExhaustiveness;
+class ExhaustivenessResult(
+  final StaticType scrutineeType,
+  final List<Space> caseSpaces,
+  final List<int> caseOffsets,
+  final Set<int> unreachableCases,
+  final NonExhaustiveness? nonExhaustiveness,
+);
 
-  new(
-    this.scrutineeType,
-    this.caseSpaces,
-    this.caseOffsets,
-    this.unreachableCases,
-    this.nonExhaustiveness,
-  );
-}
-
-class CfeTypeOperations implements TypeOperations<DartType> {
-  final TypeEnvironment _typeEnvironment;
-  final Library _enclosingLibrary;
-
-  new(this._typeEnvironment, this._enclosingLibrary);
-
+class CfeTypeOperations(
+  final TypeEnvironment _typeEnvironment,
+  final Library _enclosingLibrary,
+) implements TypeOperations<DartType> {
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
   @override
@@ -392,12 +382,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 }
 
-class EnumValue {
-  final Class enumClass;
-  final String name;
-
-  new(this.enumClass, this.name);
-
+class EnumValue(final Class enumClass, final String name) {
   @override
   int get hashCode => Object.hash(enumClass, name);
 
@@ -434,12 +419,8 @@ EnumValue? constantToEnumValue(CoreTypes coreTypes, Constant constant) {
   return null;
 }
 
-class CfeEnumOperations
+class CfeEnumOperations(final ConstantEvaluator _constantEvaluator)
     implements EnumOperations<DartType, Class, Field, EnumValue> {
-  final ConstantEvaluator _constantEvaluator;
-
-  new(this._constantEvaluator);
-
   @override
   Class? getEnumClass(DartType type) {
     if (type is InterfaceType && type.classNode.isEnum) {
@@ -486,12 +467,8 @@ class CfeEnumOperations
   }
 }
 
-class CfeSealedClassOperations
+class CfeSealedClassOperations(final TypeEnvironment _typeEnvironment)
     implements SealedClassOperations<DartType, Class> {
-  final TypeEnvironment _typeEnvironment;
-
-  new(this._typeEnvironment);
-
   @override
   List<Class> getDirectSubclasses(Class sealedClass) {
     Library library = sealedClass.enclosingLibrary;
@@ -904,11 +881,9 @@ bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
   return type.accept1(const ExhaustiveDartTypeVisitor(), coreTypes);
 }
 
-class ExhaustiveDartTypeVisitor
+class const ExhaustiveDartTypeVisitor()
     with DartTypeVisitor1ExperimentExclusionMixin<bool, CoreTypes>
     implements DartTypeVisitor1<bool, CoreTypes> {
-  const new();
-
   @override
   bool visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
     throw new UnsupportedError(
@@ -1013,9 +988,7 @@ class ExhaustiveDartTypeVisitor
   }
 }
 
-class TypeParameterReplacer extends ReplacementVisitor {
-  const new();
-
+class const TypeParameterReplacer() extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     DartType replacement = super.visitTypeParameterType(node, variance) ?? node;

@@ -1167,17 +1167,16 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   }
 }
 
-class ClassMembersNode {
-  final ClassBuilder classBuilder;
-
-  final ClassMembersNode? supernode;
+class ClassMembersNode(
+  final ClassBuilder classBuilder,
+  final ClassMembersNode? supernode,
 
   /// All the members of this class including [classMembers] of its
   /// superclasses.
-  final Map<Name, ClassMember> classMemberMap;
+  final Map<Name, ClassMember> classMemberMap,
 
   /// Similar to [classMembers] but for setters.
-  final Map<Name, ClassMember> classSetterMap;
+  final Map<Name, ClassMember> classSetterMap,
 
   /// All the interface members of this class including [interfaceMembers] of
   /// its supertypes.
@@ -1186,30 +1185,19 @@ class ClassMembersNode {
   /// from interfaces.
   ///
   /// This may be null, in which case [classMembers] is the interface members.
-  final Map<Name, ClassMember>? interfaceMemberMap;
+  final Map<Name, ClassMember>? interfaceMemberMap,
 
   /// Similar to [interfaceMembers] but for setters.
   ///
   /// This may be null, in which case [classSetters] is the interface setters.
-  final Map<Name, ClassMember>? interfaceSetterMap;
+  final Map<Name, ClassMember>? interfaceSetterMap,
 
   /// The user defined noSuchMethod, i.e. not Object.noSuchMethod, if declared
   /// or inherited.
-  final ClassMember? userNoSuchMethodMember;
+  final ClassMember? userNoSuchMethodMember,
 
-  final ClassHierarchyNodeDataForTesting? dataForTesting;
-
-  new(
-    this.classBuilder,
-    this.supernode,
-    this.classMemberMap,
-    this.classSetterMap,
-    this.interfaceMemberMap,
-    this.interfaceSetterMap,
-    this.userNoSuchMethodMember,
-    this.dataForTesting,
-  );
-
+  final ClassHierarchyNodeDataForTesting? dataForTesting,
+) {
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -1306,19 +1294,13 @@ class ClassMembersNode {
 }
 
 // Coverage-ignore(suite): Not run.
-class ClassHierarchyNodeDataForTesting {
-  final List<ClassMember> abstractMembers;
-  final Map<ClassMember, Set<ClassMember>> declaredOverrides;
-  final Map<ClassMember, Set<ClassMember>> mixinApplicationOverrides;
-  final Map<ClassMember, Set<ClassMember>> inheritedImplements;
+class ClassHierarchyNodeDataForTesting(
+  final List<ClassMember> abstractMembers,
+  final Map<ClassMember, Set<ClassMember>> declaredOverrides,
+  final Map<ClassMember, Set<ClassMember>> mixinApplicationOverrides,
+  final Map<ClassMember, Set<ClassMember>> inheritedImplements,
+) {
   final Map<ClassMember, ClassMember> aliasMap = {};
-
-  new(
-    this.abstractMembers,
-    this.declaredOverrides,
-    this.mixinApplicationOverrides,
-    this.inheritedImplements,
-  );
 }
 
 class _Tuple {

@@ -1023,16 +1023,22 @@ final class Arm64CodeGenerator extends CodeGenerator {
       return;
     }
 
+    final type = instr.testedType;
+    final dartType = type.dartType;
     final done = Label();
     late final Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for TypeCast slow path',
+      assert(stackFrame.maxArgumentsStackSlots >= 3);
+      _asm.loadFromPool(tempReg, dartType);
+      _asm.stp(resultReg, tempReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 2 * wordSize),
       );
-      _asm.b(done);
+      _asm.callRuntime(RuntimeEntry.TypeError, 2);
+      _asm.breakpoint();
     });
 
     // Handle a few built-in types, use TTS for other types.
-    final type = instr.testedType;
     switch (type) {
       case ObjectType():
         _asm.cmp(resultReg, nullReg);
@@ -1063,16 +1069,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
         _asm.b(slowPath, .notEqual);
       default:
-        _asm.tbz(
-          resultReg,
-          smiBit,
-          const IntType().isSubtypeOf(type) ? done : slowPath,
-        );
+        if (const IntType().isSubtypeOf(type)) {
+          _asm.tbz(resultReg, smiBit, done);
+        }
         if (type.isNullable) {
           _asm.cmp(resultReg, nullReg);
           _asm.b(done, .equal);
         }
-        final dartType = type.dartType;
         if (dartType is ast.TypeParameterType) {
           final declaration = dartType.parameter.declaration;
           assert(instr.inputCount == 3);

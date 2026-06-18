@@ -408,9 +408,10 @@ class LateLowering {
         isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
-      Variable setterValue = SyntheticVariable(
+      PositionalParameter setterValue = PositionalParameter(
         cosmeticName: 'value',
         type: type,
+        isSynthesized: true,
       )..fileOffset = fileOffset;
       VariableGet setterValueRead() =>
           VariableGet(setterValue)..fileOffset = fileOffset;
@@ -672,8 +673,11 @@ class LateLowering {
     }
     enclosingClass.addProcedure(getter);
 
-    Variable setterValue = SyntheticVariable(cosmeticName: 'value', type: type)
-      ..fileOffset = fileOffset;
+    PositionalParameter setterValue = PositionalParameter(
+      cosmeticName: 'value',
+      type: type,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
     VariableGet setterValueRead() =>
         VariableGet(setterValue)..fileOffset = fileOffset;
 

@@ -388,8 +388,8 @@ FunctionExpression createFunctionExpression(
 FunctionNode createFunctionNode(
   Statement? body, {
   List<TypeParameter>? typeParameters,
-  List<Variable>? positionalParameters,
-  List<Variable>? namedParameters,
+  List<PositionalParameter>? positionalParameters,
+  List<NamedParameter>? namedParameters,
   int? requiredParameterCount,
   DartType returnType = const DynamicType(),
   required int fileOffset,

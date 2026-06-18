@@ -1577,8 +1577,8 @@ class BinaryPrinter
     writeNodeList(node.typeParameters);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
     writeUInt30(node.requiredParameterCount);
-    writeVariableList(node.positionalParameters);
-    writeVariableList(node.namedParameters);
+    writePositionalParameterList(node.positionalParameters);
+    writeNamedParameterList(node.namedParameters);
     writeNode(node.returnType);
     writeOptionalNode(node.emittedValueType);
     RedirectingFactoryTarget? redirectingFactoryTarget =
@@ -2563,6 +2563,14 @@ class BinaryPrinter
     writeList(nodes, writeVariableDeclaration);
   }
 
+  void writePositionalParameterList(List<PositionalParameter> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
+  void writeNamedParameterList(List<NamedParameter> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
   void writeVariableList(List<Variable> nodes) {
     writeList(nodes, writeVariable);
   }
@@ -3504,6 +3512,11 @@ class VariableIndexer {
 
   int? operator [](Variable node) {
     return index == null ? null : index![node];
+  }
+
+  @override
+  String toString() {
+    return '{${index?.keys.join(',') ?? ''}}';
   }
 }
 

@@ -45,6 +45,7 @@ abstract interface class InstructionVisitor<R> {
   R visitAllocateMapLiteral(AllocateMapLiteral instr);
   R visitAllocateRecordLiteral(AllocateRecordLiteral instr);
   R visitStringInterpolation(StringInterpolation instr);
+  R visitInstantiateClosure(InstantiateClosure instr);
   R visitEnterSuspendableFunction(EnterSuspendableFunction instr);
   R visitSuspend(Suspend instr);
   R visitBinaryIntOp(BinaryIntOp instr);
@@ -122,6 +123,8 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitAllocateRecordLiteral(AllocateRecordLiteral instr) =>
       defaultInstruction(instr);
   R visitStringInterpolation(StringInterpolation instr) =>
+      defaultInstruction(instr);
+  R visitInstantiateClosure(InstantiateClosure instr) =>
       defaultInstruction(instr);
   R visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
       defaultInstruction(instr);

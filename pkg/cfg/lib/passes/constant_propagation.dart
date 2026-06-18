@@ -458,6 +458,23 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitInstantiateClosure(InstantiateClosure instr) {
+    if (_isNonConstant(instr.typeArguments) || _isNonConstant(instr.closure)) {
+      _setNonConstant(instr);
+      return;
+    }
+    final typeArguments = _getConstantValue(instr.typeArguments);
+    final closure = _getConstantValue(instr.closure);
+    if (typeArguments != null && closure != null) {
+      ConstantValue result = constantFolding.instantiateClosure(
+        typeArguments,
+        closure,
+      );
+      _setResult(instr, result);
+    }
+  }
+
+  @override
   void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {}
 
   @override

@@ -33,7 +33,7 @@ class C1 extends core::Object {
   field core::int x;
   field core::int y = 0;
   field core::int z = 2;
-  constructor •(initializing-formal core::int x, final initializing-formal core::int z) → self::C1
+  constructor •(initializing-formal core::int x, initializing-formal core::int z) → self::C1
     : self::C1::x = x, self::C1::z = z, self::C1::y = 1, super core::Object::•()
     ;
 }

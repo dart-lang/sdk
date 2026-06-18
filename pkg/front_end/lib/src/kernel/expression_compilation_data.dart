@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart';
 // Coverage-ignore(suite): Not run.
 class ExpressionCompilationData {
   final List<TypeParameter> typeParameters;
-  final List<Variable> positionalParameters;
+  final List<PositionalParameter> positionalParameters;
   final int fileOffset;
   int transformerFlags;
 

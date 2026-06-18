@@ -1319,7 +1319,12 @@ class InternalLateVariable extends InternalVariable {
   }
 }
 
-class InternalPositionalParameter extends InternalVariable {
+sealed class InternalFunctionParameter extends InternalVariable {
+  @override
+  FunctionParameter get astVariable;
+}
+
+class InternalPositionalParameter extends InternalFunctionParameter {
   @override
   PositionalParameter astVariable;
 
@@ -1387,7 +1392,7 @@ class InternalPositionalParameter extends InternalVariable {
   }
 }
 
-class InternalNamedParameter extends InternalVariable {
+class InternalNamedParameter extends InternalFunctionParameter {
   @override
   NamedParameter astVariable;
 
@@ -6256,8 +6261,8 @@ class InternalVariableSet extends InternalExpression {
 class InternalFunctionNode {
   final DartType? returnType;
   final List<TypeParameter> typeParameters;
-  final List<InternalVariable> positionalParameters;
-  final List<InternalVariable> namedParameters;
+  final List<InternalPositionalParameter> positionalParameters;
+  final List<InternalNamedParameter> namedParameters;
   final int requiredParameterCount;
   final AsyncMarker asyncMarker;
   final Statement? body;

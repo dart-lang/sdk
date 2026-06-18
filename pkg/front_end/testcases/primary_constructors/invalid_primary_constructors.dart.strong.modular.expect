@@ -200,7 +200,7 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
     ;
 }
 abstract class M2 extends core::Object /*isMixinDeclaration*/  {
-  constructor •(final core::int i) → self::M2
+  constructor •(core::int i) → self::M2
     : super core::Object::•()
     ;
 }
@@ -210,7 +210,7 @@ abstract class M3 extends core::Object /*isMixinDeclaration*/  {
     ;
 }
 abstract class M4 extends core::Object /*isMixinDeclaration*/  {
-  constructor named(final core::int i) → self::M4
+  constructor named(core::int i) → self::M4
     : super core::Object::•()
     ;
 }
@@ -220,7 +220,7 @@ abstract class M5<T extends core::Object? = dynamic> extends core::Object /*isMi
     ;
 }
 abstract class M6<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  constructor •(final core::int i) → self::M6<self::M6::T%>
+  constructor •(core::int i) → self::M6<self::M6::T%>
     : super core::Object::•()
     ;
 }
@@ -230,7 +230,7 @@ abstract class M7<T extends core::Object? = dynamic> extends core::Object /*isMi
     ;
 }
 abstract class M8<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  constructor named(final core::int i) → self::M8<self::M8::T%>
+  constructor named(core::int i) → self::M8<self::M8::T%>
     : super core::Object::•()
     ;
 }
@@ -240,7 +240,7 @@ abstract class M9 extends core::Object /*isMixinDeclaration,hasConstConstructor*
     ;
 }
 abstract class M10 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
-  const constructor •(final core::int i) → self::M10
+  const constructor •(core::int i) → self::M10
     : super core::Object::•()
     ;
 }
@@ -250,7 +250,7 @@ abstract class M11 extends core::Object /*isMixinDeclaration,hasConstConstructor
     ;
 }
 abstract class M12 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
-  const constructor named(final core::int i) → self::M12
+  const constructor named(core::int i) → self::M12
     : super core::Object::•()
     ;
 }
@@ -260,7 +260,7 @@ abstract class M13<T extends core::Object? = dynamic> extends core::Object /*isM
     ;
 }
 abstract class M14<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
-  const constructor •(final core::int i) → self::M14<self::M14::T%>
+  const constructor •(core::int i) → self::M14<self::M14::T%>
     : super core::Object::•()
     ;
 }
@@ -270,7 +270,7 @@ abstract class M15<T extends core::Object? = dynamic> extends core::Object /*isM
     ;
 }
 abstract class M16<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
-  const constructor named(final core::int i) → self::M16<self::M16::T%>
+  const constructor named(core::int i) → self::M16<self::M16::T%>
     : super core::Object::•()
     ;
 }

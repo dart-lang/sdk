@@ -12,7 +12,6 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -28,47 +27,11 @@ import '../dart/resolution/node_text_expectations.dart';
 
 abstract class AbstractAnalysisOptionsTest
     with ResourceProviderMixin, LintRegistrationMixin {
-  late SourceFactory sourceFactory;
-  Map<String, String>? dependencies;
-
   late File analysisOptionsFile = getFile(
     '$testPackageRootPath/analysis_options.yaml',
   );
 
-  VersionConstraint? get sdkVersionConstraint => null;
-
   String get testPackageRootPath => '/home/test';
-
-  List<Diagnostic> assertAnalysisOptionsDiagnostics(
-    String code, {
-    VersionConstraint? sdkVersionConstraint,
-  }) {
-    return assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: code,
-    }, sdkVersionConstraint: sdkVersionConstraint);
-  }
-
-  List<Diagnostic> assertAnalysisOptionsDiagnosticsInFiles(
-    Map<File, String> codeByFile, {
-    VersionConstraint? sdkVersionConstraint,
-  }) {
-    if (codeByFile.isEmpty) {
-      fail('Cannot validate analysis options: no content was provided.');
-    }
-    var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialFile = cleanCodeByFile.keys.first;
-
-    var result = _parseAnalysisOptions(
-      initialFile,
-      sdkVersionConstraint: sdkVersionConstraint,
-    );
-
-    _assertDiagnosticMarkersInFiles(
-      codeByFile: codeByFile,
-      diagnostics: result.diagnostics,
-    );
-    return result.diagnostics;
-  }
 
   void assertAnalysisOptionsText(AnalysisOptionsImpl options, String expected) {
     var actual = _AnalysisOptionsTextWriter().write(options);
@@ -81,8 +44,34 @@ abstract class AbstractAnalysisOptionsTest
     expect(actual, expected);
   }
 
+  AnalysisOptionsParseResult parseAnalysisOptionsFile(
+    File file, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    parseSession ??= AnalysisOptionsParseSession();
+
+    var sourceFactory = SourceFactoryImpl([
+      ResourceUriResolver(resourceProvider),
+      if (packageMap != null)
+        PackageMapUriResolver(resourceProvider, {
+          for (var entry in packageMap.entries) entry.key: [entry.value],
+        }),
+    ]);
+
+    return parseSession.parse(
+      sourceFactory: sourceFactory,
+      contextRoot: getFolder(testPackageRootPath),
+      file: file,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
+  }
+
   AnalysisOptionsImpl parseAnalysisOptionsFilesWithDiagnostics(
     Map<File, String> codeByFile, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
     VersionConstraint? sdkVersionConstraint,
   }) {
     if (codeByFile.isEmpty) {
@@ -91,8 +80,10 @@ abstract class AbstractAnalysisOptionsTest
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
     var initialFile = cleanCodeByFile.keys.first;
 
-    var result = _parseAnalysisOptions(
+    var result = parseAnalysisOptionsFile(
       initialFile,
+      parseSession: parseSession,
+      packageMap: packageMap,
       sdkVersionConstraint: sdkVersionConstraint,
     );
 
@@ -106,16 +97,20 @@ abstract class AbstractAnalysisOptionsTest
 
   AnalysisOptionsImpl parseAnalysisOptionsWithDiagnostics(
     String code, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
     VersionConstraint? sdkVersionConstraint,
   }) {
-    return parseAnalysisOptionsFilesWithDiagnostics({
-      analysisOptionsFile: code,
-    }, sdkVersionConstraint: sdkVersionConstraint);
+    return parseAnalysisOptionsFilesWithDiagnostics(
+      {analysisOptionsFile: code},
+      parseSession: parseSession,
+      packageMap: packageMap,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
   }
 
-  void setUp() {
-    sourceFactory = _createSourceFactory(packageDependencies: dependencies);
-  }
+  @mustCallSuper
+  void setUp() {}
 
   @mustCallSuper
   void tearDown() {
@@ -156,20 +151,6 @@ abstract class AbstractAnalysisOptionsTest
     }
   }
 
-  SourceFactory _createSourceFactory({
-    Map<String, String>? packageDependencies,
-  }) {
-    var resolvers = [
-      ResourceUriResolver(resourceProvider),
-      if (packageDependencies != null)
-        PackageMapUriResolver(resourceProvider, {
-          for (var entry in packageDependencies.entries)
-            entry.key: [getFolder(convertPath(entry.value))],
-        }),
-    ];
-    return SourceFactoryImpl(resolvers);
-  }
-
   Map<File, List<Diagnostic>> _diagnosticsByFile({
     required Iterable<File> files,
     required List<Diagnostic> diagnostics,
@@ -190,18 +171,6 @@ abstract class AbstractAnalysisOptionsTest
     }
 
     return diagnosticsByFile;
-  }
-
-  AnalysisOptionsParseResult _parseAnalysisOptions(
-    File initialFile, {
-    VersionConstraint? sdkVersionConstraint,
-  }) {
-    return AnalysisOptionsParseSession().parse(
-      sourceFactory: sourceFactory,
-      contextRoot: getFolder(testPackageRootPath),
-      file: initialFile,
-      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-    );
   }
 
   Map<File, String> _writeFilesWithoutDiagnosticExpectations(

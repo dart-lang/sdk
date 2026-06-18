@@ -587,7 +587,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
+      positionalParameters: [
+        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+      ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,
@@ -879,41 +881,34 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       }
     }
 
-    Variable copyParameter(Variable parameter, DartType type) {
-      Variable newParameter;
-      switch (parameter) {
-        case PositionalParameter():
-          newParameter = new PositionalParameter(
-            cosmeticName: parameter.cosmeticName,
-            type: type,
-            isFinal: parameter.isFinal,
-            isLowered: parameter.isLowered,
-            isRequired: parameter.isRequired,
-          )..fileOffset = parameter.fileOffset;
-        case NamedParameter():
-          newParameter = new NamedParameter(
-            parameterName: parameter.parameterName,
-            type: type,
-            isFinal: parameter.isFinal,
-            isLowered: parameter.isLowered,
-            isRequired: parameter.isRequired,
-          )..fileOffset = parameter.fileOffset;
-        // Coverage-ignore(suite): Not run.
-        case Variable():
-          newParameter = extern.createPositionalParameter(
-            cosmeticName: parameter.name,
-            type: type,
-            isFinal: parameter.isFinal,
-            isLowered: parameter.isLowered,
-            isRequired: parameter.isRequired,
-            fileOffset: parameter.fileOffset,
-          );
-      }
+    PositionalParameter copyPositionalParameter(
+      PositionalParameter parameter,
+      DartType type,
+    ) {
+      PositionalParameter newParameter = new PositionalParameter(
+        cosmeticName: parameter.cosmeticName,
+        type: type,
+        isFinal: parameter.isFinal,
+        isLowered: parameter.isLowered,
+        isRequired: parameter.isRequired,
+      )..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;
     }
 
-    Variable extensionThis = copyParameter(
+    NamedParameter copyNamedParameter(NamedParameter parameter, DartType type) {
+      NamedParameter newParameter = new NamedParameter(
+        parameterName: parameter.parameterName,
+        type: type,
+        isFinal: parameter.isFinal,
+        isLowered: parameter.isLowered,
+        isRequired: parameter.isRequired,
+      )..fileOffset = parameter.fileOffset;
+      _extensionTearOffParameterMap![parameter] = newParameter;
+      return newParameter;
+    }
+
+    PositionalParameter extensionThis = copyPositionalParameter(
       procedure.function.positionalParameters.first,
       substitution.substituteType(
         procedure.function.positionalParameters.first.type,
@@ -923,7 +918,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     DartType closureReturnType = substitution.substituteType(
       procedure.function.returnType,
     );
-    List<Variable> closurePositionalParameters = [];
+    List<PositionalParameter> closurePositionalParameters = [];
     List<Expression> closurePositionalArguments = [];
 
     for (
@@ -931,7 +926,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       position < procedure.function.positionalParameters.length;
       position++
     ) {
-      Variable parameter = procedure.function.positionalParameters[position];
+      PositionalParameter parameter =
+          procedure.function.positionalParameters[position];
       if (position == 0) {
         /// Pass `this` as a captured variable.
         closurePositionalArguments.add(
@@ -939,18 +935,21 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         );
       } else {
         DartType type = substitution.substituteType(parameter.type);
-        Variable newParameter = copyParameter(parameter, type);
+        PositionalParameter newParameter = copyPositionalParameter(
+          parameter,
+          type,
+        );
         closurePositionalParameters.add(newParameter);
         closurePositionalArguments.add(
           extern.createVariableGet(newParameter, fileOffset: fileOffset),
         );
       }
     }
-    List<Variable> closureNamedParameters = [];
+    List<NamedParameter> closureNamedParameters = [];
     List<NamedExpression> closureNamedArguments = [];
-    for (Variable parameter in procedure.function.namedParameters) {
+    for (NamedParameter parameter in procedure.function.namedParameters) {
       DartType type = substitution.substituteType(parameter.type);
-      Variable newParameter = copyParameter(parameter, type);
+      NamedParameter newParameter = copyNamedParameter(parameter, type);
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
         extern.createNamedExpression(

@@ -1095,9 +1095,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         setterReference == field.setterReference,
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
-      final Variable argument = SyntheticVariable(
+      final PositionalParameter argument = PositionalParameter(
         cosmeticName: '#v',
         type: field.type,
+        isSynthesized: true,
       )..fileOffset = field.fileOffset;
       final setterStatement = type.generateSetterStatement(
         field.type,

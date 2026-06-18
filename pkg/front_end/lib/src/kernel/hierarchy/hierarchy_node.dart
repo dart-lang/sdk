@@ -320,44 +320,34 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   }
 }
 
-class ClassHierarchyNode {
+class ClassHierarchyNode(
   /// The class corresponding to this hierarchy node.
-  final ClassBuilder classBuilder;
+  final ClassBuilder classBuilder,
 
   /// The [ClassHierarchyNode] for the direct super class of [classBuilder], or
   /// `null` if this is `Object`.
-  final ClassHierarchyNode? directSuperClassNode;
+  final ClassHierarchyNode? directSuperClassNode,
 
   /// The [ClassHierarchyNode] for the mixed in class, if [classBuilder] is a
   /// mixin application, or `null` otherwise;
-  final ClassHierarchyNode? mixedInNode;
+  final ClassHierarchyNode? mixedInNode,
 
   /// The [ClassHierarchyNode]s for the direct super interfaces of
   /// [classBuilder].
-  final List<ClassHierarchyNode>? directInterfaceNodes;
+  final List<ClassHierarchyNode>? directInterfaceNodes,
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
-  final List<Supertype> superclasses;
+  final List<Supertype> superclasses,
 
   /// The list of all classes implemented by [classBuilder] and its supertypes
   /// excluding any classes from [superclasses].
-  final List<Supertype> interfaces;
+  final List<Supertype> interfaces,
 
   /// The longest inheritance path from [classBuilder] to `Object`.
-  final int maxInheritancePath;
-
+  final int maxInheritancePath,
+) {
   int get depth => superclasses.length;
-
-  new(
-    this.classBuilder,
-    this.directSuperClassNode,
-    this.mixedInNode,
-    this.directInterfaceNodes,
-    this.superclasses,
-    this.interfaces,
-    this.maxInheritancePath,
-  );
 
   /// Returns `true` if [classBuilder] is a mixin application.
   ///
@@ -613,39 +603,30 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   }
 }
 
-class ExtensionTypeHierarchyNode {
+class ExtensionTypeHierarchyNode(
   /// The extension type corresponding to this hierarchy node.
-  final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
+  final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
 
   /// The list of all classes implemented by [extensionTypeDeclarationBuilder]
   /// and its superclasses.
-  final List<Supertype> superclasses;
+  final List<Supertype> superclasses,
 
   /// The list of all extension types implemented by
   /// [extensionTypeDeclarationBuilder] and its super extension types.
-  final List<ExtensionType> superExtensionTypes;
+  final List<ExtensionType> superExtensionTypes,
 
   /// The [ClassHierarchyNode]s for the direct superclasses of
   /// [extensionTypeDeclarationBuilder].
-  final List<ClassHierarchyNode>? directSuperclassNodes;
+  final List<ClassHierarchyNode>? directSuperclassNodes,
 
   /// The [ExtensionTypeHierarchyNode]s for the direct super extension types of
   /// [extensionTypeDeclarationBuilder].
-  final List<ExtensionTypeHierarchyNode>? directSuperExtensionTypeNodes;
+  final List<ExtensionTypeHierarchyNode>? directSuperExtensionTypeNodes,
 
   /// The longest inheritance path from [extensionTypeDeclarationBuilder] to
   /// `Object`.
-  final int maxInheritancePath;
-
-  new(
-    this.extensionTypeDeclarationBuilder,
-    this.superclasses,
-    this.superExtensionTypes,
-    this.directSuperclassNodes,
-    this.directSuperExtensionTypeNodes,
-    this.maxInheritancePath,
-  );
-}
+  final int maxInheritancePath,
+);
 
 ClassBuilder? getClass(TypeBuilder type) {
   Builder? declaration = type.computeUnaliasedDeclaration(isUsedAsClass: false);

@@ -136,4 +136,14 @@ void allocateObjects<K>() {
   print(F());
 }
 
+void instantiateClosures<T1, T2>(
+  void Function<S1>() foo,
+  S2 Function<S2, S3>(S3) bar,
+) {
+  print(foo<int>);
+  print(bar<T1, String>);
+  int Function(T2) baz = bar;
+  print(baz);
+}
+
 void main() {}

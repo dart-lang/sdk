@@ -879,8 +879,10 @@ class CloneVisitorNotMembers
     List<TypeParameter> typeParameters = node.typeParameters
         .map(clone)
         .toList();
-    List<Variable> positional = node.positionalParameters.map(clone).toList();
-    List<Variable> named = node.namedParameters.map(clone).toList();
+    List<PositionalParameter> positional = node.positionalParameters
+        .map(clone)
+        .toList();
+    List<NamedParameter> named = node.namedParameters.map(clone).toList();
     Variable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
@@ -1623,8 +1625,8 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   Procedure cloneProcedureWith(
     Procedure node,
     Reference? reference, {
-    List<Variable>? positionalParameters,
-    List<Variable>? namedParameters,
+    List<PositionalParameter>? positionalParameters,
+    List<NamedParameter>? namedParameters,
   }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {

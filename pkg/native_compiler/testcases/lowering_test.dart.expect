@@ -685,6 +685,34 @@ B0 = EntryBlock()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v11)   # RA: (R0)
 
+--- instantiateClosures
+B0 = EntryBlock()
+  v6 = Constant(<int>)
+  v10 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
+  v2 = Parameter(foo)   # RA: param[1] <- ()
+  v3 = Parameter(bar)   # RA: param[2] <- ()
+  ParallelMove output(param[2] -> vloc:R0, param[1] -> vloc:R1, param[0] -> vloc:param[0])
+  v22 = DirectCall _instantiateClosure(v2, v6)   # RA: R0 <- (R1, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  DirectCall print(v22)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R4)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R4 -> R1)
+  v11 = TypeArguments(v10, v1, <instantiateClosures.T1%, String>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R0, param[2] -> R1)
+  v23 = DirectCall _instantiateClosure(v3, v11)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  DirectCall print(v23)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R1)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R1 -> R1)
+  v15 = TypeArguments(v10, v1, <int, instantiateClosures.T2%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R0, param[2] -> R1)
+  v24 = DirectCall _instantiateClosure(v3, v15)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  DirectCall print(v24)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v10)   # RA: (R0)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

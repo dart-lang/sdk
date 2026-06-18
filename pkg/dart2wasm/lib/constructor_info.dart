@@ -16,18 +16,18 @@ class ConstructorInfo {
 
   /// All parameters of the constructor in canonical order (positional first,
   /// then named sorted by name).
-  final List<Variable> allParameters;
+  final List<FunctionParameter> allParameters;
 
   /// Parameters that must be passed to the initializer function.
   late final List<TypeParameter> initializerTypeParameters;
-  late final List<Variable> initializerParameters;
+  late final List<FunctionParameter> initializerParameters;
 
   /// Parameters that must be passed to the body function from the allocator.
   ///
   /// NOTE: Type parameters of a constructor always end up in fields and can be
   /// loaded from there. The constructor body therefore never needs to get them
   /// passed explicitly.
-  late final List<Variable> bodyParameters;
+  late final List<FunctionParameter> bodyParameters;
 
   /// Parameters that constructor bodies can load via `this`.
   final Map<Variable, Field> parameterToField = {};
