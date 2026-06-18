@@ -28,6 +28,7 @@ import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart' show ConstructorContext;
 import '../util/helpers.dart';
+import 'expression_compilation_data.dart';
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 
@@ -804,10 +805,10 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
 
 // Coverage-ignore(suite): Not run.
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
-  final Procedure _procedure;
+  final ExpressionCompilationData _expressionCompilerDataCarrier;
 
   new(
-    this._procedure,
+    this._expressionCompilerDataCarrier,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
     required bool isDeclarationInstanceMember,
@@ -818,10 +819,11 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
        );
 
   @override
-  int get memberNameOffset => _procedure.fileOffset;
+  int get memberNameOffset => _expressionCompilerDataCarrier.fileOffset;
 
   @override
   void registerSuperCall() {
-    _procedure.transformerFlags |= TransformerFlag.superCalls;
+    _expressionCompilerDataCarrier.transformerFlags |=
+        TransformerFlag.superCalls;
   }
 }

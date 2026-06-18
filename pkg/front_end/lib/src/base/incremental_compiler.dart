@@ -98,6 +98,7 @@ import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
 import '../kernel/external_ast_helper.dart' as extern;
+import '../kernel/expression_compilation_data.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart'
     show InternalVariableGet, InternalVariableSet, InternalVariable;
@@ -2224,32 +2225,41 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      // Prepare for having a different set of parameters for compiling vs in
+      // the output (for when the VM tells us about a variable we don't actually
+      // have).
       Variable? extensionThis;
+      List<Variable> positionalParametersUsedForCompiling = [];
+      List<Variable> positionalParameters = [];
+      for (MapEntry<String, DartType> def in usedDefinitions.entries) {
+        String name = def.key;
+        DartType type = def.value;
+        Variable variable = extern.createPositionalParameter(
+          cosmeticName: name,
+          type: type,
+          fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+        );
+        positionalParameters.add(variable);
 
-      // TODO: pass variable declarations instead of
-      // parameter names for proper location detection.
-      // https://github.com/dart-lang/sdk/issues/44158
-      FunctionNode parameters = new FunctionNode(
-        null,
-        typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries.map<Variable>((
-          MapEntry<String, DartType> def,
-        ) {
-          Variable variable = extern.createPositionalParameter(
-            cosmeticName: def.key,
-            type: def.value,
-            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-          );
+        // If the VM tells us we have #this --- let's assume we do even if we
+        // didn't find it.
+        if (isExtensionOrExtensionTypeInstanceMember &&
+            isExtensionThisName(name) &&
+            extensionThis == null) {
+          // The `#this` variable is special.
+          extensionThis = variable..isLowered = true;
+          positionalParametersUsedForCompiling.add(variable);
+        } else {
+          // For now include everything, but in the future we'll only add
+          // if this definition was found in the kernel tree.
+          positionalParametersUsedForCompiling.add(variable);
 
-          if (isExtensionOrExtensionTypeInstanceMember &&
-              isExtensionThisName(def.key) &&
-              extensionThis == null) {
-            // The `#this` variable is special.
-            extensionThis = variable..isLowered = true;
-          }
-          return variable;
-        }).toList(),
-      );
+          // TODO(jensj): Possibly pass the variables not in scope in an
+          // additional list so that we can compile to using these if we would
+          // have otherwise created a compile time error --- see comment on
+          // https://dart-review.googlesource.com/c/sdk/+/513680 for an example.
+        }
+      }
 
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
@@ -2264,38 +2274,45 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       );
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
 
-      Procedure procedure = new Procedure(
-        new Name(syntheticProcedureName),
-        ProcedureKind.Method,
-        parameters,
-        isStatic: isStatic,
-        fileUri: debugLibrary.fileUri,
-      );
-
       ClassHierarchy hierarchy = lastGoodKernelTarget.loader.hierarchy;
 
       ExpressionEvaluationHelper expressionEvaluationHelper =
           new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
+
+      ExpressionCompilationData expressionCompilerDataCarrier =
+          new ExpressionCompilationData(
+            transformerFlags: 0,
+            fileOffset: TreeNode.noOffset,
+            typeParameters: typeDefinitions,
+            positionalParameters: positionalParametersUsedForCompiling,
+          );
 
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
             debugLibrary,
             className ?? extensionName,
             (className != null && !isStatic) || extensionThis != null,
-            procedure,
+            expressionCompilerDataCarrier,
             extensionThis,
             extraKnownVariables,
             expressionEvaluationHelper,
           );
-
-      parameters.body = new ReturnStatement(compiledExpression)
-        ..parent = parameters;
-
-      procedure.fileUri = debugLibrary.fileUri;
-      procedure.parent = cls ?? libraryBuilder.library;
-
       lastGoodKernelTarget.uriToSource.remove(debugExprUri);
       lastGoodKernelTarget.loader.sourceBytes.remove(debugExprUri);
+
+      Procedure procedure = new Procedure(
+        new Name(syntheticProcedureName),
+        ProcedureKind.Method,
+        new FunctionNode(
+          new ReturnStatement(compiledExpression),
+          typeParameters: typeDefinitions,
+          positionalParameters: positionalParameters,
+        ),
+        isStatic: isStatic,
+        fileUri: debugLibrary.fileUri,
+        transformerFlags: expressionCompilerDataCarrier.transformerFlags,
+      );
+      procedure.parent = cls ?? libraryBuilder.library;
 
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);

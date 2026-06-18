@@ -237,6 +237,7 @@ carefully
 caret
 carets
 carriage
+carrier
 carrying
 cascade's
 cascades
