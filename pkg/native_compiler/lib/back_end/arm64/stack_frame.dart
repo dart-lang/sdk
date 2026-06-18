@@ -78,6 +78,8 @@ final class Arm64StackFrame extends StackFrame {
         return instr.inputCount;
       case TypeLiteral():
         return 4; // Result + 3 arguments for InstantiateType runtime call.
+      case TypeCast():
+        return 3; // Result + 2 arguments for TypeError runtime call.
       case TypeTest():
         return 6; // Result + 5 arguments for Instanceof runtime call.
       case Suspend(:var op) when op == .asyncYield || op == .asyncYieldStar:

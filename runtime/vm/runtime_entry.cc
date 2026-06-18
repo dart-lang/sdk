@@ -219,6 +219,15 @@ void OnEveryRuntimeEntryCall(Thread* thread,
       "DLRT_" #name, reinterpret_cast<const void*>(func), argument_count,      \
       true, true, /*can_lazy_deopt=*/false)
 
+// Helper returning the token position of the Dart caller.
+static TokenPosition GetCallerLocation() {
+  DartFrameIterator iterator(Thread::Current(),
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != nullptr);
+  return caller_frame->GetTokenPos();
+}
+
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -424,6 +433,18 @@ DEFINE_RUNTIME_ENTRY(NullCastError, 0) {
   NullErrorHelper(zone, String::null_string());
 }
 
+DEFINE_RUNTIME_ENTRY(TypeError, 2) {
+  const Instance& src_instance =
+      Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const AbstractType& dst_type =
+      AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
+  const TokenPosition location = GetCallerLocation();
+  const auto& src_type =
+      AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
+  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type,
+                                      Symbols::Empty());
+}
+
 DEFINE_RUNTIME_ENTRY(ArgumentNullError, 0) {
   DoThrowNullError(thread, zone, /*is_param=*/true);
 }
@@ -612,15 +633,6 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
                                              SpaceForRuntimeAllocation()));
   arguments.SetReturn(typed_data);
   RuntimeAllocationEpilogue(thread);
-}
-
-// Helper returning the token position of the Dart caller.
-static TokenPosition GetCallerLocation() {
-  DartFrameIterator iterator(Thread::Current(),
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != nullptr);
-  return caller_frame->GetTokenPos();
 }
 
 // Result of an invoke may be an unhandled exception, in which case we
