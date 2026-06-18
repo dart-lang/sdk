@@ -3843,7 +3843,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsTest(TokenPosition position,
   Fragment instructions;
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation by detecting a top type.
-  if (type.IsTopTypeForInstanceOf()) {
+  if (type.IsTopType()) {
     // Evaluate the expression on the left but ignore its result.
     instructions += Drop();
 
@@ -3998,8 +3998,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (is_unchecked_cast ||
-      (type.IsInstantiated() && type.IsTopTypeForSubtyping())) {
+  if (is_unchecked_cast || (type.IsInstantiated() && type.IsTopType())) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of unchecked cast or `obj as dynamic` expression.
   } else {
@@ -4496,7 +4495,7 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
         TypeArguments::ZoneHandle(Z, Type::Cast(type).arguments());
     if (!type_args.IsNull()) {
       const auto& type_arg = AbstractType::Handle(Z, type_args.TypeAt(0));
-      if (!type_arg.IsTopTypeForSubtyping()) {
+      if (!type_arg.IsTopType()) {
         instructions += TranslateInstantiatedTypeArguments(type_args);
         stub_id = SuspendInstr::StubId::kAwaitWithTypeCheck;
       }

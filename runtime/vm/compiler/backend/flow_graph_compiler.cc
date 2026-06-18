@@ -2337,7 +2337,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
-  ASSERT(!type.IsTopTypeForInstanceOf());
+  ASSERT(!type.IsTopType());
   __ Comment("InlineInstanceof");
   if (type.IsObjectType()) {  // Must be non-nullable.
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
@@ -2390,7 +2390,7 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
   // test instead of a 6-type test.
   AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
   bound = bound.UnwrapFutureOr();
-  return !bound.IsTopTypeForSubtyping() && !bound.IsObjectType() &&
+  return !bound.IsTopType() && !bound.IsObjectType() &&
                  !bound.IsDartFunctionType() && bound.IsType()
              ? TypeTestStubKind::kTestTypeFourArgs
              : TypeTestStubKind::kTestTypeSixArgs;
@@ -2505,7 +2505,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (type_arguments.Length() == 1) {
     const AbstractType& tp_argument =
         AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
-    if (tp_argument.IsTopTypeForSubtyping()) {
+    if (tp_argument.IsTopType()) {
       // Instance class test only necessary.
       return GenerateSubtype1TestCacheLookup(
           source, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -2701,19 +2701,19 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
                                            const AbstractType& type,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTopTypeForInstanceOf());  // Already checked.
+  ASSERT(!type.IsTopType());  // Already checked.
 
   compiler::Label is_instance, is_not_instance;
-  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
-  // In addition, 'null' is an instance of any nullable type.
+  // 'null' is an instance of any nullable type including
+  // Null, Object?, void and dynamic.
   // It is also an instance of FutureOr<T> if it is an instance of T.
+  const bool null_is_assignable = Instance::NullIsAssignableTo(type);
   const AbstractType& unwrapped_type =
       AbstractType::Handle(type.UnwrapFutureOr());
-  if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
+  if (null_is_assignable || !unwrapped_type.IsTypeParameter()) {
     // Only nullable type parameter remains nullable after instantiation.
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-    __ BranchIf(EQUAL,
-                unwrapped_type.IsNullable() ? &is_instance : &is_not_instance);
+    __ BranchIf(EQUAL, null_is_assignable ? &is_instance : &is_not_instance);
   }
 
   // Generate inline instanceof test.
@@ -2803,7 +2803,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
 
   if (!dst_type.IsNull()) {
     ASSERT(dst_type.IsFinalized());
-    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+    if (dst_type.IsTopType()) return;  // No code needed.
   }
 
   compiler::Label done;
@@ -2894,7 +2894,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     const AbstractType& dst_type,
     compiler::Label* done) {
   // Top types should be handled by the caller and cannot reach here.
-  ASSERT(!dst_type.IsTopTypeForSubtyping());
+  ASSERT(!dst_type.IsTopType());
 
   // Set this to avoid marking the type testing stub for optimization.
   bool elide_info = false;
@@ -2943,8 +2943,8 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     // Special case: Instantiate the type parameter on the caller side, invoking
     // the TTS of the corresponding type parameter in the caller.
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    if (!type_param.IsNonNullable()) {
-      // If the type parameter is nullable when running in strong mode, we need
+    if (type_param.IsNullable()) {
+      // If the type parameter is nullable, we need
       // to handle null before calling the TTS because the type parameter may be
       // instantiated with a non-nullable type, where the TTS rejects null.
       __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());

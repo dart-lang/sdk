@@ -9497,22 +9497,17 @@ class AbstractType : public Instance {
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents the 'Object?' type.
-  bool IsNullableObjectType() const {
-    return IsObjectType() && (nullability() == Nullability::kNullable);
-  }
+  bool IsNullableObjectType() const { return IsObjectType() && IsNullable(); }
 
   // Check if this type represents a top type for subtyping,
-  // assignability and 'as' type tests.
+  // assignability, 'as' and 'is' type tests.
   //
   // Returns true if
   //  - any type is a subtype of this type;
   //  - any value can be assigned to a variable of this type;
   //  - 'as' type test always succeeds for this type.
-  bool IsTopTypeForSubtyping() const;
-
-  // Check if this type represents a top type for 'is' type tests.
-  // Returns true if 'is' type test always returns true for this type.
-  bool IsTopTypeForInstanceOf() const;
+  //  - 'is' type test always returns true for this type.
+  bool IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }

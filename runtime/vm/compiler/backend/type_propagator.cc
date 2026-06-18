@@ -418,7 +418,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsTopTypeForInstanceOf()) {
+    if (!type->IsTopType()) {
       EnsureMoreAccurateRedefinition(
           true_successor, left,
           CompileType::FromAbstractType(*type, CompileType::kCanBeNull,
@@ -868,7 +868,7 @@ const AbstractType* CompileType::ToAbstractType() {
 }
 
 bool CompileType::IsSubtypeOf(const AbstractType& other) {
-  if (other.IsTopTypeForSubtyping()) {
+  if (other.IsTopType()) {
     return true;
   }
   // If we allow comparisons against an uninstantiated type, then we can

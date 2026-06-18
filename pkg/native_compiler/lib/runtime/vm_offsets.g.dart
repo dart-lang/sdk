@@ -2596,7 +2596,7 @@ enum StubCode {
   TwoArgsUnoptimizedStaticCall,
   AssertSubtype,
   AssertAssignable,
-  TypeIsTopTypeForSubtyping,
+  IsTopType,
   NullIsAssignableToType,
   Subtype1TestCache,
   Subtype2TestCache,
