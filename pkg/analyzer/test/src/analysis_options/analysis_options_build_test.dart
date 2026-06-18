@@ -7,10 +7,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,17 +29,6 @@ main() {
 @reflectiveTest
 class AnalysisOptionsBuildTest extends AbstractAnalysisOptionsTest {
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
-
-  AnalysisOptionsImpl getAnalysisOptionsFromMissingFile(String filePath) {
-    var file = getFile(filePath);
-    return AnalysisOptionsParseSession()
-        .parse(
-          sourceFactory: sourceFactory,
-          contextRoot: getFolder(testPackageRootPath),
-          file: file,
-        )
-        .analysisOptions;
-  }
 
   test_fromFile_analyzer_plugins_chooseFirstLegacyPlugin() {
     var options = parseAnalysisOptionsFilesWithDiagnostics({
@@ -487,9 +473,9 @@ AnalysisOptionsImpl
   test_fromFile_missing() {
     newFolder('/notFile');
 
-    var options = getAnalysisOptionsFromMissingFile(
-      '/notFile/analysis_options.yaml',
-    );
+    var options = parseAnalysisOptionsFile(
+      getFile('/notFile/analysis_options.yaml'),
+    ).analysisOptions;
 
     assertAnalysisOptionsText(options, r'''
 AnalysisOptionsImpl
@@ -497,7 +483,6 @@ AnalysisOptionsImpl
   }
 
   test_fromFile_signature_mergeStable() {
-    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var parseSession = AnalysisOptionsParseSession();
     var otherOptions = getFile(
       '$testPackageRootPath/analysis_options_helper.yaml',
@@ -521,13 +506,10 @@ analyzer:
     });
     var sig1 = options.signature;
     for (var i = 0; i < 100; i++) {
-      var options2 = parseSession
-          .parse(
-            sourceFactory: sourceFactory,
-            contextRoot: getFolder(testPackageRootPath),
-            file: mainOptions,
-          )
-          .analysisOptions;
+      var options2 = parseAnalysisOptionsFile(
+        mainOptions,
+        parseSession: parseSession,
+      ).analysisOptions;
       var sig2 = options2.signature;
       expect(sig1, sig2);
     }
