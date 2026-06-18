@@ -316,7 +316,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      last_reload_timestamp_(OS::GetCurrentTimeMicros()),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif
       source_(std::move(source)),
