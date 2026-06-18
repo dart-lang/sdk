@@ -4744,10 +4744,18 @@ SwitchDispatchNoSingleStep:
 #if defined(DEBUG)
 #define SINGLE_STEP_HANDLER_BODY                                               \
   do {                                                                         \
-    if (IsTracingExecution()) {                                                \
-      THR_Print("%" Pu64 " calling single step handler\n", icount_);           \
+    /* Skip opcodes that purely manipulate the stack, that is, without     */  \
+    /* retrieving/storing into local variables. Source positions are       */  \
+    /* never emitted for these instructions, so they should not be         */  \
+    /* considered valid pause points. This avoids stepping out of a method */  \
+    /* with an unused result and then stopping at the Drop1 instruction,   */  \
+    /* which inherits the source position of the method call, for example. */  \
+    if (!KernelBytecode::IsStackManipulationOpcode(pc)) {                      \
+      if (IsTracingExecution()) {                                              \
+        THR_Print("%" Pu64 " calling single step handler\n", icount_);         \
+      }                                                                        \
+      SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                       \
     }                                                                          \
-    SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                         \
   } while (0)
 #else
 #define SINGLE_STEP_HANDLER_BODY SINGLE_STEP_HANDLER_BODY_NO_TRACE

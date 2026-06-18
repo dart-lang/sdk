@@ -194,7 +194,7 @@ void main() {
     final member = coreTypes.futureValueFactory;
     final enclosingFunction = functionRegistry.getFunction(member);
     final localFunction = ast.FunctionDeclaration(
-      ast.Variable('foo'),
+      ast.LocalVariable(name: 'foo', type: const ast.DynamicType()),
       ast.FunctionNode(
         ast.Block([]),
         returnType: coreTypes.boolNonNullableRawType,

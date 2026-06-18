@@ -81,7 +81,6 @@ import 'package:kernel/ast.dart'
         Typedef,
         UnevaluatedConstant,
         Version,
-        LegacyVariable,
         LocalVariable,
         LateVariable,
         SyntheticVariable,
@@ -1715,15 +1714,6 @@ class Strategy extends EquivalenceStrategy {
       visitor.checkReferences,
       'additionalExports',
     );
-  }
-
-  @override
-  bool checkLegacyVariable_binaryOffsetNoTag(
-    EquivalenceVisitor visitor,
-    LegacyVariable node,
-    LegacyVariable other,
-  ) {
-    return true;
   }
 
   @override

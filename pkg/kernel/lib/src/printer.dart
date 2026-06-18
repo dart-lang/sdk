@@ -99,7 +99,6 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<Variable, String> _variableDeclarationNames = {};
   late final Map<VariableBase, String> _variableNames = {};
 
   new(this._strategy);
@@ -262,12 +261,6 @@ class AstPrinter {
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):
         return name;
-      case LegacyVariable(:var name):
-        if (name != null) {
-          return name;
-        }
-        return _variableDeclarationNames[node as Variable] ??=
-            '#${_variableDeclarationNames.length}';
     }
   }
 

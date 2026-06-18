@@ -104,8 +104,8 @@ abstract class _Specializer {
           : _util.nullableWasmExternRefType;
       String parameterString = 'x$i';
       dartPositionalParameters.add(
-        Variable(
-          parameterString,
+        PositionalParameter(
+          cosmeticName: parameterString,
           type: interopFunctionParameterType,
           isSynthesized: true,
         ),
@@ -369,11 +369,9 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = Variable(
-        null,
+      final temp = SyntheticVariable(
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
-        isSynthesized: true,
       );
       jsifiedArguments.add(
         Let(
@@ -529,11 +527,9 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = Variable(
-        null,
+      final temp = SyntheticVariable(
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
-        isSynthesized: true,
       );
       jsifiedArguments.add(
         Let(

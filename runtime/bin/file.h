@@ -264,14 +264,14 @@ class File : public ReferenceCounted<File> {
                    const char* new_path);
   static int64_t LengthFromPath(Namespace* namespc, const char* path);
   static void Stat(Namespace* namespc, const char* path, int64_t* data);
-  static time_t LastModified(Namespace* namespc, const char* path);
+  static int64_t LastModified(Namespace* namespc, const char* path);
   static bool SetLastModified(Namespace* namespc,
                               const char* path,
-                              int64_t millis);
-  static time_t LastAccessed(Namespace* namespc, const char* path);
+                              int64_t micros);
+  static int64_t LastAccessed(Namespace* namespc, const char* path);
   static bool SetLastAccessed(Namespace* namespc,
                               const char* path,
-                              int64_t millis);
+                              int64_t micros);
   static bool IsAbsolutePath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();

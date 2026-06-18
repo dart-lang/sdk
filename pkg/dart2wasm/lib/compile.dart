@@ -191,6 +191,8 @@ const List<String> _binaryenFlagsMultiModule = [
   '--enable-simd',
   '--traps-never-happen',
   '-Os',
+  '--gufa',
+  '-Os',
   '-Os',
 ];
 

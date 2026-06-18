@@ -59,11 +59,18 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
   buffer[Utils::Minimum<int>(message_size, buffer_length - 1)] = 0;
 }
 
-FILETIME GetFiletimeFromMillis(int64_t millis) {
-  const int64_t kTimeScaler = 10000;  // 100 ns to ms.
+FILETIME GetFiletimeFromMicros(int64_t micros) {
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
   TimeStamp t;
-  t.t_ = millis * kTimeScaler + kFileTimeEpoch;
+  t.t_ = micros * kTimeScaler + kFileTimeEpoch;
   return t.ft_;
+}
+
+int64_t FileTimeToMicroseconds(const FILETIME& ft) {
+  const int64_t kTimeScaler = 10;  // 100 ns to us.
+  TimeStamp t;
+  t.ft_ = ft;
+  return (t.t_ - kFileTimeEpoch) / kTimeScaler;
 }
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(nullptr) {

@@ -1041,12 +1041,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitLegacyVariable(LegacyVariable node) {
-    visited.add(NodeKind.LegacyVariable);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     visited.add(NodeKind.VariableDeclaration);
     node.visitChildren(this);
@@ -1343,7 +1337,6 @@ enum NodeKind {
   Extension,
   ExtensionTypeDeclaration,
   FunctionNode,
-  LegacyVariable,
   Library,
   LibraryDependency,
   LibraryPart,

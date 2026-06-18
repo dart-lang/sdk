@@ -226,10 +226,9 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       );
       if (argWasmType != null) {
         wasmImportProcedureArgs.add(
-          Variable(
-            node.function.positionalParameters[i].name!,
+          SyntheticVariable(
+            cosmeticName: node.function.positionalParameters[i].name!,
             type: argWasmType,
-            isSynthesized: true,
           ),
         );
       }

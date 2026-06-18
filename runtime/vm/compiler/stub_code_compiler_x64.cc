@@ -3690,10 +3690,10 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(RAX, RDX);
-  __ movzxw(R9,
-            FieldAddress(RBX, target::SingleTargetCache::lower_limit_offset()));
-  __ movzxw(R10,
-            FieldAddress(RBX, target::SingleTargetCache::upper_limit_offset()));
+  __ movl(R9,
+          FieldAddress(RBX, target::SingleTargetCache::lower_limit_offset()));
+  __ movl(R10,
+          FieldAddress(RBX, target::SingleTargetCache::upper_limit_offset()));
   __ cmpq(RAX, R9);
   __ j(LESS, &miss, Assembler::kNearJump);
   __ cmpq(RAX, R10);

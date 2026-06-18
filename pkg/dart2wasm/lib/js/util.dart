@@ -815,11 +815,10 @@ class CoreTypesUtil {
       final conversionProcedure = _dartConversionProcedure(
         expectedTypeExtensionTypeErasure,
       );
-      final invocationValueVar = Variable(
-        '#jsInvocation',
+      final invocationValueVar = SyntheticVariable(
+        cosmeticName: '#jsInvocation',
         initializer: invocation,
         type: nullableWasmExternRefType,
-        isSynthesized: true,
       );
       expression = Let(
         invocationValueVar,
@@ -847,17 +846,15 @@ class CoreTypesUtil {
       //      } else {
       //        throw;
       //      }
-      Variable v = Variable(
-        '#vardouble',
+      Variable v = SyntheticVariable(
+        cosmeticName: '#vardouble',
         initializer: AsExpression(expression, coreTypes.doubleNullableRawType),
         type: coreTypes.doubleNullableRawType,
-        isSynthesized: true,
       );
-      Variable v2 = Variable(
-        '#varint',
+      Variable v2 = SyntheticVariable(
+        cosmeticName: '#varint',
         initializer: invokeMethod(v, numToIntTarget),
         type: coreTypes.intNonNullableRawType,
-        isSynthesized: true,
       );
       expression = Let(
         v,

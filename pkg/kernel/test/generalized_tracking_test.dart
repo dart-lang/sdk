@@ -25,10 +25,10 @@ void main() {
     new FunctionNode(
       null,
       namedParameters: [
-        new Variable('file', type: const DynamicType()),
-        new Variable('line', type: const DynamicType()),
-        new Variable('column', type: const DynamicType()),
-        new Variable('name', type: const DynamicType()),
+        new PositionalParameter(cosmeticName: 'file'),
+        new PositionalParameter(cosmeticName: 'line'),
+        new PositionalParameter(cosmeticName: 'column'),
+        new PositionalParameter(cosmeticName: 'name'),
       ],
     ),
     name: new Name('_', developerLib),

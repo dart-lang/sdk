@@ -419,12 +419,9 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       left = instance_of->value()->definition();
     }
     if (!type->IsTopTypeForInstanceOf()) {
-      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter())
-                                   ? CompileType::kCanBeNull
-                                   : CompileType::kCannotBeNull;
       EnsureMoreAccurateRedefinition(
           true_successor, left,
-          CompileType::FromAbstractType(*type, is_nullable,
+          CompileType::FromAbstractType(*type, CompileType::kCanBeNull,
                                         CompileType::kCannotBeSentinel));
     }
   } else if (comparison->InputAt(0)->BindsToConstant() &&

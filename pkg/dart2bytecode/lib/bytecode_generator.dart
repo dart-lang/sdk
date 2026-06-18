@@ -4020,6 +4020,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       // stepping out from the debugger function.
       assert(asm.currentSourcePosition != TreeNode.noOffset);
       asm.emitSourcePosition();
+      // The value returned from the debugger call is often ignored, making the
+      // next instruction a Drop1 which is ignored for single stepping purposes
+      // by the interpreter. Thus, explicitly output a Nop instruction to serve
+      // as the pause point after stepping out from the debugger call.
+      asm.emitNop();
     }
   }
 

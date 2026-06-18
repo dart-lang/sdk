@@ -463,6 +463,17 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kReturnTOS;
   }
 
+  DART_FORCE_INLINE static bool IsStackManipulationOpcode(
+      const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kDrop1:
+      case KernelBytecode::kDup:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   DART_FORCE_INLINE static uint8_t DecodeArgc(const KBCInstr* ret_addr) {
     // All call instructions have DF encoding, with argc being the last byte
     // regardless of whether the wide variant is used or not.

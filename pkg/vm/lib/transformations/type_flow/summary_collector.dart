@@ -801,7 +801,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
             useTypesFrom = FunctionNode(
               null,
               positionalParameters: [
-                Variable("value", type: target.type, isSynthesized: true),
+                PositionalParameter(
+                  cosmeticName: "value",
+                  type: target.type,
+                  isSynthesized: true,
+                ),
               ],
             );
           } else {

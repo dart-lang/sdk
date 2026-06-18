@@ -228,14 +228,14 @@ void _testVariableDeclarations() {
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
         new InternalLocalVariable(
-          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          astVariable: new LocalVariable(name: 'a', type: null),
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
       ),
       new InternalVariableDeclaration(
         new InternalLocalVariable(
-          astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+          astVariable: new LocalVariable(name: 'b', type: null),
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
@@ -248,10 +248,7 @@ dynamic a, b;''',
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
         new InternalLocalVariable(
-          astVariable: new LocalVariable(
-            cosmeticName: 'a',
-            type: const VoidType(),
-          ),
+          astVariable: new LocalVariable(name: 'a', type: const VoidType()),
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
@@ -259,7 +256,7 @@ dynamic a, b;''',
       new InternalVariableDeclaration(
         new InternalLocalVariable(
           astVariable: new LocalVariable(
-            cosmeticName: 'b',
+            name: 'b',
             type: null,
             initializer: new NullLiteral(),
           ),
@@ -280,7 +277,7 @@ void _testTryStatement() {
   Block returnBlock2 = new Block([new ReturnStatement()]);
   InternalCatch emptyCatchBlock = new InternalCatch(
     exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      astVariable: new LocalVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -289,7 +286,7 @@ void _testTryStatement() {
   );
   InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
     exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      astVariable: new LocalVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -299,7 +296,7 @@ void _testTryStatement() {
   );
   InternalCatch returnCatchBlock = new InternalCatch(
     exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      astVariable: new LocalVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -308,7 +305,7 @@ void _testTryStatement() {
   );
   InternalCatch returnCatchBlockOnVoid = new InternalCatch(
     exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+      astVariable: new LocalVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -426,7 +423,7 @@ void _testInternalForInStatement() {
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
           new InternalLocalVariable(
-            astVariable: new LocalVariable(cosmeticName: 'e', type: null),
+            astVariable: new LocalVariable(name: 'e', type: null),
             isImplicitlyTyped: true,
             fileOffset: -1,
           ),
@@ -448,10 +445,7 @@ for (var e in null) {}''',
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
           new InternalLocalVariable(
-            astVariable: new LocalVariable(
-              cosmeticName: 'e',
-              type: const VoidType(),
-            ),
+            astVariable: new LocalVariable(name: 'e', type: const VoidType()),
             isImplicitlyTyped: false,
             fileOffset: -1,
           ),
@@ -476,7 +470,7 @@ for (void e in null) {}''',
             new InternalVariablePattern(
               type: const VoidType(),
               variable: new InternalLocalVariable(
-                astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+                astVariable: new LocalVariable(name: 'a', type: null),
                 fileOffset: TreeNode.noOffset,
                 isImplicitlyTyped: true,
               ),
@@ -485,7 +479,7 @@ for (void e in null) {}''',
             new InternalVariablePattern(
               type: null,
               variable: new InternalLocalVariable(
-                astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+                astVariable: new LocalVariable(name: 'b', type: null),
                 isImplicitlyTyped: true,
                 fileOffset: TreeNode.noOffset,
               ),
@@ -510,7 +504,7 @@ for (var (void a, var b) in null) {}''',
     new InternalForInStatement(
       new ExistingVariableForInElement(
         variable: new InternalLocalVariable(
-          astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+          astVariable: new LocalVariable(name: 'a', type: null),
           isImplicitlyTyped: true,
           fileOffset: -1,
         ),
@@ -603,14 +597,14 @@ for (null in null) {}''',
         variableDeclarations: [
           new InternalVariableDeclaration(
             new InternalLocalVariable(
-              astVariable: new LocalVariable(cosmeticName: 'a', type: null),
+              astVariable: new LocalVariable(name: 'a', type: null),
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
           ),
           new InternalVariableDeclaration(
             new InternalLocalVariable(
-              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+              astVariable: new LocalVariable(name: 'b', type: null),
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
@@ -634,17 +628,14 @@ for (var a, b in null) {}''',
         variableDeclarations: [
           new InternalVariableDeclaration(
             new InternalLocalVariable(
-              astVariable: new LocalVariable(
-                cosmeticName: 'a',
-                type: const VoidType(),
-              ),
+              astVariable: new LocalVariable(name: 'a', type: const VoidType()),
               isImplicitlyTyped: false,
               fileOffset: -1,
             ),
           ),
           new InternalVariableDeclaration(
             new InternalLocalVariable(
-              astVariable: new LocalVariable(cosmeticName: 'b', type: null),
+              astVariable: new LocalVariable(name: 'b', type: null),
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
@@ -1347,7 +1338,7 @@ void _testFunctionDeclarationImpl() {
   testStatement(
     new InternalFunctionDeclaration(
         variable: new InternalLocalVariable(
-          astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+          astVariable: new LocalVariable(name: 'foo', type: null),
           isImplicitlyTyped: true,
           fileOffset: TreeNode.noOffset,
         ),
@@ -1585,7 +1576,7 @@ return 0;''');
 void _testVariableDeclarationImpl() {
   testVariableDeclaration(
     new InternalLocalVariable(
-      astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+      astVariable: new LocalVariable(name: 'foo', type: null),
       isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     ),
@@ -1595,7 +1586,7 @@ dynamic foo''',
   testVariableDeclaration(
     new InternalLocalVariable(
       astVariable: new LocalVariable(
-        cosmeticName: 'foo',
+        name: 'foo',
         type: null,
         initializer: new IntLiteral(0),
       ),
@@ -1623,7 +1614,7 @@ required void foo''',
   testVariableDeclaration(
     new InternalLateVariable(
       astVariable: new LateVariable(
-        cosmeticName: 'foo',
+        name: 'foo',
         type: const VoidType(),
         initializer: new IntLiteral(0),
       ),
@@ -1636,7 +1627,7 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalLateVariable(
         astVariable: new LateVariable(
-          cosmeticName: 'foo',
+          name: 'foo',
           type: const VoidType(),
           initializer: new IntLiteral(0),
         ),
@@ -1654,7 +1645,7 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalLateVariable(
         astVariable: new LateVariable(
-          cosmeticName: 'foo',
+          name: 'foo',
           type: const DynamicType(),
           initializer: new IntLiteral(0),
         ),
@@ -1770,10 +1761,7 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  Variable variable = new LocalVariable(
-    cosmeticName: 'foo',
-    type: const DynamicType(),
-  );
+  Variable variable = new LocalVariable(name: 'foo', type: const DynamicType());
   testExpression(
     new IfNullSet(
       new VariableGet(variable),
@@ -2085,7 +2073,7 @@ void _testPropertyIncDec() {
 
 void _testLocalIncDec() {
   InternalLocalVariable variable = new InternalLocalVariable(
-    astVariable: new LocalVariable(cosmeticName: 'foo', type: null),
+    astVariable: new LocalVariable(name: 'foo', type: null),
     isImplicitlyTyped: true,
     fileOffset: TreeNode.noOffset,
   );

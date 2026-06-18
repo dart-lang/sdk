@@ -6482,11 +6482,6 @@ class StatementConstantEvaluator
   ExecutionStatus visitLateVariable(LateVariable node) => visitVariable(node);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  ExecutionStatus visitLegacyVariable(LegacyVariable node) =>
-      visitVariable(node);
-
-  @override
   ExecutionStatus visitLocalVariable(LocalVariable node) => visitVariable(node);
 
   @override

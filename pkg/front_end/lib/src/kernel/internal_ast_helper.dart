@@ -628,7 +628,7 @@ LabeledStatement createLabeledStatement(Statement statement) {
 }
 
 InternalVariable createLateVariable({
-  required String? name,
+  required String name,
   required DartType? type,
   bool isFinal = false,
   bool isConst = false,
@@ -643,7 +643,7 @@ InternalVariable createLateVariable({
 }) {
   return new InternalLateVariable(
     astVariable: extern.createLateVariable(
-      cosmeticName: name,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,
@@ -728,7 +728,7 @@ InternalVariable createLocalVariable({
 }) {
   return new InternalLocalVariable(
     astVariable: extern.createLocalVariable(
-      cosmeticName: name,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,

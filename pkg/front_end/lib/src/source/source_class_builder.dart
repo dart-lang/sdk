@@ -28,7 +28,6 @@ import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
-import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -2427,12 +2426,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
   }
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns an iterator the origin class and all augmentations in application
-  /// order.
-  Iterator<SourceClassBuilder> get declarationIterator =>
-      new AugmentationIterator<SourceClassBuilder>(this, null);
 
   @override
   // Coverage-ignore(suite): Not run.

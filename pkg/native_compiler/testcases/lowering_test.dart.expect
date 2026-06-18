@@ -18,7 +18,7 @@ B0 = EntryBlock()
   v8 = AllocateContext()   # RA: R0 <- () temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[0])
-  StoreInstanceField(#context-field:this, v8, v2)   # RA: (R0, R5) temps: [R2, R3]
+  StoreInstanceField(#context-field:this-variable, v8, v2)   # RA: (R0, R5) temps: [R2, R3]
   v37 = LoadInstanceField(C.#typeArguments, v2)   # RA: R2 <- (R5)
   ParallelMove output(R6 -> R0, R2 -> R1, R2 -> stack[1])
   ParallelMove input(vloc:R0 -> R0, vloc:R1 -> R2, NullConstant(null) -> R1)
@@ -64,7 +64,7 @@ B0 = EntryBlock()
   v3 = LoadInstanceField(#closure-field[0], v1)   # RA: R1 <- (R0)
   ParallelMove output(R1 -> stack[0])
   v6 = LoadInstanceField(#closure-field[1], v1)   # RA: R2 <- (R0)
-  v7 = LoadInstanceField(#context-field:this, v6)   # RA: R2 <- (R2)
+  v7 = LoadInstanceField(#context-field:this-variable, v6)   # RA: R2 <- (R2)
   LoadInstanceField(#closure-field[1], v1)   # RA: R0 <- (R0)
   v17 = LoadInstanceField(C.#typeArguments, v7)   # RA: R0 <- (R2)
   ParallelMove input(NullConstant(null) -> vloc:R2)
@@ -91,7 +91,7 @@ B0 = EntryBlock()
   v15 = DirectCall _prependTypeArguments(v1, v5, v16, v17)   # RA: R0 <- (R0, R2, -, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, param[1] -> R1)
   v8 = LoadInstanceField(#closure-field[1], v2)   # RA: R1 <- (R1)
-  LoadInstanceField(#context-field:this, v8)   # RA: R1 <- (R1)
+  LoadInstanceField(#context-field:this-variable, v8)   # RA: R1 <- (R1)
   ParallelMove input(NullConstant(null) -> R1, vloc:R0 -> R2)
   v12 = TypeLiteral(Map<C.typeParameters.U%, V%>, v11, v15)   # RA: R0 <- (R1, R2) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)

@@ -424,7 +424,6 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
 abstract class VariableVisitor<R> {
   const new();
 
-  R visitLegacyVariable(LegacyVariable node);
   R visitPositionalParameter(PositionalParameter node);
   R visitNamedParameter(NamedParameter node);
   R visitLocalVariable(LocalVariable node);
@@ -439,8 +438,6 @@ abstract class VariableVisitor<R> {
 mixin VariableVisitorDefaultMixin<R> implements VariableVisitor<R> {
   R defaultVariable(Variable node);
 
-  @override
-  R visitLegacyVariable(LegacyVariable node) => defaultVariable(node);
   @override
   R visitPositionalParameter(PositionalParameter node) => defaultVariable(node);
   @override
@@ -2780,7 +2777,6 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
 abstract class VariableVisitor1<R, A> {
   const new();
 
-  R visitLegacyVariable(LegacyVariable node, A arg);
   R visitPositionalParameter(PositionalParameter node, A arg);
   R visitNamedParameter(NamedParameter node, A arg);
   R visitLocalVariable(LocalVariable node, A arg);
@@ -2795,9 +2791,6 @@ abstract class VariableVisitor1<R, A> {
 mixin VariableVisitor1DefaultMixin<R, A> implements VariableVisitor1<R, A> {
   R defaultVariable(Variable node, A arg);
 
-  @override
-  R visitLegacyVariable(LegacyVariable node, A arg) =>
-      defaultVariable(node, arg);
   @override
   R visitPositionalParameter(PositionalParameter node, A arg) =>
       defaultVariable(node, arg);
@@ -3085,9 +3078,6 @@ mixin VariableVisitorExperimentExclusionMixin<R> implements VariableVisitor<R> {
   /// same time, it allows us to redirect [visitVariableStatement] to the
   /// overrides of [visitVariable] the backends already have.
   R visitVariable(Variable node);
-
-  @override
-  R visitLegacyVariable(LegacyVariable node) => visitVariable(node);
 
   @override
   R visitPositionalParameter(PositionalParameter node) {

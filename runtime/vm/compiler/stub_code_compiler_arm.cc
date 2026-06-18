@@ -3346,10 +3346,8 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldrh(R2,
-          FieldAddress(R9, target::SingleTargetCache::lower_limit_offset()));
-  __ ldrh(R3,
-          FieldAddress(R9, target::SingleTargetCache::upper_limit_offset()));
+  __ ldr(R2, FieldAddress(R9, target::SingleTargetCache::lower_limit_offset()));
+  __ ldr(R3, FieldAddress(R9, target::SingleTargetCache::upper_limit_offset()));
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

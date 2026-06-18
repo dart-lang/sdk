@@ -84,10 +84,10 @@ Future<void> main() async {
       positionalCount: 1,
     );
     Expression expression = new VariableGet(
-      new LocalVariable(cosmeticName: "expression", type: const DynamicType()),
+      new LocalVariable(name: "expression", type: const DynamicType()),
     );
     Expression index = new VariableGet(
-      new LocalVariable(cosmeticName: "index", type: const DynamicType()),
+      new LocalVariable(name: "index", type: const DynamicType()),
     );
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(
@@ -183,7 +183,7 @@ Future<void> main() async {
       loader: null,
     );
     InternalVariable variable = new InternalSyntheticVariable(
-      astVariable: new SyntheticVariable(type: const DynamicType()),
+      astVariable: new SyntheticVariable(),
       isImplicitlyTyped: false,
       fileOffset: -1,
     );

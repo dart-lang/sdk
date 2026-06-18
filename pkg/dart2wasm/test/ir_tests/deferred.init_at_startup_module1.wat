@@ -33,12 +33,10 @@
     end $label0
   )
   (func $write (result (ref $JSExternWrapper))
-    (local $var0 (ref $JSExternWrapper))
     global.get $array
     i32.const 0
     global.get $"\"hello\""
-    local.tee $var0
     array.set $Array<String?>
-    local.get $var0
+    global.get $"\"hello\""
   )
 )

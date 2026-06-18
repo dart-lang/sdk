@@ -279,9 +279,10 @@ mixin FinalizableTransformer on Transformer {
     }
     if (_isFinalizable(node.type)) {
       if (_possiblyUninitialized(node)) {
-        final alwaysInitializedDeclaration = Variable(
-          ':${node.name}:finalizableValue',
+        final alwaysInitializedDeclaration = SyntheticVariable(
+          cosmeticName: ':${node.name}:finalizableValue',
           type: node.type.withDeclaredNullability(Nullability.nullable),
+          isSynthesized: false,
         );
         _currentScope!.addPossiblyUninitializedDeclaration(
           node,
@@ -553,12 +554,11 @@ mixin FinalizableTransformer on Transformer {
     Expression expression,
     List<Expression> declarations,
   ) {
-    final resultVariable = Variable(
-      ":expressionValueWrappedFinalizable",
+    final resultVariable = SyntheticVariable(
+      cosmeticName: ":expressionValueWrappedFinalizable",
       initializer: expression,
       type: staticTypeContext!.getExpressionType(expression),
       isFinal: true,
-      isSynthesized: true,
     );
     return BlockExpression(
       Block(<Statement>[

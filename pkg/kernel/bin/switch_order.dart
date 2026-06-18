@@ -334,7 +334,6 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.PositionalParameter) return "PositionalParameter";
   if (tag == Tag.NamedParameter) return "NamedParameter";
   if (tag == Tag.ThisVariable) return "ThisVariable";
-  if (tag == Tag.LegacyVariable) return "LegacyVariable";
 
   return null;
 }

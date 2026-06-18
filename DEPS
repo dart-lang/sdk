@@ -101,7 +101,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "3c25487214600a965e6d5134252efc55b7980000",
+  "binaryen_rev" : "aba417e711baa6eb92c8553ee59a15694c6f3819",
   "boringssl_rev": "5124f7e67b3cb0bc296c790e4d831459782dc8fc",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
