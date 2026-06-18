@@ -55,7 +55,7 @@ const dartTypeFormattingCharacters = ['}', ';'];
 final analysisOptionsFile = TextDocumentFilterScheme(
   language: 'yaml',
   scheme: 'file',
-  pattern: '**/analysis_options.yaml',
+  pattern: .t1('**/analysis_options.yaml'),
 );
 
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
@@ -86,14 +86,14 @@ final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
 final fixDataFile = TextDocumentFilterScheme(
   language: 'yaml',
   scheme: 'file',
-  pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}',
+  pattern: .t1('**/lib/{fix_data.yaml,fix_data/**.yaml}'),
 );
 
 /// A [TextDocumentFilterScheme] for Pubspec files.
 final pubspecFile = TextDocumentFilterScheme(
   language: 'yaml',
   scheme: 'file',
-  pattern: '**/pubspec.yaml',
+  pattern: .t1('**/pubspec.yaml'),
 );
 
 /// IDs of client-provided commands that the server knows about.

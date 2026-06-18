@@ -417,7 +417,7 @@ class JsonTest {
       severity: DiagnosticSeverity.Error,
       code: 'test_err',
       source: '/tmp/source.dart',
-      message: 'err!!',
+      message: .t2('err!!'),
       relatedInformation: [
         DiagnosticRelatedInformation(location: location, message: 'message'),
       ],
@@ -550,7 +550,7 @@ class JsonTest {
     var params = Either2<String, TextDocumentItem>.t2(
       TextDocumentItem(
         uri: Uri.parse('http://example.org/'),
-        languageId: '!language',
+        languageId: LanguageKind.HTML,
         version: 1,
         text: '!text',
       ),
@@ -559,7 +559,7 @@ class JsonTest {
     expect(
       output,
       equals(
-        '{"languageId":"!language","text":"!text","uri":"http://example.org/","version":1}',
+        '{"languageId":"html","text":"!text","uri":"http://example.org/","version":1}',
       ),
     );
   }

@@ -38,6 +38,24 @@ extension CodeActionExtensions on CodeAction {
   }
 }
 
+extension GlobPatternExtension on GlobPattern? {
+  String? get asString {
+    return this?.map(
+      (string) => string,
+      (relativePattern) => throw 'Expected String, got RelativePattern',
+    );
+  }
+}
+
+extension MarkupContentOrStringExtension on Either2<MarkupContent, String> {
+  String get asString {
+    return map(
+      (markup) => throw 'Expected String, got MarkupContent',
+      (string) => string,
+    );
+  }
+}
+
 extension PositionExtension on Position {
   String toText() => '${line + 1}:${character + 1}';
 }
