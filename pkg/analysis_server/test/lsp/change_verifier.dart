@@ -306,7 +306,7 @@ class TextEditWithIndex {
 
   new fromUnion(
     this.index,
-    Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit,
+    Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit> edit,
   ) : edit = edit.map((e) => e, (e) => e, (e) => e);
 
   /// Compares two [TextEditWithIndex] to sort them stably in source-order.

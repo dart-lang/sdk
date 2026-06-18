@@ -12,7 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -267,25 +267,28 @@ class Driver implements CommandLineStarter {
           var fileResult = analysisDriver.currentSession.getFile(path);
           if (fileResult is! FileResult) continue;
           var file = fileResult.file;
-          var content = file.readAsStringSync();
-          var lineInfo = LineInfo.fromContent(content);
           var contextRoot =
               analysisDriver.currentSession.analysisContext.contextRoot;
           var package = contextRoot.workspace.findPackageFor(file.path);
           var sdkVersionConstraint = (package is PubPackage)
               ? package.sdkVersionConstraint
               : null;
-          var errors = AnalysisOptionsValidator(
+          var parseResult = AnalysisOptionsParseSession().parse(
             sourceFactory: analysisDriver.sourceFactory,
             contextRoot: contextRoot.root,
+            file: file,
             sdkVersionConstraint: sdkVersionConstraint,
-          ).validate(file);
-          var analysisOptions = fileResult.analysisOptions;
+          );
+          var fileContent = parseResult.content;
+          if (fileContent == null) continue;
+          var lineInfo = fileContent.lineInfo;
+          var errors = parseResult.diagnostics;
+          var analysisOptions = parseResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
               file: file,
-              content: content,
+              content: fileContent.text,
               uri: pathContext.toUri(path),
               lineInfo: lineInfo,
               isLibrary: true,

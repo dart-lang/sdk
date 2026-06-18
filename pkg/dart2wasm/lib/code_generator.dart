@@ -309,8 +309,7 @@ abstract class AstCodeGenerator
         // the argument, but the wasm type may be of object type). So we first
         // have to handle sentinel before we can downcast the value.
         b.local_get(local);
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstantBackendUse(
           ParameterInfo.defaultValueSentinel,
           local.type,
         );
@@ -867,7 +866,7 @@ abstract class AstCodeGenerator
       final Location? location = node.location;
       final w.RefType stringRefType = translator.stringTypeNullable;
       if (location != null) {
-        instantiateConstant(
+        instantiateConstantBackendUse(
           StringConstant(location.file.toString()),
           stringRefType,
         );
@@ -879,7 +878,10 @@ abstract class AstCodeGenerator
           node.conditionStartOffset,
           node.conditionEndOffset,
         );
-        instantiateConstant(StringConstant(conditionString), stringRefType);
+        instantiateConstantBackendUse(
+          StringConstant(conditionString),
+          stringRefType,
+        );
       } else {
         b.ref_null(stringRefType.heapType);
         b.i64_const(0);
@@ -2850,7 +2852,7 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      instantiateConstant(paramInfo.positional[i]!, type);
+      instantiateConstantBackendUse(paramInfo.positional[i]!, type);
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2873,7 +2875,7 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        instantiateConstant(paramInfo.named[name]!, type);
+        instantiateConstantBackendUse(paramInfo.named[name]!, type);
       }
     }
   }
@@ -3375,8 +3377,7 @@ abstract class AstCodeGenerator
     final printFunction = translator.functions.getFunction(
       translator.printToConsole.reference,
     );
-    translator.constants.instantiateConstant(
-      b,
+    instantiateConstantBackendUse(
       StringConstant(s),
       printFunction.type.inputs[0],
     );
@@ -3404,8 +3405,7 @@ abstract class AstCodeGenerator
     } else {
       b.ref_null(w.HeapType.none);
     }
-    translator.constants.instantiateConstant(
-      b,
+    instantiateConstantBackendUse(
       translator.symbols.methodSymbolFromName(member.name),
       translator.classInfo[translator.symbolClass]!.nonNullableType,
     );
@@ -3423,6 +3423,25 @@ abstract class AstCodeGenerator
       constant,
       expectedType,
       deferredModuleGuard: translator.moduleForConstant(constant),
+    );
+  }
+
+  /// Instantiates [constant] in place only known to the backend.
+  ///
+  /// If the backend / code generator uses a constant in a way that's not
+  /// encoded in the AST, then such a use wouldn't be known to the algorithm
+  /// that partitions the app into deferred modules.
+  ///
+  /// It should therefore not use a `deferredModuleGuard`.
+  void instantiateConstantBackendUse(
+    Constant constant,
+    w.ValueType expectedType,
+  ) {
+    translator.constants.instantiateConstant(
+      b,
+      constant,
+      expectedType,
+      deferredModuleGuard: null,
     );
   }
 }
@@ -3926,7 +3945,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = defaultFunctionValue ?? defaultValue!;
-        translator.constants.instantiateConstant(b, value, targetParamType);
+        instantiateConstantBackendUse(value, targetParamType);
       }
     }
 
@@ -3967,7 +3986,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        translator.constants.instantiateConstant(b, value, targetParamType);
+        instantiateConstantBackendUse(value, targetParamType);
       }
     }
 

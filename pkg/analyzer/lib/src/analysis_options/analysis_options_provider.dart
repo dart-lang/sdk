@@ -35,6 +35,7 @@ class AnalysisOptionsProvider {
   ///
   /// Recursively merges options referenced by any `include` directives before
   /// applying the resulting YAML to a new [AnalysisOptionsImpl].
+  @Deprecated('Use AnalysisOptionsParseSession.parse instead.')
   AnalysisOptionsImpl getAnalysisOptionsFromFile(
     File file, {
     AnalysisOptionsCache? analysisOptionsCache,

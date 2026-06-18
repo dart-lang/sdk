@@ -247,7 +247,7 @@ class _LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (_isPrimarySource) {
         var state = rule.state;
-        if (state.isDeprecated && _isDeprecatedInCurrentOrEarlierSdk(state)) {
+        if (_isDeprecatedInCurrentOrEarlierSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.report(

@@ -466,19 +466,26 @@ Future<void> hasPausedFor(
   IsolateRef isolateRef,
   String kind,
 ) async {
-  Completer<dynamic>? completer = Completer();
+  final completer = Completer<void>();
   late StreamSubscription<Event> subscription;
-  subscription = service.onDebugEvent.listen((event) async {
+  bool completed = false;
+
+  // Synchronously guard the entry to complete() before any async yields to
+  // prevent concurrent execution paths (e.g., the stream listener and
+  // getIsolate fallback) from double-completing it and throwing a StateError.
+  Future<void> complete() async {
+    if (completed) return;
+    completed = true;
+    try {
+      await subscription.cancel();
+      await _unsubscribeDebugStream(service);
+    } catch (_) {}
+    completer.complete();
+  }
+
+  subscription = service.onDebugEvent.listen((event) {
     if ((isolateRef.id == event.isolate!.id) && (event.kind == kind)) {
-      if (completer != null) {
-        try {
-          await service.streamCancel(EventStreams.kDebug);
-        } catch (_) {/* swallow exception */} finally {
-          await subscription.cancel();
-          completer?.complete();
-          completer = null;
-        }
-      }
+      unawaited(complete());
     }
   });
 
@@ -489,16 +496,9 @@ Future<void> hasPausedFor(
   final isolate = await service.getIsolate(id);
   final event = isolate.pauseEvent!;
   if (event.kind == kind) {
-    if (completer != null) {
-      try {
-        await service.streamCancel(EventStreams.kDebug);
-      } catch (_) {/* swallow exception */} finally {
-        await subscription.cancel();
-        completer?.complete();
-      }
-    }
+    await complete();
   }
-  return completer?.future; // Will complete when breakpoint hit.
+  return completer.future; // Will complete when breakpoint hit.
 }
 
 // WARNING: interleaving calls based on hasPausedFor using Future.wait() may

@@ -30,8 +30,8 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -932,7 +932,7 @@ typedef LSPObject = Object;
 typedef LSPUri = Uri;
 
 typedef TextDocumentEditEdits
-    = List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>;
+    = List<Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>>;
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -4741,10 +4741,10 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
   }
 }
 
-class SnippetTextEdit implements TextEdit, ToJsonable {
+class SnippetableTextEdit implements TextEdit, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    SnippetTextEdit.canParse,
-    SnippetTextEdit.fromJson,
+    SnippetableTextEdit.canParse,
+    SnippetableTextEdit.fromJson,
   );
 
   final InsertTextFormat insertTextFormat;
@@ -4757,7 +4757,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   /// document create a range where start === end.
   @override
   final Range range;
-  SnippetTextEdit({
+  SnippetableTextEdit({
     required this.insertTextFormat,
     required this.newText,
     required this.range,
@@ -4771,8 +4771,8 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    return other is SnippetTextEdit &&
-        other.runtimeType == SnippetTextEdit &&
+    return other is SnippetableTextEdit &&
+        other.runtimeType == SnippetableTextEdit &&
         insertTextFormat == other.insertTextFormat &&
         newText == other.newText &&
         range == other.range;
@@ -4803,12 +4803,12 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
       return _canParseRange(obj, reporter, 'range',
           allowsUndefined: false, allowsNull: false);
     } else {
-      reporter.reportError('must be of type SnippetTextEdit');
+      reporter.reportError('must be of type SnippetableTextEdit');
       return false;
     }
   }
 
-  static SnippetTextEdit fromJson(Map<String, Object?> json) {
+  static SnippetableTextEdit fromJson(Map<String, Object?> json) {
     final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat =
         InsertTextFormat.fromJson(insertTextFormatJson as int);
@@ -4816,7 +4816,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
     final newText = newTextJson as String;
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return SnippetTextEdit(
+    return SnippetableTextEdit(
       insertTextFormat: insertTextFormat,
       newText: newText,
       range: range,

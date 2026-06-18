@@ -380,6 +380,21 @@ class C {
 ''');
   }
 
+  Future<void> test_parameter_nonDeclaring_referencedInInitializer() async {
+    await resolveTestCode('''
+class C^(int x) {
+  final int y = x;
+}
+''');
+    await assertHasAssist('''
+class C {
+  new(int x) : y = x;
+
+  final int y;
+}
+''');
+  }
+
   Future<void> test_parameter_nonDeclaring_requiredNamed() async {
     await resolveTestCode('''
 class C^({required int x}) {}

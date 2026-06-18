@@ -222,7 +222,7 @@ WorkspaceEdit createRenameEdit(
 
 /// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange].
 ///
-/// Can return experimental [lsp.SnippetTextEdit]s if the following are true:
+/// Can return experimental [lsp.SnippetableTextEdit]s if the following are true:
 /// - the client has indicated support for in the experimental section of their
 ///   client capabilities, and
 /// - [allowSnippets] is true, and
@@ -288,7 +288,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
           (e) =>
               Either3<
                 lsp.AnnotatedTextEdit,
-                lsp.SnippetTextEdit,
+                lsp.SnippetableTextEdit,
                 lsp.TextEdit
               >.t2(e),
         )
@@ -883,7 +883,8 @@ ChangeAnnotation? recordEditAnnotation(
 String relevanceToSortText(int relevance) =>
     (sortTextMaxValue - relevance).toString();
 
-/// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
+/// Creates a [lsp.SnippetableTextEdit] for a set of edits using Linked Edit
+/// Groups.
 ///
 /// Edit groups offsets are based on the entire content being modified after all
 /// edits, so [editOffset] must to take into account both the offset of the edit
@@ -891,7 +892,7 @@ String relevanceToSortText(int relevance) =>
 ///
 /// [selectionOffset] is also absolute and assumes `edit.replacement` will be
 /// inserted at [editOffset].
-lsp.SnippetTextEdit snippetTextEditFromEditGroups(
+lsp.SnippetableTextEdit snippetTextEditFromEditGroups(
   String filePath,
   server.LineInfo lineInfo,
   server.SourceEdit edit, {
@@ -900,7 +901,7 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
   required int? selectionOffset,
   required int? selectionLength,
 }) {
-  return lsp.SnippetTextEdit(
+  return lsp.SnippetableTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     range: toRange(lineInfo, edit.offset, edit.length),
     newText: buildSnippetStringForEditGroups(
@@ -914,17 +915,18 @@ lsp.SnippetTextEdit snippetTextEditFromEditGroups(
   );
 }
 
-/// Creates a SnippetTextEdit for an edit with a selection placeholder.
+/// Creates a [lsp.SnippetableTextEdit] for an edit with a selection
+/// placeholder.
 ///
 /// [selectionOffsetRelative] is relative to (and therefore must be within) the
 /// edit.
-lsp.SnippetTextEdit snippetTextEditWithSelection(
+lsp.SnippetableTextEdit snippetTextEditWithSelection(
   server.LineInfo lineInfo,
   server.SourceEdit edit, {
   required int selectionOffsetRelative,
   int? selectionLength,
 }) {
-  return lsp.SnippetTextEdit(
+  return lsp.SnippetableTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     range: toRange(lineInfo, edit.offset, edit.length),
     newText: buildSnippetStringWithTabStops(edit.replacement, [
@@ -1596,7 +1598,7 @@ lsp.SignatureHelp toSignatureHelp(
   );
 }
 
-List<lsp.SnippetTextEdit> toSnippetTextEdits(
+List<lsp.SnippetableTextEdit> toSnippetTextEdits(
   String filePath,
   server.SourceFileEdit change,
   List<server.LinkedEditGroup> editGroups,
@@ -1604,7 +1606,7 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
   required int? selectionOffset,
   required int? selectionLength,
 }) {
-  var snippetEdits = <lsp.SnippetTextEdit>[];
+  var snippetEdits = <lsp.SnippetableTextEdit>[];
 
   // Edit groups offsets are based on the document after the edits are applied.
   // This means we must compute an offset delta for each edit that takes into
@@ -1687,7 +1689,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(
   );
 }
 
-Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
+Either3<lsp.AnnotatedTextEdit, lsp.SnippetableTextEdit, lsp.TextEdit>
 toTextDocumentEditEdit(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
@@ -1697,7 +1699,11 @@ toTextDocumentEditEdit(
   lsp.ChangeAnnotationIdentifier? annotationIdentifier,
 }) {
   if (annotationIdentifier != null) {
-    return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t1(
+    return Either3<
+      lsp.AnnotatedTextEdit,
+      lsp.SnippetableTextEdit,
+      lsp.TextEdit
+    >.t1(
       lsp.AnnotatedTextEdit(
         annotationId: annotationIdentifier,
         range: toRange(lineInfo, edit.offset, edit.length),
@@ -1707,11 +1713,17 @@ toTextDocumentEditEdit(
   }
   if (!capabilities.experimentalSnippetTextEdit ||
       selectionOffsetRelative == null) {
-    return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t3(
-      toTextEdit(lineInfo, edit),
-    );
+    return Either3<
+      lsp.AnnotatedTextEdit,
+      lsp.SnippetableTextEdit,
+      lsp.TextEdit
+    >.t3(toTextEdit(lineInfo, edit));
   }
-  return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t2(
+  return Either3<
+    lsp.AnnotatedTextEdit,
+    lsp.SnippetableTextEdit,
+    lsp.TextEdit
+  >.t2(
     snippetTextEditWithSelection(
       lineInfo,
       edit,
