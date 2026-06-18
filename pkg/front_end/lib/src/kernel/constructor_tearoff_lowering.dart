@@ -482,13 +482,11 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
 }
 
 /// Reverse engineered typedef tear off information.
-class LoweredTypedefTearOff {
-  Procedure typedefTearOff;
-  Expression targetTearOff;
-  List<DartType> typeArguments;
-
-  new(this.typedefTearOff, this.targetTearOff, this.typeArguments);
-
+class LoweredTypedefTearOff(
+  final Procedure typedefTearOff,
+  final Expression targetTearOff,
+  final List<DartType> typeArguments,
+) {
   /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
   /// [expression] is the encoding of a lowered typedef tear off.
   static LoweredTypedefTearOff? fromExpression(Expression expression) {

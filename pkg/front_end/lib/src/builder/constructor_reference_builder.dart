@@ -13,27 +13,16 @@ import 'library_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
-class ConstructorReferenceBuilder {
-  final int charOffset;
-
-  final Uri fileUri;
-
-  final TypeName typeName;
-
-  final List<TypeBuilder>? typeArguments;
+class ConstructorReferenceBuilder(
+  final TypeName typeName,
+  final List<TypeBuilder>? typeArguments,
 
   /// This is the name of a named constructor. As `bar` in `new Foo<T>.bar()`.
-  final String? suffix;
-
+  final String? suffix,
+  final Uri fileUri,
+  final int charOffset,
+) {
   MemberLookupResult? target;
-
-  new(
-    this.typeName,
-    this.typeArguments,
-    this.suffix,
-    this.fileUri,
-    this.charOffset,
-  );
 
   String get fullNameForErrors {
     return "${typeName.fullName}"

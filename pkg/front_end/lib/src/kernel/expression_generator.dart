@@ -7297,12 +7297,10 @@ bool isFieldOrGetter(Member? member) {
 ///    a?.b;
 ///    a?.b = c;
 ///
-abstract class Selector {
-  final ExpressionGeneratorHelper _helper;
-  final Token token;
-
-  new(this._helper, this.token);
-
+abstract class Selector(
+  final ExpressionGeneratorHelper _helper,
+  final Token token,
+) {
   int get fileOffset => offsetForToken(token);
 
   Name get name;
@@ -7364,35 +7362,16 @@ abstract class Selector {
 ///    a..b();
 ///    a?.b();
 ///
-class InvocationSelector extends Selector {
-  @override
-  final Name name;
-
-  @override
-  final List<TypeBuilder>? typeArgumentBuilders;
-
-  @override
-  final TypeArguments? typeArguments;
-
-  @override
-  final bool isTypeArgumentsInForest;
-
-  @override
-  final ActualArguments arguments;
-
-  final bool isPotentiallyConstant;
-
-  new(
-    ExpressionGeneratorHelper helper,
-    Token token,
-    this.name,
-    this.typeArgumentBuilders,
-    this.typeArguments,
-    this.arguments, {
-    this.isPotentiallyConstant = false,
-    this.isTypeArgumentsInForest = true,
-  }) : super(helper, token);
-
+class InvocationSelector(
+  super.helper,
+  super.token,
+  @override final Name name,
+  @override final List<TypeBuilder>? typeArgumentBuilders,
+  @override final TypeArguments? typeArguments,
+  @override final ActualArguments arguments, {
+  final bool isPotentiallyConstant = false,
+  @override final bool isTypeArgumentsInForest = true,
+}) extends Selector {
   @override
   // Coverage-ignore(suite): Not run.
   String get _debugName => 'InvocationSelector';
@@ -7439,13 +7418,8 @@ class InvocationSelector extends Selector {
 ///    a?.b;
 ///    a?.b = c;
 ///
-class PropertySelector extends Selector {
-  @override
-  final Name name;
-
-  new(ExpressionGeneratorHelper helper, Token token, this.name)
-    : super(helper, token);
-
+class PropertySelector(super.helper, super.token, @override final Name name)
+    extends Selector {
   @override
   // Coverage-ignore(suite): Not run.
   String get _debugName => 'PropertySelector';
