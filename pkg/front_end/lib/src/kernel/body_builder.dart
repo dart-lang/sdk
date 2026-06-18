@@ -2676,6 +2676,15 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             variable,
           );
+        } else if (getable.isPrimaryConstructorParameter &&
+            inConstructorInitializer) {
+          return _createReadOnlyVariableAccess(
+            variable,
+            nameToken,
+            nameOffset,
+            name,
+            ReadOnlyAccessKind.PrimaryConstructorParameter,
+          );
         } else if (!getable.isAssignable ||
             (getable.isFinal && forStatementScope)) {
           return _createReadOnlyVariableAccess(
@@ -2683,11 +2692,9 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             nameOffset,
             name,
-            getable.isPrimaryConstructorParameter
-                ? ReadOnlyAccessKind.PrimaryConstructorParameter
-                : (getable.isConst
-                      ? ReadOnlyAccessKind.ConstVariable
-                      : ReadOnlyAccessKind.FinalVariable),
+            getable.isConst
+                ? ReadOnlyAccessKind.ConstVariable
+                : ReadOnlyAccessKind.FinalVariable,
           );
         } else {
           return new VariableUseGenerator(this, nameToken, variable);

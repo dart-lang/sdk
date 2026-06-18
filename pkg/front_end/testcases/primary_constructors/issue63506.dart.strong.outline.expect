@@ -9,7 +9,7 @@ class B extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C extends self::B /*hasConstConstructor*/  {
-  const constructor •({required final core::int i}) → self::C
+  const constructor •({required core::int i}) → self::C
     : super self::B::•(i: i)
     ;
 }

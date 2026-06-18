@@ -503,7 +503,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       kind: kind,
       modifiers: isDeclaring
           ? (modifiers | Modifiers.InitializingFormal)
-          : (modifiers | Modifiers.Final),
+          : modifiers,
       type: isDeclaring
           ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
           : type,
