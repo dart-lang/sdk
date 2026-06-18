@@ -4486,33 +4486,15 @@ class BinaryBuilder {
     Expression? initializer = readExpressionOption();
     Variable node;
     switch (tag) {
-      case Tag.LegacyVariable:
-        node =
-            new LegacyVariable(
-                name,
-                type: type,
-                initializer: initializer,
-                flags: flags,
-              )
-              ..fileOffset = offset
-              ..fileEqualsOffset = fileEqualsOffset;
       case Tag.LocalVariable:
         node =
-            new LocalVariable(
-                cosmeticName: name,
-                type: type,
-                initializer: initializer,
-              )
+            new LocalVariable(name: name!, type: type, initializer: initializer)
               ..flags = flags
               ..fileOffset = offset
               ..fileEqualsOffset = fileEqualsOffset;
       case Tag.LateVariable:
         node =
-            new LateVariable(
-                cosmeticName: name,
-                type: type,
-                initializer: initializer,
-              )
+            new LateVariable(name: name!, type: type, initializer: initializer)
               ..flags = flags
               ..fileOffset = offset
               ..fileEqualsOffset = fileEqualsOffset;

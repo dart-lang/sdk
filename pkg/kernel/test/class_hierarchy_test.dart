@@ -507,7 +507,9 @@ class H extends self::G implements self::C, self::A {}
       new FunctionNode(
         body,
         returnType: const VoidType(),
-        positionalParameters: [new Variable('_', type: type)],
+        positionalParameters: [
+          new PositionalParameter(cosmeticName: '_', type: type),
+        ],
       ),
       fileUri: library.fileUri,
     );

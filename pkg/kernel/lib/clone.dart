@@ -753,7 +753,7 @@ class CloneVisitorNotMembers
     return setVariableClone(
       node,
       new LocalVariable(
-          cosmeticName: node.cosmeticName,
+          name: node.cosmeticName!,
           type: visitOptionalType(node.type),
           initializer: cloneOptional(node.initializer),
         )
@@ -768,7 +768,7 @@ class CloneVisitorNotMembers
     return setVariableClone(
       node,
       new LateVariable(
-          cosmeticName: node.cosmeticName,
+          name: node.cosmeticName!,
           type: visitOptionalType(node.type),
           initializer: cloneOptional(node.initializer),
         )
@@ -814,21 +814,6 @@ class CloneVisitorNotMembers
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     return new VariableDeclaration(clone(node.variable))
       ..fileOffset = _cloneFileOffset(node.fileOffset);
-  }
-
-  @override
-  TreeNode visitLegacyVariable(LegacyVariable node) {
-    return setVariableClone(
-      node,
-      new LegacyVariable(
-          node.name,
-          initializer: cloneOptional(node.initializer),
-          type: visitType(node.type),
-          flags: node.flags,
-        )
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
   }
 
   List<Expression> _cloneAnnotations(Annotatable node) {

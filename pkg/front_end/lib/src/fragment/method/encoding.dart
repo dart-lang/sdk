@@ -405,7 +405,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable = thisVariable?..parent = function;
   }
 }
 
@@ -806,7 +806,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = function;
   }
 
   /// Creates a top level function that creates a tear off of an extension

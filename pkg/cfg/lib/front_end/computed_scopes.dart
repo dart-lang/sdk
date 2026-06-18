@@ -22,7 +22,7 @@ final class ComputedScopes implements Scopes {
         .nonNullable,
       );
       thisVariable =
-          member.function?.thisVariable ?? ast.Variable('this', type: type);
+          member.function?.thisVariable ?? ast.ThisVariable(type: type);
     }
     final builder = _ScopeBuilder(this);
     member.accept(builder);

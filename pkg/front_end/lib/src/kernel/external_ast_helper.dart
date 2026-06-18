@@ -484,6 +484,7 @@ VariableDeclaration createInitializedVariableDeclaration({
       cosmeticName: name,
       initializer: expression,
       type: type,
+      hasDeclaredInitializer: true,
     )..fileOffset = fileOffset,
   );
 }
@@ -618,7 +619,7 @@ LabeledStatement createLabeledStatement(
 }
 
 LateVariable createLateVariable({
-  required String? cosmeticName,
+  required String name,
   required DartType? type,
   bool isFinal = false,
   bool isConst = false,
@@ -629,7 +630,7 @@ LateVariable createLateVariable({
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new LateVariable(
-      cosmeticName: cosmeticName,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,
@@ -712,7 +713,7 @@ LocalFunctionInvocation createLocalFunctionInvocation(
 }
 
 LocalVariable createLocalVariable({
-  required String? cosmeticName,
+  required String name,
   required DartType? type,
   bool isFinal = false,
   bool isConst = false,
@@ -723,7 +724,7 @@ LocalVariable createLocalVariable({
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new LocalVariable(
-      cosmeticName: cosmeticName,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,
@@ -1332,6 +1333,7 @@ Variable createVariable(
     isLowered: isLowered,
     isFinal: isFinal,
     isSynthesized: isSynthesized,
+    hasDeclaredInitializer: true,
   )..fileOffset = fileOffset ?? expression.fileOffset;
 }
 
@@ -1346,6 +1348,7 @@ Variable createVariableCache(
     initializer: expression,
     type: type,
     isFinal: true,
+    hasDeclaredInitializer: true,
   )..fileOffset = fileOffset ?? expression.fileOffset;
 }
 

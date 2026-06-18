@@ -101,12 +101,11 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
-      lengthVariable ??= Variable(
-        '_length',
+      lengthVariable ??= SyntheticVariable(
+        cosmeticName: '_length',
         initializer: length,
         isFinal: true,
         type: intType,
-        isSynthesized: true,
       )..fileOffset = node.fileOffset;
       return VariableGet(lengthVariable!)..fileOffset = node.fileOffset;
     }
@@ -116,21 +115,19 @@ class ListFactorySpecializer extends BaseSpecializer {
       Arguments([getLength()], types: args.types),
     )..fileOffset = node.fileOffset;
 
-    final listVariable = Variable(
-      _listNameFromContext(node),
+    final listVariable = SyntheticVariable(
+      cosmeticName: _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
       type: InterfaceType(_jsArrayClass, Nullability.nonNullable, [
         ...args.types,
       ]),
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
-    final indexVariable = Variable(
-      _indexNameFromContext(generator),
+    final indexVariable = SyntheticVariable(
+      cosmeticName: _indexNameFromContext(generator),
       initializer: IntLiteral(0),
       type: intType,
-      isSynthesized: true,
     )..fileOffset = node.fileOffset;
     indexVariable.fileOffset =
         generator.function.positionalParameters.first.fileOffset;
@@ -309,11 +306,10 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     // argument to help dart2js allocate both locations to the same JavaScript
     // variable. The argument is usually named after the closure parameter.
     final closureParameter = function.positionalParameters.single;
-    parameter = Variable(
-      argument.name,
+    parameter = SyntheticVariable(
+      cosmeticName: argument.name,
       initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
       type: closureParameter.type,
-      isSynthesized: true,
     )..fileOffset = closureParameter.fileOffset;
     this.argument = argument;
     setVariableClone(closureParameter, parameter);

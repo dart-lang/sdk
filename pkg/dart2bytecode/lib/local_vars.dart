@@ -324,7 +324,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (node is Field) {
       if (_hasReceiverParameter(node)) {
         final receiverVar = _currentFrame.receiverVar =
-            _findThisVariable(node) ?? Variable('this');
+            _findThisVariable(node) ?? SyntheticVariable(cosmeticName: 'this');
         _declareVariable(receiverVar);
       }
       node.initializer?.accept(this);
@@ -339,13 +339,14 @@ class _ScopeBuilder extends RecursiveVisitor {
       FunctionNode function = (node as dynamic).function;
 
       if (function.dartAsyncMarker != AsyncMarker.Sync) {
-        final suspendStateVar = _currentFrame.suspendStateVar = Variable(
-          ':suspend_state',
-        );
+        final suspendStateVar = _currentFrame.suspendStateVar =
+            SyntheticVariable(cosmeticName: ':suspend_state');
         _declareVariable(suspendStateVar);
 
         if (function.dartAsyncMarker != AsyncMarker.SyncStar) {
-          final returnVar = _currentFrame.returnVar = Variable(':return');
+          final returnVar = _currentFrame.returnVar = SyntheticVariable(
+            cosmeticName: ':return',
+          );
           _declareVariable(returnVar);
         }
       }
@@ -356,14 +357,14 @@ class _ScopeBuilder extends RecursiveVisitor {
 
       if (_currentFrame.numTypeArguments > 0) {
         final functionTypeArgsVar = _currentFrame.functionTypeArgsVar =
-            Variable(':function_type_arguments_var')
+            SyntheticVariable(cosmeticName: ':function_type_arguments_var')
               ..fileOffset = function.fileOffset;
         _declareVariable(functionTypeArgsVar);
       }
 
       if (_hasReceiverParameter(node)) {
         final receiverVar = _currentFrame.receiverVar =
-            _findThisVariable(node) ?? Variable('this');
+            _findThisVariable(node) ?? SyntheticVariable(cosmeticName: 'this');
         _declareVariable(receiverVar);
       } else {
         final parentReceiverVar = _currentFrame.parent?.receiverVar;
@@ -372,7 +373,9 @@ class _ScopeBuilder extends RecursiveVisitor {
         }
       }
       if (node is FunctionDeclaration || node is FunctionExpression) {
-        final closureVar = _currentFrame.closureVar = Variable(':closure');
+        final closureVar = _currentFrame.closureVar = SyntheticVariable(
+          cosmeticName: ':closure',
+        );
         _declareVariable(closureVar);
       }
 
@@ -398,9 +401,13 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (node is FunctionDeclaration ||
         node is FunctionExpression ||
         _currentFrame.hasClosures) {
-      final contextVar = _currentFrame.contextVar = Variable(':context');
+      final contextVar = _currentFrame.contextVar = SyntheticVariable(
+        cosmeticName: ':context',
+      );
       _declareVariable(contextVar);
-      final scratchVar = _currentFrame.scratchVar = Variable(':scratch');
+      final scratchVar = _currentFrame.scratchVar = SyntheticVariable(
+        cosmeticName: ':scratch',
+      );
       _declareVariable(scratchVar);
     }
 
@@ -408,7 +415,9 @@ class _ScopeBuilder extends RecursiveVisitor {
       if (locals.isCaptured(_currentFrame.receiverVar!)) {
         // Duplicate receiver variable for local use.
         _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
-        final localReceiverVar = _currentFrame.receiverVar = Variable('this');
+        final localReceiverVar = _currentFrame.receiverVar = SyntheticVariable(
+          cosmeticName: 'this',
+        );
         _declareVariable(localReceiverVar);
       }
     }
@@ -655,7 +664,9 @@ class _ScopeBuilder extends RecursiveVisitor {
     // an extra variable as they can be generated after all finally blocks.
     if (_enclosingTryBlocks.isNotEmpty &&
         (node.expression != null && node.expression is! BasicLiteral)) {
-      final returnVar = _currentFrame.returnVar = Variable(':return');
+      final returnVar = _currentFrame.returnVar = SyntheticVariable(
+        cosmeticName: ':return',
+      );
       _declareVariable(returnVar, _currentFrame.topScope);
     }
     node.visitChildren(this);

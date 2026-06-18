@@ -385,13 +385,6 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
     );
   }
 
-  // TODO(cstefantsova): Remove this method when the new variable model is
-  //  supported.
-  bool _isNewModelVariable(TreeNode node) {
-    return node is Variable && node is! LegacyVariable ||
-        node is FunctionParameter;
-  }
-
   TreeNode? enterParent(TreeNode node) {
     if (!identical(node.parent, currentParent)) {
       problem(
@@ -509,7 +502,7 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   void checkVariableInScope(Variable variable, TreeNode where) {
     // TODO(cstefantsova): Support new variable model.
-    if (!_isNewModelVariable(variable) &&
+    if (!target.flags.isClosureContextLoweringEnabled &&
         !variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }

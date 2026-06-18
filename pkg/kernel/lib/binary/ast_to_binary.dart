@@ -2489,11 +2489,6 @@ class BinaryPrinter
   }
 
   @override
-  void visitLegacyVariable(LegacyVariable node) {
-    writeVariable(node);
-  }
-
-  @override
   void visitNamedParameter(NamedParameter node) {
     writeVariable(node);
   }
@@ -2537,8 +2532,6 @@ class BinaryPrinter
     }
     node.binaryOffsetNoTag = getBufferOffset();
     switch (node) {
-      case LegacyVariable():
-        writeByte(Tag.LegacyVariable);
       case LocalVariable():
         writeByte(Tag.LocalVariable);
       case LateVariable():

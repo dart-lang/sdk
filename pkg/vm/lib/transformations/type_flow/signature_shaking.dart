@@ -596,12 +596,10 @@ class _Transform extends RecursiveVisitor {
         final Constructor constructor = call.parent as Constructor;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            Variable argVar = Variable(
-              null,
+            Variable argVar = SyntheticVariable(
               initializer: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
-              isSynthesized: true,
             );
             addedInitializers.add(
               LocalInitializer(argVar)..parent = constructor,
@@ -614,12 +612,10 @@ class _Transform extends RecursiveVisitor {
         Expression current = call as Expression;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            Variable argVar = Variable(
-              null,
+            Variable argVar = SyntheticVariable(
               initializer: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
-              isSynthesized: true,
             );
             current = Let(argVar, current);
             hoisted[arg] = argVar;
@@ -628,12 +624,10 @@ class _Transform extends RecursiveVisitor {
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
           assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
-          final Variable receiverVar = Variable(
-            null,
+          final Variable receiverVar = SyntheticVariable(
             initializer: receiver,
             type: receiver.getStaticType(typeContext),
             isFinal: true,
-            isSynthesized: true,
           );
           current = Let(receiverVar, current);
           call.replaceChild(receiver, VariableGet(receiverVar));

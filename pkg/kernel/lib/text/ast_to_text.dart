@@ -1250,78 +1250,69 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void _writeExpressionVariable(Variable node) {
     // TODO(cstefantsova): Printer of the new variables is broken.
-    if (node is LegacyVariable && node is! FunctionParameter) {
-      writeVariable(node);
-    } else {
-      if (showOffsets) writeWord("[${node.fileOffset}]");
-      if (showMetadata) writeMetadata(node);
+    if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showMetadata) writeMetadata(node);
 
-      switch (node) {
-        case LocalVariable():
-          writeWord('local-variable');
-        case LateVariable():
-          writeWord('late-variable');
-        case PositionalParameter():
-          writeWord('positional-parameter');
-        case NamedParameter():
-          writeWord('named-parameter');
-        case ThisVariable():
-          writeWord('this-variable');
-        case SyntheticVariable():
-          writeWord('synthetic-variable');
-        case LegacyVariable():
-          writeWord('variable-declaration');
-        case CatchVariable():
-          writeWord('catch-variable');
-      }
-
-      // TODO(cstefantsova): Should [Variable]s have annotations?
-      // writeAnnotationList(node.annotations, separateLines: false);
-      if (node.hasIsLowered) {
-        writeModifier(node.isLowered, 'lowered');
-      }
-      // TODO(johnniwinther): Remove this. This should be equivalent to
-      //  `is LateVariable`.
-      if (node.hasIsLate) {
-        writeModifier(node.isLate, 'late');
-      }
-      if (node.hasIsRequired) {
-        writeModifier(node.isRequired, 'required');
-      }
-      if (node.hasIsCovariantByDeclaration) {
-        writeModifier(
-          node.isCovariantByDeclaration,
-          'covariant-by-declaration',
-        );
-      }
-      if (node.hasIsCovariantByClass) {
-        writeModifier(node.isCovariantByClass, 'covariant-by-class');
-      }
-      if (node.hasIsFinal) {
-        writeModifier(node.isFinal, 'final');
-      }
-      if (node.hasIsConst) {
-        writeModifier(node.isConst, 'const');
-      }
-      if (node.hasIsSynthesized) {
-        writeModifier(
-          node.isSynthesized && node.cosmeticName != null,
-          'synthesized',
-        );
-      }
-      if (node.hasIsHoisted) {
-        writeModifier(node.isHoisted, 'hoisted');
-      }
-      if (node.hasIsWildcard) {
-        writeModifier(node.isWildcard, 'wildcard');
-      }
-      if (node.hasIsErroneouslyInitialized) {
-        writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
-      }
-      // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
-      // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
-      writeWord(getVariableName(node));
+    switch (node) {
+      case LocalVariable():
+        writeWord('local-variable');
+      case LateVariable():
+        writeWord('late-variable');
+      case PositionalParameter():
+        writeWord('positional-parameter');
+      case NamedParameter():
+        writeWord('named-parameter');
+      case ThisVariable():
+        writeWord('this-variable');
+      case SyntheticVariable():
+        writeWord('synthetic-variable');
+      case CatchVariable():
+        writeWord('catch-variable');
     }
+
+    // TODO(cstefantsova): Should [Variable]s have annotations?
+    // writeAnnotationList(node.annotations, separateLines: false);
+    if (node.hasIsLowered) {
+      writeModifier(node.isLowered, 'lowered');
+    }
+    // TODO(johnniwinther): Remove this. This should be equivalent to
+    //  `is LateVariable`.
+    if (node.hasIsLate) {
+      writeModifier(node.isLate, 'late');
+    }
+    if (node.hasIsRequired) {
+      writeModifier(node.isRequired, 'required');
+    }
+    if (node.hasIsCovariantByDeclaration) {
+      writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
+    }
+    if (node.hasIsCovariantByClass) {
+      writeModifier(node.isCovariantByClass, 'covariant-by-class');
+    }
+    if (node.hasIsFinal) {
+      writeModifier(node.isFinal, 'final');
+    }
+    if (node.hasIsConst) {
+      writeModifier(node.isConst, 'const');
+    }
+    if (node.hasIsSynthesized) {
+      writeModifier(
+        node.isSynthesized && node.cosmeticName != null,
+        'synthesized',
+      );
+    }
+    if (node.hasIsHoisted) {
+      writeModifier(node.isHoisted, 'hoisted');
+    }
+    if (node.hasIsWildcard) {
+      writeModifier(node.isWildcard, 'wildcard');
+    }
+    if (node.hasIsErroneouslyInitialized) {
+      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+    }
+    // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
+    // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
+    writeWord(getVariableName(node));
   }
 
   @override
@@ -2816,8 +2807,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         } else {
           _writeVariable(node);
         }
-      case LegacyVariable():
-        _writeVariable(node);
     }
   }
 

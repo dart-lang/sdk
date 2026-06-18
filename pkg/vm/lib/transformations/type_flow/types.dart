@@ -1077,18 +1077,30 @@ class Closure {
         ? member.enclosingClass!.typeParameters
         : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
-    List<Variable> convertParameters(List<Variable> params) => [
+    List<Variable> convertParameters(
+      List<Variable> params, {
+      required bool isPositional,
+    }) => [
       for (final p in params)
-        Variable(
-          p.name,
-          initializer: (p.initializer != null)
-              ? ConstantExpression(
-                  (p.initializer as ConstantExpression).constant,
-                )
-              : null,
-          type: freshTypeParameters.substitute(p.type),
-          flags: p.flags,
-        ),
+        isPositional
+            ? (PositionalParameter(
+                cosmeticName: p.name,
+                defaultValue: (p.initializer != null)
+                    ? ConstantExpression(
+                        (p.initializer as ConstantExpression).constant,
+                      )
+                    : null,
+                type: freshTypeParameters.substitute(p.type),
+              )..flags = p.flags)
+            : (NamedParameter(
+                parameterName: p.name!,
+                defaultValue: (p.initializer != null)
+                    ? ConstantExpression(
+                        (p.initializer as ConstantExpression).constant,
+                      )
+                    : null,
+                type: freshTypeParameters.substitute(p.type),
+              )..flags = p.flags),
     ];
     return Procedure(
       Name.callName,
@@ -1098,8 +1110,12 @@ class Closure {
         typeParameters: freshTypeParameters.freshTypeParameters,
         positionalParameters: convertParameters(
           functionNode.positionalParameters,
+          isPositional: true,
         ),
-        namedParameters: convertParameters(functionNode.namedParameters),
+        namedParameters: convertParameters(
+          functionNode.namedParameters,
+          isPositional: false,
+        ),
         requiredParameterCount: functionNode.requiredParameterCount,
         returnType: freshTypeParameters.substitute(functionNode.returnType),
       ),

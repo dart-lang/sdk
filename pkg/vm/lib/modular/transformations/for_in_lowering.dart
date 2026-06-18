@@ -74,11 +74,10 @@ class ForInLowering {
       //   }
       final valueVariable = stmt.variable;
 
-      final streamVariable = new Variable(
-        ForInVariables.stream,
+      final streamVariable = new SyntheticVariable(
+        cosmeticName: ForInVariables.stream,
         initializer: stmt.iterable,
         type: stmt.iterable.getStaticType(staticTypeContext),
-        isSynthesized: true,
       );
 
       final streamIteratorType = new InterfaceType(
@@ -86,8 +85,8 @@ class ForInLowering {
         staticTypeContext.nullable,
         [valueVariable.type],
       );
-      final forIteratorVariable = Variable(
-        ForInVariables.forIterator,
+      final forIteratorVariable = SyntheticVariable(
+        cosmeticName: ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
           new Arguments(
@@ -96,7 +95,6 @@ class ForInLowering {
           ),
         ),
         type: streamIteratorType,
-        isSynthesized: true,
       );
 
       // await :for-iterator.moveNext()
@@ -124,11 +122,7 @@ class ForInLowering {
 
         // let _ = asyncStarMoveNextCall in (condition)
         whileCondition = new Let(
-          new Variable(
-            null,
-            initializer: asyncStarMoveNextCall,
-            isSynthesized: true,
-          ),
+          SyntheticVariable(initializer: asyncStarMoveNextCall),
           condition,
         );
       }
@@ -314,11 +308,10 @@ class ForInLowering {
       )..fileOffset = fileOffset;
       return (variable, initialization);
     } else {
-      final variableAndInitialization = Variable(
-        ForInVariables.syncForIterator,
+      final variableAndInitialization = SyntheticVariable(
+        cosmeticName: ForInVariables.syncForIterator,
         initializer: initializer,
         type: type,
-        isSynthesized: true,
       )..fileOffset = fileOffset;
       return (
         variableAndInitialization,

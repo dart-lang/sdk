@@ -328,7 +328,7 @@ void main() {
       ProcedureKind.Method,
       new FunctionNode(
         new EmptyStatement(),
-        positionalParameters: [new Variable('p')],
+        positionalParameters: [new PositionalParameter(cosmeticName: 'p')],
       ),
       isStatic: true,
       fileUri: dummyUri,
@@ -364,7 +364,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          positionalParameters: [new Variable('p')],
+          positionalParameters: [new PositionalParameter(cosmeticName: 'p')],
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -934,7 +934,7 @@ class TestHarness {
     enclosingLibrary.addTypedef(node);
   }
 
-  Variable makeVariable() => new Variable(null, isSynthesized: true);
+  Variable makeVariable() => new SyntheticVariable();
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectRawType, const DynamicType());

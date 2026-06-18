@@ -145,7 +145,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
-    _constructor.function.thisVariable = thisVariable;
+    _constructor.function.thisVariable = thisVariable
+      ?..parent = _constructor.function;
   }
 
   @override
@@ -534,7 +535,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
-    _constructor.function.thisVariable = thisVariable;
+    _constructor.function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = _constructor.function;
   }
 
   @override

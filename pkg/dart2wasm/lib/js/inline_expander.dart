@@ -27,10 +27,9 @@ class InlineExpander {
       String parameterString = 'x$j';
       DartType type = originalArgument.getStaticType(_staticTypeContext);
       dartPositionalParameters.add(
-        Variable(
-          parameterString,
+        SyntheticVariable(
+          cosmeticName: parameterString,
           type: _toExternalType(type),
-          isSynthesized: true,
         ),
       );
     }

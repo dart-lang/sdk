@@ -855,7 +855,9 @@ class FactoryEncoding implements InferredTypeListener {
       );
     }
     _procedure.function.scope = scope;
-    _procedure.function.thisVariable = thisVariable;
+    _procedure.function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = _procedure.function;
   }
 
   void becomeNative(SourceLoader loader) {

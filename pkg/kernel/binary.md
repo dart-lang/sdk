@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 132;
+  UInt32 formatVersion = 133;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1513,11 +1513,6 @@ type VariableDeclaration extends Node {
 }
 
 abstract type Variable extends Node {}
-
-type LegacyVariable extends Variable {
-  Byte tag = 162;
-  VariableInternal variable;
-}
 
 type LocalVariable extends Variable {
   Byte tag = 155;
