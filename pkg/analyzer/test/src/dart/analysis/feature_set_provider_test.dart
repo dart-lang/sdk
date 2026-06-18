@@ -446,9 +446,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }
 
   PackageMapUriResolver _createPackageMapUriResolver(Packages packages) {
-    var map = <String, List<Folder>>{};
+    var map = <String, Folder>{};
     for (var package in packages.packages) {
-      map[package.name] = [package.libFolder];
+      map[package.name] = package.libFolder;
     }
     return PackageMapUriResolver(resourceProvider, map);
   }

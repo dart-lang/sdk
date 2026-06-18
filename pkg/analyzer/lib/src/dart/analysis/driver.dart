@@ -728,8 +728,7 @@ class AnalysisDriver {
 
     // Discover files in package/lib folders.
     if (_sourceFactory.packageMap case var packageMap?) {
-      var folders = packageMap.values.flattenedToList;
-      for (var folder in folders) {
+      for (var folder in packageMap.values) {
         discoverRecursively(folder);
       }
     }

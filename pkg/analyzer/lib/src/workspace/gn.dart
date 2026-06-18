@@ -36,10 +36,10 @@ class GnWorkspace extends Workspace {
   GnWorkspace._(this.provider, this.root, this.buildGnFile, this.packages);
 
   // TODO(scheglov): Finish switching to [packages].
-  Map<String, List<Folder>> get packageMap {
-    var packageMap = <String, List<Folder>>{};
+  Map<String, Folder> get packageMap {
+    var packageMap = <String, Folder>{};
     for (var package in packages.packages) {
-      packageMap[package.name] = [package.libFolder];
+      packageMap[package.name] = package.libFolder;
     }
     return packageMap;
   }

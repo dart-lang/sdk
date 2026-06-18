@@ -178,13 +178,11 @@ class UriHelper {
     var packageMap = factory.packageMap;
     if (packageMap != null) {
       _suggestUri('package:');
-      packageMap.forEach((pkgName, folders) {
+      packageMap.forEach((pkgName, folder) {
         var prefix = 'package:$pkgName/';
         _suggestUri(prefix);
-        for (var folder in folders) {
-          if (folder.exists) {
-            _addPackageFolderSuggestions(partial, prefix, folder);
-          }
+        if (folder.exists) {
+          _addPackageFolderSuggestions(partial, prefix, folder);
         }
       });
     }

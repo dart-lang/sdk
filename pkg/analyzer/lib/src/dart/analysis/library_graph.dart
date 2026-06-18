@@ -315,7 +315,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       var packagePaths = packageNames
           .map((packageName) => packageMap[packageName])
           .nonNulls
-          .expand((folders) => folders)
           .map((folder) => folder.path)
           .sorted();
       signature.addStringList(packagePaths);

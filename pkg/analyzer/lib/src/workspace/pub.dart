@@ -110,7 +110,7 @@ class PackageConfigPackageUriResolver extends UriResolver {
       _context = workspace.provider.pathContext;
 
   // TODO(scheglov): Finish switching to [Packages].
-  Map<String, List<Folder>> get packageMap => _workspace.packageMap;
+  Map<String, Folder> get packageMap => _workspace.packageMap;
 
   @override
   Uri? pathToUri(String path) {
