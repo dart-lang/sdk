@@ -55,9 +55,7 @@ abstract class AbstractAnalysisOptionsTest
     var sourceFactory = SourceFactoryImpl([
       ResourceUriResolver(resourceProvider),
       if (packageMap != null)
-        PackageMapUriResolver(resourceProvider, {
-          for (var entry in packageMap.entries) entry.key: [entry.value],
-        }),
+        PackageMapUriResolver(resourceProvider, packageMap),
     ]);
 
     return parseSession.parse(

@@ -210,9 +210,9 @@ Future setup(String path) async {
 
   var packages = findPackagesFrom(provider, provider.getResource(path));
 
-  var packageMap = <String, List<Folder>>{};
+  var packageMap = <String, Folder>{};
   for (var package in packages.packages) {
-    packageMap[package.name] = [package.libFolder];
+    packageMap[package.name] = package.libFolder;
   }
 
   sources = SourceFactory([

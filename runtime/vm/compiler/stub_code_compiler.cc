@@ -743,7 +743,7 @@ void StubCodeCompiler::GenerateInstanceOfStub() {
   __ Ret();
 }
 
-// For use in GenerateTypeIsTopTypeForSubtyping and
+// For use in GenerateIsTopTypeStub and
 // GenerateNullIsAssignableToType.
 static void EnsureIsSomeKindOfType(Assembler* assembler,
                                    Register type_reg,
@@ -768,7 +768,7 @@ static void EnsureIsSomeKindOfType(Assembler* assembler,
 #endif
 }
 
-// Version of AbstractType::IsTopTypeForSubtyping() used when the type is not
+// Version of AbstractType::IsTopType() used when the type is not
 // known at compile time. Must be kept in sync.
 //
 // Inputs:
@@ -782,7 +782,7 @@ static void EnsureIsSomeKindOfType(Assembler* assembler,
 //   non-zero otherwise.
 //
 // All registers other than outputs and non-preserved scratches are preserved.
-void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingStub() {
+void StubCodeCompiler::GenerateIsTopTypeStub() {
   // The only case where the original value of kSubtypeTestCacheReg is needed
   // after the stub call is on IA32, where it's currently preserved on the stack
   // before calling the stub (as it's also CODE_REG on that architecture), so we

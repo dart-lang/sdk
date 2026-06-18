@@ -2333,7 +2333,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            AssertAssignableInstr::Kind kind,
                                            TokenPosition token_pos) {
   Fragment instructions;
-  if (!dst_type.IsTopTypeForSubtyping()) {
+  if (!dst_type.IsTopType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions +=
@@ -2430,7 +2430,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
   Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
     bound = target_type_parameters.BoundAt(i);
-    if (bound.IsTopTypeForSubtyping()) {
+    if (bound.IsTopType()) {
       continue;
     }
 
@@ -2506,7 +2506,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
           &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
     }
 
-    if (target_type->IsTopTypeForSubtyping()) continue;
+    if (target_type->IsTopType()) continue;
 
     const bool is_covariant = param->is_explicit_covariant_parameter();
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
@@ -4120,7 +4120,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += Drop();  // argument count
 
   AbstractType& return_type = AbstractType::Handle(function.result_type());
-  if (!return_type.IsTopTypeForSubtyping()) {
+  if (!return_type.IsTopType()) {
     body += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
                                               return_type, Symbols::Empty());
   }
@@ -6056,7 +6056,7 @@ SwitchHelper::SwitchHelper(Zone* zone,
       sorted_expressions_(case_count) {
   case_expression_counts_.FillWith(0, 0, case_count);
 
-  if (expression_type.nullability() == Nullability::kNonNullable) {
+  if (expression_type.IsNonNullable()) {
     if (expression_type.IsIntType() || expression_type.IsSmiType()) {
       is_optimizable_ = true;
     } else if (expression_type.HasTypeClass() &&

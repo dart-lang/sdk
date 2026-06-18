@@ -3111,10 +3111,6 @@ DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   return Api::NewHandle(T, arr.ptr());
 }
 
-static bool CanTypeContainNull(const Type& type) {
-  return (type.nullability() == Nullability::kNullable);
-}
-
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length) {
   DARTSCOPE(Thread::Current());
@@ -3129,7 +3125,7 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
         "%s expects argument 'type' to be a fully resolved type.",
         CURRENT_FUNC);
   }
-  if ((length > 0) && !CanTypeContainNull(type)) {
+  if ((length > 0) && !Instance::NullIsAssignableTo(type)) {
     return Api::NewError("%s expects argument 'type' to be a nullable type.",
                          CURRENT_FUNC);
   }
@@ -3231,7 +3227,8 @@ DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
         "'element_type'.",
         CURRENT_FUNC);
   }
-  if ((length > 0) && instance.IsNull() && !CanTypeContainNull(type)) {
+  if ((length > 0) && instance.IsNull() &&
+      !Instance::NullIsAssignableTo(type)) {
     return Api::NewError(
         "%s expects argument 'fill_object' to be non-null for a non-nullable "
         "'element_type'.",

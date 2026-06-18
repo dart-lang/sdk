@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_yaml.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -49,12 +49,7 @@ String? _firstPluginName(YamlMap options) {
 }
 
 YamlMap _parseOptionsFromString(String content, {Uri? sourceUrl}) {
-  try {
-    var doc = loadYamlNode(content, sourceUrl: sourceUrl);
-    return doc is YamlMap ? doc : YamlMap();
-  } on YamlException catch (e) {
-    throw OptionsFormatException(e.message, e.span);
-  }
+  return parseAnalysisOptionsYaml(content, sourceUrl: sourceUrl);
 }
 
 /// Validates the legacy 'plugins' options in [options], given
@@ -71,10 +66,11 @@ void _validateLegacyPluginsOption(
 
 /// Cache of raw parsed analysis options files used during validation.
 ///
-/// Unlike [AnalysisOptionsCache], this cache stores the unmerged YAML tree for
-/// each physical options file. Validation walks include edges itself so that it
-/// can report diagnostics against the file where they originate and summarize
-/// included-file diagnostics at the including directive.
+/// Unlike the merged-YAML cache used when building options, this cache stores
+/// the unmerged YAML tree for each physical options file. Validation walks
+/// include edges itself so that it can report diagnostics against the file
+/// where they originate and summarize included-file diagnostics at the
+/// including directive.
 final class AnalysisOptionsValidationCache {
   final Map<File, _YamlFileParseResult> _map = {};
 }

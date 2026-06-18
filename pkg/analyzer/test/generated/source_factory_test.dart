@@ -108,7 +108,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     provider.newFile(secondPath, '');
 
     PackageMapUriResolver resolver = PackageMapUriResolver(provider, {
-      'package': [libFolder],
+      'package': libFolder,
     });
     SourceFactory factory = SourceFactory([resolver]);
     var uri = Uri.parse('package:package/dir/first.dart');

@@ -270,7 +270,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
 
   if (!dst_type.IsNull()) {
     ASSERT(dst_type.IsFinalized());
-    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+    if (dst_type.IsTopType()) return;  // No code needed.
   }
 
   compiler::Label is_assignable, runtime_call;
@@ -278,8 +278,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
   if (dst_type.IsNull()) {
     __ Comment("AssertAssignable for runtime type");
     // kDstTypeReg should already contain the destination type.
-    GenerateNonLazyDeoptableStubCall(source,
-                                     StubCode::TypeIsTopTypeForSubtyping(),
+    GenerateNonLazyDeoptableStubCall(source, StubCode::IsTopType(),
                                      UntaggedPcDescriptors::kOther, locs);
     // TypeTestABI::kSubtypeTestCacheReg is 0 if the type is a top type.
     __ BranchIfZero(TypeTestABI::kSubtypeTestCacheReg, &is_assignable,

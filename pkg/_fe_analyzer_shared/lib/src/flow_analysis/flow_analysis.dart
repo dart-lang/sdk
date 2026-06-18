@@ -5199,9 +5199,6 @@ class _FlowAnalysisImpl<
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
   @override
-  SsaNode get _thisSsaNode => _thisSsaNodes.last;
-
-  @override
   final List<_Reference> _cascadeTargetStack = [];
 
   /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
@@ -5226,6 +5223,9 @@ class _FlowAnalysisImpl<
 
   @override
   FlowAnalysisTypeOperations get typeOperations => operations;
+
+  @override
+  SsaNode get _thisSsaNode => _thisSsaNodes.last;
 
   @override
   void anonymousBlockBody_begin() {
