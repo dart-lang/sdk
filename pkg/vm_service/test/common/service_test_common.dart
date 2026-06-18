@@ -560,12 +560,14 @@ Future<void> markDartColonLibrariesDebuggable(
   await Future.wait(requests);
 }
 
-// Currying is your friend.
 IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print('Setting breakpoint for line $line in $uri');
-    final Breakpoint bpt =
-        await service.addBreakpointWithScriptUri(isolateRef.id!, uri, line);
+    final Breakpoint bpt = await service.addBreakpointWithScriptUri(
+      isolateRef.id!,
+      uri,
+      line,
+    );
     print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
   };
@@ -598,8 +600,8 @@ extension BreakpointLocation on Breakpoint {
       script.uri!,
       (
         script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
-        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
-      )
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1,
+      ),
     );
   }
 }
@@ -621,8 +623,8 @@ extension FrameLocation on Frame {
       script.uri!,
       (
         script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
-        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
-      )
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1,
+      ),
     );
   }
 }
@@ -687,8 +689,10 @@ IsolateTest stoppedAtLineColumn({required int line, int? column}) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final top = frames[0];
-    final (_, (actualLine, actualColumn)) =
-        await top.getLocation(service, isolateRef);
+    final (_, (actualLine, actualColumn)) = await top.getLocation(
+      service,
+      isolateRef,
+    );
     if (actualLine != line) {
       final sb = StringBuffer();
       sb.writeln(
@@ -714,24 +718,37 @@ IsolateTest stoppedAtLine(int line) {
 }
 
 Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
-  final Completer completer = Completer();
+  Completer<void>? completer = Completer<void>();
+  // Capture the future synchronously before any async yields or nullification
+  // to ensure the caller always awaits the actual completion of the cleanup
+  // tasks.
+  final future = completer.future;
   late StreamSubscription<Event> subscription;
   bool cancelStreamAfterResume = false;
-  subscription = service.onDebugEvent.listen((event) async {
-    if (event.kind == EventKind.kResume) {
-      try {
-        if (cancelStreamAfterResume) {
-          await service.streamCancel(EventStreams.kDebug);
-        }
-      } catch (_) {/* swallow exception */} finally {
-        await subscription.cancel();
-        completer.complete();
+
+  // Synchronously nullify the completer before any async yields to prevent
+  // concurrent execution paths (e.g., multiple stream events) from
+  // double-completing it and throwing a StateError.
+  Future<void> complete() async {
+    if (completer != null) {
+      final c = completer!;
+      completer = null; // Synchronously set to null
+      if (cancelStreamAfterResume) {
+        await _unsubscribeDebugStream(service);
       }
+      await subscription.cancel();
+      c.complete();
+    }
+  }
+
+  subscription = service.onDebugEvent.listen((event) {
+    if (event.kind == EventKind.kResume && event.isolate?.id == isolate.id) {
+      complete();
     }
   });
   cancelStreamAfterResume = await _subscribeDebugStream(service);
   await service.resume(isolate.id!);
-  return completer.future;
+  return future;
 }
 
 Future<bool> _subscribeDebugStream(VmService service) async {
@@ -814,8 +831,11 @@ IsolateTest resumeProgramRecordingStops(
         final stack = await service.getStack(isolateRef.id!);
         expect(stack.frames!.length, greaterThanOrEqualTo(2));
 
-        String brokeAt =
-            await _locationToString(service, isolateRef, stack.frames![0]);
+        String brokeAt = await _locationToString(
+          service,
+          isolateRef,
+          stack.frames![0],
+        );
         if (includeCaller) {
           brokeAt =
               '$brokeAt (${await _locationToString(service, isolateRef, stack.frames![1])})';
@@ -926,8 +946,9 @@ IsolateTest checkRecordedStops(
       final int firstColon = line.indexOf(':');
       final int lastColon = line.lastIndexOf(':');
       if (firstColon > 0 && lastColon > 0) {
-        final int lineNumber =
-            int.parse(line.substring(firstColon + 1, lastColon));
+        final int lineNumber = int.parse(
+          line.substring(firstColon + 1, lastColon),
+        );
         final int relativeLineNumber = lineNumber - debugPrintLine;
         final columnNumber = line.substring(lastColon + 1);
         final file = line.substring(0, firstColon);
@@ -1185,10 +1206,8 @@ IsolateTest stoppedInFunction(String functionName) {
     expect(frames, isNotEmpty);
 
     final topFrame = frames[0];
-    final function = await service.getObject(
-      isolateId,
-      topFrame.function!.id!,
-    ) as Func;
+    final function =
+        await service.getObject(isolateId, topFrame.function!.id!) as Func;
     final name = function.name!;
     if (name != functionName) {
       final sb = StringBuffer();
@@ -1213,8 +1232,11 @@ Future<String> qualifiedFunctionName(
   final funcName = func.name ?? '<unknown>';
   switch (func.owner) {
     case final FuncRef parentFuncRef:
-      final parentFuncName =
-          await qualifiedFunctionName(service, isolate, parentFuncRef);
+      final parentFuncName = await qualifiedFunctionName(
+        service,
+        isolate,
+        parentFuncRef,
+      );
       return '$parentFuncName.$funcName';
 
     case final ClassRef parentClass:
@@ -1260,10 +1282,8 @@ Future<String> getCurrentExceptionAsString(
 ) async {
   final isolate = await service.getIsolate(isolateRef.id!);
   final event = isolate.pauseEvent!;
-  final exception = await service.getObject(
-    isolateRef.id!,
-    event.exception!.id!,
-  ) as Instance;
+  final exception =
+      await service.getObject(isolateRef.id!, event.exception!.id!) as Instance;
   return exception.valueAsString!;
 }
 
