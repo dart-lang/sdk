@@ -54,6 +54,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get sortConstructorsFirst => _isLintEnabled('sort_constructors_first');
 
   @override
+  bool get sortUnnamedConstructorsFirst =>
+      _isLintEnabled('sort_unnamed_constructors_first');
+
+  @override
   bool get specifyReturnTypes =>
       _isLintEnabled('always_declare_return_types') || specifyTypes;
 

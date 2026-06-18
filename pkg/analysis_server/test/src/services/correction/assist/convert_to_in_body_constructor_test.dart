@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -473,6 +474,100 @@ class C extends B {
 
 class B {
   new(int x);
+}
+''');
+  }
+
+  Future<void> test_lint_noLint_defaultBehavior() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+class C^(int x) {
+  new named() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  new(int x);
+
+  new named() {}
+}
+''');
+  }
+
+  Future<void> test_lint_sortConstructorsFirst_unnamedPrimary() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+class C^(int x) {
+  new named() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  new named() {}
+
+  new(int x);
+}
+''');
+  }
+
+  Future<void>
+  test_lint_sortConstructorsFirst_unnamedPrimary_noConflict() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class C^(var int x) {
+  void m() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  int x;
+
+  new(this.x);
+
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_lint_sortUnnamedConstructorsFirst_namedPrimary() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.sort_unnamed_constructors_first],
+    );
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+class C.n^amed(int x) {
+  new() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  new named(int x);
+
+  new() {}
+}
+''');
+  }
+
+  Future<void> test_lint_sortUnnamedConstructorsFirst_unnamedPrimary() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.sort_unnamed_constructors_first],
+    );
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+class C^(int x) {
+  new() {}
+
+  new named() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  new() {}
+
+  new(int x);
+
+  new named() {}
 }
 ''');
   }
