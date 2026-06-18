@@ -304,8 +304,8 @@ abstract base class CodeGenerator extends Pass
     final moves = <Move>[];
     for (final move in instr.moves) {
       if (move is Move) {
-        final from = move.from = move.from.physicalLocation;
-        final to = move.to = move.to.physicalLocation;
+        final from = move.from.physicalLocation;
+        final to = move.to.physicalLocation;
         if (from != to) {
           if (from is StackLocation && to is StackLocation) {
             // Moves into spill slots cannot participate in cycles.
@@ -315,7 +315,7 @@ abstract base class CodeGenerator extends Pass
             generateMove(from, temp);
             generateMove(temp, to);
           } else {
-            moves.add(move);
+            moves.add(Move(from, to));
           }
         }
       }
