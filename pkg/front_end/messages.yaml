@@ -5049,6 +5049,13 @@ ffiDeeplyImmutableFieldsModifiers:
   correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
   external: test/ffi_test.dart
 
+ffiVmSharedFieldsModifiers:
+  # Used by dart:ffi
+  parameters: none
+  problemMessage: 'Shared fields must be final non-late.'
+  correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
+  external: test/ffi_test.dart
+
 ffiDeeplyImmutableSubtypesMustBeDeeplyImmutable:
   # Used by dart:ffi
   parameters: none

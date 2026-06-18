@@ -11,17 +11,14 @@ import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-import 'dylib_utils.dart';
 import 'threading_utils.dart';
-
-@pragma('vm:shared')
-int counter = 0;
 
 void testRunSyncOnCurrentIsolate() {
   // Run on current isolate.
@@ -90,7 +87,6 @@ void testRunSyncChecks() {
 
 Future<void> testFailToRunOnExitedIsolate() async {
   // Enter isolate that never gets to the finish single message loop iteration.
-  counter = 0;
   final rp = ReceivePort();
   final rpChildExit = ReceivePort();
   final child = await Isolate.spawn(
@@ -143,6 +139,11 @@ int threadMain(Pointer<Void> data) {
   return 0;
 }
 
+@pragma('vm:shared')
+final dartNewSendPort = DynamicLibrary.executable()
+    .lookup<NativeFunction<Handle Function(Int64)>>("Dart_NewSendPort")
+    .asFunction<SendPort Function(int)>();
+
 Future<void> testRunSyncOnPinnedToSelfIsolate() async {
   if (Platform.isWindows) {
     return; // pthread is not available on Windows.
@@ -170,26 +171,26 @@ Future<void> testRunSyncOnPinnedToSelfIsolate() async {
 }
 
 @pragma('vm:shared')
-late SendPort sp;
-@pragma('vm:shared')
 final Mutex mutexCondvar = Mutex();
 @pragma('vm:shared')
 final ConditionVariable condVar = ConditionVariable();
 @pragma('vm:shared')
-bool latchOpened = false;
+final latchOpened = Uint8List(1);
+@pragma('vm:shared')
+final nativeSendPort = Uint64List(1);
 
 void waitLatch() {
   mutexCondvar.runLocked(() {
-    while (!latchOpened) {
+    while (latchOpened[0] == 0) {
       condVar.wait(mutexCondvar);
     }
-    latchOpened = false;
+    latchOpened[0] = 0;
   });
 }
 
 void openLatch() {
   mutexCondvar.runLocked(() {
-    latchOpened = true;
+    latchOpened[0] = 1;
     condVar.notify();
   });
 }
@@ -203,7 +204,13 @@ int threadMainPinned(Pointer<Void> data) {
   new_isolate.runSync(() {
     print('Hello, new pinned isolate!');
   });
-  sp.send(new_isolate);
+
+  try {
+    dartNewSendPort(nativeSendPort[0]).send(new_isolate);
+  } catch (e) {
+    print(e);
+  }
+
   waitLatch();
 
   new_isolate.shutdownSync();
@@ -229,7 +236,8 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
     openLatch();
     completer.complete();
   });
-  sp = rp.sendPort;
+
+  nativeSendPort[0] = rp.sendPort.nativePort;
 
   final callback =
       NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
@@ -255,14 +263,15 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
 }
 
 @pragma('vm:shared')
-bool isHelperInThreadMainWaitingLatchRunning = false;
+final isHelperInThreadMainWaitingLatchRunning = Uint8List(1);
 
 int threadMainWaitingLatch(Pointer<Void> data) {
   final helper = Isolate.create(debugName: "helper");
 
-  sp.send(helper);
+  dartNewSendPort(nativeSendPort[0]).send(helper);
+
   helper.runSync(() {
-    isHelperInThreadMainWaitingLatchRunning = true;
+    isHelperInThreadMainWaitingLatchRunning[0] = 1;
     waitLatch();
   });
   print('shutting down the isolate');
@@ -278,7 +287,7 @@ Future<void> testFailRunSyncWithTimeout() async {
   final completer = Completer();
   final rp = RawReceivePort((Isolate child_isolate) async {
     print('received $child_isolate');
-    while (!isHelperInThreadMainWaitingLatchRunning) {
+    while (isHelperInThreadMainWaitingLatchRunning[0] == 0) {
       // Let the thread which should do `helper.runSync`
       // actually do that.
       await Future.delayed(Duration(milliseconds: 10));
@@ -294,7 +303,7 @@ Future<void> testFailRunSyncWithTimeout() async {
     openLatch();
     completer.complete();
   });
-  sp = rp.sendPort;
+  nativeSendPort[0] = rp.sendPort.nativePort;
 
   final callback =
       NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(

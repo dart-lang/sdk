@@ -6,16 +6,11 @@
 //
 // This launches shared_test test if the test runs on the appropriate channel.
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:expect/config.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as path;
 
 import '../use_flag_test_helper.dart';
@@ -26,7 +21,6 @@ void main(List<String> args) async {
   }
 
   asyncStart();
-  final testerScriptPath = Platform.script.toFilePath();
   final testeeScriptPath = Platform.script
       .resolve('shared_test_body.dart')
       .toFilePath();

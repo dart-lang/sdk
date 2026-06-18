@@ -13,12 +13,12 @@ import 'package:ffi/ffi.dart';
 import 'package:test/test.dart';
 
 @pragma('vm:shared')
-late Mutex mutexSimple;
+final mutexSimple = Mutex();
 
 @pragma('vm:shared')
-late Mutex mutexCondvar;
+final mutexCondvar = Mutex();
 @pragma('vm:shared')
-late ConditionVariable condVar;
+final condVar = ConditionVariable();
 
 void main() {
   group('mutex', () {
@@ -54,7 +54,6 @@ void main() {
       await using((arena) async {
         final ptr = arena.allocate<Uint8>(1);
 
-        mutexSimple = Mutex();
         final helperResult = spawnHelperIsolate(ptr.address);
 
         while (true) {
@@ -93,8 +92,6 @@ void main() {
     test('isolate', () async {
       await using((arena) async {
         final ptr = arena.allocate<Uint8>(1);
-        mutexCondvar = Mutex();
-        condVar = ConditionVariable();
 
         final helperResult = spawnHelperIsolate(ptr.address);
 

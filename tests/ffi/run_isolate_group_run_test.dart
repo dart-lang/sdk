@@ -18,6 +18,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
+import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
@@ -28,7 +29,6 @@ main(List<String> args) {
   testReturnsConstant();
   testReturnsList();
   testReturnsNotSharedFinal();
-  testUpdateSharedVarWithNoInitializer();
 
   testFailToAccessNotSharedVarWithInitializer();
   testFailToAccessNotSharedVarWithoutInitializer();
@@ -39,11 +39,8 @@ main(List<String> args) {
   testCyclesBetweenClosures();
 
   testUpdateNotSharedStaticField();
-  testUpdateSharedStringStaticVar();
 
   testClosure();
-
-  testFailToAssignClosureWithListToSharedVar();
 
   testCapturesClassWithDeeplyImmutableClosure();
   testFailToCaptureClassWithNonFinalCapturingClosure();
@@ -63,7 +60,6 @@ main(List<String> args) {
   testFailToEnvironment();
 
   testUserTag();
-  testDoubleToString();
   testBase64Decoder();
   testRandom();
   testEncoding();
@@ -78,7 +74,7 @@ main(List<String> args) {
 
 ///
 @pragma('vm:shared')
-var list_length = 0;
+final list_length = Uint8List(1);
 
 void testUpdateSharedVar() {
   IsolateGroup.runSync(() {
@@ -86,9 +82,9 @@ void testUpdateSharedVar() {
     for (int i = 0; i < 100; i++) {
       l.add(i);
     }
-    list_length = l.length;
+    list_length[0] = l.length;
   });
-  Expect.equals(100, list_length);
+  Expect.equals(100, list_length[0]);
 }
 
 ///
@@ -210,17 +206,6 @@ void testFailToAccessNotSharedVarWithInitializer() {
 }
 
 ///
-@pragma('vm:shared')
-var shared_foo_no_initializer;
-
-void testUpdateSharedVarWithNoInitializer() {
-  IsolateGroup.runSync(() {
-    shared_foo_no_initializer = 2345;
-  });
-  Expect.equals(2345, IsolateGroup.runSync(() => shared_foo_no_initializer));
-}
-
-///
 class Baz {
   static late final foo;
 }
@@ -236,20 +221,9 @@ void testUpdateNotSharedStaticField() {
 }
 
 ///
-@pragma('vm:shared')
-String string_foo = "";
-
-void testUpdateSharedStringStaticVar() {
-  IsolateGroup.runSync(() {
-    string_foo = "foo bar";
-  });
-  Expect.equals("foo bar", string_foo);
-}
-
-///
 @pragma('vm:never-inline')
 @pragma('vm:shared')
-var closure = () {
+final closure = () {
   return 42;
 };
 void testClosure() {
@@ -257,22 +231,6 @@ void testClosure() {
     return closure();
   });
   Expect.equals(42, result);
-}
-
-///
-@pragma('vm:shared')
-dynamic getList;
-
-void testFailToAssignClosureWithListToSharedVar() {
-  final list = <String>[];
-  Expect.throws(
-    () {
-      getList = () => list;
-    },
-    (e) => e is Error && e.toString().contains("Only trivially-immutable"),
-    "Expect error assigning list to shared variable",
-  );
-  print(getList);
 }
 
 ///
@@ -293,7 +251,7 @@ void testCapturesClassWithDeeplyImmutableClosure() {
 }
 
 @pragma('vm:shared')
-bool skipAccessAtRuntime = false;
+final skipAccessAtRuntime = Uint8List(1);
 
 void testFailToCaptureClassWithNonFinalCapturingClosure() {
   var closureValue = 42;
@@ -301,7 +259,8 @@ void testFailToCaptureClassWithNonFinalCapturingClosure() {
   // Construction of this "deeply-immutable" object should actually fail at
   // runtime due to closure closing over non-final [closureValue] variable.
   Expect.throws(
-    () => FooWithFunc(() => skipAccessAtRuntime ? -1 : closureValue, 43),
+    () =>
+        FooWithFunc(() => skipAccessAtRuntime[0] == 1 ? -1 : closureValue, 43),
     (e) => e is Error && e.toString().contains("Only final not-late"),
   );
 }
@@ -309,11 +268,11 @@ void testFailToCaptureClassWithNonFinalCapturingClosure() {
 void testCapturesClassWithFinalCapturingClosure() {
   final finalClosureValue = 43;
   final foo = FooWithFunc(
-    () => skipAccessAtRuntime ? -1 : finalClosureValue,
+    () => skipAccessAtRuntime[0] == 1 ? -1 : finalClosureValue,
     44,
   );
 
-  skipAccessAtRuntime = true;
+  skipAccessAtRuntime[0] = 1;
   Expect.equals(
     -1,
     IsolateGroup.runSync(() {
@@ -321,7 +280,7 @@ void testCapturesClassWithFinalCapturingClosure() {
     }),
   );
 
-  skipAccessAtRuntime = false;
+  skipAccessAtRuntime[0] = 0;
   Expect.equals(
     43,
     IsolateGroup.runSync(() {
@@ -407,9 +366,6 @@ testListMethodTearoff(List<String> args) {
 }
 
 ///
-@pragma('vm:shared')
-SendPort? sp;
-
 void testFailToReceivePort() {
   Expect.throws(
     () {
@@ -426,7 +382,7 @@ void testFailToReceivePort() {
   Expect.throws(
     () {
       IsolateGroup.runSync(() {
-        sp = rp.sendPort;
+        print(rp.sendPort);
       });
     },
     (e) =>
@@ -457,28 +413,16 @@ void testFailToEnvironment() {
 
 ///
 @pragma('vm:shared')
-String default_tag = "";
+final default_tag = Uint8List(255);
 
 void testUserTag() {
   IsolateGroup.runSync(() {
-    default_tag = UserTag.defaultTag.toString();
+    final data = utf8.encode(UserTag.defaultTag.toString());
+    for (int i = 0; i < data.length; i++) {
+      default_tag[i] = data[i];
+    }
   });
-  Expect.notEquals("", default_tag);
-}
-
-///
-@pragma('vm:shared')
-double pi = 3.14159;
-
-void testDoubleToString() {
-  final result = IsolateGroup.runSync(() {
-    return pi.toString();
-  });
-  Expect.equals("3.14159", result);
-  final resultIdentical = IsolateGroup.runSync(() {
-    return identical(pi.toString(), pi.toString());
-  });
-  Expect.isTrue(resultIdentical);
+  Expect.notEquals("", utf8.decode(default_tag));
 }
 
 ///

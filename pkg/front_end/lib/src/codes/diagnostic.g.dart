@@ -4418,6 +4418,14 @@ const MessageCode ffiVariableLengthArrayNotLast = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode ffiVmSharedFieldsModifiers = const MessageCode(
+  "FfiVmSharedFieldsModifiers",
+  problemMessage: """Shared fields must be final non-late.""",
+  correctionMessage:
+      """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String fieldName})>
 fieldAlreadyInitializedAtDeclaration = const Template(
   "FieldAlreadyInitializedAtDeclaration",
