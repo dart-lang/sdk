@@ -542,6 +542,8 @@ class Firefox extends Browser {
       'user_pref("dom.max_script_run_time", 0);';
   static const String disableAutoUpdate =
       'user_pref("app.update.auto", false);';
+  static const String skipTermsOfUse =
+      'user_pref("termsofuse.bypassNotification", true);';
 
   void _createPreferenceFile(String path) {
     var file = File("$path/user.js");
@@ -550,6 +552,7 @@ class Firefox extends Browser {
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);
     randomFile.writeStringSync(disableAutoUpdate);
+    randomFile.writeStringSync(skipTermsOfUse);
     randomFile.close();
   }
 
