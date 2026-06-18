@@ -641,6 +641,22 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [InstantiateClosure] to the graph.
+  InstantiateClosure addInstantiateClosure(CType type) {
+    final closure = pop();
+    final typeArguments = pop();
+    final instr = InstantiateClosure(
+      graph,
+      currentSourcePosition,
+      typeArguments,
+      closure,
+      type,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [EnterSuspendableFunction] to the graph.
   void addEnterSuspendableFunction() {
     final typeArguments = pop();

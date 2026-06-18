@@ -389,6 +389,10 @@ abstract base class CodeGenerator extends Pass
   @override
   void visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
+
+  @override
+  void visitInstantiateClosure(InstantiateClosure instr) =>
+      throw 'Unexpected InstantiateClosure (should be lowered)';
 }
 
 class SlowPath(

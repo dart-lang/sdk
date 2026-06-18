@@ -66,6 +66,13 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     ),
   );
 
+  late final CFunction _instantiateClosure = functionRegistry.getFunction(
+    GlobalContext.instance.coreTypes.index.getTopLevelProcedure(
+      'dart:_internal',
+      '_instantiateClosure',
+    ),
+  );
+
   late final _emptyList = ConstantValue(
     ast.ListConstant(const ast.DynamicType(), const []),
   );
@@ -400,6 +407,23 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
       argumentsShape: functionRegistry.getArgumentsShape(1),
     );
     replacement.setInputAt(0, argument);
+    replacement.insertBefore(instr);
+    instr.replaceUsesWith(replacement);
+    instr.removeFromGraph();
+  }
+
+  @override
+  void visitInstantiateClosure(InstantiateClosure instr) {
+    final replacement = DirectCall(
+      graph,
+      instr.sourcePosition,
+      _instantiateClosure,
+      instr.type,
+      inputCount: 2,
+      argumentsShape: functionRegistry.getArgumentsShape(2),
+    );
+    replacement.setInputAt(0, instr.closure);
+    replacement.setInputAt(1, instr.typeArguments);
     replacement.insertBefore(instr);
     instr.replaceUsesWith(replacement);
     instr.removeFromGraph();

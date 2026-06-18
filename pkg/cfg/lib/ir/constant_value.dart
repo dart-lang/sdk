@@ -263,6 +263,16 @@ class const ConstantFolding() {
     }
     return ConstantValue.fromString(buf.toString());
   }
+
+  ConstantValue instantiateClosure(
+    ConstantValue typeArguments,
+    ConstantValue closure,
+  ) {
+    final types = (typeArguments as TypeArgumentsConstant).types;
+    return ConstantValue(
+      ast.InstantiationConstant(closure as ast.TearOffConstant, types),
+    );
+  }
 }
 
 /// Constant type arguments.

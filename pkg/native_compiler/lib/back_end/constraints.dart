@@ -147,4 +147,8 @@ abstract base class const Constraints()
   @override
   InstructionConstraints? visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
+
+  @override
+  InstructionConstraints? visitInstantiateClosure(InstantiateClosure instr) =>
+      throw 'Unexpected InstantiateClosure (should be lowered)';
 }
