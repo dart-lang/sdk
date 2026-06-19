@@ -1250,7 +1250,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void _writeExpressionVariable(Variable node) {
     // TODO(cstefantsova): Printer of the new variables is broken.
-    if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showOffsets) {
+      writeWord("[${node.fileOffset}, ${node.fileEqualsOffset}]");
+    }
     if (showMetadata) writeMetadata(node);
 
     switch (node) {
@@ -2756,7 +2758,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void _writeVariable(Variable node) {
-    if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showOffsets) {
+      writeWord("[${node.fileOffset}, ${node.fileEqualsOffset}]");
+    }
     if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations, separateLines: false);
     writeModifier(node.isLowered, 'lowered');
@@ -2813,7 +2817,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void writeVariableDeclaration(VariableDeclaration node) {
     Variable variable = node.variable;
     if (isClosureContextLoweringEnabled) {
-      if (showOffsets) writeWord("[${node.fileOffset}]");
+      if (showOffsets) {
+        writeWord(
+          "[${node.fileOffset}, "
+          "${variable.fileOffset}, "
+          "${variable.fileEqualsOffset}]",
+        );
+      }
       if (showMetadata) writeMetadata(node);
       writeModifier(
         variable.isErroneouslyInitialized,

@@ -16,5 +16,5 @@ import "dart:core" as core;
 [528]  synthetic constructor [-1] [-1] •() → self::X2
 [-1]    ;
 }
-[222]static method [228] [469] method([229] dynamic o) → void
+[222]static method [228] [469] method([229, -1] dynamic o) → void
 [-1]  ;

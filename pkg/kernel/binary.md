@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 134;
+  UInt32 formatVersion = 135;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -401,7 +401,7 @@ type Field extends Member {
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
                 isInternalImplementation, isEnumElement, isExtensionTypeMember,
-                isErroneous);
+                isErroneous, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -415,7 +415,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -456,8 +456,8 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isSynthetic, isInternalImplementation,
-              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
-              isErroneous, isExternalEffect);
+              isExtensionTypeMember, hasWeakTearoffReferencePragma,
+              isErroneous, isExternalEffect, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.

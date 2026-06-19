@@ -661,9 +661,9 @@ class LateLowering {
       fileUri: fileUri,
       reference: field.getterReference,
     )..fileOffset = fileOffset;
-    // The initializer is copied from [field] to [getter] so we copy the
-    // transformer flags to reflect whether the getter contains super calls.
-    getter.transformerFlags = field.transformerFlags;
+    // The initializer is copied from [field] to [getter] so we copy this
+    // property to reflect whether the getter contains super calls.
+    getter.containsSuperCalls = field.containsSuperCalls;
     _copyAnnotations(getter, field);
     if (initializer != null && field.isFinal) {
       getter.addAnnotation(

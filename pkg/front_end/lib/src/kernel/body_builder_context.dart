@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/local_scope.dart';
@@ -823,7 +822,6 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
 
   @override
   void registerSuperCall() {
-    _expressionCompilerDataCarrier.transformerFlags |=
-        TransformerFlag.superCalls;
+    _expressionCompilerDataCarrier.containsSuperCalls = true;
   }
 }

@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
-import '../transformations/flags.dart';
 import 'tag.dart';
 
 const int $_ = 95;
@@ -149,7 +148,6 @@ class BinaryBuilder {
 
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
   List<FunctionType?> _voidFunctionFunctionTypesCache = [null, null, null];
-  int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
 
@@ -1821,17 +1819,6 @@ class BinaryBuilder {
     };
   }
 
-  int getAndResetTransformerFlags() {
-    int flags = _transformerFlags;
-    _transformerFlags = 0;
-    return flags;
-  }
-
-  /// Adds the given flag to the current [Member.transformerFlags].
-  void addTransformerFlag(int flags) {
-    _transformerFlags |= flags;
-  }
-
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
@@ -1875,7 +1862,6 @@ class BinaryBuilder {
     }());
     DartType type = readDartType();
     Expression? initializer = readExpressionOption();
-    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
@@ -1886,7 +1872,6 @@ class BinaryBuilder {
     node.type = type;
     node.initializer = initializer;
     node.initializer?.parent = node;
-    node.transformerFlags = transformerFlags;
     return node;
   }
 
@@ -1923,7 +1908,6 @@ class BinaryBuilder {
     pushVariableDeclarations(function.namedParameters);
     _readInitializers(node);
     variableStack.length = 0;
-    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1934,7 +1918,6 @@ class BinaryBuilder {
     node.annotations = annotations;
     setParents(annotations, node);
     node.function = function..parent = node;
-    node.transformerFlags = transformerFlags;
     return node;
   }
 
@@ -1986,7 +1969,6 @@ class BinaryBuilder {
     } else {
       assert(node.kind == kind);
     }
-    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileStartOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1997,7 +1979,6 @@ class BinaryBuilder {
     node.annotations = annotations;
     setParents(annotations, node);
     node.function = function..parent = node;
-    node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
     node.signatureType = signatureType;
@@ -2222,10 +2203,6 @@ class BinaryBuilder {
       switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
-      TreeNode? parent = result.parent;
-      if (parent is Procedure) {
-        parent.transformerFlags |= getAndResetTransformerFlags();
-      }
     };
   }
 
@@ -2595,7 +2572,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperPropertyGet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertyGet.byReference(
       readExpression(),
       readName(),
@@ -2605,7 +2581,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperPropertySet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertySet.byReference(
       readExpression(),
       readName(),
@@ -2616,7 +2591,6 @@ class BinaryBuilder {
 
   Expression _readSuperPropertyGet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
       readExpression(),
       readName(),
@@ -2626,7 +2600,6 @@ class BinaryBuilder {
 
   Expression _readSuperPropertySet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertySet.byReference(
       readExpression(),
       readName(),
@@ -2787,7 +2760,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperMethodInvocation() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperMethodInvocation.byReference(
       readExpression(),
       readName(),
@@ -2798,7 +2770,6 @@ class BinaryBuilder {
 
   Expression _readSuperMethodInvocation() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
       readExpression(),
       readName(),

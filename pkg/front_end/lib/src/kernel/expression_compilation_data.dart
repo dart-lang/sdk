@@ -9,12 +9,11 @@ class ExpressionCompilationData {
   final List<TypeParameter> typeParameters;
   final List<PositionalParameter> positionalParameters;
   final int fileOffset;
-  int transformerFlags;
+  bool containsSuperCalls = false;
 
   new({
     required this.typeParameters,
     required this.positionalParameters,
     required this.fileOffset,
-    required this.transformerFlags,
   });
 }

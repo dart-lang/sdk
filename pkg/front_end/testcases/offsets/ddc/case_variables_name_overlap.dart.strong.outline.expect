@@ -20,5 +20,5 @@ import "dart:core" as core;
 [528]  static synthetic method [528] [528] _#new#tearOff() → self::X2
 [528]    return [528] [528] new self::X2::• [528]();
 }
-[222]static method [228] [469] method([229] dynamic o) → void
+[222]static method [228] [469] method([229, -1] dynamic o) → void
 [-1]  ;

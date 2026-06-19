@@ -2386,9 +2386,6 @@ class EquivalenceStrategy {
     if (!checkField_fileUri(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkField_transformerFlags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkField_fieldReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2434,9 +2431,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkConstructor_fileUri(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkConstructor_transformerFlags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkConstructor_reference(visitor, node, other)) {
@@ -2493,9 +2487,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkProcedure_fileUri(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkProcedure_transformerFlags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkProcedure_reference(visitor, node, other)) {
@@ -8150,26 +8141,6 @@ class EquivalenceStrategy {
     return checkMember_fileUri(visitor, node, other);
   }
 
-  bool checkMember_transformerFlags(
-    EquivalenceVisitor visitor,
-    Member node,
-    Member other,
-  ) {
-    return visitor.checkValues(
-      node.transformerFlags,
-      other.transformerFlags,
-      'transformerFlags',
-    );
-  }
-
-  bool checkField_transformerFlags(
-    EquivalenceVisitor visitor,
-    Field node,
-    Field other,
-  ) {
-    return checkMember_transformerFlags(visitor, node, other);
-  }
-
   bool checkField_fieldReference(
     EquivalenceVisitor visitor,
     Field node,
@@ -8269,14 +8240,6 @@ class EquivalenceStrategy {
     Constructor other,
   ) {
     return checkMember_fileUri(visitor, node, other);
-  }
-
-  bool checkConstructor_transformerFlags(
-    EquivalenceVisitor visitor,
-    Constructor node,
-    Constructor other,
-  ) {
-    return checkMember_transformerFlags(visitor, node, other);
   }
 
   bool checkMember_reference(
@@ -8401,14 +8364,6 @@ class EquivalenceStrategy {
     Procedure other,
   ) {
     return checkMember_fileUri(visitor, node, other);
-  }
-
-  bool checkProcedure_transformerFlags(
-    EquivalenceVisitor visitor,
-    Procedure node,
-    Procedure other,
-  ) {
-    return checkMember_transformerFlags(visitor, node, other);
   }
 
   bool checkProcedure_reference(
