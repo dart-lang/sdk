@@ -10,11 +10,11 @@ import "dart:core" as core;
 [286]static method [293] [406] method1() → asy::Future<void> async /* emittedValueType= void */ {
 [306]  [306] [306] core::print [311]([312] "helper");
 [-1]  {
-[-1]    [-1] synthesized asy::Stream<core::int> :stream = [345] [345] self::method0 [352]();
-[-1]    [-1] synthesized asy::_StreamIterator<core::int>? :for-iterator = [-1] [-1] new asy::_StreamIterator::• [-1]<core::int>([-1] :stream);
+[-1]    [-1, -1] synthesized asy::Stream<core::int> :stream = [345] [345] self::method0 [352]();
+[-1]    [-1, -1] synthesized asy::_StreamIterator<core::int>? :for-iterator = [-1] [-1] new asy::_StreamIterator::• [-1]<core::int>([-1] :stream);
 [-1]    try
-[325]      while ([-1] [-1] let [-1] dynamic #t1 = [325] [325] asy::_asyncStarMoveNextHelper [-1]([-1] :stream) in [325] [325] await [-1] [-1] [-1] [-1] :for-iterator.{asy::_StreamIterator::moveNext}[-1](){() → asy::Future<core::bool>}) {
-[340]        [340] core::int i = [356] [356] [-1] [-1] :for-iterator.{asy::_StreamIterator::current}{core::int};
+[325]      while ([-1] [-1] let [-1, -1] dynamic #t1 = [325] [325] asy::_asyncStarMoveNextHelper [-1]([-1] :stream) in [325] [325] await [-1] [-1] [-1] [-1] :for-iterator.{asy::_StreamIterator::moveNext}[-1](){() → asy::Future<core::bool>}) {
+[340]        [340, -1] core::int i = [356] [356] [-1] [-1] :for-iterator.{asy::_StreamIterator::current}{core::int};
 [356]        {
 [362]          [362] [362] self::method2 [369]();
 [377]          [377] [377] core::print [382]([383] "loop");
