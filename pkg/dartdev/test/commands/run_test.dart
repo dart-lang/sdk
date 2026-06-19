@@ -1046,16 +1046,22 @@ void entryPoint(String arg) {
       ]);
 
       String stdout = result.stdout.toString().replaceAll('\r\n', '\n').trim();
-      expect(
-        stdout,
-        '''
+      String expected =
+          '''
 Script1: ${script1.uri}
   -> ${script1.uri}
 Script2: ${script2.uri}
   -> ${script2.uri}
 '''
-            .trim(),
-      );
+              .trim();
+      if (Platform.isWindows) {
+        // Windows _sometimes_ uses a lower-case drive-letter and
+        // sometimes uses an upper-case one. Convert everything to
+        // lowercase so we don't fail on that.
+        stdout = stdout.toLowerCase();
+        expected = expected.toLowerCase();
+      }
+      expect(stdout, expected);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
     },
