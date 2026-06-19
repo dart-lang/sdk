@@ -116,14 +116,19 @@ final class _ResourceProviderFileFileSystem extends f.FileSystem {
   io.FileSystemEntityType typeSync(String path, {bool followLinks = true}) {
     final absPath = _resolve(path);
     try {
-      final resource = _rp.getResource(absPath);
-      if (resource.exists) {
-        if (resource is Folder) return io.FileSystemEntityType.directory;
-        if (resource is File) return io.FileSystemEntityType.file;
-      } else {
+      if (!followLinks) {
         if (_rp.getLink(absPath).exists) {
           return io.FileSystemEntityType.link;
         }
+      }
+      if (_rp.getFolder(absPath).exists) {
+        return io.FileSystemEntityType.directory;
+      }
+      if (_rp.getFile(absPath).exists) {
+        return io.FileSystemEntityType.file;
+      }
+      if (_rp.getLink(absPath).exists) {
+        return io.FileSystemEntityType.link;
       }
     } catch (_) {}
     return io.FileSystemEntityType.notFound;
@@ -226,9 +231,6 @@ abstract class _ResourceProviderEntity implements f.FileSystemEntity {
   Future<bool> exists() async => existsSync();
 
   @override
-  bool existsSync() => _resource.exists;
-
-  @override
   Future<io.FileStat> stat() => fileSystem.stat(_path);
 
   @override
@@ -255,6 +257,10 @@ class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
   _ResourceProviderFile(super.fileSystem, super.path);
 
   File get _file => fileSystem._rp.getFile(_path);
+
+  @override
+  bool existsSync() =>
+      fileSystem.typeSync(path) == io.FileSystemEntityType.file;
 
   @override
   f.File get absolute => fileSystem.file(fileSystem.path.absolute(_path));
@@ -487,6 +493,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
   Folder get _folder => fileSystem._rp.getFolder(_path);
 
   @override
+  bool existsSync() =>
+      fileSystem.typeSync(path) == io.FileSystemEntityType.directory;
+
+  @override
   f.Directory get absolute =>
       fileSystem.directory(fileSystem.path.absolute(_path));
 
@@ -651,6 +661,11 @@ class _ResourceProviderLink extends _ResourceProviderEntity implements f.Link {
   _ResourceProviderLink(super.fileSystem, super.path);
 
   Link get _link => fileSystem._rp.getLink(_path);
+
+  @override
+  bool existsSync() =>
+      fileSystem.typeSync(path, followLinks: false) ==
+      io.FileSystemEntityType.link;
 
   @override
   f.Link get absolute => fileSystem.link(fileSystem.path.absolute(_path));

@@ -99,4 +99,48 @@ void main() {
     expect(file.parent.path, '/foo/bar');
     expect(file.parent.parent.path, '/foo');
   });
+
+  test('existsSync() respects entity type', () {
+    fs.directory('/test_dir').createSync();
+    fs.file('/test_dir/file.txt').writeAsStringSync('content');
+    fs.link('/test_link').createSync('/test_dir');
+
+    // Directory
+    expect(fs.directory('/test_dir').existsSync(), isTrue);
+    expect(fs.file('/test_dir').existsSync(), isFalse);
+    expect(fs.link('/test_dir').existsSync(), isFalse);
+
+    // File
+    expect(fs.file('/test_dir/file.txt').existsSync(), isTrue);
+    expect(fs.directory('/test_dir/file.txt').existsSync(), isFalse);
+    expect(fs.link('/test_dir/file.txt').existsSync(), isFalse);
+
+    // Link
+    expect(fs.link('/test_link').existsSync(), isTrue);
+    // link points to a directory
+    expect(fs.directory('/test_link').existsSync(), isTrue);
+    // link points to a directory, not a file
+    expect(fs.file('/test_link').existsSync(), isFalse);
+  });
+
+  test('typeSync() respects followLinks argument', () {
+    fs.directory('/test_dir2').createSync();
+    fs.file('/test_dir2/file.txt').writeAsStringSync('content');
+    fs.link('/test_link2').createSync('/test_dir2');
+    fs.link('/test_link3').createSync('/test_dir2/file.txt');
+
+    // Directory link
+    expect(fs.typeSync('/test_link2'), io.FileSystemEntityType.directory);
+    expect(
+      fs.typeSync('/test_link2', followLinks: false),
+      io.FileSystemEntityType.link,
+    );
+
+    // File link
+    expect(fs.typeSync('/test_link3'), io.FileSystemEntityType.file);
+    expect(
+      fs.typeSync('/test_link3', followLinks: false),
+      io.FileSystemEntityType.link,
+    );
+  });
 }
