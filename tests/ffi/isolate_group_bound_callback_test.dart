@@ -19,6 +19,7 @@ import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
@@ -70,55 +71,53 @@ FnSleepType get sleep =>
     ffiTestFunctions.lookupFunction<FnSleepNativeType, FnSleepType>("SleepFor");
 
 @pragma('vm:shared')
-late Mutex mutexCondvar;
+final mutexCondvar = Mutex();
 @pragma('vm:shared')
-late ConditionVariable conditionVariable;
+final conditionVariable = ConditionVariable();
 
 @pragma('vm:shared')
-int result = 0;
+final result = Uint32List(1);
 @pragma('vm:shared')
-bool resultIsReady = false;
+final resultIsReady = Uint8List(1);
 
 const int sleepForMs = 1000;
 
 void simpleFunction(int a, int b) {
-  result += (a * b);
+  result[0] += (a * b);
   sleep(sleepForMs);
   mutexCondvar.runLocked(() {
-    resultIsReady = true;
+    resultIsReady[0] = 1;
     conditionVariable.notify();
   });
 }
 
 Future<void> testNativeCallableHelloWorld() async {
-  mutexCondvar = Mutex();
-  conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
     simpleFunction,
   );
 
-  result = 42;
-  resultIsReady = false;
+  result[0] = 42;
+  resultIsReady[0] = 0;
   callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
-    while (!resultIsReady) {
+    while (resultIsReady[0] == 0) {
       conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
       print('.');
     }
   });
 
-  Expect.equals(42 + (1001 * 123), result);
+  Expect.equals(42 + (1001 * 123), result[0]);
 
-  resultIsReady = false;
+  resultIsReady[0] = 0;
   callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
   mutexCondvar.runLocked(() {
-    while (!resultIsReady) {
+    while (resultIsReady[0] == 0) {
       conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
       print('.');
     }
   });
-  Expect.equals(42 + (1001 * 123) * 2, result);
+  Expect.equals(42 + (1001 * 123) * 2, result[0]);
   callback.close();
 }
 
@@ -128,14 +127,12 @@ void simpleFunctionThatThrows(int a, int b) {
 }
 
 Future<void> testNativeCallableThrows() async {
-  mutexCondvar = Mutex();
-  conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
     simpleFunctionThatThrows,
   );
 
-  result = 42;
-  resultIsReady = false;
+  result[0] = 42;
+  resultIsReady[0] = 0;
   // The call is blocking so that tsan does not complain about read/write
   // race between invoking the callback and closing it few lines down below.
   // So the main thing this test checks is condition variable timeout,
@@ -146,20 +143,17 @@ Future<void> testNativeCallableThrows() async {
     // Just have short one second sleep - the condition variable is not
     // going to be triggered.
     conditionVariable.wait(mutexCondvar, 1 * sleepForMs);
-    Expect.isFalse(resultIsReady);
+    Expect.equals(0, resultIsReady[0]);
   });
   callback.close();
 }
-
-@pragma('vm:shared')
-SendPort? sp;
 
 Future<void> testFailToCaptureReceivePort() async {
   final rp = ReceivePort();
   Expect.throws(
     () {
       NativeCallable<CallbackNativeType>.isolateGroupBound((int a, int b) {
-        sp = rp.sendPort;
+        print(rp.sendPort);
       });
     },
     (e) =>
@@ -169,40 +163,38 @@ Future<void> testFailToCaptureReceivePort() async {
 }
 
 Future<void> testNativeCallableHelloWorldClosure() async {
-  mutexCondvar = Mutex();
-  conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
     int a,
     int b,
   ) {
-    result += (a * b);
+    result[0] += (a * b);
     sleep(sleepForMs);
     mutexCondvar.runLocked(() {
-      resultIsReady = true;
+      resultIsReady[0] = 1;
       conditionVariable.notify();
     });
   });
 
-  result = 42;
-  resultIsReady = false;
+  result[0] = 42;
+  resultIsReady[0] = 0;
   callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
-    while (!resultIsReady) {
+    while (resultIsReady[0] == 0) {
       conditionVariable.wait(mutexCondvar);
     }
   });
 
-  Expect.equals(42 + (1001 * 123), result);
+  Expect.equals(42 + (1001 * 123), result[0]);
 
-  resultIsReady = false;
+  resultIsReady[0] = 0;
   callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
   mutexCondvar.runLocked(() {
-    while (!resultIsReady) {
+    while (resultIsReady[0] == 0) {
       conditionVariable.wait(mutexCondvar);
     }
   });
-  Expect.equals(42 + (1001 * 123) * 2, result);
+  Expect.equals(42 + (1001 * 123) * 2, result[0]);
   callback.close();
 }
 
@@ -264,8 +256,6 @@ Future<void> testKeepIsolateAliveTrueThrows() async {
 }
 
 Future<void> testKeepIsolateAliveFalse() async {
-  mutexCondvar = Mutex();
-  conditionVariable = ConditionVariable();
   ReceivePort rpOnExit = ReceivePort("onExit");
   unawaited(
     Isolate.spawn(

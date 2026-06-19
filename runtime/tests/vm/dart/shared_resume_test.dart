@@ -7,6 +7,8 @@
 // VMOptions=--experimental-shared-data
 //
 
+import 'dart:typed_data';
+
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import 'package:expect/expect.dart';
 
@@ -20,7 +22,7 @@ Iterable<int> bar() sync* {
 }
 
 @pragma("vm:shared")
-int caught = 0;
+final caught = Uint8List(1);
 
 main() async {
   IsolateGroup.runSync(() {
@@ -29,8 +31,8 @@ main() async {
     try {
       iterator.moveNext();
     } on int catch (e) {
-      caught = e;
+      caught[0] = e;
     }
   });
-  Expect.equals(42, caught);
+  Expect.equals(42, caught[0]);
 }
