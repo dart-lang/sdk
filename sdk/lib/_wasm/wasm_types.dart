@@ -864,6 +864,9 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   ///
   /// The argument must directly name a static function with no optional
   /// parameters and no type parameters.
+  ///
+  /// The compiler will then assume `f` may be invoked from outside the Dart
+  /// app (e.g. by JS).
   @pragma("wasm:intrinsic")
   @pragma("wasm:entry-point")
   external factory WasmFunction.fromFunction(F f);

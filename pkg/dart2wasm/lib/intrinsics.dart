@@ -1984,7 +1984,7 @@ class Intrinsifier {
         StaticTearOffConstant func = f.constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction = translator.functions.getFunction(
           func.targetReference,
-        );
+        )..isJSCalled = true;
         return translator.globals.readGlobal(
           b,
           translator.makeFunctionRef(wasmFunction),
