@@ -15,6 +15,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'change_workspace_folders_test.dart';
 import 'request_helpers_mixin.dart';
 import 'server_abstract.dart';
@@ -36,7 +37,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   var isAnalysisOptionsSelector = TypeMatcher<TextDocumentFilterScheme>()
       .having(
-        (selector) => selector.pattern,
+        (selector) => selector.pattern.asString,
         'pattern',
         '**/analysis_options.yaml',
       );
@@ -48,7 +49,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   );
 
   var isPubspecSelector = TypeMatcher<TextDocumentFilterScheme>().having(
-    (selector) => selector.pattern,
+    (selector) => selector.pattern.asString,
     'pattern',
     '**/pubspec.yaml',
   );
@@ -708,7 +709,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     var documentFilterSql = TextDocumentFilterScheme(
       scheme: 'file',
-      pattern: '**/*.sql',
+      pattern: .t1('**/*.sql'),
     );
     var documentFilterDart = TextDocumentFilterScheme(
       language: 'dart',

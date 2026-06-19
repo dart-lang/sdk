@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/completion_utils.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/extensions/text_document_filters.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -897,7 +898,7 @@ class CompletionRegistrations extends FeatureRegistration
   /// characters but for other kinds of files we do not.
   List<TextDocumentFilterScheme> get nonDartCompletionTypes {
     var pluginTypesExcludingDart = pluginTypes.where(
-      (filter) => filter.pattern != '**/*.dart',
+      (filter) => filter.patternString != '**/*.dart',
     );
 
     return {

@@ -99,7 +99,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the LSP meta model to generate from. This should
 /// be periodically updated to the latest version.
 final Uri specUri = Uri.parse(
-  'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json',
+  'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/metaModel/metaModel.json',
 );
 
 Future<void> downloadSpec() async {
@@ -137,8 +137,8 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:language_server_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 

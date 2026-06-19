@@ -105,10 +105,12 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/formatting | ✅ | |
 |   textDocument/onTypeFormatting | ✅ | |
 |   textDocument/rangeFormatting | ✅ | |
+|   textDocument/rangesFormatting | | |
 | textDocument/hover | ✅ | |
 | textDocument/implementation | ✅ | |
 | textDocument/inlayHint | ✅ | |
 |   inlayHint/resolve | | |
+| textDocument/inlineCompletion | | |
 | textDocument/inlineValue | ✅ | |
 | textDocument/linkedEditingRange | | |
 | textDocument/moniker | | |
@@ -149,10 +151,13 @@ Below is a list of LSP methods and their implementation status.
 | workspace/didDeleteFiles | | |
 | workspace/didRenameFiles | | |
 | workspace/executeCommand | ✅ | |
+| workspace/foldingRange/refresh | | |
 | workspace/inlayHint/refresh | | |
 | workspace/inlineValue/refresh | | |
 | workspace/symbol | ✅ | |
 |   workspaceSymbol/resolve | | |
+| workspace/textDocumentContent | | |
+| workspace/textDocumentContent/refresh | | |
 | workspace/willCreateFiles | | |
 | workspace/willDeleteFiles | | |
 | workspace/willRenameFiles | | |

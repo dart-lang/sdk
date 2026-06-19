@@ -160,7 +160,8 @@ class ServerCapabilitiesComputer {
       // interestingFiles. Prefix a `**/` so that the glob matches nested
       // folders as well.
       .map(
-        (glob) => TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'),
+        (glob) =>
+            TextDocumentFilterScheme(scheme: 'file', pattern: .t1('**/$glob')),
       )
       .toList();
 

@@ -787,7 +787,7 @@ lsp.Diagnostic pluginToDiagnostic(
     severity: pluginToDiagnosticSeverity(error.severity),
     code: error.code,
     source: languageSourceName,
-    message: message,
+    message: .t2(message),
     tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
     // Only include codeDescription if the client explicitly supports it
