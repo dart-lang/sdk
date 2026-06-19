@@ -6,7 +6,6 @@ import "package:kernel/ast.dart";
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/reference_from_index.dart';
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 
 import "../base/problems.dart" show unhandled;
@@ -474,7 +473,7 @@ class ForwardingNode {
     function.registerFunctionBody(
       extern.createReturnStatement(superCall, fileOffset: procedure.fileOffset),
     );
-    procedure.transformerFlags |= TransformerFlag.superCalls;
+    procedure.containsSuperCalls = true;
     procedure.stubKind = isForwardingStub
         ? ProcedureStubKind.ConcreteForwardingStub
         : ProcedureStubKind.ConcreteMixinStub;

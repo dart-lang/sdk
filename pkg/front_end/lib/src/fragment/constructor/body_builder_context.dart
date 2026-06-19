@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../../base/constant_context.dart';
 import '../../base/local_scope.dart';
@@ -41,7 +40,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   void registerSuperCall() {
-    _member.transformerFlags |= TransformerFlag.superCalls;
+    _member.containsSuperCalls = true;
   }
 
   @override

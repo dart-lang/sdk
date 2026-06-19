@@ -96,7 +96,6 @@ export 'canonical_name.dart' show CanonicalName, Reference;
 import 'default_language_version.dart' show defaultLanguageVersion;
 export 'default_language_version.dart' show defaultLanguageVersion;
 
-import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
 import 'type_algebra.dart';

@@ -2282,7 +2282,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       ExpressionCompilationData expressionCompilerDataCarrier =
           new ExpressionCompilationData(
-            transformerFlags: 0,
             fileOffset: TreeNode.noOffset,
             typeParameters: typeDefinitions,
             positionalParameters: positionalParametersUsedForCompiling,
@@ -2311,7 +2310,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
-        transformerFlags: expressionCompilerDataCarrier.transformerFlags,
+        containsSuperCalls: expressionCompilerDataCarrier.containsSuperCalls,
       );
       procedure.parent = cls ?? libraryBuilder.library;
 

@@ -284,7 +284,7 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
 
   @override
   void registerSuperCall() {
-    _field!.transformerFlags |= TransformerFlag.superCalls;
+    _field!.containsSuperCalls = true;
   }
 
   @override
@@ -511,8 +511,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _createGetterBody(coreTypes, _fragment.name, initializer),
     );
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
-    // transformer flags to reflect whether the getter contains super calls.
-    _lateGetter!.transformerFlags = _field!.transformerFlags;
+    // property to reflect whether the getter contains super calls.
+    _lateGetter!.containsSuperCalls = _field!.containsSuperCalls;
 
     if (_lateSetter != null) {
       _lateSetter!.function.registerFunctionBody(
@@ -919,7 +919,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void registerSuperCall() {
-    _field!.transformerFlags |= TransformerFlag.superCalls;
+    _field!.containsSuperCalls = true;
   }
 }
 
