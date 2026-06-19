@@ -30,6 +30,7 @@ aer
 af
 albeit
 aligns
+alleged
 allocations
 allowlist
 allowlisting
@@ -123,6 +124,7 @@ brave
 brown
 bt
 btw
+bubble
 builddir
 bulkcompile
 busy
@@ -334,6 +336,7 @@ expanded
 expansive
 explainer
 extern
+extracting
 f\u
 fa
 fac
@@ -618,6 +621,7 @@ operate
 ops
 optimal
 oracle
+orderings
 ot
 outbound
 outliers
@@ -646,9 +650,11 @@ periodic
 periodically
 perm
 perms
+permutations
 person
 ph
 phrase
+picks
 pid
 pink
 placement
@@ -710,6 +716,7 @@ reenable
 reexport
 referential
 refname
+refs
 refusing
 regards
 regenerate
@@ -742,6 +749,7 @@ revisions
 risky
 rk
 rnone
+route
 routines
 row
 rows
@@ -795,6 +803,7 @@ silence
 simplistic
 slashes
 sleep
+slice
 slight
 sliver
 sm
@@ -828,6 +837,7 @@ stats
 stay
 std
 stopwatches
+streams
 stress
 stretch
 stringy

@@ -179,7 +179,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       }
       if (leaks.isNotEmpty) {
         for (Leak leak in leaks) {
-          leakDetected(leak.duplicate, leak.count, leak.prettyPrints);
+          await leakDetected(leak.duplicate, leak.count, leak.prettyPrints);
         }
         if (throwOnPossibleLeak) {
           throw "Leaks found";
@@ -389,7 +389,11 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
   int _latestLeakIteration = -1;
 
-  void leakDetected(String duplicate, int count, List<String> prettyPrints) {
+  Future<void> leakDetected(
+    String duplicate,
+    int count,
+    List<String> prettyPrints,
+  ) {
     if (_iterationNumber != _latestLeakIteration) {
       print("======================================");
       print("WARNING: Duplicated pretty prints of objects.");
@@ -402,6 +406,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       print(" => ${prettyPrint}");
     }
     print("");
+    return Future.value();
   }
 
   void noLeakDetected() {}
