@@ -1,3 +1,7 @@
+# 5.4.0-wip
+
+- [DAP] Print truncated text from `dart:developer`'s `log()` if the full string has been collected.
+
 # 5.3.0
 
 - Add `--app-name` option to `dart development-service`. This is a short, user

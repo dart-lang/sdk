@@ -9,6 +9,7 @@ import 'dart:vmservice_io' show getResidentCompilerInfoFileConsideringArgsImpl;
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_vm/dart_runtime_service_vm.dart';
+import 'package:dart_runtime_service_vm/src/native_bindings.dart';
 import 'package:dart_runtime_service_vm/src/vm_isolate_manager.dart';
 
 // ignore: unreachable_from_main
@@ -149,4 +150,5 @@ Future<void> main([List<String> args = const []]) async {
       residentCompilerInfoFile: _residentCompilerInfoFile,
     ),
   );
+  NativeBindings().notifyFinishedInitializing();
 }

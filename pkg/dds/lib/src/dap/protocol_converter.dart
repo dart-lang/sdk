@@ -50,8 +50,8 @@ class ProtocolConverter {
   /// the object for a display string.
   ///
   /// Strings are usually wrapped in quotes to indicate their type. This can be
-  /// controlled with [includeQuotesAroundString] (for example to suppress them
-  /// if the context indicates the user is copying the value to the clipboard).
+  /// controlled with [format] (for example to suppress them if the context
+  /// indicates the user is copying the value to the clipboard).
   Future<String> convertVmInstanceRefToDisplayString(
     ThreadInfo thread,
     vm.InstanceRef ref, {

@@ -322,7 +322,7 @@ void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
 
 void ServiceIsolate::FinishedExiting() {
   MonitorLocker ml(monitor_);
-  ASSERT(state_ == kStarted || state_ == kStopping);
+  ASSERT(state_ == kStarting || state_ == kStarted || state_ == kStopping);
   state_ = kStopped;
   port_ = ILLEGAL_PORT;
   isolate_ = nullptr;
@@ -363,6 +363,7 @@ class RunServiceTask : public ThreadPool::Task {
     Isolate::FlagsInitialize(&api_flags);
     api_flags.is_system_isolate = true;
     api_flags.is_service_isolate = true;
+    api_flags.enable_asserts = false;
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,
                               nullptr, nullptr, &api_flags, nullptr, &error));
@@ -431,13 +432,25 @@ class RunServiceTask : public ThreadPool::Task {
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
-        OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Error: %s\n",
+        OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Thread Error: %s\n",
                      error.ToErrorCString());
+        if (error.IsUnhandledException()) {
+          const auto& ue = UnhandledException::Cast(error);
+          const auto& st = Instance::Handle(Z, ue.stacktrace());
+          OS::PrintErr("Service Isolate Thread Stack trace:\n%s\n",
+                       st.ToCString());
+        }
       }
       error = I->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
-        OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Error: %s\n",
+        OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate Error: %s\n",
                      error.ToErrorCString());
+        if (error.IsUnhandledException()) {
+          const auto& ue = UnhandledException::Cast(error);
+          const auto& st = Instance::Handle(Z, ue.stacktrace());
+          OS::PrintErr("Service Isolate Isolate Stack trace:\n%s\n",
+                       st.ToCString());
+        }
       }
     }
     Dart_ShutdownIsolate();
@@ -628,7 +641,6 @@ void ServiceIsolate::BootVmServiceLibrary() {
   }
   ASSERT(port != ILLEGAL_PORT);
   ServiceIsolate::SetServicePort(port);
-  ServiceIsolate::FinishedInitializing();
 }
 
 void ServiceIsolate::RegisterRunningIsolates(
@@ -679,6 +691,10 @@ void ServiceIsolate::RegisterRunningIsolates(
     }
     ASSERT(!result.IsError());
   }
+}
+
+void ServiceIsolate::NotifyFinishedInitializing() {
+  FinishedInitializing();
 }
 
 void ServiceIsolate::VisitObjectPointers(ObjectPointerVisitor* visitor) {}

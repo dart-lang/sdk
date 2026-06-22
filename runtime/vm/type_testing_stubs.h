@@ -32,10 +32,6 @@ class TypeTestingStubNamer {
   // Converts the contents of the buffer to an assembly-safe name.
   static void MakeNameAssemblerSafe(BaseTextBuffer* buffer);
 
-  Library& lib_;
-  Class& klass_;
-  AbstractType& type_;
-  String& string_;
   mutable intptr_t nonce_ = 0;
 };
 
