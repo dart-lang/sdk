@@ -78,6 +78,7 @@ _dart2wasm_builder(
 _dart2wasm_builder(
     "dart2wasm-linux-jscm-chrome",
     category = "dart2wasm|browser|cm",
+    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 
