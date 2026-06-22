@@ -271,7 +271,9 @@ int threadMainWaitingLatch(Pointer<Void> data) {
   dartNewSendPort(nativeSendPort[0]).send(helper);
 
   helper.runSync(() {
-    isHelperInThreadMainWaitingLatchRunning[0] = 1;
+    mutexCondvar.runLocked(() {
+      isHelperInThreadMainWaitingLatchRunning[0] = 1;
+    });
     waitLatch();
   });
   print('shutting down the isolate');
@@ -287,7 +289,9 @@ Future<void> testFailRunSyncWithTimeout() async {
   final completer = Completer();
   final rp = RawReceivePort((Isolate child_isolate) async {
     print('received $child_isolate');
-    while (isHelperInThreadMainWaitingLatchRunning[0] == 0) {
+    while (mutexCondvar.runLocked(
+      () => isHelperInThreadMainWaitingLatchRunning[0] == 0,
+    )) {
       // Let the thread which should do `helper.runSync`
       // actually do that.
       await Future.delayed(Duration(milliseconds: 10));
