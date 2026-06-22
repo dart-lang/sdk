@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'common/test_helper.dart';
 
-void primeTimeline() {
+Future<void> primeTimeline() async {
   for (int i = 0; i < 5; i++) {
     scheduleMicrotask(() {});
   }
+  // Yield to the event loop to allow the scheduled microtasks to run.
+  await Future(() {});
 }
 
 Future<void> main([List<String> args = const <String>[]]) {
