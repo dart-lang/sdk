@@ -5849,6 +5849,19 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE:
       __ sub(out, ZR, compiler::Operand(left));
       break;
+    case Token::kPOPCNT: {
+      __ fmovdr(VTMP, left);
+      __ vcnt(VTMP, VTMP);
+      __ vuaddlv(VTMP, VTMP);
+      __ fmovrs(out, VTMP);
+      break;
+    }
+    case Token::kCTZ:
+      // RBIT(0) = 0 and CLZ(0) = 64, so the zero-input case naturally
+      // returns the platform width (matching the Dart API contract).
+      __ rbit(out, left);
+      __ clz(out, out);
+      break;
     default:
       UNREACHABLE();
   }

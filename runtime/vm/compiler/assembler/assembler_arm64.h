@@ -1476,6 +1476,21 @@ class Assembler : public AssemblerBase {
   void vrsqrtes(VRegister vd, VRegister vn) {
     EmitSIMDTwoRegOp(VRSQRTES, vd, vn);
   }
+  // CNT Vd.8B, Vn.8B: byte-wise population count.
+  void vcnt(VRegister vd, VRegister vn) {
+    const int32_t encoding = 0x0E205800 |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
+  // UADDLV Hd, Vn.8B: sum across the 8 unsigned byte lanes of Vn into the
+  // 16-bit scalar in the low bits of Vd.
+  void vuaddlv(VRegister vd, VRegister vn) {
+    const int32_t encoding = 0x2E303800 |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   void vdupw(VRegister vd, Register rn) {
     const VRegister vn = static_cast<VRegister>(rn);
     EmitSIMDCopyOp(VDUPI, vd, vn, kFourBytes, 0, 0);

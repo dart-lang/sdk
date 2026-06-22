@@ -9200,7 +9200,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), op_kind_(op_kind) {
-    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
+    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT) ||
+           (op_kind == Token::kPOPCNT) || (op_kind == Token::kCTZ));
     SetInputAt(0, value);
   }
 
@@ -9294,8 +9295,11 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE);
+    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE ||
+           op_kind == Token::kPOPCNT || op_kind == Token::kCTZ);
   }
+
+  static bool IsSupported(Token::Kind op_kind);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 

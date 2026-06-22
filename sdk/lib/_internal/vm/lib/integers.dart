@@ -163,13 +163,24 @@ abstract final class _IntegerImplementation implements int {
   @pragma("vm:external-name", "Integer_equalToInteger")
   external bool _equalToInteger(int other);
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "Integer_trailingZeroBitCount")
-  external int get trailingZeroBitCount;
+  int get trailingZeroBitCount {
+    final int v = this;
+    return ((v - 1) & ~v).oneBitCount;
+  }
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "Integer_oneBitCount")
-  external int get oneBitCount;
+  int get oneBitCount {
+    int v = this;
+    v = v - ((v >>> 1) & 0x5555555555555555);
+    v = (v & 0x3333333333333333) + ((v >>> 2) & 0x3333333333333333);
+    v = (v + (v >>> 4)) & 0x0F0F0F0F0F0F0F0F;
+    return ((v * 0x0101010101010101) >>> 56);
+  }
 
   int abs() {
     return this < 0 ? -this : this;

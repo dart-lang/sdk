@@ -267,26 +267,6 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 0, 1) {
   return Smi::New(result);
 }
 
-// Unified bit-count natives. Receiver is _IntegerImplementation, so the
-// operand can be either Smi or Mint at runtime.
-DEFINE_NATIVE_ENTRY(Integer_trailingZeroBitCount, 0, 1) {
-  const Integer& operand =
-      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
-  intptr_t result =
-      Utils::CountTrailingZeros64(static_cast<uint64_t>(operand.Value()));
-  ASSERT(Smi::IsValid(result));
-  return Smi::New(result);
-}
-
-DEFINE_NATIVE_ENTRY(Integer_oneBitCount, 0, 1) {
-  const Integer& operand =
-      Integer::CheckedHandle(zone, arguments->NativeArgAt(0));
-  intptr_t result =
-      Utils::CountOneBits64(static_cast<uint64_t>(operand.Value()));
-  ASSERT(Smi::IsValid(result));
-  return Smi::New(result);
-}
-
 // Should be kept in sync with il_*.cc EmitHashIntegerCodeSequence
 uint32_t Multiply64Hash(int64_t ivalue) {
   const uint64_t magic_constant = /*0x1b873593cc9e*/ 0x2d51;
