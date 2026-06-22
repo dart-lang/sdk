@@ -190,6 +190,21 @@ Map<String, Field> _getAllFieldsMap(Interface? interface) {
   };
 }
 
+/// A helper to get the count of fields in an interface, including subtypes.
+int _getFieldCount(String interfaceName, {required bool required}) {
+  var interface = _interfaces[interfaceName]!;
+
+  var thisCount = interface.members
+      .whereType<Field>()
+      .where((field) => field.isRequired == required)
+      .length;
+  var baseCount = interface.baseTypes
+      .map((baseType) => _getFieldCount(baseType.name, required: required))
+      .fold(0, (acc, item) => acc + item);
+
+  return thisCount + baseCount;
+}
+
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
 List<N> _getSortedUnique<N extends LspEntity>(List<N> items) {
   var uniqueByName = <String, N>{};
@@ -345,16 +360,11 @@ String _sortContent(String content) {
 /// Subtypes will be sorted such that types with the most required fields appear
 /// first to ensure `fromJson` constructors delegate to the most specific type.
 void _sortSubtypes() {
-  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => !field.allowsUndefined && !field.allowsNull)
-      .length;
-  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => field.allowsUndefined || field.allowsNull)
-      .length;
+  int requiredFieldCount(String interfaceName) =>
+      _getFieldCount(interfaceName, required: true);
+  int optionalFieldCount(String interfaceName) =>
+      _getFieldCount(interfaceName, required: false);
+
   for (var entry in _subtypes.entries) {
     var subtypes = entry.value;
     subtypes.sort((subtype1, subtype2) {
@@ -362,6 +372,7 @@ void _sortSubtypes() {
       var requiredFields2 = requiredFieldCount(subtype2);
       var optionalFields1 = optionalFieldCount(subtype1);
       var optionalFields2 = optionalFieldCount(subtype2);
+
       return requiredFields1 != requiredFields2
           ? requiredFields2.compareTo(requiredFields1)
           : optionalFields1 != optionalFields2

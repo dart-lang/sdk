@@ -72,6 +72,7 @@ class Field extends Member {
   final TypeBase type;
   final bool allowsNull;
   final bool allowsUndefined;
+
   new({
     required super.name,
     super.comment,
@@ -80,6 +81,9 @@ class Field extends Member {
     required this.allowsNull,
     required this.allowsUndefined,
   });
+
+  bool get isOptional => allowsNull || allowsUndefined;
+  bool get isRequired => !isOptional;
 }
 
 /// An interface/class parsed from the LSP JSON model.
