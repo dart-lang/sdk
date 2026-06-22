@@ -143,6 +143,7 @@ abstract class IncrementalKernelGenerator {
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
+    Set<String>? definitionsAddedByUser,
     String? className,
     String? methodName,
     int offset = -1,

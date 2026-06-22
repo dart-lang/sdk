@@ -438,10 +438,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     IncrementalCompilerResult compilerResult,
     Context context,
   ) async {
+    Set<String> definitionsAddedByUser = {};
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
       compilerResult.classHierarchy.knownLibraries,
       test.definitionTypes,
       test.definitions,
+      definitionsAddedByUser,
     );
 
     if (definitions == null) {
@@ -478,6 +480,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       typeParams,
       "debugExpr",
       test.library,
+      definitionsAddedByUser: definitionsAddedByUser,
       className: test.className,
       methodName: test.methodName,
       isStatic: test.isStaticMethod,
