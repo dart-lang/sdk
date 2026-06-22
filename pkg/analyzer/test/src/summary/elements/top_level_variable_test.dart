@@ -3355,7 +3355,7 @@ library
           element: <testLibrary>::@setter::foo
           formalParameters
             #F6 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
+              element: <testLibrary>::@setter::foo::@formalParameter::value
               nextFragment: #F7
           nextFragment: #F4
         #F4 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -3363,7 +3363,7 @@ library
           inducingVariable: #F2
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
-              element: <testLibrary>::@setter::foo::@formalParameter::_
+              element: <testLibrary>::@setter::foo::@formalParameter::value
               previousFragment: #F6
           previousFragment: #F5
   topLevelVariables
@@ -3384,7 +3384,7 @@ library
       reference: <testLibrary>::@setter::foo
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _
+        #E0 requiredPositional value
           firstFragment: #F6
           type: int
       returnType: void

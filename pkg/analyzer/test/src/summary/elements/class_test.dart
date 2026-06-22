@@ -16303,6 +16303,83 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_formalParameters_rP1__rPw__rP1() async {
+    var library = await buildLibrary(r'''
+class A {
+  A(int x);
+}
+augment class A {
+  augment A(int _);
+}
+augment class A {
+  augment A(int x);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration x (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          constructors
+            #F6 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 52
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration _ (nameOffset:58) (firstTokenOffset:54) (offset:58)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  previousFragment: #F4
+                  nextFragment: #F8
+              nextFragment: #F9
+              previousFragment: #F3
+        #F7 isAugmentation class A (nameOffset:78) (firstTokenOffset:64) (offset:78)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          constructors
+            #F9 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:84) (offset:92)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 92
+              formalParameters
+                #F8 requiredPositional isOriginDeclaration x (nameOffset:98) (firstTokenOffset:94) (offset:98)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  previousFragment: #F5
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional x
+              firstFragment: #F4
+              type: int
+''');
+  }
+
   test_constructor_secondary_augmentation_chain_formalParameters_rP1__sP1() async {
     var library = await buildLibrary(r'''
 class A {
@@ -17815,6 +17892,141 @@ library
     declared <testLibrary>::@class::A
   exportNamespace
     A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rPw__rP1__rPw() async {
+    var library = await buildLibrary(r'''
+class A {
+  A(int _);
+}
+augment class A {
+  augment A(int x);
+}
+augment class A {
+  augment A(int _);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          constructors
+            #F6 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 52
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration x (nameOffset:58) (firstTokenOffset:54) (offset:58)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  previousFragment: #F4
+                  nextFragment: #F8
+              nextFragment: #F9
+              previousFragment: #F3
+        #F7 isAugmentation class A (nameOffset:78) (firstTokenOffset:64) (offset:78)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          constructors
+            #F9 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:84) (offset:92)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 92
+              formalParameters
+                #F8 requiredPositional isOriginDeclaration _ (nameOffset:98) (firstTokenOffset:94) (offset:98)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  previousFragment: #F5
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional x
+              firstFragment: #F4
+              type: int
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rPw__rPw() async {
+    var library = await buildLibrary(r'''
+class A {
+  A(int _);
+}
+augment class A {
+  augment A(int _);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 52
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration _ (nameOffset:58) (firstTokenOffset:54) (offset:58)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F4
+              type: int
 ''');
   }
 
@@ -28730,7 +28942,7 @@ library
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
-                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   nextFragment: #F8
               nextFragment: #F9
         #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
@@ -28752,7 +28964,7 @@ library
               inducingVariable: #F4
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   previousFragment: #F7
               previousFragment: #F6
   classes
@@ -28781,7 +28993,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional value
               firstFragment: #F7
               type: int
           returnType: void
@@ -32884,7 +33096,7 @@ library
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:31) (firstTokenOffset:27) (offset:31)
-                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   nextFragment: #F8
               nextFragment: #F9
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
@@ -32906,7 +33118,7 @@ library
               inducingVariable: #F4
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
-                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
                   previousFragment: #F7
               previousFragment: #F6
   classes
@@ -32935,7 +33147,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F6
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional value
               firstFragment: #F7
               type: int
           returnType: void
