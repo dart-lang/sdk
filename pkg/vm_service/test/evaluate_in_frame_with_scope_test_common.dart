@@ -38,6 +38,10 @@ Future<void> _testEvaluateInFrameWithScope(
   final thing2 = thing2Field.staticValue! as InstanceRef;
   print(thing2);
 
+  final thing3Field = await findField('thing3');
+  final thing3 = thing3Field.staticValue! as InstanceRef;
+  print(thing3);
+
   await evaluateInFrameAndExpect(
     service,
     isolateId,
@@ -48,6 +52,37 @@ Future<void> _testEvaluateInFrameWithScope(
       'b': thing2.id!,
     },
   );
+
+  // Scope provided shadows the local.
+  await evaluateInFrameAndExpect(
+    service,
+    isolateId,
+    'local',
+    'hello',
+    scope: {
+      'local': thing3.id!,
+    },
+  );
+
+  // Scope provided shadows the local: The shadowed variable has type 'int',
+  // but the real variable has type 'Cow' (an extension type with a 'say'
+  // method). As the type is now 'int' there should be no 'say' method.
+  final result = await service.evaluateInFrame(
+    isolateId,
+    0,
+    'local2.say()',
+    scope: {
+      'local2': thing2.id!,
+    },
+  );
+  if (result is! ErrorRef) {
+    if (result is InstanceRef) {
+      fail('Expected an error because of the provided scope '
+          'but got instance result "${result.valueAsString}".');
+    }
+    fail('Expected an error because of the provided scope '
+        'but got ${result.runtimeType}.');
+  }
 
   await evaluateInFrameAndExpect(
     service,
