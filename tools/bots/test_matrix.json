@@ -1680,7 +1680,8 @@
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
             "-j8",
-            "ffi"
+            "ffi",
+            "standalone/io/"
           ]
         },
         {
