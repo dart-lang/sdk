@@ -7,9 +7,11 @@ import 'dart:io';
 
 import 'package:dap/dap.dart';
 import 'package:dds/src/dap/adapters/dart.dart';
+import 'package:dds/src/dap/isolate_manager.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart' as vm;
 
 import 'mocks.dart';
 
@@ -132,7 +134,45 @@ main() {
         }
       });
     });
+
+    test('getFullString falls back to the truncated value if expansion fails',
+        () async {
+      final adapter = MockDartCliDebugAdapter()
+        ..vmService = ThrowingInvokeVmService();
+      final thread = ThreadInfo(
+        adapter.isolateManager,
+        1,
+        vm.IsolateRef(id: 'isolate1'),
+      );
+
+      final result = await adapter.getFullString(
+        thread,
+        vm.InstanceRef(
+          id: 'string1',
+          kind: vm.InstanceKind.kString,
+          valueAsString: 'truncated value',
+          valueAsStringIsTruncated: true,
+        ),
+      );
+
+      expect(result, 'truncated value…');
+    });
   });
+}
+
+/// A version of [MockVmService] that throws when [invoke] is called.
+class ThrowingInvokeVmService extends MockVmService {
+  @override
+  Future<vm.Response> invoke(
+    String isolateId,
+    String targetId,
+    String selector,
+    List<String> argumentIds, {
+    bool? disableBreakpoints,
+    String? idZoneId,
+  }) {
+    throw StateError('forced failure fetching full string');
+  }
 }
 
 class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
