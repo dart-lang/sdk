@@ -300,7 +300,11 @@ void main() {
   );
 
   if (_autoStart) {
-    _toggleWebServer();
+    _toggleWebServer().whenComplete(() {
+      notifyFinishedInitializing();
+    });
+  } else {
+    notifyFinishedInitializing();
   }
   _registerSignalHandler();
 }

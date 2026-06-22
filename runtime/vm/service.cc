@@ -4015,6 +4015,7 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
   uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = -1;
   (*file_read)(&kernel_buffer, &kernel_buffer_size, file);
+  (*file_close)(file);
 
   const bool force_reload =
       js->LookupObjectParam("force") == Bool::True().ptr();

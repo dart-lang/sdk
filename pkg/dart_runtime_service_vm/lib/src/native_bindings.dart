@@ -116,6 +116,11 @@ class NativeBindings {
   /// Notifies the VM that the VM service server has finished initializing.
   void onStart() => vm_service_natives.onStart();
 
+  /// Notifies the VM that the VM service has finished all asynchronous
+  /// initialization.
+  void notifyFinishedInitializing() =>
+      vm_service_natives.notifyFinishedInitializing();
+
   /// Notifies the VM that the VM service server has finished exiting.
   void onExit() => vm_service_natives.onExit();
 

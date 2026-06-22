@@ -300,6 +300,7 @@ namespace dart {
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
+  V(VMService_NotifyFinishedInitializing, 0)                                   \
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
