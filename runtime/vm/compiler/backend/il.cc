@@ -2263,6 +2263,34 @@ Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : nullptr;
 }
 
+bool UnaryInt64OpInstr::IsSupported(Token::Kind op_kind) {
+  switch (op_kind) {
+    case Token::kPOPCNT:
+#if defined(TARGET_ARCH_ARM64)
+      return true;
+#elif defined(TARGET_ARCH_ARM)
+      return TargetCPUFeatures::neon_supported();
+#elif defined(TARGET_ARCH_X64)
+      return TargetCPUFeatures::popcnt_supported();
+#elif defined(TARGET_ARCH_RISCV64)
+      return RV_baseline.Includes(RV_Zbb);
+#else
+      return false;
+#endif
+    case Token::kCTZ:
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_X64) ||                  \
+    defined(TARGET_ARCH_ARM)
+      return true;
+#elif defined(TARGET_ARCH_RISCV64)
+      return RV_baseline.Includes(RV_Zbb);
+#else
+      return false;
+#endif
+    default:
+      return false;
+  }
+}
+
 UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
                                                Token::Kind op_kind,
                                                Value* value,

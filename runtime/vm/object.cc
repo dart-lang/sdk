@@ -78,6 +78,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -9237,6 +9238,7 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (RecognizedKindForceOptimize() || IsFfiCallClosure() ||
       IsFfiCallbackTrampoline() || is_ffi_native() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
@@ -9252,6 +9254,11 @@ bool Function::ForceOptimize() const {
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions as
   // force-optimize via `@pragma('vm:force-optimize')`.
   return InVmTests(*this);
+#else
+  // These are not supposed to be called in AOT runtime.
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 bool Function::IsPreferInline() const {
@@ -9313,6 +9320,7 @@ InstancePtr Function::GetFfiCallClosurePragmaValue() const {
 }
 
 bool Function::RecognizedKindForceOptimize() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   switch (recognized_kind()) {
     // Uses unboxed/untagged data not supported in unoptimized, or uses
     // LoadIndexed/StoreIndexed/MemoryCopy instructions with typed data
@@ -9422,9 +9430,21 @@ bool Function::RecognizedKindForceOptimize() const {
     // Both unboxed/untagged data and atomic-to-GC operation.
     case MethodRecognizer::kFinalizerEntry_allocate:
       return true;
+    // Only force-optimize when the hardware fast path is available, since the
+    // fall-through Dart body contains integer-arithmetic instance calls which
+    // are not allowed inside force-optimized functions.
+    case MethodRecognizer::kInteger_oneBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kPOPCNT);
+    case MethodRecognizer::kInteger_trailingZeroBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kCTZ);
     default:
       return false;
   }
+#else
+  // These are not supposed to be called in AOT runtime.
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -10528,11 +10548,13 @@ FunctionPtr Function::New(const FunctionType& signature,
     ASSERT(space == Heap::kOld);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Force-optimized functions are not debuggable because they cannot
   // deoptimize.
   if (result.ForceOptimize()) {
     result.set_is_debuggable(false);
   }
+#endif
   signature.set_num_implicit_parameters(result.NumImplicitParameters());
   result.SetSignature(signature);
   NOT_IN_PRECOMPILED(

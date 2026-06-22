@@ -76,6 +76,10 @@ namespace dart {
   V(CoreLibrary, _WeakReference, set:_target, WeakReference_setTarget,         \
     0xc70c51ba)                                                                \
   V(CoreLibrary, _Smi, get:hashCode, Smi_hashCode, 0x75c3b512)                 \
+  V(CoreLibrary, _IntegerImplementation, get:trailingZeroBitCount,             \
+    Integer_trailingZeroBitCount, 0xea8b2826)                                  \
+  V(CoreLibrary, _IntegerImplementation, get:oneBitCount,                      \
+    Integer_oneBitCount, 0x60c41821)                                           \
   V(CoreLibrary, _Mint, get:hashCode, Mint_hashCode, 0x75c3b512)               \
   V(CoreLibrary, _Double, get:hashCode, Double_hashCode, 0x75c3b8d3)           \
   V(CompactHashLibrary, _LinkedHashBase, get:_index, LinkedHashBase_getIndex,  \
