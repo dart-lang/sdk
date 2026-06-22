@@ -857,10 +857,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-android-${mode}-${arch}",
-            "ffi",
-            "standalone",
-            "vm"
+            "-nvm-aot-android-${mode}-${arch}"
           ],
           "fileset": "android",
           "shards": 4
