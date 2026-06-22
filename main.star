@@ -159,7 +159,6 @@ dart.ci_sandbox_builder(
     schedule = "0 3,4 * * *",
     triggered_by = None,
 )
-dart.try_builder("fuzz-linux")
 
 # Try only builders
 dart.try_builder(
