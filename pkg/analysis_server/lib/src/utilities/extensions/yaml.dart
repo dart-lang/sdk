@@ -4,14 +4,25 @@
 
 import 'package:yaml/yaml.dart';
 
+bool _columnAllowed(int? cursorColumn, YamlNode node) {
+  if (cursorColumn == null) return true;
+  return cursorColumn >= node.span.start.column;
+}
+
 extension YamlNodeExtensions on YamlNode {
   /// Return the child of this node that contains the given [offset], or `null`
   /// if none of the children contains the offset.
-  YamlNode? childContainingOffset(int offset) {
+  ///
+  /// If [cursorColumn] is provided, block collection children whose content
+  /// starts at a greater column than [cursorColumn] are excluded. This prevents
+  /// a cursor at a lower indentation level (e.g. column 0 after an indented
+  /// list) from being treated as inside the deeper block.
+  YamlNode? childContainingOffset(int offset, {required int cursorColumn}) {
     var node = this;
     if (node is YamlList) {
       for (var element in node.nodes) {
-        if (element.containsOffset(offset)) {
+        if (element.containsOffset(offset) &&
+            _columnAllowed(cursorColumn, element)) {
           return element;
         }
       }
@@ -42,13 +53,15 @@ extension YamlNodeExtensions on YamlNode {
             key.span.end.offset <= offset &&
             offset < value.span.start.offset &&
             (nextEntryOffset == null || offset < nextEntryOffset);
-        if (value.containsOffset(offset) ||
+        if ((value.containsOffset(offset) &&
+                _columnAllowed(cursorColumn, value)) ||
             (value is YamlScalar &&
                 value.value == null &&
                 // To match a null, we need to be the last node, or the offset
                 // needs to be before the next key.
                 (nextEntryOffset == null || offset < nextEntryOffset)) ||
             (cursorInGap &&
+                _columnAllowed(cursorColumn, value) &&
                 ((value is YamlList && value.nodes.isNotEmpty) ||
                     (value is YamlMap && value.nodes.isNotEmpty)))) {
           return entry.value;

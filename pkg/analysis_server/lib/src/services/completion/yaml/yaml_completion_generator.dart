@@ -46,7 +46,8 @@ abstract class YamlCompletionGenerator {
       // If the contents can't be parsed, then there are no suggestions.
       return const YamlCompletionResults.empty();
     }
-    var nodePath = _pathToOffset(root, offset);
+    var cursorColumn = _columnAt(content, offset);
+    var nodePath = _pathToOffset(root, offset, cursorColumn: cursorColumn);
     var completionNode = nodePath.last;
     var precedingText = '';
     if (completionNode is YamlScalar) {
@@ -133,12 +134,16 @@ abstract class YamlCompletionGenerator {
   /// Return a list containing the node containing the [offset] and all of the
   /// nodes between that and the [root] node. The root node is first in the list
   /// and the node containing the offset is the last element in the list.
-  List<YamlNode> _pathToOffset(YamlNode root, int offset) {
+  List<YamlNode> _pathToOffset(
+    YamlNode root,
+    int offset, {
+    required int cursorColumn,
+  }) {
     var path = <YamlNode>[];
     YamlNode? node = root;
     while (node != null) {
       path.add(node);
-      node = node.childContainingOffset(offset);
+      node = node.childContainingOffset(offset, cursorColumn: cursorColumn);
     }
     return path;
   }
@@ -232,6 +237,11 @@ abstract class YamlCompletionGenerator {
 
     var length = path.length;
     if (length < 2) {
+      // Path is just the root node. If it's a map, its own keys are the
+      // siblings that should be excluded from top-level key suggestions.
+      if (length == 1 && path[0] is YamlMap) {
+        return siblingsInMap(path[0] as YamlMap, null);
+      }
       return const <String>[];
     }
     var node = path[length - 1];
@@ -247,6 +257,13 @@ abstract class YamlCompletionGenerator {
       return siblingsInMap(parent, node);
     }
     return const <String>[];
+  }
+
+  /// Returns the 0-based column of [offset] within [content].
+  static int _columnAt(String content, int offset) {
+    if (offset == 0) return 0;
+    var lastNewline = content.lastIndexOf('\n', offset - 1);
+    return offset - lastNewline - 1;
   }
 }
 
