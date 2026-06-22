@@ -25,7 +25,14 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var clazz = coveringNode?.parent?.parent?.parent;
+    // In the case of new() of factory() we might already be on the constructor
+    // declaration. Otherwise we are likely the identifier for the constructor
+    // name.
+    var constructorDeclaration = coveringNode is ConstructorDeclaration
+        ? coveringNode
+        : coveringNode?.parent;
+
+    var clazz = constructorDeclaration?.parent?.parent;
     if (clazz is! ClassDeclaration) {
       return;
     }
