@@ -34,12 +34,23 @@ extension YamlNodeExtensions on YamlNode {
           return key;
         }
         var value = entry.value;
+        // Whether the cursor is after this key's end but before the value's
+        // first element/entry, bounded by the next sibling key if present.
+        // This handles the "gap" between `key:` and a block collection whose
+        // first element has not yet been reached by the cursor.
+        var cursorInGap =
+            key.span.end.offset <= offset &&
+            offset < value.span.start.offset &&
+            (nextEntryOffset == null || offset < nextEntryOffset);
         if (value.containsOffset(offset) ||
             (value is YamlScalar &&
                 value.value == null &&
                 // To match a null, we need to be the last node, or the offset
                 // needs to be before the next key.
-                (nextEntryOffset == null || offset < nextEntryOffset))) {
+                (nextEntryOffset == null || offset < nextEntryOffset)) ||
+            (cursorInGap &&
+                ((value is YamlList && value.nodes.isNotEmpty) ||
+                    (value is YamlMap && value.nodes.isNotEmpty)))) {
           return entry.value;
         }
       }

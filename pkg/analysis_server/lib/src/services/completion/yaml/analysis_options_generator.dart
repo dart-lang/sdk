@@ -18,9 +18,6 @@ import 'package:analyzer/src/lint/registry.dart';
 class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   /// The producer representing the known valid structure of an analysis options
   /// file.
-  // TODO(brianwilkerson): We need to support multiple valid formats.
-  //  For example, the lint rules can either be a list or a map, but we only
-  //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
     AnalysisOptionsFileKeys.analyzer: MapProducer({
       AnalysisOptionsFileKeys.enableExperiment: ListProducer(
@@ -51,7 +48,19 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
     AnalysisOptionsFileKeys.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
-    'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
+    'linter': MapProducer({
+      'rules': ListOrMapProducer(
+        _LintRuleProducer(),
+        // The legal values, as validated by `LinterRuleOptionsValidator`.
+        mapValue: EnumProducer([
+          ...{
+            ...AnalysisOptionsFileKeys.trueOrFalse,
+            ...AnalysisOptionsFileKeys.ignoreSynonyms,
+            ...AnalysisOptionsFileKeys.severities,
+          },
+        ]),
+      ),
+    }),
     AnalysisOptionsFileKeys.plugins: _PluginsProducer(),
   });
 
@@ -75,7 +84,7 @@ class _ErrorProducer extends KeyValueProducer {
   Producer? producerForKey(String key) => enumProducer;
 
   @override
-  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+  Set<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     // There may be overlaps in these names, so use a set.
     var names = {
       for (var diagnostic in diagnosticCodeValues) diagnostic.lowerCaseName,
@@ -92,7 +101,7 @@ class _ExperimentProducer extends Producer {
   const new();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     return [
       for (var feature in ExperimentStatus.knownFeatures.values)
         if (!feature.isEnabledByDefault) identifier(feature.enableString),
@@ -106,7 +115,7 @@ class _LintRuleProducer extends Producer {
   const new();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     return [
       for (var rule in Registry.ruleRegistry.rules)
         // TODO(pq): consider suggesting internal lints if editing an SDK
@@ -136,7 +145,7 @@ class _PluginsProducer extends KeyValueProducer {
   });
 
   @override
-  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) =>
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) =>
       const [];
 }
 
