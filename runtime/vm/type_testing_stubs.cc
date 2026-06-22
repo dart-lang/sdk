@@ -25,11 +25,7 @@
 
 namespace dart {
 
-TypeTestingStubNamer::TypeTestingStubNamer()
-    : lib_(Library::Handle()),
-      klass_(Class::Handle()),
-      type_(AbstractType::Handle()),
-      string_(String::Handle()) {}
+TypeTestingStubNamer::TypeTestingStubNamer() {}
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
@@ -48,29 +44,32 @@ void TypeTestingStubNamer::WriteStubNameForTypeTo(
 void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
                                            const AbstractType& type) const {
   NoSafepointScope no_safepoint;
+  Zone* zone = Thread::Current()->zone();
   if (type.IsType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
     ClassTable* class_table = IsolateGroup::Current()->class_table();
-    klass_ = class_table->At(cid);
-    ASSERT(!klass_.IsNull());
+    const auto& klass = Class::Handle(zone, class_table->At(cid));
+    ASSERT(!klass.IsNull());
 
-    lib_ = klass_.library();
-    if (!lib_.IsNull()) {
-      string_ = lib_.url();
-      buffer->AddString(string_.ToCString());
+    const auto& lib = Library::Handle(zone, klass.library());
+    if (!lib.IsNull()) {
+      const auto& url_string = String::Handle(zone, lib.url());
+      buffer->AddString(url_string.ToCString());
     } else {
       buffer->Printf("nolib%" Pd "_", nonce_++);
     }
 
     buffer->AddString("_");
-    buffer->AddString(klass_.ScrubbedNameCString());
+    buffer->AddString(klass.ScrubbedNameCString());
 
-    auto& type_arguments = TypeArguments::Handle(Type::Cast(type).arguments());
+    const auto& type_arguments =
+        TypeArguments::Handle(zone, Type::Cast(type).arguments());
     if (!type_arguments.IsNull()) {
+      auto& type_arg = AbstractType::Handle(zone);
       for (intptr_t i = 0, n = type_arguments.Length(); i < n; ++i) {
-        type_ = type_arguments.TypeAt(i);
+        type_arg = type_arguments.TypeAt(i);
         buffer->AddString("__");
-        StringifyTypeTo(buffer, type_);
+        StringifyTypeTo(buffer, type_arg);
       }
     }
   } else if (type.IsTypeParameter()) {
@@ -80,17 +79,19 @@ void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
     buffer->AddString("Record");
     const intptr_t num_fields = rec.NumFields();
     const auto& field_names =
-        Array::Handle(rec.GetFieldNames(Thread::Current()));
+        Array::Handle(zone, rec.GetFieldNames(Thread::Current()));
     const intptr_t num_positional_fields = num_fields - field_names.Length();
-    const auto& field_types = Array::Handle(rec.field_types());
+    const auto& field_types = Array::Handle(zone, rec.field_types());
+    auto& field_type = AbstractType::Handle(zone);
+    auto& field_name = String::Handle(zone);
     for (intptr_t i = 0; i < num_fields; ++i) {
       buffer->AddString("__");
-      type_ ^= field_types.At(i);
-      StringifyTypeTo(buffer, type_);
+      field_type ^= field_types.At(i);
+      StringifyTypeTo(buffer, field_type);
       if (i >= num_positional_fields) {
         buffer->AddString("_");
-        string_ ^= field_names.At(i - num_positional_fields);
-        buffer->AddString(string_.ToCString());
+        field_name ^= field_names.At(i - num_positional_fields);
+        buffer->AddString(field_name.ToCString());
       }
     }
   } else {
