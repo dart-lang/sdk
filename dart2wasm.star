@@ -21,9 +21,10 @@ load(
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
+dart.poller("dart2wasm-gitiles-trigger", paths = paths.dart2wasm)
+
 def _dart2wasm_builder(
         name,
-        category = None,
         properties = [],
         enable_cq = True,
         **kwargs):
@@ -33,17 +34,11 @@ def _dart2wasm_builder(
         location_filters = paths.to_location_filters(paths.dart2wasm)
     dart.ci_sandbox_builder(
         name,
-        category = category,
         properties = union(default_properties, properties),
         triggered_by = ["dart2wasm-gitiles-trigger-%s"],
         location_filters = location_filters,
         **kwargs
     )
-
-dart.poller(
-    "dart2wasm-gitiles-trigger",
-    paths = paths.dart2wasm,
-)
 
 _dart2wasm_builder(
     "dart2wasm-linux-d8",

@@ -20,13 +20,23 @@ load(
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
-def _pkg_builder(name, category = None, properties = [], **kwargs):
+dart.poller("pkg-gitiles-trigger", paths = paths.pkg)
+
+def _pkg_builder(
+        name,
+        properties = [],
+        enable_cq = False,
+        **kwargs):
     # Some pkg unittests need flute sources.
     default_properties = union({}, [flute])
+    location_filters = []
+    if enable_cq:
+        location_filters = paths.to_location_filters(paths.pkg)
     dart.ci_sandbox_builder(
         name,
-        category = category,
         properties = union(default_properties, properties),
+        triggered_by = ["pkg-gitiles-trigger-%s"],
+        location_filters = location_filters,
         **kwargs
     )
 
@@ -51,7 +61,7 @@ _pkg_builder(
     category = "pkg|ma",
     dimensions = [mac, arm64],
     properties = [chrome],
-    location_filters = paths.to_location_filters(paths.pkg),
+    enable_cq = True,
 )
 _pkg_builder(
     "pkg-win-release",

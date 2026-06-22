@@ -19,14 +19,28 @@ load(
 )
 load("//lib/paths.star", "paths")
 
-dart.poller("ddc-gitiles-trigger", branches = ["main"], paths = paths.ddc)
+dart.poller("ddc-gitiles-trigger", paths = paths.ddc)
 
-dart.ci_sandbox_builder(
+def _ddc_builder(
+        name,
+        enable_cq = False,
+        **kwargs):
+    location_filters = []
+    if enable_cq:
+        location_filters = paths.to_location_filters(paths.ddc)
+    dart.ci_sandbox_builder(
+        name,
+        triggered_by = ["ddc-gitiles-trigger-%s"],
+        location_filters = location_filters,
+        **kwargs
+    )
+
+_ddc_builder(
     "ddc-linux-chrome",
     category = "ddc|chrome|l",
     dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
-    location_filters = paths.to_location_filters(paths.ddc),
+    enable_cq = True,
 )
 
 cron.nightly_builder(
@@ -36,22 +50,21 @@ cron.nightly_builder(
     properties = [chrome],
 )
 
-dart.ci_sandbox_builder(
+_ddc_builder(
     "ddc-win-chrome",
     category = "ddc|chrome|w",
     dimensions = windows,
     properties = [chrome],
 )
 
-dart.ci_sandbox_builder(
+_ddc_builder(
     "ddc-linux-firefox",
     category = "ddc|f",
     channels = ["try"],
     properties = [firefox],
-    triggered_by = ["ddc-gitiles-trigger-%s"],
 )
 
-dart.ci_sandbox_builder(
+_ddc_builder(
     "ddc-mac-safari",
     category = "ddc|s",
     channels = ["try"],
