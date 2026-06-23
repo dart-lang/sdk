@@ -368,17 +368,17 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-asan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-ubsan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-(asan|lsan|tsan|ubsan)-mac-(debug|product|release)-(x64|arm64|simarm64)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
     },
-    "vm-aot-asan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-asan-(fuchsia|linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -398,7 +398,7 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-ubsan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-ubsan-(fuchsia|linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -1685,6 +1685,42 @@
           "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
+            "-j8",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-asan-fuchsia-release-x64",
+        "vm-ubsan-fuchsia-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM fuchsia builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=fuchsia",
+            "fuchsia_test_package"
+          ]
+        },
+        {
+          "name": "vm jit tests",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
+            "-j8",
+            "ffi",
+            "standalone/io/"
+          ]
+        },
+        {
+          "name": "vm aot tests",
+          "arguments": [
+              "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "-j8",
             "ffi"
           ]
