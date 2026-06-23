@@ -35,7 +35,7 @@ void f(m) {
   }
 
   test_checkingForIntAfterDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(m) {
   if (m is double) {}
   else if ([!m is int!]) {}
@@ -54,7 +54,7 @@ void f() {
   }
 
   test_checkingForIntAfterDouble_localVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var m;
   if (m is double) {}

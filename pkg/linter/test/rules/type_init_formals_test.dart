@@ -63,7 +63,7 @@ class A({required String this.s}) {
   }
 
   test_requiredParam_inPrimaryConstructor_unnecessaryType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A({required [!String!] this.s}) {
   String s;
 }
@@ -80,7 +80,7 @@ class A {
   }
 
   test_requiredParam_unnecessaryNullableType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? s;
   A({required [!String?!] this.s});
@@ -89,7 +89,7 @@ class A {
   }
 
   test_requiredParam_unnecessaryType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String s = '';
   A({required [!String!] this.s});
@@ -98,7 +98,7 @@ class A {
   }
 
   test_super() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? a;
   A({this.a});
@@ -120,7 +120,7 @@ class C {
   }
 
   test_typed_sameAsField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int x;
   C([!int!] this.x);

@@ -715,7 +715,7 @@ void f() {
   }
 
   test_primaryConstructorParameter_named_declaring_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({final [!p1!]});
 ''');
   }
@@ -727,25 +727,25 @@ class C({required int p1});
   }
 
   test_primaryConstructorParameter_named_declaring_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({var [!p1!]});
 ''');
   }
 
   test_primaryConstructorParameter_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!p1!]);
 ''');
   }
 
   test_primaryConstructorParameter_positional_declaring_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(final [!p1!]);
 ''');
   }
 
   test_primaryConstructorParameter_positional_declaring_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(var [!p1!]);
 ''');
   }
@@ -757,7 +757,7 @@ class C(int p1);
   }
 
   test_reflectiveTest_nonTest() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 @reflectiveTest
@@ -1033,7 +1033,7 @@ void m(int p1) {}
   }
 
   test_topLevelFunction_parameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 void m(var [!p1!]) {}
 ''');
@@ -1135,7 +1135,7 @@ class C {
   }
 
   test_wildcardVariable_constructorParameter_preWildcards() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 class C {
@@ -1151,7 +1151,7 @@ void m(_) {}
   }
 
   test_wildcardVariable_function_preWildcards() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 void m([!_!]) {}
@@ -1167,7 +1167,7 @@ class C {
   }
 
   test_wildcardVariable_method_preWilcards() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 class C {

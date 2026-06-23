@@ -18,7 +18,7 @@ class NoSelfAssignmentsTest extends LintRuleTest {
   String get lintRule => LintNames.no_self_assignments;
 
   test_classMemberAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static String foo = "foo";
 }
@@ -44,7 +44,7 @@ void main() {
   }
 
   test_fieldAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int x = 5;
 
@@ -92,7 +92,7 @@ class C {
   }
 
   test_fieldAssignmentExplicitSameVar() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int x = 5;
 
@@ -126,7 +126,7 @@ class C {
   }
 
   test_propertyAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int _x = 5;
 

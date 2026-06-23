@@ -26,7 +26,7 @@ class NoLeadingUnderscoresForLibraryPrefixesTest extends LintRuleTest {
   String get lintRule => LintNames.no_leading_underscores_for_library_prefixes;
 
   test_leadingUnderscore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async' as [!_async!];
 ''');
   }
@@ -38,7 +38,7 @@ import 'dart:async' as dart_async;
   }
 
   test_underscores() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async' as [!__!];
 ''');
   }

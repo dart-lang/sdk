@@ -30,7 +30,7 @@ part 'test.dart';
 void f(int p) {}
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment void f(int q) [!{!]}
@@ -47,7 +47,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -58,7 +58,7 @@ augment class A {
   }
 
   test_enumMixingIn() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin class C {
   int f(int f) => f;
 }
@@ -71,7 +71,7 @@ enum A with C {
   }
 
   test_extends_indirectly() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int p) {}
 }
@@ -84,7 +84,7 @@ class C extends B {
   }
 
   test_mixedIn() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {
   void m(int p) {}
 }
@@ -96,7 +96,7 @@ class C with M {
   }
 
   test_mixinApplication() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {
   void m(int p) {}
 }
@@ -109,7 +109,7 @@ class D extends C {
   }
 
   test_optionalPositional_renamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m([int p = 0]) {}
 }
@@ -144,7 +144,7 @@ class _B extends A {
   }
 
   test_positional_renamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int p) {}
 }
@@ -181,7 +181,7 @@ class B extends A {
   }
 
   test_renamingWithDoubleUnderscore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int p) {}
 }
@@ -216,7 +216,7 @@ class B extends A {
   }
 
   test_wildcard_featureDisabledFails() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -241,7 +241,7 @@ class B extends A {
   }
 
   test_wildcard_mixedFails() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int a, int b, int c) {}
 }
@@ -263,7 +263,7 @@ class B extends A {
   }
 
   test_wildcard_nonWildcardButUnderscoreBefore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int a, int b) {}
 }
@@ -274,7 +274,7 @@ class B extends A {
   }
 
   test_wildcard_nonWildcardButUnderscoresAround() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int p) {}
 }

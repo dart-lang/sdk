@@ -28,7 +28,7 @@ class C {
   }
 
   test_multipleVariables_eachHasInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!late!] String a = '',
     b = '';
 ''');
@@ -41,7 +41,7 @@ late String a, b = '';
   }
 
   test_static_initializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!late!] String a = '';
 }
@@ -65,7 +65,7 @@ class C {
   }
 
   test_topLevel_initializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!late!] String a = '';
 ''');
   }

@@ -18,7 +18,7 @@ class RequireTrailingCommasTest extends LintRuleTest {
   String get lintRule => LintNames.require_trailing_commas;
 
   test_argumentList_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -48,7 +48,7 @@ void g(Object p1, Object p2, {Object? p3}) {}
   }
 
   test_argumentList_multiLine_containsFunctionBlockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -61,7 +61,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsFunctionBlockBody_endsWithNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -90,7 +90,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsListLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -105,7 +105,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsMapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -132,7 +132,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsSetLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -162,7 +162,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -188,7 +188,7 @@ void g(Object p1, Object p2, {Object? p3}) {}
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody_multiLine_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -248,7 +248,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithListLiteral_onSingleLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -276,7 +276,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithMapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -421,7 +421,7 @@ void f() {
   }
 
   test_assertStatement_closure_message() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -461,7 +461,7 @@ void f() {
   }
 
   test_assertStatement_multiLine_message() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -473,7 +473,7 @@ void f() {
   }
 
   test_assertStatement_oneArgument_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -498,7 +498,7 @@ void f() {
   }
 
   test_constructorAssertInitializer_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -526,7 +526,7 @@ class C {
   }
 
   test_function_parameters_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -560,7 +560,7 @@ void f(
   }
 
   test_function_parameters_withNamed_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -579,7 +579,7 @@ void method1(Object p1, Object p2, {Object? param3, Object? param4}) {}
   }
 
   test_functionLiteral_parameters_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -603,7 +603,7 @@ void f() {
   }
 
   test_listLiteral_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -628,7 +628,7 @@ void f() {
   }
 
   test_mapLiteral_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -668,7 +668,7 @@ class C {
   }
 
   test_parameterList_multiLineDefaultValue_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -710,7 +710,7 @@ class C {
   }
 
   test_parameterList_singleLine_blankLineBefore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -722,7 +722,7 @@ class C {
   }
 
   test_setLiteral_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.6
 // (pre tall-style)
 

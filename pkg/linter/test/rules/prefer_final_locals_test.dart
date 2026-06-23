@@ -20,7 +20,7 @@ class PreferFinalLocalsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_locals;
 
   test_destructured_listPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] [a, b] = ['a', 'b'];
 }
@@ -45,7 +45,7 @@ f() {
   }
 
   test_destructured_listPattern_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] [_, b] = ['a', 'b'];
 }
@@ -53,7 +53,7 @@ f() {
   }
 
   test_destructured_listPattern_wildcard_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] [(_), b] = ['a', 'b'];
 }
@@ -77,7 +77,7 @@ f() {
   }
 
   test_destructured_listPatternWithRest() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] [a, b, ...rest] = [1, 2, 3, 4, 5, 6, 7];
 }
@@ -94,7 +94,7 @@ f() {
   }
 
   test_destructured_mapPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] {'first': a, 'second': b} = {'first': 1, 'second': 2};
 }
@@ -119,7 +119,7 @@ f() {
   }
 
   test_destructured_mapPattern_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] {'first': a, 'second': _} = {'first': 1, 'second': 2};
 }
@@ -135,7 +135,7 @@ f() {
   }
 
   test_destructured_objectPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -217,7 +217,7 @@ f() {
   }
 
   test_destructured_objectPattern_wildcard_multipleFields() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -237,7 +237,7 @@ f() {
   }
 
   test_destructured_recordPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] (a, b) = ('a', 'b');
 }
@@ -253,7 +253,7 @@ f() {
   }
 
   test_destructured_recordPattern_forLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var (/*[0*/a/*0]*/, /*[1*/b/*1]*/) in [(1, 2)]) { }
 }
@@ -281,7 +281,7 @@ f() {
   }
 
   test_destructured_recordPattern_forLoop_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var (_, [!b!]) in [(1, 2)]) { }
 }
@@ -298,7 +298,7 @@ f() {
   }
 
   test_destructured_recordPattern_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] (_, b) = ('a', 'b');
 }
@@ -314,7 +314,7 @@ f() {
   }
 
   test_destructured_recordPattern_withParenthesizedPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var!] ((a, b)) = ('a', 'b');
 }
@@ -330,7 +330,7 @@ class C {
   }
 
   test_ifPatternList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case [[!int x!], final int y]) x;
 }
@@ -346,7 +346,7 @@ f(Object o) {
   }
 
   test_ifPatternList_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case [[!int x!], int _]) x;
 }
@@ -354,7 +354,7 @@ f(Object o) {
   }
 
   test_ifPatternMap() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case {'x': [!var x!]}) print('$x');
 }
@@ -378,7 +378,7 @@ f(Object o) {
   }
 
   test_ifPatternObject() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int c;
   C(this.c);
@@ -417,7 +417,7 @@ f(Object o) {
   }
 
   test_ifPatternRecord() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case (/*[0*/int x/*0]*/, /*[1*/int y/*1]*/)) x;
 }
@@ -433,7 +433,7 @@ f(Object o) {
   }
 
   test_ifPatternRecord_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case ([!int x!], int _)) x;
 }
@@ -458,7 +458,7 @@ void f() {
   }
 
   test_notReassigned_withType_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!String!] a = 'hello', b = 'world';
   print(a);
@@ -468,7 +468,7 @@ void f() {
   }
 
   test_notReassigned_withVar() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!var!] a = '';
   print(a);
@@ -477,7 +477,7 @@ void f() {
   }
 
   test_notReassigned_withVar_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!var!] a = 'hello', b = 'world';
   print(a);
@@ -513,7 +513,7 @@ void f() {
   }
 
   test_switch_objectPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -579,7 +579,7 @@ f() {
   }
 
   test_switch_recordPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ((1, 2)) {
     case (/*[0*/var a/*0]*/, /*[1*/int b/*1]*/): a;
@@ -609,7 +609,7 @@ f() {
   }
 
   test_switch_recordPattern_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ((1, 2)) {
     case ([!var a!], int _): a;

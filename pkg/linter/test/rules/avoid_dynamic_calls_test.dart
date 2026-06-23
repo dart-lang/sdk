@@ -26,7 +26,7 @@ void f(Object? a) {
   }
 
   test_callInvocation_cascade_Function() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function p) {
   p..[!call!]();
 }
@@ -42,7 +42,7 @@ void f(void Function() p) {
   }
 
   test_callInvocation_Function() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function p) {
   p.[!call!]();
 }
@@ -50,7 +50,7 @@ void f(Function p) {
   }
 
   test_callInvocation_Function_nullAssert() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function? p) {
   p!.[!call!]();
 }
@@ -58,7 +58,7 @@ void f(Function? p) {
   }
 
   test_callInvocation_Function_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function? p) {
   p?.[!call!]();
 }
@@ -137,7 +137,7 @@ void f(dynamic a) {
   }
 
   test_dynamicBinaryExpression_lessThan() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!] < 1;
 }
@@ -145,7 +145,7 @@ void f(dynamic a) {
   }
 
   test_dynamicBinaryExpression_lessThanLessThan() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!] << 1;
 }
@@ -153,7 +153,7 @@ void f(dynamic a) {
   }
 
   test_dynamicBinaryExpression_plus() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!] + 1;
 }
@@ -169,7 +169,7 @@ void f(dynamic a) {
   }
 
   test_dynamicBinaryExpression_tildeSlash() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!] ~/ 1;
 }
@@ -177,7 +177,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCascadedMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]..b();
 }
@@ -185,7 +185,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCascadedMethodCall_subsequent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]
     ..toString()
@@ -195,7 +195,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCascadedPropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]..b;
 }
@@ -203,7 +203,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCascadedPropertyAccess_subsequent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]
     ..toString()
@@ -213,7 +213,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_ampersandEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a &= 1!];
 }
@@ -232,7 +232,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_minusEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a -= 1!];
 }
@@ -240,7 +240,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_pipeEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a |= 1!];
 }
@@ -248,7 +248,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_plusEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a += 1!];
 }
@@ -264,7 +264,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_slashEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a /= 1!]; // LINT
 }
@@ -272,7 +272,7 @@ void f(dynamic a) {
   }
 
   test_dynamicCompoundAssignment_starEqualsOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a *= 1!];
 }
@@ -280,7 +280,7 @@ void f(dynamic a) {
   }
 
   test_dynamicDecrementPostfixOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a--!];
 }
@@ -288,7 +288,7 @@ void f(dynamic a) {
   }
 
   test_dynamicDecrementPrefixOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!--a!];
 }
@@ -304,7 +304,7 @@ void f(dynamic a) {
   }
 
   test_dynamicImplicitCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]();
 }
@@ -312,7 +312,7 @@ void f(dynamic a) {
   }
 
   test_dynamicIncrementPostfixOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a++!];
 }
@@ -320,7 +320,7 @@ void f(dynamic a) {
   }
 
   test_dynamicIncrementPrefixOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!++a!];
 }
@@ -328,7 +328,7 @@ void f(dynamic a) {
   }
 
   test_dynamicIndexAssignmetOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!][1] = 1;
 }
@@ -336,7 +336,7 @@ void f(dynamic a) {
   }
 
   test_dynamicIndexOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!][1];
 }
@@ -352,7 +352,7 @@ void f(dynamic a) {
   }
 
   test_dynamicNullAssertMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!!].b();
 }
@@ -360,7 +360,7 @@ void f(dynamic a) {
   }
 
   test_dynamicNullAssertPropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!!].b;
 }
@@ -368,7 +368,7 @@ void f(dynamic a) {
   }
 
   test_dynamicNullAwareMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]?.b();
 }
@@ -376,7 +376,7 @@ void f(dynamic a) {
   }
 
   test_dynamicNullAwarePropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!]?.b;
 }
@@ -384,7 +384,7 @@ void f(dynamic a) {
   }
 
   test_dynamicUnaryMinusOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   -[!a!];
 }
@@ -392,7 +392,7 @@ void f(dynamic a) {
   }
 
   test_functionExpressionInvocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function? g1, Function g2) {
   [!(g1 ?? g2)!]();
 }
@@ -408,7 +408,7 @@ void f(Object? g1, Object? g2) {
   }
 
   test_functionInvocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function g) {
   [!g!]();
 }
@@ -424,7 +424,7 @@ void f(Object? g) {
   }
 
   test_functionInvocation_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Function a) {
   [!(a)!]();
 }
@@ -432,7 +432,7 @@ void f(Function a) {
   }
 
   test_indexAssignmentExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!][1] = 7;
 }
@@ -448,7 +448,7 @@ void f(Object? a) {
   }
 
   test_indexExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!][1];
 }
@@ -464,7 +464,7 @@ void f(Object? a) {
   }
 
   test_parenthesizedExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!(a)!].b;
 }
@@ -472,7 +472,7 @@ void f(dynamic a) {
   }
 
   test_prefixedIdentifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!].foo;
 }
@@ -488,7 +488,7 @@ void f(Object? a) {
   }
 
   test_prefixedIdentifier_dynamicMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!].foo();
 }
@@ -512,7 +512,7 @@ void f(dynamic a, Invocation i) {
   }
 
   test_prefixedIdentifier_noSuchMethod_withAdditionalPositionalArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a, Invocation i) {
   [!a!].noSuchMethod(i, 7);
 }
@@ -520,7 +520,7 @@ void f(dynamic a, Invocation i) {
   }
 
   test_prefixedIdentifier_noSuchMethod_withNamedArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a, Invocation i) {
   [!a!].noSuchMethod(i, p: 7);
 }
@@ -528,7 +528,7 @@ void f(dynamic a, Invocation i) {
   }
 
   test_prefixedIdentifier_noSuchMethod_withNamedArgumentBeforePositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a, Invocation i) {
   [!a!].noSuchMethod(i, p: 7);
 }
@@ -552,7 +552,7 @@ void f(dynamic a) {
   }
 
   test_prefixedIdentifier_toString_withNamedArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!].toString(p: 7);
 }
@@ -560,7 +560,7 @@ void f(dynamic a) {
   }
 
   test_prefixedIdentifier_toString_withPositionalArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!].toString(7);
 }
@@ -568,7 +568,7 @@ void f(dynamic a) {
   }
 
   test_propertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   [!c.a!].foo;
 }

@@ -85,7 +85,7 @@ class C {
   }
 
   test_constructor_fieldFormalParameter_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   bool p;
   C.named([!this.p!]);
@@ -103,7 +103,7 @@ class C {
   }
 
   test_constructor_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named([!bool a!]) {
   }
@@ -112,7 +112,7 @@ class C {
   }
 
   test_constructor_primary_declaringParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!final bool p!]);
 ''');
   }
@@ -127,7 +127,7 @@ class C {
   }
 
   test_extensionMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension Ext on int {
   void f([[!bool p = false!]]) {}
 }
@@ -135,7 +135,7 @@ extension Ext on int {
   }
 
   test_extensionMethod_unnamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension on int {
   // ignore: unused_element, unused_element_parameter
   void f([[!bool p = false!]]) {}
@@ -155,7 +155,7 @@ class C {
     // TODO(srawlins): Test where the parameter in the override is _not found_
     // in the parent interface.
     // TODO(srawlins): Test where the parameter is renamed.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m([[!bool p = false!]]) {}
 }
@@ -167,7 +167,7 @@ class D extends C {
   }
 
   test_instanceMethod_overrideImplements_positionalOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m([[!bool p = false!]]) {}
 }
@@ -179,7 +179,7 @@ abstract class D implements C {
   }
 
   test_instanceMethod_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m([!bool p!]) {}
 }
@@ -187,7 +187,7 @@ class A {
   }
 
   test_instanceMethod_positionalOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m([[!bool p = false!]]) {}
 }
@@ -236,7 +236,7 @@ class B {
   }
 
   test_staticMethod_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   static void m([!bool p!]) {}
 }
@@ -256,7 +256,7 @@ void f({bool p = false}) {}
   }
 
   test_topLevel_positionalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!bool p!]) {}
 ''');
   }
@@ -275,7 +275,7 @@ typedef T = Function({bool p});
   }
 
   test_typedef_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef T = Function([!bool p!]);
 ''');
   }

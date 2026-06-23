@@ -92,7 +92,7 @@ augment class A {
 ''');
     // TODO(pq): in the absence of accessors in the augmented class, report on
     //  the class decl?
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class [!A!] {}
@@ -112,7 +112,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
@@ -125,7 +125,7 @@ class A {
   }
 
   test_unnecessary_getterAndSetter_extensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int i) {
   static int? _x;
   static int? get [!x!] => _x;
@@ -137,7 +137,7 @@ extension type E(int i) {
   }
 
   test_unnecessary_getterAndSetterHaveBlockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 
@@ -152,7 +152,7 @@ class C {
   }
 
   test_unnecessary_getterHasExpressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 
@@ -166,7 +166,7 @@ class C {
   }
 
   test_unnecessary_setterHasExpressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? _x;
 

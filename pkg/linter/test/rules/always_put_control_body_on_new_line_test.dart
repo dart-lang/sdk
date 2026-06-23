@@ -26,7 +26,7 @@ class AlwaysPutControlBodyOnNewLineTest extends LintRuleTest {
   String get lintRule => LintNames.always_put_control_body_on_new_line;
 
   test_doWhile_bodyAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   do [!print!]('');
   while (true);
@@ -53,7 +53,7 @@ void f() {
   }
 
   test_forEachLoop_bodyAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var i in []) [!return!];
 }
@@ -78,7 +78,7 @@ void f() {
   }
 
   test_forLoop_bodyAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (;;) [!return!];
 }
@@ -126,7 +126,7 @@ void f() {
   }
 
   test_ifStatement_elseAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (false)
     return;
@@ -148,7 +148,7 @@ void f() {
   }
 
   test_ifStatement_thenAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (false) [!return!];
 }
@@ -156,7 +156,7 @@ void f() {
   }
 
   test_ifStatement_thenAdjacent_multiline() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (false) [!print!](
     'text'
@@ -166,7 +166,7 @@ void f() {
   }
 
   test_ifStatement_thenIsBlock_adjacentStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (false) [!{!] print('');
   }
@@ -200,7 +200,7 @@ void f() {
   }
 
   test_whileLoop_bodyAdjacent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   while (true) [!return!];
 }

@@ -40,7 +40,7 @@ augment typedef void F();
   }
 
   test_classicTypedef() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef void [!F!]();
 ''');
   }

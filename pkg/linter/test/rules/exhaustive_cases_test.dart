@@ -251,7 +251,7 @@ void s(Subclassed e) {
 @reflectiveTest
 class ExhaustiveCasesTest extends BaseExhaustiveCasesTest {
   Future<void> test_dotShorthands_enumLike() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class E {
   final int i;
   const E._(this.i);

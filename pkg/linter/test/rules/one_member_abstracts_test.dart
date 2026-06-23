@@ -18,7 +18,7 @@ class OneMemberAbstractsTest extends LintRuleTest {
   String get lintRule => LintNames.one_member_abstracts;
 
   test_oneMember_abstract() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class [!C!] {
   void m();
 }
@@ -71,7 +71,7 @@ augment abstract class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'a.dart';
 
 abstract class [!A!] { }
@@ -179,7 +179,7 @@ abstract class C {
   }
 
   test_zeroMember_extendedTypeHasOneMember() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class D extends C {}
 
 abstract class [!C!] {

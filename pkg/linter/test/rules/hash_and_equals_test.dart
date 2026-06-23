@@ -43,7 +43,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -93,7 +93,7 @@ class C {
   }
 
   test_equalsEquals_noHashCode() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @override
   bool operator [!==!](Object other) => false;
@@ -116,7 +116,7 @@ extension type E(Object o) {
   }
 
   test_hashCode_noEqualsEquals() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @override
   int get [!hashCode!] => 7;
@@ -125,7 +125,7 @@ class C {
   }
 
   test_hashCodeField_missingEqualsEquals() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @override
   final int [!hashCode!] = 7;

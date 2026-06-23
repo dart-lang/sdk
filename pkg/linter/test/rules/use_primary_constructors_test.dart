@@ -20,7 +20,7 @@ class UsePrimaryConstructorsInClassTest extends LintRuleTest {
   String get lintRule => LintNames.use_primary_constructors;
 
   test_class_withDefaultConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!];
 ''');
   }
@@ -34,7 +34,7 @@ class C {
   }
 
   test_class_withFactory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!a!]();
   factory C.b() => C.a();
@@ -43,7 +43,7 @@ class C {
   }
 
   test_class_withMultipleLevelsOfRedirect() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!a!]();
   C.b() : this.a();
@@ -68,7 +68,7 @@ class C();
   }
 
   test_class_withSingleGenerativeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!C!]();
 }
@@ -76,7 +76,7 @@ class C {
   }
 
   test_class_withSingleLevelOfRedirect() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!a!]();
   C.b() : this.a();
@@ -91,7 +91,7 @@ class UsePrimaryConstructorsInEnumTest extends LintRuleTest {
   String get lintRule => LintNames.use_primary_constructors;
 
   test_enum_withDefaultConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum [!E!] {
   a, b, c
 }
@@ -99,7 +99,7 @@ enum [!E!] {
   }
 
   test_enum_withFactory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   a, b, c;
 
@@ -110,7 +110,7 @@ enum E {
   }
 
   test_enum_withMultipleLevelsOfRedirect() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   a.e(), b.f(), c.g();
 
@@ -130,7 +130,7 @@ enum E() {
   }
 
   test_enum_withSingleGenerativeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   a, b, c;
 
@@ -140,7 +140,7 @@ enum E {
   }
 
   test_enum_withSingleLevelOfRedirect() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   a.e(), b.f();
 

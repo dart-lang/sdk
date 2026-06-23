@@ -21,14 +21,14 @@ class LibraryAnnotationsTest extends LintRuleTest {
   String get lintRule => LintNames.library_annotations;
 
   test_classDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 class C {}
 ''');
   }
 
   test_classTypeAliasDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 abstract class C = Object with M;
 
@@ -37,28 +37,28 @@ mixin M {}
   }
 
   test_enumDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 enum E { one, two }
 ''');
   }
 
   test_exportDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 export 'dart:math';
 ''');
   }
 
   test_extensionDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 extension E on int {}
 ''');
   }
 
   test_functionDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 void f() {}
 ''');
@@ -82,14 +82,14 @@ class C {}
   }
 
   test_genericTypedefDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 typedef Fn = void Function();
 ''');
   }
 
   test_importDirective_annotationWithTargetKindLibrary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@TestOn('browser')!]
 import 'package:meta/meta_meta.dart';
 
@@ -112,7 +112,7 @@ class C {}
   }
 
   test_mixinDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 mixin M {}
 ''');
@@ -123,7 +123,7 @@ mixin M {}
 part of 'test.dart';
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 
 part 'part.dart';
@@ -160,14 +160,14 @@ class C {}
   }
 
   test_topLevelVariableDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 var i = 1;
 ''');
   }
 
   test_typedefDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@pragma('dart2js:late:trust')!]
 typedef void Fn();
 ''');

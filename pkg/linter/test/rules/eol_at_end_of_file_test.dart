@@ -26,7 +26,7 @@ class A {}''',
   }
 
   test_hasMultipleNewlines() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}[!
 !]
 ''');

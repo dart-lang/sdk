@@ -106,7 +106,7 @@ abstract class MyFuture<T> implements Future<T> {}
   }
 
   test_int() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   [!await!] 23;
 }
@@ -132,7 +132,7 @@ void f() async {
   }
 
   test_typeVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T>(T f) async {
   [!await!] f;
 }

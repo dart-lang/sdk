@@ -2151,7 +2151,7 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   test_assignmentExpressionContainsMountedCheck_thenReferenceToContext() async {
     // Assignment statement-expression with mounted check, then use of
     // BuildContext in if-then statement, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2187,7 +2187,7 @@ Future<void> c() async {}
   test_async_thenSwitchWithReferenceToContext() async {
     // Assignment statement-expression with mounted check, then use of
     // BuildContext in if-then statement, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2219,7 +2219,7 @@ Future<void> f() async {}
 
   test_await_beforeReferenceToContext() async {
     // Await, then use of BuildContext, in statement block is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2234,7 +2234,7 @@ Future<void> f() async {}
   test_await_beforeReferenceToContext_inParens() async {
     // Await, then use of BuildContext in parentheses, in statement block is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2261,7 +2261,7 @@ void foo(BuildContext context) async {
   test_await_beforeReferenceToContext_nullAsserted() async {
     // Await, then use of null-asserted BuildContext, in statement block is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext? context) async {
@@ -2316,7 +2316,7 @@ Future<void> f() async {}
   test_await_thenNotMountedCheck_thenReferenceToStateContext() async {
     // Await, then a `BuildContext.mounted` check, then use `State.context`, is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class C extends State<StatefulWidget> {
@@ -2414,7 +2414,7 @@ Future<void> f() async {}
   test_awaitBeforeForBody_referenceToContext_thenMountedGuard() async {
     // Await, then for-each statement, and inside the for-body: use of
     // BuildContext, then mounted guard, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2431,7 +2431,7 @@ Future<void> f() async {}
 
   test_awaitBeforeIfStatement_withReferenceToContext() async {
     // Await, then use of BuildContext in an unrelated if-body, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2466,7 +2466,7 @@ Future<bool> c() async => true;
   test_awaitBeforeWhileBody_referenceToContext_thenMountedGuard() async {
     // Await, then While-true statement, and inside the while-body: use of
     // BuildContext, then mounted guard, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2498,7 +2498,7 @@ void foo(
   test_awaitInIfThenAndExitInElse_beforeReferenceToContext() async {
     // Await in an if-body and await-and-exit in the associated else, then use
     // of BuildContext, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2516,7 +2516,7 @@ Future<bool> c() async => true;
 
   /// https://github.com/dart-lang/linter/issues/3818
   test_context_propertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class W {
@@ -2535,7 +2535,7 @@ class W {
 
   /// https://github.com/dart-lang/linter/issues/3676
   test_contextPassedAsNamedParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Future<void> foo(BuildContext context) async {
@@ -2549,7 +2549,7 @@ Future<void> bar({required BuildContext context}) async {}
 
   test_future_catchError_referenceToContextInNamedArgument() async {
     // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context, Future<void> f) async {
   f.catchError((_) {}, test: (_) {
@@ -2562,7 +2562,7 @@ void foo(BuildContext context, Future<void> f) async {
 
   test_future_catchError_referenceToContextInPositionalArgument() async {
     // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context, Future<void> f) async {
   f.catchError((_) {
@@ -2574,7 +2574,7 @@ void foo(BuildContext context, Future<void> f) async {
 
   test_future_catchError_referenceToContextInPositionalArgument_precedingNamedArgument() async {
     // `Future.catchError` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context, Future<void> f) async {
   f.catchError(test: (_) => false, (_) {
@@ -2604,7 +2604,7 @@ void foo(BuildContext context) async {
 
   test_future_new_referenceToContextInArgument() async {
     // `Future.new()` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
   Future.new(() {
@@ -2626,7 +2626,7 @@ void foo(BuildContext context, Future<void> f) async {
 
   test_future_then_referenceToContextInCallback() async {
     // `Future.then` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context, Future<void> f) async {
   f.then((_) {
@@ -2638,7 +2638,7 @@ void foo(BuildContext context, Future<void> f) async {
 
   test_future_then_referenceToContextInCallback_expressionBody() async {
     // `Future.then` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context, Future<void> f) async {
   f.then((_) => Navigator.of([!context!]));
@@ -2661,7 +2661,7 @@ void foo(BuildContext context, Future<void> f) async {
 
   test_future_unnamed_referenceToContextInArgument() async {
     // `Future()` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
   Future(() {
@@ -2673,7 +2673,7 @@ void foo(BuildContext context) async {
 
   test_future_wait_referenceToContextInArgument() async {
     // `Future.wait` call, with use of BuildContext inside, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
   Future.wait([], cleanUp: (_) {
@@ -2704,7 +2704,7 @@ Future<void> c() async {}
   test_ifConditionContainsMountedCheckInAssignmentLhs_thenReferenceToContext() async {
     // If-condition contains assignment with mounted check on LHS, then use of
     // BuildContext in if-then statement, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2726,7 +2726,7 @@ Future<void> c() async {}
   test_ifConditionContainsMountedOrReferenceToContext() async {
     // Binary expression contains mounted check OR use of BuildContext, is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(
@@ -2744,7 +2744,7 @@ Future<void> c() async {}
   test_ifConditionContainsNotMountedAndReferenceToContext() async {
     // Binary expression contains not-mounted check AND use of BuildContext, is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(
@@ -2776,7 +2776,7 @@ extension on BuildContext {
 
   /// https://github.com/dart-lang/linter/issues/3700
   test_propertyAccess_getter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 extension on BuildContext {
@@ -2791,7 +2791,7 @@ Future<void> f(BuildContext context) async {
   }
 
   test_propertyAccess_setter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 extension on BuildContext {
@@ -2821,7 +2821,7 @@ void foo(BuildContext context) async {
   test_referenceToContextInDoWhileBody_thenAwait() async {
     // Do-while statement, and inside the do-while-body: use of BuildContext,
     // then await, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2838,7 +2838,7 @@ Future<void> f() async {}
   test_referenceToContextInForBody_thenAwait() async {
     // For-each statement, and inside the for-body: use of BuildContext, then
     // await, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2854,7 +2854,7 @@ Future<void> f() async {}
 
   test_referenceToContextInFunctionExpression() async {
     // Inside a function expression, await then use of BuildContext is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2871,7 +2871,7 @@ Future<void> f() async {}
   test_referenceToContextInWhileBody_thenAwait() async {
     // While statement, and inside the while-body: use of BuildContext, then
     // await, is REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 void foo(BuildContext context) async {
@@ -2888,7 +2888,7 @@ Future<void> f() async {}
   test_streamSubscription_onData_referenceToContextInCallback() async {
     // `StreamSubscription.onData` call, with use of BuildContext inside, is
     // REPORTED.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 import 'dart:async';
 void foo(BuildContext context, StreamSubscription<void> s) async {

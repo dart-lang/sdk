@@ -86,7 +86,7 @@ augment class A { }
   }
 
   test_mutableClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   final String key;
   const A(this.key);
@@ -124,7 +124,7 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {

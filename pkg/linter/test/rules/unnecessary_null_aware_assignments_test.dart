@@ -29,7 +29,7 @@ void f() {
   }
 
   test_localVariable_nullAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
   void f() {
     var x;
     [!x ??= null!];

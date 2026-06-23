@@ -27,7 +27,7 @@ class C {
   }
 
   test_finalField_onEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   e;
   final [!f = () {}!];
@@ -36,7 +36,7 @@ enum E {
   }
 
   test_finalField_onMixin() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {
   final [!f = () {}!];
 }
@@ -44,7 +44,7 @@ mixin M {
   }
 
   test_finalField_onPrivateClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {
   final [!f = () {}!];
 }
@@ -52,7 +52,7 @@ class _C {
   }
 
   test_instanceField_private_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final [!_f = () {}!];
 }
@@ -60,7 +60,7 @@ class C {
   }
 
   test_instanceVariable_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final [!f = () {}!];
 }
@@ -85,7 +85,7 @@ void f() {
   }
 
   test_localVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var [!g = () {}!];
 }
@@ -110,7 +110,7 @@ void f() {
   }
 
   test_staticField_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static final [!f = () {}!];
 }
@@ -126,13 +126,13 @@ class C {
   }
 
   test_topLevelVariable_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final [!f = () {}!];
 ''');
   }
 
   test_topLevelVariable_private_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final [!_f = () {}!];
 ''');
   }

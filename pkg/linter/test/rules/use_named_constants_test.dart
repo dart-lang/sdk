@@ -19,7 +19,7 @@ class UseNamedConstantsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   const A(this.value);
   final int value;
@@ -35,7 +35,7 @@ void f(A a) {
 
   /// https://github.com/dart-lang/linter/issues/4201
   test_constantPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   const A(this.value);
   final int value;
@@ -53,7 +53,7 @@ void f(A a) {
   }
 
   test_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   const A a = [!.new(0)!];
 }
@@ -65,7 +65,7 @@ class A {
   }
 
   test_dotShorthand_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   A a = [!const .new(0)!];
 }
@@ -87,7 +87,7 @@ class A {
   }
 
   test_extensionType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f() {
   const a = [!A(0)!];
 }
@@ -98,7 +98,7 @@ extension type const A(int i) {
   }
 
   test_reconstructed_sameAsPrivateName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!const A(1)!];
 }
@@ -111,7 +111,7 @@ class A {
   }
 
   test_reconstructed_sameAsPublicName_explicitConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!const A(0)!];
 }
@@ -123,7 +123,7 @@ class A {
   }
 
   test_reconstructed_sameAsPublicName_implicitConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   const a = [!A(0)!];
 }

@@ -46,7 +46,7 @@ augment class W {
   }
 
   test_constNamedConstructor_missingKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -67,7 +67,7 @@ class MyWidget extends StatelessWidget {
   }
 
   test_constructor_new_withoutKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -88,7 +88,7 @@ class W extends StatelessWidget {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 import 'package:flutter/widgets.dart';
@@ -113,7 +113,7 @@ class W extends StatelessWidget {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class W {
@@ -123,7 +123,7 @@ augment class W {
   }
 
   test_constUnnamedConstructor_missingKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -188,7 +188,7 @@ class W extends StatelessWidget {
   }
 
   test_missingConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class [!NoConstructorWidget!] extends StatefulWidget {}
@@ -196,7 +196,7 @@ abstract class [!NoConstructorWidget!] extends StatefulWidget {}
   }
 
   test_missingKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -224,7 +224,7 @@ abstract class MyWidget({super.key}) extends StatelessWidget {}
   }
 
   test_primaryConstructor_withoutKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class [!MyWidget!]() extends StatelessWidget {}
@@ -262,7 +262,7 @@ abstract class MyWidget extends StatelessWidget {
   }
 
   test_simpleFormalParameter_notPassedToSuper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {

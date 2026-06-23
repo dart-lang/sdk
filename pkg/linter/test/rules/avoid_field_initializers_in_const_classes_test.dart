@@ -18,7 +18,7 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_constClass_constructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final a;
   const C() : [!a = const []!];
@@ -27,7 +27,7 @@ class C {
   }
 
   test_constClass_constructorInitializer_explicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final a;
   const C(int a) : [!this.a = 0!];
@@ -36,7 +36,7 @@ class C {
   }
 
   test_constClass_constructorInitializer_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class const C(int a) {
   final a;
   this : [!this.a = 0!];
@@ -63,7 +63,7 @@ class C {
   }
 
   test_constClass_fieldInitiailizer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final [!a = const []!];
   const C();

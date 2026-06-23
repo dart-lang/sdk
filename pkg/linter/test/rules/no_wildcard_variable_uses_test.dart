@@ -72,7 +72,7 @@ class C {
   }
 
   test_localVar() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 f() {
@@ -107,7 +107,7 @@ class C {
   }
 
   test_param() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 

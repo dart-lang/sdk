@@ -34,7 +34,7 @@ extension type E(Object o) {
   }
 
   test_field_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(Object o) {
   static int [!_i = 0!];
 }
@@ -59,7 +59,7 @@ class PreferFinalFieldsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_fields;
 
   test_assignedInConstructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!_x!];
   C() : _x = 7;
@@ -166,7 +166,7 @@ class C {
   }
 
   test_indexAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   var [!_x = []!];
 
@@ -309,7 +309,7 @@ class C {
   }
 
   test_prefixExpression_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   bool [!_x = false!];
   void f() {
@@ -320,7 +320,7 @@ class C {
   }
 
   test_prefixExpression_tilde() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!_x = 0xffff!];
   void f() {
@@ -331,7 +331,7 @@ class C {
   }
 
   test_propertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!_x = 1!];
   void f() {
@@ -342,7 +342,7 @@ class C {
   }
 
   test_readInInstanceMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!_x = 0!];
 
@@ -365,7 +365,7 @@ class C {
   }
 
   test_referencedInFieldFormalParameters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!_x!];
   C(this._x);
@@ -389,7 +389,7 @@ class D extends C<int> {
   }
 
   test_unused() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   var [!_x = 1!];
 }
@@ -397,7 +397,7 @@ class C {
   }
 
   test_unused_fromDeclaringParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!var int _x!]) {
   void m() {
     print(_x);
@@ -407,7 +407,7 @@ class C([!var int _x!]) {
   }
 
   test_unused_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   var _x = 1, [!_y = 2!];
   void f() {

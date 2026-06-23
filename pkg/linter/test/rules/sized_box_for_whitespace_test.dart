@@ -33,7 +33,7 @@ Widget f() {
   }
 
   test_hasHeight_andChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -58,7 +58,7 @@ Widget f() {
   }
 
   test_hasWidth_andChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -83,7 +83,7 @@ Widget f() {
   }
 
   test_hasWidthAndHeight_andChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -97,7 +97,7 @@ Widget f() {
   }
 
   test_hasWidthAndHeight_andKey_noChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -111,7 +111,7 @@ Widget f() {
   }
 
   test_hasWidthAndHeight_noChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget f() {

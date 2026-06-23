@@ -18,7 +18,7 @@ class UnnecessaryAwaitInReturnTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_await_in_return;
 
   test_asyncArrow_awaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f() async => [!await!] future;
 final future = Future.value(1);
 ''');
@@ -32,7 +32,7 @@ final future = Future<Future<int>>.value(Future<int>.value(1));
   }
 
   test_asyncArrow_awaited_instanceMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   Future<int> f() async => [!await!] future;
 }
@@ -41,7 +41,7 @@ final future = Future.value(1);
   }
 
   test_asyncArrow_awaited_subtype() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   Future<num> foo() async => 1;
   Future<int> bar() async => await foo() as int;
@@ -76,7 +76,7 @@ final future = Future.value(1);
   }
 
   test_asyncBlock_awaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f() async {
   return [!await!] future;
 }
@@ -94,7 +94,7 @@ final future = Future<Future<int>>.value(Future<int>.value(1));
   }
 
   test_asyncBlock_awaited_instanceMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   Future<int> f() async {
     return [!await!] future;
@@ -105,7 +105,7 @@ final future = Future.value(1);
   }
 
   test_asyncBlock_awaited_inTry() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<dynamic> f() async {
   try {
     return await future;
@@ -118,7 +118,7 @@ final future = Future.value(1);
   }
 
   test_asyncBlock_awaited_inTry_instanceMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   Future<dynamic> f() async {
     try {

@@ -29,7 +29,7 @@ void f(List<int> list, void Function(int) fn) {
   }
 
   test_blockBody_singleStatement_functionCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list, void Function(int) fn) {
   [!for (final a in list) {
     fn(a);
@@ -39,7 +39,7 @@ void f(List<int> list, void Function(int) fn) {
   }
 
   test_blockBody_singleStatement_functionTypedExpressionCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function(int) fn() => (int a) {};
 
 void f(List<int> list) {
@@ -51,7 +51,7 @@ void f(List<int> list) {
   }
 
   test_blockBody_singleStatement_methodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f(int o) {}
 
@@ -65,7 +65,7 @@ class C {
   }
 
   test_blockBody_singleStatement_methodCall_explicitTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(D d, List<int> list) {
   [!for (final a in list) {
     d.f(a);
@@ -104,7 +104,7 @@ class D {
   }
 
   test_blockBody_singleStatement_parenthesizedFunctionCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list, void Function(int) fn) {
   [!for (final a in list) {
     (fn(a));
@@ -114,7 +114,7 @@ void f(List<int> list, void Function(int) fn) {
   }
 
   test_blockBody_singleStatement_staticMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   [!for (final a in list) {
     C.f(a);
@@ -127,7 +127,7 @@ class C {
   }
 
   test_nonBlockBody_singleStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list, void Function(int) fn) {
   [!for (final a in list) fn(a);!]
 }

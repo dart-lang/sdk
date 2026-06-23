@@ -87,7 +87,7 @@ class DirectivesOrderingTest extends LintRuleTest {
 
   test_dartDirectivesGoFirst_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// @docImport 'dart:math';
 /// @docImport 'a.dart';
 /// @doc/*[0*/Import 'dart:html';/*0]*/
@@ -98,7 +98,7 @@ library;
 
   test_dartDirectivesGoFirst_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'dart:math';
 export 'a.dart';
 /*[0*/export 'dart:html';/*0]*/
@@ -109,7 +109,7 @@ export 'a.dart';
 
   test_dartDirectivesGoFirst_imports() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:math';
 import 'a.dart';
 /*[0*/import 'dart:html';/*0]*/
@@ -122,7 +122,7 @@ import 'a.dart';
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'a.dart';
 
 /*[0*/export 'a.dart';/*0]*/
@@ -181,7 +181,7 @@ main() {}
   test_packageDirectivesGoBeforeRelative_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// @docImport 'dart:math';
 /// @docImport 'package:foo/foo.dart';
 /// @docImport 'a.dart';
@@ -194,7 +194,7 @@ library;
   test_packageDirectivesGoBeforeRelative_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'dart:math';
 export 'a.dart';
 /*[0*/export 'package:foo/foo.dart';/*0]*/
@@ -207,7 +207,7 @@ export 'b.dart';
   test_packageDirectivesGoBeforeRelative_imports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:math';
 import 'package:foo/foo.dart';
 import 'a.dart';
@@ -269,7 +269,7 @@ part 'a.dart';
 
   test_reportOneNodeOnlyOnce() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 import 'a.dart';
 [!import 'package:foo/foo.dart';!]
@@ -278,7 +278,7 @@ import 'a.dart';
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_docImport() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// @docImport 'dart:html';
 /// @docImport 'dart:isolate';
 /// @doc[!Import 'dart:convert';!]
@@ -288,7 +288,7 @@ library;
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_export() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'dart:isolate';
 [!export 'dart:convert';!]
 export 'dart:math';
@@ -296,7 +296,7 @@ export 'dart:math';
   }
 
   test_sortDirectiveSectionsAlphabetically_dartSchema_import() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:html';
 import 'dart:isolate';
 [!import 'dart:convert';!]
@@ -306,7 +306,7 @@ import 'dart:math';
   }
 
   test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import './foo1.dart';
 [!import '../../foo2.dart';!]
 import '../foo3.dart';
@@ -330,7 +330,7 @@ import 'foo1.dart';
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'package:foo/foo.dart';
 export 'package:meta/meta.dart';
 /*[0*/export 'package:flutter/widgets.dart';/*0]*/
@@ -345,7 +345,7 @@ export 'package:test/c.dart';
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:foo/foo.dart';
 import 'package:meta/meta.dart';
 /*[0*/import 'package:flutter/widgets.dart';/*0]*/
@@ -362,7 +362,7 @@ import 'package:test/c.dart';
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
     newFile('$testPackageLibPath/d.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'd.dart';
 [!export 'a.dart';!]
 export 'b.dart';
@@ -375,7 +375,7 @@ export 'c.dart';
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
     newFile('$testPackageLibPath/d.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'd.dart';
 import 'd.dart';
 /*[0*/import 'c.dart';/*0]*/

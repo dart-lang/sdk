@@ -33,7 +33,7 @@ extension type E(int i) {
   }
 
   test_extensionType_staticField() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 extension type E(int i) {
   static int? [!_i!];
 }
@@ -41,7 +41,7 @@ extension type E(int i) {
   }
 
   test_instanceField_private() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class C {
   int? [!_i!];
 }
@@ -215,7 +215,7 @@ m() {
   }
 
   test_staticField_private_onClass() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class C {
   static int? [!_i!];
 }
@@ -223,7 +223,7 @@ class C {
   }
 
   test_staticField_private_onExtension() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 extension E on int {
   static int? [!_i!];
 }
@@ -231,7 +231,7 @@ extension E on int {
   }
 
   test_staticField_public_onPrivateExtension() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 extension _E on int {
   static int? [!i!];
 }
@@ -247,7 +247,7 @@ extension E on int {
   }
 
   test_staticField_public_onUnnamedExtension() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 extension on int {
   static int? [!i!];
 }
@@ -255,7 +255,7 @@ extension on int {
   }
 
   test_topLevel_assigned() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 int? [!_i!];
 void f() {
   _i = 1;
@@ -271,7 +271,7 @@ void f() {
   _i = 1;
 }
 ''');
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 part of 'lib.dart';
 
 int? [!_i!];
@@ -279,7 +279,7 @@ int? [!_i!];
   }
 
   test_topLevel_neverUsed() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 int? [!_i!];
 ''');
   }
@@ -312,7 +312,7 @@ f() {
   }
 
   test_topLevel_onlyNullChecked() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 int? [!_i!];
 f() {
   _i!.abs();
@@ -321,7 +321,7 @@ f() {
   }
 
   test_topLevel_onlyNullChecked_beforePassedAsArgument() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 int? [!_i!];
 f(int i) {
   f(_i!);
@@ -364,7 +364,7 @@ void f() {
   _i = 1;
 }
 ''');
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 part 'part.dart';
 
 int? [!_i!];

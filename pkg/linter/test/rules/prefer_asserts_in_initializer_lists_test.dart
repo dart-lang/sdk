@@ -31,7 +31,7 @@ class A {
   }
 
   test_assertContainsFieldFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int? f;
   C({this.f}) {
@@ -139,7 +139,7 @@ class D extends C {
   }
 
   test_assertContainsParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C(int? p) {
     [!assert!](p != null);
@@ -149,7 +149,7 @@ class C {
   }
 
   test_assertContainsParameter_consecutive() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C(int? p) {
     /*[0*/assert/*0]*/(p != null);
@@ -160,7 +160,7 @@ class C {
   }
 
   test_assertContainsParameter_usedInInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int? f;
   C({int? f}) : f = f ?? 7 {
@@ -184,7 +184,7 @@ class C {
   }
 
   test_assertContainsStaticMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static int? m() => null;
   C() {
@@ -195,7 +195,7 @@ class C {
   }
 
   test_assertContainsStaticProperty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static int? get f => null;
   C() {
@@ -206,7 +206,7 @@ class C {
   }
 
   test_assertContainsTopLevelMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? m() => null;
 
 class C {
@@ -218,7 +218,7 @@ class C {
   }
 
   test_assertContainsTopLevelProperty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? get f => null;
 
 class C {
@@ -241,7 +241,7 @@ class C {
   }
 
   test_extensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int? i) {
   E.e(this.i) {
     [!assert!](i != null);
@@ -259,7 +259,7 @@ extension type E(int? i) {
   }
 
   test_extensionType_primaryConstructorBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int? i) {
   this {
     [!assert!](i != null);
@@ -269,7 +269,7 @@ extension type E(int? i) {
   }
 
   test_firstStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A.named(a) {
     [!assert!](a != null);
@@ -318,7 +318,7 @@ class A {
   }
 
   test_primaryConstructorBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int? x) {
   this {
     [!assert!](x != null);
@@ -339,7 +339,7 @@ class C(var int x) {
   }
 
   test_super() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   final int a;
   A(this.a);

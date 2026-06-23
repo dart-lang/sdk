@@ -65,14 +65,14 @@ var x = '''this is a multiline string $a''';
   }
 
   test_textBeforeNewline() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var x = [!'''this
  is a multiline string'''!];
 """);
   }
 
   test_textBeforeNewline_withInterpolation() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var a = 'a';
 var x = [!'''this
  is a multiline string$a'''!];

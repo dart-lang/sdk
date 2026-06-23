@@ -77,7 +77,7 @@ void g(C a) {}
   }
 
   test_genericTypeArgument_extensionType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(int i) {}
 
 void f() {
@@ -97,13 +97,13 @@ void f() {
   }
 
   test_genericTypeArgument_extensionTypeImplements_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(List<int> i) implements [!Iterable!] {}
 ''');
   }
 
   test_genericTypeArgument_extensionTypeImplementsExtensionType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(Iterable<T> i) {}
 
 extension type F(List<int> j) implements [!E!] {}
@@ -111,13 +111,13 @@ extension type F(List<int> j) implements [!E!] {}
   }
 
   test_genericTypeArgument_extensionTypeRepresentationType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E([!List!] i) {}
 ''');
   }
 
   test_genericTypeArgument_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var a = <[!List!]>[];
 }
@@ -149,7 +149,7 @@ void f(dynamic x) {
   }
 
   test_localVariable_extensionType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(int i) {}
     
 void f() {
@@ -169,7 +169,7 @@ void f() {
   }
 
   test_localVariable_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!List!] a = [1, 2, 3];
 }
@@ -186,7 +186,7 @@ void f() {
   }
 
   test_mixinApplication_missing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin class C<T> {}
 class D = Object with [!C!];
 ''');
@@ -207,7 +207,7 @@ void f(List2<int> a) {}
   }
 
   test_nonFunctionTypeAlias_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 typedef List2<T> = List<T>;
 void f([!List2!] a) {}
 ''');
@@ -233,13 +233,13 @@ void f(Object o) {
   }
 
   test_parameter_default_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({[!List!] a = const []}) {}
 ''');
   }
 
   test_parameter_fieldFormal_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   Object a;
   C([!List!] this.a);
@@ -248,31 +248,31 @@ class C {
   }
 
   test_parameter_functionTyped_parameter_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(void a([!List!] p)) {}
 ''');
   }
 
   test_parameter_functionTyped_returnType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!List!] a()) {}
 ''');
   }
 
   test_parameter_primaryDeclaring_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(final [!List!] a);
 ''');
   }
 
   test_parameter_simple_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!List!] a) {}
 ''');
   }
 
   test_parameter_super_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class C {
   Object a;
   C(this.a);
@@ -284,13 +284,13 @@ class D extends C {
   }
 
   test_returnType_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!List!] f(int a) => [1, 2, 3];
 ''');
   }
 
   test_superclassWith_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin class C<T> {}
 class D extends Object with [!C!] {}
 ''');
@@ -304,7 +304,7 @@ class D extends Object with C<int> {}
   }
 
   test_topLevelField_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!List!] a = [];
 ''');
   }
@@ -329,26 +329,26 @@ void set s(List<double> a) {}
   }
 
   test_topLevelGetter_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!List!] get g => [];
 ''');
   }
 
   test_topLevelSetter_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void set s([!List!] a) {}
 ''');
   }
 
   test_typeAlias_classic_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef T F1<T>(T _);
 [!F1!] func = (a) => a;
 ''');
   }
 
   test_typeAlias_modern_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F1<T> = T Function(T);
 [!F1!] func = (a) => a;
 ''');
@@ -402,13 +402,13 @@ var d = C.named();
   }
 
   test_typeInExtendedType_anonymous_missing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension on [!List!] {}
 ''');
   }
 
   test_typeInExtendedType_missing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on [!List!] {}
 ''');
   }
@@ -431,7 +431,7 @@ extension F on List<int> {}
   }
 
   test_typeInInterface_missing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {}
 class D implements [!C!] {}
 ''');
@@ -445,7 +445,7 @@ class D implements C<int> {}
   }
 
   test_typeInSuperclass_missing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {}
 class D extends [!C!] {}
 ''');
@@ -468,7 +468,7 @@ void f() {
   }
 
   test_typeParameterBound_missingTypeArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {}
 class D<T extends [!C!]> {}
 ''');

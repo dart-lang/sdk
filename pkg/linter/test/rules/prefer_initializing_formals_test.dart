@@ -22,7 +22,7 @@ class PreferInitializingFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_initializing_formals;
 
   test_assignedInBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num x = 0;
   C(num x) {
@@ -44,7 +44,7 @@ class C {
   }
 
   test_assignedInBody_andHasSuperInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -100,7 +100,7 @@ class C {
   }
 
   test_assignedInBody_multipleReference_docComment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num x = 0;
 
@@ -125,7 +125,7 @@ class C {
   }
 
   test_assignedInBody_namedParameters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num? x, y;
   C({num? x, num y = 1}) {
@@ -172,7 +172,7 @@ class C {
   }
 
   test_assignedInBody_publicToPrivate_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num? _x, _y;
   C(num? x, {num? y}) {
@@ -196,7 +196,7 @@ class C {
   }
 
   test_assignedInBody_subsequent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num x = 0, y = 0;
   C(num x, num y) {
@@ -221,7 +221,7 @@ class C {
   }
 
   test_assignedInInitializer_andHasSuperInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a, b;
   A(this.a, this.b);
@@ -247,7 +247,7 @@ class C {
   }
 
   test_assignedInInitializer_namedParameters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num? x, y;
   C({num? x, num y = 1})
@@ -278,7 +278,7 @@ class C {
   }
 
   test_assignedInInitializer_publicToPrivate() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   num? _x, _y;
   C(num? x, {num? y}) : _x = x, [!_y = y!];
@@ -364,7 +364,7 @@ class C {
   }
 
   test_dynamicParameterType_dynamicField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   dynamic _x;
 
@@ -384,7 +384,7 @@ class C {
   }
 
   test_dynamicParameterType_objectQuestionField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   Object? _x;
 
@@ -427,7 +427,7 @@ class C {
   }
 
   test_implicitParameterType_dynamicField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   dynamic _x;
 
@@ -447,7 +447,7 @@ class C {
   }
 
   test_implicitParameterType_objectQuestionField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   Object? _x;
 
@@ -531,7 +531,7 @@ class C(this.x) {
   }
 
   test_primaryConstructor_nonDeclaring_assignedInBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int x) {
   int? x;
 
@@ -543,7 +543,7 @@ class C(int x) {
   }
 
   test_primaryConstructor_nonDeclaring_assignedInInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int x) {
   int x;
 

@@ -47,21 +47,21 @@ void f(int? v) {
   }
 
   test_assignment_nullableTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? j = i[!!!];
 int? i;
 ''');
   }
 
   test_assignment_nullableTarget_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? j2 = (i[!!!]);
 int? i;
 ''');
   }
 
   test_binaryOperator_argument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   operator +(int? p) => A() + p[!!!];
 }
@@ -85,7 +85,7 @@ void f(int? v, int? p) {
   }
 
   test_constructorCall_optionalPositionalArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A([int? p]);
 }
@@ -94,20 +94,20 @@ void f(int? i) => A(i[!!!]);
   }
 
   test_functionCall_namedArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({int? p, int? i}) => f(p: i[!!!]);
 ''');
   }
 
   test_functionCall_positionalArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? i;
 void f(int? p) => f(i[!!!]);
 ''');
   }
 
   test_functionCall_positionalArgument_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? i;
 void f(int? p) => f((i[!!!]));
 ''');
@@ -120,7 +120,7 @@ void f(int? i) => Future<int>.value(i!);
   }
 
   test_listPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? a, int? b) {
   [b[!!!], ] = [a, ];
 }
@@ -182,7 +182,7 @@ void f(X x) {
   }
 
   test_recordPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? a, int? b) {
   (b[!!!], ) = (a, );
 }
@@ -192,7 +192,7 @@ void f(int? a, int? b) {
   test_return_function_dynamic() async {
     // TODO(srawlins): Why does a dynamic-returning function result in a
     // diagnostic, but a dynamic-returning method does not?
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 dynamic f(int? p) {
   return p[!!!];
 }
@@ -206,7 +206,7 @@ List<int> f7ok(int? p) => [p!];
   }
 
   test_return_list_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int?> f7(int? p) => [p[!!/**/!]];
 ''');
   }
@@ -218,7 +218,7 @@ Map<int, String> f(int? p) => {p!: ''};
   }
 
   test_return_mapKey_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<int?, String> f(int? p) => {p[!!!]: ''};
 ''');
   }
@@ -230,7 +230,7 @@ Map<String, int> f(int? p) => {for (var a in <int>[]) '': p!};
   }
 
   test_return_mapValue_forElement_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int?> f(int? p) => {for (var a in <int>[]) '': p[!!!]};
 ''');
   }
@@ -242,13 +242,13 @@ Map<String, int> f(int? p) => {if (1 != 0) '': p!}; // OK
   }
 
   test_return_mapValue_ifElement_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int?> f(int? p) => {if (1 != 0) '': p[!!!]};
 ''');
   }
 
   test_return_mapValue_ifElementNested_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int?> f(int? p) => {if (1 != 0) if (1 != 0) '': p[!!!]};
 ''');
   }
@@ -260,7 +260,7 @@ Map<String, int> f(int? p) => {'': p!};
   }
 
   test_return_mapValue_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int?> f(int? p) => {'': p[!!!]};
 ''');
   }
@@ -276,7 +276,7 @@ class A {
   }
 
   test_return_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? f(int? i) { return i[!!!]; }
 ''');
   }
@@ -288,7 +288,7 @@ Set<int> f(int? p) => {p!};
   }
 
   test_return_set_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<int?> f(int? p) => {p[!!!]};
 ''');
   }
@@ -319,26 +319,26 @@ F f(int? p) async => p!;
   }
 
   test_returnAsync_futureOfNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int?> f(int? p) async => p[!!!];
 ''');
   }
 
   test_returnAsync_futureOfNullable_await() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int?> f(int? p) async => await p[!!!];
 ''');
   }
 
   test_returnAsync_futureOfNullable_typedef() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F = Future<int?>;
 F f(int? p) async => p[!!!];
 ''');
   }
 
   test_returnExpressionBody_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? f(int? i) => i[!!!];
 ''');
   }
@@ -364,7 +364,7 @@ Stream<int> f13ok(int? p) async* {yield p!;}
   }
 
   test_yieldAsyncStar_streamOfNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Stream<int?> f(int? p) async* {yield p[!!!];}
 ''');
   }
@@ -376,7 +376,7 @@ Iterable<int> f(int? p) sync* {yield p!;}
   }
 
   test_yieldSyncStar_iterableOfNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Iterable<int?> f(int? p) sync* {yield p[!!!];}
 ''');
   }

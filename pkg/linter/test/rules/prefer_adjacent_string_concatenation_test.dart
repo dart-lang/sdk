@@ -24,13 +24,13 @@ var s = 'hello' ' world';
   }
 
   test_plusOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var s = 'hello' [!+!] ' world';
 ''');
   }
 
   test_plusOperator_inListLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = ['this is' [!+!] ' not allowed'];
 ''');
   }

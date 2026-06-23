@@ -30,13 +30,13 @@ final r = -9007199254740991;
   }
 
   test_maxSafeInteger_plusTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final r = [!9007199254740993!];
 ''');
   }
 
   test_maxSafeInteger_plusTwo_negative() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final r = -[!9007199254740993!];
 ''');
   }
@@ -60,7 +60,7 @@ final r = 1000000000000000000;
   }
 
   test_tenToTheEighteen_plusOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final r = [!1000000000000000001!];
 ''');
   }

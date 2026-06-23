@@ -30,13 +30,13 @@ Future<void> c() async {}
   }
 
   test_function_async_voidReturnType_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void [!f!]() async => null;
 ''');
   }
 
   test_function_async_voidReturnType_block() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void [!f!]() async {}
 ''');
   }
@@ -98,7 +98,7 @@ void f() {
   }
 
   test_functionLocal_async_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   void [!g!]() async => null;
 }
@@ -106,7 +106,7 @@ void f() {
   }
 
   test_functionLocal_main_async_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   void [!main!]() async => null;
 }
@@ -114,13 +114,13 @@ void f() {
   }
 
   test_getter_async() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void get [!l!] async => null;
 ''');
   }
 
   test_getter_async_voidReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void get [!f!] async => null;
 ''');
   }
@@ -132,7 +132,7 @@ void get f => null;
   }
 
   test_localFunction_async() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<void> f() async {
   void [!g!]() async {}
 }
@@ -149,7 +149,7 @@ void main() async {
   }
 
   test_method_async_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {
   void [!d!]() async => null;
 }
@@ -157,7 +157,7 @@ class Foo {
   }
 
   test_method_async_block() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {
   void [!f!]() async {}
 }
@@ -189,7 +189,7 @@ class Foo {
   }
 
   test_method_main_async_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {
   void [!main!]() async => null;
 }
@@ -221,7 +221,7 @@ class Foo {
   }
 
   test_operator_async() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {
   void operator [!|!](_) async => null;
 }

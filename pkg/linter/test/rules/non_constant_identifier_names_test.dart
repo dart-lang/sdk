@@ -21,13 +21,13 @@ class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
   String get lintRule => LintNames.non_constant_identifier_names;
 
   test_extensionType_representationConstructorName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type e.[!Efg!](int i) {}
 ''');
   }
 
   test_patternForStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var ([!AB!], c) = (0, 1); AB <= 13; (AB, c) = (c, AB + c)) { }
 }
@@ -35,7 +35,7 @@ void f() {
   }
 
   test_patternIfStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if ([1,2] case [int [!AB!], int c]) { }
 }
@@ -43,7 +43,7 @@ void f() {
   }
 
   test_patternIfStatement_recordField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   if (o case (a: int /*[0*/AB/*0]*/, BC: int /*[1*/CD/*1]*/)) { }
 }
@@ -67,7 +67,7 @@ void f() {
   }
 
   test_patternList_declaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var [/*[0*/__/*0]*/, /*[1*/foo_bar/*1]*/] = [1,2];
 }
@@ -92,7 +92,7 @@ f() {
   }
 
   test_patternRecordField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var ([!AB!], ) = (1, );
 }
@@ -114,7 +114,7 @@ f(Object o) {
   }
 
   test_patternRecordField_underscores() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var ([!___!], ) = (1, );
 }
@@ -128,7 +128,7 @@ class NonConstantIdentifierNamesRecordsTest extends LintRuleTest {
   String get lintRule => LintNames.non_constant_identifier_names;
 
   test_recordFields() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = (x: 1);
 var b = ([!XX!]: 1);
 ''');
@@ -187,19 +187,19 @@ var a = (_x: 1);
   }
 
   test_recordTypeAnnotation_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 (int, {String [!SS!], bool b})? triple;
 ''');
   }
 
   test_recordTypeAnnotation_positional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 (int, String [!SS!], bool) triple = (1,'', false);
 ''');
   }
 
   test_recordTypeDeclarations() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var [!AA!] = (x: 1);
 const BB = (x: 1);
 ''');
@@ -292,7 +292,7 @@ part 'test.dart';
 void f(String? Ss, [int? Xx]) { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment void f(String? /*[0*/Ss/*0]*/, [int? /*[1*/Xx/*1]*/]);
@@ -362,7 +362,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -432,7 +432,7 @@ f() {
   }
 
   test_catchVariable_allCaps() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} catch ([!ZZZ!]) {}
 }
@@ -448,7 +448,7 @@ class C {
   }
 
   test_constructor_factory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C();
   factory C.[!Named!]() = C;
@@ -473,7 +473,7 @@ class C {
   }
 
   test_constructor_newSyntax_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   new [!Named!]();
 }
@@ -489,7 +489,7 @@ class C {
   }
 
   test_constructor_private_title() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!_Named!]();
 }
@@ -497,7 +497,7 @@ class C {
   }
 
   test_constructor_private_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!_N!]();
 }
@@ -513,7 +513,7 @@ class C {
   }
 
   test_constructor_snakeCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!named_bar!](); //LINT
 }
@@ -529,7 +529,7 @@ class C {
   }
 
   test_constructor_title() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!Named!]();
 }
@@ -560,7 +560,7 @@ class A {
   }
 
   test_constructor_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.[!ZZZ!]();
 }
@@ -600,7 +600,7 @@ class C {
   }
 
   test_forEachVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var [!ZZZ!] in []) {}
 }
@@ -608,7 +608,7 @@ void f() {
   }
 
   test_forLoopVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var [!ZZZ!] = 0; ZZZ < 7; ++ZZZ) {}
 }
@@ -655,7 +655,7 @@ void f() {
   }
 
   test_localVariable_multiple_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var [!ZZZ!] = 1,
       zzz = 1;
@@ -664,7 +664,7 @@ void f() {
   }
 
   test_localVariable_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var [!ZZZ!] = 1;
 }
@@ -680,7 +680,7 @@ class _F {
   }
 
   test_method_snakeCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int [!foo_bar!]() => 7;
 }
@@ -688,7 +688,7 @@ class C {
   }
 
   test_method_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!Foo!]() {}
 }
@@ -696,7 +696,7 @@ class C {
   }
 
   test_parameter_fieldFormal_snakeCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final int [!bar_bar!];
   C(this.bar_bar);
@@ -705,7 +705,7 @@ class C {
   }
 
   test_parameter_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   m({int? [!Foo!]}) {}
 }
@@ -713,7 +713,7 @@ class C {
   }
 
   test_parameter_optionalPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   m([int? [!Foo!]]) {}
 }
@@ -721,7 +721,7 @@ class C {
   }
 
   test_parameter_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
  class C {
   m(int [!Foo!]) {}
 }
@@ -741,13 +741,13 @@ class C.___();
   }
 
   test_primaryConstructor_upperCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C.[!Named!]();
 ''');
   }
 
   test_topLevelFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void [!Main!]() {}
 ''');
   }
@@ -765,7 +765,7 @@ void _fun() {} //OK
   }
 
   test_topLevelFunction_private_snakeCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void [!_fun_bar!]() {}
 ''');
   }
@@ -783,7 +783,7 @@ var cell_0_0 = 7;
   }
 
   test_topLevelVariable_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 String [!ZZZ!] = '';
 ''');
   }

@@ -39,7 +39,7 @@ class C {}
   }
 
   test_constructor_private() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {
   static const A a = A._(1);
   static const A b = A._(2);
@@ -50,7 +50,7 @@ class [!A!] {
   }
 
   test_extendsObject() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] extends Object {
   static const A a = A._();
   static const A b = A._();
@@ -60,7 +60,7 @@ class [!A!] extends Object {
   }
 
   test_multiDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {
   static const A a = A._(), b = A._();
   const A._();
@@ -328,7 +328,7 @@ class _A(int x) {
   }
 
   test_primaryConstructor_private() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class const [!A!]._(final int value) {
   static const A a = A._(1);
   static const A b = A._(2);
@@ -355,7 +355,7 @@ class const A._(final int values) {
   }
 
   test_referencedFactoryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!_E!] {
   static const _E c = _E();
   static const _E d = _E();
@@ -373,7 +373,7 @@ _E e = _E.withValue(0);
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'a.dart';
 class [!A!] {
   static const A a = A._();
@@ -384,7 +384,7 @@ class [!A!] {
   }
 
   test_simple_private() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!_A!] {
   static const _A a = _A();
   static const _A b = _A();
@@ -394,7 +394,7 @@ class [!_A!] {
   }
 
   test_simple_public() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {
   static const A a = A._();
   static const A b = A._();
@@ -404,7 +404,7 @@ class [!A!] {
   }
 
   test_withMixin() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin class M { }
 class [!A!] with M {
   static const A a = A._();
