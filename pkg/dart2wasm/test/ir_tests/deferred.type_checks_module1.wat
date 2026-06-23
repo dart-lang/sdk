@@ -24,7 +24,7 @@
     local.get $var1
     global.get $"\")\"_9"
     array.new_fixed $Array<Object?> 5
-    i32.const 14
+    i32.const 15
     call_indirect $$.% (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
     i32.const 18
     call_indirect $$.% (param (ref null $#Top))
