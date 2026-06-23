@@ -3227,6 +3227,84 @@ import 'z.dart';
     );
   }
 
+  Future<void> test_insertConstructor_sortConstructorsFirst() async {
+    writeTestPackageAnalysisOptionsFile(lints: ['sort_constructors_first']);
+    await resolveTestSource('''
+class C {
+  C.na^med();
+}
+''');
+
+    var classNode = findNode<ClassDeclaration>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.insertConstructor(classNode, (builder) {
+        builder.write('C();');
+      }, isUnnamed: true);
+    });
+
+    assertChange('''
+class C {
+  C.named();
+
+  C();
+}
+''');
+  }
+
+  Future<void>
+  test_insertConstructor_sortUnnamedConstructorsFirst_namedConstructor() async {
+    writeTestPackageAnalysisOptionsFile(
+      lints: ['sort_unnamed_constructors_first'],
+    );
+    await resolveTestSource('''
+class C {
+  C^();
+}
+''');
+
+    var classNode = findNode<ClassDeclaration>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.insertConstructor(classNode, (builder) {
+        builder.write('C.named();');
+      });
+    });
+
+    assertChange('''
+class C {
+  C();
+
+  C.named();
+}
+''');
+  }
+
+  Future<void>
+  test_insertConstructor_sortUnnamedConstructorsFirst_unnamedConstructor() async {
+    writeTestPackageAnalysisOptionsFile(
+      lints: ['sort_unnamed_constructors_first'],
+    );
+    await resolveTestSource('''
+class C {
+  C.na^med();
+}
+''');
+
+    var classNode = findNode<ClassDeclaration>();
+    await changeBuilder.addDartFileEdit(testFilePath, (builder) {
+      builder.insertConstructor(classNode, (builder) {
+        builder.write('C();');
+      }, isUnnamed: true);
+    });
+
+    assertChange('''
+class C {
+  C();
+
+  C.named();
+}
+''');
+  }
+
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');

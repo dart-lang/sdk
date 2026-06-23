@@ -479,32 +479,30 @@ class B {
   }
 
   Future<void> test_lint_noLint_defaultBehavior() async {
-    verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class C^(int x) {
-  new named() {}
+  new named() : this(0);
 }
 ''');
     await assertHasAssist('''
 class C {
   new(int x);
 
-  new named() {}
+  new named() : this(0);
 }
 ''');
   }
 
   Future<void> test_lint_sortConstructorsFirst_unnamedPrimary() async {
     createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
-    verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class C^(int x) {
-  new named() {}
+  new named() : this(0);
 }
 ''');
     await assertHasAssist('''
 class C {
-  new named() {}
+  new named() : this(0);
 
   new(int x);
 }
@@ -534,40 +532,16 @@ class C {
     createAnalysisOptionsFile(
       lints: [LintNames.sort_unnamed_constructors_first],
     );
-    verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class C.n^amed(int x) {
-  new() {}
+  new() : this.named(0);
 }
 ''');
     await assertHasAssist('''
 class C {
   new named(int x);
 
-  new() {}
-}
-''');
-  }
-
-  Future<void> test_lint_sortUnnamedConstructorsFirst_unnamedPrimary() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.sort_unnamed_constructors_first],
-    );
-    verifyNoTestUnitErrors = false;
-    await resolveTestCode('''
-class C^(int x) {
-  new() {}
-
-  new named() {}
-}
-''');
-    await assertHasAssist('''
-class C {
-  new() {}
-
-  new(int x);
-
-  new named() {}
+  new() : this.named(0);
 }
 ''');
   }
