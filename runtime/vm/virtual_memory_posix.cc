@@ -64,7 +64,6 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 #endif
 
 uword VirtualMemory::page_size_ = 0;
-VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
 bool VirtualMemory::should_dual_map_executable_pages_ = false;
@@ -468,7 +467,7 @@ bool CheckIfRXWorks() {
   // Try creating executable VirtualMemory.
   std::unique_ptr<VirtualMemory> mem{
       VirtualMemory::Allocate(VirtualMemory::PageSize(), /*is_executable=*/true,
-                              /*is_compressed=*/false, /*name=*/nullptr)};
+                              /*name=*/nullptr)};
   if (mem == nullptr) {
     Syslog::PrintErr("Failed to map a test RX page");
     return false;
@@ -562,21 +561,6 @@ void VirtualMemory::Init() {
 #endif
 #endif
 
-#if defined(DART_COMPRESSED_POINTERS)
-  ASSERT(compressed_heap_ == nullptr);
-  compressed_heap_ = Reserve(kGuardRegionSize * 2 + kCompressedHeapSize,
-                             kCompressedHeapAlignment);
-  if (compressed_heap_ == nullptr) {
-    int error = errno;
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
-          Utils::StrError(error, error_buf, kBufferSize));
-  }
-  VirtualMemoryCompressedHeap::Init(
-      reinterpret_cast<void*>(compressed_heap_->start() + kGuardRegionSize),
-      kCompressedHeapSize);
-#endif  // defined(DART_COMPRESSED_POINTERS)
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
   if (fp != nullptr) {
@@ -598,20 +582,12 @@ void VirtualMemory::Init() {
 }
 
 void VirtualMemory::Cleanup() {
-#if defined(DART_COMPRESSED_POINTERS)
-  delete compressed_heap_;
-#endif  // defined(DART_COMPRESSED_POINTERS)
   page_size_ = 0;
-#if defined(DART_COMPRESSED_POINTERS)
-  compressed_heap_ = nullptr;
-  VirtualMemoryCompressedHeap::Cleanup();
-#endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
-                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -626,19 +602,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (!VirtualMemory::ExecutesGeneratedCode()) {
     is_executable = false;
   }
-
-#if defined(DART_COMPRESSED_POINTERS)
-  if (is_compressed) {
-    RELEASE_ASSERT(!is_executable);
-    MemoryRegion region =
-        VirtualMemoryCompressedHeap::Allocate(size, alignment);
-    if (region.pointer() == nullptr) {
-      return nullptr;
-    }
-    Commit(region.pointer(), region.size());
-    return new VirtualMemory(region, region);
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
 
   const intptr_t allocated_size = size + alignment - PageSize();
 
@@ -778,10 +741,8 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
 
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer()) &&
-      (this != compressed_heap_)) {
-    Decommit(reserved_.pointer(), reserved_.size());
-    VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
+  if (cage_ != nullptr) {
+    cage_->Free(reserved_.pointer(), reserved_.size());
     return;
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -796,12 +757,6 @@ VirtualMemory::~VirtualMemory() {
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-#if defined(DART_COMPRESSED_POINTERS)
-  // Don't free the sub segment if it's managed by the compressed pointer heap.
-  if (VirtualMemoryCompressedHeap::Contains(address)) {
-    return false;
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
   const uword start = reinterpret_cast<uword>(address);
   Unmap(start, start + size);
   return true;

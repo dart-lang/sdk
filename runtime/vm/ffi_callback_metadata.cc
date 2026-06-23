@@ -188,7 +188,7 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 
   VirtualMemory* new_page = VirtualMemory::AllocateAligned(
       MappingSize(), MappingAlignment(), is_executable,
-      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+      "FfiCallbackMetadata::TrampolinePage");
   if (new_page == nullptr) {
     return nullptr;
   }

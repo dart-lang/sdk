@@ -19,11 +19,13 @@ void VirtualMemory::Truncate(intptr_t new_size) {
   ASSERT(new_size <= size());
   // We are not expected to call this with executable pages.
   ASSERT(OffsetToExecutableAlias() == 0);
-  if (reserved_.size() ==
-      region_.size()) {  // Don't create holes in reservation.
-    if (FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
-                       size() - new_size)) {
-      reserved_.set_size(new_size);
+  if (!InCage()) {
+    if (reserved_.size() ==
+        region_.size()) {  // Don't create holes in reservation.
+      if (FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
+                         size() - new_size)) {
+        reserved_.set_size(new_size);
+      }
     }
   }
   region_.Subregion(region_, 0, new_size);
