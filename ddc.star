@@ -19,7 +19,7 @@ load(
 )
 load("//lib/paths.star", "paths")
 
-dart.poller("ddc-gitiles-trigger", paths = paths.ddc)
+dart.poller("ddc-gitiles-trigger", branches = ["main"], paths = paths.ddc)
 
 def _ddc_builder(
         name,

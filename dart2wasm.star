@@ -21,7 +21,7 @@ load(
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
-dart.poller("dart2wasm-gitiles-trigger", paths = paths.dart2wasm)
+dart.poller("dart2wasm-gitiles-trigger", branches = ["main"], paths = paths.dart2wasm)
 
 def _dart2wasm_builder(
         name,

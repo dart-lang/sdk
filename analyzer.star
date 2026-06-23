@@ -13,7 +13,7 @@ load(
 )
 load("//lib/paths.star", "paths")
 
-dart.poller("analyzer-gitiles-trigger", paths = paths.analyzer)
+dart.poller("analyzer-gitiles-trigger", branches = ["main"], paths = paths.analyzer)
 
 def _analyzer_builder(
         name,

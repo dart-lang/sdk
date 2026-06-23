@@ -240,10 +240,9 @@ def _builder(
                     for trigger in triggered_by
                 ]
                 if channel in _RELEASE_CHANNELS:
-                    # Always run vm builders on release channels.
+                    # Always run builders on release channels. This also overwrites nightly builders from having their release channel variants being triggered nightly.
                     triggered_by = [
-                        trigger.replace("dart-vm-", "dart-") if type(trigger) == type("") else trigger
-                        for trigger in triggered_by
+                        "dart-gitiles-trigger-%s".replace("%s", channel),
                     ]
 
             notifies = [notifies] if type(notifies) == type("") else notifies

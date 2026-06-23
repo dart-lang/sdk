@@ -19,7 +19,7 @@ load(
 )
 load("//lib/paths.star", "paths")
 
-dart.poller("dart2js-gitiles-trigger", paths = paths.dart2js)
+dart.poller("dart2js-gitiles-trigger", branches = ["main"], paths = paths.dart2js)
 
 def _dart2js_builder(
         name,

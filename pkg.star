@@ -20,7 +20,7 @@ load(
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
-dart.poller("pkg-gitiles-trigger", paths = paths.pkg)
+dart.poller("pkg-gitiles-trigger", branches = ["main"], paths = paths.pkg)
 
 def _pkg_builder(
         name,
