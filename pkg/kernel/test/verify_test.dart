@@ -45,7 +45,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable let scope', (TestHarness test) {
-    Variable variable = test.makeVariable();
+    SyntheticVariable variable = test.makeVariable();
     test.addNode(
       LogicalExpression(
         new Let(variable, new VariableGet(variable)),
@@ -934,7 +934,7 @@ class TestHarness {
     enclosingLibrary.addTypedef(node);
   }
 
-  Variable makeVariable() => new SyntheticVariable();
+  SyntheticVariable makeVariable() => new SyntheticVariable();
 
   PositionalParameter makePositionalParameter() => new PositionalParameter();
 

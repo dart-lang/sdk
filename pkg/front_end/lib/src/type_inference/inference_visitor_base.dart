@@ -766,7 +766,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         // Replace expression with:
         // `let t = expression in t == null ? null : t.call`
-        Variable t = extern.createVariableCache(
+        SyntheticVariable t = extern.createVariableCache(
           expression,
           expressionType,
           fileOffset: fileOffset,
@@ -1657,7 +1657,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     InvocationTargetType invocationTargetType,
     TypeArguments? typeArguments,
     ActualArguments arguments, {
-    List<Variable>? hoistedExpressions,
+    List<SyntheticVariable>? hoistedExpressions,
     bool isSpecialCasedBinaryOperator = false,
     bool isSpecialCasedTernaryOperator = false,
     DartType? receiverType,
@@ -1695,7 +1695,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     FunctionType calleeType,
     TypeArguments? typeArguments,
     ActualArguments actualArguments,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     bool isSpecialCasedBinaryOperator = false,
     bool isSpecialCasedTernaryOperator = false,
     DartType? receiverType,
@@ -1738,7 +1738,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<DartType>? inferredTypes;
     FunctionTypeInstantiator? instantiator;
 
-    List<Variable>? localHoistedExpressions;
+    List<SyntheticVariable>? localHoistedExpressions;
     int hoistingEndIndex;
     if (isConst) {
       // Hoisting is never needed for constant expressions.
@@ -1758,7 +1758,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (actualArguments.hasNamedBeforePositional &&
         hoistedExpressions == null &&
         !isConst) {
-      hoistedExpressions = localHoistedExpressions = <Variable>[];
+      hoistedExpressions = localHoistedExpressions = [];
     }
 
     TypeConstraintGatherer? gatherer;
@@ -2500,7 +2500,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     InvocationInferenceResult result = inferInvocation(
@@ -2544,7 +2544,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     InvocationInferenceResult result = inferInvocation(
@@ -2586,7 +2586,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isExpressionInvocation,
     required bool isImplicitCall,
     Name? implicitInvocationPropertyName,
@@ -2635,7 +2635,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     assert(
@@ -2799,7 +2799,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isImplicitCall,
   }) {
     assert(target.isCallFunction || target.isNullableCallFunction);
@@ -2984,7 +2984,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isImplicitCall,
     required bool isSpecialCasedBinaryOperator,
     required bool isSpecialCasedTernaryOperator,
@@ -3191,14 +3191,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required TypeArguments? typeArguments,
     required ActualArguments arguments,
     required DartType typeContext,
-    required List<Variable>? hoistedExpressions,
+    required List<SyntheticVariable>? hoistedExpressions,
     required bool isExpressionInvocation,
   }) {
     Expression originalReceiver = receiver;
 
-    List<Variable>? locallyHoistedExpressions;
+    List<SyntheticVariable>? locallyHoistedExpressions;
     if (hoistedExpressions == null) {
-      hoistedExpressions = locallyHoistedExpressions = <Variable>[];
+      hoistedExpressions = locallyHoistedExpressions = [];
     }
     if (arguments.positionalCount > 0 || arguments.namedCount > 0) {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
@@ -3392,7 +3392,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isExpressionInvocation,
   }) {
     assert(
@@ -3429,7 +3429,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ExpressionInferenceResult _insertHoistedExpression(
     ExpressionInferenceResult result,
-    List<Variable>? hoistedExpressions,
+    List<SyntheticVariable>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
       Expression expression = result.expression;
@@ -3450,7 +3450,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeArguments? typeArguments,
     ActualArguments arguments,
     DartType typeContext,
-    List<Variable>? hoistedExpressions, {
+    List<SyntheticVariable>? hoistedExpressions, {
     required bool isExpressionInvocation,
   }) {
     assert(
@@ -3495,7 +3495,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool isExpressionInvocation,
     required bool isImplicitCall,
     Name? implicitInvocationPropertyName,
-    List<Variable>? hoistedExpressions,
+    List<SyntheticVariable>? hoistedExpressions,
     ObjectAccessTarget? target,
   }) {
     target ??= findInterfaceMember(
@@ -4484,8 +4484,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset;
         } else {
-          Variable valueVariable = createVariable(value, valueType);
-          Variable assignmentVariable = createVariable(
+          SyntheticVariable valueVariable = createVariable(value, valueType);
+          SyntheticVariable assignmentVariable = createVariable(
             new StaticInvocation(
               writeTarget.member as Procedure,
               new Arguments(
@@ -4704,7 +4704,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (uninstantiatedType.isPotentiallyNullable) {
         // Replace expression with:
         // `let t = expression in t == null ? null : t<...>`
-        Variable t = extern.createVariable(expression, uninstantiatedType);
+        SyntheticVariable t = extern.createVariable(
+          expression,
+          uninstantiatedType,
+        );
 
         Expression nullCheck = new EqualsNull(
           new VariableGet(t)..fileOffset = expression.fileOffset,

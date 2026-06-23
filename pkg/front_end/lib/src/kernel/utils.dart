@@ -297,7 +297,16 @@ final CatchParameterBuilder dummyCatchParameterBuilder =
       fileOffset: -1,
       nameOffset: null,
       fileUri: dummyUri,
-      isClosureContextLoweringEnabled: false,
+    );
+final AnonymousMethodParameterBuilder dummyAnonymousMethodParameterBuilder =
+    new AnonymousMethodParameterBuilder(
+      modifiers: Modifiers.empty,
+      type: const ImplicitTypeBuilder(),
+      name: '',
+      fileOffset: -1,
+      nameOffset: null,
+      fileUri: dummyUri,
+      kind: FormalParameterKind.requiredPositional,
     );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
@@ -309,7 +318,6 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       nameOffset: null,
       fileUri: dummyUri,
       hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(

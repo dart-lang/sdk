@@ -659,7 +659,7 @@ class ActualArguments extends TreeNode with InternalTreeNode {
 class Cascade extends InternalExpression {
   /// The temporary variable holding the cascade receiver expression in its
   /// initializer;
-  InternalVariable variable;
+  InternalSyntheticVariable variable;
 
   /// `true` if the access is null-aware, i.e. of the form `a?..b()`.
   final bool isNullAware;
@@ -717,8 +717,8 @@ class Cascade extends InternalExpression {
 
 /// Internal expression representing an anonymous method invocation.
 class AnonymousMethodExpression extends InternalExpression {
-  InternalVariable variable;
-  Expression body;
+  final InternalAnonymousMethodParameter variable;
+  final Expression body;
   final bool isCascade;
   final bool isImplicitlyTyped;
   final bool isNullAware;
@@ -762,8 +762,8 @@ class AnonymousMethodExpression extends InternalExpression {
 
 /// Internal expression representing an anonymous block method invocation.
 class AnonymousMethodBlock extends InternalExpression {
-  InternalVariable variable;
-  Statement body;
+  final InternalAnonymousMethodParameter variable;
+  final Statement body;
   final bool isCascade;
   final bool isImplicitlyTyped;
   final bool isNullAware;
@@ -809,7 +809,7 @@ class AnonymousMethodBlock extends InternalExpression {
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.
 class DeferredCheck extends InternalExpression {
-  InternalVariable variable;
+  InternalSyntheticVariable variable;
   Expression expression;
 
   new(this.variable, this.expression, {required int fileOffset}) {
@@ -1502,6 +1502,57 @@ class InternalCatchVariable extends InternalVariable {
 
   // Coverage-ignore(suite): Not run.
   String get catchVariableName => astVariable.catchVariableName;
+}
+
+class InternalAnonymousMethodParameter extends InternalVariable {
+  @override
+  SyntheticVariable astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  @override
+  final bool isWildcard;
+
+  new({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+    required this.isWildcard,
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  String toString() {
+    return "InternalCatchVariable(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get name => astVariable.cosmeticName!;
 }
 
 class InternalSyntheticVariable extends InternalVariable {
@@ -7675,8 +7726,8 @@ class InternalContinueSwitchStatement extends InternalStatement {
 
 class InternalCatch extends TreeNode with InternalTreeNode {
   final DartType guard; // Not null, defaults to dynamic.
-  final InternalVariable? exception;
-  final InternalVariable? stackTrace;
+  final InternalCatchVariable? exception;
+  final InternalCatchVariable? stackTrace;
   final Statement body;
 
   new({
@@ -7867,7 +7918,7 @@ class InternalForStatement extends InternalStatement implements LoopStatement {
 /// Synthetic expression of form `let v = x in y`
 // TODO(johnniwinther): Can we avoid this?
 class InternalLet extends InternalExpression {
-  final InternalVariable variable; // Must have an initializer.
+  final InternalSyntheticVariable variable; // Must have an initializer.
   final Expression body;
 
   new(this.variable, this.body) {
@@ -7963,11 +8014,18 @@ final InternalSwitchCase dummyInternalSwitchCase =
     );
 
 final InternalCatch dummyInternalCatch = new InternalCatch(
-  exception: dummyInternalVariable,
+  exception: dummyInternalCatchVariable,
   body: dummyStatement,
-  stackTrace: dummyInternalVariable,
+  stackTrace: dummyInternalCatchVariable,
   fileOffset: TreeNode.noOffset,
 );
+
+final InternalCatchVariable dummyInternalCatchVariable =
+    new InternalCatchVariable(
+      astVariable: dummyCatchVariable,
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
+    );
 
 final InternalVariable dummyInternalVariable = new InternalSyntheticVariable(
   astVariable: dummyVariable,

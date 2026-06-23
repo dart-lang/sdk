@@ -846,12 +846,12 @@ class CoreTypesUtil {
       //      } else {
       //        throw;
       //      }
-      Variable v = SyntheticVariable(
+      SyntheticVariable v = SyntheticVariable(
         cosmeticName: '#vardouble',
         initializer: AsExpression(expression, coreTypes.doubleNullableRawType),
         type: coreTypes.doubleNullableRawType,
       );
-      Variable v2 = SyntheticVariable(
+      SyntheticVariable v2 = SyntheticVariable(
         cosmeticName: '#varint',
         initializer: invokeMethod(v, numToIntTarget),
         type: coreTypes.intNonNullableRawType,

@@ -627,8 +627,10 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  InternalVariable createVariableDeclarationForValue(Expression expression) {
-    InternalVariable variable = intern.createSyntheticVariableForValue(
+  InternalSyntheticVariable createVariableDeclarationForValue(
+    Expression expression,
+  ) {
+    InternalSyntheticVariable variable = intern.createSyntheticVariableForValue(
       expression,
     );
     assignedVariables.declare(variable);
@@ -1611,7 +1613,9 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else {
       bool isNullAware = token.isA(TokenType.QUESTION_PERIOD_PERIOD);
-      InternalVariable variable = createVariableDeclarationForValue(expression);
+      InternalSyntheticVariable variable = createVariableDeclarationForValue(
+        expression,
+      );
       push(
         new Cascade(variable, isNullAware: isNullAware)
           ..fileOffset = expression.fileOffset,
@@ -5474,7 +5478,17 @@ class BodyBuilderImpl extends StackListenerImpl
           nameOffset: nameOffset,
           fileUri: uri,
           wildcardIndex: wildcardIndex,
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        );
+      } else if (memberKind == MemberKind.AnonymousMethod) {
+        parameter = new AnonymousMethodParameterBuilder(
+          modifiers: modifiers,
+          type: type ?? const ImplicitTypeBuilder(),
+          name: parameterName,
+          fileOffset: nameOffset,
+          nameOffset: nameOffset,
+          fileUri: uri,
+          wildcardIndex: wildcardIndex,
+          kind: kind,
         );
       } else {
         String? publicName = problemReporting.checkPublicName(
@@ -5498,7 +5512,6 @@ class BodyBuilderImpl extends StackListenerImpl
           hasImmediatelyDeclaredInitializer: initializerStart != null,
           wildcardIndex: wildcardIndex,
           publicName: publicName,
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
       }
     }
@@ -5506,6 +5519,10 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalVariable functionParameter;
     if (memberKind == MemberKind.Catch) {
       functionParameter = (parameter as CatchParameterBuilder).build(
+        libraryBuilder,
+      );
+    } else if (memberKind == MemberKind.AnonymousMethod) {
+      functionParameter = (parameter as AnonymousMethodParameterBuilder).build(
         libraryBuilder,
       );
     } else {
@@ -5577,22 +5594,49 @@ class BodyBuilderImpl extends StackListenerImpl
         push(parameters);
       }
     } else {
-      List<ParameterBuilder>? parameters = inCatchClause
-          ? const FixedNullableList<CatchParameterBuilder>().popNonNullable(
-              stack,
-              count,
-              dummyCatchParameterBuilder,
-            )
-          : const FixedNullableList<FormalParameterBuilder>().popNonNullable(
-              stack,
-              count,
-              dummyFormalParameterBuilder,
-            );
+      List<ParameterBuilder>? parameters = _popParameterBuilders(
+        kind: kind,
+        count: count,
+        optionalsCount: 0,
+      );
       if (parameters == null) {
         push(new ParserRecovery(offsetForToken(beginToken)));
       } else {
         push(parameters);
       }
+    }
+  }
+
+  List<ParameterVariableBuilder>? _popParameterBuilders({
+    required MemberKind kind,
+    required int count,
+    required int optionalsCount,
+  }) {
+    switch (kind) {
+      case MemberKind.Catch:
+        return const FixedNullableList<CatchParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyCatchParameterBuilder,
+            );
+      case MemberKind.AnonymousMethod:
+        return const FixedNullableList<AnonymousMethodParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyAnonymousMethodParameterBuilder,
+            );
+      default:
+        return const FixedNullableList<FormalParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyFormalParameterBuilder,
+            );
     }
   }
 
@@ -5748,6 +5792,7 @@ class BodyBuilderImpl extends StackListenerImpl
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
                 ValueKinds.CatchParameterBuilder,
+                ValueKinds.AnonymousMethodParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count - 1,
@@ -5757,6 +5802,7 @@ class BodyBuilderImpl extends StackListenerImpl
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
                 ValueKinds.CatchParameterBuilder,
+                ValueKinds.AnonymousMethodParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count,
@@ -5772,38 +5818,41 @@ class BodyBuilderImpl extends StackListenerImpl
         count--;
         optionalsCount = optionals.length;
       }
-      List<ParameterVariableBuilder>? parameters = inCatchClause
-          ? const FixedNullableList<CatchParameterBuilder>()
-                .popPaddedNonNullable(
-                  stack,
-                  count,
-                  optionalsCount,
-                  dummyCatchParameterBuilder,
-                )
-          : const FixedNullableList<FormalParameterBuilder>()
-                .popPaddedNonNullable(
-                  stack,
-                  count,
-                  optionalsCount,
-                  dummyFormalParameterBuilder,
-                );
+
+      List<ParameterVariableBuilder>? parameters = _popParameterBuilders(
+        kind: kind,
+        count: count,
+        optionalsCount: optionalsCount,
+      );
+
       if (optionals != null && parameters != null) {
         parameters.setRange(count, count + optionalsCount, optionals);
       }
       assert(parameters?.isNotEmpty ?? true);
-      Parameters formals = inCatchClause
-          ? new CatchParameters(
-              parameters as List<CatchParameterBuilder>?,
-              offsetForToken(beginToken),
-              lengthOfSpan(beginToken, endToken),
-              uri,
-            )
-          : new FormalParameters(
-              parameters as List<FormalParameterBuilder>?,
-              offsetForToken(beginToken),
-              lengthOfSpan(beginToken, endToken),
-              uri,
-            );
+      Parameters formals;
+      switch (kind) {
+        case MemberKind.Catch:
+          formals = new CatchParameters(
+            parameters as List<CatchParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+        case MemberKind.AnonymousMethod:
+          formals = new AnonymousMethodParameters(
+            parameters as List<AnonymousMethodParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+        default:
+          formals = new FormalParameters(
+            parameters as List<FormalParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+      }
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
@@ -8052,19 +8101,21 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleImplicitFormalParameters(Token punctuation) {
     debugEvent("handleImplicitFormalParameters");
-    Expression receiver = toValue(peek());
     // If `variable` is captured in a nested function literal, dart2js
     // requires the variable to have a name. It is sufficient to use
     // `anonymous#this` because no user-written variable can have that name,
     // and we never have access to more than one of these variables. It does
     // not disrupt other backends that this name exists.
-    InternalVariable variable = intern.createSyntheticVariable(
-      fileOffset: offsetForToken(punctuation),
-      name: "anonymous#this",
-      initializer: receiver,
-      isFinal: true,
-      isSynthesized: true,
-    );
+    InternalAnonymousMethodParameter variable = intern
+        .createAnonymousMethodParameter(
+          fileOffset: offsetForToken(punctuation),
+          name: "anonymous#this",
+          type: const DynamicType(),
+          isImplicitlyTyped: true,
+          isFinal: true,
+          isSynthesized: true,
+          isWildcard: false,
+        );
     _thisVariables.push(variable);
     _parameterlessAnonymousMethodDepth++;
 
@@ -8088,8 +8139,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ValueKinds.Generator,
         ]),
         /* formal parameters */ const UnionValueKind([
-          ValueKinds.FormalParameters,
-          ValueKinds.FormalListOrNull,
+          ValueKinds.AnonymousMethodParameters,
+          ValueKinds.AnonymousMethodParameterListOrNull,
         ]),
         /* receiver */ const UnionValueKind([
           ValueKinds.Expression,
@@ -8099,7 +8150,8 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     Object? body = pop();
-    Object? formals = pop(NullValues.FormalParameters);
+    AnonymousMethodParameters? formals =
+        pop(NullValues.FormalParameters) as AnonymousMethodParameters?;
     if (formals != null && _localScope.kind == LocalScopeKind.formals) {
       exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
     }
@@ -8110,35 +8162,31 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     Expression receiver;
-    InternalVariable variable;
+    InternalAnonymousMethodParameter variable;
     bool isImplicitlyTyped;
     int typeOffset;
 
-    if (formals is FormalParameters &&
-        formals.parameters?.length == 1 &&
-        formals.parameters![0].isRequiredPositional) {
-      receiver = popForValue();
-      FormalParameterBuilder formal = formals.parameters![0];
-
-      // Build the variable declaration.
-      variable = formal.build(libraryBuilder);
-      variable.astVariable.initializer = receiver;
-      variable.astVariable.initializer!.parent = variable.astVariable;
-
-      isImplicitlyTyped = variable.isImplicitlyTyped;
-      typeOffset = formal.type.charOffset ?? variable.fileOffset;
-    } else if (formals == null) {
-      variable = _thisVariables.pop();
+    if (formals == null) {
+      variable = _thisVariables.pop() as InternalAnonymousMethodParameter;
       _parameterlessAnonymousMethodDepth--;
       receiver = popForValue();
       isImplicitlyTyped = true;
       typeOffset = variable.fileOffset;
+    } else if (formals.parameters?.length == 1 &&
+        formals.parameters![0].isRequiredPositional) {
+      receiver = popForValue();
+      AnonymousMethodParameterBuilder formal = formals.parameters![0];
+
+      // Build the variable declaration.
+      variable = formal.build(libraryBuilder);
+
+      isImplicitlyTyped = variable.isImplicitlyTyped;
+      typeOffset = formal.type.charOffset ?? variable.fileOffset;
     } else {
-      FormalParameters formalParameters = formals as FormalParameters;
       addProblem(
         diag.anonymousMethodWrongParameterList,
-        formalParameters.charOffset,
-        formalParameters.length,
+        formals.charOffset,
+        formals.length,
       );
       popForValue();
       Expression result = new InvalidExpression(
@@ -8152,6 +8200,8 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       return;
     }
+    variable.astVariable.initializer = receiver;
+    variable.astVariable.initializer!.parent = variable.astVariable;
     int variableOffset = variable.astVariable.initializer!.fileOffset;
 
     // Build the result expression.
@@ -10742,7 +10792,7 @@ class BodyBuilderImpl extends StackListenerImpl
     PrefixBuilder prefix,
     int charOffset,
   ) {
-    InternalVariable check = intern.createSyntheticVariableForValue(
+    InternalSyntheticVariable check = intern.createSyntheticVariableForValue(
       intern.checkLibraryIsLoaded(charOffset, prefix.dependency!),
     );
     return new DeferredCheck(check, expression, fileOffset: charOffset);

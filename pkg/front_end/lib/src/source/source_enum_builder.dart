@@ -256,7 +256,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
@@ -269,7 +268,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       ConstructorDeclaration constructorDeclaration =

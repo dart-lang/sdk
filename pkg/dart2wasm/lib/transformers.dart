@@ -747,10 +747,12 @@ class _WasmTransformer extends Transformer {
 
     // The body will be wrapped with a `try-catch` to pass the error to the
     // controller, and `try-finally` to close the controller.
-    final exceptionVar = SyntheticVariable();
+    final exceptionVar = CatchVariable(name: '#exception', isSynthesized: true);
 
-    final stackTraceVar = SyntheticVariable(
+    final stackTraceVar = CatchVariable(
+      name: '#stackTrace',
       type: coreTypes.stackTraceRawType(Nullability.nonNullable),
+      isSynthesized: true,
     );
 
     final catch_ = Catch(

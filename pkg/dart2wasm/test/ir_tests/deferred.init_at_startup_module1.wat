@@ -1,8 +1,8 @@
 (module $module1
   (type $#Top <...>)
-  (type $Array<String?> <...>)
   (type $Array<WasmI16> <...>)
   (type $JSExternWrapper <...>)
+  (type $Array<String?> <...>)
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 18 funcref)
   (global $"\"hello\"" (ref $JSExternWrapper) <...>)
   (global $JSStringImpl._stringFromCodePointBuffer (mut (ref $Array<WasmI16>)) <...>)

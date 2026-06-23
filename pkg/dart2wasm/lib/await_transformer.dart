@@ -454,11 +454,15 @@ class _AwaitTransformer extends Transformer {
       // the current exception after the `await`.
       //
       // TODO (omersa): We could mark [TreeNode]s with `await`s and only do this
-      catch_.exception ??= SyntheticVariable(
+      catch_.exception ??= CatchVariable(
+        name: '#exception',
         type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
+        isSynthesized: true,
       )..parent = catch_;
-      catch_.stackTrace ??= SyntheticVariable(
+      catch_.stackTrace ??= CatchVariable(
+        name: '#stackTrace',
         type: InterfaceType(coreTypes.stackTraceClass, Nullability.nonNullable),
+        isSynthesized: true,
       )..parent = catch_;
 
       var body = visitDelimited(catch_.body);

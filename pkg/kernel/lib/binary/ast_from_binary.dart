@@ -2076,7 +2076,8 @@ class BinaryBuilder {
 
   Initializer _readLocalInitializer() {
     int offset = readOffset();
-    return new LocalInitializer(readAndPushVariable())..fileOffset = offset;
+    return new LocalInitializer(readAndPushVariable() as SyntheticVariable)
+      ..fileOffset = offset;
   }
 
   Initializer _readAssertInitializer() {
@@ -3116,7 +3117,7 @@ class BinaryBuilder {
 
   Expression _readLet() {
     int offset = readOffset();
-    Variable variable = readVariable();
+    SyntheticVariable variable = readVariable() as SyntheticVariable;
     int stackHeight = variableStack.length;
     pushVariableDeclaration(variable);
     Expression body = readExpression();
@@ -3956,8 +3957,8 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     DartType guard = readDartType();
-    Variable? exception = readAndPushVariableOption();
-    Variable? stackTrace = readAndPushVariableOption();
+    CatchVariable? exception = readAndPushVariableOption() as CatchVariable?;
+    CatchVariable? stackTrace = readAndPushVariableOption() as CatchVariable?;
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)

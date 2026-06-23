@@ -520,7 +520,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitLet(Let node) {
-    Variable newVariable = clone(node.variable);
+    SyntheticVariable newVariable = clone(node.variable);
     return new Let(newVariable, clone(node.body));
   }
 
@@ -677,8 +677,8 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitCatch(Catch node) {
-    Variable? newException = cloneOptional(node.exception);
-    Variable? newStackTrace = cloneOptional(node.stackTrace);
+    CatchVariable? newException = cloneOptional(node.exception);
+    CatchVariable? newStackTrace = cloneOptional(node.stackTrace);
     return new Catch(
       newException,
       clone(node.body),
@@ -883,7 +883,7 @@ class CloneVisitorNotMembers
         .map(clone)
         .toList();
     List<NamedParameter> named = node.namedParameters.map(clone).toList();
-    Variable? thisVariable = cloneOptional(node.thisVariable);
+    ThisVariable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
         : null;

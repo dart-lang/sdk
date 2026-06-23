@@ -205,7 +205,7 @@ abstract class InvocationInferenceResult {
 
   static Expression _insertHoistedExpressions(
     Expression expression,
-    List<Variable> hoistedExpressions,
+    List<SyntheticVariable> hoistedExpressions,
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
@@ -230,7 +230,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<DartType> typeArguments;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -255,7 +255,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else if (expression is RedirectingFactoryInvocation) {
@@ -287,7 +287,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return expression;
       } else if (expression is InstanceInvocation) {
         if (!isPureExpression(expression.receiver)) {
-          Variable receiver = createVariable(
+          SyntheticVariable receiver = createVariable(
             expression.receiver,
             inferredReceiverType ?? const DynamicType(),
           );
@@ -315,7 +315,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         if (extensionReceiverType != null) {
           Expression receiver = expression.arguments.positional.first;
           if (!isPureExpression(receiver)) {
-            Variable receiverVariable = createVariable(
+            SyntheticVariable receiverVariable = createVariable(
               receiver,
               extensionReceiverType,
             );
@@ -374,7 +374,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -411,7 +411,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
       expression: expression,
       message: message,
     );
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
@@ -464,7 +464,7 @@ class SuccessfulInitializerInvocationInferenceResult
   @override
   final Initializer initializer;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   new({required this.initializer, required this.hoistedArguments});
 
@@ -478,9 +478,9 @@ class SuccessfulInitializerInvocationInferenceResult
 
   @override
   void addHoistedArguments(List<Initializer> initializers) {
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
-      for (Variable hoistedArgument in hoistedArguments) {
+      for (SyntheticVariable hoistedArgument in hoistedArguments) {
         initializers.add(
           new LocalInitializer(hoistedArgument)
             ..fileOffset = hoistedArgument.fileOffset,
@@ -556,7 +556,7 @@ class ExpressionInferenceResult {
 /// A guard used for creating null-shorting null-aware actions.
 class NullAwareGuard {
   /// The variable used to guard the null-aware action.
-  final Variable _nullAwareVariable;
+  final SyntheticVariable _nullAwareVariable;
 
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;

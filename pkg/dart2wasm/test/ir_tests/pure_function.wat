@@ -2,8 +2,7 @@
   (type $#Top <...>)
   (type $BoxedInt <...>)
   (type $JSExternWrapper <...>)
-  (@binaryen.removable.if.unused)
-  (func $"wasm:js-string.length (import)" (import "wasm:js-string" "length") (param externref) (result i32))
+  (func $wasm:js-string.length (import "wasm:js-string" "length") (param externref) (result i32))
   (global $"\")\"" (ref $JSExternWrapper) <...>)
   (global $"\"3\"" (ref $JSExternWrapper) <...>)
   (global $"\"4\"" (ref $JSExternWrapper) <...>)
@@ -26,7 +25,7 @@
     i32.const 99
     local.get $var0
     struct.get $JSExternWrapper $_externRef
-    call $"wasm:js-string.length (import)"
+    call $wasm:js-string.length
     i64.extend_i32_u
     struct.new $BoxedInt
   )

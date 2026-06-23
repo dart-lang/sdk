@@ -5097,7 +5097,7 @@ class FileUriConstantExpression extends ConstantExpression
 
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
-  Variable variable; // Must have an initializer.
+  SyntheticVariable variable; // Must have an initializer.
   Expression body;
 
   new(this.variable, this.body) {

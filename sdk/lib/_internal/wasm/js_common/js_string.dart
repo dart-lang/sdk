@@ -240,6 +240,7 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @override
   @pragma('wasm:pure-function')
+  @pragma('wasm:prefer-inline')
   String operator +(String other) {
     return JSStringImpl.fromRefUnchecked(
       _jsStringConcatImport(

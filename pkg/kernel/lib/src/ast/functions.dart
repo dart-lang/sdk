@@ -41,7 +41,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   int requiredParameterCount;
   List<PositionalParameter> positionalParameters;
   List<NamedParameter> namedParameters;
-  Variable? thisVariable;
+  ThisVariable? thisVariable;
   DartType returnType; // Not null.
   Statement? _body;
 
@@ -296,7 +296,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     v.transformVariableList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
     if (thisVariable != null) {
-      thisVariable = v.transformOrRemove(thisVariable!, dummyVariable)
+      thisVariable = v.transformOrRemove(thisVariable!, dummyThisVariable)
         ?..parent = this;
     }
     if (emittedValueType != null) {

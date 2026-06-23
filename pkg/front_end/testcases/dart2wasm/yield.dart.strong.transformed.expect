@@ -75,15 +75,15 @@ static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<c
               return;
           }
         }
-        on dynamic catch(final dynamic #t4, final core::StackTrace #t5) {
+        on dynamic catch(final synthesized dynamic #exception, final synthesized core::StackTrace #stackTrace) {
           if(#cancelCompleter == null)
-            #controller.{asy::StreamController::addError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
+            #controller.{asy::StreamController::addError}(#exception, #stackTrace){(core::Object, [core::StackTrace?]) → void};
           else {
-            #cancelCompleter.{asy::Completer::completeError}(#t4, #t5){(core::Object, [core::StackTrace?]) → void};
+            #cancelCompleter.{asy::Completer::completeError}(#exception, #stackTrace){(core::Object, [core::StackTrace?]) → void};
             #cancelCompleter = #C2;
           }
-          #t4;
-          #t5;
+          #exception;
+          #stackTrace;
         }
       finally {
         #isDone = #C3;
