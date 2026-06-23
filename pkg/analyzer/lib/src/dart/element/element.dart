@@ -2575,9 +2575,9 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @trackedInternal
   List<FormalParameterElementImpl> get formalParametersIncludingRecovery {
-    var formalParameters = _firstFragment.formalParameters;
-    return List.generate(formalParameters.length, (index) {
-      return formalParameters[index].asElement2;
+    var fragments = _firstFragment._formalParameters;
+    return List.generate(fragments.length, (index) {
+      return fragments[index].asElement2;
     }, growable: false);
   }
 
@@ -3896,8 +3896,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   TypeImpl _type = InvalidTypeImpl.instance;
 
-  bool _inheritsCovariant = false;
-
   final FormalParameterElementImpl? _baseFormalParameter;
 
   FormalParameterElementImpl(
@@ -3945,7 +3943,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @visibleForTesting
   @trackedInternal
   Map<String, bool> get flagsForTesting {
-    return {...super.flagsForTesting, 'hasDefaultValue': hasDefaultValue};
+    return {
+      ...super.flagsForTesting,
+      'hasDefaultValue': hasDefaultValue,
+      'inheritsCovariant': inheritsCovariant,
+    };
   }
 
   @override
@@ -3960,19 +3962,24 @@ class FormalParameterElementImpl extends PromotableElementImpl
   /// Whether this formal parameter inherits from a covariant formal parameter.
   /// This happens when it overrides a method in a supertype that has a
   /// corresponding covariant formal parameter.
+  @generated
   bool get inheritsCovariant {
-    _ensureEnclosingExecutableReadResolution();
-    return _inheritsCovariant;
+    return hasFlag(
+      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
+    );
   }
 
+  @generated
   set inheritsCovariant(bool value) {
-    _inheritsCovariant = value;
+    setFlag(
+      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
+      value,
+    );
   }
 
   @override
   bool get isCovariant {
-    _ensureEnclosingExecutableReadResolution();
-    if (_firstFragment.isExplicitlyCovariant || _inheritsCovariant) {
+    if (_firstFragment.isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     return false;
@@ -12016,6 +12023,7 @@ enum _ElementStorageFlag {
   executableElement_hasEnclosingTypeParameterReference,
   executableElement_isExtensionTypeMember,
   fieldElement_hasEnclosingTypeParameterReference,
+  formalParameterElement_inheritsCovariant,
   instanceElement_isSimplyBounded,
   libraryElement_isSynthetic,
   propertyInducingElement_isTypeInferredFromInitializer,
@@ -12080,6 +12088,7 @@ enum _FieldFormalParameterElementFlags {
 
 enum _FormalParameterElementFlags {
   hasDefaultValue(element: _ElementFlagSource.computed),
+  inheritsCovariant(element: _ElementFlagSource.stored),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaration(fragment: true),
   isOriginMixinApplicationClassConstructor(fragment: true),
