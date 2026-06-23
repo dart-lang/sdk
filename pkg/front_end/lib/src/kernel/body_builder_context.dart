@@ -804,10 +804,10 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
 
 // Coverage-ignore(suite): Not run.
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
-  final ExpressionCompilationData _expressionCompilerDataCarrier;
+  final ExpressionCompilationData _expressionCompilationData;
 
   new(
-    this._expressionCompilerDataCarrier,
+    this._expressionCompilationData,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
     required bool isDeclarationInstanceMember,
@@ -818,10 +818,10 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
        );
 
   @override
-  int get memberNameOffset => _expressionCompilerDataCarrier.fileOffset;
+  int get memberNameOffset => _expressionCompilationData.fileOffset;
 
   @override
   void registerSuperCall() {
-    _expressionCompilerDataCarrier.containsSuperCalls = true;
+    _expressionCompilationData.containsSuperCalls = true;
   }
 }

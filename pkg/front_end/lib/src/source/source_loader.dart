@@ -1490,7 +1490,7 @@ severity: $severity
     SourceLibraryBuilder libraryBuilder,
     String? enclosingClassOrExtension,
     bool isClassInstanceMember,
-    ExpressionCompilationData expressionCompilerDataCarrier,
+    ExpressionCompilationData expressionCompilationData,
     Variable? extensionThis,
     List<InternalVariable> extraKnownVariables,
     ExpressionEvaluationHelper expressionEvaluationHelper,
@@ -1547,7 +1547,7 @@ severity: $severity
     return createResolver().buildSingleExpression(
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: new ExpressionCompilerProcedureBodyBuildContext(
-        expressionCompilerDataCarrier,
+        expressionCompilationData,
         libraryBuilder,
         declarationBuilder,
         isDeclarationInstanceMember: isClassInstanceMember,
@@ -1556,7 +1556,7 @@ severity: $severity
       extensionScope: extensionScope,
       scope: memberScope,
       token: token,
-      expressionCompilerDataCarrier: expressionCompilerDataCarrier,
+      expressionCompilationData: expressionCompilationData,
       extraKnownVariables: extraKnownVariables,
       expressionEvaluationHelper: expressionEvaluationHelper,
       extensionThis: extensionThis,

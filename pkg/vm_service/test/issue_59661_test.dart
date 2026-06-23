@@ -12,7 +12,7 @@ void main([args = const <String>[]]) =>
         .addCustomTest(
           testExpressionEvaluationAndAvailableVariables(
             'A',
-            ['this'],
+            ['this', 'list'],
             [('list.toString()', '[3]')],
           ),
         )
@@ -22,7 +22,7 @@ void main([args = const <String>[]]) =>
         .addCustomTest(
           testExpressionEvaluationAndAvailableVariables(
             'A.named',
-            ['this'],
+            ['this', 'list'],
             [('list.toString()', '[4]')],
           ),
         )
@@ -45,7 +45,7 @@ void main([args = const <String>[]]) =>
         .addCustomTest(
           testExpressionEvaluationAndAvailableVariables(
             'A.named2',
-            ['this'],
+            ['this', 'list'],
             [('list.toString()', '[1, 2]')],
           ),
         )
@@ -55,7 +55,7 @@ void main([args = const <String>[]]) =>
         .addCustomTest(
           testExpressionEvaluationAndAvailableVariables(
             'A.named2',
-            ['this'],
+            ['this', 'list'],
             [('list.toString()', '[6]')],
           ),
         )
@@ -65,7 +65,7 @@ void main([args = const <String>[]]) =>
         .addCustomTest(
           testExpressionEvaluationAndAvailableVariables(
             'B',
-            ['this'],
+            ['this', 'list'],
             [('list.toString()', '[7]')],
           ),
         )

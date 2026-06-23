@@ -1890,6 +1890,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<InternalVariable> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
+      Set<String> removedDefinitionNames = {};
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -2011,6 +2012,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 usedType = usedType.toNonNull();
               }
               usedDefinitions[def.key] = usedType;
+            }
+          }
+
+          for (String name in usedDefinitions.keys) {
+            if (definitionsAddedByUser != null &&
+                definitionsAddedByUser.contains(name)) {
+              // Don't remove user-provided "fake" definitions.
+              continue;
+            }
+            if (!foundScope.variables.containsKey(name)) {
+              removedDefinitionNames.add(name);
             }
           }
         }
@@ -2259,11 +2271,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // The `#this` variable is special.
           extensionThis = variable..isLowered = true;
           positionalParametersUsedForCompiling.add(variable);
-        } else {
-          // For now include everything, but in the future we'll only add
-          // if this definition was found in the kernel tree.
+        } else if (!removedDefinitionNames.contains(name)) {
+          // If this definition hasn't been removed we use it for compiling.
           positionalParametersUsedForCompiling.add(variable);
-
+        } else {
           // TODO(jensj): Possibly pass the variables not in scope in an
           // additional list so that we can compile to using these if we would
           // have otherwise created a compile time error --- see comment on
@@ -2289,7 +2300,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExpressionEvaluationHelper expressionEvaluationHelper =
           new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
 
-      ExpressionCompilationData expressionCompilerDataCarrier =
+      ExpressionCompilationData expressionCompilationData =
           new ExpressionCompilationData(
             fileOffset: TreeNode.noOffset,
             typeParameters: typeDefinitions,
@@ -2301,7 +2312,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             debugLibrary,
             className ?? extensionName,
             (className != null && !isStatic) || extensionThis != null,
-            expressionCompilerDataCarrier,
+            expressionCompilationData,
             extensionThis,
             extraKnownVariables,
             expressionEvaluationHelper,
@@ -2319,7 +2330,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
-        containsSuperCalls: expressionCompilerDataCarrier.containsSuperCalls,
+        containsSuperCalls: expressionCompilationData.containsSuperCalls,
       );
       procedure.parent = cls ?? libraryBuilder.library;
 

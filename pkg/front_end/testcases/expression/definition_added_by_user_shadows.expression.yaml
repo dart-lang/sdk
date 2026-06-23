@@ -30,6 +30,6 @@ method: "main"
 static: true
 offset: 56 # about to call 'say'
 scriptUri: main.dart
-# This should be an error or a dynamic call or something.
+# This should be an error or a dynamic call or something (as "foo" is a _Smi).
 expression: |
   foo.say()
