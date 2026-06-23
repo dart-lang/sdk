@@ -78,14 +78,8 @@ class C {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
   test_unnecessary_augmentationAddedGetterAndSetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   String? _x;
@@ -96,28 +90,20 @@ augment class A {
   }
 }
 ''');
+    // TODO(pq): in the absence of accessors in the augmented class, report on
+    //  the class decl?
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
 
-    await assertDiagnosticsInFile(a.path, [
-      // TODO(pq): in the absence of accessors in the augmented class, report on the class decl?
-      lint(33, 1),
-    ]);
+class [!A!] {}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
   test_unnecessary_augmentationAddedSetter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  String? _x;
-
-  String? get x => _x;
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   set x(String? value) {
@@ -126,7 +112,15 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(52, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  String? _x;
+
+  String? get [!x!] => _x;
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 

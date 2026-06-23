@@ -18,16 +18,9 @@ class UseEnumsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.use_enums;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class C {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
 
 augment class C {
   static const a = C._(1);
@@ -36,12 +29,13 @@ augment class C {
   const C._(this.i);
 }
 ''');
+    // TODO(pq): update when augmentation contributed fields are considered.
+    // See: https://github.com/dart-lang/linter/issues/4900
+    await assertNoDiagnostics(r'''
+part 'b.dart';
 
-    await assertDiagnosticsInFile(a.path, [
-      // TODO(pq): update when augmentation contributed fields are considered.
-      // See: https://github.com/dart-lang/linter/issues/4900
-    ]);
-    await assertNoDiagnosticsInFile(b.path);
+class C {}
+''');
   }
 
   test_constructor_private() async {

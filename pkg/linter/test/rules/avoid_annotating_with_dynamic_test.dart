@@ -19,111 +19,99 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  void f(dynamic o) { }
+  void f([!dynamic o!]) { }
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(46, 9)]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-void f(dynamic o) { }
+void f([!dynamic o!]) { }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(26, 9)]);
   }
 
   test_augmentationTopLevelFunction_localDynamic() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 void f(int i);
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment void f(int i) {
-  var g = (dynamic x) {};
+  var g = ([!dynamic x!]) {};
   g(i);
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(54, 9)]);
   }
 
   test_augmentedMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  void f(dynamic o) { }
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   augment void f(dynamic o);
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(35, 9)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  void f([!dynamic o!]) { }
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-void f(dynamic o) { }
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment void f(dynamic o);
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+void f([!dynamic o!]) { }
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction_multiple() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment void f(dynamic o);
+augment void f(dynamic o);
+''');
+
+    await assertDiagnosticsFromMarkdown(r'''
 part 'b.dart';
 
-void f(dynamic o) { }
+void f([!dynamic o!]) { }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment void f(dynamic o);
-augment void f(dynamic o);
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(23, 9)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 

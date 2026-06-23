@@ -20,147 +20,131 @@ class TypeAnnotatePublicApisTest extends LintRuleTest {
 
   test_augmentationClass_field() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  var i;
+  var [!i!];
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(43, 1)]);
   }
 
   test_augmentationClass_method() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  void f(x) { }
+  void f([!x!]) { }
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(46, 1)]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-void f(x) { }
+void f([!x!]) { }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(26, 1)]);
   }
 
   test_augmentationTopLevelVariable() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-var x;
+var [!x!];
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(23, 1)]);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(reason: 'There is a diagnostic in b.dart.')
   test_augmentedField() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  var x;
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   augment var x;
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(32, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  var [!x!];
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  void f(x) { }
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   augment void f(x);
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(35, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  void f([!x!]) { }
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-void f(x) { }
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment void f(x);
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(23, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+void f([!x!]) { }
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(reason: 'There is a diagnostic in b.dart.')
   test_augmentedTopLevelVariable() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-var x;
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment var x;
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(20, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+var [!x!];
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 

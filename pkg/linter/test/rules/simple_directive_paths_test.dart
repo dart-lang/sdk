@@ -119,29 +119,26 @@ export 'a.dart#frag';
   Future<void> test_import_in_part_relative_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
-    var part = newFile('$testPackageLibPath/src/part.dart', r'''
+    await assertDiagnosticsInFileNameFromMarkdown('src/part.dart', r'''
 part of 'lib.dart';
-export './../a.dart';
+export [!'./../a.dart'!];
 ''');
-    await assertDiagnosticsInFile(part.path, [lint(27, 13)]);
   }
 
   Future<void> test_import_inTest_package_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    var b = newFile('$testPackageRootPath/test/b.dart', r'''
-import 'package:test/./a.dart';
+    await assertDiagnosticsInTestDirFromMarkdown(r'''
+import [!'package:test/./a.dart'!];
 A? a;
 ''');
-    await assertDiagnosticsInFile(b.path, [lint(7, 23)]);
   }
 
   Future<void> test_import_inTest_relative_nonMinimal() async {
     newFile('$testPackageRootPath/test/a.dart', 'class A {}');
-    var b = newFile('$testPackageRootPath/test/b.dart', r'''
-import './a.dart';
+    await assertDiagnosticsInTestDirFromMarkdown(r'''
+import [!'./a.dart'!];
 A? a;
 ''');
-    await assertDiagnosticsInFile(b.path, [lint(7, 10)]);
   }
 
   Future<void> test_import_package_minimal() async {
@@ -193,11 +190,10 @@ A? a;
 
   Future<void> test_import_relative_nonMinimal_backtracking() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    var b = newFile('$testPackageLibPath/src/b.dart', r'''
-import '../src/../a.dart';
+    await assertDiagnosticsInFileNameFromMarkdown('src/b.dart', r'''
+import [!'../src/../a.dart'!];
 A? a;
 ''');
-    await assertDiagnosticsInFile(b.path, [lint(7, 18)]);
   }
 
   Future<void> test_part() async {
@@ -208,11 +204,10 @@ part [!'./a.dart'!];
   }
 
   Future<void> test_partOf() async {
-    newFile('$testPackageLibPath/test.dart', 'part "a.dart";');
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of './test.dart';
+    newFile('$testPackageLibPath/lib.dart', 'part "test.dart";');
+    await assertDiagnosticsFromMarkdown(r'''
+part of [!'./lib.dart'!];
 ''');
-    await assertDiagnosticsInFile(a.path, [lint(8, 13)]);
   }
 
   Future<void> test_raw_string() async {

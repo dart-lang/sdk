@@ -20,7 +20,7 @@ class OverriddenFieldsTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class O {
   final a = '';
@@ -29,21 +29,27 @@ class O {
 class A extends O { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  final a = '';
+  final [!a!] = '';
+}
+''');
+    await assertNoDiagnosticsInFile(a.path);
+  }
+
+  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  test_augmentedField() async {
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment class A {
+  augment final a = '';
 }
 ''');
 
-    await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(45, 1)]);
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_augmentedField() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part 'b.dart';
 
 class O {
@@ -52,19 +58,9 @@ class O {
 
 class A extends O {
   @override
-  final a = '';
+  final [!a!] = '';
 }
 ''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
-augment class A {
-  augment final a = '';
-}
-''');
-
-    await assertDiagnosticsInFile(a.path, [lint(85, 1)]);
     await assertNoDiagnosticsInFile(b.path);
   }
 
