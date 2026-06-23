@@ -363,18 +363,25 @@ class InstanceMemberInferrer {
   void _inferConstructor(ConstructorElementImpl constructor) {
     for (var formalParameter in constructor.formalParameters) {
       if (formalParameter.hasImplicitType) {
-        if (formalParameter is FieldFormalParameterElementImpl) {
-          var field = formalParameter.field;
-          if (field != null) {
-            formalParameter.type = field.type;
-          }
-        } else if (formalParameter is SuperFormalParameterElementImpl) {
-          var superParameter = formalParameter.superConstructorParameter;
-          if (superParameter != null) {
-            formalParameter.type = superParameter.type;
-          } else {
-            formalParameter.type = DynamicTypeImpl.instance;
-          }
+        switch (formalParameter) {
+          case FieldFormalParameterElementImpl():
+            if (formalParameter.firstFragment
+                is FieldFormalParameterFragmentImpl) {
+              var field = formalParameter.field;
+              if (field != null) {
+                formalParameter.type = field.type;
+              }
+            }
+          case SuperFormalParameterElementImpl():
+            if (formalParameter.firstFragment
+                is SuperFormalParameterFragmentImpl) {
+              var superParameter = formalParameter.superConstructorParameter;
+              if (superParameter != null) {
+                formalParameter.type = superParameter.type;
+              } else {
+                formalParameter.type = DynamicTypeImpl.instance;
+              }
+            }
         }
       }
     }

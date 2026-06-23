@@ -930,6 +930,51 @@ augment void set foo(int p1);
 
 @reflectiveTest
 class AugmentationFormalParameterTypeTest extends PubPackageResolutionTest {
+  test_class_constructor_rn1__fn1_omittedIntroductoryType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int? n1;
+  A({n1});
+  augment A({this.n1});
+//           ^^^^^^^
+// [diag.fieldInitializingFormalNotAssignable] The parameter type 'dynamic' is incompatible with the field type 'int?'.
+}
+''');
+  }
+
+  test_class_constructor_rN1__sN1_omittedIntroductoryType() async {
+    // TODO(fshcheglov): `implicitSuperInitializerMissingArguments` should not
+    // be reported because the augmentation provides the required super formal
+    // parameter.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({required int n1});
+}
+class B extends A {
+  B({required n1});
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+  augment B({required super.n1});
+//                          ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'dynamic' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
+}
+''');
+  }
+
+  test_class_constructor_rn1__sn1_omittedIntroductoryType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({int? n1});
+}
+class B extends A {
+  B({n1});
+  augment B({super.n1});
+//                 ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'dynamic' of this parameter isn't a subtype of the type 'int?' of the associated super constructor parameter.
+}
+''');
+  }
+
   test_class_constructor_rP1__fP1() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -950,6 +995,19 @@ class A {
   augment A(String this.p1);
 //          ^^^^^^
 // [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String' must be the same as the declaration's formal parameter type 'int'.
+}
+''');
+  }
+
+  test_class_constructor_rP1__fP1_omittedIntroductoryType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int p1;
+  A(p1);
+  augment A(this.p1);
+//          ^^^^^^^
+// [diag.fieldInitializingFormalNotAssignable] The parameter type 'dynamic' is incompatible with the field type 'int'.
+
 }
 ''');
   }
@@ -988,6 +1046,39 @@ class B extends A {
   augment B([String? super.p1]);
 //           ^^^^^^^
 // [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String?' must be the same as the declaration's formal parameter type 'int?'.
+}
+''');
+  }
+
+  test_class_constructor_rP1__sP1_omittedIntroductoryType() async {
+    // TODO(fshcheglov): `implicitSuperInitializerMissingArguments` should not
+    // be reported because the augmentation provides the required super formal
+    // parameter.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int p1);
+}
+class B extends A {
+  B(p1);
+//^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
+  augment B(super.p1);
+//                ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'dynamic' of this parameter isn't a subtype of the type 'int' of the associated super constructor parameter.
+}
+''');
+  }
+
+  test_class_constructor_rp1__sp1_omittedIntroductoryType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([p1]);
+  augment B([super.p1]);
+//                 ^^
+// [diag.superFormalParameterTypeIsNotSubtypeOfAssociated] The type 'dynamic' of this parameter isn't a subtype of the type 'int?' of the associated super constructor parameter.
 }
 ''');
   }
