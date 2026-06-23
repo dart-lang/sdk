@@ -179,6 +179,8 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
         inferenceUpdate4Enabled:
             libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled,
+        thisPromotionEnabled:
+            libraryBuilder.libraryFeatures.thisPromotion.isEnabled,
         soundFlowAnalysisEnabled:
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );

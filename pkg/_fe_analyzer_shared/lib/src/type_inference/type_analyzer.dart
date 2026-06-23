@@ -3166,6 +3166,8 @@ class TypeAnalyzerOptions {
 
   final bool inferenceUpdate4Enabled;
 
+  final bool thisPromotionEnabled;
+
   final bool soundFlowAnalysisEnabled;
 
   TypeAnalyzerOptions({
@@ -3174,6 +3176,7 @@ class TypeAnalyzerOptions {
     required this.respectImplicitlyTypedVarInitializers,
     required this.fieldPromotionEnabled,
     required this.inferenceUpdate4Enabled,
+    required this.thisPromotionEnabled,
     required this.soundFlowAnalysisEnabled,
   });
 }

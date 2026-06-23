@@ -322,6 +322,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   ),
 
+  thisPromotion(
+    name: 'this-promotion',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   tripleShift(
     name: 'triple-shift',
     isEnabledByDefault: true,

@@ -16,6 +16,7 @@ TypeAnalyzerOptions computeTypeAnalyzerOptions(FeatureSet featureSet) =>
       ),
       fieldPromotionEnabled: featureSet.isEnabled(Feature.inference_update_2),
       inferenceUpdate4Enabled: featureSet.isEnabled(Feature.inference_update_4),
+      thisPromotionEnabled: featureSet.isEnabled(Feature.this_promotion),
       soundFlowAnalysisEnabled: featureSet.isEnabled(
         Feature.sound_flow_analysis,
       ),

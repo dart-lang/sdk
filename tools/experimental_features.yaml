@@ -161,6 +161,9 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
+  this-promotion:
+    help: "Type promotion for `this`."
+
   static-extensions:
     help: "Extensions with static capabilities."
 
