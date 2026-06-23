@@ -1,4 +1,4 @@
-(module $module1
+(module $M1
   (type $#Top <...>)
   (type $Foo (sub final $Object (struct
     (field $field0 i32)
@@ -8,14 +8,14 @@
   (type $Object <...>)
   (type $_InterfaceType <...>)
   (global $".Foo called " (import "" "Foo called ") (ref extern))
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 4 funcref)
+  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 4 funcref)
   (global $"\"Foo called \"" (ref $JSExternWrapper)
     (i32.const 63)
     (i32.const 0)
     (global.get $".Foo called ")
     (struct.new $JSExternWrapper))
   (global $_InterfaceType (ref $_InterfaceType) <...>)
-  (elem $module0.cross-module-funcs-0
+  (elem $M.cross-module-funcs-0
     (set 0 (ref.func $useFoo)))
   (func $Foo.printFoo (param $var0 (ref $Foo)) <...>)
   (@binaryen.inline 0)

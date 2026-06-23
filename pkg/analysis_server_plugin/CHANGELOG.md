@@ -1,3 +1,9 @@
+## 0.3.20-dev
+
+- Avoid an issue where one plugin's configuration, as specified in analysis
+  options, would bleed into another's. This effectively would remove one or
+  more plugin configurations.
+
 ## 0.3.19
 
 - Require version `14.0.0` of the `analyzer` package.

@@ -1,2 +1,2 @@
-(module $$
+(module $M
 )

@@ -404,7 +404,7 @@ library
         #F4 class D (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isComplete isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:42) (offset:48)
+            #F5 isComplete isConst isOriginDeclaration isRedirecting new (nameOffset:<null>) (firstTokenOffset:42) (offset:48)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
               typeNameOffset: 48
@@ -436,7 +436,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F4
       constructors
-        isConst isOriginDeclaration new
+        isConst isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
           formalParameters

@@ -1,4 +1,4 @@
-(module $$
+(module $M
   (type $#Top <...>)
   (type $BoxedInt <...>)
   (type $JSExternWrapper <...>)

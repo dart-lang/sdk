@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top <...>)
   (type $Array<_Type> <...>)
   (type $Callable <...>)

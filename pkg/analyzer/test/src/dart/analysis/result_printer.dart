@@ -1526,6 +1526,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
           'isOriginMixinApplication': item.flags.isOriginMixinApplication,
           'isPrimary': item.flags.isPrimary,
+          'isRedirecting': item.flags.isRedirecting,
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);

@@ -153,10 +153,49 @@ analyzer:
     - not-an-experiment
 //    ^^^^^^^^^^^^^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'not-an-experiment' isn't supported by 'enable-experiment'.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_enableExperiment_goodValue() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  enable-experiment:
+    - test-experiment
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  contextFeatures
+    test-experiment: true
+  nonPackageFeatureSet
+    test-experiment: true
+''');
+  }
+
+  test_analyzer_enableExperiment_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  enable-experiment:
+    - test-experiment
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  enable-experiment: 7
+//                   ^
+// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  contextFeatures
+    test-experiment: true
+  nonPackageFeatureSet
+    test-experiment: true
 ''');
   }
 
@@ -165,8 +204,35 @@ AnalysisOptionsImpl
 analyzer:
   enable-experiment:
     experiment: true
-// [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'enable-experiment' section.
-    ''');
+// [diag.invalidSectionFormat][column 5][length 17] Invalid format for the 'enable-experiment' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_enableExperiment_notString() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  enable-experiment:
+    - 7
+//    ^
+// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_enableExperiment_notString_map() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  enable-experiment:
+    - test-experiment: true
+// [diag.invalidSectionFormat][column 7][length 22] Invalid format for the 'enable-experiment' section.
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -177,8 +243,9 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   enable-experiment: 7
-// [diag.invalidSectionFormat][column 22][length 6] Invalid format for the 'enable-experiment' section.
-    ''');
+//                   ^
+// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -212,7 +279,7 @@ analyzer:
     unused_local_variable: ftw
 //                         ^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'ftw' isn't supported by 'errors'.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -226,7 +293,7 @@ analyzer:
     unused_local_variable: null
 //                         ^^^^
 // [diag.unsupportedOptionWithLegalValues] The option 'null' isn't supported by 'errors'.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -240,7 +307,7 @@ analyzer:
     not_supported: ignore
 //  ^^^^^^^^^^^^^
 // [diag.unrecognizedErrorCode] 'not_supported' isn't a recognized diagnostic code.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -256,10 +323,27 @@ analyzer:
     null: ignore
 //  ^^^^
 // [diag.unrecognizedErrorCode] 'null' isn't a recognized diagnostic code.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_errors_keyNotScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    [invalid_annotation]: ignore
+//  ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'errors' section.
+    unused_import: warning
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    unused_import: warning
 ''');
   }
 
@@ -283,12 +367,33 @@ AnalysisOptionsImpl
 analyzer:
   errors:
     - invalid_annotation
-// [diag.invalidSectionFormat][column 5][length 45] Invalid format for the 'enable-experiment' section.
+// [diag.invalidSectionFormat][column 5][length 41] Invalid format for the 'errors' section.
     - unused_import
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_errors_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  errors:
+    unused_import: warning
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  errors:
+    - invalid_annotation
+// [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'errors' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    unused_import: warning
 ''');
   }
 
@@ -299,13 +404,47 @@ analyzer:
     invalid_annotation: ignore
     unused_import: [1, 2, 3]
 //                 ^^^^^^^^^
-// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
-    ''');
+// [diag.invalidSectionFormat] Invalid format for the 'errors' section.
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   errorProcessors
     invalid_annotation: ignore
+''');
+  }
+
+  test_analyzer_exclude_notList() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  exclude: test/_data/p4/lib/lib1.dart
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'exclude' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_exclude_notList_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  exclude:
+    - included.dart
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  exclude: local.dart
+//         ^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'exclude' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    included.dart
 ''');
   }
 
@@ -320,6 +459,46 @@ analyzer:
 AnalysisOptionsImpl
   excludePatterns
     test/_data/p4/lib/lib1.dart
+''');
+  }
+
+  test_analyzer_language_include_merged() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  language:
+    strict-casts: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  language:
+    strict-inference: true
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  strictCasts: true
+  strictInference: true
+''');
+  }
+
+  test_analyzer_language_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  language:
+    strict-casts: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  language: true
+//          ^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'language' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  strictCasts: true
 ''');
   }
 
@@ -342,6 +521,55 @@ analyzer:
   language: true
 //          ^^^^
 // [diag.invalidSectionFormat] Invalid format for the 'language' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_language_strictCasts_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  language:
+    strict-casts: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  language:
+    strict-casts: 1
+//                ^
+// [diag.unsupportedValue] The value '1' isn't supported by 'strict-casts'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  strictCasts: true
+''');
+  }
+
+  test_analyzer_language_strictCasts_notScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  language:
+    strict-casts:
+      value: true
+// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-casts' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_language_strictInference_notScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  language:
+    strict-inference:
+      value: true
+// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-inference' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -377,6 +605,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_language_strictRawTypes_notScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  language:
+    strict-raw-types:
+      value: true
+// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-raw-types' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_language_supports_empty() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -405,8 +647,9 @@ AnalysisOptionsImpl
   test_analyzer_notMap() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer: 7
-// [diag.invalidSectionFormat][column 11][length 6] Invalid format for the 'cannot-ignore' section.
-    ''');
+//        ^
+// [diag.invalidSectionFormat] Invalid format for the 'analyzer' section.
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -440,16 +683,69 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_optionalChecks_chromeOsManifestChecks_mixedCase() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  optional-checks:
+    Chrome-OS-Manifest-Checks
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'Chrome-OS-Manifest-Checks' isn't supported by ''chrome-os-manifest-checks' or 'propagate-linter-exceptions''.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_optionalChecks_chromeOsManifestChecks_notMap() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
     - chrome-os-manifest-checks
-// [diag.invalidSectionFormat][column 5][length 28] Invalid format for the 'enable-experiment' section.
+// [diag.invalidSectionFormat][column 5][length 28] Invalid format for the 'optional-checks' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_optionalChecks_include_falseOverridesIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: false
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_optionalChecks_include_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: maybe
+//                               ^^^^^
+// [diag.unsupportedValue] The value 'maybe' isn't supported by 'propagate-linter-exceptions'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  propagateLinterExceptions: true
 ''');
   }
 
@@ -479,6 +775,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_optionalChecks_propagateLinterExceptions_notScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions:
+      value: true
+// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'propagate-linter-exceptions' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_plugins_multiple_directList() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
@@ -505,6 +815,21 @@ analyzer:
   plugins:
     - 7
     - plugin_one
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
+  test_analyzer_plugins_multiple_directList_nonString_afterString() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+analyzer:
+  plugins:
+    - plugin_one
+    - 7
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -677,6 +1002,87 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_strongMode_declarationCasts() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode:
+    declaration-casts: true
+//  ^^^^^^^^^^^^^^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'declaration-casts' isn't supported by 'strong-mode'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_strongMode_implicitCasts_invalid() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode:
+    implicit-casts: 1
+//                  ^
+// [diag.unsupportedValue] The value '1' isn't supported by 'implicit-casts'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_strongMode_implicitCasts_notScalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode:
+    implicit-casts:
+      value: true
+// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'implicit-casts' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_strongMode_implicitDynamic_valid() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: true
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_strongMode_notMap() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode: true
+//             ^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'strong-mode' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_strongMode_unsupportedKey() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  strong-mode:
+    unsupported: true
+//  ^^^^^^^^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'unsupported' isn't supported by 'strong-mode'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_unsupportedOption() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -724,6 +1130,26 @@ code-style:
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_codeStyle_format_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+code-style:
+  format: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+code-style:
+  format: 80
+//        ^^
+// [diag.unsupportedValue] The value '80' isn't supported by 'format'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
 ''');
   }
 
@@ -789,6 +1215,25 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_codeStyle_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+code-style:
+  format: true
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+code-style: format
+//          ^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
+''');
+  }
+
   test_codeStyle_notMap_list() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
@@ -823,6 +1268,101 @@ code-style:
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_formatter_include_merged() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  page_width: 80
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter:
+  trailing_commas: automate
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 80
+    trailingCommas: automate
+''');
+  }
+
+  test_formatter_include_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  page_width: 80
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter: format
+//         ^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'formatter' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 80
+''');
+  }
+
+  test_formatter_include_nullDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  page_width: 80
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter:
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 80
+''');
+  }
+
+  test_formatter_include_pageWidth_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  page_width: 80
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter:
+  page_width: -1
+//            ^^
+// [diag.invalidOption] Invalid option specified for 'page_width': "page_width" must be a positive integer.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 80
+''');
+  }
+
+  test_formatter_include_trailingCommas_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  trailing_commas: automate
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter:
+  trailing_commas: foo
+//                 ^^^
+// [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    trailingCommas: automate
 ''');
   }
 
@@ -1431,6 +1971,18 @@ analyzer:
   something: bad
 ''',
     });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_linter_notMap() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+linter: 7
+//      ^
+// [diag.invalidSectionFormat] Invalid format for the 'linter' section.
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -2697,7 +3249,7 @@ AnalysisOptionsImpl
 linter:
   rules:
     - fantastic_test_rule
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -2896,7 +3448,7 @@ linter:
   unsupported: true
 //^^^^^^^^^^^
 // [diag.unsupportedOptionWithLegalValue] The option 'unsupported' isn't supported by 'linter'.
-    ''');
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl

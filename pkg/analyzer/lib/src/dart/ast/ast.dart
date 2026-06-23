@@ -11158,12 +11158,13 @@ sealed class ExpressionImpl extends AstNodeImpl
     ResolverVisitor resolver,
     CollectionLiteralContext? context,
   ) {
-    resolver.analyzeExpression(
-      this,
-      SharedTypeSchemaView(
-        context?.elementType ?? UnknownInferredType.instance,
-      ),
-    );
+    var contextType = context?.elementType;
+
+    // While typing `{key^}` in a `Map<K, V>` context, recover by using `K`.
+    contextType ??= context?.keyType;
+
+    contextType ??= UnknownInferredType.instance;
+    resolver.analyzeExpression(this, SharedTypeSchemaView(contextType));
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]

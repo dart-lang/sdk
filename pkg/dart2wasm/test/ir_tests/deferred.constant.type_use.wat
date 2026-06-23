@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top <...>)
   (type $JSExternWrapper <...>)
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 4 funcref)

@@ -1791,7 +1791,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                 #F4 requiredPositional isOriginDeclaration b (nameOffset:37) (firstTokenOffset:30) (offset:37)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
-            #F5 isComplete isConst isOriginDeclaration named (nameOffset:51) (firstTokenOffset:43) (offset:51)
+            #F5 isComplete isConst isOriginDeclaration isRedirecting named (nameOffset:51) (firstTokenOffset:43) (offset:51)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 49
@@ -1811,7 +1811,7 @@ library
             #E1 requiredPositional b
               firstFragment: #F4
               type: Object
-        isConst isOriginDeclaration named
+        isConst isOriginDeclaration isRedirecting named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F5
           constantInitializers

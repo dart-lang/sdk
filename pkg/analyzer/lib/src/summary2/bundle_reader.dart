@@ -343,6 +343,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      _readFormalParameterElementFlags(element);
       element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
@@ -350,6 +351,7 @@ class LibraryReader {
         _createDeferredReadResolutionCallback((reader) {
           var enclosingElement = element.enclosingElement;
           reader._addTypeParameterElements(enclosingElement.typeParameters);
+          _readFormalParameterElementResolutions(reader, element);
           element.returnType = reader.readRequiredType();
           element.superConstructor = reader.readConstructorElementMixin();
           element.redirectedConstructor = reader.readConstructorElementMixin();
@@ -729,6 +731,26 @@ class LibraryReader {
     });
   }
 
+  void _readFormalParameterElementFlags(ExecutableElementImpl executable) {
+    var elements = executable.formalParametersIncludingRecovery;
+    for (var element in elements) {
+      element.readFlags(_reader);
+    }
+  }
+
+  void _readFormalParameterElementResolutions(
+    ResolutionReader reader,
+    ExecutableElementImpl executable,
+  ) {
+    var elements = executable.formalParametersIncludingRecovery;
+    for (var element in elements) {
+      element.type = reader.readRequiredType();
+      if (element is FieldFormalParameterElementImpl) {
+        element.field = reader.readElement() as FieldElementImpl?;
+      }
+    }
+  }
+
   /// Read the formal parameter list for a top-level function, method,
   /// constructor, getter, or setter declaration.
   // TODO(scheglov): Deduplicate parameter reading implementation.
@@ -779,18 +801,8 @@ class LibraryReader {
     List<FormalParameterFragmentImpl> fragments,
   ) {
     for (var fragment in fragments) {
-      var element = fragment.element;
       fragment.metadata = reader._readMetadata();
-      element.inheritsCovariant = reader.readBool();
-      var type = reader.readType() ?? InvalidTypeImpl.instance;
-      element.type = type;
       fragment.constantInitializer = reader.readOptionalExpression();
-      if (fragment is FieldFormalParameterFragmentImpl) {
-        var field = reader.readElement() as FieldElementImpl?;
-        if (element is FieldFormalParameterElementImpl) {
-          element.field = field;
-        }
-      }
     }
   }
 
@@ -817,6 +829,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<GetterFragmentImpl>();
       var element = GetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      _readFormalParameterElementFlags(element);
       element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
@@ -827,6 +840,7 @@ class LibraryReader {
             reader._addTypeParameterElements(enclosingElement.typeParameters);
           }
 
+          _readFormalParameterElementResolutions(reader, element);
           element.returnType = reader.readRequiredType();
         }),
       );
@@ -993,6 +1007,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      _readFormalParameterElementFlags(element);
       element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
@@ -1005,6 +1020,7 @@ class LibraryReader {
           reader._addTypeParameterElements(element.typeParameters);
           _readTypeParameterElementResolutions(reader, element.typeParameters);
 
+          _readFormalParameterElementResolutions(reader, element);
           element.returnType = reader.readRequiredType();
         }),
       );
@@ -1156,13 +1172,19 @@ class LibraryReader {
       var fragments = _readFragmentsById<SetterFragmentImpl>();
       var element = SetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      _readFormalParameterElementFlags(element);
       element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
+          var enclosingElement = element.enclosingElement;
+          if (enclosingElement is InstanceElementImpl) {
+            reader._addTypeParameterElements(enclosingElement.typeParameters);
+          }
+
+          _readFormalParameterElementResolutions(reader, element);
           element.returnType = reader.readRequiredType();
-          // TODO(scheglov): other properties?
         }),
       );
 
@@ -1234,6 +1256,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<TopLevelFunctionFragmentImpl>();
       var element = TopLevelFunctionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      _readFormalParameterElementFlags(element);
       element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
@@ -1242,6 +1265,7 @@ class LibraryReader {
           reader._addTypeParameterElements(element.typeParameters);
           _readTypeParameterElementResolutions(reader, element.typeParameters);
 
+          _readFormalParameterElementResolutions(reader, element);
           element.returnType = reader.readRequiredType();
         }),
       );
@@ -1528,9 +1552,9 @@ class ResolutionReader {
         var index = _reader.readUint30();
         return _localElements[index] as TypeParameterElementImpl;
       case ElementTag.formalParameter:
-        var enclosing = readElement() as FunctionTypedElementImpl;
+        var enclosing = readElement() as ExecutableElementImpl;
         var index = _reader.readUint30();
-        return enclosing.formalParameters[index];
+        return enclosing.formalParametersIncludingRecovery[index];
     }
   }
 

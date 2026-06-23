@@ -1437,6 +1437,35 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_const_typeName_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum const E.named {v}
+//           ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 enum const E({required final int a = 0}) {v}
@@ -1838,6 +1867,34 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E.named {v}
+//     ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
   body: BlockEnumBody
     leftBracket: {
     constants

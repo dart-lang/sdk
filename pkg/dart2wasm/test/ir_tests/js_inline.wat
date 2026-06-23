@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top <...>)
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param i32 i32) (result i32))
   (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param i32))

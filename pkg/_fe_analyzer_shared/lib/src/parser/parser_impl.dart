@@ -3792,8 +3792,12 @@ class Parser {
       if (token.next!.isA(TokenType.OPEN_PAREN)) {
         token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
       } else {
-        if (kind == DeclarationKind.ExtensionType &&
-            allowExtensionTypeRepresentation) {
+        bool reportMissingParameters = switch (kind) {
+          DeclarationKind.Class || DeclarationKind.Enum => true,
+          DeclarationKind.ExtensionType => allowExtensionTypeRepresentation,
+          _ => false,
+        };
+        if (reportMissingParameters) {
           reportRecoverableError(
             token,
             diag.missingPrimaryConstructorParameters,

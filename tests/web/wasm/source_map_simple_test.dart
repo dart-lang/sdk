@@ -12,9 +12,9 @@ void main() {
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
   ('errors_patch.dart', 20, 39, '_throwWithCurrentStackTrace'),
-  ('source_map_simple_lib.dart', 18, 3, 'g'),
-  ('source_map_simple_lib.dart', 14, 3, 'f'),
-  ('source_map_simple_lib.dart', 43, 5, 'testMain'),
+  ('source_map_simple_lib.dart', 17, 3, 'g'),
+  ('source_map_simple_lib.dart', 13, 3, 'f'),
+  ('source_map_simple_lib.dart', 42, 5, 'testMain'),
   ('source_map_simple_test.dart', 10, 7, 'main'),
   ('invoke_main_patch.dart', 12, 13, '_invokeMainArg0'),
   null,

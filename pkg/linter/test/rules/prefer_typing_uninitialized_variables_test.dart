@@ -17,25 +17,23 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_typing_uninitialized_variables;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(reason: 'There is a diagnostic in b.dart.')
   test_field_augmented() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  var x;
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   augment var x;
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(32, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  var [!x!];
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -115,21 +113,19 @@ void f() {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(reason: 'There is a diagnostic in b.dart.')
   test_topLevelVariable_augmented() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-var x;
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment var x;
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(20, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+var [!x!];
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 

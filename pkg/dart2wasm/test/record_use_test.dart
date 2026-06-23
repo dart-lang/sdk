@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart2wasm/util.dart';
 import 'package:path/path.dart' as path;
 import 'package:record_use/record_use.dart';
 
@@ -70,22 +71,13 @@ Future<void> runTestCase(
             // for now, we'll need a more robust testing solution later.
             final fileName = path.basename(sourceFileUri.toFilePath());
             if (fileName == 'loading_units_shared_constant.dart') {
-              if (unit == '%') return '2';
-              if (unit == "'") return '3';
+              if (unit == 'M3') return '3';
             }
             if (fileName == 'loading_units_nested_shared_constant.dart') {
-              if (unit == '%') return '2';
-              if (unit == "'") return '3';
+              if (unit == 'M3') return '3';
             }
 
-            final codeUnits = unit.codeUnits;
-            int result = 0;
-            int power = 1;
-            for (final codeUnit in codeUnits) {
-              result += (codeUnit - 35) * power;
-              power *= 92;
-            }
-            return '$result';
+            return '${moduleNameToId(unit)! + 1}';
           },
         );
       } on FormatException {

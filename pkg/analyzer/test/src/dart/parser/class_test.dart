@@ -2430,8 +2430,9 @@ ClassDeclaration
   test_primaryConstructor_const_typeName_periodName_noFormalParameters() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class const A.named {}
+//            ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
 ''');
-    // TODO(scheglov): this is wrong.
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -3334,6 +3335,31 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A.named {}
+//      ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
   body: BlockClassBody
     leftBracket: {
     rightBracket: }

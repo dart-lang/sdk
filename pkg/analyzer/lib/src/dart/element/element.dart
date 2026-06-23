@@ -876,6 +876,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
+      'isRedirecting': isRedirecting,
     };
   }
 
@@ -945,6 +946,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   bool get isPrimary {
     return _firstFragment.isPrimary;
+  }
+
+  @trackedIncludedInId
+  bool get isRedirecting {
+    return _fragments.any((fragment) => fragment.isRedirecting);
   }
 
   @override
@@ -1183,6 +1189,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
+      'isRedirecting': isRedirecting,
     };
   }
 
@@ -1297,6 +1304,16 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @generated
   set isPrimary(bool value) {
     setFlag(_FragmentStorageFlag.constructorFragment_isPrimary, value);
+  }
+
+  @generated
+  bool get isRedirecting {
+    return hasFlag(_FragmentStorageFlag.constructorFragment_isRedirecting);
+  }
+
+  @generated
+  set isRedirecting(bool value) {
+    setFlag(_FragmentStorageFlag.constructorFragment_isRedirecting, value);
   }
 
   @override
@@ -2530,8 +2547,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   List<FormalParameterElementImpl> get formalParameters {
-    _ensureReadResolution();
-
     var formalParameters = _firstFragment.formalParameters;
 
     var hasRecoveryFragments = false;
@@ -2555,6 +2570,14 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
     return List.generate(formalParameters.length, (index) {
       return formalParameters[index].asElement2;
+    }, growable: false);
+  }
+
+  @trackedInternal
+  List<FormalParameterElementImpl> get formalParametersIncludingRecovery {
+    var fragments = _firstFragment._formalParameters;
+    return List.generate(fragments.length, (index) {
+      return fragments[index].asElement2;
     }, growable: false);
   }
 
@@ -3359,7 +3382,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
       var declaringConstructor = enclosingElement.constructors.firstWhereOrNull(
         (constructor) => constructor.isPrimary,
       );
-      return declaringConstructor?.formalParameters
+      return declaringConstructor?.formalParametersIncludingRecovery
           .whereType<FieldFormalParameterElementImpl>()
           .firstWhereOrNull((f) {
             return f.isDeclaring && f.field == this;
@@ -3608,13 +3631,22 @@ class FieldElementImpl extends PropertyInducingElementImpl
 @GenerateElementFlags(flags: _FieldFormalParameterElementFlags.values)
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     with InternalFieldFormalParameterElement {
-  @override
-  FieldElementImpl? field;
+  FieldElementImpl? _field;
 
   FieldFormalParameterElementImpl(super.firstFragment);
 
   @override
   FieldFormalParameterElementImpl get baseElement => this;
+
+  @override
+  FieldElementImpl? get field {
+    _ensureEnclosingExecutableReadResolution();
+    return _field;
+  }
+
+  set field(FieldElementImpl? value) {
+    _field = value;
+  }
 
   @generated
   @override
@@ -3862,13 +3894,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   final FormalParameterFragmentImpl _firstFragment;
 
-  @override
-  TypeImpl type = InvalidTypeImpl.instance;
-
-  /// Whether this formal parameter inherits from a covariant formal parameter.
-  /// This happens when it overrides a method in a supertype that has a
-  /// corresponding covariant formal parameter.
-  bool inheritsCovariant = false;
+  TypeImpl _type = InvalidTypeImpl.instance;
 
   final FormalParameterElementImpl? _baseFormalParameter;
 
@@ -3917,7 +3943,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @visibleForTesting
   @trackedInternal
   Map<String, bool> get flagsForTesting {
-    return {...super.flagsForTesting, 'hasDefaultValue': hasDefaultValue};
+    return {
+      ...super.flagsForTesting,
+      'hasDefaultValue': hasDefaultValue,
+      'inheritsCovariant': inheritsCovariant,
+    };
   }
 
   @override
@@ -3928,6 +3958,24 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   bool get hasDefaultValue => defaultValueCode != null;
+
+  /// Whether this formal parameter inherits from a covariant formal parameter.
+  /// This happens when it overrides a method in a supertype that has a
+  /// corresponding covariant formal parameter.
+  @generated
+  bool get inheritsCovariant {
+    return hasFlag(
+      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
+    );
+  }
+
+  @generated
+  set inheritsCovariant(bool value) {
+    setFlag(
+      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
+      value,
+    );
+  }
 
   @override
   bool get isCovariant {
@@ -3988,6 +4036,17 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return _firstFragment.parameterKind;
   }
 
+  @override
+  TypeImpl get type {
+    _ensureEnclosingExecutableReadResolution();
+    return _type;
+  }
+
+  @override
+  set type(TypeImpl value) {
+    _type = value;
+  }
+
   @Deprecated('Use the function type of this parameter instead')
   @override
   TypeImpl get typeShared => type;
@@ -4029,6 +4088,13 @@ class FormalParameterElementImpl extends PromotableElementImpl
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
       child.accept(visitor);
+    }
+  }
+
+  void _ensureEnclosingExecutableReadResolution() {
+    var enclosingElement = this.enclosingElement;
+    if (enclosingElement is ExecutableElementImpl) {
+      enclosingElement._ensureReadResolution();
     }
   }
 }
@@ -11921,7 +11987,8 @@ enum _ConstructorElementFlags {
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
-  isPrimary(fragment: true, element: _ElementFlagSource.firstFragment);
+  isPrimary(fragment: true, element: _ElementFlagSource.firstFragment),
+  isRedirecting(fragment: true, element: _ElementFlagSource.computed);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -11956,6 +12023,7 @@ enum _ElementStorageFlag {
   executableElement_hasEnclosingTypeParameterReference,
   executableElement_isExtensionTypeMember,
   fieldElement_hasEnclosingTypeParameterReference,
+  formalParameterElement_inheritsCovariant,
   instanceElement_isSimplyBounded,
   libraryElement_isSynthetic,
   propertyInducingElement_isTypeInferredFromInitializer,
@@ -12020,6 +12088,7 @@ enum _FieldFormalParameterElementFlags {
 
 enum _FormalParameterElementFlags {
   hasDefaultValue(element: _ElementFlagSource.computed),
+  inheritsCovariant(element: _ElementFlagSource.stored),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaration(fragment: true),
   isOriginMixinApplicationClassConstructor(fragment: true),
@@ -12062,6 +12131,7 @@ enum _FragmentStorageFlag {
   constructorFragment_isOriginImplicitDefault,
   constructorFragment_isOriginMixinApplication,
   constructorFragment_isPrimary,
+  constructorFragment_isRedirecting,
   executableFragment_hasImplicitReturnType,
   executableFragment_invokesSuperSelf,
   executableFragment_isAbstract,

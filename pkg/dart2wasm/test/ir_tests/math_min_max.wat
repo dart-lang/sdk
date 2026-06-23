@@ -1,4 +1,4 @@
-(module $$
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $BoxedDouble (sub final $#Top (struct

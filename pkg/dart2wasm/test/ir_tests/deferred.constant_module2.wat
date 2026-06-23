@@ -1,4 +1,4 @@
-(module $module2
+(module $M2
   (type $"dummy struct" <...>)
   (type $#Closure-0-1 <...>)
   (type $#Top <...>)
@@ -13,13 +13,13 @@
   (type $Object <...>)
   (type $_FunctionType <...>)
   (type $_TopType <...>)
-  (global $"WasmArray<_NamedParameter>[0]" (import "module0" "global6") (ref $Array<_NamedParameter>))
-  (global $"WasmArray<_Type>[0]" (import "module0" "global3") (ref $Array<_Type>))
-  (global $"WasmArray<_Type>[1]" (import "module0" "global5") (ref $Array<_Type>))
+  (global $"WasmArray<_NamedParameter>[0]" (import "M" "global6") (ref $Array<_NamedParameter>))
+  (global $"WasmArray<_Type>[0]" (import "M" "global3") (ref $Array<_Type>))
+  (global $"WasmArray<_Type>[1]" (import "M" "global5") (ref $Array<_Type>))
   (global $.globalH0Foo (import "" "globalH0Foo") (ref extern))
-  (global $_TopType (import "module0" "global4") (ref $_TopType))
-  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 11 funcref)
+  (global $_TopType (import "M" "global4") (ref $_TopType))
+  (table $M.constant-table0 (import "M" "constant-table0") 1 (ref null $_FunctionType))
+  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 11 funcref)
   (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
     (i32.const 63)
     (i32.const 0)
@@ -31,7 +31,7 @@
     (ref.null none))
   (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-0-1) <...>)
-  (elem $module0.cross-module-funcs-0
+  (elem $M.cross-module-funcs-0
     (set 8 (ref.func $0))
     (set 9 (ref.func $"H0 (lazy initializer)"))
     (set 10 (ref.func $1)))
@@ -50,7 +50,7 @@
       global.get $global2
       block $label1 (result (ref $_FunctionType))
         i32.const 0
-        table.get $module0.constant-table0
+        table.get $M.constant-table0
         br_on_non_null $label1
         i32.const 0
         i32.const 11
@@ -65,7 +65,7 @@
         global.get $"WasmArray<_NamedParameter>[0]"
         struct.new $_FunctionType
         local.tee $var0
-        table.set $module0.constant-table0
+        table.set $M.constant-table0
         local.get $var0
       end $label1
       struct.new $#Closure-0-1
@@ -81,7 +81,7 @@
   (func $"globalH0Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"\"globalH0Foo\""
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
     ref.null none
   )
   (func $null (result (ref null $H0)) <...>)

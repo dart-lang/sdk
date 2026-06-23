@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param i32) (result externref))

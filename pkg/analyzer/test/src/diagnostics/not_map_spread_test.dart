@@ -86,6 +86,14 @@ var v = <int, int>{if (1 > 0) ...a};
 ''');
   }
 
+  test_notMap_iterable_inMapContext() async {
+    await resolveTestCodeWithDiagnostics('''
+Map<int, int> f() => {...[1, 2, 3, 4]};
+//                       ^^^^^^^^^^^^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
+  }
+
   test_notMap_typeParameter_bound() async {
     await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {

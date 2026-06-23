@@ -59109,6 +59109,48 @@ class B extends A {
     );
   }
 
+  test_manifest_class_constructor_isRedirecting_unresolved() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+    exportMapId: #M3
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  A.foo() : this.missing();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M4
+        interface: #M2
+    exportMapId: #M3
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
   test_manifest_class_constructor_isSynthetic() async {
     configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(

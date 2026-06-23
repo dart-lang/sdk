@@ -265,7 +265,7 @@ library
           reference: <testLibrary>::@class::B::@method::f
           firstFragment: #F9
           formalParameters
-            #E3 requiredPositional t
+            #E3 requiredPositional inheritsCovariant t
               firstFragment: #F10
               type: T
           returnType: void
@@ -344,7 +344,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
-            #E1 optionalNamed a
+            #E1 optionalNamed inheritsCovariant a
               firstFragment: #F8
               type: B
           returnType: void

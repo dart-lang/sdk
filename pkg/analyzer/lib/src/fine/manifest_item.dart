@@ -194,6 +194,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
           flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
           flags.isOriginMixinApplication == element.isOriginMixinApplication &&
           flags.isPrimary == element.isPrimary &&
+          flags.isRedirecting == element.isRedirecting &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
           superConstructor.match(context, element.superConstructor);
@@ -1685,6 +1686,7 @@ enum _ConstructorItemFlag {
   isOriginImplicitDefault,
   isOriginMixinApplication,
   isPrimary,
+  isRedirecting,
 }
 
 enum _ExecutableItemFlag {
@@ -1860,6 +1862,9 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isPrimary) {
       bits |= _maskFor(_ConstructorItemFlag.isPrimary);
     }
+    if (element.isRedirecting) {
+      bits |= _maskFor(_ConstructorItemFlag.isRedirecting);
+    }
     return _ConstructorItemFlags._(bits);
   }
 
@@ -1893,6 +1898,10 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isPrimary {
     return _has(_ConstructorItemFlag.isPrimary);
+  }
+
+  bool get isRedirecting {
+    return _has(_ConstructorItemFlag.isRedirecting);
   }
 
   void write(BinaryWriter writer) {

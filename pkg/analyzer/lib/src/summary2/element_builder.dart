@@ -1404,6 +1404,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
     fragment.isFactory = node.factoryKeyword != null;
+    fragment.isRedirecting =
+        node.redirectedConstructor != null ||
+        node.initializers.any((e) => e is RedirectingConstructorInvocation);
     fragment.isComplete = node.isComplete;
     fragment.metadata = _buildMetadata(node.metadata);
     fragment.typeName = node.typeName?.name;

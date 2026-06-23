@@ -19,93 +19,83 @@ class AlwaysDeclareReturnTypesTest extends LintRuleTest {
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 
 class A { }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  f() { }
+  [!f!]() { }
 }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(39, 1)]);
   }
 
   test_augmentationTopLevelFunction() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+part 'test.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
-f() { }
+[!f!]() { }
 ''');
-
     await assertNoDiagnosticsInFile(a.path);
-    await assertDiagnosticsInFile(b.path, [lint(19, 1)]);
   }
 
   /// Augmentation target chain variations tested in
   /// `augmentedTopLevelFunction{*}`.
   test_augmentedMethod() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-class A {
-  f() { }
-}
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment class A {
   augment f();
 }
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(28, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+class A {
+  [!f!]() { }
+}
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-f() { }
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment f();
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+[!f!]() { }
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction_chain() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
-f() { }
-''');
-
     var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
+part of 'test.dart';
 
 augment dynamic f();
 augment f();
 ''');
 
-    await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
+    await assertDiagnosticsFromMarkdown(r'''
+part 'b.dart';
+
+[!f!]() { }
+''');
     await assertNoDiagnosticsInFile(b.path);
   }
 
@@ -182,53 +172,43 @@ class C {
   }
 
   test_pubPackageTest_method_notTest_hasReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   void foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_notTest_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertDiagnosticsInTestDirFromMarkdown(r'''
 class MyTest {
-  foo() {}
+  [!foo!]() {}
 }
 ''');
-
-    await assertDiagnosticsInFile(file.path, [lint(17, 3)]);
   }
 
   test_pubPackageTest_method_soloTest_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   solo_test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_test_hasReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   void test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_pubPackageTest_method_test_noReturnType() async {
-    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+    await assertNoDiagnosticsInTestDir(r'''
 class MyTest {
   test_foo() {}
 }
 ''');
-
-    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_staticSetter() async {
