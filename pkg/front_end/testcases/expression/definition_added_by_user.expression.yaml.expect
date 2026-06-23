@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_Smi foo) → dynamic
+  return foo.{dart.core::_IntegerImplementation::isEven}{dart.core::bool}{dynamic}();

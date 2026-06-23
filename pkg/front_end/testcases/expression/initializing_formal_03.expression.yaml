@@ -20,7 +20,7 @@ sources: |
 
 # We pretend like the VM sends over "i" too. It currently doesn't though.
 definitions: ["i", "x"]
-# We pretend to VM doesn't send over information so we can see a difference in
+# We pretend the VM doesn't send over information so we can see a difference in
 # the output when we find the actual type (i.e. when we find it to be in scope).
 definition_types: ["null", "null"]
 type_definitions: []

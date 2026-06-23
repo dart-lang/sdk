@@ -1427,8 +1427,7 @@ void ScopeBuilder::VisitVariable() {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
   }
-  if (helper.IsSynthesized() || helper.IsWildcard() ||
-      helper.IsInitializingFormal() || helper.IsSuperInitializingFormal()) {
+  if (helper.IsSynthesized() || helper.IsWildcard()) {
     variable->set_invisible(true);
   }
 
@@ -1726,8 +1725,7 @@ void ScopeBuilder::AddParameter(intptr_t pos,
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
   }
-  if (helper.IsWildcard() || helper.IsInitializingFormal() ||
-      helper.IsSuperInitializingFormal()) {
+  if (helper.IsWildcard()) {
     variable->set_invisible(true);
   }
 

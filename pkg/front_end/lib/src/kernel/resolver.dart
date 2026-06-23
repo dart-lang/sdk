@@ -871,7 +871,7 @@ class Resolver {
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token token,
-    required ExpressionCompilationData expressionCompilerDataCarrier,
+    required ExpressionCompilationData expressionCompilationData,
     required List<InternalVariable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required Variable? extensionThis,
@@ -892,13 +892,13 @@ class Resolver {
     int wildcardVariableIndex = 0;
     InternalVariable? internalExtensionThis;
     List<FormalParameterBuilder>? formals =
-        expressionCompilerDataCarrier.positionalParameters.length == 0
+        expressionCompilationData.positionalParameters.length == 0
         ? null
         : new List<FormalParameterBuilder>.generate(
-            expressionCompilerDataCarrier.positionalParameters.length,
+            expressionCompilationData.positionalParameters.length,
             (int i) {
               PositionalParameter parameter =
-                  expressionCompilerDataCarrier.positionalParameters[i];
+                  expressionCompilationData.positionalParameters[i];
               InternalPositionalParameter formal =
                   new InternalPositionalParameter(
                     astVariable: parameter,
@@ -947,7 +947,7 @@ class Resolver {
 
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter
-        in expressionCompilerDataCarrier.typeParameters) {
+        in expressionCompilationData.typeParameters) {
       typeParameterBuilders ??= <NominalParameterBuilder>[];
       typeParameterBuilders.add(
         new DillNominalParameterBuilder(

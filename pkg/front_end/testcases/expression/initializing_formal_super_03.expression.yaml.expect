@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic i, dart.core::int x) → dynamic
-  return i{dynamic}.isEven;
+  return this.{#lib1::Bar::i}{dart.core::num}{dynamic}.isEven;
