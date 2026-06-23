@@ -561,6 +561,18 @@ _nightly_misc_builder(
     category = "sanitizer|win|u",
     dimensions = [windows],
 )
+_nightly_misc_builder(
+    "vm-asan-fuchsia-release-x64",
+    category = "sanitizer|fuchsia|a",
+    dimensions = [linux, {"host_class": "virtualization"}],
+    properties = [fuchsia_deps],
+)
+_nightly_misc_builder(
+    "vm-ubsan-fuchsia-release-x64",
+    category = "sanitizer|fuchsia|u",
+    dimensions = [linux, {"host_class": "virtualization"}],
+    properties = [fuchsia_deps],
+)
 
 # Our RBE setup doesn't work with GCC.
 _nightly_misc_builder(
