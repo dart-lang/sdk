@@ -172,13 +172,10 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
     return ssl_verify_invalid;
   }
 
-  // If the user provided any additional CA certificates, add them to the trust
-  // object.
-  if (CFArrayGetCount(trusted_certs.get()) > 0) {
-    status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
-    if (status != noErr) {
-      return ssl_verify_invalid;
-    }
+  // Add CA certificates provided by the user (or empty array if none provided).
+  status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
+  if (status != noErr) {
+    return ssl_verify_invalid;
   }
 
   // Specify whether or not to use the built-in CA certificates for
