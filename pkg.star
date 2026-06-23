@@ -5,6 +5,7 @@
 Defines the pkg builders.
 """
 
+load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
@@ -37,6 +38,16 @@ def _pkg_builder(
         properties = union(default_properties, properties),
         triggered_by = ["pkg-gitiles-trigger-%s"],
         location_filters = location_filters,
+        **kwargs
+    )
+
+def _pkg_nightly_builder(name, category = None, properties = [], **kwargs):
+    # Some pkg unittests need flute sources.
+    default_properties = union({}, [flute])
+    cron.nightly_builder(
+        name,
+        category = category,
+        properties = union(default_properties, properties),
         **kwargs
     )
 
@@ -75,7 +86,7 @@ _pkg_builder(
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
-_pkg_builder(
+_pkg_nightly_builder(
     "pkg-linux-debug",
     category = "pkg|ld",
     channels = ["try"],

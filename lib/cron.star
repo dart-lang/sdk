@@ -43,9 +43,12 @@ def _nightly_builder(name, notifies = None, **kwargs):
     elif name.find("-aot-") > 0:
         hour = 5
         minute = 30
-    else:
+    elif name.find("vm-") > 0:
         hour = 5
         minute = 0
+    else:
+        hour = 4
+        minute = 40
     dart.ci_sandbox_builder(
         name,
         notifies = notifies or [luci.notifier(

@@ -63,21 +63,16 @@ def _nightly_builder(name, category, channels = ["try"], properties = {}, **kwar
     cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     _postponed_alt_console_entry(name, category)
 
-def _misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
-    dart.ci_sandbox_builder(
+def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
+    properties = union({"bisection_enabled": True}, properties)
+    cron.nightly_builder(
         name,
         category = None,  # Don't add to main console.
         channels = channels,
         properties = properties,
-        triggered_by = ["dart-vm-gitiles-trigger-%s"],
+        notifies = "dart-vm-team",
         **kwargs
     )
-    console_category, _, short_name = category.rpartition("|")
-    luci.console_view_entry(console_view = "misc", builder = name, category = console_category, short_name = short_name)
-
-def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
-    properties = union({"bisection_enabled": True}, properties)
-    cron.nightly_builder(name, category = None, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     console_category, _, short_name = category.rpartition("|")
     luci.console_view_entry(console_view = "misc", builder = name, category = console_category, short_name = short_name)
 
@@ -488,13 +483,13 @@ _nightly_misc_builder(
 )
 
 # Isolate stress test builder
-_misc_builder(
+_nightly_misc_builder(
     "iso-stress-linux-x64",
-    category = "iso|x64",
+    category = "iso-stress|x64",
 )
 _nightly_misc_builder(
     "iso-stress-linux-arm64",
-    category = "iso|arm64",
+    category = "iso-stress|arm64",
     dimensions = [arm64],
 )
 
