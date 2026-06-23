@@ -38,7 +38,7 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.0.0 -> ^3.1.0''',
+  - test_project: ^3.0.0 -> ^3.1.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -77,8 +77,18 @@ environment:
       uris: [Uri.file(project1Path), Uri.file(project2Path)],
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
-- project1: ^3.0.0 -> ^3.1.0
-- project2: ^3.2.0 -> ^3.3.0''',
+  - project1: ^3.0.0 -> ^3.1.0
+  - project2: ^3.2.0 -> ^3.3.0''',
+      expectedEdit: '''
+>>>>>>>>>> project1/pubspec.yaml
+name: project1
+environment:
+  sdk: '^3.1.0'
+>>>>>>>>>> project2/pubspec.yaml
+name: project2
+environment:
+  sdk: '^3.3.0'
+''',
     );
   }
 
@@ -279,7 +289,19 @@ class C {
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -330,8 +352,26 @@ class D {
       uris: [projectFolderUri, toUri(otherPackagePath)],
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
-- test_project: ^3.12.0 -> ^3.13.0
-- other_package: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  other_package/lib/other.dart
+    extraneous_modifier • 1 fix
+
+Post-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 1 fix
+
+  other_package/lib/other.dart
+    unnecessary_type_name_in_constructor • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class D {
@@ -372,7 +412,13 @@ class C {
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -401,7 +447,13 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x, y) {}
@@ -429,7 +481,16 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  my_project/lib/other.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -471,8 +532,17 @@ environment:
       uris: [projectFolderUri, toUri(otherPackagePath)],
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
-- test_project: ^3.12.0 -> ^3.13.0
-- other_package: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  other_package/lib/other.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 void f(y) {}
@@ -519,7 +589,16 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/a.dart
+    extraneous_modifier • 1 fix
+
+  my_project/lib/src/b.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/a.dart
 void m(int x) {}
@@ -547,7 +626,7 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -591,7 +670,13 @@ environment:
     await _assertMigrationResult(
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  1 fix made in 1 file.
+
+  my_project/lib/main.dart
+    avoid_final_parameters • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}

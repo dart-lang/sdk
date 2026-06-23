@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -158,11 +159,43 @@ class _MigrationRunner({
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
+  /// Accumulated pre-migration fixes per file.
+  ///
+  /// Keyed by file path, mapping to diagnostic code names and their count.
+  final Map<String, Map<String, int>> _preMigrationFixDetailsMap = {};
+
+  /// Accumulated post-migration fixes per file.
+  ///
+  /// Keyed by file path, mapping to diagnostic code names and their count.
+  final Map<String, Map<String, int>> _postMigrationFixDetailsMap = {};
+
   this : super(server);
 
   /// Runs the migration runner with the scheduled analysis pausing enabled.
   Future<List<SourceFileEdit>> computeEdits() async {
     return await pauseSchedulerWithTemporaryOverlays(_computeMigrationEdits);
+  }
+
+  /// Populate file fix occurrences from [details] into the [detailsMap],
+  /// converting absolute file paths to project-relative paths relative to
+  /// [pubspec].
+  void _accumulateFixDetails(
+    List<BulkFix> details,
+    Map<String, Map<String, int>> detailsMap,
+    _PubspecTarget pubspec,
+  ) {
+    var pubspecFolder = pubspec.file.parent;
+    for (var detail in details) {
+      var relative = server.resourceProvider.pathContext
+          .relative(detail.path, from: pubspecFolder.path)
+          .replaceAll('\\', '/');
+      var key = '${pubspecFolder.shortName}/$relative';
+      var fileFixes = detailsMap[key] ??= {};
+      for (var fix in detail.fixes) {
+        var count = fileFixes[fix.code] ?? 0;
+        fileFixes[fix.code] = count + fix.occurrences;
+      }
+    }
   }
 
   void _applyAndRecordEdits(ChangeBuilder builder) {
@@ -213,13 +246,19 @@ class _MigrationRunner({
       var originalVersionChangeBuilder = await _createBuilder();
 
       // Run pre-migrations fixes.
-      var preMigrationSuccess = await _runPreMigrations(
+      var preMigrationFixDetails = await _runPreMigrations(
         context,
         pubspec,
         targetVersion,
         originalVersionChangeBuilder,
       );
-      if (!preMigrationSuccess) continue;
+      if (preMigrationFixDetails == null) continue;
+
+      _accumulateFixDetails(
+        preMigrationFixDetails,
+        _preMigrationFixDetailsMap,
+        pubspec,
+      );
 
       // Bump version constraint.
       await _bumpPubspecConstraint(
@@ -255,14 +294,19 @@ class _MigrationRunner({
       // Run post-migration fixes.
       var targetVersionChangeBuilder = await _createBuilder();
       // TODO(kallentu): Allow the user to choose which ones.
-      var postMigrationSuccess = await _runPostMigrations(
+      var postMigrationFixDetails = await _runPostMigrations(
         updatedContext,
         pubspec,
         targetVersion,
         targetVersionChangeBuilder,
       );
 
-      if (postMigrationSuccess) {
+      if (postMigrationFixDetails != null) {
+        _accumulateFixDetails(
+          postMigrationFixDetails,
+          _postMigrationFixDetailsMap,
+          pubspec,
+        );
         _applyAndRecordEdits(targetVersionChangeBuilder);
       }
     }
@@ -274,9 +318,20 @@ class _MigrationRunner({
         'Bumped SDK constraints in ${bumpedLines.length} package(s):',
       );
       for (var line in bumpedLines) {
-        summaryBuffer.writeln(line);
+        summaryBuffer.writeln('  $line');
       }
     }
+
+    _writeFixesSummary(
+      summaryBuffer,
+      'Pre-migration fixes:',
+      _preMigrationFixDetailsMap,
+    );
+    _writeFixesSummary(
+      summaryBuffer,
+      'Post-migration fixes:',
+      _postMigrationFixDetailsMap,
+    );
 
     // Revert all temporary overlays back to their original state.
     await revertOverlays();
@@ -293,15 +348,15 @@ class _MigrationRunner({
   /// Runs bulk fixes for the given [lintCodes] in the specified migration
   /// phase.
   ///
-  /// Returns whether the migration fixes ran successfully.
-  Future<bool> _runMigrations({
+  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
+  Future<List<BulkFix>?> _runMigrations({
     required DriverBasedAnalysisContext context,
     required _PubspecTarget pubspec,
     required List<String> lintCodes,
     required ChangeBuilder builder,
     required String phaseName,
   }) async {
-    if (lintCodes.isEmpty) return true;
+    if (lintCodes.isEmpty) return const [];
 
     try {
       var workspace = DartChangeWorkspace([context.driver.currentSession]);
@@ -318,20 +373,20 @@ class _MigrationRunner({
       // TODO(kallentu): Check for and report unfixed pre-migration diagnostics.
       await processor.fixErrors([context]);
 
-      // TODO(kallentu): Provide a better summary of how many pre-migration
-      // diagnostics have been fixed in each file.
-      return true;
+      return processor.fixDetails;
     } catch (e) {
       summaryBuffer.writeln(
         '- ${pubspec.displayName}: Failed $phaseName fixes with '
         'exception: $e',
       );
-      return false;
+      return null;
     }
   }
 
   /// Runs post-migration fixes for the given [targetVersion].
-  Future<bool> _runPostMigrations(
+  ///
+  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
+  Future<List<BulkFix>?> _runPostMigrations(
     DriverBasedAnalysisContext context,
     _PubspecTarget pubspec,
     Version targetVersion,
@@ -349,7 +404,9 @@ class _MigrationRunner({
   }
 
   /// Runs pre-migration fixes for the given [targetVersion].
-  Future<bool> _runPreMigrations(
+  ///
+  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
+  Future<List<BulkFix>?> _runPreMigrations(
     DriverBasedAnalysisContext context,
     _PubspecTarget pubspec,
     Version targetVersion,
@@ -363,6 +420,47 @@ class _MigrationRunner({
       builder: builder,
       phaseName: 'pre-migration',
     );
+  }
+
+  /// Writes a summary of the fixes in [fixesMap] preceded by [phaseLabel] to
+  /// the [buffer] if any fixes were made.
+  void _writeFixesSummary(
+    StringBuffer buffer,
+    String phaseLabel,
+    Map<String, Map<String, int>> fixesMap,
+  ) {
+    var totalFixes = 0;
+    var totalFiles = fixesMap.length;
+    for (var fileFixes in fixesMap.values) {
+      for (var count in fileFixes.values) {
+        totalFixes += count;
+      }
+    }
+
+    if (totalFixes > 0) {
+      buffer.writeln();
+      buffer.writeln(phaseLabel);
+
+      var fixPlural = totalFixes == 1 ? 'fix' : 'fixes';
+      var filePlural = totalFiles == 1 ? 'file' : 'files';
+
+      buffer.writeln(
+        '  $totalFixes $fixPlural made in $totalFiles $filePlural.',
+      );
+
+      var sortedPaths = fixesMap.keys.toList()..sort();
+      for (var path in sortedPaths) {
+        buffer.writeln();
+        buffer.writeln('  $path');
+        var fileFixes = fixesMap[path]!;
+        var sortedCodes = fileFixes.keys.toList()..sort();
+        for (var code in sortedCodes) {
+          var count = fileFixes[code]!;
+          var fixPlural = count == 1 ? 'fix' : 'fixes';
+          buffer.writeln('    $code • $count $fixPlural');
+        }
+      }
+    }
   }
 }
 
