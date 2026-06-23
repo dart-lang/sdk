@@ -382,6 +382,9 @@ final class DocCommentBuilder {
       case 'endtemplate':
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
+      case 'example':
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
+        return true;
       case 'inject-html':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
         return true;

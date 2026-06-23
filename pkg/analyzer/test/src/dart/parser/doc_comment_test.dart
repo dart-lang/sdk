@@ -1833,6 +1833,31 @@ Comment
 ''');
   }
 
+  test_exampleDirective() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int x = 0;
+
+/// Text.
+/// {@example /example/webcrypto/hmac/import_raw_key.dart}
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('{@example');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@example /example/webcrypto/hmac/import_raw_key.dart}
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 81]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          /example/webcrypto/hmac/import_raw_key.dart
+''');
+  }
+
   test_unknownDocDirective() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
