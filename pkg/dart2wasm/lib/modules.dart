@@ -32,9 +32,7 @@ class ModuleMetadataBuilder {
     bool skipEmit = false,
   }) {
     final id = _counter++;
-    final moduleImportName = options.translatorOptions.minify
-        ? intToMinString(id)
-        : 'module$id';
+    final moduleImportName = moduleNameFromId(id);
     return ModuleMetadata._(
       moduleImportName,
       WasmCompilerOptions.moduleNameForId(

@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $Bar <...>)
   (type $Baz <...>)
   (type $Foo <...>)

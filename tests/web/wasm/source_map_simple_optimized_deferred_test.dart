@@ -11,8 +11,8 @@ void main() {
 }
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
-  ('source_map_simple_lib.dart', 18, 3, 'g'),
-  ('source_map_simple_lib.dart', 14, 3, 'f'),
+  ('source_map_simple_lib.dart', 17, 3, 'g'),
+  ('source_map_simple_lib.dart', 13, 3, 'f'),
   // The wasm runtime will produce stack frames including `_invokeMain`. But
   // `wasm-opt` will inline `f` into `_invokeMain` which will make the source
   // maps map `_invokeMain+<offset>` to be `f`.

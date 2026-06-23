@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top <...>)
   (type $JSExternWrapper <...>)
   (func $"outside.registerCallback (import)" (import "outside" "registerCallback") (param (ref func)))

@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $"dummy struct" <...>)
   (rec
     (type $#Closure-0-0 <...>)

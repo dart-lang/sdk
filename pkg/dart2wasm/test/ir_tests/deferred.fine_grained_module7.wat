@@ -1,10 +1,10 @@
-(module $module7
+(module $M7
   (type $#Top <...>)
   (type $BoxedInt <...>)
   (type $JSExternWrapper <...>)
   (type $Object <...>)
-  (global $"\")\"" (import "module0" "global3") (ref $JSExternWrapper))
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 45 funcref)
+  (global $"\")\"" (import "M" "global3") (ref $JSExternWrapper))
+  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 45 funcref)
   (global $"\"foo3Code(\"" (ref $JSExternWrapper) <...>)
   (global $3 (ref $BoxedInt) <...>)
   (global $FooConst3 (ref $Object)
@@ -13,7 +13,7 @@
     (struct.new $Object))
   (global $fooGlobal3 (mut (ref null $#Top))
     (ref.null none))
-  (elem $module0.cross-module-funcs-0
+  (elem $M.cross-module-funcs-0
     (set 14 (ref.func $foo3Code))
     (set 35 (ref.func $0))
     (set 36 (ref.func $1))
