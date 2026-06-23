@@ -39,7 +39,10 @@ augment class A {
     await assertNoDiagnosticsInFile(a.path);
   }
 
-  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
   test_augmentedField() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';

@@ -31,7 +31,6 @@ augment class a {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -50,7 +49,10 @@ augment enum e {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

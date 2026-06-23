@@ -37,7 +37,10 @@ augment void f(int q) [!{!]}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
