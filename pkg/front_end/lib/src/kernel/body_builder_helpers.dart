@@ -336,6 +336,31 @@ class CatchParameters(
   }
 }
 
+class AnonymousMethodParameters extends Parameters {
+  @override
+  final List<AnonymousMethodParameterBuilder>? parameters;
+
+  @override
+  final int charOffset;
+
+  @override
+  final int length;
+
+  @override
+  final Uri uri;
+
+  new(this.parameters, this.charOffset, this.length, this.uri) {
+    if (parameters?.isEmpty ?? false) {
+      throw "Empty parameters should be null";
+    }
+  }
+
+  @override
+  String toString() {
+    return "AnonymousMethodParameters($parameters, $charOffset, $uri)";
+  }
+}
+
 /// DartDocTest(
 ///   debugName("myClassName", "myName"),
 ///   "myClassName.myName"

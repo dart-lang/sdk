@@ -276,8 +276,8 @@ void _testTryStatement() {
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
   InternalCatch emptyCatchBlock = new InternalCatch(
-    exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(name: 'e', type: null),
+    exception: new InternalCatchVariable(
+      astVariable: new CatchVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -285,8 +285,8 @@ void _testTryStatement() {
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
-    exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(name: 'e', type: null),
+    exception: new InternalCatchVariable(
+      astVariable: new CatchVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -295,8 +295,8 @@ void _testTryStatement() {
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlock = new InternalCatch(
-    exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(name: 'e', type: null),
+    exception: new InternalCatchVariable(
+      astVariable: new CatchVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -304,8 +304,8 @@ void _testTryStatement() {
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlockOnVoid = new InternalCatch(
-    exception: new InternalLocalVariable(
-      astVariable: new LocalVariable(name: 'e', type: null),
+    exception: new InternalCatchVariable(
+      astVariable: new CatchVariable(name: 'e', type: null),
       isImplicitlyTyped: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -940,7 +940,7 @@ continue label;''',
 void _testCascade() {
   // TODO(johnniwinther): Add better text representation support for internal
   //  synthetic variables.
-  InternalVariable variable = new InternalSyntheticVariable(
+  InternalSyntheticVariable variable = new InternalSyntheticVariable(
     astVariable: new SyntheticVariable(
       type: const DynamicType(),
       initializer: new IntLiteral(0),
@@ -997,7 +997,7 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  InternalVariable check = new InternalSyntheticVariable(
+  InternalSyntheticVariable check = new InternalSyntheticVariable(
     astVariable: new SyntheticVariable(
       initializer: new CheckLibraryIsLoaded(dependency),
       type: const DynamicType(),

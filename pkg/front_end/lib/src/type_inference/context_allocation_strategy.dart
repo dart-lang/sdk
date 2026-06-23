@@ -36,7 +36,7 @@ class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
-  Variable? thisVariable;
+  ThisVariable? thisVariable;
 
   new({required this.kind});
 }

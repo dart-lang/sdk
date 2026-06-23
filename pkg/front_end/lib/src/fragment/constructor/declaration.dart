@@ -775,7 +775,7 @@ mixin _ConstructorEncodingMixin
   void registerFunctionBody(
     Statement? body,
     Scope? scope,
-    Variable? thisVariable,
+    ThisVariable? thisVariable,
   ) {
     _encoding.registerFunctionBody(
       body: body,
@@ -1502,7 +1502,7 @@ abstract class ConstructorFragmentDeclaration {
   void registerFunctionBody(
     Statement? body,
     Scope? scope,
-    Variable? thisVariable,
+    ThisVariable? thisVariable,
   );
 
   void registerNoBodyConstructor();

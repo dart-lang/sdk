@@ -205,8 +205,9 @@ class AssignedVariablesImpl
   void write(InternalVariable variable) {
     _delegate.write(variable);
     if (_isInsideAssert) {
-      // Coverage-ignore-block(suite): Not run.
-      _insideAsserts?.write(variable);
+      _insideAsserts
+      // Coverage-ignore(suite): Not run.
+      ?.write(variable);
     } else {
       _outsideAsserts?.write(variable);
     }

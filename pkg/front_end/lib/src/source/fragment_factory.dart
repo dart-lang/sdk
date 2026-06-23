@@ -583,7 +583,6 @@ class SynthesizedExtensionSignature {
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     return new SynthesizedExtensionSignature._(
       clonedDeclarationTypeParameters,
@@ -651,7 +650,6 @@ class SynthesizedExtensionTypeSignature {
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     return new SynthesizedExtensionTypeSignature._(

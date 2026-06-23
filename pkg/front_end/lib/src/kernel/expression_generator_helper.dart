@@ -221,7 +221,9 @@ abstract class ExpressionGeneratorHelper {
   );
 
   /// Creates a synthetic variable declaration for the value of [expression].
-  InternalVariable createVariableDeclarationForValue(Expression expression);
+  InternalSyntheticVariable createVariableDeclarationForValue(
+    Expression expression,
+  );
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.

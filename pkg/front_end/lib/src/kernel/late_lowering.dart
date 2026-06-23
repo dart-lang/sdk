@@ -66,7 +66,7 @@ Statement createGetterWithInitializer(
       // Generate:
       //
       //    return let # = _#field in isSentinel(#) ? _#field = <init> : #;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type.withDeclaredNullability(Nullability.nullable),
       );
@@ -90,7 +90,7 @@ Statement createGetterWithInitializer(
       // Generate:
       //
       //    return let # = _#field in # == null ? _#field = <init> : #;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type.withDeclaredNullability(Nullability.nullable),
       );
@@ -139,7 +139,7 @@ Statement createGetterWithInitializerWithRecheck(
         )
         ..fileOffset = fileOffset
         ..forErrorHandling = true;
-  Variable temp = extern.createVariable(initializer, type)
+  SyntheticVariable temp = extern.createVariable(initializer, type)
     ..fileOffset = fileOffset;
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
@@ -191,7 +191,7 @@ Statement createGetterWithInitializerWithRecheck(
       //        ? let #2 = <init> in isSentinel(_#field)
       //            ? _#field = #2 : throw '...'
       //        : #1;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type,
       );
@@ -234,7 +234,7 @@ Statement createGetterWithInitializerWithRecheck(
       //        ? let #2 = <init> in _#field == null
       //            ? _#field = #2 : throw '...'
       //        : #1;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type.withDeclaredNullability(Nullability.nullable),
       );
@@ -309,7 +309,7 @@ Statement createGetterBodyWithoutInitializer(
       // Generate:
       //
       //    return let # = _#field in isSentinel(#) ? throw '...' : #;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead()..fileOffset = fileOffset,
         type.withDeclaredNullability(Nullability.nullable),
       );
@@ -333,7 +333,7 @@ Statement createGetterBodyWithoutInitializer(
       // Generate:
       //
       //    return let # = _#field in # == null ? throw '...' : #;
-      Variable variable = extern.createVariable(
+      SyntheticVariable variable = extern.createVariable(
         createVariableRead()..fileOffset = fileOffset,
         type.withDeclaredNullability(Nullability.nullable),
       );

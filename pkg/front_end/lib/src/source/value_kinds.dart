@@ -35,7 +35,8 @@ import '../kernel/body_builder.dart'
         ExpressionOrPatternGuardCase,
         FormalParameters,
         JumpTarget,
-        Label;
+        Label,
+        AnonymousMethodParameters;
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 import 'outline_builder.dart' as type;
@@ -46,6 +47,14 @@ class ValueKinds {
       const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+  static const ValueKind AnonymousMethodParameters =
+      const SingleValueKind<type.AnonymousMethodParameters>();
+  static const ValueKind AnonymousMethodParameterBuilder =
+      const SingleValueKind<type.AnonymousMethodParameterBuilder>();
+  static const ValueKind AnonymousMethodParameterListOrNull =
+      const SingleValueKind<List<type.AnonymousMethodParameterBuilder>>(
+        NullValues.FormalParameters,
+      );
   static const ValueKind Argument = const SingleValueKind<type.Argument>();
   static const ValueKind Arguments =
       const SingleValueKind<type.ActualArguments>();

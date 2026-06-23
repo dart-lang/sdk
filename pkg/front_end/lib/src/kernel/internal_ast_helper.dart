@@ -172,8 +172,8 @@ InternalPattern createCastPattern(
 InternalCatch createCatch(
   int fileOffset,
   DartType exceptionType,
-  InternalVariable? exceptionParameter,
-  InternalVariable? stackTraceParameter,
+  InternalCatchVariable? exceptionParameter,
+  InternalCatchVariable? stackTraceParameter,
   DartType stackTraceType,
   Statement body,
 ) {
@@ -186,7 +186,7 @@ InternalCatch createCatch(
   );
 }
 
-InternalVariable createCatchVariable({
+InternalCatchVariable createCatchVariable({
   required String name,
   required DartType type,
   required bool isImplicitlyTyped,
@@ -1406,7 +1406,29 @@ SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
   return new SymbolLiteral(value)..fileOffset = fileOffset;
 }
 
-InternalVariable createSyntheticVariable({
+InternalAnonymousMethodParameter createAnonymousMethodParameter({
+  required String name,
+  required DartType type,
+  required int fileOffset,
+  required bool isImplicitlyTyped,
+  required bool isWildcard,
+  required bool isFinal,
+  required bool isSynthesized,
+}) {
+  return new InternalAnonymousMethodParameter(
+    astVariable: new SyntheticVariable(
+      cosmeticName: name,
+      isFinal: isFinal,
+      isSynthesized: isSynthesized,
+      type: type,
+    )..fileOffset = fileOffset,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isWildcard: isWildcard,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalSyntheticVariable createSyntheticVariable({
   String? name,
   DartType? type,
   required int fileOffset,
@@ -1439,14 +1461,17 @@ InternalVariable createSyntheticVariableForEffect(Expression expression) {
   );
 }
 
-InternalVariable createSyntheticVariableForValue(
+InternalSyntheticVariable createSyntheticVariableForValue(
   Expression initializer, {
   DartType? type,
+  String? name,
+  int? fileOffset,
 }) {
   return createSyntheticVariable(
+    name: name,
     initializer: initializer,
     isFinal: true,
-    fileOffset: initializer.fileOffset,
+    fileOffset: fileOffset ?? initializer.fileOffset,
     type: type,
     isSynthesized: true,
   );

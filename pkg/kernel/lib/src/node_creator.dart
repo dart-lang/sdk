@@ -950,7 +950,8 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
         return Let(
-          _createVariableFromKind(VariableKind.SyntheticVariable),
+          _createVariableFromKind(VariableKind.SyntheticVariable)
+              as SyntheticVariable,
           _createExpression(),
         )..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
@@ -1949,7 +1950,8 @@ class NodeCreator {
         return InvalidInitializer('')..fileOffset = _needFileOffset();
       case InitializerKind.LocalInitializer:
         return LocalInitializer(
-          _createVariableFromKind(VariableKind.SyntheticVariable),
+          _createVariableFromKind(VariableKind.SyntheticVariable)
+              as SyntheticVariable,
         )..fileOffset = _needFileOffset();
       case InitializerKind.RedirectingInitializer:
         return RedirectingInitializer(_needConstructor(), _createArguments())

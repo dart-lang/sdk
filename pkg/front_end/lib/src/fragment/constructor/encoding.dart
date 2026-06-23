@@ -93,7 +93,7 @@ abstract class ConstructorEncoding {
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    Variable? thisVariable,
+    ThisVariable? thisVariable,
   });
 
   void registerNoBodyConstructor();
@@ -139,7 +139,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    Variable? thisVariable,
+    ThisVariable? thisVariable,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
@@ -529,7 +529,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void registerFunctionBody({
     required Statement? body,
     Scope? scope,
-    Variable? thisVariable,
+    ThisVariable? thisVariable,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
@@ -1161,9 +1161,7 @@ abstract class ConstructorEncodingStrategy {
     switch (declarationBuilder) {
       case ClassBuilder():
         if (declarationBuilder.isEnum) {
-          return new EnumConstructorEncodingStrategy(
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-          );
+          return const EnumConstructorEncodingStrategy();
         } else {
           return const RegularConstructorEncodingStrategy();
         }
@@ -1225,9 +1223,7 @@ class RegularConstructorEncodingStrategy
 }
 
 class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
-  final bool isClosureContextLoweringEnabled;
-
-  const new({required this.isClosureContextLoweringEnabled});
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1254,7 +1250,6 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileUri: fileUri,
         nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
@@ -1265,7 +1260,6 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileUri: fileUri,
         nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       ...?formals,
     ];

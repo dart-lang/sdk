@@ -599,16 +599,21 @@ class SharedInteropTransformer extends Transformer {
         receiverInteropTypeDeclaration is ExtensionTypeDeclaration
         ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
         : false;
-    final receiverVar = receiver is VariableGet
-        ? receiver.variable
-        // Synthesize declaration to avoid re-evaluating expressions.
-        : (SyntheticVariable(
-            initializer: receiver,
-            type: receiverIsJSType
-                ? ExtensionType(_jsAny, Nullability.nullable)
-                : receiverStaticType,
-            isFinal: true,
-          )..fileOffset = invocation.fileOffset);
+    final SyntheticVariable? letVariable;
+    final Variable receiverVar;
+    if (receiver is VariableGet) {
+      receiverVar = receiver.variable;
+      letVariable = null;
+    } else {
+      // Synthesize declaration to avoid re-evaluating expressions.
+      receiverVar = letVariable = SyntheticVariable(
+        initializer: receiver,
+        type: receiverIsJSType
+            ? ExtensionType(_jsAny, Nullability.nullable)
+            : receiverStaticType,
+        isFinal: true,
+      )..fileOffset = invocation.fileOffset;
+    }
     final receiverVarAsJSAny =
         receiverIsJSType
               ? VariableGet(receiverVar)
@@ -809,7 +814,7 @@ class SharedInteropTransformer extends Transformer {
       check = BoolLiteral(true);
     }
 
-    return receiver is VariableGet ? check : Let(receiverVar, check)
+    return letVariable == null ? check : Let(letVariable, check)
       ..fileOffset = invocation.fileOffset
       ..parent = invocation.parent;
   }

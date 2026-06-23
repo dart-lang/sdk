@@ -926,8 +926,6 @@ class Resolver {
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 wildcardIndex: wildcardIndex,
-                isClosureContextLoweringEnabled:
-                    libraryBuilder.loader.isClosureContextLoweringEnabled,
                 variable: formal,
               );
             },

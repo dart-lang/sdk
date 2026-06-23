@@ -1216,8 +1216,8 @@ class TryCatch extends Statement {
 
 class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
-  Variable? exception;
-  Variable? stackTrace;
+  CatchVariable? exception;
+  CatchVariable? stackTrace;
   Statement body;
 
   @override
@@ -1267,11 +1267,11 @@ class Catch extends TreeNode implements ScopeProvider {
   void transformOrRemoveChildren(RemovingTransformer v) {
     guard = v.visitDartType(guard, cannotRemoveSentinel);
     if (exception != null) {
-      exception = v.transformOrRemoveVariable(exception!);
+      exception = v.transformOrRemoveVariable(exception!) as CatchVariable;
       exception?.parent = this;
     }
     if (stackTrace != null) {
-      stackTrace = v.transformOrRemoveVariable(stackTrace!);
+      stackTrace = v.transformOrRemoveVariable(stackTrace!) as CatchVariable;
       stackTrace?.parent = this;
     }
     body = v.transform(body);

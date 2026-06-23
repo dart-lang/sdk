@@ -826,11 +826,13 @@ class CatchVariable extends Variable {
     DartType? type,
     bool isWildcard = false,
     bool isFinal = false,
+    bool isSynthesized = false,
   }) : catchVariableName = name,
        type = type ?? const DynamicType(),
        super.empty() {
     this.isWildcard = isWildcard;
     this.isFinal = isFinal;
+    this.isSynthesized = isSynthesized;
   }
 
   @override
@@ -970,11 +972,13 @@ class CatchVariable extends Variable {
   }
 
   @override
-  bool get isSynthesized => false;
+  bool get isSynthesized => flags & Variable.FlagSynthesized != 0;
 
   @override
   void set isSynthesized(bool value) {
-    throw new UnsupportedError("${this.runtimeType}.isSynthesized=");
+    flags = value
+        ? (flags | Variable.FlagSynthesized)
+        : (flags & ~Variable.FlagSynthesized);
   }
 
   @override
@@ -1902,6 +1906,7 @@ class SyntheticVariable extends Variable {
     // be synthesized.
     bool isSynthesized = true,
     bool hasDeclaredInitializer = false,
+    bool isWildcard = false,
   }) : type = type ?? const DynamicType(),
        super.empty() {
     this.initializer?.parent = this;
