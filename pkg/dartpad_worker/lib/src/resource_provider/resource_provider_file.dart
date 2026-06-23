@@ -446,8 +446,10 @@ class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
         _file.writeAsBytesSync(bytes);
       } else if (mode == io.FileMode.append ||
           mode == io.FileMode.writeOnlyAppend) {
-        final current = _file.exists ? _file.readAsBytesSync() : <int>[];
-        _file.writeAsBytesSync([...current, ...bytes]);
+        final builder = BytesBuilder(copy: false);
+        if (_file.exists) builder.add(_file.readAsBytesSync());
+        builder.add(bytes);
+        _file.writeAsBytesSync(builder.takeBytes());
       }
     } catch (e) {
       throw io.FileSystemException(e.toString(), path);
@@ -716,7 +718,7 @@ class _FileIOSink implements io.IOSink {
   final _ResourceProviderFile _file;
   final io.FileMode _mode;
   final Encoding _encoding;
-  final List<int> _buffer = [];
+  final BytesBuilder _buffer = BytesBuilder();
   bool _closed = false;
 
   _FileIOSink(
@@ -737,7 +739,7 @@ class _FileIOSink implements io.IOSink {
   @override
   void add(List<int> data) {
     if (_closed) throw StateError('Sink closed');
-    _buffer.addAll(data);
+    _buffer.add(data);
   }
 
   @override
@@ -765,8 +767,7 @@ class _FileIOSink implements io.IOSink {
 
   void _flushSync() {
     if (_buffer.isEmpty) return;
-    _file.writeAsBytesSync(_buffer, mode: _mode);
-    _buffer.clear();
+    _file.writeAsBytesSync(_buffer.takeBytes(), mode: _mode);
   }
 
   @override
