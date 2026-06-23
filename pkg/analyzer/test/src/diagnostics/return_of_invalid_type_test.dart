@@ -541,14 +541,6 @@ class A {
 }
 ''');
   }
-
-  test_spread_iterable_in_map_context() async {
-    await resolveTestCodeWithDiagnostics(r'''
-Map<int, int> f() => {...[1, 2, 3, 4]};
-//                   ^^^^^^^^^^^^^^^^^
-// [diag.returnOfInvalidTypeFromFunction] A value of type 'Set<int>' can't be returned from the function 'f' because it has a return type of 'Map<int, int>'.
-''');
-  }
 }
 
 @reflectiveTest

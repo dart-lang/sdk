@@ -577,6 +577,10 @@ class TypedLiteralResolver {
       canBeASet = canBeASet && inferredType.canBeSet;
       mustBeASet = mustBeASet || inferredType.mustBeSet;
     }
+    if (literalResolution.kind == _LiteralResolutionKind.map &&
+        literalResolution.contextType != null) {
+      return _toMapType(inferrer, literalResolution, literal, inferredTypes);
+    }
     if (canBeASet && mustBeASet) {
       return _toSetType(inferrer, literalResolution, literal, inferredTypes);
     } else if (canBeAMap && mustBeAMap) {
