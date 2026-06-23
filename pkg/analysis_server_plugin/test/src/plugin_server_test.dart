@@ -50,19 +50,6 @@ class PluginServerMapTest extends PluginServerTestBase
     await startPlugin();
   }
 
-  Future<void> test_warningsCanBeIgnored_correctPlugin() async {
-    // See https://github.com/dart-lang/sdk/issues/62173
-    writeAnalysisOptionsWithPlugin();
-    newFile(filePath, '''
-// ignore: no_literals/no_bools
-bool b = false;
-''');
-    await _setRoots();
-    var paramsQueue = _analysisErrorsParams;
-    var params = await paramsQueue.next;
-    expect(params.errors, isEmpty);
-  }
-
   void writeAnalysisOptionsWithPlugin({
     Map<String, String> diagnosticConfiguration = const {},
     StringBuffer? buffer,
@@ -150,6 +137,46 @@ bool b = false;'''),
         );
       }
     }
+  }
+
+  Future<void> test_warningRulesCanBeDisabled() async {
+    writeAnalysisOptionsWithPlugin(
+      diagnosticConfiguration: {'no_bools': 'disable'},
+    );
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_warningRulesCanBeDisabled_withOtherPlugins() async {
+    newAnalysisOptionsYamlFile(packagePath, '''
+plugins:
+  no_literals:
+    path: some/path
+    diagnostics:
+      no_bools: disable
+  other_plugin:
+    path: some/other/path
+''');
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_warningsCanBeIgnored_incorrectPlugin() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: other_plugin/no_bools
+bool b = false;
+''');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
   }
 }
 
