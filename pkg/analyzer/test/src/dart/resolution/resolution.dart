@@ -232,10 +232,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
-  void assertTypeNull(Expression node) {
-    expect(node.staticType, isNull);
-  }
-
   Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
       return node.element;
