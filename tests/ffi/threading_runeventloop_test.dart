@@ -61,8 +61,12 @@ int threadMain(Pointer<Void> data) {
   sp.send('greetings!');
 
   // No response is expected until we start running event loop.
-  mutexCondvar.runLocked(() => condVar.wait(mutexCondvar, /*timeout_ms=*/ 100));
-  Expect.isFalse(((1 << i) & greetingsReceived[0]) != 0);
+  int bit = 0;
+  mutexCondvar.runLocked(() {
+    condVar.wait(mutexCondvar, /*timeout_ms=*/ 100);
+    bit = ((1 << i) & greetingsReceived[0]);
+  });
+  Expect.isFalse(bit != 0);
 
   // print('=== running event loop for $new_isolate');
   new_isolate.runEventLoopSync();
@@ -70,8 +74,9 @@ int threadMain(Pointer<Void> data) {
     while (((1 << i) & greetingsReceived[0]) == 0) {
       condVar.wait(mutexCondvar);
     }
+    bit = ((1 << i) & greetingsReceived[0]);
   });
-  Expect.isTrue(((1 << i) & greetingsReceived[0]) != 0);
+  Expect.isTrue(bit != 0);
 
   // print('=== running runSync again');
   new_isolate.runSync(() {

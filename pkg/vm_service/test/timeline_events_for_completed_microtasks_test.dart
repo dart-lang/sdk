@@ -34,9 +34,20 @@ Future<void> testPerfettoVMTimeline(
         mapFromListOfDebugAnnotations(event.debugAnnotations);
     return debugAnnotations['isolateId'] == isolateRef.id;
   });
-  expect(mainIsolateMicrotaskEvents.length, greaterThanOrEqualTo(5));
 
-  for (final event in mainIsolateMicrotaskEvents) {
+  final testMicrotaskEvents = mainIsolateMicrotaskEvents.where((event) {
+    final debugAnnotations =
+        mapFromListOfDebugAnnotations(event.debugAnnotations);
+    final stackTrace =
+        debugAnnotations['stack trace captured when microtask was enqueued'];
+    return stackTrace != null &&
+        stackTrace
+            .contains('timeline_events_for_completed_microtasks_lib.dart');
+  }).toList();
+
+  expect(testMicrotaskEvents.length, greaterThanOrEqualTo(5));
+
+  for (final event in testMicrotaskEvents) {
     final debugAnnotations =
         mapFromListOfDebugAnnotations(event.debugAnnotations);
     expect(debugAnnotations['microtaskId'], isNotNull);

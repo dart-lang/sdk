@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:concurrent';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:isolate';
@@ -57,12 +58,14 @@ Future<String> httpGet(String uri) async {
 }
 
 @pragma('vm:shared')
+final Mutex mutex = Mutex();
+@pragma('vm:shared')
 final counter = Uint8List(1);
 
 Function(Pointer<Utf8>) createServeSender(SendPort sendPort) {
   final sp = sendPort;
   return (Pointer<Utf8> requestPointer) {
-    counter[0]++;
+    mutex.runLocked(() { counter[0]++; });
     final typedList = requestPointer.cast<Uint8>().asTypedList(
           requestPointer.length,
         );
@@ -78,7 +81,9 @@ ReceivePort httpServe(void Function(String) onRequest) {
       createServeSender(rp.sendPort));
   rp.listen(
     (s) {
-      print('httpServe counter: $counter');
+      mutex.runLocked(() {
+        print('httpServe counter: $counter');
+      });
       onRequest(s);
     },
     onError: (e, st) {

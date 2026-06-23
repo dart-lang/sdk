@@ -54,6 +54,36 @@ class SortUnnamedConstructorFirstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.sort_unnamed_constructors_first;
 
+  Future<void> test_keyword_factory() async {
+    await resolveTestCode('''
+class A {
+  A.a();
+  factory() => A.a();
+}
+''');
+    await assertHasFix('''
+class A {
+  factory() => A.a();
+  A.a();
+}
+''');
+  }
+
+  Future<void> test_keyword_new() async {
+    await resolveTestCode('''
+class A {
+  A.a();
+  new();
+}
+''');
+    await assertHasFix('''
+class A {
+  new();
+  A.a();
+}
+''');
+  }
+
   Future<void> test_one_fix() async {
     await resolveTestCode('''
 class A {

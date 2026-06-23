@@ -98,26 +98,36 @@ class FoldingHandler
   /// that another ends (as long as they don't overlap).
   ///
   /// When only line folding is supported, ranges must not end on the same line
-  /// that another starts. In this case, we shrink the previous range (and if
-  /// this makes it a single line, remove it).
+  /// that another starts. In this case, we shrink the previous range until it
+  /// no longer ends on such a line (and if it's no longer multiple lines,
+  /// remove it).
   void _compensateForLineFolding(List<FoldingRange> foldingRanges) {
-    // Loop over items except last (`-1`). We can skip the last item because
-    // it has no next item.
-    for (var i = 0; i < foldingRanges.length - 1; i++) {
+    // Create a set of all lines that start a folding range so we can ensure
+    // nothing ends on one of these lines.
+    var startLines = foldingRanges.map((r) => r.startLine).toSet();
+
+    for (var i = 0; i < foldingRanges.length; i++) {
       var range = foldingRanges[i];
-      var next = foldingRanges[i + 1];
-      // If this item runs into the next but does not enclose it...
-      if (range.endLine >= next.startLine && range.endLine < next.endLine) {
-        // Truncate it to end on the line before.
-        var newEndLine = next.startLine - 1;
+      // No overlap, continue with the next.
+      if (!startLines.contains(range.endLine)) {
+        continue;
+      }
 
-        // If it no longer needs to be a folding range at all, remove it.
-        if (newEndLine <= range.startLine) {
-          foldingRanges.removeAt(i);
-          i--;
-          continue;
-        }
+      // Otherwise, wind back the end line to the first line that doesn't
+      // collide.
+      var newEndLine = range.endLine;
+      while (startLines.contains(newEndLine) &&
+          // Don't go any further if we hit the start line.
+          newEndLine >= range.startLine) {
+        newEndLine--;
+      }
 
+      // If the range is no longer multiple lines, remove it.
+      if (newEndLine <= range.startLine) {
+        foldingRanges.removeAt(i);
+        i--;
+      } else {
+        // Otherwise udpate the range with the new end line.
         foldingRanges[i] = FoldingRange(
           startLine: range.startLine,
           endLine: newEndLine,

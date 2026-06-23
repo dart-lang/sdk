@@ -3970,7 +3970,15 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @override
-  String? get name => _firstFragment.name;
+  String? get name {
+    for (var fragment in fragments) {
+      var name = fragment.name;
+      if (name != null && name != '_') {
+        return name;
+      }
+    }
+    return _firstFragment.name;
+  }
 
   @override
   String get nameShared => _firstFragment.name ?? '';
