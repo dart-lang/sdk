@@ -24,7 +24,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// To be used when an [AnalysisOptionsImpl] needs to be constructed, but with
 /// individually set options, rather than being built from YAML.
 final class AnalysisOptionsBuilder {
-  File? file;
+  final File? file;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
@@ -66,11 +66,11 @@ final class AnalysisOptionsBuilder {
   String? pluginDependencyOverrides;
 
   /// Creates a builder initialized with default options.
-  AnalysisOptionsBuilder();
+  AnalysisOptionsBuilder({this.file});
 
   /// Creates a builder initialized from an existing options object.
-  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options) {
-    file = options.file;
+  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options)
+    : file = options.file {
     contextFeatures = options.contextFeatures;
     nonPackageFeatureSet = options.nonPackageFeatureSet;
     enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
@@ -222,7 +222,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   ///
   /// Optionally pass [file] as the file where the YAML can be found.
   factory AnalysisOptionsImpl({File? file}) {
-    var builder = AnalysisOptionsBuilder()..file = file;
+    var builder = AnalysisOptionsBuilder(file: file);
     return builder.build();
   }
 

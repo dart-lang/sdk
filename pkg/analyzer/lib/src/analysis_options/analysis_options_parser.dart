@@ -2,86 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_yaml.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/source.dart';
-import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:collection/collection.dart';
-import 'package:path/path.dart' as path;
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-_MergedOptionsYamlCache _newMergedOptionsYamlCache() {
-  return CanonicalizedMap(
-    (key) {
-      var (:containingUri, :uri) = key;
-      if (uri.isScheme('package')) return uri;
-      if (uri.isScheme('file') || uri.scheme.isEmpty) {
-        if (uri.isAbsolute) return uri;
-        if (containingUri != null) {
-          return uriCache.resolveRelative(containingUri, uri);
-        }
-      }
-      return uri;
-    },
-    isValidKey: (key) {
-      // We can canonicalize a URI if it is a 'package:' URI (as this is per
-      // SourceFactory), or if it is an absolute 'file:' URI, or if it is a
-      // relative 'file:' URI and we have a "containing" URI which it is
-      // relative to (via `UriCache.resolveRelative`).
-      var (:containingUri, :uri) = key;
-      if (uri.isScheme('package')) return true;
-      if (uri.isScheme('file') || uri.scheme.isEmpty) {
-        return uri.isAbsolute || containingUri != null;
-      }
-      return false;
-    },
-  );
-}
-
-/// Cache of merged analysis-options YAML maps.
-///
-/// Entries are keyed by the URI being resolved and, for relative include URIs,
-/// the containing URI that makes the include unambiguous.
-typedef _MergedOptionsYamlCache = Map<({Uri? containingUri, Uri uri}), YamlMap>;
-
-/// The content of an analysis-options file.
-final class AnalysisOptionsFileContent {
-  /// The file text.
-  final String text;
-
-  /// Line information for [text].
-  final LineInfo lineInfo;
-
-  /// The parsed, unmerged YAML map from [text].
-  ///
-  /// This is `null` if [text] cannot be parsed as YAML, or is not a YAML map.
-  final YamlMap? yamlMap;
-
-  AnalysisOptionsFileContent({
-    required this.text,
-    required this.lineInfo,
-    required this.yamlMap,
-  });
-}
+part 'analysis_options_include_walker.dart';
+part 'analysis_options_parse_model.dart';
+part 'linter_rule_options_validator.dart';
 
 /// The result of parsing an analysis options file at a user-visible boundary.
 ///
@@ -106,562 +57,581 @@ final class AnalysisOptionsParseResult {
   });
 }
 
-/// Parses analysis options during one analysis-options parsing task.
-///
-/// The session owns the separate internal caches needed while parsing still
-/// delegates to the legacy validation and merged-YAML builder paths.
+/// Parses analysis options and owns caches reused by parse requests.
 final class AnalysisOptionsParseSession {
-  final AnalysisOptionsValidationCache _validationCache =
-      AnalysisOptionsValidationCache();
+  /// File contents are independent of [SourceFactory].
+  final Map<File, _FileContent> _fileContents = {};
 
-  final Map<SourceFactory, _MergedOptionsYamlCache> _mergedOptionsYamlCaches =
+  /// Parsed file nodes with resolved includes.
+  ///
+  /// Include resolution depends on [SourceFactory], so the same [File] can have
+  /// more than one file node in this cache.
+  final Map<({SourceFactory sourceFactory, File file}), _FileNode> _fileNodes =
       {};
 
   /// Parses [file] and reports diagnostics for the same file graph.
   ///
   /// This is the production boundary for callers that need the effective
   /// [AnalysisOptionsImpl] and the diagnostics produced while interpreting the
-  /// same initial options file. The implementation still delegates to the
-  /// existing implementation pieces; keeping that delegation behind this
-  /// session lets callers move to the combined contract before the internal
-  /// include walks are collapsed.
+  /// same initial options file.
   AnalysisOptionsParseResult parse({
     required SourceFactory sourceFactory,
     required Folder contextRoot,
     required File file,
     VersionConstraint? sdkVersionConstraint,
   }) {
-    AnalysisOptionsFileContent? content;
-    try {
-      var text = file.readAsStringSync();
-      content = AnalysisOptionsFileContent(
-        text: text,
-        lineInfo: LineInfo.fromContent(text),
-        yamlMap: _parseYamlMap(text, sourceUrl: file.toUri()),
-      );
-    } catch (_) {}
+    return _ParseRequest(
+      session: this,
+      sourceFactory: sourceFactory,
+      contextRoot: contextRoot,
+      sdkVersionConstraint: sdkVersionConstraint,
+    ).parse(file);
+  }
 
-    var diagnostics = const <Diagnostic>[];
-    if (content != null) {
-      try {
-        // ignore: deprecated_member_use_from_same_package
-        diagnostics = AnalysisOptionsValidator(
-          sourceFactory: sourceFactory,
-          contextRoot: contextRoot,
-          sdkVersionConstraint: sdkVersionConstraint,
-          validationCache: _validationCache,
-        ).validate(file: file, content: content.text);
-      } catch (_) {
-        // Preserve best-effort behavior while clients migrate to the combined
-        // parser API.
+  _FileContent _fileContentFor(File file) {
+    if (_fileContents[file] case var result?) {
+      return result;
+    }
+
+    String text;
+    try {
+      text = file.readAsStringSync();
+    } on FileSystemException catch (exception) {
+      return _fileContents[file] = _UnreadableFileContent(
+        file: file,
+        exception: exception,
+      );
+    }
+
+    var lineInfo = LineInfo.fromContent(text);
+    YamlNode yaml;
+    try {
+      yaml = loadYamlNode(text);
+    } on YamlException catch (e) {
+      return _fileContents[file] = _MalformedYamlFileContent(
+        file: file,
+        content: AnalysisOptionsFileContent(
+          text: text,
+          lineInfo: lineInfo,
+          yaml: null,
+        ),
+        failure: _FileParseFailure(message: e.message, span: e.span),
+      );
+    }
+
+    return _fileContents[file] = _ParsedYamlFileContent(
+      file: file,
+      content: AnalysisOptionsFileContent(
+        text: text,
+        lineInfo: lineInfo,
+        yaml: yaml,
+      ),
+    );
+  }
+}
+
+/// Mutable state used while applying the parsed include graph to options.
+final class _ApplyState {
+  final AnalysisOptionsBuilder builder;
+  final Map<String, RuleConfig> _linterRuleConfigs = {};
+
+  bool _hasLinterSection = false;
+  YamlNode? _legacyPluginsNode;
+
+  _ApplyState(File file) : builder = AnalysisOptionsBuilder(file: file);
+
+  void apply(_ParsedFileData fileData) {
+    _applyAnalyzer(fileData.analyzer);
+    _applyCodeStyle(fileData.codeStyle);
+    _applyFormatter(fileData.formatter);
+    _applyPlugins(fileData.plugins);
+    _applyLegacyPlugins(fileData.analyzer.legacyPlugins);
+    _applyLinterSection(fileData.linter);
+  }
+
+  AnalysisOptionsImpl build() {
+    if (_hasLinterSection) {
+      var lintRules = Registry.ruleRegistry.enabled(_linterRuleConfigs);
+      if (lintRules.isNotEmpty) {
+        builder.lint = true;
+        builder.lintRules = lintRules.toList();
       }
     }
 
+    return builder.build();
+  }
+
+  void _applyAnalyzer(_ParsedAnalyzerData analyzer) {
+    _applyEnableExperiments(analyzer.enableExperiments);
+    _applyErrorProcessors(analyzer.errorProcessors);
+    _applyCannotIgnore(analyzer.cannotIgnore);
+    _applyExcludes(analyzer.excludes);
+    _applyLanguage(analyzer.language);
+    _applyOptionalChecks(analyzer.optionalChecks);
+  }
+
+  void _applyCannotIgnore(_ParsedCannotIgnoreData cannotIgnore) {
+    if (cannotIgnore.names case var names?) {
+      for (var name in names) {
+        if (severityMap[name] case var severity?) {
+          for (var diagnostic in diagnosticCodeValues) {
+            // If the severity of [error] is also changed in this options file,
+            // use the changed severity.
+            var processors = builder.errorProcessors.where(
+              (processor) => processor.code == diagnostic.lowerCaseName,
+            );
+            DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
+                ? processors.first.severity
+                : diagnostic.severity;
+            if (diagnosticSeverity == severity) {
+              builder.unignorableDiagnosticCodeNames.add(
+                diagnostic.lowerCaseName,
+              );
+            }
+          }
+        } else {
+          builder.unignorableDiagnosticCodeNames.add(name.toLowerCase());
+        }
+      }
+    }
+  }
+
+  void _applyCodeStyle(_ParsedCodeStyleData codeStyle) {
+    if (codeStyle.useFormatter case var useFormatter?) {
+      builder.codeStyleOptions = CodeStyleOptionsImpl(
+        useFormatter: useFormatter,
+      );
+    }
+  }
+
+  void _applyEnableExperiments(_ParsedEnableExperimentsData enableExperiments) {
+    if (enableExperiments.flags case var flags?) {
+      builder.contextFeatures =
+          FeatureSet.fromEnableFlags2(
+                sdkLanguageVersion: ExperimentStatus.currentVersion,
+                flags: flags,
+              )
+              as ExperimentStatus;
+      builder.nonPackageFeatureSet = builder.contextFeatures;
+    }
+  }
+
+  void _applyErrorProcessors(_ParsedErrorProcessorsData errorProcessors) {
+    if (errorProcessors.processors case var processors?) {
+      var processorsByCode = {
+        for (var processor in builder.errorProcessors)
+          processor.code: processor,
+      };
+      for (var processor in processors) {
+        processorsByCode[processor.code] = processor;
+      }
+      builder.errorProcessors = processorsByCode.values.toList();
+    }
+  }
+
+  void _applyExcludes(_ParsedExcludesData excludes) {
+    if (excludes.patterns case var patterns?) {
+      for (var pattern in patterns) {
+        if (!builder.excludePatterns.contains(pattern)) {
+          builder.excludePatterns.add(pattern);
+        }
+      }
+    }
+  }
+
+  void _applyFormatter(_ParsedFormatterData formatter) {
+    builder.formatterOptions = FormatterOptions(
+      pageWidth: formatter.pageWidth ?? builder.formatterOptions.pageWidth,
+      trailingCommas:
+          formatter.trailingCommas ?? builder.formatterOptions.trailingCommas,
+    );
+  }
+
+  void _applyLanguage(_ParsedLanguageData language) {
+    if (language.strictCasts case var value?) {
+      builder.strictCasts = value;
+    }
+    if (language.strictInference case var value?) {
+      builder.strictInference = value;
+    }
+    if (language.strictRawTypes case var value?) {
+      builder.strictRawTypes = value;
+    }
+  }
+
+  void _applyLegacyPlugins(_ParsedLegacyPluginsData plugins) {
+    var localNode = plugins.node;
+    if (localNode == null) {
+      return;
+    }
+
+    _legacyPluginsNode = _legacyPluginsNode == null
+        ? localNode
+        : Merger().merge(_legacyPluginsNode!, localNode);
+
+    var pluginName = _ParsedLegacyPluginsData.parse(
+      _legacyPluginsNode,
+    ).firstPluginName;
+    builder.enabledLegacyPluginNames = [?pluginName];
+  }
+
+  void _applyLinterSection(_ParsedLinterData linter) {
+    switch (linter.kind) {
+      case _ParsedLinterDataKind.absent:
+        return;
+      case _ParsedLinterDataKind.invalid:
+        _hasLinterSection = false;
+        _linterRuleConfigs.clear();
+      case _ParsedLinterDataKind.valid:
+        _hasLinterSection = true;
+        _linterRuleConfigs.addAll(linter.ruleConfigs);
+    }
+  }
+
+  void _applyOptionalChecks(_ParsedOptionalChecksData optionalChecks) {
+    if (optionalChecks.chromeOsManifestChecks case var value?) {
+      builder.chromeOsManifestChecks = value;
+    }
+    if (optionalChecks.propagateLinterExceptions case var value?) {
+      builder.propagateLinterExceptions = value;
+    }
+  }
+
+  void _applyPlugins(_ParsedPluginsData plugins) {
+    if (plugins.clearsExisting) {
+      builder.pluginsOptions = PluginsOptions(
+        configurations: [],
+        dependencyOverrides: null,
+      );
+      return;
+    }
+
+    var configurations = {
+      for (var configuration in builder.pluginsOptions.configurations)
+        configuration.name: configuration,
+    };
+    var dependencyOverrides = builder.pluginsOptions.dependencyOverrides == null
+        ? null
+        : Map.of(builder.pluginsOptions.dependencyOverrides!);
+
+    for (var configuration in plugins.configurations) {
+      configurations[configuration.name] = configuration;
+    }
+    if (plugins.dependencyOverrides case var overrides?) {
+      (dependencyOverrides ??= {}).addAll(overrides);
+    }
+
+    builder.pluginsOptions = PluginsOptions(
+      configurations: configurations.values.toList(),
+      dependencyOverrides: dependencyOverrides,
+    );
+  }
+}
+
+/// Request-specific state and operations for one call to [parse].
+final class _ParseRequest {
+  final AnalysisOptionsParseSession session;
+  final SourceFactory sourceFactory;
+  final Folder contextRoot;
+  final VersionConstraint? sdkVersionConstraint;
+  final Map<_ParsedFileNode, _ParsedFileData> fileDataCache = {};
+
+  _ParseRequest({
+    required this.session,
+    required this.sourceFactory,
+    required this.contextRoot,
+    required this.sdkVersionConstraint,
+  });
+
+  AnalysisOptionsParseResult parse(File file) {
+    var initialFileNode = _fileNodeFor(file: file);
+
+    var diagnostics = const <Diagnostic>[];
+    switch (initialFileNode) {
+      case _ParsedFileNode():
+        diagnostics = _diagnosticsForParsedFileNode(file: initialFileNode);
+      case _MalformedYamlFileNode(:var failure):
+        diagnostics = _diagnosticsForMalformedFile(
+          file: file,
+          failure: failure,
+        );
+      case _UnreadableFileNode():
+        break;
+    }
+
     AnalysisOptionsImpl analysisOptions;
-    try {
-      var mergedOptionsYaml = _MergedOptionsYamlBuilder(
-        sourceFactory: sourceFactory,
-        pathContext: file.provider.pathContext,
-        cache: _mergedOptionsYamlCacheFor(sourceFactory),
-      ).getOptionsFromFile(file);
-      analysisOptions = _AnalysisOptionsYamlApplier(
-        file: file,
-        optionsMap: mergedOptionsYaml,
-      ).build();
-    } catch (_) {
+    if (initialFileNode case _ParsedFileNode initialParsedFileNode) {
+      var applyState = _ApplyState(initialParsedFileNode.file);
+      _applyParsedFiles(
+        applyState: applyState,
+        file: initialParsedFileNode,
+        isInitialFile: true,
+        handled: {},
+      );
+      analysisOptions = applyState.build();
+    } else {
       analysisOptions = AnalysisOptionsImpl(file: file);
     }
 
     return AnalysisOptionsParseResult(
       file: file,
-      content: content,
+      content: initialFileNode.content,
       analysisOptions: analysisOptions,
       diagnostics: diagnostics,
     );
   }
 
-  _MergedOptionsYamlCache _mergedOptionsYamlCacheFor(
-    SourceFactory sourceFactory,
-  ) {
-    return _mergedOptionsYamlCaches.putIfAbsent(
-      sourceFactory,
-      _newMergedOptionsYamlCache,
-    );
-  }
-
-  YamlMap? _parseYamlMap(String content, {required Uri sourceUrl}) {
-    try {
-      var node = loadYamlNode(content, sourceUrl: sourceUrl);
-      return node.tryCast<YamlMap>();
-    } on YamlException {
-      return null;
-    }
-  }
-}
-
-/// Applies merged YAML to the runtime analysis options object.
-///
-/// Validation owns user-facing diagnostics. This class keeps the tolerant
-/// YAML-to-runtime mapping private to the parser entry point.
-final class _AnalysisOptionsYamlApplier {
-  final File file;
-  final YamlMap optionsMap;
-  final AnalysisOptionsBuilder builder;
-
-  _AnalysisOptionsYamlApplier({required this.file, required this.optionsMap})
-    : builder = AnalysisOptionsBuilder()..file = file;
-
-  AnalysisOptionsImpl build() {
-    var analyzer = optionsMap.valueAt(AnalysisOptionsFileKeys.analyzer);
-    if (analyzer is YamlMap) {
-      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
-      builder.errorProcessors = ErrorConfig(filters).processors;
-
-      var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFileKeys.enableExperiment,
-      );
-      if (experimentNames is YamlList) {
-        var enabledExperiments = <String>[];
-        for (var element in experimentNames.nodes) {
-          var experimentName = element.stringValue;
-          if (experimentName != null) {
-            enabledExperiments.add(experimentName);
-          }
-        }
-        builder.contextFeatures =
-            FeatureSet.fromEnableFlags2(
-                  sdkLanguageVersion: ExperimentStatus.currentVersion,
-                  flags: enabledExperiments,
-                )
-                as ExperimentStatus;
-        builder.nonPackageFeatureSet = builder.contextFeatures;
-      }
-
-      _applyOptionalChecks(
-        analyzer.valueAt(AnalysisOptionsFileKeys.optionalChecks),
-      );
-      _applyLanguageOptions(analyzer.valueAt(AnalysisOptionsFileKeys.language));
-      _applyExcludes(analyzer.valueAt(AnalysisOptionsFileKeys.exclude));
-      _applyUnignorables(
-        analyzer.valueAt(AnalysisOptionsFileKeys.cannotIgnore),
-      );
-      _applyLegacyPlugins(analyzer.valueAt(AnalysisOptionsFileKeys.plugins));
-    }
-
-    _applyFormatterOptions(
-      optionsMap.valueAt(AnalysisOptionsFileKeys.formatter),
-    );
-    _applyPluginsOptions(optionsMap.valueAt(AnalysisOptionsFileKeys.plugins));
-
-    var ruleConfigs = parseLinterSection(optionsMap);
-    if (ruleConfigs != null) {
-      var enabledRules = Registry.ruleRegistry.enabled(ruleConfigs);
-      if (enabledRules.isNotEmpty) {
-        builder.lint = true;
-        builder.lintRules = enabledRules.toList();
-      }
-    }
-
-    _applyCodeStyleOptions(
-      optionsMap.valueAt(AnalysisOptionsFileKeys.codeStyle),
-    );
-
-    return builder.build();
-  }
-
-  void _applyCodeStyleOptions(YamlNode? codeStyle) {
-    var useFormatter = false;
-    if (codeStyle is YamlMap) {
-      var formatNode = codeStyle.valueAt(AnalysisOptionsFileKeys.format);
-      if (formatNode is YamlScalar) {
-        var formatValue = formatNode.toBool();
-        if (formatValue is bool) {
-          useFormatter = formatValue;
-        }
-      }
-    }
-    builder.codeStyleOptions = CodeStyleOptionsImpl(useFormatter: useFormatter);
-  }
-
-  void _applyExcludes(YamlNode? excludes) {
-    if (excludes is YamlList) {
-      // TODO(srawlins): Report non-String items.
-      builder.excludePatterns.addAll(excludes.whereType<String>());
-    }
-    // TODO(srawlins): Report non-List with
-    // AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
-  }
-
-  void _applyFormatterOptions(YamlNode? formatter) {
-    int? pageWidth;
-    TrailingCommas? trailingCommas;
-    if (formatter is YamlMap) {
-      var pageWidthNode = formatter.valueAt(AnalysisOptionsFileKeys.pageWidth);
-      var pageWidthValue = pageWidthNode?.value;
-      if (pageWidthValue is int && pageWidthValue > 0) {
-        pageWidth = pageWidthValue;
-      }
-
-      var trailingCommasNode = formatter.valueAt(
-        AnalysisOptionsFileKeys.trailingCommas,
-      );
-      var trailingCommasValue = trailingCommasNode?.value;
-      trailingCommas = TrailingCommas.values.firstWhereOrNull(
-        (item) => item.name == trailingCommasValue,
-      );
-    }
-    builder.formatterOptions = FormatterOptions(
-      pageWidth: pageWidth,
-      trailingCommas: trailingCommas,
-    );
-  }
-
-  void _applyLanguageOptions(YamlNode? configs) {
-    if (configs is! YamlMap) {
-      return;
-    }
-
-    configs.nodes.forEach((key, value) {
-      if (key is! YamlScalar || value is! YamlScalar) {
-        return;
-      }
-      var feature = key.value?.toString();
-      var boolValue = value.boolValue;
-      if (boolValue == null) {
-        return;
-      }
-
-      switch (feature) {
-        case AnalysisOptionsFileKeys.strictCasts:
-          builder.strictCasts = boolValue;
-        case AnalysisOptionsFileKeys.strictInference:
-          builder.strictInference = boolValue;
-        case AnalysisOptionsFileKeys.strictRawTypes:
-          builder.strictRawTypes = boolValue;
-      }
-    });
-  }
-
-  void _applyLegacyPlugins(YamlNode? plugins) {
-    var pluginName = plugins.stringValue;
-    if (pluginName != null) {
-      builder.enabledLegacyPluginNames = [pluginName];
-    } else if (plugins is YamlList) {
-      for (var element in plugins.nodes) {
-        var pluginName = element.stringValue;
-        if (pluginName != null) {
-          // Only the first legacy plugin is supported.
-          builder.enabledLegacyPluginNames = [pluginName];
-          return;
-        }
-      }
-    } else if (plugins is YamlMap) {
-      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
-        var pluginName = key.stringValue;
-        if (pluginName != null) {
-          // Only the first legacy plugin is supported.
-          builder.enabledLegacyPluginNames = [pluginName];
-          return;
-        }
-      }
-    }
-  }
-
-  void _applyOptionalChecks(YamlNode? config) {
-    switch (config) {
-      case YamlMap():
-        for (var MapEntry(:key, :value) in config.nodes.entries) {
-          if (key is YamlScalar && value is YamlScalar) {
-            if (value.boolValue case var boolValue?) {
-              switch ('${key.value}') {
-                case AnalysisOptionsFileKeys.chromeOsManifestChecks:
-                  builder.chromeOsManifestChecks = boolValue;
-                case AnalysisOptionsFileKeys.propagateLinterExceptions:
-                  builder.propagateLinterExceptions = boolValue;
-              }
-            }
-          }
-        }
-      case YamlScalar():
-        switch ('${config.value}') {
-          case AnalysisOptionsFileKeys.chromeOsManifestChecks:
-            builder.chromeOsManifestChecks = true;
-          case AnalysisOptionsFileKeys.propagateLinterExceptions:
-            builder.propagateLinterExceptions = true;
-        }
-    }
-  }
-
-  void _applyPluginsOptions(YamlNode? plugins) {
-    if (plugins is! YamlMap) {
-      return;
-    }
-
-    var configurations = <PluginConfiguration>[];
-    Map<String, PluginSource>? dependencyOverrides;
-
-    plugins.nodes.forEach((nameNode, pluginNode) {
-      if (nameNode is! YamlScalar) {
-        return;
-      }
-
-      var pluginName = nameNode.toString();
-      if (pluginName == AnalysisOptionsFileKeys.dependencyOverrides) {
-        // This is a magic key; not the name of a plugin.
-        if (pluginNode is! YamlMap) return;
-        pluginNode.nodes.forEach((nameNode, dependencyOverride) {
-          if (nameNode is! YamlScalar) {
-            return;
-          }
-          var source = _getSource(dependencyOverride);
-          if (source == null) return;
-          (dependencyOverrides ??= {})[nameNode.toString()] = source;
-        });
-
-        return;
-      }
-
-      var source = _getSource(pluginNode);
-      if (source == null) return;
-
-      if (pluginNode is! YamlMap) {
-        configurations.add(
-          PluginConfiguration(name: pluginName, source: source),
-        );
-        return;
-      }
-
-      var diagnostics = pluginNode.valueAt(AnalysisOptionsFileKeys.diagnostics);
-      var diagnosticConfigurations = diagnostics == null
-          ? const <String, RuleConfig>{}
-          : parseDiagnosticsSection(diagnostics);
-
-      configurations.add(
-        PluginConfiguration(
-          name: pluginName,
-          source: source,
-          diagnosticConfigs: diagnosticConfigurations,
-          // TODO(srawlins): Implement `enabled: false`.
-        ),
-      );
-    });
-
-    builder.pluginsOptions = PluginsOptions(
-      configurations: configurations,
-      dependencyOverrides: dependencyOverrides,
-    );
-  }
-
-  void _applyUnignorables(YamlNode? cannotIgnore) {
-    if (cannotIgnore is! YamlList) {
-      return;
-    }
-    for (var entry in cannotIgnore) {
-      if (entry is! String) continue;
-      if (severityMap[entry] case var severity?) {
-        for (var diagnostic in diagnosticCodeValues) {
-          // If the severity of [error] is also changed in this options file,
-          // use the changed severity.
-          var processors = builder.errorProcessors.where(
-            (processor) => processor.code == diagnostic.lowerCaseName,
-          );
-          DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
-              ? processors.first.severity
-              : diagnostic.severity;
-          if (diagnosticSeverity == severity) {
-            builder.unignorableDiagnosticCodeNames.add(
-              diagnostic.lowerCaseName,
+  void _applyParsedFiles({
+    required _ApplyState applyState,
+    required _ParsedFileNode file,
+    required bool isInitialFile,
+    required Set<File> handled,
+  }) {
+    for (var include in file.includeResolutions) {
+      switch (include) {
+        case _MissingInclude() || _MalformedInclude():
+          break;
+        case _ParsedInclude(file: var includedFile):
+          if (handled.add(includedFile.file)) {
+            _applyParsedFiles(
+              applyState: applyState,
+              file: includedFile,
+              isInitialFile: false,
+              handled: handled,
             );
           }
-        }
-      } else {
-        builder.unignorableDiagnosticCodeNames.add(entry.toLowerCase());
-      }
-    }
-  }
-
-  PluginSource? _getSource(YamlNode pluginNode) {
-    if (pluginNode case YamlScalar(:String value)) {
-      return VersionedPluginSource(constraint: value);
-    }
-
-    if (pluginNode is! YamlMap) {
-      return null;
-    }
-
-    // Grab either the source value from 'version', 'git', or 'path'. In the
-    // erroneous case that multiple are specified, just take the first. A
-    // warning should be reported by the analysis-options validation path.
-    // TODO(srawlins): In addition to 'version' and 'path', try 'git'.
-    var versionSource = pluginNode.valueAt(AnalysisOptionsFileKeys.version);
-    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFileKeys.hosted);
-
-    if ((versionSource, hostedUrlSource) case (
-      YamlScalar(value: String version),
-      YamlScalar(value: String hostedUrl),
-    )) {
-      return VersionedPluginSource(constraint: version, hostedUrl: hostedUrl);
-    } else if (versionSource case YamlScalar(value: String version)) {
-      return VersionedPluginSource(constraint: version);
-    }
-
-    var gitSource = pluginNode.valueAt(AnalysisOptionsFileKeys.git);
-    if (gitSource case YamlScalar(:String value)) {
-      return GitPluginSource(url: value);
-    } else if (gitSource is YamlMap) {
-      var urlSource = gitSource.valueAt(AnalysisOptionsFileKeys.url);
-      if (urlSource case YamlScalar(:String value)) {
-        return GitPluginSource(
-          url: value,
-          path: gitSource.valueAt(AnalysisOptionsFileKeys.path).stringValue,
-          ref: gitSource.valueAt(AnalysisOptionsFileKeys.ref).stringValue,
-          tagPattern: gitSource
-              .valueAt(AnalysisOptionsFileKeys.tagPattern)
-              .stringValue,
-        );
       }
     }
 
-    var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
-    if (pathSource case YamlScalar(value: String pathValue)) {
-      var pathContext = file.provider.pathContext;
-      if (pathContext.isRelative(pathValue)) {
-        // The plugin source is later used in a synthetic pub package, so store
-        // an absolute path before the source leaves analysis-options parsing.
-        pathValue = pathContext.join(file.parent.path, pathValue);
-        pathValue = pathContext.normalize(pathValue);
-      }
-      return PathPluginSource(path: pathValue);
-    }
-    return null;
-  }
-}
-
-/// Builds the effective YAML map used to create [AnalysisOptionsImpl].
-///
-/// This is intentionally private to [AnalysisOptionsParseSession]. It preserves
-/// the legacy merge semantics while keeping callers on the combined
-/// parse-and-validate API.
-final class _MergedOptionsYamlBuilder {
-  final SourceFactory sourceFactory;
-  final path.Context pathContext;
-  final _MergedOptionsYamlCache cache;
-
-  _MergedOptionsYamlBuilder({
-    required this.sourceFactory,
-    required this.pathContext,
-    required this.cache,
-  });
-
-  YamlMap getOptionsFromFile(File file) {
-    return _getOptionsFromSource(FileSource(file), handled: {});
+    var data = _parsedFileDataFor(file: file, isInitialFile: isInitialFile);
+    applyState.apply(data);
   }
 
-  YamlMap _getOptionsFromSource(Source source, {required Set<Source> handled}) {
-    if (cache[(containingUri: null, uri: source.uri)] case var cached?) {
-      return cached;
-    }
-
-    YamlMap options;
-    try {
-      options = parseAnalysisOptionsYaml(
-        source.stringContents,
-        sourceUrl: source.uri,
-      );
-    } on Exception {
-      // A YAML-parsing exception is reported by the validation path.
-      return YamlMap();
-    }
-
-    var includeValue = options.valueAt(AnalysisOptionsFileKeys.include);
-    var includes = switch (includeValue) {
-      YamlScalar(:String value) => [value],
-      YamlList() =>
-        includeValue.nodes
-            .whereType<YamlScalar>()
-            .map((e) => e.value)
-            .whereType<String>()
-            .toList(),
-      _ => <String>[],
-    };
-
-    var includeOptions = includes.fold(YamlMap(), (currentOptions, uriString) {
-      var uri = uriCache.parse(uriString);
-      YamlMap includedOptions;
-      if (cache[(containingUri: source.uri, uri: uri)] case var cached?) {
-        includedOptions = cached;
-      } else {
-        var includeSource = sourceFactory.resolveUri(source, uriString);
-        if (includeSource == null || !handled.add(includeSource)) {
-          return currentOptions;
-        }
-
-        includedOptions = _getOptionsFromSource(
-          includeSource,
-          handled: handled,
-        );
-
-        includedOptions = _rewriteRelativePaths(
-          includedOptions,
-          pathContext.dirname(includeSource.fullName),
-        );
-        cache[(containingUri: source.uri, uri: uri)] = includedOptions;
-      }
-      return _merge(currentOptions, includedOptions);
-    });
-
-    options = _merge(includeOptions, options);
-    cache[(containingUri: null, uri: source.uri)] = options;
-    return options;
-  }
-
-  YamlMap _merge(YamlMap defaults, YamlMap overrides) {
-    return Merger().mergeMap(defaults, overrides);
-  }
-
-  /// Rewrites relative paths in semantic locations whose meaning depends on the
-  /// file where they were declared.
-  YamlMap _rewriteRelativePaths(YamlMap options, String directory) {
-    var pluginsSection = options.valueAt(AnalysisOptionsFileKeys.plugins);
-    if (pluginsSection is! YamlMap) {
-      return options;
-    }
-
-    var plugins = <String, Object>{};
-    pluginsSection.nodes.forEach((key, value) {
-      if (key is YamlScalar && value is YamlMap) {
-        var pathValue = value.valueAt(AnalysisOptionsFileKeys.path)?.value;
-        if (pathValue is String) {
-          if (pathContext.isRelative(pathValue)) {
-            // The plugin source is later used in a synthetic pub package, so
-            // it must no longer depend on the included file's location.
-            pathValue = pathContext.join(directory, pathValue);
-            pathValue = pathContext.normalize(pathValue);
-          }
-
-          plugins[key.value as String] = {
-            AnalysisOptionsFileKeys.path: pathValue,
-          };
-        }
-      }
-    });
-    return _merge(
-      options,
-      YamlMap.wrap({AnalysisOptionsFileKeys.plugins: plugins}),
+  List<Diagnostic> _diagnosticsForMalformedFile({
+    required File file,
+    required _FileParseFailure failure,
+  }) {
+    var diagnosticListener = RecordingDiagnosticListener();
+    var diagnosticReporter = DiagnosticReporter(
+      diagnosticListener,
+      FileSource(file),
     );
+    if (failure.span case var span?) {
+      diagnosticReporter.report(
+        diag.parseError
+            .withArguments(errorMessage: failure.message)
+            .atSourceSpan(span),
+      );
+    }
+    return diagnosticListener.diagnostics;
+  }
+
+  List<Diagnostic> _diagnosticsForParsedFileNode({
+    required _ParsedFileNode file,
+  }) {
+    var diagnosticListener = RecordingDiagnosticListener();
+    var diagnosticReporter = DiagnosticReporter(
+      diagnosticListener,
+      FileSource(file.file),
+    );
+
+    _ParsedFileSemantics computeFileSemantics(
+      _ParsedFileNode fileNode, {
+      required bool isInitialFile,
+      required Set<File> includeChainFiles,
+    }) {
+      return _fileSemanticsFor(
+        file: fileNode,
+        isInitialFile: isInitialFile,
+        includeChainFiles: includeChainFiles,
+      );
+    }
+
+    return _AnalysisOptionsIncludeWalker(
+      initialDiagnosticListener: diagnosticListener,
+      initialDiagnosticReporter: diagnosticReporter,
+      initialParsedFileNode: file,
+      contextRoot: contextRoot,
+      fileSemantics: computeFileSemantics,
+    ).walk();
+  }
+
+  _FileNode _fileNodeFor({required File file}) {
+    var key = (sourceFactory: sourceFactory, file: file);
+    if (session._fileNodes[key] case var result?) {
+      return result;
+    }
+
+    var content = session._fileContentFor(file);
+    switch (content) {
+      case _ParsedYamlFileContent():
+        var result = _ParsedFileNode(file: file, content: content.content);
+        session._fileNodes[key] = result;
+
+        result.includeResolutions = _resolvedIncludesFor(
+          parsedFileNode: result,
+        );
+        return result;
+      case _MalformedYamlFileContent():
+        return session._fileNodes[key] = _MalformedYamlFileNode(
+          file: file,
+          content: content.content,
+          failure: content.failure,
+        );
+      case _UnreadableFileContent():
+        return session._fileNodes[key] = _UnreadableFileNode(
+          file: file,
+          exception: content.exception,
+        );
+    }
+  }
+
+  _ParsedFileSemantics _fileSemanticsFor({
+    required _ParsedFileNode file,
+    required bool isInitialFile,
+    required Set<File> includeChainFiles,
+  }) {
+    var initialFile = file.file;
+
+    _ParsedFileSemantics compute({
+      required _ParsedFileNode file,
+      required bool isInitialFile,
+      required Set<File> includeChainFiles,
+    }) {
+      var localData = _parsedFileDataFor(
+        file: file,
+        isInitialFile: isInitialFile,
+      );
+
+      var nextIncludeChainFiles = {...includeChainFiles, file.file};
+      var includedLinterRules = <_IncludedLinterRules>[];
+      YamlNode? includedLegacyPluginsNode;
+      for (var include in file.includeResolutions) {
+        switch (include) {
+          case _MissingInclude() || _MalformedInclude():
+            break;
+          case _ParsedInclude(file: var includedParsedFile):
+            var includedFile = includedParsedFile.file;
+            if (includedFile == initialFile ||
+                includeChainFiles.contains(includedFile)) {
+              break;
+            }
+
+            var includedSemantics = compute(
+              file: includedParsedFile,
+              isInitialFile: false,
+              includeChainFiles: nextIncludeChainFiles,
+            );
+            includedLinterRules.add(
+              _IncludedLinterRules(
+                includeNode: include.include.node,
+                rules: includedSemantics.effectiveLinterRules,
+              ),
+            );
+            var includedNode = includedSemantics.effectiveLegacyPluginsNode;
+            if (includedNode != null) {
+              includedLegacyPluginsNode = includedLegacyPluginsNode == null
+                  ? includedNode
+                  : Merger().merge(includedLegacyPluginsNode, includedNode);
+            }
+        }
+      }
+
+      var includedEffectiveLinterRules = _mergeIncludedLinterRules(
+        includedLinterRules,
+      );
+      var effectiveLinterRules = includedEffectiveLinterRules.copy()
+        ..applyLocal(localData.localLinterRules);
+
+      return _ParsedFileSemantics(
+        localData: localData,
+        includedLinterRules: includedLinterRules,
+        includedEffectiveLinterRules: includedEffectiveLinterRules,
+        effectiveLinterRules: effectiveLinterRules,
+        includedLegacyPluginsNode: includedLegacyPluginsNode,
+      );
+    }
+
+    return compute(
+      file: file,
+      isInitialFile: isInitialFile,
+      includeChainFiles: includeChainFiles,
+    );
+  }
+
+  _EffectiveLinterRules _mergeIncludedLinterRules(
+    List<_IncludedLinterRules> includedRules,
+  ) {
+    var result = _EffectiveLinterRules();
+    for (var included in includedRules) {
+      result.apply(included.rules);
+    }
+    return result;
+  }
+
+  _ParsedFileData _parsedFileDataFor({
+    required _ParsedFileNode file,
+    required bool isInitialFile,
+  }) {
+    return fileDataCache.putIfAbsent(
+      file,
+      () => _ParsedFileData.parse(
+        file,
+        contextRoot: contextRoot,
+        sdkVersionConstraint: sdkVersionConstraint,
+        isInitialFile: isInitialFile,
+      ),
+    );
+  }
+
+  List<_IncludeResolution> _resolvedIncludesFor({
+    required _ParsedFileNode parsedFileNode,
+  }) {
+    List<_IncludeDirective> includeNodes(YamlMap? yamlMap) {
+      var includeNode = yamlMap?.valueAt(AnalysisOptionsFileKeys.include);
+      return switch (includeNode) {
+        YamlScalar(value: String uri) => [
+          _IncludeDirective(node: includeNode, uri: uri),
+        ],
+        YamlList(:var nodes) => [
+          for (var node in nodes.whereType<YamlScalar>())
+            if (node.value case String uri)
+              _IncludeDirective(node: node, uri: uri),
+        ],
+        _ => const <_IncludeDirective>[],
+      };
+    }
+
+    _IncludeResolution resolveInclude(_IncludeDirective include) {
+      var includeSource = sourceFactory.resolveUri(
+        FileSource(parsedFileNode.file),
+        include.uri,
+      );
+      if (includeSource is! FileSource) {
+        return _MissingInclude(include: include);
+      }
+
+      var includedFile = includeSource.file;
+      var includedFileNode = _fileNodeFor(file: includedFile);
+      switch (includedFileNode) {
+        case _ParsedFileNode():
+          return _ParsedInclude(include: include, file: includedFileNode);
+        case _MalformedYamlFileNode():
+          return _MalformedInclude(include: include, file: includedFileNode);
+        case _UnreadableFileNode():
+          return _MissingInclude(include: include);
+      }
+    }
+
+    var yamlMap = parsedFileNode.content.yaml.tryCast<YamlMap>();
+    return [for (var include in includeNodes(yamlMap)) resolveInclude(include)];
   }
 }
 
 extension on YamlNode? {
-  bool? get boolValue {
+  bool get isNullScalar {
     var self = this;
-    if (self is YamlScalar) {
-      var value = self.value;
-      if (value is bool) {
-        return value;
-      }
-    }
-    return null;
+    return self is YamlScalar && self.value == null;
   }
 
   String? get stringValue {
