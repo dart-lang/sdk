@@ -47,6 +47,68 @@ analyzer:
     assertSuggestion('${AnalysisOptionsFileKeys.enableExperiment}:');
   }
 
+  void test_analyzer_afterInner() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+  ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  // 4-space indent equivalents — sub-keys at col 4, list items at col 8.
+
+  void test_analyzer_afterInner_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+    ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  void test_analyzer_afterInner_4spaces_incorrectIndent_1() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+  ^
+''');
+    assertSuggestion('formatter: ');
+  }
+
+  void test_analyzer_afterInner_4spaces_incorrectIndent_2() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+      ^
+''');
+    assertSuggestion('errors: ');
+  }
+
+  void test_analyzer_afterInner_incorrectIndent_1() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+ ^
+''');
+    assertSuggestion('formatter: ');
+  }
+
+  void test_analyzer_afterInner_incorrectIndent_2() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+   ^
+''');
+    assertSuggestion('errors: ');
+  }
+
   void test_analyzer_enableExperiment() {
     getCompletions('''
 analyzer:
@@ -510,10 +572,7 @@ plugins:
     assertSuggestion('${AnalysisOptionsFileKeys.hosted}: ');
   }
 
-  @failingTest
   void test_topLevel_afterOtherKeys() {
-    // This test fails because the cursor is considered to be inside the exclude
-    // list, and we don't suggest values there.
     getCompletions('''
 analyzer:
   exclude:
@@ -523,17 +582,54 @@ analyzer:
     assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
   }
 
-  @failingTest
+  void test_topLevel_afterOtherKeys_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
+  }
+
   void test_topLevel_afterOtherKeys_partial() {
-    // This test fails because the YAML parser can't recover from this kind of
-    // invalid input.
     getCompletions('''
 analyzer:
   exclude:
     - '*.g.dart'
 li^
 ''');
-    assertSuggestion('linter');
+    assertSuggestion('linter: ');
+  }
+
+  void test_topLevel_afterOtherKeys_partial_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+li^
+''');
+    assertSuggestion('linter: ');
+  }
+
+  void test_topLevel_notSuggestExisting() {
+    getCompletions('''
+analyzer:
+  exclude:
+    - '*.g.dart'
+^
+''');
+    assertNoSuggestion('analyzer: ');
+  }
+
+  void test_topLevel_notSuggestExisting_4spaces() {
+    getCompletions('''
+analyzer:
+    exclude:
+        - '*.g.dart'
+^
+''');
+    assertNoSuggestion('analyzer: ');
   }
 }
 

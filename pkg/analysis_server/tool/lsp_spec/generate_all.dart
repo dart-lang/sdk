@@ -87,6 +87,8 @@ licenseComment = LineSplitter.split(File(localLicensePath).readAsStringSync())
 final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
 final String localSpecPath =
     '$languageServerProtocolPackagePath/lsp_meta_model.json';
+final String lspPackageReadmePath =
+    '$languageServerProtocolPackagePath/README.md';
 
 final String sdkRootPath = File(
   Platform.script.toFilePath(),
@@ -109,6 +111,17 @@ Future<void> downloadSpec() async {
   assert(specResp.statusCode == 200);
   assert(licenseResp.statusCode == 200);
 
+  await File(lspPackageReadmePath).writeAsString('''
+The language server protocol
+
+The contents of LICENSE is downloaded from:
+
+$specLicenseUri
+
+The file lsp_meta_model.json is downloaded from:
+
+$specUri
+''');
   var dartSdkLicense = await File('$sdkRootPath/LICENSE').readAsString();
   await File(localSpecPath).writeAsString(specResp.body);
   await File(localLicensePath).writeAsString('''
