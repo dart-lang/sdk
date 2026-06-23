@@ -147,21 +147,36 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
         );
         // Add explicit fields and add a new constructor.
         if (constructorOffset == fieldOffset) {
+          var codeStyleOptions = getCodeStyleOptions(unitResult.file);
           builder.addInsertion(constructorOffset, (builder) {
             if (needsSemicolon) {
               builder.write(';');
             }
-            _writeImplicitlyDeclaredFields(
-              builder: builder,
-              parameterList: parameterList,
-              needsBlankLine: fieldOffset != leftBracket.end,
-            );
-            _writeFullInBodyConstructor(
-              builder,
-              declaration,
-              referencingFields,
-              body,
-            );
+            if (codeStyleOptions.sortConstructorsFirst) {
+              _writeFullInBodyConstructor(
+                builder,
+                declaration,
+                referencingFields,
+                body,
+              );
+              _writeImplicitlyDeclaredFields(
+                builder: builder,
+                parameterList: parameterList,
+                needsBlankLine: fieldOffset != leftBracket.end,
+              );
+            } else {
+              _writeImplicitlyDeclaredFields(
+                builder: builder,
+                parameterList: parameterList,
+                needsBlankLine: fieldOffset != leftBracket.end,
+              );
+              _writeFullInBodyConstructor(
+                builder,
+                declaration,
+                referencingFields,
+                body,
+              );
+            }
             if (members.isNotEmpty || leftBracket.end == rightBracket.offset) {
               builder.writeln();
             }
@@ -309,6 +324,14 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
                 (m) =>
                     (m is ConstructorDeclaration && m.name == null) ||
                     m is FieldDeclaration,
+              )
+              ?.end ??
+          defaultOffset;
+    }
+    if (!isUnnamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+      return members
+              .lastWhereOrNull(
+                (m) => m is ConstructorDeclaration && m.name == null,
               )
               ?.end ??
           defaultOffset;

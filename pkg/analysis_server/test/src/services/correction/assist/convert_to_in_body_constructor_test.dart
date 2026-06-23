@@ -519,9 +519,9 @@ class C^(var int x) {
 ''');
     await assertHasAssist('''
 class C {
+  new(this.x);
   int x;
 
-  new(this.x);
 
   void m() {}
 }
@@ -539,9 +539,9 @@ class C.n^amed(int x) {
 ''');
     await assertHasAssist('''
 class C {
-  new named(int x);
-
   new() : this.named(0);
+
+  new named(int x);
 }
 ''');
   }
