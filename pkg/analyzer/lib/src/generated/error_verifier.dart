@@ -6526,8 +6526,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonRedirectingGenerativeConstructorWithPrimary(
-    ConstructorDeclaration node,
+    ConstructorDeclarationImpl node,
   ) {
+    var fragment = node.declaredFragment!;
+    if (fragment.isAugmentation) return;
+
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null ||
         enclosingClass is ExtensionTypeElement ||
@@ -6535,10 +6538,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (node.factoryKeyword != null ||
-        node.initializers.any((i) => i is RedirectingConstructorInvocation)) {
-      return;
-    }
+    var element = fragment.element;
+    if (element.isFactory) return;
+    if (element.isRedirecting) return;
 
     diagnosticReporter.report(
       diag.nonRedirectingGenerativeConstructorWithPrimary.atSourceRange(

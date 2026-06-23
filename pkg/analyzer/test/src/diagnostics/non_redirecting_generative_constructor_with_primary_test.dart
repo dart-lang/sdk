@@ -25,6 +25,51 @@ class C(int x) {
 ''');
   }
 
+  test_class_generative_augmentationOfPrimary() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C({int p = 0});
+
+augment class C {
+  augment C({int p});
+}
+''');
+  }
+
+  test_class_generative_augmentationRedirectingToPrimary() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C(int x) {
+  C.named(int x);
+}
+
+augment class C {
+  augment C.named(int x) : this(x);
+}
+''');
+  }
+
+  test_class_generative_augmentationRedirectingToPrimary_sameClass() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C(int x) {
+  C.named(int x);
+  augment C.named(int x) : this(x);
+}
+''');
+  }
+
+  test_class_generative_augmentationRedirectingToUnresolved() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C(int x) {
+  C.named();
+}
+
+augment class C {
+  augment C.named() : this.missing();
+//                    ^^^^^^^^^^^^^^
+// [diag.redirectGenerativeToMissingConstructor] The constructor 'C.missing' couldn't be found in 'C'.
+}
+''');
+  }
+
   test_class_generative_nonRedirecting() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C(int x) {
@@ -50,6 +95,16 @@ class C(int x) {
     await resolveTestCodeWithDiagnostics(r'''
 class C(int x) {
   C.named() : this(0);
+}
+''');
+  }
+
+  test_class_generative_redirectingToUnresolved() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C(int x) {
+  C.named() : this.missing();
+//            ^^^^^^^^^^^^^^
+// [diag.redirectGenerativeToMissingConstructor] The constructor 'C.missing' couldn't be found in 'C'.
 }
 ''');
   }

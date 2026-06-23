@@ -876,6 +876,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
+      'isRedirecting': isRedirecting,
     };
   }
 
@@ -945,6 +946,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   bool get isPrimary {
     return _firstFragment.isPrimary;
+  }
+
+  @trackedIncludedInId
+  bool get isRedirecting {
+    return _fragments.any((fragment) => fragment.isRedirecting);
   }
 
   @override
@@ -1183,6 +1189,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
+      'isRedirecting': isRedirecting,
     };
   }
 
@@ -1297,6 +1304,16 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   @generated
   set isPrimary(bool value) {
     setFlag(_FragmentStorageFlag.constructorFragment_isPrimary, value);
+  }
+
+  @generated
+  bool get isRedirecting {
+    return hasFlag(_FragmentStorageFlag.constructorFragment_isRedirecting);
+  }
+
+  @generated
+  set isRedirecting(bool value) {
+    setFlag(_FragmentStorageFlag.constructorFragment_isRedirecting, value);
   }
 
   @override
@@ -11921,7 +11938,8 @@ enum _ConstructorElementFlags {
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
-  isPrimary(fragment: true, element: _ElementFlagSource.firstFragment);
+  isPrimary(fragment: true, element: _ElementFlagSource.firstFragment),
+  isRedirecting(fragment: true, element: _ElementFlagSource.computed);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -12062,6 +12080,7 @@ enum _FragmentStorageFlag {
   constructorFragment_isOriginImplicitDefault,
   constructorFragment_isOriginMixinApplication,
   constructorFragment_isPrimary,
+  constructorFragment_isRedirecting,
   executableFragment_hasImplicitReturnType,
   executableFragment_invokesSuperSelf,
   executableFragment_isAbstract,
