@@ -2547,8 +2547,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   List<FormalParameterElementImpl> get formalParameters {
-    _ensureReadResolution();
-
     var formalParameters = _firstFragment.formalParameters;
 
     var hasRecoveryFragments = false;
@@ -2570,6 +2568,14 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
       return result.toFixedList();
     }
 
+    return List.generate(formalParameters.length, (index) {
+      return formalParameters[index].asElement2;
+    }, growable: false);
+  }
+
+  @trackedInternal
+  List<FormalParameterElementImpl> get formalParametersIncludingRecovery {
+    var formalParameters = _firstFragment.formalParameters;
     return List.generate(formalParameters.length, (index) {
       return formalParameters[index].asElement2;
     }, growable: false);
@@ -3376,7 +3382,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
       var declaringConstructor = enclosingElement.constructors.firstWhereOrNull(
         (constructor) => constructor.isPrimary,
       );
-      return declaringConstructor?.formalParameters
+      return declaringConstructor?.formalParametersIncludingRecovery
           .whereType<FieldFormalParameterElementImpl>()
           .firstWhereOrNull((f) {
             return f.isDeclaring && f.field == this;
@@ -3625,13 +3631,22 @@ class FieldElementImpl extends PropertyInducingElementImpl
 @GenerateElementFlags(flags: _FieldFormalParameterElementFlags.values)
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     with InternalFieldFormalParameterElement {
-  @override
-  FieldElementImpl? field;
+  FieldElementImpl? _field;
 
   FieldFormalParameterElementImpl(super.firstFragment);
 
   @override
   FieldFormalParameterElementImpl get baseElement => this;
+
+  @override
+  FieldElementImpl? get field {
+    _ensureEnclosingExecutableReadResolution();
+    return _field;
+  }
+
+  set field(FieldElementImpl? value) {
+    _field = value;
+  }
 
   @generated
   @override
@@ -3879,13 +3894,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   final FormalParameterFragmentImpl _firstFragment;
 
-  @override
-  TypeImpl type = InvalidTypeImpl.instance;
+  TypeImpl _type = InvalidTypeImpl.instance;
 
-  /// Whether this formal parameter inherits from a covariant formal parameter.
-  /// This happens when it overrides a method in a supertype that has a
-  /// corresponding covariant formal parameter.
-  bool inheritsCovariant = false;
+  bool _inheritsCovariant = false;
 
   final FormalParameterElementImpl? _baseFormalParameter;
 
@@ -3946,9 +3957,22 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // TODO(augmentations): Implement the merge of formal parameters.
   bool get hasDefaultValue => defaultValueCode != null;
 
+  /// Whether this formal parameter inherits from a covariant formal parameter.
+  /// This happens when it overrides a method in a supertype that has a
+  /// corresponding covariant formal parameter.
+  bool get inheritsCovariant {
+    _ensureEnclosingExecutableReadResolution();
+    return _inheritsCovariant;
+  }
+
+  set inheritsCovariant(bool value) {
+    _inheritsCovariant = value;
+  }
+
   @override
   bool get isCovariant {
-    if (_firstFragment.isExplicitlyCovariant || inheritsCovariant) {
+    _ensureEnclosingExecutableReadResolution();
+    if (_firstFragment.isExplicitlyCovariant || _inheritsCovariant) {
       return true;
     }
     return false;
@@ -4005,6 +4029,17 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return _firstFragment.parameterKind;
   }
 
+  @override
+  TypeImpl get type {
+    _ensureEnclosingExecutableReadResolution();
+    return _type;
+  }
+
+  @override
+  set type(TypeImpl value) {
+    _type = value;
+  }
+
   @Deprecated('Use the function type of this parameter instead')
   @override
   TypeImpl get typeShared => type;
@@ -4046,6 +4081,13 @@ class FormalParameterElementImpl extends PromotableElementImpl
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
       child.accept(visitor);
+    }
+  }
+
+  void _ensureEnclosingExecutableReadResolution() {
+    var enclosingElement = this.enclosingElement;
+    if (enclosingElement is ExecutableElementImpl) {
+      enclosingElement._ensureReadResolution();
     }
   }
 }
