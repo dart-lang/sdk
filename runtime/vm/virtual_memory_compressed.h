@@ -22,6 +22,8 @@ static constexpr intptr_t kCompressedHeapNumPages =
 static constexpr intptr_t kCompressedHeapBitmapSize =
     kCompressedHeapNumPages / 8;
 
+DECLARE_FLAG(bool, pointer_cage);
+
 // |-----------------------| <- outer_vmar_, reservation_
 // | Lower guard, 32 GB    |
 // |-----------------------| <- inner_vmar_, base_
