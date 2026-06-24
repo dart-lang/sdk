@@ -52,6 +52,7 @@ class ElementTextConfiguration {
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
   bool withConstructors = true;
+  bool withDefaultType = false;
   bool withDisplayName = false;
   bool withExportScope = false;
   bool withFunctionTypeParameters = false;
@@ -1716,10 +1717,12 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeType('bound', bound);
       }
 
-      // var defaultType = e.defaultType;
-      // if (defaultType != null) {
-      //   _writeType('defaultType', defaultType);
-      // }
+      if (configuration.withDefaultType) {
+        var defaultType = (e as TypeParameterElementImpl).defaultType;
+        if (defaultType != null) {
+          _writeType('defaultType', defaultType);
+        }
+      }
 
       _writeMetadata(e.metadata);
     });
