@@ -42,6 +42,7 @@ main() {
     executable,
     []
       ..addAll(Platform.executableArguments)
+      ..add("--packages=" + Platform.packageConfig!)
       ..add('script.dart'),
     workingDirectory: temp.path,
     environment: {'DART_CRASHPAD_HANDLER': ''},
