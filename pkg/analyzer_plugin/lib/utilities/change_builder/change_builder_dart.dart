@@ -596,7 +596,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// The constructor is inserted after the last existing field or constructor,
   /// or if the `sort_constructors_first` lint rule is enabled, after the last
   /// existing constructor, or if the `sort_unnamed_constructors_first` lint
-  /// rule is enabled and [isUnnamed] is `true`, after the last existing unnamed
+  /// rule is enabled and [isNamed] is `false`, after the last existing unnamed
   /// constructor or field.
   ///
   /// Throws an exception if [container] is not a [CompilationUnitMember] which
@@ -604,7 +604,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   void insertConstructor(
     CompilationUnitMember container,
     void Function(DartEditBuilder builder) buildEdit, {
-    bool isUnnamed = false,
+    required bool isNamed,
   });
 
   /// Inserts the code for a field.

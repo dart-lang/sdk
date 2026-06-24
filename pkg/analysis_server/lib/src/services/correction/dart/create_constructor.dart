@@ -157,7 +157,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
           targetElementName,
           argumentList: argumentList,
         );
-      });
+      }, isNamed: false);
     });
   }
 
@@ -289,7 +289,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
           constructorName: constructorName?.lexeme,
           constructorNameGroupName: 'NAME',
         );
-      });
+      }, isNamed: constructorName != null);
       if (targetFile == file) {
         builder.addLinkedPosition(range.token(name), 'NAME');
       }

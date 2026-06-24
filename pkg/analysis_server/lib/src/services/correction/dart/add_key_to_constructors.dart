@@ -106,7 +106,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
           builder.writeType(keyType);
           builder.write(' key}) : super(key: key);');
         }
-      });
+      }, isNamed: false);
     });
   }
 

@@ -89,7 +89,7 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
       if (initializers == null) {
         builder.insertConstructor(container!, (builder) {
           builder.write('this : $fieldName = $parameterName;');
-        });
+        }, isNamed: false);
         return;
       }
       if (initializers.isEmpty) {

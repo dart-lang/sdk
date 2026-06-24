@@ -3239,7 +3239,7 @@ class C {
     await changeBuilder.addDartFileEdit(testFilePath, (builder) {
       builder.insertConstructor(classNode, (builder) {
         builder.write('C();');
-      }, isUnnamed: true);
+      }, isNamed: false);
     });
 
     assertChange('''
@@ -3266,7 +3266,7 @@ class C {
     await changeBuilder.addDartFileEdit(testFilePath, (builder) {
       builder.insertConstructor(classNode, (builder) {
         builder.write('C.named();');
-      });
+      }, isNamed: true);
     });
 
     assertChange('''
@@ -3293,7 +3293,7 @@ class C {
     await changeBuilder.addDartFileEdit(testFilePath, (builder) {
       builder.insertConstructor(classNode, (builder) {
         builder.write('C();');
-      }, isUnnamed: true);
+      }, isNamed: false);
     });
 
     assertChange('''

@@ -139,11 +139,11 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
       }
 
       if (body == null) {
-        var isUnnamed = declaration.constructorName == null;
+        var isNamed = declaration.constructorName != null;
         var constructorOffset = _offsetForConstructor(
           members,
           fieldOffset,
-          isUnnamed,
+          isNamed,
         );
         // Add explicit fields and add a new constructor.
         if (constructorOffset == fieldOffset) {
@@ -305,20 +305,20 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
   /// existing [members] of the declaration to which the constructor is being
   /// added.
   ///
-  /// [isUnnamed] indicates whether the constructor being inserted is unnamed,
+  /// [isNamed] indicates whether the constructor being inserted is named,
   /// which affects placement when the `sort_unnamed_constructors_first` lint is
   /// enabled.
   int _offsetForConstructor(
     List<ClassMember> members,
     int defaultOffset,
-    bool isUnnamed,
+    bool isNamed,
   ) {
     var codeStyleOptions = getCodeStyleOptions(unitResult.file);
     if (codeStyleOptions.sortConstructorsFirst) {
       return members.lastWhereOrNull((m) => m is ConstructorDeclaration)?.end ??
           defaultOffset;
     }
-    if (isUnnamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+    if (!isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
       return members
               .lastWhereOrNull(
                 (m) =>
@@ -328,7 +328,7 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
               ?.end ??
           defaultOffset;
     }
-    if (!isUnnamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+    if (isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
       return members
               .lastWhereOrNull(
                 (m) => m is ConstructorDeclaration && m.name == null,

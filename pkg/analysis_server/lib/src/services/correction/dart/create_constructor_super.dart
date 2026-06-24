@@ -179,7 +179,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         builder.write('(');
         writeParameters(false);
         builder.write(');');
-      });
+      }, isNamed: constructorName != null && constructorName != 'new');
     });
   }
 
@@ -255,7 +255,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write('(');
         }
         builder.write(');');
-      });
+      }, isNamed: constructorName != null && constructorName != 'new');
     });
   }
 }
