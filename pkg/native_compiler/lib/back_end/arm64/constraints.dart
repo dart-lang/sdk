@@ -347,27 +347,32 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
-      const InstructionConstraints(AllocationStub.resultReg, [], [
-        AllocationStub.tagsReg,
-        AllocationStub.scratch1Reg,
-        AllocationStub.scratch2Reg,
-      ]);
+      InstructionConstraints(
+        AllocationStub.resultReg,
+        [],
+        // TODO: save registers on slow path
+        allRegistersExcept(AllocationStub.resultReg, []),
+      );
 
   @override
   InstructionConstraints? visitAllocateContext(AllocateContext instr) =>
-      const InstructionConstraints(AllocationStub.resultReg, [], [
-        AllocationStub.tagsReg,
-        AllocationStub.scratch1Reg,
-        AllocationStub.scratch2Reg,
-      ]);
+      InstructionConstraints(
+        AllocationStub.resultReg,
+        [],
+        // TODO: save registers on slow path
+        allRegistersExcept(AllocationStub.resultReg, []),
+      );
 
   @override
-  InstructionConstraints? visitAllocateList(AllocateList instr) =>
-      InstructionConstraints(
-        anyCpuRegister,
-        [anyRegisterOrImmediate(instr.length)],
-        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-      );
+  InstructionConstraints? visitAllocateList(AllocateList instr) {
+    assert(instr.length is Constant);
+    return InstructionConstraints(
+      AllocationStub.resultReg,
+      [null],
+      // TODO: save registers on slow path
+      allRegistersExcept(AllocationStub.resultReg, []),
+    );
+  }
 
   @override
   InstructionConstraints? visitSetListElement(SetListElement instr) =>
@@ -379,11 +384,12 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateRecord(AllocateRecord instr) =>
-      const InstructionConstraints(AllocationStub.resultReg, [], [
-        AllocationStub.tagsReg,
-        AllocationStub.scratch1Reg,
-        AllocationStub.scratch2Reg,
-      ]);
+      InstructionConstraints(
+        AllocationStub.resultReg,
+        [],
+        // TODO: save registers on slow path
+        allRegistersExcept(AllocationStub.resultReg, []),
+      );
 
   @override
   InstructionConstraints? visitBoxInt(BoxInt instr) =>
