@@ -271,6 +271,16 @@ group("dartfuzz") {
   ]
 }
 
+group("iso_stress") {
+  deps = [
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
+    "runtime/bin:process_test",
+  ]
+}
+
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
