@@ -22,12 +22,13 @@ main() {
 
   print(list);
 
-  list = [
-    [1]
-  ]
-    ..first.last.toString()
-    ..first[0].toString()
-    ..[0].last.toString();
+  list =
+      [
+          [1],
+        ]
+        ..first.last.toString()
+        ..first[0].toString()
+        ..[0].last.toString();
 
   print(list);
 }

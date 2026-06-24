@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C<X> {}
+
 typedef A<X extends num, Y> = C<X>;
 
 foo() {

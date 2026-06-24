@@ -61,7 +61,6 @@ augment abstract class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_oneMember_augmentedAbstractClass_declaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

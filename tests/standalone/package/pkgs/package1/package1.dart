@@ -8,6 +8,7 @@ import 'package:expect/expect.dart';
 
 import '../package2/package2.dart' as p1;
 import '../package2/package2.dart' as p2;
+
 import 'package:package2/package2.dart' as p3;
 
 main() {

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue44733.dart:22:3: Error: Type 'F' not found.
+// pkg/front_end/testcases/general/issue44733.dart:21:3: Error: Type 'F' not found.
 //   F get y => super.y as F;
 //   ^
 //
@@ -17,16 +17,16 @@ library;
 // B get x => super.x;
 //            ^^^^^
 //
-// pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
+// pkg/front_end/testcases/general/issue44733.dart:17:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
 //  - 'E' is from 'pkg/front_end/testcases/general/issue44733.dart'.
 //   E get y {}
 //         ^
 //
-// pkg/front_end/testcases/general/issue44733.dart:22:25: Error: 'F' isn't a type.
+// pkg/front_end/testcases/general/issue44733.dart:21:25: Error: 'F' isn't a type.
 //   F get y => super.y as F;
 //                         ^
 //
-// pkg/front_end/testcases/general/issue44733.dart:22:20: Error: Superclass has no getter named 'y'.
+// pkg/front_end/testcases/general/issue44733.dart:21:20: Error: Superclass has no getter named 'y'.
 //   F get y => super.y as F;
 //                    ^
 //
@@ -50,7 +50,7 @@ abstract class D extends core::Object {
     : super core::Object::•()
     ;
   get y() → self::E {
-    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:17:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
  - 'E' is from 'pkg/front_end/testcases/general/issue44733.dart'.
   E get y {}
         ^" in null;
@@ -61,7 +61,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
   get y() → invalid-type
-    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:22:20: Error: Superclass has no getter named 'y'.
+    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:21:20: Error: Superclass has no getter named 'y'.
   F get y => super.y as F;
                    ^" as invalid-type;
 }

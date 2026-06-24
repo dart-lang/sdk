@@ -7,6 +7,7 @@ library kernel.type_substitute_bounds_test;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
+
 import 'type_parser.dart';
 
 final List<TestCase> testCases = <TestCase>[

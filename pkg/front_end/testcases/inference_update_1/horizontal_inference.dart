@@ -16,7 +16,8 @@ testLaterUnnamedParameter(void Function<T>(T, void Function(T)) f) {
 /// zeroth positional parameter with the corresponding argument (even if that
 /// argument isn't in the zeroth position at the call site).
 testLaterUnnamedParameterDependsOnNamedParameter(
-    void Function<T>(void Function(T), {required T a}) f) {
+  void Function<T>(void Function(T), {required T a}) f,
+) {
   f(a: 0, (x) {
     x;
   });
@@ -29,31 +30,39 @@ testEarlierUnnamedParameter(void Function<T>(void Function(T), T) f) {
 }
 
 testLaterNamedParameter(
-    void Function<T>({required T a, required void Function(T) b}) f) {
+  void Function<T>({required T a, required void Function(T) b}) f,
+) {
   f(
-      a: 0,
-      b: (x) {
-        x;
-      });
+    a: 0,
+    b: (x) {
+      x;
+    },
+  );
 }
 
 testEarlierNamedParameter(
-    void Function<T>({required void Function(T) a, required T b}) f) {
+  void Function<T>({required void Function(T) a, required T b}) f,
+) {
   f(
-      a: (x) {
-        x;
-      },
-      b: 0);
+    a: (x) {
+      x;
+    },
+    b: 0,
+  );
 }
 
 /// This special case verifies that the implementations correctly associate the
 /// zeroth positional parameter with the corresponding argument (even if that
 /// argument isn't in the zeroth position at the call site).
 testEarlierNamedParameterDependsOnUnnamedParameter(
-    void Function<T>(T b, {required void Function(T) a}) f) {
-  f(a: (x) {
-    x;
-  }, 0);
+  void Function<T>(T b, {required void Function(T) a}) f,
+) {
+  f(
+    a: (x) {
+      x;
+    },
+    0,
+  );
 }
 
 testPropagateToReturnType(U Function<T, U>(T, U Function(T)) f) {
@@ -81,7 +90,8 @@ testPropagateToLaterClosure(U Function<T, U>(T Function(), U Function(T)) f) {
 }
 
 testLongDependencyChain(
-    V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f) {
+  V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f,
+) {
   f(() => [0], (x) => x.single, (y) => {y});
 }
 
@@ -95,24 +105,30 @@ testNecessaryDueToWrongExplicitParameterType(List<int> list) {
 }
 
 testPropagateFromContravariantReturnType(
-    U Function<T, U>(void Function(T) Function(), U Function(T)) f) {
+  U Function<T, U>(void Function(T) Function(), U Function(T)) f,
+) {
   f(() => (int i) {}, (x) => [x]);
 }
 
 testPropagateToContravariantParameterType(
-    U Function<T, U>(T Function(), U Function(void Function(T))) f) {
+  U Function<T, U>(T Function(), U Function(void Function(T))) f,
+) {
   f(() => 0, (x) => [x]);
 }
 
 testReturnTypeRefersToMultipleTypeVars(
-    void Function<T, U>(
-            Map<T, U> Function(), void Function(T), void Function(U))
-        f) {
-  f(() => {0: ''}, (k) {
-    k;
-  }, (v) {
-    v;
-  });
+  void Function<T, U>(Map<T, U> Function(), void Function(T), void Function(U))
+  f,
+) {
+  f(
+    () => {0: ''},
+    (k) {
+      k;
+    },
+    (v) {
+      v;
+    },
+  );
 }
 
 testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
@@ -125,7 +141,8 @@ testUnnecessaryDueToExplicitParameterType(List<int> list) {
 }
 
 testUnnecessaryDueToExplicitParameterTypeNamed(
-    T Function<T>(T, T Function({required T x, required int y})) f) {
+  T Function<T>(T, T Function({required T x, required int y})) f,
+) {
   var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
   a;
 }
@@ -137,12 +154,14 @@ testParenthesized(void Function<T>(T, void Function(T)) f) {
 }
 
 testParenthesizedNamed(
-    void Function<T>({required T a, required void Function(T) b}) f) {
+  void Function<T>({required T a, required void Function(T) b}) f,
+) {
   f(
-      a: 0,
-      b: ((x) {
-        x;
-      }));
+    a: 0,
+    b: ((x) {
+      x;
+    }),
+  );
 }
 
 testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {
@@ -152,12 +171,14 @@ testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {
 }
 
 testParenthesizedTwiceNamed(
-    void Function<T>({required T a, required void Function(T) b}) f) {
+  void Function<T>({required T a, required void Function(T) b}) f,
+) {
   f(
-      a: 0,
-      b: (((x) {
-        x;
-      })));
+    a: 0,
+    b: (((x) {
+      x;
+    })),
+  );
 }
 
 main() {}

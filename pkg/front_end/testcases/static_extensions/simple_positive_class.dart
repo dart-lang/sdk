@@ -7,6 +7,7 @@ class A {
   static void set classSetter(num value) {
     throw "A.classSetter=";
   }
+
   static String classMethod() => "A.classMethod";
 }
 
@@ -22,8 +23,12 @@ extension E on A {
 main() {
   expectEqual(A.classGetter, "A.classGetter");
   expectEqual(A.extensionGetter, "E.extensionGetter");
-  expectThrows(() { A.classSetter = 0; });
-  expectDoesntThrow(() { A.extensionSetter = false; });
+  expectThrows(() {
+    A.classSetter = 0;
+  });
+  expectDoesntThrow(() {
+    A.extensionSetter = false;
+  });
   expectEqual(A.classMethod(), "A.classMethod");
   expectEqual(A.extensionMethod(), "E.extensionMethod");
 }

@@ -4,7 +4,7 @@
 
 test() async {
   // Multiple for-loop wildcard declarations.
-  for (int _ = 0, _ = 2;;) {
+  for (int _ = 0, _ = 2; ;) {
     print(_);
   }
 

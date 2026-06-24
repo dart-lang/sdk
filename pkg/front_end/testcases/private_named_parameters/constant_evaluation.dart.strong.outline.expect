@@ -15,5 +15,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_evaluation.dart:10:11 -> InstanceConstant(const C{C._x: 123, C._y: 456})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_evaluation.dart:11:11 -> InstanceConstant(const C{C._x: 123, C._y: 456})
 Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -724,9 +724,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
         new Name('iterator'),
       );
       if (member != null) {
-        iteratorType = Substitution.fromInterfaceType(
-          iterableType,
-        ).substituteType(member.getterType);
+        iteratorType = Substitution.fromInterfaceType(iterableType)
+            .substituteType(member.getterType);
       }
     }
     return iteratorType ?? const DynamicType();

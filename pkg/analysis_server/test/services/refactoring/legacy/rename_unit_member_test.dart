@@ -280,8 +280,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The class 'A' is defined outside of the project, so cannot be renamed.",
+      expectedMessage: "The class 'A' is defined outside of the project, so cannot be renamed.",
     );
   }
 

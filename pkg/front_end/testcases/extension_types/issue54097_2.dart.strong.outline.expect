@@ -2,87 +2,87 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:20:23: Error: Type 'Y' is a bound of itself via 'X'.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:28:23: Error: Type 'Y' is a bound of itself via 'X'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class A1<X extends Y, Y extends X> {} // Error.
 //                       ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:21:10: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:30:10: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class A2<X extends X> {} // Error.
 //          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:22:26: Error: Type 'Z' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:32:26: Error: Type 'Z' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class A3<X, Y extends Z, Z extends Y> {} // Error.
 //                          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:24:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:34:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF11<X extends F1<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:25:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:36:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF12<X extends F2<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:26:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:38:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF13<X extends F3<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:27:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:40:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF14<X extends F4<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:28:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:42:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF15<X extends F5<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:29:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:44:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF16<X extends F6<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:30:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:46:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AF17<X extends F7<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:31:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:48:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE11<X extends E1<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:32:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:50:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE12<X extends E2<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:33:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:52:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE13<X extends E3<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:34:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:54:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE14<X extends E4<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:35:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:56:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE15<X extends E5<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:36:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:58:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE16<X extends E6<X>> {} // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097_2.dart:37:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097_2.dart:60:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class AE17<X extends E7<X>> {} // Error.
 //            ^

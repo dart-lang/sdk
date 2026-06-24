@@ -3,29 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class NumProperty extends DiagnosticsProperty {
-  NumProperty({
-    super.showName,
-  });
+  NumProperty({super.showName});
 
-  NumProperty.lazy({
-    super.showName,
-  }) : super.lazy();
+  NumProperty.lazy({super.showName}) : super.lazy();
 }
 
 class DiagnosticsProperty extends DiagnosticsNode {
-  DiagnosticsProperty({
-    super.showName,
-  });
+  DiagnosticsProperty({super.showName});
 
-  DiagnosticsProperty.lazy({
-    super.showName,
-  });
+  DiagnosticsProperty.lazy({super.showName});
 }
 
 abstract class DiagnosticsNode {
-  DiagnosticsNode({
-    this.showName = true,
-  });
+  DiagnosticsNode({this.showName = true});
 
   final bool showName;
 }

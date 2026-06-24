@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 class ClassA {
   void method1() {}
 }
@@ -38,7 +37,9 @@ extension type ExtensionTypeC(ClassC c) {
 }
 
 class A {}
+
 class B {}
+
 class C implements A, B {}
 
 class ClassD {

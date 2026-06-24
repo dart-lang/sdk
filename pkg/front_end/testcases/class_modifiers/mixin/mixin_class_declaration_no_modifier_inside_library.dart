@@ -7,6 +7,7 @@ class A {}
 abstract class B {}
 
 mixin M {}
+
 class C = Object with M;
 
 class AWith with A {}

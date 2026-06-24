@@ -26,7 +26,7 @@ class Class<T extends A> {
 
       // The list literal has type List<List<T>>, not List<List<T & B>>
       var yss = [
-        [t]
+        [t],
       ];
       xss = yss;
     }
@@ -51,7 +51,7 @@ class Class<T extends A> {
 
       // The list literal has type List<List<T>>, not List<List<T & B>>
       var yss = [
-        [t]
+        [t],
       ];
       alias = yss;
       xss = alias;

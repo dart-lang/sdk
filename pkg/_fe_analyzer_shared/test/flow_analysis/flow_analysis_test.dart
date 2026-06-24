@@ -5471,6 +5471,7 @@ main() {
 
     group('because this', () {
       test('explicit', () {
+        h.disableThisPromotion();
         h.thisType = 'C';
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
@@ -5488,6 +5489,7 @@ main() {
       });
 
       test('implicit', () {
+        h.disableThisPromotion();
         h.thisType = 'C';
         h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
@@ -5500,6 +5502,34 @@ main() {
               nonPromotionReason.documentationLink,
               NonPromotionDocumentationLink.this_,
             );
+          }),
+        ]);
+      });
+    });
+
+    group('this promotion', () {
+      test('promotes this', () {
+        h.thisType = 'C';
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          if_(this_.isNot('D'), [return_()]),
+          checkPromoted(this_, 'D'),
+          this_.checkType('D'),
+          this_.whyNotPromoted((reasons) {
+            expect(reasons, isEmpty);
+          }),
+        ]);
+      });
+
+      test('implicit this whyNotPromoted is empty', () {
+        h.thisType = 'C';
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          if_(this_.isNot('D'), [return_()]),
+          implicitThis_whyNotPromoted('C', (reasons) {
+            expect(reasons, isEmpty);
           }),
         ]);
       });

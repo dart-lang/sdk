@@ -18,16 +18,16 @@ extension<T> on I<T> {
 }
 
 num method1(I<num> i) => switch (i) {
-      I<num>(:var member) when member < 0 => member,
-      I<int>(:var member) when member < 0 => member,
-      I<num>(:var member) => -member,
-    };
+  I<num>(:var member) when member < 0 => member,
+  I<int>(:var member) when member < 0 => member,
+  I<num>(:var member) => -member,
+};
 
 // TODO(johnniwinther): This should be exhaustive.
 num method2(A<num> i) => switch (i) {
-      I<num>(:int member) => member,
-      J<num>(:double member) => member,
-    };
+  I<num>(:int member) => member,
+  J<num>(:double member) => member,
+};
 
 main() {
   counter = 0;

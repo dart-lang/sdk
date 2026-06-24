@@ -119,17 +119,11 @@ vars = {
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "3008c4b3a06bd65392c31db8846000a21e3d03c5",
 
-  # Note: Updates to dart_style have to be coordinated with the infrastructure
-  # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
-  # matches the version here. Please follow this process to make updates:
+  # Note: Changes to the formatting style require updating the pre-built SDK as
+  # well so that the format presubmit check uses the same style as the repo.
   #
-  # * Create a commit that updates the version here to the desired version and
-  #   adds any appropriate CHANGELOG text.
-  # * Send that to eng-prod to review. They will update the checked-in SDK
-  #   and land the review.
-  #
-  # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "2ed8c591717128b3c9c19a95698c1a758ae1c04b", # rolled manually
+  # See: https://github.com/dart-lang/dart_style/wiki/Release-process
+  "dart_style_rev": "dfdf6420c7ea923d28edef3f11e89b4ff23d03bf", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an

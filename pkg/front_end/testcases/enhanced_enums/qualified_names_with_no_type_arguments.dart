@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum E {
-  a.b() // Qualified name with no type arguments.
-  ;
+  a.b(); // Qualified name with no type arguments.
+
   const E.b();
 }
 

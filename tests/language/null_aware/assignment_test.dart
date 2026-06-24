@@ -6,6 +6,7 @@
 // assignment.
 
 import "package:expect/expect.dart";
+
 import "conditional_access_helper.dart" as h;
 
 int bad() {

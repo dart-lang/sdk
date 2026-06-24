@@ -44,9 +44,8 @@ void main() {
     // The tool is a shell script and only works on Mac and Linux.
     return;
   }
-  Set<String> testedSubtools = new Set<String>.from(
-    subtools,
-  ).difference(new Set<String>.from(unsafeTools));
+  Set<String> testedSubtools = new Set<String>.from(subtools)
+      .difference(new Set<String>.from(unsafeTools));
   String usage = diag.fastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {

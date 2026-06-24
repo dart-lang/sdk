@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'generic_function_type_equality_null_safe_lib.dart';
 
 main() {

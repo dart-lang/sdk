@@ -4,6 +4,7 @@
 
 // Regression test for https://github.com/dart-lang/sdk/issues/33330
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 

@@ -553,9 +553,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     return (Uri uri) async {
       var requestId = '${nextServerRequestId++}';
       await sendRequest(
-        ServerOpenUrlRequestParams(
-          '$uri',
-        ).toRequest(requestId, clientUriConverter: uriConverter),
+        ServerOpenUrlRequestParams('$uri')
+            .toRequest(requestId, clientUriConverter: uriConverter),
       );
     };
   }
@@ -744,9 +743,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     channel.sendNotification(
-      LspNotificationParams(
-        notification,
-      ).toNotification(clientUriConverter: uriConverter),
+      LspNotificationParams(notification)
+          .toNotification(clientUriConverter: uriConverter),
     );
   }
 
@@ -1181,9 +1179,8 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
     var analysis = AnalysisStatus(isAnalyzing);
     channel.sendNotification(
-      ServerStatusParams(
-        analysis: analysis,
-      ).toNotification(clientUriConverter: uriConverter),
+      ServerStatusParams(analysis: analysis)
+          .toNotification(clientUriConverter: uriConverter),
     );
   }
 

@@ -509,9 +509,8 @@ class DiagnosticTables {
   ) {
     for (var MapEntry(key: sharedName, value: messages)
         in analyzerSharedNameToMessages.entries) {
-      if (messages case [
-        var message,
-      ] when sharedName != message.analyzerCode.snakeCaseName) {
+      if (messages case [var message]
+          when sharedName != message.analyzerCode.snakeCaseName) {
         var sharedNameJson = json.encode(sharedName);
         throw LocatedError(
           'This is the only message that uses shared name '

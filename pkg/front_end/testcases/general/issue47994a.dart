@@ -8,7 +8,7 @@ class Const {
 
 class BuildAssert {
   const BuildAssert(bool condition, [Object? message])
-      : assert(condition, message);
+    : assert(condition, message);
 }
 
 const _assert1 = BuildAssert(false);

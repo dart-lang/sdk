@@ -398,6 +398,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
+  /// If a class, or mixin, is being resolved, the type of the class, after
+  /// applying type promotion of `this`.
+  ///
+  /// If an extension is being resolved, the type of `this`, the declared
+  /// extended type.
+  ///
+  /// If the feature `this-promotion` is disabled, this getter returns the same
+  /// value as [thisType].
+  ///
+  /// Otherwise `null`.
+  TypeImpl? get effectiveThisType =>
+      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView() as TypeImpl? ??
+      thisType;
+
   @override
   FlowAnalysis<
     AstNodeImpl,
@@ -434,10 +448,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   bool get strictCasts => analysisOptions.strictCasts;
 
-  /// If a class, or mixin, is being resolved, the type of the class.
+  /// If a class, or mixin, is being resolved, the type of the class, before
+  /// applying type promotion of `this`.
   ///
   /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type, or promoted.
+  /// extended type.
+  ///
+  /// If the feature `this-promotion` is disabled, this getter returns the same
+  /// value as [effectiveThisType].
   ///
   /// Otherwise `null`.
   TypeImpl? get thisType {

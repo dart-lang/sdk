@@ -5,6 +5,7 @@
 library json_tests;
 
 import 'package:expect/expect.dart';
+
 import 'dart:convert';
 
 class A {

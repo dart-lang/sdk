@@ -3885,6 +3885,7 @@ augment void foo<T extends String>() {}
 ''');
 
     configuration.withExportScope = true;
+    configuration.withDefaultType = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3914,6 +3915,7 @@ library
         #E0 T
           firstFragment: #F3
           bound: int
+          defaultType: int
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo

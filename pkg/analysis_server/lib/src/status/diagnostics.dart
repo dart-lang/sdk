@@ -629,8 +629,7 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
     tag(
       'div',
       attributes: {
-        'style':
-            'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
+        'style': 'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
       },
       gen: () {
         button(

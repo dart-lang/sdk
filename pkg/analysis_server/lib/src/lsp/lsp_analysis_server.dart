@@ -1133,9 +1133,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// Returns whether [filePath] is in a project that can resolve
   /// 'package:flutter' libraries.
   bool _isInFlutterProject(String filePath) =>
-      getAnalysisDriver(
-        filePath,
-      )?.currentSession.uriConverter.uriToPath(Uri.parse(widgetsUri)) !=
+      getAnalysisDriver(filePath)?.currentSession.uriConverter
+          .uriToPath(Uri.parse(widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(

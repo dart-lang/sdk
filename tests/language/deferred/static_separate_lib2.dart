@@ -5,6 +5,7 @@
 library lib2;
 
 import "package:expect/expect.dart";
+
 import "static_separate_lib1.dart";
 
 foo() {

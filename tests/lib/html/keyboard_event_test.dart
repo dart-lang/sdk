@@ -20,9 +20,8 @@ void keydownHandlerTest(KeyEvent e) {
 }
 
 void testKeys() {
-  var subscription = KeyboardEventStream.onKeyDown(
-    document.body!,
-  ).listen(keydownHandlerTest);
+  var subscription = KeyboardEventStream.onKeyDown(document.body!)
+      .listen(keydownHandlerTest);
   var subscription2 = KeyEvent.keyDownEvent
       .forTarget(document.body)
       .listen(keydownHandlerTest);
@@ -36,9 +35,9 @@ void testKeys() {
 
 void testConstructKeyEvent() {
   int handlerCallCount = 0;
-  CustomStream<KeyEvent> stream =
-      KeyEvent.keyPressEvent.forTarget(document.body!)
-          as CustomStream<KeyEvent>;
+  CustomStream<KeyEvent> stream = KeyEvent.keyPressEvent.forTarget(
+    document.body!,
+  ) as CustomStream<KeyEvent>;
   var subscription = stream.listen((keyEvent) {
     expect(keyEvent.charCode, 97);
     expect(keyEvent.keyCode, 65);
@@ -67,9 +66,9 @@ void testKeyEventSequence() {
   // it.
   CustomStream<KeyEvent> streamDown =
       KeyEvent.keyDownEvent.forTarget(document.body!) as CustomStream<KeyEvent>;
-  CustomStream<KeyEvent> streamPress =
-      KeyEvent.keyPressEvent.forTarget(document.body!)
-          as CustomStream<KeyEvent>;
+  CustomStream<KeyEvent> streamPress = KeyEvent.keyPressEvent.forTarget(
+    document.body!,
+  ) as CustomStream<KeyEvent>;
   CustomStream<KeyEvent> streamUp =
       KeyEvent.keyUpEvent.forTarget(document.body!) as CustomStream<KeyEvent>;
 

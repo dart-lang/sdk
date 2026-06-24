@@ -55,14 +55,20 @@ main() {
   // `dart:unsupported.by.target` is unsupported by the libraries specification,
   // but the test target explicitly marks it as unsupported.
   expect(
-      false, const bool.fromEnvironment('dart.library.unsupported.by.target'));
+    false,
+    const bool.fromEnvironment('dart.library.unsupported.by.target'),
+  );
   // `dart:_unsupported.by.spec_internal` is internal and therefore not
   // supported by the libraries specification.
-  expect(false,
-      const bool.fromEnvironment('dart.library._unsupported.by.spec_internal'));
+  expect(
+    false,
+    const bool.fromEnvironment('dart.library._unsupported.by.spec_internal'),
+  );
   // `dart:unsupported.not.importable` is not supported by the spec or target.
-  expect(false,
-      const bool.fromEnvironment('dart.library.unsupported.not.importable'));
+  expect(
+    false,
+    const bool.fromEnvironment('dart.library.unsupported.not.importable'),
+  );
 }
 
 expect(expected, actual) {

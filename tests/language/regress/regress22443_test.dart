@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'regress22443_lib.dart' deferred as D;
+
 import 'package:expect/expect.dart';
 
 int fooCount = 0;

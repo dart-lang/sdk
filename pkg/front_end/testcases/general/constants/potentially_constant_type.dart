@@ -28,23 +28,23 @@ class Class<T> {
   final field16;
 
   const Class(o)
-  // Potentially constant context:
-      : field1 = T,
-        field2 = Class<T>,
-        field3 = id<T>,
-        field4 = (id)<T>,
-        field5 = <T>[],
-        field6 = <T>{},
-        field7 = <T, T>{},
-        field8 = o is T,
-        field9 = o is Class<T>,
-        field10 = o as T,
-        field11 = o as Class<T>,
-        field12 = Class<T>.new,
-        field13 = F<T, T>.new,
-        field14 = id<Class<T>>,
-        field15 = <Class<T>>[],
-        field16 = G<T>.new;
+    // Potentially constant context:
+    : field1 = T,
+      field2 = Class<T>,
+      field3 = id<T>,
+      field4 = (id)<T>,
+      field5 = <T>[],
+      field6 = <T>{},
+      field7 = <T, T>{},
+      field8 = o is T,
+      field9 = o is Class<T>,
+      field10 = o as T,
+      field11 = o as Class<T>,
+      field12 = Class<T>.new,
+      field13 = F<T, T>.new,
+      field14 = id<Class<T>>,
+      field15 = <Class<T>>[],
+      field16 = G<T>.new;
 
   void method() {
     const o = null;

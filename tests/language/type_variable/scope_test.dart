@@ -8,12 +8,12 @@ class Foo<T> implements I<T> {
   Foo() {}
 
   static Foo<T> m(Foo<T> f) {
-  //         ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
-  //                  ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
+    //       ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
+    //                ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
     Foo<T> x = new Foo<String>();
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
@@ -34,9 +34,9 @@ class Foo<T> implements I<T> {
   // [cfe] Type variables can't be used in static members.
 
   static Foo<T> get f {
-  //         ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
+    //       ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
     return new Foo<String>();
   }
 

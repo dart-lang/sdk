@@ -5,6 +5,7 @@
 // Allow typedefs to be outside the mixed-in class' library.
 
 import 'package:expect/expect.dart';
+
 import 'mixin_class_typedef_used_outside_lib.dart';
 
 typedef ATypeDef = MixinClass;

@@ -476,17 +476,16 @@ class DirectoryTest {
     String template = 'dart_temp_dir';
     if (base.existsSync()) {
       asyncStart();
-      Future.wait([base.createTemp(template), base.createTemp(template)]).then((
-        tempDirs,
-      ) {
-        Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
-        for (Directory t in tempDirs) {
-          Expect.isTrue(t.existsSync());
-          t.deleteSync();
-          Expect.isFalse(t.existsSync());
-        }
-        asyncEnd();
-      });
+      Future.wait([base.createTemp(template), base.createTemp(template)])
+          .then((tempDirs) {
+            Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
+            for (Directory t in tempDirs) {
+              Expect.isTrue(t.existsSync());
+              t.deleteSync();
+              Expect.isFalse(t.existsSync());
+            }
+            asyncEnd();
+          });
     }
   }
 

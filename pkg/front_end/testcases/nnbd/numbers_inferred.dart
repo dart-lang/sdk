@@ -5,7 +5,13 @@
 T f<T>() => throw 'Unsupported';
 
 add<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   num n_n = n + f();
   int n_i = n + f();
   double n_d = n + f();
@@ -50,7 +56,13 @@ add<X extends num, Y extends int, Z extends double>(
 }
 
 sub<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   num n_n = n - f();
   int n_i = n - f();
   double n_d = n - f();
@@ -95,7 +107,13 @@ sub<X extends num, Y extends int, Z extends double>(
 }
 
 mul<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   num n_n = n * f();
   int n_i = n * f();
   double n_d = n * f();
@@ -140,7 +158,13 @@ mul<X extends num, Y extends int, Z extends double>(
 }
 
 mod<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   num n_n = n % f();
   int n_i = n % f();
   double n_d = n % f();
@@ -185,7 +209,13 @@ mod<X extends num, Y extends int, Z extends double>(
 }
 
 remainder<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n.remainder(f());
   int n_i = n.remainder(f());
   double n_d = n.remainder(f());
@@ -230,7 +260,13 @@ remainder<X extends num, Y extends int, Z extends double>(
 }
 
 clamp<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n.clamp(f(), f());
   int n_i = n.clamp(f(), f());
   double n_d = n.clamp(f(), f());

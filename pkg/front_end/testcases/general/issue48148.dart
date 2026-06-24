@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const HInvalid invalidExample = HInvalidComposite(
-  [
-    HInvalidLeaf(0),
-    HInvalidChild(
-      HInvalidLeaf(0),
-    ),
-    HInvalidError("error message"),
-  ],
-);
+const HInvalid invalidExample = HInvalidComposite([
+  HInvalidLeaf(0),
+  HInvalidChild(HInvalidLeaf(0)),
+  HInvalidError("error message"),
+]);
 
 typedef HInvalid = HBase<HKindInvalid>;
-typedef HInvalidComposite<CHILD extends HInvalid>
-    = HBaseComposite<HKindInvalid, CHILD>;
+typedef HInvalidComposite<CHILD extends HInvalid> =
+    HBaseComposite<HKindInvalid, CHILD>;
 typedef HInvalidChild<CHILD extends HInvalid> = HBaseChild<HKindInvalid, CHILD>;
 typedef HInvalidLeaf = HBaseLeaf<HKindInvalid>;
 typedef HInvalidError = HBaseError<HKindInvalid>;
@@ -25,34 +21,26 @@ class HBaseComposite<HKT extends HKindValid, CHILD extends HBase<HKT>>
     implements HBase<HKT> {
   final List<CHILD> children;
 
-  const HBaseComposite(
-    this.children,
-  );
+  const HBaseComposite(this.children);
 }
 
 class HBaseChild<HKT extends HKindValid, CHILD extends HBase<HKT>>
     implements HBase<HKT> {
   final CHILD child;
 
-  const HBaseChild(
-    this.child,
-  );
+  const HBaseChild(this.child);
 }
 
 class HBaseLeaf<HKT extends HKindValid> implements HBase<HKT> {
   final int data;
 
-  const HBaseLeaf(
-    this.data,
-  );
+  const HBaseLeaf(this.data);
 }
 
 class HBaseError<HKT extends HKindInvalid> implements HBase<HKT> {
   final String errorMessage;
 
-  const HBaseError(
-    this.errorMessage,
-  );
+  const HBaseError(this.errorMessage);
 }
 
 abstract class Kind<HKT extends HKind> {}

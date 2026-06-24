@@ -135,18 +135,16 @@ abstract class AbstractLspAnalysisServerTest
         return response == null
             ? null
             : {
-                pluginIsolate: Future.delayed(
-                  respondAfter,
-                ).then((_) => response.toResponse('-', 1)),
+                pluginIsolate: Future.delayed(respondAfter)
+                    .then((_) => response.toResponse('-', 1)),
               };
       };
     }
 
     if (respondWith != null) {
       pluginManager.broadcastResults = {
-        pluginIsolate: Future.delayed(
-          respondAfter,
-        ).then((_) => respondWith.toResponse('-', 1)),
+        pluginIsolate: Future.delayed(respondAfter)
+            .then((_) => respondWith.toResponse('-', 1)),
       };
     }
 

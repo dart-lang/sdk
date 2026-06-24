@@ -7,6 +7,7 @@
 library float64x2_functional_test;
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 testConstructor() {

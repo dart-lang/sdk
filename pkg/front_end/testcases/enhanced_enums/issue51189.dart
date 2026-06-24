@@ -4,9 +4,7 @@
 
 class A {}
 
-enum E<X extends A> {
-  element,
-}
+enum E<X extends A> { element }
 
 main() {
   expectEquals("${E.values.runtimeType}", "List<E<A>>");

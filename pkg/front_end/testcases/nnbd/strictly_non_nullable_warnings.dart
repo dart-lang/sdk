@@ -8,13 +8,13 @@
 
 extension E on String {
   int get foo => 42;
-  void operator[]=(int index, int value) {}
-  int operator[](int index) => 42;
+  void operator []=(int index, int value) {}
+  int operator [](int index) => 42;
 }
 
 class A {
-  String operator[](int index) => "foo";
-  void operator[]=(int index, String value) {}
+  String operator [](int index) => "foo";
+  void operator []=(int index, String value) {}
 }
 
 class B extends A {

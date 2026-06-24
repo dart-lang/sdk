@@ -48,9 +48,8 @@ class CreateClass extends MultiCorrectionProducer {
       withKeyword = node.parent is WithClause;
       className = targetNode.name.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode case SimpleIdentifier(
-      :var parent,
-    ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
+    } else if (targetNode case SimpleIdentifier(:var parent)
+        when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
       if (parent case MethodInvocation(:var target)) {
         if (target case SimpleIdentifier(:PrefixElement element)) {
           prefixElement = element;
@@ -60,9 +59,9 @@ class CreateClass extends MultiCorrectionProducer {
       }
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode case SimpleIdentifier(
-      parent: PrefixedIdentifier(:var identifier),
-    ) when targetNode != identifier) {
+    } else if (targetNode
+        case SimpleIdentifier(parent: PrefixedIdentifier(:var identifier))
+        when targetNode != identifier) {
       className = targetNode.nameOfType ?? targetNode.name;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {

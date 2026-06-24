@@ -5,6 +5,7 @@
 // VMOptions=
 
 import "dart:math" show pow;
+
 import "package:expect/expect.dart";
 
 const whiteSpace = const [

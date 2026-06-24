@@ -2771,8 +2771,11 @@ class _ConnectionTarget {
   }
 }
 
-typedef BadCertificateCallback =
-    bool Function(X509Certificate cr, String host, int port);
+typedef BadCertificateCallback = bool Function(
+  X509Certificate cr,
+  String host,
+  int port,
+);
 
 class _HttpClient implements HttpClient {
   bool _closing = false;

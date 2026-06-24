@@ -48,9 +48,8 @@ Future<void> main(List<String> arguments) async {
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
     generatedFileHeader(2018, importCustom: true) + specTypesOutput,
   );
-  File(
-    path.join(outFolder, 'protocol_custom_generated.dart'),
-  ).writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
+  File(path.join(outFolder, 'protocol_custom_generated.dart'))
+      .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
 const argDownload = 'download';
@@ -73,16 +72,14 @@ final String languageServerProtocolPackagePath = path.join(
   'language_server_protocol',
 );
 
-final String
-licenseComment = LineSplitter.split(File(localLicensePath).readAsStringSync())
-    .skipWhile(
-      (line) =>
-          line !=
-          'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
-    )
-    .skip(2)
-    .map((line) => line.isEmpty ? '//' : '// $line')
-    .join('\n');
+final String licenseComment =
+    LineSplitter.split(File(localLicensePath).readAsStringSync())
+        .skipWhile(
+          (line) => line != 'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
+        )
+        .skip(2)
+        .map((line) => line.isEmpty ? '//' : '// $line')
+        .join('\n');
 
 final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
 final String localSpecPath =
@@ -90,9 +87,13 @@ final String localSpecPath =
 final String lspPackageReadmePath =
     '$languageServerProtocolPackagePath/README.md';
 
-final String sdkRootPath = File(
-  Platform.script.toFilePath(),
-).parent.parent.parent.parent.parent.path;
+final String sdkRootPath = File(Platform.script.toFilePath())
+    .parent
+    .parent
+    .parent
+    .parent
+    .parent
+    .path;
 
 final Uri specLicenseUri = Uri.parse(
   'https://microsoft.github.io/language-server-protocol/License-code.txt',

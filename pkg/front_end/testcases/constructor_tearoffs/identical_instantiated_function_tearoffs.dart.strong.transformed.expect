@@ -52,12 +52,12 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:33:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:35:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:37:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:38:17 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:43:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:45:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:47:16 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:48:17 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:35:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:39:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:41:16 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:42:17 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:49:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:53:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:55:16 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:56:17 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 92, effectively constant: 8

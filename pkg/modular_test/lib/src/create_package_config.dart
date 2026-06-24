@@ -11,8 +11,11 @@ import 'suite.dart';
 
 /// Writes a package config under [root] and returns the [Uri] pointing to it.
 Future<Uri> writePackageConfig(
-    Module module, Set<Module> transitiveDependencies, Uri root,
-    {bool useRealPaths = false}) async {
+  Module module,
+  Set<Module> transitiveDependencies,
+  Uri root, {
+  bool useRealPaths = false,
+}) async {
   const packageConfigJsonPath = ".dart_tool/package_config.json";
   var sdkRoot = await findRoot();
   Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
@@ -32,8 +35,9 @@ Future<Uri> writePackageConfig(
   // for these dummy entries.
   var packagesJson = [];
   if (module.isPackage) {
-    packagesJson.add(_packageConfigEntry(
-        module.name, Uri.parse('../${module.packageBase}')));
+    packagesJson.add(
+      _packageConfigEntry(module.name, Uri.parse('../${module.packageBase}')),
+    );
   }
 
   int unusedNum = 0;
@@ -41,36 +45,49 @@ Future<Uri> writePackageConfig(
     if (dependency.isPackage) {
       // rootUri should be ignored for dependent modules, so we pass in a
       // bogus value.
-      var rootUri =
-          useRealPaths ? dependency.rootUri : Uri.parse('unused${unusedNum++}');
+      var rootUri = useRealPaths
+          ? dependency.rootUri
+          : Uri.parse('unused${unusedNum++}');
 
       var dependentPackage = packageConfig[dependency.name];
       var packageJson = dependentPackage == null
-          ? _packageConfigEntry(dependency.name, rootUri,
-              packageRoot: dependency.packageBase)
-          : _packageConfigEntry(dependentPackage.name, rootUri,
+          ? _packageConfigEntry(
+              dependency.name,
+              rootUri,
               packageRoot: dependency.packageBase,
-              version: dependentPackage.languageVersion);
+            )
+          : _packageConfigEntry(
+              dependentPackage.name,
+              rootUri,
+              packageRoot: dependency.packageBase,
+              version: dependentPackage.languageVersion,
+            );
       packagesJson.add(packageJson);
     }
   }
 
   var packageConfigFile = File.fromUri(root.resolve(packageConfigJsonPath));
   await packageConfigFile.create(recursive: true);
-  await packageConfigFile.writeAsString('{'
-      '  "configVersion": ${packageConfig.version},'
-      '  "packages": [ ${packagesJson.join(',')} ]'
-      '}');
+  await packageConfigFile.writeAsString(
+    '{'
+    '  "configVersion": ${packageConfig.version},'
+    '  "packages": [ ${packagesJson.join(',')} ]'
+    '}',
+  );
   return packageConfigFile.uri;
 }
 
-String _packageConfigEntry(String name, Uri root,
-    {Uri? packageRoot, LanguageVersion? version}) {
+String _packageConfigEntry(
+  String name,
+  Uri root, {
+  Uri? packageRoot,
+  LanguageVersion? version,
+}) {
   var fields = [
     '"name": "$name"',
     '"rootUri": "$root"',
     if (packageRoot != null) '"packageUri": "$packageRoot"',
-    if (version != null) '"languageVersion": "$version"'
+    if (version != null) '"languageVersion": "$version"',
   ];
   return '{${fields.join(',')}}';
 }

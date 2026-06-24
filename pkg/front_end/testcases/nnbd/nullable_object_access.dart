@@ -17,8 +17,12 @@ abstract class Class {
 
 main() {}
 
-void test(Class c1, Class? c2, Invocation invocation,
-    CustomInvocation customInvocation) {
+void test(
+  Class c1,
+  Class? c2,
+  Invocation invocation,
+  CustomInvocation customInvocation,
+) {
   CustomType runtimeType1 = c1.runtimeType; // ok
   var runtimeTypeVariable1 = c1.runtimeType;
   c1.runtimeType(); // ok

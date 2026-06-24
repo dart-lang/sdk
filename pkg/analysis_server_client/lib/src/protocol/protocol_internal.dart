@@ -18,8 +18,10 @@ final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
 /// other edits will be inserted such that they appear before them in the
 /// resulting document.
 void addAllEditsForSource(
-    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits,
-    {bool insertBeforeExisting = false}) {
+  SourceFileEdit sourceFileEdit,
+  Iterable<SourceEdit> edits, {
+  bool insertBeforeExisting = false,
+}) {
   for (var edit in edits) {
     sourceFileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
   }
@@ -30,8 +32,11 @@ void addAllEditsForSource(
 /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
 /// other edits will be inserted such that they appear before them in the
 /// resulting document.
-void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit,
-    {bool insertBeforeExisting = false}) {
+void addEditForSource(
+  SourceFileEdit sourceFileEdit,
+  SourceEdit sourceEdit, {
+  bool insertBeforeExisting = false,
+}) {
   var edits = sourceFileEdit.edits;
   var length = edits.length;
   var index = 0;
@@ -59,8 +64,12 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit,
 /// other edits will be inserted such that they appear before them in the
 /// resulting document.
 void addEditToSourceChange(
-    SourceChange change, String file, int fileStamp, SourceEdit edit,
-    {bool insertBeforeExisting = false}) {
+  SourceChange change,
+  String file,
+  int fileStamp,
+  SourceEdit edit, {
+  bool insertBeforeExisting = false,
+}) {
   var fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = SourceFileEdit(file, fileStamp);
@@ -128,7 +137,10 @@ SourceFileEdit? getChangeFileEdit(SourceChange change, String file) {
 /// Compare the lists [listA] and [listB], using [itemEqual] to compare
 /// list elements.
 bool listEqual<T>(
-    List<T>? listA, List<T>? listB, bool Function(T a, T b) itemEqual) {
+  List<T>? listA,
+  List<T>? listB,
+  bool Function(T a, T b) itemEqual,
+) {
   if (listA == null) {
     return listB == null;
   }
@@ -149,7 +161,10 @@ bool listEqual<T>(
 /// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
 /// values.
 bool mapEqual<K, V>(
-    Map<K, V>? mapA, Map<K, V>? mapB, bool Function(V a, V b) valueEqual) {
+  Map<K, V>? mapA,
+  Map<K, V>? mapB,
+  bool Function(V a, V b) valueEqual,
+) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -172,8 +187,11 @@ bool mapEqual<K, V>(
 
 /// Translate the input [map], applying [keyCallback] to all its keys, and
 /// [valueCallback] to all its values.
-Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
-    {KR Function(KP key)? keyCallback, VR Function(VP value)? valueCallback}) {
+Map<KR, VR> mapMap<KP, VP, KR, VR>(
+  Map<KP, VP> map, {
+  KR Function(KP key)? keyCallback,
+  VR Function(VP value)? valueCallback,
+}) {
   var result = <KR, VR>{};
   map.forEach((key, value) {
     KR resultKey;
@@ -194,7 +212,9 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
 }
 
 RefactoringProblemSeverity? maxRefactoringProblemSeverity(
-    RefactoringProblemSeverity? a, RefactoringProblemSeverity? b) {
+  RefactoringProblemSeverity? a,
+  RefactoringProblemSeverity? b,
+) {
   if (b == null) {
     return a;
   }
@@ -217,7 +237,11 @@ RefactoringProblemSeverity? maxRefactoringProblemSeverity(
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback? refactoringFeedbackFromJson(
-    JsonDecoder jsonDecoder, String jsonPath, Object? json, Map feedbackJson) {
+  JsonDecoder jsonDecoder,
+  String jsonPath,
+  Object? json,
+  Map feedbackJson,
+) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
@@ -241,8 +265,12 @@ RefactoringFeedback? refactoringFeedbackFromJson(
 }
 
 /// Create a [RefactoringOptions] corresponding the given [kind].
-RefactoringOptions? refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, RefactoringKind kind) {
+RefactoringOptions? refactoringOptionsFromJson(
+  JsonDecoder jsonDecoder,
+  String jsonPath,
+  Object? json,
+  RefactoringKind kind,
+) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
   }
@@ -286,7 +314,9 @@ void validateEdit(String code, SourceEdit edit) {
 /// string describing the part of the JSON object being decoded, and [value] is
 /// the part to decode.
 typedef JsonDecoderCallback<E extends Object> = E Function(
-    String jsonPath, Object? value);
+  String jsonPath,
+  Object? value,
+);
 
 /// Instances of the class [HasToJson] implement [toJson] method that returns
 /// a JSON presentation.
@@ -353,7 +383,10 @@ abstract class JsonDecoder {
   ///
   /// The type parameter [E] is the expected type of the elements in the list.
   List<E> decodeList<E extends Object>(
-      String jsonPath, Object? json, JsonDecoderCallback<E> decoder) {
+    String jsonPath,
+    Object? json,
+    JsonDecoderCallback<E> decoder,
+  ) {
     if (json == null) {
       return <E>[];
     } else if (json is List) {
@@ -370,9 +403,11 @@ abstract class JsonDecoder {
   /// Decode a JSON object that is expected to be a Map. [keyDecoder] is used
   /// to decode the keys, and [valueDecoder] is used to decode the values.
   Map<K, V> decodeMap<K extends Object, V extends Object>(
-      String jsonPath, Object? jsonData,
-      {JsonDecoderCallback<K>? keyDecoder,
-      JsonDecoderCallback<V>? valueDecoder}) {
+    String jsonPath,
+    Object? jsonData, {
+    JsonDecoderCallback<K>? keyDecoder,
+    JsonDecoderCallback<V>? valueDecoder,
+  }) {
     if (jsonData == null) {
       return {};
     } else if (jsonData is Map) {
@@ -408,8 +443,12 @@ abstract class JsonDecoder {
   /// where the choices are disambiguated by the contents of the field [field].
   /// [decoders] is a map from each possible string in the field to the decoder
   /// that should be used to decode the JSON object.
-  Object decodeUnion(String jsonPath, Object? jsonData, String field,
-      Map<String, JsonDecoderCallback> decoders) {
+  Object decodeUnion(
+    String jsonPath,
+    Object? jsonData,
+    String field,
+    Map<String, JsonDecoderCallback> decoders,
+  ) {
     if (jsonData is Map) {
       if (!jsonData.containsKey(field)) {
         throw missingKey(jsonPath, field);
@@ -419,7 +458,10 @@ abstract class JsonDecoder {
       var decoder = decoders[disambiguator];
       if (decoder == null) {
         throw mismatch(
-            disambiguatorPath, 'One of: ${decoders.keys.toList()}', jsonData);
+          disambiguatorPath,
+          'One of: ${decoders.keys.toList()}',
+          jsonData,
+        );
       }
       return decoder(jsonPath, jsonData);
     } else {
@@ -461,13 +503,19 @@ class RequestDecoder extends JsonDecoder {
       buffer.write('"');
     }
     return RequestFailure(
-        Response.invalidParameter(_request, jsonPath, buffer.toString()));
+      Response.invalidParameter(_request, jsonPath, buffer.toString()),
+    );
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
-    return RequestFailure(Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
+    return RequestFailure(
+      Response.invalidParameter(
+        _request,
+        jsonPath,
+        'Expected to contain key ${json.encode(key)}',
+      ),
+    );
   }
 }
 

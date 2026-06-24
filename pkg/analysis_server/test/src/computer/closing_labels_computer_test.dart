@@ -426,8 +426,7 @@ void myMethod() {
     expect(
       ranges,
       hasLength(texts.length),
-      reason:
-          'Marked code should have the same number of ranges as the expected label texts',
+      reason: 'Marked code should have the same number of ranges as the expected label texts',
     );
 
     // Check we got the expected number of labels.

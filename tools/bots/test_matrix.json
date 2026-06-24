@@ -3452,8 +3452,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
@@ -3461,8 +3460,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
@@ -3471,20 +3469,19 @@
           "arguments": [
             "--mode=release",
             "--sanitizer=tsan",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
           "name": "Generate Isolate Stress Test",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tests/concurrency/generate_stress_test.dart"
           ]
         },
         {
           "name": "Generate Isolate Stress Test - JIT Dill",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
@@ -3497,7 +3494,7 @@
         },
         {
           "name": "Generate Isolate Stress Test - AOT Dill",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
@@ -3512,7 +3509,7 @@
           "name": "Run Isolate Stress Tests",
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
-            "${build_root}/dart",
+            "tools/sdks/dart-sdk/bin/dart",
             "runtime/tests/concurrency/run_stress_test_shards.dart",
             "--arch=${arch}",
             "--copy-coredumps"

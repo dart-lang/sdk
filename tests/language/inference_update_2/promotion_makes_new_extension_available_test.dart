@@ -43,9 +43,8 @@ class C {
       _a
           .method(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
-      _a(
-        contextType(0)..expectStaticType<Exactly<int>>(),
-      ).expectStaticType<Exactly<int>>();
+      _a(contextType(0)..expectStaticType<Exactly<int>>())
+          .expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<int>>()]
           .expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<int>>()] = contextType(0)

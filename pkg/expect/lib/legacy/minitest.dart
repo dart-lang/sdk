@@ -141,17 +141,16 @@ void fail(String message) {
 }
 
 Object equals(dynamic value) => _Expectation((actual) {
-      Expect.deepEquals(value, actual);
-    });
+  Expect.deepEquals(value, actual);
+});
 
 Object notEquals(dynamic value) => _Expectation((actual) {
-      Expect.notEquals(value, actual);
-    });
+  Expect.notEquals(value, actual);
+});
 
 Object unorderedEquals(dynamic value) => _Expectation((actual) {
-      Expect.setEquals(
-          (value as Iterable).toSet(), (actual as Iterable).toSet());
-    });
+  Expect.setEquals((value as Iterable).toSet(), (actual as Iterable).toSet());
+});
 
 Object predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     _Expectation((actual) {
@@ -159,36 +158,36 @@ Object predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     });
 
 Object inInclusiveRange(num min, num max) => _Expectation((actual) {
-      var actualNum = actual as num;
-      if (actualNum < min || actualNum > max) {
-        fail("Expected $actualNum to be in the inclusive range [$min, $max].");
-      }
-    });
+  var actualNum = actual as num;
+  if (actualNum < min || actualNum > max) {
+    fail("Expected $actualNum to be in the inclusive range [$min, $max].");
+  }
+});
 
 Object greaterThan(num value) => _Expectation((actual) {
-      var actualNum = actual as num;
-      if (actualNum <= value) {
-        fail("Expected $actualNum to be greater than $value.");
-      }
-    });
+  var actualNum = actual as num;
+  if (actualNum <= value) {
+    fail("Expected $actualNum to be greater than $value.");
+  }
+});
 
 Object same(dynamic value) => _Expectation((actual) {
-      Expect.identical(value, actual);
-    });
+  Expect.identical(value, actual);
+});
 
 Object closeTo(num value, num tolerance) => _Expectation((actual) {
-      Expect.approxEquals(value, actual as num, tolerance);
-    });
+  Expect.approxEquals(value, actual as num, tolerance);
+});
 
 /// Succeeds if the actual value is any of the given strings. Unlike matcher's
 /// [anyOf], this only works with strings and requires an explicit list.
 Object anyOf(List<String> expected) => _Expectation((actual) {
-      for (var string in expected) {
-        if (actual == string) return;
-      }
+  for (var string in expected) {
+    if (actual == string) return;
+  }
 
-      fail("Expected $actual to be one of $expected.");
-    });
+  fail("Expected $actual to be one of $expected.");
+});
 
 dynamic _defaultAction() {}
 

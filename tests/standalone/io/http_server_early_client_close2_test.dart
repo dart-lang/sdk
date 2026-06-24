@@ -10,17 +10,20 @@
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+
 import "package:expect/expect.dart";
 
 main() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       String name = Platform.script.toFilePath();
-      new File(
-        name,
-      ).openRead().cast<List<int>>().pipe(request.response).catchError((e) {
-        /* ignore */
-      });
+      new File(name)
+          .openRead()
+          .cast<List<int>>()
+          .pipe(request.response)
+          .catchError((e) {
+            /* ignore */
+          });
     });
 
     var count = 0;

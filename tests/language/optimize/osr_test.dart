@@ -5,6 +5,7 @@
 // Test correct OSR (issue 16151).
 
 import "dart:collection";
+
 import "package:expect/expect.dart";
 
 List create([int? length]) {

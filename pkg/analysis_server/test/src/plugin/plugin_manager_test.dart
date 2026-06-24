@@ -34,15 +34,14 @@ void main() {
   });
 }
 
-typedef RunSyncHandler =
-    io.ProcessResult Function(
-      String executable,
-      List<String> arguments, {
-      String? workingDirectory,
-      Map<String, String>? environment,
-      Encoding? stderrEncoding,
-      Encoding? stdoutEncoding,
-    });
+typedef RunSyncHandler = io.ProcessResult Function(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+  Encoding? stderrEncoding,
+  Encoding? stdoutEncoding,
+});
 
 @reflectiveTest
 class PluginManagerFromDiskTest extends PluginTestSupport {

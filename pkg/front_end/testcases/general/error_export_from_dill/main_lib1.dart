@@ -3,5 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'dart:core';
+
 export 'main_lib2.dart';
 export 'main_lib3.dart';

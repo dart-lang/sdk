@@ -27,5 +27,5 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in_without_variable.dart:6:9 -> RecordConstant(const (1, 2))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in_without_variable.dart:6:16 -> RecordConstant(const (3, 4))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in_without_variable.dart:6:17 -> RecordConstant(const (3, 4))
 Extra constant evaluation: evaluated: 20, effectively constant: 2

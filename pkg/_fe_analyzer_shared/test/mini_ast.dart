@@ -48,7 +48,7 @@ SwitchHeadDefault get default_ =>
 ConstExpression get nullLiteral =>
     new NullLiteral._(location: computeLocation());
 
-Expression get this_ => new This._(location: computeLocation());
+This get this_ => new This._(location: computeLocation());
 
 Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   var location = computeLocation();
@@ -1877,6 +1877,8 @@ class Harness {
 
   bool? _inferenceUpdate4Enabled;
 
+  bool? _thisPromotionEnabled;
+
   bool? _soundFlowAnalysisEnabled;
 
   bool? _patternsEnabled;
@@ -1916,6 +1918,8 @@ class Harness {
   bool get patternsEnabled => _patternsEnabled ?? true;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
+
+  bool get thisPromotionEnabled => _thisPromotionEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -2003,6 +2007,7 @@ class Harness {
             _respectImplicitlyTypedVarInitializers,
         fieldPromotionEnabled: _fieldPromotionEnabled,
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+        thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
       );
 
@@ -2034,6 +2039,11 @@ class Harness {
   void disableSoundFlowAnalysis() {
     assert(!_started);
     _soundFlowAnalysisEnabled = false;
+  }
+
+  void disableThisPromotion() {
+    assert(!_started);
+    _thisPromotionEnabled = false;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -5621,7 +5631,7 @@ class SwitchStatementMember extends Node {
   }
 }
 
-class This extends Expression {
+class This extends Expression implements Promotable {
   This._({required super.location});
 
   @override
@@ -5635,6 +5645,20 @@ class This extends Expression {
     var result = h.typeAnalyzer.analyzeThis(this);
     h.irBuilder.atom('this', Kind.expression, location: location);
     return result;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    return h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    var promotedTypeOfThis =
+        h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    return promotedTypeOfThis == null ? const [] : [promotedTypeOfThis];
   }
 }
 
@@ -7167,7 +7191,8 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var thisType = this.thisType;
+    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var thisType = promotedTypeOfThis ?? this.thisType;
     var flowAnalysisInfo = flow.thisOrSuper(
       SharedTypeView(thisType),
       isSuper: false,

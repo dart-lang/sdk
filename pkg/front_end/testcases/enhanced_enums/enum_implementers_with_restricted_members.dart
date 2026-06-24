@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 abstract class A1 implements Enum {
   int get index => 0; // Error.
-  bool operator==(Object other) => true; // Error.
+  bool operator ==(Object other) => true; // Error.
   int get hashCode => 1; // Error.
 }
 
 mixin M1 implements Enum {
   int get index => 0; // Error.
-  bool operator==(Object other) => true; // Error.
+  bool operator ==(Object other) => true; // Error.
   int get hashCode => 1; // Error.
 }
 
@@ -26,13 +29,13 @@ mixin M2 implements Enum {
 
 abstract class A3 implements Enum {
   int get index; // Ok.
-  bool operator==(Object other); // Ok.
+  bool operator ==(Object other); // Ok.
   int get HashCode; // Ok.
 }
 
 mixin M3 implements Enum {
   int get index; // Ok.
-  bool operator==(Object other); // Ok.
+  bool operator ==(Object other); // Ok.
   int get HashCode; // Ok.
 }
 

@@ -16,8 +16,7 @@ class AnalysisDriverPage extends DiagnosticPageWithNav implements PostablePage {
         site,
         'analysis-driver',
         'Analysis driver',
-        description:
-            'Timing statistics collected by the analysis driver scheduler since the last reset.',
+        description: 'Timing statistics collected by the analysis driver scheduler since the last reset.',
         indentInNav: true,
       );
 

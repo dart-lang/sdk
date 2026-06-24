@@ -33,9 +33,8 @@ class SessionLoggerFileSinkTest {
   PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
   late path.Context pathContext = provider.pathContext;
 
-  late String Function(String) convertPath = ResourceProviderExtension(
-    provider,
-  ).convertPath;
+  late String Function(String) convertPath = ResourceProviderExtension(provider)
+      .convertPath;
 
   void setUp() {
     normalizer = LogNormalizer();

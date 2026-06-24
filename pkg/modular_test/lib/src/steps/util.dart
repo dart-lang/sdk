@@ -12,7 +12,11 @@ import 'package:modular_test/src/suite.dart';
 ///
 /// Also throws an error if the [exitCode] is non-zero.
 void checkExitCode(
-    ProcessResult result, IOModularStep step, Module module, bool verbose) {
+  ProcessResult result,
+  IOModularStep step,
+  Module module,
+  bool verbose,
+) {
   if (result.exitCode != 0 || verbose) {
     stdout.write(result.stdout);
     stderr.write(result.stderr);
@@ -26,8 +30,12 @@ void checkExitCode(
 
 /// Runs [command] with [arguments] in [workingDirectory], and if [verbose] is
 /// `true` then it logs the full command.
-Future<ProcessResult> runProcess(String command, List<String> arguments,
-    String workingDirectory, bool verbose) {
+Future<ProcessResult> runProcess(
+  String command,
+  List<String> arguments,
+  String workingDirectory,
+  bool verbose,
+) {
   if (verbose) {
     print('command:\n$command ${arguments.join(' ')} from $workingDirectory');
   }

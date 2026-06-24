@@ -13,6 +13,7 @@ import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
+
 import 'disassembler.dart' show Disassembler;
 
 void main() {

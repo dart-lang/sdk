@@ -45,7 +45,7 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:12:3 -> InstanceConstant(const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:12:12 -> InstanceConstant(const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_named_declaring_parameters.dart:11:6 -> ListConstant(const <E>[const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"}, const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:13:3 -> InstanceConstant(const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_named_declaring_parameters.dart:14:3 -> InstanceConstant(const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_named_declaring_parameters.dart:12:6 -> ListConstant(const <E>[const E{E._a: null, E._b: 1, _Enum.index: 0, _Enum._name: "x"}, const E{E._a: 0, E._b: 1, _Enum.index: 1, _Enum._name: "y"}])
 Extra constant evaluation: evaluated: 14, effectively constant: 3

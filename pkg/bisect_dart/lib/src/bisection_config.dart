@@ -62,10 +62,12 @@ class BisectionConfig {
 
   factory BisectionConfig.fromConfig(Config config) {
     final testCommands = config.stringList(_testCommandsKey);
-    final name = config.optionalString(_nameKey) ??
+    final name =
+        config.optionalString(_nameKey) ??
         '${yyyyMMdd(DateTime.now())}_'
             '${testCommands.last.split(' ').last.split('/').last}';
-    final sdkPath = config.optionalPath(_sdkPathKey, mustExist: true) ??
+    final sdkPath =
+        config.optionalPath(_sdkPathKey, mustExist: true) ??
         Directory.current.uri;
     return BisectionConfig(
       name: name,
@@ -78,13 +80,13 @@ class BisectionConfig {
   }
 
   Map<String, Object> asMap() => {
-        _startKey: start,
-        _endKey: end,
-        _testCommandsKey: testCommands,
-        _failureStringKey: failureString,
-        _sdkPathKey: sdkPath.toFilePath(),
-        _nameKey: name,
-      };
+    _startKey: start,
+    _endKey: end,
+    _testCommandsKey: testCommands,
+    _failureStringKey: failureString,
+    _sdkPathKey: sdkPath.toFilePath(),
+    _nameKey: name,
+  };
 
   @override
   String toString() {
@@ -99,7 +101,8 @@ class BisectionConfig {
       'python3 tools/test.py --build -n dartk-linux-debug-x64 lib/isolate/package_resolve_test',
     ],
     sdkPath: Directory.current.uri,
-    failureString: "Error: The argument type 'String' can't "
+    failureString:
+        "Error: The argument type 'String' can't "
         "be assigned to the parameter type 'Uri'.",
   );
 
@@ -126,25 +129,31 @@ The name is used for distinguishing logs.
   };
 
   static String helpMessage() {
-    final exampleArguments = _example.asMap().entries.map((e) {
-      var value = e.value;
-      if (value is List) {
-        value = value.first as String;
-      }
-      if ((value as String).contains(' ')) {
-        value = '"$value"';
-      }
-      return '-D${e.key}=$value';
-    }).join(' ');
+    final exampleArguments = _example
+        .asMap()
+        .entries
+        .map((e) {
+          var value = e.value;
+          if (value is List) {
+            value = value.first as String;
+          }
+          if ((value as String).contains(' ')) {
+            value = '"$value"';
+          }
+          return '-D${e.key}=$value';
+        })
+        .join(' ');
     const padding = _failureStringKey.length;
-    final descriptions = _argumentDescriptions.entries.map((e) {
-      final value = e.value
-          .split('\n')
-          .map((l) => '${' ' * (padding + 3)}$l')
-          .join('\n')
-          .trim();
-      return '${e.key.padRight(padding)} : $value';
-    }).join('\n');
+    final descriptions = _argumentDescriptions.entries
+        .map((e) {
+          final value = e.value
+              .split('\n')
+              .map((l) => '${' ' * (padding + 3)}$l')
+              .join('\n')
+              .trim();
+          return '${e.key.padRight(padding)} : $value';
+        })
+        .join('\n');
     return '''
 Usage: tools/bisect.dart $exampleArguments
 

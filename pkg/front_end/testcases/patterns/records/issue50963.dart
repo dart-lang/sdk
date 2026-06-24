@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 test() {
-  final x = (1,2);
-  print(switch (x) { var _ => 1 });
+  final x = (1, 2);
+  print(switch (x) {
+    var _ => 1,
+  });
 
-  print(switch ((1, 2)) { var _ => 1});
+  print(switch ((1, 2)) {
+    var _ => 1,
+  });
 }

@@ -2,25 +2,25 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:9:7: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/issue38745.dart:8:7: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   int field;
 //       ^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:11:13: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/issue38745.dart:10:13: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   final int property = 42;
 //             ^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Error: Extensions can't declare instance fields
+// pkg/front_end/testcases/extensions/issue38745.dart:14:13: Error: Extensions can't declare instance fields
 // Try removing the field declaration or making it a static field
 //   final int property2 = 42;
 //             ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:17:19: Error: Static property 'property2' conflicts with instance property of the same name.
+// pkg/front_end/testcases/extensions/issue38745.dart:16:19: Error: Static property 'property2' conflicts with instance property of the same name.
 //   static void set property2(int value) {}
 //                   ^^^^^^^^^
-// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Context: Conflicting instance property 'property2'.
+// pkg/front_end/testcases/extensions/issue38745.dart:14:13: Context: Conflicting instance property 'property2'.
 //   final int property2 = 42;
 //             ^^^^^^^^^
 //

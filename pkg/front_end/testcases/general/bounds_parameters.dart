@@ -18,8 +18,7 @@ void method1(
   F<ConcreteClass> t5, // Ok
   F<Class<ConcreteClass>> t6, // Ok
   F<Object> t7, // Error
-  F<int> t8, // Error
-  {
+  F<int> t8, { // Error
   required G s1, // Ok
   required G<dynamic> s2, // Ok
   required G<Class> s3, // Ok
@@ -37,8 +36,7 @@ void method1(
     F<ConcreteClass> t5, // Ok
     F<Class<ConcreteClass>> t6, // Ok
     F<Object> t7, // Error
-    F<int> t8, // Error
-    {
+    F<int> t8, { // Error
     required G s1, // Ok
     required G<dynamic> s2, // Ok
     required G<Class> s3, // Ok
@@ -56,8 +54,7 @@ void method1(
     F<ConcreteClass> t5, // Ok
     F<Class<ConcreteClass>> t6, // Ok
     F<Object> t7, // Error
-    F<int> t8, // Error
-    {
+    F<int> t8, { // Error
     required G s1, // Ok
     required G<dynamic> s2, // Ok
     required G<Class> s3, // Ok
@@ -78,8 +75,7 @@ class Class1 {
     F<ConcreteClass> t5, // Ok
     F<Class<ConcreteClass>> t6, // Ok
     F<Object> t7, // Error
-    F<int> t8, // Error
-    {
+    F<int> t8, { // Error
     required G s1, // Ok
     required G<dynamic> s2, // Ok
     required G<Class> s3, // Ok
@@ -97,8 +93,7 @@ class Class1 {
     F<ConcreteClass> t5, // Ok
     F<Class<ConcreteClass>> t6, // Ok
     F<Object> t7, // Error
-    F<int> t8, // Error
-    {
+    F<int> t8, { // Error
     required G s1, // Ok
     required G<dynamic> s2, // Ok
     required G<Class> s3, // Ok
@@ -119,8 +114,7 @@ extension Extension1 on int {
     F<ConcreteClass> t5, // Ok
     F<Class<ConcreteClass>> t6, // Ok
     F<Object> t7, // Error
-    F<int> t8, // Error
-    {
+    F<int> t8, { // Error
     required G s1, // Ok
     required G<dynamic> s2, // Ok
     required G<Class> s3, // Ok

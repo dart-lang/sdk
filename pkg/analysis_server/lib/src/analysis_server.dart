@@ -104,13 +104,12 @@ import 'package:watcher/watcher.dart';
 typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
 
 /// The function for sending prompts to the user and collecting button presses.
-typedef UserPromptSender =
-    Future<String?> Function(
-      MessageType type,
-      String message,
-      List<String> actionLabels,
-      lsp.CancellationToken cancellationToken,
-    );
+typedef UserPromptSender = Future<String?> Function(
+  MessageType type,
+  String message,
+  List<String> actionLabels,
+  lsp.CancellationToken cancellationToken,
+);
 
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on an [AbstractNotificationManager] for analysis messages and process them.

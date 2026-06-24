@@ -660,8 +660,7 @@ const E myConst = .one;
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
       errorCode: ServerErrorCodes.editArgumentInvalidValue,
-      message:
-          "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
+      message: "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
     );
   }
 

@@ -6,6 +6,7 @@
 // members of other libraries. See http://dartbug.com/33665
 
 import 'package:expect/expect.dart';
+
 import 'no_such_method_strong11_lib.dart';
 
 abstract class J {

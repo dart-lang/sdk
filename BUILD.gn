@@ -271,6 +271,16 @@ group("dartfuzz") {
   ]
 }
 
+group("iso_stress") {
+  deps = [
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
+    "runtime/bin:process_test",
+  ]
+}
+
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
@@ -484,6 +494,7 @@ if (is_fuchsia) {
     "tests/standalone/io/disable_exit_test.dart",
     "tests/standalone/io/echo_server_stream_test.dart",
     "tests/standalone/io/empty_path_test.dart",
+    "tests/standalone/io/empty_security_context_test.dart",
     "tests/standalone/io/exit_works_with_blocked_isolate_test.dart",
     "tests/standalone/io/file_absolute_path_test.dart",
     "tests/standalone/io/file_blocking_lock_test.dart",
@@ -603,6 +614,7 @@ if (is_fuchsia) {
     "tests/standalone/io/issue_30687_test.dart",
     "tests/standalone/io/issue_31492_test.dart",
     "tests/standalone/io/issue_35112_test.dart",
+    "tests/standalone/io/issue_39425_test.dart",
     "tests/standalone/io/large_file_read_small_file_test.dart",
     "tests/standalone/io/leak_io_service_test.dart",
     "tests/standalone/io/link_async_test.dart",

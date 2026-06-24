@@ -3,24 +3,43 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type A(int it) {}
+
 extension type Ba(A it) {}
+
 extension type Bb(A? it) {}
+
 extension type C<T>(T it) {}
+
 extension type Da<T>(C<T> it) {}
+
 extension type Db<T>(C<T?> it) {}
+
 extension type Dc<T>(C<T>? it) {}
+
 extension type E(int? it) {}
+
 extension type Fa(E it) {}
+
 extension type Fb(E? it) {}
+
 extension type G<T>(T? it) {}
+
 extension type Ha<T>(G<T> it) {}
+
 extension type Hb<T>(G<T?> it) {}
+
 extension type Hc<T>(G<T>? it) {}
+
 extension type I<T extends Object>(T it) {}
+
 extension type Ja<T extends Object>(I<T> it) {}
+
 extension type Jc<T extends Object>(I<T>? it) {}
+
 extension type K<T extends Object>(T? it) {}
+
 extension type La<T extends Object>(K<T> it) {}
+
 extension type Lc<T extends Object>(K<T>? it) {}
 
 testA(Never n) {

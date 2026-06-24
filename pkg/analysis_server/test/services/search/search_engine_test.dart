@@ -421,9 +421,9 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult =
-        await driverFor(testFile).getLibraryByUri('dart:core')
-            as LibraryElementResult;
+    var coreLibResult = await driverFor(
+      testFile,
+    ).getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.classes.firstWhereOrNull(
       (e) => e.name == 'int',
     )!;

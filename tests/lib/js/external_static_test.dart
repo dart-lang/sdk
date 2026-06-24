@@ -9,6 +9,7 @@
 library external_static_test;
 
 import 'dart:html';
+
 import 'package:js/js.dart';
 
 // external top level members ok in @JS() library.

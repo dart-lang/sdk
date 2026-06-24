@@ -8,6 +8,7 @@
 library main;
 
 import "package:expect/expect.dart";
+
 import "same_name_used_lib1.dart";
 
 main() {

@@ -102,9 +102,8 @@ Future<void> testDart2jsCompile() async {
 
     // Compare the two files.
     Uint8List normalDillData = new File.fromUri(normalDill).readAsBytesSync();
-    Uint8List initializedDillData = new File.fromUri(
-      fullDillFromInitialized,
-    ).readAsBytesSync();
+    Uint8List initializedDillData = new File.fromUri(fullDillFromInitialized)
+        .readAsBytesSync();
 
     Component component1 = new Component();
     new BinaryBuilder(normalDillData).readComponent(component1);
@@ -138,9 +137,8 @@ Future<void> testDart2jsCompile() async {
     );
 
     // Compare the two files.
-    initializedDillData = new File.fromUri(
-      fullDillFromInitialized,
-    ).readAsBytesSync();
+    initializedDillData = new File.fromUri(fullDillFromInitialized)
+        .readAsBytesSync();
     checkIsEqual(normalDillData, initializedDillData);
   }
 }

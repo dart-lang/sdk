@@ -5,9 +5,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:14:18: Error: Constant evaluation error:
 // const _assert1 = BuildAssert(false);
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed.
-//       : assert(condition, message);
-//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:14: Context: This assertion failed.
+//     : assert(condition, message);
+//              ^
 // pkg/front_end/testcases/general/issue47994a.dart:14:7: Context: While analyzing:
 // const _assert1 = BuildAssert(false);
 //       ^
@@ -15,9 +15,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:15:18: Error: Constant evaluation error:
 // const _assert2 = BuildAssert(false, null);
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed.
-//       : assert(condition, message);
-//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:14: Context: This assertion failed.
+//     : assert(condition, message);
+//              ^
 // pkg/front_end/testcases/general/issue47994a.dart:15:7: Context: While analyzing:
 // const _assert2 = BuildAssert(false, null);
 //       ^
@@ -25,9 +25,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:16:18: Error: Constant evaluation error:
 // const _assert3 = BuildAssert(false, 'foo');
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed with message: foo
-//       : assert(condition, message);
-//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:14: Context: This assertion failed with message: foo
+//     : assert(condition, message);
+//              ^
 // pkg/front_end/testcases/general/issue47994a.dart:16:7: Context: While analyzing:
 // const _assert3 = BuildAssert(false, 'foo');
 //       ^
@@ -35,9 +35,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:17:18: Error: Constant evaluation error:
 // const _assert4 = BuildAssert(false, 0);
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
-//       : assert(condition, message);
-//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:25: Context: This assertion failed with a non-String message.
+//     : assert(condition, message);
+//                         ^
 // pkg/front_end/testcases/general/issue47994a.dart:17:7: Context: While analyzing:
 // const _assert4 = BuildAssert(false, 0);
 //       ^
@@ -45,9 +45,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:18:18: Error: Constant evaluation error:
 // const _assert5 = BuildAssert(false, const {});
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
-//       : assert(condition, message);
-//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:25: Context: This assertion failed with a non-String message.
+//     : assert(condition, message);
+//                         ^
 // pkg/front_end/testcases/general/issue47994a.dart:18:7: Context: While analyzing:
 // const _assert5 = BuildAssert(false, const {});
 //       ^
@@ -55,9 +55,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:19:18: Error: Constant evaluation error:
 // const _assert6 = BuildAssert(false, #_symbol);
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
-//       : assert(condition, message);
-//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:25: Context: This assertion failed with a non-String message.
+//     : assert(condition, message);
+//                         ^
 // pkg/front_end/testcases/general/issue47994a.dart:19:7: Context: While analyzing:
 // const _assert6 = BuildAssert(false, #_symbol);
 //       ^
@@ -65,9 +65,9 @@ library;
 // pkg/front_end/testcases/general/issue47994a.dart:20:18: Error: Constant evaluation error:
 // const _assert7 = BuildAssert(false, const Const());
 //                  ^
-// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
-//       : assert(condition, message);
-//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:25: Context: This assertion failed with a non-String message.
+//     : assert(condition, message);
+//                         ^
 // pkg/front_end/testcases/general/issue47994a.dart:20:7: Context: While analyzing:
 // const _assert7 = BuildAssert(false, const Const());
 //       ^

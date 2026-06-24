@@ -10,8 +10,12 @@ class Class1 {
   method(o) {}
 }
 
-test(Class1 nonNullableClass1, Class1? nullableClass1, dynamic dyn,
-    Never never) {
+test(
+  Class1 nonNullableClass1,
+  Class1? nullableClass1,
+  dynamic dyn,
+  Never never,
+) {
   print("InstanceSet");
   nonNullableClass1.field = 42;
   nullableClass1?.field = 42;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
+
 import 'state_int.dart';
 
 bool match(Uint8List s) {

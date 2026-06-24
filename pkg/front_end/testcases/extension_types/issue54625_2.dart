@@ -7,10 +7,10 @@ X Function<X extends E>() foo() => throw 0;
 class A<Supertype, Subtype extends Supertype> {}
 
 A<X, Null> Function<X extends E>() // Error.
-  test1() => throw 0;
+test1() => throw 0;
 
 A<Object, X> Function<X extends E>() // Ok.
-  test2() => throw 0;
+test2() => throw 0;
 
 extension type E(num it) implements num {}
 

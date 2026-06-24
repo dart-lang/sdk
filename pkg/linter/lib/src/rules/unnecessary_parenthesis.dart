@@ -175,9 +175,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `a..b = (c..d)` is OK.
     if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
-              (n) => n is Statement || n is CascadeExpression,
-            )
-            is CascadeExpression) {
+          (n) => n is Statement || n is CascadeExpression,
+        ) is CascadeExpression) {
       return;
     }
 

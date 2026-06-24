@@ -23,8 +23,6 @@ class DoubleTransformer<T> extends StreamTransformerBase<T, T> {
 main() async {
   // This should not crash. Did crash by trying to complete future more
   // than once.
-  await (new Stream.fromIterable([
-    1,
-    2,
-  ]).transform(new DoubleTransformer())).first;
+  await (new Stream.fromIterable([1, 2]).transform(new DoubleTransformer()))
+      .first;
 }

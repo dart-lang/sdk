@@ -6,6 +6,7 @@
 // annotations are properly handled.  See dartbug.com/23354
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class C {

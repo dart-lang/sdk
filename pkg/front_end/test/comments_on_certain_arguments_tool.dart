@@ -56,9 +56,8 @@ Future<void> main(List<String> args) async {
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser"));
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/scanner"));
   for (Uri uri in libUris) {
-    List<FileSystemEntity> entities = new Directory.fromUri(
-      uri,
-    ).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(uri)
+        .listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File && entity.path.endsWith(".dart")) {
         options.inputs.add(entity.uri);

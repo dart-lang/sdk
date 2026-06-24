@@ -18,30 +18,37 @@ class D {
     var result = Ext(C());
     return result;
   }
+
   Function get getter3 => Ext2(C());
   Function get getter4 {
     var result = Ext2(C());
     return result;
   }
+
   Function method1<T extends C>(T c) {
     return c;
   }
+
   Function method2<T extends C>(T c) {
     var result = Ext(c);
     return result;
   }
+
   Function method3<T extends Ext>(Ext e) {
     return e;
   }
+
   Function method4<T extends Ext2>(Ext2 e) {
     return e;
   }
+
   Function method5<T>(T c) {
     if (c is C) {
       return c;
     }
     return () => null;
   }
+
   Function method6<T, S extends C>(T c) {
     if (c is S) {
       return c;

@@ -3,5 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 Iterable<dynamic> test(dynamic y) {
-  return { for (var [x] in {...y}) x };
+  return {
+    for (var [x] in {...y}) x,
+  };
 }

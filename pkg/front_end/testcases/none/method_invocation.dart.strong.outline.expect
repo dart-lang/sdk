@@ -39,5 +39,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///method_invocation.dart:40:17 -> IntConstant(96)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///method_invocation.dart:43:17 -> IntConstant(96)
 Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -700,11 +700,9 @@ class TypeCheckingVisitor
     }
     FreshStructuralParameters freshTypeParameters =
         getFreshStructuralParameters(node.structuralParameters);
-    FunctionType result =
-        freshTypeParameters.substitute(
-              _instantiateAndCheck(functionType, node.typeArguments, node),
-            )
-            as FunctionType;
+    FunctionType result = freshTypeParameters.substitute(
+      _instantiateAndCheck(functionType, node.typeArguments, node),
+    ) as FunctionType;
     return new FunctionType(
       result.positionalParameters,
       result.returnType,
@@ -1449,10 +1447,8 @@ class TypeCheckingVisitor
           node.interfaceTarget.enclosingClass == coreTypes.mapClass &&
           node.interfaceTarget.kind == ProcedureKind.Operator &&
           node.interfaceTarget.name == indexSetName;
-      if (node.arguments.positional case [
-        InvalidExpression(),
-        NullLiteral(),
-      ] when isMapIndexSet) {
+      if (node.arguments.positional case [InvalidExpression(), NullLiteral()]
+          when isMapIndexSet) {
         return const InvalidType();
       } else {
         visitExpression(node.receiver);

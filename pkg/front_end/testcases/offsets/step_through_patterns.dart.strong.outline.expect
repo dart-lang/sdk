@@ -18,7 +18,7 @@ import "dart:core" as core;
 [409]  constructor [415] [428] •([421, -1] initializing-formal core::double radius) → self::Circle
 [-1]    ;
 }
-[440]static method [453] [708] calculateArea([460, -1] self::Shape shape) → core::double
+[440]static method [453] [685] calculateArea([460, -1] self::Shape shape) → core::double
 [-1]  ;
-[711]static method [719] [755] testMain() → dynamic
+[688]static method [696] [732] testMain() → dynamic
 [-1]  ;

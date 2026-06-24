@@ -6,6 +6,7 @@
 library js_typed_interop_type_test;
 
 import 'dart:html';
+
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
 

@@ -21,10 +21,7 @@ main() {
   expectEquals(test1([0]), 0);
   expectThrows(() => test1([]));
 
-  expectEquals(
-    listToString(test2([1, 2])),
-    listToString([1, 2]),
-  );
+  expectEquals(listToString(test2([1, 2])), listToString([1, 2]));
 }
 
 expectEquals(x, y) {

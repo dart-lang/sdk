@@ -6,6 +6,7 @@
 // if the key is not in the map, and as `[key]` if the key is in the map.
 
 import "package:expect/expect.dart";
+
 import 'dart:collection';
 
 void main() {

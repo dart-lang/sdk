@@ -5,11 +5,29 @@
 test(dynamic x) {
   void Function() setToOne = () {};
   switch (x) {
-    case [int y, _] when () { setToOne = () { y = 1; }; return true; }():
-    case [_, int y] when () { setToOne = () { y = 1; }; return true; }():
+    case [int y, _]
+        when () {
+          setToOne = () {
+            y = 1;
+          };
+          return true;
+        }():
+    case [_, int y]
+        when () {
+          setToOne = () {
+            y = 1;
+          };
+          return true;
+        }():
       setToOne();
       return y;
-    case [double y] when () { setToOne = () { y = 1.0; }; return true; }():
+    case [double y]
+        when () {
+          setToOne = () {
+            y = 1.0;
+          };
+          return true;
+        }():
       setToOne();
       return y;
     default:

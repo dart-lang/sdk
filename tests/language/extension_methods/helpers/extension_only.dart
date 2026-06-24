@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import "class_no_shadow.dart";
 
 const double otherExtensionValue = 1.234;

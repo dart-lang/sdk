@@ -22,7 +22,7 @@ class A {
   factory A.foo(int x, int y, {required int z}) => new A(x, y, z: z);
 
   void Function(int x, int y, {required int z}) get property =>
-          (int x, int y, {required int z}) {};
+      (int x, int y, {required int z}) {};
 
   void bar(int x, int y, {required int z}) {}
 }

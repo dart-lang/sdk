@@ -5,4 +5,5 @@
 sealed class A {}
 
 mixin M {}
+
 sealed class B = Object with M;

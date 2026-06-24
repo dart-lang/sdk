@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/declared_equals.dart:8:16: Error: An enum can't declare a non-abstract member named '=='.
-//   bool operator==(Object other) => true; // Error.
-//                ^^
+// pkg/front_end/testcases/enhanced_enums/declared_equals.dart:8:17: Error: An enum can't declare a non-abstract member named '=='.
+//   bool operator ==(Object other) => true; // Error.
+//                 ^^
 //
 import self as self;
 import "dart:core" as core;

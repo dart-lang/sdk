@@ -8,7 +8,11 @@
 import '../dot_shorthand_helper.dart';
 
 void main() {
-  var memberList = <StaticMember>[.member(), .memberType<String, int>('s'), .member()];
+  var memberList = <StaticMember>[
+    .member(),
+    .memberType<String, int>('s'),
+    .member(),
+  ];
   var memberSet = <StaticMember>{.member(), .memberType<String, int>('s')};
   var memberMap = <StaticMember, StaticMember>{
     .member(): .memberType<String, int>('s'),
@@ -16,7 +20,10 @@ void main() {
   };
   var memberMap2 = <StaticMember, (StaticMember, StaticMember)>{
     .member(): (.member(), .memberType<String, int>('s')),
-    .memberType<String, int>('s'): (.memberType<String, int>('s'), .memberType<String, int>('s')),
+    .memberType<String, int>('s'): (
+      .memberType<String, int>('s'),
+      .memberType<String, int>('s'),
+    ),
   };
 
   var memberExtList = <StaticMemberExt>[
@@ -24,13 +31,19 @@ void main() {
     .memberType<String, int>('s'),
     .member(),
   ];
-  var memberExtSet = <StaticMemberExt>{.member(), .memberType<String, int>('s')};
+  var memberExtSet = <StaticMemberExt>{
+    .member(),
+    .memberType<String, int>('s'),
+  };
   var memberExtMap = <StaticMemberExt, StaticMemberExt>{
     .member(): .memberType<String, int>('s'),
     .memberType<String, int>('s'): .memberType<String, int>('s'),
   };
   var memberExtMap2 = <StaticMemberExt, (StaticMemberExt, StaticMemberExt)>{
     .member(): (.member(), .memberType<String, int>('s')),
-    .memberType<String, int>('s'): (.memberType<String, int>('s'), .memberType<String, int>('s')),
+    .memberType<String, int>('s'): (
+      .memberType<String, int>('s'),
+      .memberType<String, int>('s'),
+    ),
   };
 }

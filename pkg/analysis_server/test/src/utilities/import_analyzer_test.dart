@@ -993,9 +993,9 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     ).contexts[0];
-    var result =
-        await context.currentSession.getResolvedLibrary(pathToInclude)
-            as ResolvedLibraryResult;
+    var result = await context.currentSession.getResolvedLibrary(
+      pathToInclude,
+    ) as ResolvedLibraryResult;
     var analyzer = ImportAnalyzer(result, pathToInclude, [
       testCode.range.sourceRange,
     ]);

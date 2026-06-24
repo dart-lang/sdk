@@ -11,7 +11,6 @@ class C(this.x) {}
 //           ^
 // [cfe] 'x' isn't an instance field of this class.
 
-
 enum E(this.x) {
   //   ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD

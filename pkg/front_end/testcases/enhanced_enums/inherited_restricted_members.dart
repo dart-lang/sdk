@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 mixin class A1 {
   int get hashCode => 42;
 }
@@ -27,7 +30,7 @@ enum E3 with A3 { // Error.
 }
 
 mixin class A4 {
-  bool operator==(Object other) => true;
+  bool operator ==(Object other) => true;
 }
 
 enum E4 with A4 { // Error.
@@ -59,7 +62,7 @@ enum E7 with M7 { // Error.
 }
 
 mixin M8 {
-  bool operator==(Object other) => true;
+  bool operator ==(Object other) => true;
 }
 
 enum E8 with M8 { // Error.
@@ -69,7 +72,7 @@ enum E8 with M8 { // Error.
 abstract mixin class A9 {
   int get index;
   int get hashCode;
-  bool operator==(Object other);
+  bool operator ==(Object other);
 }
 
 enum E9 with A9 { // Ok.
@@ -79,7 +82,7 @@ enum E9 with A9 { // Ok.
 mixin M10 {
   int get index;
   int get hashCode;
-  bool operator==(Object other);
+  bool operator ==(Object other);
 }
 
 enum E10 with M10 { // Ok.

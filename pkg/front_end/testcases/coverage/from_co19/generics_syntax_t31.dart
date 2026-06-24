@@ -5,6 +5,7 @@
 // Based on tests/co19/src/Language/Generics/syntax_t31.dart
 
 class A {}
+
 void testMe() {}
 
 typedef AAlias = A;

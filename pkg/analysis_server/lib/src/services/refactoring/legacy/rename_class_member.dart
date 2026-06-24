@@ -172,9 +172,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   Future<void> _updateReferences() async {
     var references = getSourceReferences(_validator.references);
-    var unshadowed = getSourceReferences(
-      _validator.unshadowed,
-    ).map((r) => r.element);
+    var unshadowed = getSourceReferences(_validator.unshadowed)
+        .map((r) => r.element);
 
     for (var reference in references) {
       var element = reference.element;
@@ -366,10 +365,9 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (node.parent case AssignmentExpression(
-      :var writeElement,
-      :var leftHandSide,
-    ) when node == leftHandSide) {
+    if (node.parent
+        case AssignmentExpression(:var writeElement, :var leftHandSide)
+        when node == leftHandSide) {
       element = writeElement;
     }
     if (element is! PropertyAccessorElement) {

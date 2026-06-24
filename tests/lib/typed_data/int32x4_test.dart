@@ -7,6 +7,7 @@
 library int32x4_test;
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 // TODO(eernst): Come pure null-safety, it can only be `TypeError`.

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/explicit_extension_access.dart:44:23: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/explicit_extension_access.dart:39:23: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   Extension1(c).method(0); // Error
 //                       ^
@@ -77,7 +77,7 @@ static extension-member method _extension#2|method2<T extends core::Object? = dy
 static extension-member method _extension#2|get#method2(lowered final core::int #this) → <T extends core::Object? = dynamic>(core::List<T%>, core::List<core::int>, (T%) → void, () →? void) → dynamic
   return <T extends core::Object? = dynamic>(core::List<T%> a, core::List<core::int> b, (T%) → void c, () →? void d) → dynamic => self::_extension#2|method2<T%>(#this, a, b, c, d);
 static method test(self::Class c) → dynamic {
-  invalid-expression "pkg/front_end/testcases/extensions/explicit_extension_access.dart:44:23: Error: Too many positional arguments: 0 allowed, but 1 found.
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_extension_access.dart:39:23: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   Extension1(c).method(0); // Error
                       ^";

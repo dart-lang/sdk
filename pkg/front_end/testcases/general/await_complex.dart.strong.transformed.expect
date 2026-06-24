@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/await_complex.dart:120:12: Error: A value of type 'FutureOr<bool>' can't be assigned to a variable of type 'bool'.
+// pkg/front_end/testcases/general/await_complex.dart:123:12: Error: A value of type 'FutureOr<bool>' can't be assigned to a variable of type 'bool'.
 //     assert(id(true), await func("message"));
 //            ^
 //
@@ -125,7 +125,7 @@ static method asserts() → dynamic async /* emittedValueType= dynamic */ {
       final <T extends core::Object? = dynamic>(T%) → FutureOr<T%>func = :sync-for-iterator.{core::Iterator::current}{<T extends core::Object? = dynamic>(T%) → FutureOr<T%>};
       {
         assert(await func<core::bool>(true){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ );
-        assert(invalid-expression "pkg/front_end/testcases/general/await_complex.dart:120:12: Error: A value of type 'FutureOr<bool>' can't be assigned to a variable of type 'bool'.
+        assert(invalid-expression "pkg/front_end/testcases/general/await_complex.dart:123:12: Error: A value of type 'FutureOr<bool>' can't be assigned to a variable of type 'bool'.
     assert(id(true), await func(\"message\"));
            ^" in self::id<core::bool>(true) as{TypeError} core::bool, await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );
         assert(await func<core::bool>(true){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ , await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );

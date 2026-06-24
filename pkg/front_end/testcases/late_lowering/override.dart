@@ -37,8 +37,8 @@ class SubClass extends Class {
 
   int get directField4 => super.field4;
 
-// TODO(johnniwinther): Enable this when super access of late final fields
-//  without initializers is supported.
+  // TODO(johnniwinther): Enable this when super access of late final fields
+  //  without initializers is supported.
   /*void set directField4(int value) {
     super.field4 = value;
   }*/

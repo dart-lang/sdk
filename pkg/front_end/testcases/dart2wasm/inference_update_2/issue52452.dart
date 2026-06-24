@@ -10,10 +10,7 @@ class C {
   final int? _f3;
   final int? _f4;
 
-  C(int? i)
-      : _f2 = i,
-        _f3 = i,
-        _f4 = i;
+  C(int? i) : _f2 = i, _f3 = i, _f4 = i;
 }
 
 class A {
@@ -25,9 +22,7 @@ mixin M3 {}
 abstract class D extends A with M3 {
   final int? _f4;
 
-  D(int? i)
-      : _f4 = i,
-        super(i);
+  D(int? i) : _f4 = i, super(i);
 }
 
 mixin M1 {

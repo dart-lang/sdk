@@ -5,14 +5,14 @@
 test1(dynamic x) {
   return switch (x) {
     0 => "zero",
-    _ => "other"
+    _ => "other",
   };
 }
 
 test2(String x) {
   return switch (x) {
     "zero" => 0,
-    _ => 1
+    _ => 1,
   };
 }
 

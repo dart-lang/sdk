@@ -5,6 +5,7 @@
 // OtherResources=stdout_stderr_test_script.dart
 
 import "package:expect/expect.dart";
+
 import "dart:async";
 import "dart:convert";
 import "dart:io";

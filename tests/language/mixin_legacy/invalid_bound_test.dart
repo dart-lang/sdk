@@ -16,15 +16,19 @@ class A<T extends num> extends S with M {}
 // not bounded. The purpose of this test is to verify bound checking in S, M,
 // and A, the reason no bound is declared for T here.
 class B<T> extends S<T> with M<int> {} //# 03: continued
+
 class B<T> extends S<T> with M<int> {} //# 04: continued
 
 class C<T> extends S<int> with M<T> {} //# 05: continued
+
 class C<T> extends S<int> with M<T> {} //# 06: continued
 
 class D<T> extends S<T> with M<bool> {} //# 07: continued
+
 class D<T> extends S<T> with M<bool> {} //# 08: continued
 
 class E<T> extends S<bool> with M<T> {} //# 09: continued
+
 class E<T> extends S<bool> with M<T> {} //# 10: continued
 
 main() {

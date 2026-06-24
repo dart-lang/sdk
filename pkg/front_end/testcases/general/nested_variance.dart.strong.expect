@@ -2,32 +2,32 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
+// pkg/front_end/testcases/general/nested_variance.dart:90:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
 //  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
 //   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
 //                                          ^
 //
-// pkg/front_end/testcases/general/nested_variance.dart:177:3: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// pkg/front_end/testcases/general/nested_variance.dart:183:3: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
 //   ^
-// pkg/front_end/testcases/general/nested_variance.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
-// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
-//                                                         ^
-// pkg/front_end/testcases/general/nested_variance.dart:177:3: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/general/nested_variance.dart:63:3: Context: This is the type variable whose bound isn't conformed to.
+//   Y extends Function(Y)
+//   ^
+// pkg/front_end/testcases/general/nested_variance.dart:183:3: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
 //  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
 //  - 'Object' is from 'dart:core'.
 //   AinvCyclicCoBound source12 = throw ''; //# 02: compile-time error
 //   ^
 //
-// pkg/front_end/testcases/general/nested_variance.dart:236:5: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+// pkg/front_end/testcases/general/nested_variance.dart:242:5: Error: Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
 //     ^
-// pkg/front_end/testcases/general/nested_variance.dart:57:57: Context: This is the type variable whose bound isn't conformed to.
-// class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
-//                                                         ^
-// pkg/front_end/testcases/general/nested_variance.dart:236:5: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
+// pkg/front_end/testcases/general/nested_variance.dart:63:3: Context: This is the type variable whose bound isn't conformed to.
+//   Y extends Function(Y)
+//   ^
+// pkg/front_end/testcases/general/nested_variance.dart:242:5: Context: If you want 'AinvCyclicCoBound<FinvCyclicCoBound<dynamic Function(Never)>, dynamic Function(Never)>' to be a super-bounded type, note that the inverted type 'AinvCyclicCoBound<FinvCyclicCoBound<Never Function(Never)>, Never Function(Object?)>' must then satisfy its bounds, which it does not.
 //  - 'AinvCyclicCoBound' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
 //  - 'Object' is from 'dart:core'.
 //   B<AinvCyclicCoBound> source12 = throw ''; //# 04: compile-time error
@@ -125,7 +125,7 @@ static method testTypeAliasAsTypeArgument(self::Acov<() → dynamic, dynamic> so
   <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void fsource1 = self::toF<self::Acov<() → dynamic, dynamic>>(source1);
   <Y extends self::Acov<() → dynamic, dynamic> = dynamic>() → void target1 = fsource1;
   <Y extends self::Acon<(Never) → dynamic, dynamic> = dynamic>() → void fsource2 = self::toF<self::Acon<(Never) → dynamic, dynamic>>(source2);
-  <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
+  <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance.dart:90:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()'.
  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance.dart'.
   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
                                          ^" in fsource2 as{TypeError} <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void;

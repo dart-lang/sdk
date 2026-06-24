@@ -5,6 +5,7 @@
 // Regression test for issue dartbug.com/24392
 
 import 'package:expect/expect.dart';
+
 import 'dart:async';
 
 Future<int?> f() async {

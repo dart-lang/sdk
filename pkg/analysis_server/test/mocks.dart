@@ -102,9 +102,14 @@ class MockProcessRunner implements ProcessRunner {
     Encoding? stderrEncoding,
     Encoding? stdoutEncoding,
   })
-  runSyncHandler =
-      (_, _, {workingDirectory, environment, stderrEncoding, stdoutEncoding}) =>
-          throw UnimplementedError();
+  runSyncHandler = (
+    _,
+    _, {
+    workingDirectory,
+    environment,
+    stderrEncoding,
+    stdoutEncoding,
+  }) => throw UnimplementedError();
 
   FutureOr<Process> Function(
     String executable,

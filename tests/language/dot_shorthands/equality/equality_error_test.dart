@@ -7,73 +7,75 @@
 import '../dot_shorthand_helper.dart';
 
 class ConstConstructorAssert {
-  const ConstConstructorAssert.blue(Color color)
-      : assert(.blue == color);
-        //     ^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'blue'.
+  const ConstConstructorAssert.blue(Color color) : assert(.blue == color);
+  //                                                      ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                                                       ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
 
-  const ConstConstructorAssert.notBlue(Color color)
-      : assert(.blue != color);
-        //     ^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'blue'.
+  const ConstConstructorAssert.notBlue(Color color) : assert(.blue != color);
+  //                                                         ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                                                          ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const ConstConstructorAssert.one(Integer integer)
-      : assert(.constOne == integer);
-        //     ^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'constOne'.
+    : assert(.constOne == integer);
+  //         ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOne(Integer integer)
-      : assert(.constOne != integer);
-        //     ^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'constOne'.
+    : assert(.constOne != integer);
+  //         ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneExt(IntegerExt integer)
-      : assert(.constOne == integer);
-        //     ^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'constOne'.
+    : assert(.constOne == integer);
+  //         ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOneExt(IntegerExt integer)
-      : assert(.constOne != integer);
-        //     ^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'constOne'.
+    : assert(.constOne != integer);
+  //         ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneMixin(IntegerMixin integer)
-      : assert(.mixinConstOne == integer);
-        //     ^^^^^^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
+    : assert(.mixinConstOne == integer);
+  //         ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 
   const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
-      : assert(.mixinConstOne != integer);
-        //     ^^^^^^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-        //      ^^^^^^^^^^^^^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-        // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
+    : assert(.mixinConstOne != integer);
+  //         ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 }
 
-void notSymmetrical(Color color, Integer integer, IntegerExt integerExt,
-    IntegerMixin integerMixin) {
+void notSymmetrical(
+  Color color,
+  Integer integer,
+  IntegerExt integerExt,
+  IntegerMixin integerMixin,
+) {
   const constColor = Color.blue;
 
   const bool symBlueEq = .blue == constColor;
@@ -169,8 +171,13 @@ void notSymmetrical(Color color, Integer integer, IntegerExt integerExt,
   // [cfe] No type was provided to find the dot shorthand 'mixinOne'.
 }
 
-void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
-    IntegerMixin integerMixin, bool condition) {
+void rhsNeedsToBeShorthand(
+  Color color,
+  Integer integer,
+  IntegerExt integerExt,
+  IntegerMixin integerMixin,
+  bool condition,
+) {
   const Color constColor = Color.red;
   const Object obj = true;
   const bool constCondition = obj as bool;
@@ -252,25 +259,27 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
   }
 
   const Integer constInteger = Integer.constOne;
-  const bool rhsIntegerEq = constInteger == (constCondition ? .constOne : .constTwo);
-  //                                                          ^^^^^^^^^
+  const bool rhsIntegerEq =
+      constInteger == (constCondition ? .constOne : .constTwo);
+  //                                    ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                           ^
+  //                                     ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
-  //                                                                      ^^^^^^^^^
+  //                                                ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                       ^^^^^^^^
+  //                                                 ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
-  const bool rhsIntegerNeq = constInteger != (constCondition ? .constOne : .constTwo);
-  //                                                           ^^^^^^^^^
+  const bool rhsIntegerNeq =
+      constInteger != (constCondition ? .constOne : .constTwo);
+  //                                    ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                            ^
+  //                                     ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
-  //                                                                       ^^^^^^^^^
+  //                                                ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                        ^^^^^^^^
+  //                                                 ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
@@ -321,25 +330,27 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
   }
 
   const IntegerExt constIntegerExt = IntegerExt.constOne;
-  const bool rhsIntegerExtEq = constIntegerExt == (constCondition ? .constOne : .constTwo);
-  //                                                                ^^^^^^^^^
+  const bool rhsIntegerExtEq =
+      constIntegerExt == (constCondition ? .constOne : .constTwo);
+  //                                       ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                 ^
+  //                                        ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
-  //                                                                            ^^^^^^^^^
+  //                                                   ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                             ^^^^^^^^
+  //                                                    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
-  const bool rhsIntegerExtNeq = constIntegerExt != (constCondition ? .constOne : .constTwo);
-  //                                                                 ^^^^^^^^^
+  const bool rhsIntegerExtNeq =
+      constIntegerExt != (constCondition ? .constOne : .constTwo);
+  //                                       ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                  ^
+  //                                        ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
-  //                                                                             ^^^^^^^^^
+  //                                                   ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                              ^^^^^^^^
+  //                                                    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
@@ -390,25 +401,27 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
   }
 
   const IntegerMixin constIntegerMixin = IntegerMixin.mixinConstOne;
-  const bool rhsIntegerMixinEq = constIntegerMixin == (constCondition ? .mixinConstOne : .mixinConstTwo);
-  //                                                                    ^^^^^^^^^^^^^^
+  const bool rhsIntegerMixinEq =
+      constIntegerMixin == (constCondition ? .mixinConstOne : .mixinConstTwo);
+  //                                         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                     ^
+  //                                          ^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
-  //                                                                                     ^^^^^^^^^^^^^^
+  //                                                          ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                                      ^^^^^^^^^^^^^
+  //                                                           ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
-  const bool rhsIntegerMixinNeq = constIntegerMixin != (constCondition ? .mixinConstOne : .mixinConstTwo);
-  //                                                                     ^^^^^^^^^^^^^^
+  const bool rhsIntegerMixinNeq =
+      constIntegerMixin != (constCondition ? .mixinConstOne : .mixinConstTwo);
+  //                                         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                      ^
+  //                                          ^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
-  //                                                                                      ^^^^^^^^^^^^^^
+  //                                                          ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                                                       ^^^^^^^^^^^^^
+  //                                                           ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
@@ -459,8 +472,12 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
   }
 }
 
-void objectContextType(Color color, Integer integer, IntegerExt integerExt,
-    IntegerMixin integerMixin) {
+void objectContextType(
+  Color color,
+  Integer integer,
+  IntegerExt integerExt,
+  IntegerMixin integerMixin,
+) {
   const Color constColor = Color.red;
   const bool contextTypeColorEq = (constColor as Object) == .blue;
   //                                                        ^^^^^
@@ -547,10 +564,11 @@ void objectContextType(Color color, Integer integer, IntegerExt integerExt,
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
-  const bool contextTypeIntegerExtNeq = (constIntegerExt as Object) != .constTwo;
-  //                                                                   ^^^^^^^^^
+  const bool contextTypeIntegerExtNeq =
+      (constIntegerExt as Object) != .constTwo;
+  //                                 ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                                                                    ^^^^^^^^
+  //                                  ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
@@ -579,17 +597,19 @@ void objectContextType(Color color, Integer integer, IntegerExt integerExt,
   // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object'.
 
   const IntegerMixin constIntegerMixin = IntegerMixin.mixinConstOne;
-  const bool contextTypeIntegerMixinEq = (constIntegerMixin as Object) == .mixinConstTwo;
-  //                                                                      ^^^^^^^^^^^^^^
+  const bool contextTypeIntegerMixinEq =
+      (constIntegerMixin as Object) == .mixinConstTwo;
+  //                                   ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                                                                       ^^^^^^^^^^^^^
+  //                                    ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
   // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object'.
 
-  const bool contextTypeIntegerMixinNeq = (constIntegerMixin as Object) != .mixinConstTwo;
-  //                                                                       ^^^^^^^^^^^^^^
+  const bool contextTypeIntegerMixinNeq =
+      (constIntegerMixin as Object) != .mixinConstTwo;
+  //                                   ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                                                                        ^^^^^^^^^^^^^
+  //                                    ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
   // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object'.
 

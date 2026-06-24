@@ -34,11 +34,9 @@ void main() {
   MethodMirror mm;
 
   cm = reflectClass(ClassWithDefaultConstructor);
-  mm =
-      cm.declarations.values.singleWhere(
-            (d) => d is MethodMirror && d.isConstructor,
-          )
-          as MethodMirror;
+  mm = cm.declarations.values.singleWhere(
+    (d) => d is MethodMirror && d.isConstructor,
+  ) as MethodMirror;
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
@@ -46,11 +44,9 @@ void main() {
   Expect.isFalse(mm.isConstConstructor);
 
   cm = reflectClass(ClassWithConstDefaultConstructor);
-  mm =
-      cm.declarations.values.singleWhere(
-            (d) => d is MethodMirror && d.isConstructor,
-          )
-          as MethodMirror;
+  mm = cm.declarations.values.singleWhere(
+    (d) => d is MethodMirror && d.isConstructor,
+  ) as MethodMirror;
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);

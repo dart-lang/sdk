@@ -8,6 +8,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
+
 import 'union_find.dart';
 
 part 'equivalence_helpers.dart';

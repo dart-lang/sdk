@@ -368,10 +368,9 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         if (parameterType == null) {
           return;
         }
-        if (parent case AssignmentExpression(
-          :var leftHandSide,
-          :var rightHandSide,
-        ) when leftHandSide == node) {
+        if (parent
+            case AssignmentExpression(:var leftHandSide, :var rightHandSide)
+            when leftHandSide == node) {
           assigningType = rightHandSide.staticType;
           indexSetter = true;
           _operator = TokenType.INDEX_EQ.lexeme;

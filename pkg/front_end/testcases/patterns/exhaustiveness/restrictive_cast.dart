@@ -25,9 +25,9 @@ class C implements A, B {
 int? value = 1;
 
 int? method(S s) => switch (s) /* Error */ {
-      A(b: true) as A => 0,
-      B(b: true) as B => value,
-    };
+  A(b: true) as A => 0,
+  B(b: true) as B => value,
+};
 
 test() {
   print(method(C()));

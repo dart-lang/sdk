@@ -6,6 +6,7 @@
 // and `T`.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 
 typedef void FunTakes<T>(T x);

@@ -366,13 +366,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           if (request.experimental) continue;
 
           li(() {
-            link(
-              'request_${request.longMethod}',
-              () {
-                write(request.longMethod);
-              },
-              request.deprecated ? {'class': 'deprecated'} : null,
-            );
+            link('request_${request.longMethod}', () {
+              write(request.longMethod);
+            }, request.deprecated ? {'class': 'deprecated'} : null);
           });
           writeln();
         }

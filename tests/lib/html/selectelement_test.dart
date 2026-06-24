@@ -55,16 +55,14 @@ main() {
   });
 
   test('optgroup', () {
-    var element =
-        new Element.html(
-              '<select>'
-              '<option>1</option>'
-              '<optgroup>'
-              '<option>2</option>'
-              '</optgroup>'
-              '</select>',
-            )
-            as SelectElement;
+    var element = new Element.html(
+      '<select>'
+      '<option>1</option>'
+      '<optgroup>'
+      '<option>2</option>'
+      '</optgroup>'
+      '</select>',
+    ) as SelectElement;
 
     expect(element.options.length, 2);
     element.selectedIndex = 1;

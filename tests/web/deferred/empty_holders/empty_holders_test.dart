@@ -4,6 +4,7 @@
 
 import "lib1.dart" deferred as lib1;
 import "lib2.dart" deferred as lib2;
+
 import "package:expect/expect.dart";
 
 // Compiling lib_shared will result in a single part file which only uses

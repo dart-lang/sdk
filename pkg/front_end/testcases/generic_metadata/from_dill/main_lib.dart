@@ -8,7 +8,10 @@ typedef exp3 = T Function<T>();
 typedef exp4 = void Function<T>(T);
 typedef exp5 = T Function<T extends S Function<S>(S)>(T);
 typedef exp6 = T Function<T, S>(
-    T, S, V Function<V extends S, U>(T, U, V, Map<S, U>));
+  T,
+  S,
+  V Function<V extends S, U>(T, U, V, Map<S, U>),
+);
 
 class C1<X extends T Function<T>(T)> {
   C1() {
@@ -41,8 +44,12 @@ class C5<X extends T Function<T extends S Function<S>(S)>(T)> {
 }
 
 class C6<
-    X extends T Function<T, S>(
-        T, S, V Function<V extends S, U>(T, U, V, Map<S, U>))> {
+  X extends T Function<T, S>(
+    T,
+    S,
+    V Function<V extends S, U>(T, U, V, Map<S, U>),
+  )
+> {
   C6() {
     expect(exp6, X);
   }

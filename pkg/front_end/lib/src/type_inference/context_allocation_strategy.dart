@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+
 import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
-  List<Info> _list
+  List<Info> _list,
 ) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
@@ -189,9 +190,8 @@ class TrivialContextAllocationStrategy
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
-    _ensureVariableContextInCurrentScope(
-      captureKind: captureKind,
-    ).addVariable(variable);
+    _ensureVariableContextInCurrentScope(captureKind: captureKind)
+        .addVariable(variable);
   }
 
   @override
@@ -282,9 +282,8 @@ class LoopDepthAllocationStrategy
         captureKind: captureKind,
       )!.addVariable(variable);
     } else {
-      _ensureVariableContextInCurrentScope(
-        captureKind: captureKind,
-      ).addVariable(variable);
+      _ensureVariableContextInCurrentScope(captureKind: captureKind)
+          .addVariable(variable);
 
       // In case it was the first not uncaptured variable (that is, either
       // captured or assert-captured) for the current scope, and it didn't have

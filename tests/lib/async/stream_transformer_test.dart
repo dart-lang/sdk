@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'dart:async';
 
 _defaultData(x) {}
@@ -54,9 +55,11 @@ main() {
   var handleError = (e, st) => 42;
   var handleDone = () => 99;
 
-  MyStreamSubscription<String> subscription =
-      transformed.listen(handleData, onError: handleError, onDone: handleDone)
-          as MyStreamSubscription<String>;
+  MyStreamSubscription<String> subscription = transformed.listen(
+    handleData,
+    onError: handleError,
+    onDone: handleDone,
+  ) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(false, subscription.cancelOnError);
@@ -80,9 +83,11 @@ main() {
   controller = new StreamController(sync: true);
   stream = controller.stream;
   transformed = stream.transform(transformer);
-  subscription =
-      transformed.listen(null, onDone: handleDone, cancelOnError: true)
-          as MyStreamSubscription<String>;
+  subscription = transformed.listen(
+    null,
+    onDone: handleDone,
+    cancelOnError: true,
+  ) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(true, subscription.cancelOnError);
@@ -94,9 +99,11 @@ main() {
   stream = controller.stream;
   transformed = stream.transform(transformer);
   Expect.isTrue(transformed.isBroadcast);
-  subscription =
-      transformed.listen(null, onDone: handleDone, cancelOnError: true)
-          as MyStreamSubscription<String>;
+  subscription = transformed.listen(
+    null,
+    onDone: handleDone,
+    cancelOnError: true,
+  ) as MyStreamSubscription<String>;
 
   Expect.identical(stream, subscription.stream);
   Expect.equals(true, subscription.cancelOnError);

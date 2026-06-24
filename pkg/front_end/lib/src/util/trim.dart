@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:front_end/src/kernel/dynamic_module_validator.dart';

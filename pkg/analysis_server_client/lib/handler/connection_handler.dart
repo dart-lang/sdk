@@ -57,11 +57,14 @@ mixin ConnectionHandler implements NotificationHandler {
   Future<bool> serverConnected({Duration? timeLimit}) {
     var future = _connected.future;
     if (timeLimit != null) {
-      future = future.timeout(timeLimit, onTimeout: () {
-        onFailedToConnect();
-        server.stop();
-        return false;
-      });
+      future = future.timeout(
+        timeLimit,
+        onTimeout: () {
+          onFailedToConnect();
+          server.stop();
+          return false;
+        },
+      );
     }
     return future;
   }

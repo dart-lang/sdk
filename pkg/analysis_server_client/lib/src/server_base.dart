@@ -87,7 +87,9 @@ abstract class ServerBase {
   /// it can use this to forward the errors to [listener] and [stderr] if
   /// appropriate.
   void errorProcessor(
-      String line, NotificationProcessor? notificationProcessor) {
+    String line,
+    NotificationProcessor? notificationProcessor,
+  ) {
     if (_stdioPassthrough) stderr.writeln(line);
     var trimmedLine = line.trim();
     listener?.errorMessage(trimmedLine);
@@ -106,7 +108,9 @@ abstract class ServerBase {
   /// decoding or message synchronization using [listener], and replicates
   /// raw data to [stdout] as appropriate.
   void outputProcessor(
-      String line, NotificationProcessor? notificationProcessor) {
+    String line,
+    NotificationProcessor? notificationProcessor,
+  ) {
     if (_stdioPassthrough) stdout.writeln(line);
     var trimmedLine = line.trim();
 
@@ -143,7 +147,8 @@ abstract class ServerBase {
       final errorJson = message[Response.ERROR];
       if (errorJson != null) {
         completer.completeError(
-            RequestError.fromJson(ResponseDecoder(null), '.error', errorJson));
+          RequestError.fromJson(ResponseDecoder(null), '.error', errorJson),
+        );
         return;
       }
 
@@ -182,12 +187,17 @@ abstract class ServerBase {
   /// If the server acknowledges the command with an error response,
   /// the future will be completed with an error.
   Future<Map<String, Object?>?> send(
-      String method, Map<String, Object?>? params);
+    String method,
+    Map<String, Object?>? params,
+  );
 
   /// Encodes a request for transmission and sends it as a utf8 encoded byte
   /// string with [sendWith].
   Future<Map<String, Object?>?> sendCommandWith(
-      String method, Map<String, Object?>? params, CommandSender sendWith) {
+    String method,
+    Map<String, Object?>? params,
+    CommandSender sendWith,
+  ) {
     var id = '${_nextId++}';
     var command = <String, dynamic>{Request.ID: id, Request.METHOD: method};
     if (params != null) {

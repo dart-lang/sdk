@@ -17,8 +17,10 @@ import 'package:test/test.dart';
 void main() async {
   var provider = PhysicalResourceProvider.INSTANCE;
   var normalizedRoot = provider.pathContext.normalize(packageRoot);
-  var packagePath =
-      provider.pathContext.join(normalizedRoot, 'analysis_server_client');
+  var packagePath = provider.pathContext.join(
+    normalizedRoot,
+    'analysis_server_client',
+  );
 
   group('validate member sort order', () {
     late Server server;
@@ -33,14 +35,21 @@ void main() async {
 
     // define tests
     for (var file in listPackageDartFiles(provider.getFolder(packagePath))) {
-      var relativePath =
-          provider.pathContext.relative(file.path, from: packagePath);
+      var relativePath = provider.pathContext.relative(
+        file.path,
+        from: packagePath,
+      );
 
       test(relativePath, () async {
         var response = await server.send(
-            editRequestSortMembers, EditSortMembersParams(file.path).toJson());
+          editRequestSortMembers,
+          EditSortMembersParams(file.path).toJson(),
+        );
         var result = EditSortMembersResult.fromJson(
-            ResponseDecoder(null), 'result', response);
+          ResponseDecoder(null),
+          'result',
+          response,
+        );
 
         expect(result.edit.edits, isEmpty);
       });
@@ -70,10 +79,14 @@ Future<Server> connectToServer(String packagePath) async {
   }
 
   // start analysis
-  await server.send(serverRequestSetSubscriptions,
-      ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-  await server.send(analysisRequestSetAnalysisRoots,
-      AnalysisSetAnalysisRootsParams([packagePath], const []).toJson());
+  await server.send(
+    serverRequestSetSubscriptions,
+    ServerSetSubscriptionsParams([ServerService.STATUS]).toJson(),
+  );
+  await server.send(
+    analysisRequestSetAnalysisRoots,
+    AnalysisSetAnalysisRootsParams([packagePath], const []).toJson(),
+  );
 
   // wait for initial analysis to complete
   await handler.initialAnalysis.future;

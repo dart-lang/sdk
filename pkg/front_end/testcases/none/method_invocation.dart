@@ -9,8 +9,11 @@ class Class1 {
 class Class2<T> {
   T field;
 
-  Class2(this.field, this.nonNullableFunctionField,
-      this.nonNullableFunctionTypedField);
+  Class2(
+    this.field,
+    this.nonNullableFunctionField,
+    this.nonNullableFunctionTypedField,
+  );
 
   T call() => field;
 
@@ -40,22 +43,23 @@ const int j = 24;
 const int k = i * j;
 
 test<T1 extends Function, T2 extends int Function(int), T3>(
-    Class1 nonNullableClass1,
-    Class1? nullableClass1,
-    dynamic dyn,
-    Never never,
-    Class2<String> nonNullableClass2,
-    Class2<String>? nullableClass2,
-    Function nonNullableFunction,
-    Function? nullableFunction,
-    int Function(int) nonNullableFunctionType,
-    int Function(int)? nullableFunctionType,
-    T Function<T>(T) genericFunctionType,
-    T1 nonNullableTypeVariable1,
-    T1? nullableTypeVariable1,
-    T2 nonNullableTypeVariable2,
-    T2? nullableTypeVariable2,
-    T3 undeterminedTypeVariable) {
+  Class1 nonNullableClass1,
+  Class1? nullableClass1,
+  dynamic dyn,
+  Never never,
+  Class2<String> nonNullableClass2,
+  Class2<String>? nullableClass2,
+  Function nonNullableFunction,
+  Function? nullableFunction,
+  int Function(int) nonNullableFunctionType,
+  int Function(int)? nullableFunctionType,
+  T Function<T>(T) genericFunctionType,
+  T1 nonNullableTypeVariable1,
+  T1? nullableTypeVariable1,
+  T2 nonNullableTypeVariable2,
+  T2? nullableTypeVariable2,
+  T3 undeterminedTypeVariable,
+) {
   print('InstanceInvocation');
   nonNullableClass1.method(0);
   nullableClass1?.method(0);

@@ -5,6 +5,7 @@
 // Allow `final` on a `base` superclass outside its library.
 
 import 'package:expect/expect.dart';
+
 import 'final_class_base_class_lib.dart';
 
 final class A extends BaseClass {}

@@ -17,5 +17,5 @@ static extension-type-member synthetic method E|constructor#_#new#tearOff(core::
 
 
 Extra constant evaluation status:
-Evaluated: AsExpression @ org-dartlang-testcase:///issue53751.dart:6:18 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///issue53751.dart:7:18 -> NullConstant(null)
 Extra constant evaluation: evaluated: 5, effectively constant: 1

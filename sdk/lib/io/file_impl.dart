@@ -190,9 +190,9 @@ class _FileStream extends Stream<List<int>> {
     if (openedFile != null) {
       onOpenFile(openedFile);
     } else if (path != null) {
-      new File(
-        path,
-      ).open(mode: FileMode.read).then(onOpenFile, onError: openFailed);
+      new File(path)
+          .open(mode: FileMode.read)
+          .then(onOpenFile, onError: openFailed);
     } else {
       try {
         onOpenFile(_File._openStdioSync(0));

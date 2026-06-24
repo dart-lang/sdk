@@ -4,12 +4,19 @@
 
 // Based on tests/language/mixin_declaration/mixin_declaration_syntax_test.dart
 
-abstract class A { }
-class B implements A { }
-abstract class I { }
-abstract class J { }
+abstract class A {}
+
+class B implements A {}
+
+abstract class I {}
+
+abstract class J {}
+
 // Function is ignored when adding implemented types.
-mixin MAiBC on A implements B, Function { }
-mixin MBCiIJ on B, Function implements I, J { }
+mixin MAiBC on A implements B, Function {}
+
+mixin MBCiIJ on B, Function implements I, J {}
+
 class CAaMAiBC = A with MAiBC;
+
 class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}

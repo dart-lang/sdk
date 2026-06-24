@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:7: Error: A map pattern must have at least one entry.
+// pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:3: Error: A map pattern must have at least one entry.
 // Try replacing it with an object pattern 'Map()'.
-//       {} => 0,
-//       ^
+//   {} => 0,
+//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -17,10 +17,10 @@ static method method(core::Map<dynamic, dynamic> m) → dynamic
     #L1:
     {
       {
-        if(invalid-expression "pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:7: Error: A map pattern must have at least one entry.
+        if(invalid-expression "pkg/front_end/testcases/patterns/empty_map_pattern.dart:6:3: Error: A map pattern must have at least one entry.
 Try replacing it with an object pattern 'Map()'.
-      {} => 0,
-      ^") {
+  {} => 0,
+  ^") {
           #t1 = 0;
           break #L1;
         }

@@ -2,65 +2,65 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:62:14: Error: The parameter 'e1numNullableOP' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:82:12: Error: The parameter 'e1numNullableOP' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E1<num?> e1numNullableOP, // Error.
-//              ^^^^^^^^^^^^^^^
+//   E1<num?> e1numNullableOP, // Error.
+//            ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:63:16: Error: The parameter 'e1doubleOP' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:83:14: Error: The parameter 'e1doubleOP' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E1<double> e1doubleOP, // Error.
-//                ^^^^^^^^^^
+//   E1<double> e1doubleOP, // Error.
+//              ^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:64:8: Error: The parameter 'e2OP' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:84:6: Error: The parameter 'e2OP' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E2 e2OP, // Error.
-//        ^^^^
+//   E2 e2OP, // Error.
+//      ^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:65:8: Error: The parameter 'e3OP' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:85:6: Error: The parameter 'e3OP' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E3 e3OP, // Error.
-//        ^^^^
+//   E3 e3OP, // Error.
+//      ^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:66:8: Error: The parameter 'e4OP' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:86:6: Error: The parameter 'e4OP' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E4 e4OP, // Error.
-//        ^^^^
+//   E4 e4OP, // Error.
+//      ^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:67:8: Error: The parameter 'e5OP' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:87:6: Error: The parameter 'e5OP' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E5 e5OP, // Error.
-//        ^^^^
+//   E5 e5OP, // Error.
+//      ^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:78:14: Error: The parameter 'e1numNullableNNR' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:98:12: Error: The parameter 'e1numNullableNNR' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E1<num?> e1numNullableNNR, // Error.
-//              ^^^^^^^^^^^^^^^^
+//   E1<num?> e1numNullableNNR, // Error.
+//            ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:79:16: Error: The parameter 'e1doubleNNR' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:99:14: Error: The parameter 'e1doubleNNR' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E1<double> e1doubleNNR, // Error.
-//                ^^^^^^^^^^^
+//   E1<double> e1doubleNNR, // Error.
+//              ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:80:8: Error: The parameter 'e2NNR' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:100:6: Error: The parameter 'e2NNR' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E2 e2NNR, // Error.
-//        ^^^^^
+//   E2 e2NNR, // Error.
+//      ^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:81:8: Error: The parameter 'e3NNR' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:101:6: Error: The parameter 'e3NNR' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E3 e3NNR, // Error.
-//        ^^^^^
+//   E3 e3NNR, // Error.
+//      ^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:82:8: Error: The parameter 'e4NNR' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:102:6: Error: The parameter 'e4NNR' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E4 e4NNR, // Error.
-//        ^^^^^
+//   E4 e4NNR, // Error.
+//      ^^^^^
 //
-// pkg/front_end/testcases/extension_types/nullability.dart:83:8: Error: The parameter 'e5NNR' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
+// pkg/front_end/testcases/extension_types/nullability.dart:103:6: Error: The parameter 'e5NNR' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
-//     E5 e5NNR, // Error.
-//        ^^^^^
+//   E5 e5NNR, // Error.
+//      ^^^^^
 //
 import self as self;
 import "dart:core" as core;

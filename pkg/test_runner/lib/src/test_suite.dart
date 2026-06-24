@@ -85,8 +85,7 @@ abstract class TestSuite {
           'QEMU_LD_PREFIX':
               QemuConfig.all[configuration.architecture]!.elfInterpreterPrefix,
         if (configuration.useQemu)
-          'QEMU_CPU':
-              QemuConfig.all[configuration.architecture]!.cpu,
+          'QEMU_CPU': QemuConfig.all[configuration.architecture]!.cpu,
       };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -337,9 +336,19 @@ class VMTestSuite extends TestSuite {
     if (configuration.useQemu) {
       final config = QemuConfig.all[configuration.architecture]!;
       initialHostArguments.insert(0, hostRunnerPath);
-      initialHostArguments.insertAll(0, ['-cpu', config.cpu, '-L', config.elfInterpreterPrefix]);
+      initialHostArguments.insertAll(0, [
+        '-cpu',
+        config.cpu,
+        '-L',
+        config.elfInterpreterPrefix,
+      ]);
       initialTargetArguments.insert(0, targetRunnerPath);
-      initialTargetArguments.insertAll(0, ['-cpu', config.cpu, '-L', config.elfInterpreterPrefix]);
+      initialTargetArguments.insertAll(0, [
+        '-cpu',
+        config.cpu,
+        '-L',
+        config.elfInterpreterPrefix,
+      ]);
       hostRunnerPath = config.executable;
       targetRunnerPath = config.executable;
     }

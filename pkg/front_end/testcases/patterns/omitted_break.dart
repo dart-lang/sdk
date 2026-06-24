@@ -25,11 +25,11 @@ method(e) {
 
 method2(Enum e) {
   switch (e) {
-  case Enum.a:
-    print(0);
-  case Enum.b:
-    print(1);
-  case Enum.c:
-    print(2);
+    case Enum.a:
+      print(0);
+    case Enum.b:
+      print(1);
+    case Enum.c:
+      print(2);
   }
 }

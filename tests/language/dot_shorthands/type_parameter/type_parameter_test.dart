@@ -28,6 +28,8 @@ void main() {
 
   // With constructor invocations, the shorthand expression is preceded by
   // the raw type and then type inference infers the type arguments.
-  List<String> l =
-    .generate(10, (int i) => i + 1).map((x) => x.toRadixString(16)).toList();
+  List<String> l = .generate(
+    10,
+    (int i) => i + 1,
+  ).map((x) => x.toRadixString(16)).toList();
 }

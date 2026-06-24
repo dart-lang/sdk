@@ -7,13 +7,17 @@ import 'package:modular_test/src/test_specification_parser.dart';
 
 void main() {
   test('require dependencies section', () {
-    expect(() => parseTestSpecification(""),
-        throwsA(TypeMatcher<InvalidSpecificationError>()));
+    expect(
+      () => parseTestSpecification(""),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
   });
 
   test('dependencies is a map', () {
-    expect(() => parseTestSpecification("dependencies: []"),
-        throwsA(TypeMatcher<InvalidSpecificationError>()));
+    expect(
+      () => parseTestSpecification("dependencies: []"),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
   });
 
   test('dependencies can be a string or list of strings', () {
@@ -27,50 +31,69 @@ void main() {
             a: [b, c]
           ''');
 
-    expect(() => parseTestSpecification('''
+    expect(
+      () => parseTestSpecification('''
           dependencies:
             a: 1
-          '''), throwsA(TypeMatcher<InvalidSpecificationError>()));
+          '''),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
 
-    expect(() => parseTestSpecification('''
+    expect(
+      () => parseTestSpecification('''
           dependencies:
             a: true
-          '''), throwsA(TypeMatcher<InvalidSpecificationError>()));
+          '''),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
 
-    expect(() => parseTestSpecification('''
+    expect(
+      () => parseTestSpecification('''
           dependencies:
             a: [false]
-          '''), throwsA(TypeMatcher<InvalidSpecificationError>()));
+          '''),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
 
-    expect(() => parseTestSpecification('''
+    expect(
+      () => parseTestSpecification('''
           dependencies:
             a:
                c: d
-          '''), throwsA(TypeMatcher<InvalidSpecificationError>()));
+          '''),
+      throwsA(TypeMatcher<InvalidSpecificationError>()),
+    );
   });
 
   test('result map is normalized', () {
     expect(
-        parseTestSpecification('''
+      parseTestSpecification('''
           dependencies:
             a: [b, c]
             b: d
             ''').dependencies,
-        equals({
-          'a': ['b', 'c'],
-          'b': ['d'],
-        }));
+      equals({
+        'a': ['b', 'c'],
+        'b': ['d'],
+      }),
+    );
   });
 
   test('flags are normalized', () {
-    expect(parseTestSpecification('''
+    expect(
+      parseTestSpecification('''
           dependencies: {}
           flags: "a"
-            ''').flags, equals(["a"]));
+            ''').flags,
+      equals(["a"]),
+    );
 
-    expect(parseTestSpecification('''
+    expect(
+      parseTestSpecification('''
           dependencies: {}
           flags: ["a"]
-            ''').flags, equals(["a"]));
+            ''').flags,
+      equals(["a"]),
+    );
   });
 }

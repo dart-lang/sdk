@@ -151,9 +151,8 @@ abstract class AbstractLspOverLegacyTest
         // A client-provided response to an LSP reverse-request is always
         // a full LSP result payload as the "result". The legacy request should
         // always succeed and any errors handled as LSP error responses within.
-        result: LspHandleResult(
-          response,
-        ).toJson(clientUriConverter: uriConverter),
+        result: LspHandleResult(response)
+            .toJson(clientUriConverter: uriConverter),
       ).toJson(),
     );
   }

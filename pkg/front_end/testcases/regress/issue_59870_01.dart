@@ -4,14 +4,21 @@
 
 // Based on tests/language/mixin_declaration/mixin_declaration_syntax_test.dart
 
-abstract class A { }
-class B implements A { }
+abstract class A {}
+
+class B implements A {}
+
 // With C defined everything is fine.
 // Without C defined "null" is returned from buildSupertype and it's not added.
 //class C extends A { }
-abstract class I { }
-abstract class J { }
-mixin MAiBC on A implements B, C { }
-mixin MBCiIJ on B, C implements I, J { }
+abstract class I {}
+
+abstract class J {}
+
+mixin MAiBC on A implements B, C {}
+
+mixin MBCiIJ on B, C implements I, J {}
+
 class CAaMAiBC = A with MAiBC;
+
 class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}

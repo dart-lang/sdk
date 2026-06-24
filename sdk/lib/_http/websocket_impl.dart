@@ -614,8 +614,9 @@ class _WebSocketPong {
   _WebSocketPong([this.payload]);
 }
 
-typedef /*String|Future<String>*/ _ProtocolSelector =
-    Function(List<String> protocols);
+typedef /*String|Future<String>*/ _ProtocolSelector = Function(
+  List<String> protocols,
+);
 
 class _WebSocketTransformerImpl
     extends StreamTransformerBase<HttpRequest, WebSocket>

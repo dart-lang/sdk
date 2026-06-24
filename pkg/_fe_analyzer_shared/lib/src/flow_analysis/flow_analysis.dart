@@ -239,6 +239,12 @@ abstract class FlowAnalysis<
 
   FlowAnalysisOperations<Variable> get operations;
 
+  /// Retrieves the type that `this` is promoted to, if it is currently
+  /// promoted.
+  ///
+  /// If `this` isn't currently promoted, returns `null`.
+  SharedTypeView? get promotedTypeOfThis;
+
   /// Call this method before visiting an anonymous block body.
   ///
   /// Call [anonymousBlockBody_end] after visiting the statement.
@@ -1471,6 +1477,15 @@ class FlowAnalysisDebug<
 
   @override
   FlowAnalysisOperations<Variable> get operations => _wrapped.operations;
+
+  @override
+  SharedTypeView? get promotedTypeOfThis {
+    return _wrap(
+      'promotedTypeOfThis',
+      () => _wrapped.promotedTypeOfThis,
+      isQuery: true,
+    );
+  }
 
   @override
   void anonymousBlockBody_begin() {
@@ -5222,6 +5237,15 @@ class _FlowAnalysisImpl<
   bool get isReachable => _current.reachable.overallReachable;
 
   @override
+  SharedTypeView? get promotedTypeOfThis {
+    if (!typeAnalyzerOptions.thisPromotionEnabled) return null;
+    return _current.promotionInfo
+        ?.get(this, promotionKeyStore.thisPromotionKey)
+        ?.promotedTypes
+        .lastOrNull;
+  }
+
+  @override
   FlowAnalysisTypeOperations get typeOperations => operations;
 
   @override
@@ -6892,6 +6916,9 @@ class _FlowAnalysisImpl<
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
     SharedTypeView staticType,
   ) {
+    if (typeAnalyzerOptions.thisPromotionEnabled) {
+      return () => {};
+    }
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
       promotionKeyStore.thisPromotionKey,
@@ -7304,16 +7331,19 @@ class _FlowAnalysisImpl<
         reference.promotionKey,
       );
       if (variable == null) {
-        List<SharedTypeView> promotedTypes = currentPromotionInfo.promotedTypes;
-        if (promotedTypes.isNotEmpty) {
-          return () {
-            Map<SharedTypeView, NonPromotionReason> result =
-                <SharedTypeView, NonPromotionReason>{};
-            for (SharedTypeView type in promotedTypes) {
-              result[type] = new ThisNotPromoted();
-            }
-            return result;
-          };
+        if (!typeAnalyzerOptions.thisPromotionEnabled) {
+          List<SharedTypeView> promotedTypes =
+              currentPromotionInfo.promotedTypes;
+          if (promotedTypes.isNotEmpty) {
+            return () {
+              Map<SharedTypeView, NonPromotionReason> result =
+                  <SharedTypeView, NonPromotionReason>{};
+              for (SharedTypeView type in promotedTypes) {
+                result[type] = new ThisNotPromoted();
+              }
+              return result;
+            };
+          }
         }
       } else {
         return () {

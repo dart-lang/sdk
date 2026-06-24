@@ -185,9 +185,9 @@ class CompletionResolveHandler
             textEdit: item.textEdit,
             additionalTextEdits: thisFilesChanges
                 .expand(
-                  (change) => sortSourceEditsForLsp(
-                    change.edits,
-                  ).map((edit) => toTextEdit(result.lineInfo, edit)),
+                  (change) =>
+                      sortSourceEditsForLsp(change.edits)
+                          .map((edit) => toTextEdit(result.lineInfo, edit)),
                 )
                 .toList(),
             commitCharacters: item.commitCharacters,

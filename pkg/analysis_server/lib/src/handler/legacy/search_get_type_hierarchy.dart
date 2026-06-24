@@ -42,9 +42,8 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
     // prepare type hierarchy
     var computer = TypeHierarchyComputer(searchEngine, element);
     var items = await computer.compute();
-    var response = protocol.SearchGetTypeHierarchyResult(
-      hierarchyItems: items,
-    ).toResponse(request.id, clientUriConverter: server.uriConverter);
+    var response = protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+        .toResponse(request.id, clientUriConverter: server.uriConverter);
     server.sendResponse(response);
   }
 

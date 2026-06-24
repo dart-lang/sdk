@@ -1,4 +1,5 @@
 import "dart:core";
+
 import "foo.dart";
 export "bar.dart";
 

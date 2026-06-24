@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-method((int,{String a})? r) {
+method((int, {String a})? r) {
   var l0 = r.$1;
   var l1 = r.a;
   var l2 = r?.$1;

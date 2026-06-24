@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue54169_2.dart:6:20: Error: An extension type can't depend on itself through its representation type.
+// pkg/front_end/testcases/extension_types/issue54169_2.dart:7:20: Error: An extension type can't depend on itself through its representation type.
 // extension type ET2(ET2 it) {}
 //                    ^
 //

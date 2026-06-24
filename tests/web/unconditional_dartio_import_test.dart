@@ -8,6 +8,7 @@
 library unconditional_dartio_import_test;
 
 import 'dart:io' as io; // import is allowed!
+
 import 'package:expect/expect.dart';
 
 main() {

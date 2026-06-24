@@ -35,8 +35,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
+      expectedMessage: "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
     );
   }
 

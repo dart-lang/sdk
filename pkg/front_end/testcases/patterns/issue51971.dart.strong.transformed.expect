@@ -2,35 +2,35 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:10:18: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:13:18: Error: Read of a non-const variable is not a constant expression.
 //     var a1 && == a1 => 0, // Error.
 //                  ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:11:18: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:14:18: Error: Read of a non-const variable is not a constant expression.
 //     var b1 && == b1 when b1 < 0 => 1, // Error.
 //                  ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:21:23: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:24:23: Error: Read of a non-const variable is not a constant expression.
 //     case var a2 && == a2: // Error.
 //                       ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:23:23: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:26:23: Error: Read of a non-const variable is not a constant expression.
 //     case var b2 && == b2 when b2 < 0: // Error.
 //                       ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:34:27: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:37:27: Error: Read of a non-const variable is not a constant expression.
 //   if (x case var a3 && == a3) { // Error.
 //                           ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:36:34: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:39:34: Error: Read of a non-const variable is not a constant expression.
 //   } else if (x case var b3 && == b3 when b3 < 0) { // Error.
 //                                  ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:48:29: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:51:29: Error: Read of a non-const variable is not a constant expression.
 //     if (x case var a4 && == a4) 0, // Error.
 //                             ^
 //
-// pkg/front_end/testcases/patterns/issue51971.dart:49:29: Error: Read of a non-const variable is not a constant expression.
+// pkg/front_end/testcases/patterns/issue51971.dart:52:29: Error: Read of a non-const variable is not a constant expression.
 //     if (x case var b4 && == b4 when b4 < 0) 1, // Error.
 //                             ^
 //

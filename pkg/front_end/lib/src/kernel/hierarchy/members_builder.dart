@@ -220,9 +220,9 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   @override
   Member? getInterfaceMember(Class cls, Name name, {bool setter = false}) {
-    return getNodeFromClass(
-      cls,
-    ).getInterfaceMember(name, setter)?.getMember(this);
+    return getNodeFromClass(cls)
+        .getInterfaceMember(name, setter)
+        ?.getMember(this);
   }
 
   ClassMember? getExtensionTypeClassMember(
@@ -230,9 +230,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     Name name, {
     bool setter = false,
   }) {
-    return getNodeFromExtensionTypeDeclaration(
-      extensionTypeDeclaration,
-    ).getMember(name, setter);
+    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
+        .getMember(name, setter);
   }
 
   ClassMember? getExtensionTypeStaticClassMember(
@@ -240,16 +239,15 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     Name name, {
     bool setter = false,
   }) {
-    return getNodeFromExtensionTypeDeclaration(
-      extensionTypeDeclaration,
-    ).getStaticMember(name, setter);
+    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
+        .getStaticMember(name, setter);
   }
 
   @override
   Member? getDispatchTarget(Class cls, Name name, {bool setter = false}) {
-    return getNodeFromClass(
-      cls,
-    ).getDispatchTarget(name, setter)?.getMember(this);
+    return getNodeFromClass(cls)
+        .getDispatchTarget(name, setter)
+        ?.getMember(this);
   }
 
   ClassMember? getDispatchClassMember(

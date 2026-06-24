@@ -74,7 +74,7 @@ class JitTestRunner extends TestRunner {
   JitTestRunner(this.buildDir, this.arguments);
 
   Future runTest(List<PotentialCrash> crashes) async {
-    await run('$buildDir/dart', arguments, crashes);
+    await run('$buildDir/dartvm', arguments, crashes);
   }
 }
 

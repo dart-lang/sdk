@@ -9,6 +9,7 @@
 library ProcessSetExitCodeTest;
 
 import "dart:io";
+
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 

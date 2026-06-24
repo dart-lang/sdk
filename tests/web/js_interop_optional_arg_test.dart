@@ -9,6 +9,7 @@
 
 import "package:js/js.dart";
 import "package:expect/expect.dart";
+
 import "dart:js" as js;
 
 @JS('C')

@@ -44,7 +44,8 @@ staticMembers() async {
   expect(2, c);
   var d = C.staticFoo(2) + await dummy();
   expect(3, d);
-  var e = C.staticField +
+  var e =
+      C.staticField +
       C.staticGetter +
       (C.staticSetter = 1) +
       C.staticFoo(1) +
@@ -61,7 +62,8 @@ topLevelMembers() async {
   expect(2, c);
   var d = topLevelFoo(1) + await dummy();
   expect(2, d);
-  var e = globalVariable +
+  var e =
+      globalVariable +
       topLevelGetter +
       (topLevelSetter = 1) +
       topLevelFoo(1) +
@@ -79,7 +81,8 @@ instanceMembers() async {
   expect(2, c);
   var d = inst.foo(1) + await dummy();
   expect(2, d);
-  var e = inst.field +
+  var e =
+      inst.field +
       inst.getter +
       (inst.setter = 1) +
       inst.foo(1) +
@@ -189,16 +192,12 @@ controlFlow() async {
         throw "unreachable";
     }
     // Return.
-    expect(
-        42,
-        await () async {
-          return await func(42);
-        }());
-    expect(
-        42,
-        await () async {
-          return func(42);
-        }());
+    expect(42, await () async {
+      return await func(42);
+    }());
+    expect(42, await () async {
+      return func(42);
+    }());
     // Yield.
     Stream<int> testStream1() async* {
       yield await func(42);

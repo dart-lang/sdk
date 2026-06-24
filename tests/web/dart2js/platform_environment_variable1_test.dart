@@ -5,6 +5,7 @@
 // SharedOptions=-Ddart2js.test.platform.environment.variable=hello
 
 import 'dart:_js_helper' show testingGetPlatformEnvironmentVariable;
+
 import 'package:expect/expect.dart';
 
 main() {

@@ -57,9 +57,8 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
       reason: 'addTestSource should be called first',
     );
     var result = await getResolvedUnit(testFile);
-    return DartLazyTypeHierarchyComputer(
-      result,
-    ).findTarget(parsedTestCode.position.offset);
+    return DartLazyTypeHierarchyComputer(result)
+        .findTarget(parsedTestCode.position.offset);
   }
 
   /// Matches a [TypeHierarchyItem] with the given values.
@@ -100,9 +99,8 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
   ) async {
     var file = getFile(target.file);
     var result = await getResolvedUnit(file);
-    return DartLazyTypeHierarchyComputer(
-      result,
-    ).findSubtypes(target.location, searchEngine);
+    return DartLazyTypeHierarchyComputer(result)
+        .findSubtypes(target.location, searchEngine);
   }
 
   @override
@@ -292,9 +290,8 @@ class TypeHierarchyComputerFindSupertypesTest
   ) async {
     var file = getFile(target.file);
     var result = await getResolvedUnit(file);
-    return DartLazyTypeHierarchyComputer(
-      result,
-    ).findSupertypes(target.location);
+    return DartLazyTypeHierarchyComputer(result)
+        .findSupertypes(target.location);
   }
 
   /// Test that if the file is modified between fetching a target and it's

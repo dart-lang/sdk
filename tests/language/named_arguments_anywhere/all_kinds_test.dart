@@ -259,29 +259,24 @@ test(dynamic d, Function f, A a) {
 
   // InstanceInvocation.
   runAndCheckEvaluationOrder([a, 1, "2", false, 3.14], () {
-    evaluate(
-      a,
-    ).bar(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
+    evaluate(a)
+        .bar(evaluate(1), evaluate("2"), z: evaluate(false), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, 1, false, "2", 3.14], () {
-    evaluate(
-      a,
-    ).bar(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
+    evaluate(a)
+        .bar(evaluate(1), z: evaluate(false), evaluate("2"), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, false, 1, "2", 3.14], () {
-    evaluate(
-      a,
-    ).bar(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
+    evaluate(a)
+        .bar(z: evaluate(false), evaluate(1), evaluate("2"), w: evaluate(3.14));
   });
   runAndCheckEvaluationOrder([a, 3.14, 1, "2", false], () {
-    evaluate(
-      a,
-    ).bar(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
+    evaluate(a)
+        .bar(w: evaluate(3.14), evaluate(1), evaluate("2"), z: evaluate(false));
   });
   runAndCheckEvaluationOrder([a, 1, 3.14, "2", false], () {
-    evaluate(
-      a,
-    ).bar(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
+    evaluate(a)
+        .bar(evaluate(1), w: evaluate(3.14), evaluate("2"), z: evaluate(false));
   });
   runAndCheckEvaluationOrder([a, 1, 3.14, "2"], () {
     evaluate(a).bar(evaluate(1), w: evaluate(3.14), evaluate("2"));

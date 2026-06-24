@@ -22,6 +22,6 @@ static method expectEquals(dynamic x, dynamic y) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51189.dart:8:3 -> InstanceConstant(const E<A>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51189.dart:7:23 -> InstanceConstant(const E<A>{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue51189.dart:7:6 -> ListConstant(const <E<A>>[const E<A>{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 7, effectively constant: 2

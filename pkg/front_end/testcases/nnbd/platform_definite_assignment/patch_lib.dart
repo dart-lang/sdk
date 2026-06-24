@@ -8,9 +8,7 @@ import 'dart:_internal';
 @patch
 class Class<T extends num> {
   @patch
-  Class.patchedConstructor(int i, T j)
-      : this.a = i,
-        this.b = j {
+  Class.patchedConstructor(int i, T j) : this.a = i, this.b = j {
     int k;
     k;
   }

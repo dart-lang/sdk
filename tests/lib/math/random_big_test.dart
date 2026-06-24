@@ -5,6 +5,7 @@
 // Test that Random can deal with a seed at upper end of 64-bit range.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 main() {

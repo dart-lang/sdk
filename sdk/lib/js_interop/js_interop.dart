@@ -239,7 +239,7 @@ extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction<T extends Function>._(
-  JSExportedDartFunctionType _jsExportedDartFunction
+  JSExportedDartFunctionType _jsExportedDartFunction,
 ) implements JSFunction<T>, JSExportedDartFunctionType {}
 
 /// The synchronous [JS iterable protocol].
@@ -637,7 +637,7 @@ extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-  JSUint8ClampedArrayType _jsUint8ClampedArray
+  JSUint8ClampedArrayType _jsUint8ClampedArray,
 ) implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
@@ -929,7 +929,7 @@ extension type JSBigInt._(JSBigIntType _jsBigInt)
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-  ExternalDartReferenceType<T> _externalDartReference
+  ExternalDartReferenceType<T> _externalDartReference,
 ) {}
 
 /// JS type equivalent for `undefined` for interop member return types.

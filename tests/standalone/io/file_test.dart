@@ -1756,11 +1756,12 @@ class FileTest {
         .then((_) {
           if (Platform.operatingSystem != "windows") {
             Future<File?>.value(
-              new Link(
-                source,
-              ).create(dest).then((_) => file.rename("xxx")).then((_) {
-                throw "Rename of broken link succeeded";
-              }),
+              new Link(source)
+                  .create(dest)
+                  .then((_) => file.rename("xxx"))
+                  .then((_) {
+                    throw "Rename of broken link succeeded";
+                  }),
             ).catchError((e) {
               Expect.isTrue(e is FileSystemException);
               asyncTestDone("testRename$targetExists");

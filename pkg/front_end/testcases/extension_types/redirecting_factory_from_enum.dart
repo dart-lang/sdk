@@ -8,15 +8,16 @@ class A1 {
 }
 
 extension type const E1(A1 it) {
-  const E1.named(A1 it): this(it);
+  const E1.named(A1 it) : this(it);
 }
 
 enum A2 {
   element;
+
   const A2();
   const factory A2.named(A2 it) = E2.named; // Error.
 }
 
 extension type const E2(A2 it) {
-  const E2.named(A2 it): this(it);
+  const E2.named(A2 it) : this(it);
 }

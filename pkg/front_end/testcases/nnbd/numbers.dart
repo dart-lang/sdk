@@ -3,7 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 add<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n + n;
   var n_i = n + i;
   var n_d = n + d;
@@ -48,7 +54,13 @@ add<X extends num, Y extends int, Z extends double>(
 }
 
 sub<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n - n;
   var n_i = n - i;
   var n_d = n - d;
@@ -93,7 +105,13 @@ sub<X extends num, Y extends int, Z extends double>(
 }
 
 mul<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n * n;
   var n_i = n * i;
   var n_d = n * d;
@@ -138,7 +156,13 @@ mul<X extends num, Y extends int, Z extends double>(
 }
 
 mod<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n % n;
   var n_i = n % i;
   var n_d = n % d;
@@ -183,7 +207,13 @@ mod<X extends num, Y extends int, Z extends double>(
 }
 
 remainder<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n = n.remainder(n);
   var n_i = n.remainder(i);
   var n_d = n.remainder(d);
@@ -228,7 +258,13 @@ remainder<X extends num, Y extends int, Z extends double>(
 }
 
 clamp<X extends num, Y extends int, Z extends double>(
-    num n, int i, double d, X x, Y y, Z z) {
+  num n,
+  int i,
+  double d,
+  X x,
+  Y y,
+  Z z,
+) {
   var n_n_n = n.clamp(n, n);
   var n_i_n = n.clamp(i, n);
   var n_d_n = n.clamp(d, n);

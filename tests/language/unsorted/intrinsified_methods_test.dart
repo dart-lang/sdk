@@ -6,6 +6,7 @@
 library intrinsified_methods_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 testIsNegative() {

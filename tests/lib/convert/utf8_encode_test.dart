@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
+
 import 'unicode_tests.dart';
 
 List<int> encode(String str) => new Utf8Encoder().convert(str);

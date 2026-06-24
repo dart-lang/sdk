@@ -334,8 +334,7 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
       validateImportPrefixName('2newName'),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          'Import prefix name must begin with a lowercase letter or underscore.',
+      expectedMessage: 'Import prefix name must begin with a lowercase letter or underscore.',
     );
   }
 
@@ -475,8 +474,7 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
       validateLibraryName('my.newName'),
       RefactoringProblemSeverity.WARNING,
-      expectedMessage:
-          'Library name should consist of lowercase identifier separated by dots.',
+      expectedMessage: 'Library name should consist of lowercase identifier separated by dots.',
     );
   }
 
@@ -509,8 +507,7 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
       validateLibraryName('my.2bad.name'),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          'Library name identifier must begin with a lowercase letter or underscore.',
+      expectedMessage: 'Library name identifier must begin with a lowercase letter or underscore.',
     );
   }
 

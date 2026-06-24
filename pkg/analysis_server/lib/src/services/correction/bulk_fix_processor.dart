@@ -1013,9 +1013,9 @@ class BulkFixProcessor {
     bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
       return generators != null &&
           generators.any(
-            (generator) => generator(
-              context: StubCorrectionProducerContext.instance,
-            ).canBeAppliedAcrossFiles,
+            (generator) =>
+                generator(context: StubCorrectionProducerContext.instance)
+                    .canBeAppliedAcrossFiles,
           );
     }
 

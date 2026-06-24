@@ -299,9 +299,9 @@ class DartUnitHighlightsComputer {
       DartType? staticType;
       if (parent is PropertyAccess && nameToken == parent.propertyName.token) {
         staticType = parent.realTarget.staticType;
-      } else if (parent.enclosingInstanceElement case ExtensionElement(
-        :var extendedType,
-      ) when parent is! PrefixedIdentifier) {
+      } else if (parent.enclosingInstanceElement
+          case ExtensionElement(:var extendedType)
+          when parent is! PrefixedIdentifier) {
         staticType = extendedType;
       }
       // Handle tokens that are references to record fields.

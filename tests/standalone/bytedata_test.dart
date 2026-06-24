@@ -8,6 +8,7 @@
 library ByteDataTest;
 
 import "package:expect/expect.dart";
+
 import 'dart:typed_data';
 
 testGetters() {

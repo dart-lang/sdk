@@ -61,9 +61,8 @@ class TextExpectationsCollector {
         var invocationTraceLine = traceLines[invocationTraceIndex];
 
         // Parse the invocation stack trace line.
-        var locationMatch = RegExp(
-          r'(file://.+_test.dart):(\d+):',
-        ).firstMatch(invocationTraceLine);
+        var locationMatch = RegExp(r'(file://.+_test.dart):(\d+):')
+            .firstMatch(invocationTraceLine);
         if (locationMatch == null) {
           fail('Cannot parse: $invocationTraceLine');
         }

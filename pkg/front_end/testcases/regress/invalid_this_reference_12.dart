@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension on dynamic {
-  foo([int bar = foo.baz]) {
-  }
+  foo([int bar = foo.baz]) {}
 }
 
 extension type foo(dynamic whatnot) {
-  foo([int bar = foo.baz]) {
-  }
+  foo([int bar = foo.baz]) {}
 }

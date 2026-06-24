@@ -11,6 +11,6 @@ enum A {
 }
 
 int fn(A a) => switch (a) {
-      A.a => 0,
-      A.b => 1,
-    };
+  A.a => 0,
+  A.b => 1,
+};

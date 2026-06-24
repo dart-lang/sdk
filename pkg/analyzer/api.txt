@@ -417,6 +417,7 @@ package:analyzer/dart/analysis/features.dart:
     spread_collections (static getter: ExperimentalFeature)
     static_extensions (static getter: ExperimentalFeature)
     super_parameters (static getter: ExperimentalFeature)
+    this_promotion (static getter: ExperimentalFeature)
     triple_shift (static getter: ExperimentalFeature)
     unnamedLibraries (static getter: ExperimentalFeature)
     unquotedImports (static getter: ExperimentalFeature)

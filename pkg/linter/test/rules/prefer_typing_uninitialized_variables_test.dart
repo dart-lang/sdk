@@ -17,7 +17,10 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_typing_uninitialized_variables;
 
-  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
   test_field_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
@@ -113,7 +116,10 @@ void f() {
 ''');
   }
 
-  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
   test_topLevelVariable_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';

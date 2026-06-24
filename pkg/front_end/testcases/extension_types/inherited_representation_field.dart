@@ -18,6 +18,7 @@ extension type E(int _e) implements D {
 }
 
 extension type G<T>(T g) {}
+
 extension type H<T>(List<T> h) implements G<List<T>> {}
 
 main() {

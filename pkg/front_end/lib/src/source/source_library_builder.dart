@@ -551,9 +551,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void computeSupertypes() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
     List<SourceClassBuilder> sourceClasses =
-        filteredMembersIterator<SourceClassBuilder>(
-          includeDuplicates: true,
-        ).toList();
+        filteredMembersIterator<SourceClassBuilder>(includeDuplicates: true)
+            .toList();
     for (SourceClassBuilder sourceClassBuilder in sourceClasses) {
       _computeSupertypeBuilderForClass(sourceClassBuilder);
     }

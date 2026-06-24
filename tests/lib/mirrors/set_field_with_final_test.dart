@@ -5,6 +5,7 @@
 library test.set_field_with_final;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class C {

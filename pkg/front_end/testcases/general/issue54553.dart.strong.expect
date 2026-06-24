@@ -2,15 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue54553.dart:8:7: Error: Can't implement 'A?' because it's nullable.
+// pkg/front_end/testcases/general/issue54553.dart:9:7: Error: Can't implement 'A?' because it's nullable.
 // Try removing the question mark.
 // class B implements A? {} // Error.
 //       ^
 //
-// pkg/front_end/testcases/general/issue54553.dart:10:49: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+// pkg/front_end/testcases/general/issue54553.dart:13:49: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
 // extension type EIAliasNullable(A? _) implements F<A?> {} // Error.
 //                                                 ^
-// pkg/front_end/testcases/general/issue54553.dart:9:11: Context: This is the type variable ultimately denoted.
+// pkg/front_end/testcases/general/issue54553.dart:11:11: Context: This is the type variable ultimately denoted.
 // typedef F<T> = T;
 //           ^
 //
@@ -19,11 +19,11 @@ library;
 // extension type EINullable(int? _) implements int? {} // Error.
 //                                              ^
 //
-// pkg/front_end/testcases/general/issue54553.dart:10:49: Error: The type 'F<A?>' which is an alias of 'A?' can't be implemented by an extension type because it is nullable.
+// pkg/front_end/testcases/general/issue54553.dart:13:49: Error: The type 'F<A?>' which is an alias of 'A?' can't be implemented by an extension type because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/general/issue54553.dart'.
 // extension type EIAliasNullable(A? _) implements F<A?> {} // Error.
 //                                                 ^
-// pkg/front_end/testcases/general/issue54553.dart:9:9: Context: The issue arises via this type alias.
+// pkg/front_end/testcases/general/issue54553.dart:11:9: Context: The issue arises via this type alias.
 // typedef F<T> = T;
 //         ^
 //

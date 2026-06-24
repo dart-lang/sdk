@@ -18,6 +18,7 @@ mixin _PointerEventDescription on PointerEvent {
     super.debugFillProperties(properties);
   }
 }
+
 mixin _CopyPointerScrollEvent on PointerEvent {}
 
 class PointerScrollEvent extends PointerSignalEvent

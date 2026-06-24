@@ -36,7 +36,7 @@ ClassDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@27
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -119,7 +119,7 @@ ClassDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -152,11 +152,11 @@ ClassDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
         TypeParameter
           name: V
           declaredFragment: <testLibraryFragment> V@36
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -220,7 +220,7 @@ MethodDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@65
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -304,7 +304,7 @@ MethodDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@71
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -393,7 +393,7 @@ EnumDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@26
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
@@ -474,7 +474,7 @@ EnumDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@32
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
@@ -531,7 +531,7 @@ ExtensionDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@42
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -609,7 +609,7 @@ ExtensionDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@48
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -669,7 +669,7 @@ ExtensionTypeDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@53
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -759,7 +759,7 @@ ExtensionTypeDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@59
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -819,7 +819,7 @@ MixinDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@27
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -897,7 +897,7 @@ MixinDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@33
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -957,7 +957,7 @@ FunctionDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@27
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -1043,7 +1043,7 @@ FunctionDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (

@@ -5,6 +5,7 @@
 library test.invoke_import_test;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 import 'other_library.dart';

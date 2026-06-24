@@ -25,16 +25,20 @@ main() {
       // Pretend to assign to confuse flow analysis for the read below.
       lateGenericLocal = value;
     }
-    throws(() => lateGenericLocal,
-        'Read value from uninitialized lateGenericLocal');
+    throws(
+      () => lateGenericLocal,
+      'Read value from uninitialized lateGenericLocal',
+    );
 
     if (!b) {
       // Pretend to not assign to confuse flow analysis for the write below.
       expect(value, lateGenericLocal = value);
       expect(value, lateGenericLocal);
     }
-    throws(() => lateGenericLocal = value,
-        'Write value to initialized lateGenericLocal');
+    throws(
+      () => lateGenericLocal = value,
+      'Write value to initialized lateGenericLocal',
+    );
   }
 
   local<int?>(null);

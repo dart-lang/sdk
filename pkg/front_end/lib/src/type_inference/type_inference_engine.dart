@@ -1054,9 +1054,8 @@ class OperationsCfe
     DartType type,
     List<SharedTypeParameter> typeParametersToEliminate,
   ) {
-    return new FreeTypeParameterEliminator(
-      coreTypes: typeEnvironment.coreTypes,
-    ).eliminateToGreatest(type);
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
+        .eliminateToGreatest(type);
   }
 
   @override
@@ -1064,9 +1063,8 @@ class OperationsCfe
     DartType type,
     List<SharedTypeParameter> typeParametersToEliminate,
   ) {
-    return new FreeTypeParameterEliminator(
-      coreTypes: typeEnvironment.coreTypes,
-    ).eliminateToLeast(type);
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
+        .eliminateToLeast(type);
   }
 
   @override

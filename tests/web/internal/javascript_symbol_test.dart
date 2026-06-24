@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_interceptors';
+
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
 

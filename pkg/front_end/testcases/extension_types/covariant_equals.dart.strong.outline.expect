@@ -41,5 +41,5 @@ static method test() → void
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///covariant_equals.dart:9:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///covariant_equals.dart:8:4 -> InstanceConstant(const _Override{})
 Extra constant evaluation: evaluated: 5, effectively constant: 1

@@ -2,100 +2,100 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:9:14: Error: 'x' was already initialized by this constructor.
-//         this.x = 42 {}
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:7:27: Error: 'x' was already initialized by this constructor.
+//   A() : this.x = 41, this.x = 42 {}
+//                           ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:16:14: Error: 'x' was already initialized by this constructor.
-//         this.x = 42 {}
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:12:27: Error: 'x' was already initialized by this constructor.
+//   B() : this.x = 41, this.x = 42 {}
+//                           ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:22:14: Error: 'x' is a final instance variable that was initialized at the declaration.
-//       : this.x = 41,
+// pkg/front_end/testcases/general/initialization_errors.dart:17:14: Error: 'x' is a final instance variable that was initialized at the declaration.
+//   C() : this.x = 41, this.x = 42 {}
 //              ^
-// pkg/front_end/testcases/general/initialization_errors.dart:20:13: Context: 'x' was initialized here.
+// pkg/front_end/testcases/general/initialization_errors.dart:16:13: Context: 'x' was initialized here.
 //   final int x = 2;
 //             ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:23:14: Error: 'x' was already initialized by this constructor.
-//         this.x = 42 {}
+// pkg/front_end/testcases/general/initialization_errors.dart:17:27: Error: 'x' was already initialized by this constructor.
+//   C() : this.x = 41, this.x = 42 {}
+//                           ^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:23:14: Error: A redirecting constructor can't have other initializers.
+//   D() : this.x = 41, this.named(), this.y = 42 {}
 //              ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:30:14: Error: A redirecting constructor can't have other initializers.
-//       : this.x = 41,
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:23:41: Error: A redirecting constructor can't have other initializers.
+//   D() : this.x = 41, this.named(), this.y = 42 {}
+//                                         ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:32:14: Error: A redirecting constructor can't have other initializers.
-//         this.y = 42 {}
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:30:28: Error: A redirecting constructor can't have other initializers.
+//   E() : this.named(), this.x = 1, this.y = 2 {}
+//                            ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:43:14: Error: A redirecting constructor can't have other initializers.
-//         this.x = 1,
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:30:40: Error: A redirecting constructor can't have other initializers.
+//   E() : this.named(), this.x = 1, this.y = 2 {}
+//                                        ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:44:14: Error: A redirecting constructor can't have other initializers.
-//         this.y = 2 {}
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:32:21: Error: A redirecting constructor can't have other initializers.
+//   E.named2() : this.x = 1, this.named(), this.y = 2;
+//                     ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:49:14: Error: A redirecting constructor can't have other initializers.
-//       : this.x = 1,
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:32:47: Error: A redirecting constructor can't have other initializers.
+//   E.named2() : this.x = 1, this.named(), this.y = 2;
+//                                               ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:51:14: Error: A redirecting constructor can't have other initializers.
-//         this.y = 2;
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:33:16: Error: A redirecting constructor can't have a 'super' initializer.
+//   E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+//                ^^^^^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:53:9: Error: A redirecting constructor can't have a 'super' initializer.
-//       : super(),
+// pkg/front_end/testcases/general/initialization_errors.dart:33:44: Error: Can't have initializers after 'super'.
+//   E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+//                                            ^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:33:56: Error: Can't have initializers after 'super'.
+//   E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+//                                                        ^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:34:21: Error: A redirecting constructor can't have other initializers.
+//   E.named4() : this.x = 1, this.y = 2, this.named();
+//                     ^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:34:33: Error: A redirecting constructor can't have other initializers.
+//   E.named4() : this.x = 1, this.y = 2, this.named();
+//                                 ^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:35:16: Error: A redirecting constructor can't have other initializers.
+//   E.named5() : assert(true), this.named();
+//                ^^^^^^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:36:30: Error: A redirecting constructor can't have other initializers.
+//   E.named6() : this.named(), assert(true);
+//                              ^^^^^^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:40:23: Error: A redirecting constructor can't have a 'super' initializer.
+//   F() : this.named(), super() {}
+//                       ^^^^^
+//
+// pkg/front_end/testcases/general/initialization_errors.dart:45:9: Error: A redirecting constructor can't have a 'super' initializer.
+//   G() : super(), this.named(), super() {}
 //         ^^^^^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:55:14: Error: Can't have initializers after 'super'.
-//         this.x = 1,
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:45:32: Error: Can't have more than one 'super' initializer.
+//   G() : super(), this.named(), super() {}
+//                                ^^^^^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:56:14: Error: Can't have initializers after 'super'.
-//         this.y = 2;
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:50:28: Error: A redirecting constructor can't have more than one redirection.
+//   H() : this.named(), this.named();
+//                            ^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:58:14: Error: A redirecting constructor can't have other initializers.
-//       : this.x = 1,
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:55:18: Error: Can't have more than one 'super' initializer.
+//   I() : super(), super() {}
+//                  ^^^^^
 //
-// pkg/front_end/testcases/general/initialization_errors.dart:59:14: Error: A redirecting constructor can't have other initializers.
-//         this.y = 2,
-//              ^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:62:9: Error: A redirecting constructor can't have other initializers.
-//       : assert(true),
-//         ^^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:66:9: Error: A redirecting constructor can't have other initializers.
-//         assert(true);
-//         ^^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:72:9: Error: A redirecting constructor can't have a 'super' initializer.
-//         super() {}
-//         ^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:78:9: Error: A redirecting constructor can't have a 'super' initializer.
-//       : super(),
-//         ^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:80:9: Error: Can't have more than one 'super' initializer.
-//         super() {}
-//         ^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:87:14: Error: A redirecting constructor can't have more than one redirection.
-//         this.named();
-//              ^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:94:9: Error: Can't have more than one 'super' initializer.
-//         super() {}
-//         ^^^^^
-//
-// pkg/front_end/testcases/general/initialization_errors.dart:101:14: Error: Can't have initializers after 'super'.
-//         this.x = 42 {}
-//              ^
+// pkg/front_end/testcases/general/initialization_errors.dart:60:23: Error: Can't have initializers after 'super'.
+//   J() : super(), this.x = 42 {}
+//                       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -103,35 +103,35 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int x;
   constructor •() → self::A
-    : self::A::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:9:14: Error: 'x' was already initialized by this constructor.
-        this.x = 42 {}
-             ^" {}
+    : self::A::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:7:27: Error: 'x' was already initialized by this constructor.
+  A() : this.x = 41, this.x = 42 {}
+                          ^" {}
 }
 class B extends core::Object {
   final field core::int x;
   constructor •() → self::B
-    : self::B::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:16:14: Error: 'x' was already initialized by this constructor.
-        this.x = 42 {}
-             ^" {}
+    : self::B::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:12:27: Error: 'x' was already initialized by this constructor.
+  B() : this.x = 41, this.x = 42 {}
+                          ^" {}
 }
 class C extends core::Object {
   final field core::int x = 2;
   constructor •() → self::C
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:22:14: Error: 'x' is a final instance variable that was initialized at the declaration.
-      : this.x = 41,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:23:14: Error: 'x' was already initialized by this constructor.
-        this.x = 42 {}
-             ^" {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:17:14: Error: 'x' is a final instance variable that was initialized at the declaration.
+  C() : this.x = 41, this.x = 42 {}
+             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:17:27: Error: 'x' was already initialized by this constructor.
+  C() : this.x = 41, this.x = 42 {}
+                          ^" {}
 }
 class D extends core::Object {
   final field core::int x;
   final field core::int y;
   erroneous constructor •() → self::D
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:30:14: Error: A redirecting constructor can't have other initializers.
-      : this.x = 41,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:32:14: Error: A redirecting constructor can't have other initializers.
-        this.y = 42 {}
-             ^", this self::D::named() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:23:14: Error: A redirecting constructor can't have other initializers.
+  D() : this.x = 41, this.named(), this.y = 42 {}
+             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:23:41: Error: A redirecting constructor can't have other initializers.
+  D() : this.x = 41, this.named(), this.y = 42 {}
+                                        ^", this self::D::named() {}
   constructor named() → self::D
     : self::D::x = 41, self::D::y = 42, super core::Object::•() {}
 }
@@ -139,85 +139,85 @@ class E extends core::Object {
   final field core::int x;
   final field core::int y;
   erroneous constructor •() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:43:14: Error: A redirecting constructor can't have other initializers.
-        this.x = 1,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:44:14: Error: A redirecting constructor can't have other initializers.
-        this.y = 2 {}
-             ^", this self::E::named() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:30:28: Error: A redirecting constructor can't have other initializers.
+  E() : this.named(), this.x = 1, this.y = 2 {}
+                           ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:30:40: Error: A redirecting constructor can't have other initializers.
+  E() : this.named(), this.x = 1, this.y = 2 {}
+                                       ^", this self::E::named() {}
   constructor named() → self::E
     : self::E::x = 41, self::E::y = 42, super core::Object::•() {}
   erroneous constructor named2() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:49:14: Error: A redirecting constructor can't have other initializers.
-      : this.x = 1,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:51:14: Error: A redirecting constructor can't have other initializers.
-        this.y = 2;
-             ^", this self::E::named()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:32:21: Error: A redirecting constructor can't have other initializers.
+  E.named2() : this.x = 1, this.named(), this.y = 2;
+                    ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:32:47: Error: A redirecting constructor can't have other initializers.
+  E.named2() : this.x = 1, this.named(), this.y = 2;
+                                              ^", this self::E::named()
     ;
   erroneous constructor named3() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:53:9: Error: A redirecting constructor can't have a 'super' initializer.
-      : super(),
-        ^^^^^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:55:14: Error: Can't have initializers after 'super'.
-        this.x = 1,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:56:14: Error: Can't have initializers after 'super'.
-        this.y = 2;
-             ^", super core::Object::•()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:33:16: Error: A redirecting constructor can't have a 'super' initializer.
+  E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+               ^^^^^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:33:44: Error: Can't have initializers after 'super'.
+  E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+                                           ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:33:56: Error: Can't have initializers after 'super'.
+  E.named3() : super(), this.named(), this.x = 1, this.y = 2;
+                                                       ^", super core::Object::•()
     ;
   erroneous constructor named4() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:58:14: Error: A redirecting constructor can't have other initializers.
-      : this.x = 1,
-             ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:59:14: Error: A redirecting constructor can't have other initializers.
-        this.y = 2,
-             ^", this self::E::named()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:34:21: Error: A redirecting constructor can't have other initializers.
+  E.named4() : this.x = 1, this.y = 2, this.named();
+                    ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:34:33: Error: A redirecting constructor can't have other initializers.
+  E.named4() : this.x = 1, this.y = 2, this.named();
+                                ^", this self::E::named()
     ;
   erroneous constructor named5() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:62:9: Error: A redirecting constructor can't have other initializers.
-      : assert(true),
-        ^^^^^^", this self::E::named()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:35:16: Error: A redirecting constructor can't have other initializers.
+  E.named5() : assert(true), this.named();
+               ^^^^^^", this self::E::named()
     ;
   erroneous constructor named6() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:66:9: Error: A redirecting constructor can't have other initializers.
-        assert(true);
-        ^^^^^^", this self::E::named()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:36:30: Error: A redirecting constructor can't have other initializers.
+  E.named6() : this.named(), assert(true);
+                             ^^^^^^", this self::E::named()
     ;
 }
 class F extends core::Object {
   constructor •() → self::F
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:72:9: Error: A redirecting constructor can't have a 'super' initializer.
-        super() {}
-        ^^^^^", this self::F::named() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:40:23: Error: A redirecting constructor can't have a 'super' initializer.
+  F() : this.named(), super() {}
+                      ^^^^^", this self::F::named() {}
   constructor named() → self::F
     : super core::Object::•() {}
 }
 class G extends core::Object {
   erroneous constructor •() → self::G
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:78:9: Error: A redirecting constructor can't have a 'super' initializer.
-      : super(),
-        ^^^^^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:80:9: Error: Can't have more than one 'super' initializer.
-        super() {}
-        ^^^^^", super core::Object::•() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:45:9: Error: A redirecting constructor can't have a 'super' initializer.
+  G() : super(), this.named(), super() {}
+        ^^^^^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:45:32: Error: Can't have more than one 'super' initializer.
+  G() : super(), this.named(), super() {}
+                               ^^^^^", super core::Object::•() {}
   constructor named() → self::G
     : super core::Object::•() {}
 }
 class H extends core::Object {
   erroneous constructor •() → self::H
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:87:14: Error: A redirecting constructor can't have more than one redirection.
-        this.named();
-             ^", this self::H::named()
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:50:28: Error: A redirecting constructor can't have more than one redirection.
+  H() : this.named(), this.named();
+                           ^", this self::H::named()
     ;
   constructor named() → self::H
     : super core::Object::•() {}
 }
 class I extends core::Object {
   constructor •() → self::I
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:94:9: Error: Can't have more than one 'super' initializer.
-        super() {}
-        ^^^^^", super core::Object::•() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:55:18: Error: Can't have more than one 'super' initializer.
+  I() : super(), super() {}
+                 ^^^^^", super core::Object::•() {}
 }
 class J extends core::Object {
   field core::int x;
   erroneous constructor •() → self::J
-    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:101:14: Error: Can't have initializers after 'super'.
-        this.x = 42 {}
-             ^", super core::Object::•() {}
+    : invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:60:23: Error: Can't have initializers after 'super'.
+  J() : super(), this.x = 42 {}
+                      ^", super core::Object::•() {}
 }
 static method main() → dynamic {}

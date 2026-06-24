@@ -127,8 +127,12 @@ class PubCommandTest with ResourceProviderMixin {
     // Create a process that won't complete (unless it's killed, where
     // the MockProcess will complete it with a non-zero exit code).
     var process = MockProcess(0, Completer<int>().future, '', '');
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) => process;
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => process;
 
     // Start running the (endless) command.
     var commandFuture = pubCommand.outdatedVersions(pubspecPath);
@@ -161,9 +165,12 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_invalidJson() async {
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, 'NOT VALID JSON', '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, 'NOT VALID JSON', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -181,9 +188,12 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, validJson, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(1));
     var package = result.first;
@@ -232,9 +242,12 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_nonZeroExitCode() async {
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 123, '{}', '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 123, '{}', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -260,9 +273,12 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, validJson, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
     for (var (index, package) in result.indexed) {

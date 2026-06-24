@@ -11,8 +11,12 @@ import 'src/generate_utils.dart';
 /// Pipe from one file stream into another.
 ///
 /// This is done in chunks to avoid excessive memory load.
-Future<int> pipeStream(RandomAccessFile from, RandomAccessFile to,
-    {int? numToWrite, int chunkSize = 1 << 30}) async {
+Future<int> pipeStream(
+  RandomAccessFile from,
+  RandomAccessFile to, {
+  int? numToWrite,
+  int chunkSize = 1 << 30,
+}) async {
   var numWritten = 0;
   final fileLength = from.lengthSync();
   while (from.positionSync() != fileLength) {
@@ -42,8 +46,9 @@ class _MacOSVersion {
   final int? _minor;
 
   static final _regexp = RegExp(r'Version (?<major>\d+).(?<minor>\d+)');
-  static const _parseFailure =
-      FormatException('Could not determine macOS version');
+  static const _parseFailure = FormatException(
+    'Could not determine macOS version',
+  );
 
   const _MacOSVersion._internal(this._major, this._minor);
 
@@ -70,7 +75,10 @@ class _MacOSVersion {
 // WARNING: this method is used within google3, so don't try to refactor so
 // [dartaotruntimePath] is a constant inside this file.
 Future<void> writeAppendedMachOExecutable(
-    String dartaotruntimePath, String payloadPath, String outputPath) async {
+  String dartaotruntimePath,
+  String payloadPath,
+  String outputPath,
+) async {
   final aotRuntimeFile = File(dartaotruntimePath);
 
   final aotRuntimeHeaders = MachOFile.fromFile(aotRuntimeFile);
@@ -85,8 +93,9 @@ Future<void> writeAppendedMachOExecutable(
 
   // Add the header information for where the snapshot will live, and retrieve
   // the needed parts back out of the new headers.
-  final outputHeaders =
-      aotRuntimeHeaders.adjustHeaderForSnapshot(payloadLength);
+  final outputHeaders = aotRuntimeHeaders.adjustHeaderForSnapshot(
+    payloadLength,
+  );
   final snapshotNote = outputHeaders.snapshotNote!;
   final newLinkEdit = outputHeaders.linkEditSegment!;
 
@@ -106,8 +115,11 @@ Future<void> writeAppendedMachOExecutable(
   // contents.
   final aotRuntimeStream = await aotRuntimeFile.open();
   await aotRuntimeStream.setPosition(aotRuntimeHeaders.size);
-  await pipeStream(aotRuntimeStream, output,
-      numToWrite: oldLinkEdit.fileOffset - aotRuntimeHeaders.size);
+  await pipeStream(
+    aotRuntimeStream,
+    output,
+    numToWrite: oldLinkEdit.fileOffset - aotRuntimeHeaders.size,
+  );
 
   // Now insert the snapshot contents at this position in the file.
   // There may be additional padding needed between the old __LINKEDIT file
@@ -142,13 +154,18 @@ Future<void> writeAppendedMachOExecutable(
     // used to create a signature that does not need to be force overridden.
     final version = _MacOSVersion();
     if (version.isValid && version.major >= 11) {
-      final signingProcess =
-          await Process.run('codesign', ['-o', 'linker-signed', ...args]);
+      final signingProcess = await Process.run('codesign', [
+        '-o',
+        'linker-signed',
+        ...args,
+      ]);
       if (signingProcess.exitCode == 0) {
         return;
       }
-      print('Failed to add a linker signed signature, '
-          'adding a regular signature instead.');
+      print(
+        'Failed to add a linker signed signature, '
+        'adding a regular signature instead.',
+      );
     }
 
     // If that fails or we're running on an older or undetermined version of

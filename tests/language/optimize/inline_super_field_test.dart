@@ -8,6 +8,7 @@
 library inline_super_field_test;
 
 import 'package:expect/expect.dart';
+
 import "inline_super_field_lib.dart";
 
 class S {}

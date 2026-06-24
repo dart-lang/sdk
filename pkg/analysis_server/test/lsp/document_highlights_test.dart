@@ -2078,8 +2078,7 @@ void f() {
       expect(
         (allOfKind != null) != (kinds != null),
         isTrue,
-        reason:
-            "Exactly one of 'allOfKind' or 'kinds' must be provided if there are ranges",
+        reason: "Exactly one of 'allOfKind' or 'kinds' must be provided if there are ranges",
       );
 
       if (kinds != null && kinds.isNotEmpty) {

@@ -5,6 +5,7 @@
 library ExtendsTestMain;
 
 import "extends_test_lib.dart";
+
 import "package:expect/expect.dart";
 
 // S should extend class A from below, not the one imported

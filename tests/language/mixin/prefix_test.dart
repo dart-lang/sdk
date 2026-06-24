@@ -5,6 +5,7 @@
 // Regression test for issue 11891.
 
 import "package:expect/expect.dart";
+
 import "prefix_lib.dart";
 
 class A extends Object with MixinClass {

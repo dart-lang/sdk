@@ -10,9 +10,12 @@
 // VMOptions=--no_intrinsify
 
 import "package:expect/expect.dart";
+
 import 'dart:async';
 import 'dart:convert';
+
 import 'json_unicode_tests.dart';
+
 import "package:expect/async_helper.dart";
 
 final jsonUtf8 = json.fuse<List<int>>(utf8);

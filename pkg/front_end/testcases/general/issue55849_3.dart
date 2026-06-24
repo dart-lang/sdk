@@ -20,7 +20,7 @@ class C {
 
   foo({A a = const A.redir()}) {}
 
-  static bar ({A a = const A.redir()}) {}
+  static bar({A a = const A.redir()}) {}
 }
 
 extension E on C {

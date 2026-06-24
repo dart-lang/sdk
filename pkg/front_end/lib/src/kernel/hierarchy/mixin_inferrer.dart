@@ -118,9 +118,9 @@ class BuilderMixinInferrer {
         );
         return;
       }
-      InterfaceType u0 = Substitution.fromSupertype(
-        baseType,
-      ).substituteSupertype(supertype).asInterfaceType;
+      InterfaceType u0 = Substitution.fromSupertype(baseType)
+          .substituteSupertype(supertype)
+          .asInterfaceType;
       // We want to solve U0 = S0 where S0 is mixinSupertype, but we only have
       // a subtype constraints.  Solve for equality by solving
       // both U0 <: S0 and S0 <: U0.
@@ -174,11 +174,13 @@ class BuilderMixinInferrer {
     }
     // Bounds might mention the mixin class's type parameters so we have to
     // substitute them before calling instantiate to bounds.
-    Substitution substitution =
-        Substitution.fromPairs(mixinClass.typeParameters, [
-          for (TypeParameter parameter in parameters)
-            new TypeParameterType.withDefaultNullability(parameter),
-        ]);
+    Substitution substitution = Substitution.fromPairs(
+      mixinClass.typeParameters,
+      [
+        for (TypeParameter parameter in parameters)
+          new TypeParameterType.withDefaultNullability(parameter),
+      ],
+    );
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }

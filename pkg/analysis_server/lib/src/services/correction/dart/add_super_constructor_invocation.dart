@@ -223,13 +223,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
     var namedParameters = <String>{};
     if (currentConstructor case ConstructorDeclaration(:var parameters)) {
       for (var parameter in parameters.parameters) {
-        if (parameter case SuperFormalParameter(
-          :var isPositional,
-        ) when isPositional) {
+        if (parameter case SuperFormalParameter(:var isPositional)
+            when isPositional) {
           positionalParameters++;
-        } else if (parameter case SuperFormalParameter(
-          :var isNamed,
-        ) when isNamed) {
+        } else if (parameter case SuperFormalParameter(:var isNamed)
+            when isNamed) {
           namedParameters.add(parameter.name.lexeme);
         }
       }

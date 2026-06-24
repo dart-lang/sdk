@@ -4,5 +4,4 @@
 
 import "dart_:core";
 
-main() {
-}
+main() {}

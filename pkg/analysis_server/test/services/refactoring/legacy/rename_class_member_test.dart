@@ -601,8 +601,7 @@ class A {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
-      expectedMessage:
-          "Usage of renamed method will be shadowed by local variable 'newName'.",
+      expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
       rangeIndex: 0,
     );
   }
@@ -627,8 +626,7 @@ class B extends A {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
-      expectedMessage:
-          "Usage of renamed method will be shadowed by local variable 'newName'.",
+      expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
       rangeIndex: 0,
     );
   }
@@ -801,8 +799,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The method 'String.toUpperCase' is defined in the SDK, so cannot be renamed.",
+      expectedMessage: "The method 'String.toUpperCase' is defined in the SDK, so cannot be renamed.",
     );
   }
 
@@ -2458,8 +2455,7 @@ enum E {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
-      expectedMessage:
-          "Usage of renamed method will be shadowed by local variable 'newName'.",
+      expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
       rangeIndex: 0,
     );
   }
