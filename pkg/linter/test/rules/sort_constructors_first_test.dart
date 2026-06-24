@@ -46,7 +46,7 @@ enum E(int x) {
   }
 
   test_enum_primaryConstructorBody_afterMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E(int x) {
   v(1);
   void f() {}
@@ -56,7 +56,7 @@ enum E(int x) {
   }
 
   test_extensionType_primaryConstructorBody_afterMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int x) {
   void f() {}
   [!this!];
@@ -65,7 +65,7 @@ extension type E(int x) {
   }
 
   test_fieldBeforeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   final a = 0;
   [!A!]();
@@ -74,7 +74,7 @@ abstract class A {
   }
 
   test_fieldBeforeConstructor_newHead_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   final a = 0;
   [!new named!]();
@@ -83,7 +83,7 @@ abstract class A {
   }
 
   test_fieldBeforeConstructor_newHead_unnamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   final a = 0;
   [!new!]();
@@ -92,7 +92,7 @@ abstract class A {
   }
 
   test_method_betweenConstructors_withPrimaryConstructorBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
   this;
   void f() {}
@@ -102,7 +102,7 @@ class C() {
   }
 
   test_methodBeforeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   void f();
   const [!A!]();
@@ -113,7 +113,7 @@ abstract class A {
   test_methodBeforeConstructor_extensionType() async {
     // Since the check logic is shared w/ classes and enums, one test should
     // provide sufficient coverage for extension types.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(Object o) {
   void f() {}
   [!E.e!](this.o);
@@ -122,7 +122,7 @@ extension type E(Object o) {
   }
 
   test_methodBeforeConstructors() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   void f();
   /*[0*/A/*0]*/();
@@ -142,7 +142,7 @@ enum A {
   }
 
   test_primaryConstructorBody_afterMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
   void f() {}
   [!this!];
@@ -169,7 +169,7 @@ class C() {
   }
 
   test_staticFieldBeforeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   static final a = 0;
   [!A!]();
@@ -178,7 +178,7 @@ abstract class A {
   }
 
   test_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a,b,c;
   int f() => 0;

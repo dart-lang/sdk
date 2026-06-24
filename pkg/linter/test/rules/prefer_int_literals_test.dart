@@ -18,7 +18,7 @@ class PreferIntLiteralsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_int_literals;
 
   test_argumentPassedToTypeVariableParameter_explicitlyTypedDouble_integer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:math';
 f(double d) {
   double x = max(d, [!7.0!]);
@@ -27,7 +27,7 @@ f(double d) {
   }
 
   test_argumentPassedToTypeVariableParameter_inferredType_integer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:math';
 f(double d) {
   var a = max(d, [!7.0!]);
@@ -44,7 +44,7 @@ void f({d}) {
   }
 
   test_argumentToNamedParameter_withDefaultValue_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({double d = 0.0}) {
   f(d: [!1.0!]);
 }
@@ -60,7 +60,7 @@ void f({d = 0.0}) {
   }
 
   test_argumentToPositionalParameter_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(double d) {
   f([!1.0!]);
 }
@@ -90,7 +90,7 @@ class B extends A {
   }
 
   test_argumentToSuperParameter_integer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(double x);
 }
@@ -136,7 +136,7 @@ void f() {
   }
 
   test_canBeInt_explicitlyTypedDouble_decimalWithExponent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = [!7.1e2!];
 ''');
   }
@@ -160,31 +160,31 @@ double a = 1_234.567_8;
   }
 
   test_explicitTypeDouble_integer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = [!8.0!];
 ''');
   }
 
   test_explicitTypeDouble_integer_negative() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = -[!8.0!];
 ''');
   }
 
   test_explicitTypeDouble_integerWithExponent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = [!7.0e2!];
 ''');
   }
 
   test_explicitTypeDouble_integerWithExponentAndSeparators() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = [!7_000.0e2!];
 ''');
   }
 
   test_explicitTypeDouble_integerWithSeparators() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double a = [!8_000.000_0!];
 ''');
   }
@@ -202,7 +202,7 @@ Object a = 8.0;
   }
 
   test_functionExpressionBody_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   double g() => [!6.0!];
 }
@@ -218,7 +218,7 @@ void f() {
   }
 
   test_functionExpressionBody_method_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   double f() => [!6.0!];
 }
@@ -251,7 +251,7 @@ var a = 7.0e2;
   }
 
   test_inListLiteral_explicitTypeDouble_integer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = <double>[[!50.0!]];
 ''');
   }
@@ -263,7 +263,7 @@ var a = [50.0];
   }
 
   test_returnExpression_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 double f() {
   return [!6.0!];
 }
@@ -279,7 +279,7 @@ f() {
   }
 
   test_returnExpression_method_explicitlyTypedDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   double f() {
     return [!6.0!];

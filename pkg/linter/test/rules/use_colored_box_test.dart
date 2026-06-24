@@ -45,7 +45,7 @@ Widget f() {
   }
 
   test_colorArgument_andChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 Widget containerWithColorAndChild() {

@@ -28,7 +28,7 @@ void f() {}
   }
 
   test_directCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!print!]('ha');
 }
@@ -67,7 +67,7 @@ void f(A a) {
   }
 
   test_tearoff() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [1,2,3].forEach([!print!]);
 }
@@ -75,7 +75,7 @@ void f() {
   }
 
   test_tearoff2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   Future.value('hello').then([!print!]);
 }

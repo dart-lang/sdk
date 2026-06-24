@@ -184,7 +184,7 @@ Page* PageSpace::AllocatePage(bool is_exec, bool link) {
   if (is_exec) {
     flags |= Page::kExecutable;
   }
-  Page* page = Page::Allocate(Page::kPageSize, flags);
+  Page* page = Page::Allocate(heap_->cage(), Page::kPageSize, flags);
   if (page == nullptr) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
     IncreaseCapacityInWords(-Page::kPageSizeInWords);
@@ -225,7 +225,8 @@ Page* PageSpace::AllocateLargePage(intptr_t size, bool is_exec) {
   if (is_exec) {
     flags |= Page::kExecutable;
   }
-  Page* page = Page::Allocate(page_size_in_words << kWordSizeLog2, flags);
+  Page* page =
+      Page::Allocate(heap_->cage(), page_size_in_words << kWordSizeLog2, flags);
 
   MutexLocker ml(&pages_lock_);
   if (page == nullptr) {
@@ -284,7 +285,7 @@ void PageSpace::FreePage(Page* page, Page* previous_page) {
   if (is_exec && !page->is_image()) {
     UnwindingRecords::UnregisterExecutablePage(page);
   }
-  page->Deallocate();
+  page->Deallocate(heap_->cage());
 }
 
 void PageSpace::FreeLargePage(Page* page, Page* previous_page) {
@@ -292,7 +293,7 @@ void PageSpace::FreeLargePage(Page* page, Page* previous_page) {
   MutexLocker ml(&pages_lock_);
   IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
   RemoveLargePageLocked(page, previous_page);
-  page->Deallocate();
+  page->Deallocate(heap_->cage());
 }
 
 void PageSpace::FreePages(Page* pages) {
@@ -302,7 +303,7 @@ void PageSpace::FreePages(Page* pages) {
     if (page->is_executable() && !page->is_image()) {
       UnwindingRecords::UnregisterExecutablePage(page);
     }
-    page->Deallocate();
+    page->Deallocate(heap_->cage());
     page = next;
   }
 }
@@ -1441,7 +1442,7 @@ void PageSpace::SweepLarge() {
     intptr_t size;
     if (words_to_end == 0) {
       size = page->memory_->size();
-      page->Deallocate();
+      page->Deallocate(heap_->cage());
       ml.Lock();
       IncreaseCapacityInWordsLocked(-(size >> kWordSizeLog2));
     } else {
@@ -1489,7 +1490,7 @@ void PageSpace::Sweep(bool exclusive, bool one_page) {
     intptr_t size;
     if (!page_in_use) {
       size = page->memory_->size();
-      page->Deallocate();
+      page->Deallocate(heap_->cage());
     }
     ml.Lock();
 

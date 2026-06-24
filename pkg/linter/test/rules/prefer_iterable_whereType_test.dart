@@ -20,13 +20,13 @@ class PreferIterableWhereTypeTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_iterable_wheretype;
 
   test_closureWithIs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [42].[!where!]((e) => e is String);
 ''');
   }
 
   test_closureWithIs_blockBodySingleStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [42].[!where!](
   (e) {
     return e is String;
@@ -44,7 +44,7 @@ var x = [42].where((e) {
   }
 
   test_closureWithIs_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [42].[!where!]((e) => (e is String));
 ''');
   }

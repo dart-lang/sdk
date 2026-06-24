@@ -27,7 +27,7 @@ void f() {
   }
 
   test_futureWait_cleanUp_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   Future.wait([], [!cleanUp: null!]);
 }
@@ -35,7 +35,7 @@ void f() {
   }
 
   test_iterableFirstWhere_orElse_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list.firstWhere((e) => e.isEven, [!orElse: null!]);
 }
@@ -51,7 +51,7 @@ void f(List<int?> list) {
   }
 
   test_iterableSingleWhere_orElse_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Set<int> set) {
   set.singleWhere((e) => e.isEven, [!orElse: null!]);
 }

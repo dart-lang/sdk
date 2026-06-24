@@ -20,7 +20,7 @@ class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_redundant_argument_values;
 
   Future<void> test_namedArgumentBeforePositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo(int a, int b, {bool c = true}) {}
 
 void f() {
@@ -46,7 +46,7 @@ class A {
   }
 
   Future<void> test_annotation_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @A(p: [!true!])
 class A {
   final bool p;
@@ -56,7 +56,7 @@ class A {
   }
 
   Future<void> test_constructor_inBody_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   A(p: [!true!]);
 }
@@ -67,7 +67,7 @@ class A {
   }
 
   Future<void> test_constructor_inBody_tearoff_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var aNew = A.new;
   aNew(p: [!true!]);
@@ -79,7 +79,7 @@ class A {
   }
 
   Future<void> test_constructor_primary_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   A(p: [!true!]);
 }
@@ -89,7 +89,7 @@ class A({bool p = true});
 
   /// https://github.com/dart-lang/linter/issues/3617
   Future<void> test_enumDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum TestEnum {
   a(test: [!false!]);
 
@@ -134,7 +134,7 @@ void g([int? a, int? b = 1]) {}
   }
 
   Future<void> test_function_optionalPositional_subsequent_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   g(0, [!1!]);
 }
@@ -152,7 +152,7 @@ void f() {
   }
 
   Future<void> test_localFunction_optionalNamed_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   void g({bool p = true}) {}
   g(p: [!true!]);
@@ -183,7 +183,7 @@ class A {
   }
 
   Future<void> test_method_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   a.g(p: [!true!]);
 }
@@ -266,7 +266,7 @@ void f() {
   }
 
   Future<void> test_redirectingFactoryConstructor_named_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   factory A({int? value}) = B;
   A._();
@@ -302,7 +302,7 @@ void f() {
 
   Future<void>
   test_redirectingFactoryConstructor_namedArgumentsAnywhere_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   factory A(int? one, int? two, {int? three}) = B;
   A._();
@@ -342,7 +342,7 @@ void f() {
   }
 
   Future<void> test_redirectingFactoryConstructor_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   factory A([int? value]) = B;
   A._();
@@ -381,7 +381,7 @@ void f() {
   }
 
   Future<void> test_redirectingGenerativeConstructor_named_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A({int? value}) : this._(value: value);
   A._({int? value = 2});
@@ -393,7 +393,7 @@ void f() {
   }
 
   Future<void> test_redirectingGenerativeConstructor_redundant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A([int? value]) : this._(value);
   A._([int? value = 2]);
@@ -416,7 +416,7 @@ void main() {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4967')
   Future<void> test_toListOptionalGrowable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   [].toList([!growable!]: true);
 }

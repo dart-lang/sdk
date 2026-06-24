@@ -27,7 +27,7 @@ enum E {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment enum E {
@@ -41,7 +41,7 @@ augment enum E {
 part 'test.dart';
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 const [!PI!] = 3.14;
@@ -83,7 +83,7 @@ augment const PI = 3.1415;
   }
 
   test_destructuredConstField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static const [!AA!] = (1, );
 }
@@ -91,13 +91,13 @@ class A {
   }
 
   test_destructuredConstVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const [!AA!] = (1, );
 ''');
   }
 
   test_destructuredFinalVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   final ([!AA!], ) = (1, );
 }
@@ -105,7 +105,7 @@ void f() {
   }
 
   test_destructuredObjectField_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a;
 }
@@ -141,7 +141,7 @@ f(A a) {
   }
 
   test_enumValue_upperFirstLetter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum Foo {
   bar,
   [!Baz!],
@@ -150,7 +150,7 @@ enum Foo {
   }
 
   test_recordFieldDestructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case (x: int [!x_x!], z: int z)) { }
 }
@@ -166,7 +166,7 @@ f(Object o) {
   }
 
   test_recordTypeDeclarations() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const [!RR!] = (x: 1);
 ''');
   }
@@ -178,7 +178,7 @@ const r = (x: 1);
   }
 
   test_staticField_allCaps() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static const [!DEBUG!] = false;
 }
@@ -186,13 +186,13 @@ class C {
   }
 
   test_topLevel_allCaps() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const [!PI!] = 3.14;
 ''');
   }
 
   test_topLevel_screamingSnake() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const [!CCC_CCC!] = 1000;
 ''');
   }

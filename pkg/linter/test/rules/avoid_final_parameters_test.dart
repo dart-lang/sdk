@@ -43,7 +43,7 @@ class C {
   }
 
   test_constructorSimple_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   C([!final!] int p);
@@ -61,7 +61,7 @@ class C {
   }
 
   test_enum_constructor_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 enum E {
   a(1);
@@ -81,7 +81,7 @@ enum E {
   }
 
   test_enum_method_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 enum E {
   a;
@@ -101,7 +101,7 @@ enum E {
   }
 
   test_extension_method_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 extension E on int {
   void f([!final!] p) {}
@@ -119,7 +119,7 @@ extension E on int {
   }
 
   test_extensionType_method_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 extension type E(int i) {
   void f([!final!] p) {}
@@ -137,7 +137,7 @@ extension type E(int i) {
   }
 
   test_functionExpression_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 var f = ([!final!] int value) {};
 ''');
@@ -151,7 +151,7 @@ var f = (int value) {};
   }
 
   test_functionTyped_fieldFormal_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   final void Function(int) f;
@@ -189,7 +189,7 @@ void f(int p()) {}
   }
 
   test_functionTyped_parameter_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f(void g([!final!] p)) {}
 ''');
@@ -203,7 +203,7 @@ void f(void g(int p)) {}
   }
 
   test_functionTyped_superFormal_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class A {
   A(void f(int p));
@@ -227,7 +227,7 @@ class B extends A {
   }
 
   test_localFunction_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f() {
   void g([!final!] p) {}
@@ -245,7 +245,7 @@ void f() {
   }
 
   test_mixin_method_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 mixin M {
   void f([!final!] p) {}
@@ -263,7 +263,7 @@ mixin M {
   }
 
   test_operator_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   int operator +([!final!] int other) => 0;
@@ -281,7 +281,7 @@ class C {
   }
 
   test_optionalNamed_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f({[!final!] int? p}) {}
 ''');
@@ -295,7 +295,7 @@ void f({int? p}) {}
   }
 
   test_optionalPositional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([[!final!] int? p]) {}
 ''');
@@ -309,7 +309,7 @@ void f([int? p]) {}
   }
 
   test_optionalPositionalWithDefault_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([[!final!] int p = 0]) {}
 ''');
@@ -323,7 +323,7 @@ void f([int p = 0]) {}
   }
 
   test_requiredNamed_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f({required [!final!] int? p}) {}
 ''');
@@ -337,7 +337,7 @@ void f({required int p}) {}
   }
 
   test_requiredPositional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([!final!] int p) {}
 ''');
@@ -353,14 +353,14 @@ void f(int p) {}
   test_requiredPositional_wildcard() async {
     // Wildcards are treated just like any param.
     // https://github.com/dart-lang/linter/issues/5045
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([!final!] int _) {}
 ''');
   }
 
   test_setter_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 set f([!final!] int value) {}
 ''');
@@ -408,7 +408,7 @@ class B extends A {
   }
 
   test_typedef_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 typedef String Type([!final!] value);
 ''');

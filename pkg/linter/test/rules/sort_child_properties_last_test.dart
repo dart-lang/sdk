@@ -21,7 +21,7 @@ class SortChildPropertiesLastTest extends LintRuleTest {
   String get lintRule => LintNames.sort_child_properties_last;
 
   test_childArgumentBeforeKeyArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -44,7 +44,7 @@ void f() {
   }
 
   test_childrenArgumentBeforeKeyArgument_insideOtherChildArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -109,7 +109,7 @@ void f() {
 
   test_nestedChildren() async {
     // See https://dart-review.googlesource.com/c/sdk/+/161624.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 void f() {
   Column(

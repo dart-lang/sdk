@@ -31,7 +31,7 @@ void f() {
   }
 
   test_missingOnClause() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!catch!] (e) {}
 }
@@ -39,7 +39,7 @@ void f() {
   }
 
   test_missingOnClause_nonRelevantUse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!catch!] (e) {
     print(e);
@@ -59,7 +59,7 @@ void f() {
   }
 
   test_missingOnClause_unrelatedRethrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!catch!] (e) {
     try {} on Exception catch (e) {
@@ -72,7 +72,7 @@ void f() {
   }
 
   test_missingOnClause_unrelatedRethrow_inNestedFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!catch!] (e) {
     void g() {

@@ -115,11 +115,10 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
 
   STACK_OF(X509)* chain = SSL_get_peer_full_cert_chain(ssl);
   const intptr_t chain_length = sk_X509_num(chain);
-  X509* root_cert =
-      chain_length == 0 ? nullptr : sk_X509_value(chain, chain_length - 1);
+  X509* leaf_cert = chain_length == 0 ? nullptr : sk_X509_value(chain, 0);
   if (certificate_trust_state != nullptr) {
-    // Callback have been previously called to explicitly evaluate root_cert.
-    if (certificate_trust_state->x509() == root_cert) {
+    // Callback have been previously called to explicitly evaluate leaf_cert.
+    if (certificate_trust_state->x509() == leaf_cert) {
       return certificate_trust_state->is_trusted() ? ssl_verify_ok
                                                    : ssl_verify_invalid;
     }
@@ -173,13 +172,10 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
     return ssl_verify_invalid;
   }
 
-  // If the user provided any additional CA certificates, add them to the trust
-  // object.
-  if (CFArrayGetCount(trusted_certs.get()) > 0) {
-    status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
-    if (status != noErr) {
-      return ssl_verify_invalid;
-    }
+  // Add CA certificates provided by the user (or empty array if none provided).
+  status = SecTrustSetAnchorCertificates(trust.get(), trusted_certs.get());
+  if (status != noErr) {
+    return ssl_verify_invalid;
   }
 
   // Specify whether or not to use the built-in CA certificates for
@@ -206,12 +202,12 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   dart_cobject_trusted_certs.value.as_int64 =
       reinterpret_cast<intptr_t>(trusted_certs.release());
 
-  if (root_cert != nullptr) {
-    X509_up_ref(root_cert);
+  if (leaf_cert != nullptr) {
+    X509_up_ref(leaf_cert);
   }
-  Dart_CObject dart_cobject_root_cert;
-  dart_cobject_root_cert.type = Dart_CObject_kInt64;
-  dart_cobject_root_cert.value.as_int64 = reinterpret_cast<intptr_t>(root_cert);
+  Dart_CObject dart_cobject_leaf_cert;
+  dart_cobject_leaf_cert.type = Dart_CObject_kInt64;
+  dart_cobject_leaf_cert.value.as_int64 = reinterpret_cast<intptr_t>(leaf_cert);
 
   Dart_CObject reply_send_port;
   reply_send_port.type = Dart_CObject_kSendPort;
@@ -222,7 +218,7 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   array.value.as_array.length = kNumTrustEvaluateRequestParams;
   Dart_CObject* values[] = {&dart_cobject_trust, &dart_cobject_cert_chain,
                             &dart_cobject_trusted_certs,
-                            &dart_cobject_root_cert, &reply_send_port};
+                            &dart_cobject_leaf_cert, &reply_send_port};
   array.value.as_array.values = values;
 
   Dart_PostCObject(SSLFilter::TrustEvaluateReplyPort(), &array);
@@ -277,8 +273,8 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   CObjectIntptr trusted_certs_cobject(request[2]);
   ScopedCFMutableArrayRef trusted_certs(
       reinterpret_cast<CFMutableArrayRef>(trusted_certs_cobject.Value()));
-  CObjectIntptr root_cert_cobject(request[3]);
-  X509* root_cert = reinterpret_cast<X509*>(root_cert_cobject.Value());
+  CObjectIntptr leaf_cert_cobject(request[3]);
+  X509* leaf_cert = reinterpret_cast<X509*>(leaf_cert_cobject.Value());
   CObjectSendPort reply_port(request[4]);
   Dart_Port reply_port_id = reply_port.Value();
 
@@ -293,7 +289,7 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   postReply(reply_port_id,
             status == noErr && (trust_result == kSecTrustResultProceed ||
                                 trust_result == kSecTrustResultUnspecified),
-            root_cert);
+            leaf_cert);
 }
 
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {

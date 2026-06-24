@@ -46,19 +46,19 @@ typedef Fn2<T> = void Function<U>(T);
   }
 
   test_functionType_shadowingTypedef() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef Fn1<T> = void Function<[!T!]>(T);
 ''');
   }
 
   test_functionTypedParameter_shadowingFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void fn2<T>(void Function<[!T!]>()) {}
 ''');
   }
 
   test_genericFunctionType_shadowingFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T>() {
   void Function<[!T!]>(T) g;
 }
@@ -74,7 +74,7 @@ void f<T>() {
   }
 
   test_localFunction_shadowingClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {
   void f() {
     void g<[!T!]>() {}
@@ -84,7 +84,7 @@ class C<T> {
   }
 
   test_localFunction_shadowingFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T>() {
   void g<[!T!]>() {}
 }
@@ -92,7 +92,7 @@ void f<T>() {
   }
 
   test_localFunction_shadowingLocalFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f() {
     void g<T>() {
@@ -104,7 +104,7 @@ class C {
   }
 
   test_localFunction_shadowingMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {
   void fn1<U>() {
     void fn3<[!U!]>() {}
@@ -122,7 +122,7 @@ class C<T> {
   }
 
   test_method_shadowingClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {
   void f<[!T!]>() {}
 }
@@ -130,7 +130,7 @@ class C<T> {
   }
 
   test_method_shadowingEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E<T> {
   a, b, c;
   void fn<[!T!]>() {}
@@ -139,7 +139,7 @@ enum E<T> {
   }
 
   test_method_shadowingExtension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E<T> on List<T> {
   void f<[!T!]>() {}
 }
@@ -147,7 +147,7 @@ extension E<T> on List<T> {
   }
 
   test_method_shadowingExtensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(int i) {
   void m<[!T!]>() {}
 }
@@ -155,7 +155,7 @@ extension type E<T>(int i) {
   }
 
   test_method_shadowingMixin() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M<T> {
   void f<[!T!]>() {}
 }

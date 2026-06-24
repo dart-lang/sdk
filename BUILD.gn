@@ -684,6 +684,7 @@ if (is_fuchsia) {
     "tests/standalone/io/regress_7679_test.dart",
     "tests/standalone/io/regress_8828_test.dart",
     "tests/standalone/io/regress_9194_test.dart",
+    "tests/standalone/io/regress_b_524683625_test.dart",
     "tests/standalone/io/regress_flutter_57125_test.dart",
     "tests/standalone/io/regress_sendmessage_overread_test.dart",
     "tests/standalone/io/regress_writefromsync_overread_test.dart",
@@ -902,6 +903,38 @@ if (is_fuchsia) {
       }
       deps = test_deps
       resources += test_resources
+
+      # Should the GN SDK be doing this?
+      if (current_cpu == "x64") {
+        triple = "x86_64-unknown-fuchsia"
+      } else if (current_cpu == "arm64") {
+        triple = "aarch64-unknown-fuchsia"
+      } else if (current_cpu == "riscv64") {
+        triple = "riscv64-unknown-fuchsia"
+      } else {
+        assert(false, "What cpu?")
+      }
+      if (is_asan) {
+        resources += [
+          {
+            path = "//third_party/fuchsia/sdk/linux/arch/$current_cpu/sysroot/dist/lib/asan/ld.so.1"
+            dest = "lib/asan/ld.so.1"
+          },
+          {
+            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.asan.so"
+            dest = "lib/libclang_rt.asan.so"
+          },
+        ]
+      } else if (is_ubsan) {
+        resources += [
+          {
+            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.ubsan_standalone.so"
+            dest = "lib/libclang_rt.ubsan_standalone.so"
+          },
+        ]
+      } else {
+        not_needed([ "triple" ])
+      }
     }
   }
 

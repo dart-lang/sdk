@@ -60,7 +60,7 @@ class A {
   }
 
   test_field_plusEquals_nonStringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String buffer = '';
 
@@ -75,7 +75,7 @@ class A {
   }
 
   test_field_plusEquals_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String buffer = '';
 
@@ -90,7 +90,7 @@ class A {
   }
 
   test_localVariable_assignment_interpolatedStringLiteralAsPrefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
@@ -101,7 +101,7 @@ void foo() {
   }
 
   test_localVariable_assignment_interpolatedStringLiteralAsPrefixWithPlus() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
@@ -123,7 +123,7 @@ void foo() {
   }
 
   test_localVariable_doLoop_plusEquals_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   do {
@@ -134,7 +134,7 @@ void foo() {
   }
 
   test_localVariable_plus_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
@@ -145,7 +145,7 @@ void foo() {
   }
 
   test_localVariable_plusEquals_nonStringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (final s in ['a']) {
@@ -156,7 +156,7 @@ void foo() {
   }
 
   test_localVariable_plusEquals_nonStringLiteral_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (final s in ['a']) {
@@ -167,7 +167,7 @@ void foo() {
   }
 
   test_localVariable_plusEquals_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   for (int i = 0; i < 10; i++) {
@@ -178,7 +178,7 @@ void foo() {
   }
 
   test_localVariable_whileLoop_plusEquals_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var buffer = '';
   while (buffer.length < 10) {

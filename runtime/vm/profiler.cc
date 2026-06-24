@@ -702,9 +702,7 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
   const intptr_t size = Utils::RoundUp(
       blocks * samples_per_block * sizeof(Sample), VirtualMemory::PageSize());
   const bool executable = false;
-  const bool compressed = false;
-  memory_ =
-      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
+  memory_ = VirtualMemory::Allocate(size, executable, "dart-profiler");
   if (memory_ == nullptr) {
     OUT_OF_MEMORY();
   }

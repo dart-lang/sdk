@@ -85,7 +85,7 @@ class C {
   }
 
   test_inBodyToInBody_explicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -148,7 +148,7 @@ class C {
   }
 
   test_inBodyToInBody_implicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -169,7 +169,7 @@ class C {
   }
 
   test_inBodyToInBody_implicitInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -262,7 +262,7 @@ class C.named(this.x, this.y, {required this.z}) {
   }
 
   test_inBodyToPrimary_explicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -307,7 +307,7 @@ class C(this.x, this.y) {
   }
 
   test_inBodyToPrimary_implicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -322,7 +322,7 @@ class C(this.x, this.y) {
   }
 
   test_inBodyToPrimary_implicitInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D extends C {
   final String w;
 
@@ -410,7 +410,7 @@ class C {
   }
 
   test_primaryToInBody_explicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, /*[0*/super.y/*0]*/, /*[1*/super.x/*1]*/) extends C {
   final String w;
 
@@ -457,7 +457,7 @@ class C {
   }
 
   test_primaryToInBody_implicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, /*[0*/super.y/*0]*/, /*[1*/super.x/*1]*/) extends C {
   final String w;
 }
@@ -472,7 +472,7 @@ class C {
   }
 
   test_primaryToInBody_implicitInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, [!super.y!]) extends C {
   final String w;
 }
@@ -554,7 +554,7 @@ class C.named(this.x, this.y, {required this.z}) {
   }
 
   test_primaryToPrimary_explicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, /*[0*/super.y/*0]*/, /*[1*/super.x/*1]*/) extends C {
   final String w;
 
@@ -595,7 +595,7 @@ class C(this.x, this.y) {
   }
 
   test_primaryToPrimary_implicitInvocation_nonMatching() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, /*[0*/super.y/*0]*/, /*[1*/super.x/*1]*/) extends C {
   final String w;
 }
@@ -608,7 +608,7 @@ class C(this.x, this.y) {
   }
 
   test_primaryToPrimary_implicitInvocation_nonMatching_omittedOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class D(this.w, [!super.y!]) extends C {
   final String w;
 }

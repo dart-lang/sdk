@@ -63,7 +63,7 @@ typedef _Td = void Function();
   }
 
   test_private_genericFunctionTypeAlias_usedOneTime() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef [!_Td!] = int Function();
 late _Td td;
 ''');
@@ -74,7 +74,7 @@ late _Td td;
 part 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'lib.dart';
 typedef [!_Td!] = void Function();
 ''');
@@ -85,20 +85,20 @@ typedef [!_Td!] = void Function();
 part of 'test.dart';
 late _Td td;
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'part.dart';
 typedef [!_Td!] = void Function();
 ''');
   }
 
   test_private_genericFunctionTypeAlias_usedZeroTimes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef [!_Td!] = int Function();
 ''');
   }
 
   test_private_legacyTypeAlias_usedZeroTimes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef int [!_Td!]();
 ''');
   }

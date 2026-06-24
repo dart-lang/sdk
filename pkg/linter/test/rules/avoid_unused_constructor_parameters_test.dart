@@ -24,7 +24,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -86,7 +86,7 @@ class C {
   }
 
   test_namedParameter_hasDefault() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C({[!int c = 0!]});
 }
@@ -132,7 +132,7 @@ class D(super.f) extends C;
   }
 
   test_redirectingConstructor1() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named([!int p!]);
   factory C(int p) = C.named;
@@ -170,7 +170,7 @@ class C([final int p = 0]);
   }
 
   test_unused_optionalPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C([[!int p = 0!]]) {}
 }
@@ -178,13 +178,13 @@ class C {
   }
 
   test_unused_optionalPositional_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([[!int p = 0!]]);
 ''');
   }
 
   test_unused_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C([!int p!]);
 }

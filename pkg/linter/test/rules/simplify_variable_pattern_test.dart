@@ -27,7 +27,7 @@ void f(Object o) {
   }
 
   Future<void> test_patternField_dynamic() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Object o) {
   if (o case dynamic([!isEven!]:var isEven)) {}
 }
@@ -35,7 +35,7 @@ void f(Object o) {
   }
 
   Future<void> test_patternField_explicit() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Object o) {
   if (o case int([!isEven!]:var isEven)) {}
 }
@@ -43,7 +43,7 @@ void f(Object o) {
   }
 
   Future<void> test_patternField_function() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Object o) {
   if (o case Function([!call!]:var call)) {}
 }
@@ -67,7 +67,7 @@ void f(Object o) {
   }
 
   Future<void> test_patternField_parenthesized() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Object o) {
   if (o case int([!isEven!]:((var isEven)))) {}
 }
@@ -86,7 +86,7 @@ void f(Object o) {
   }
 
   Future<void> test_recordDestructuring() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f((int, {String name}) record) {
   var (x, [!name!]: name) = record;
 }
@@ -106,7 +106,7 @@ void f((int, {String name}) record) {
   }
 
   Future<void> test_typedef_if() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 typedef O = Object;
 
 void f(Object o) {
@@ -116,7 +116,7 @@ void f(Object o) {
   }
 
   Future<void> test_typedef_record() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 typedef R = ({int value});
 
 void f(Object o) {
@@ -126,7 +126,7 @@ void f(Object o) {
   }
 
   Future<void> test_typedef_typeParameter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 typedef O<T extends Object> = T;
 void f(O o) {
   if (o case O([!hashCode!]: var hashCode)) {}
@@ -135,7 +135,7 @@ void f(O o) {
   }
 
   Future<void> test_typedef_variableDeclaration() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 typedef O = Object;
 
 void f(Object o) {
@@ -145,7 +145,7 @@ void f(Object o) {
   }
 
   Future<void> test_typeParameter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<T extends Object>(T o) {
   if (o case T([!hashCode!]: var hashCode)) {}
 }
@@ -153,7 +153,7 @@ void f<T extends Object>(T o) {
   }
 
   Future<void> test_typeParameter_functionType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<F extends void Function()>(F o) {
   if (o case F([!call!]: var call)) {}
 }
@@ -161,7 +161,7 @@ void f<F extends void Function()>(F o) {
   }
 
   Future<void> test_typeParameter_record() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<R extends ({int value})>(R o) {
   if (o case R([!value!]: var value)) {}
 }
@@ -169,7 +169,7 @@ void f<R extends ({int value})>(R o) {
   }
 
   Future<void> test_typeParameter_typedef_record() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<T extends R>(T o) {
   if (o case T([!value!]: var value)) {}
 }
@@ -179,7 +179,7 @@ typedef R = ({int value});
   }
 
   Future<void> test_typeParameter_typeParameterBounded() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<T extends Object, O extends T>(O o) {
   if (o case O([!hashCode!]: var hashCode)) {}
 }

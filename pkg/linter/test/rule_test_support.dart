@@ -29,10 +29,10 @@ abstract class LintRuleTest extends AnalysisRuleTest {
   /// The lint rule being tested.
   String get lintRule;
 
-  /// Assert that the given [content] has diagnostics at the marked ranges.
+  /// Asserts that the given [content] has diagnostics at the marked ranges.
   ///
-  /// See the [TestCode] class for more information about the markdown format.
-  Future<void> assertDiagnosticsFromMarkdown(String content) {
+  /// See the [TestCode] class for more information about the markup format.
+  Future<void> assertDiagnosticsFromMarkup(String content) {
     // TODO(brianwilkerson): Generalize this method and remove the specialized
     //  methods below in favor of this one.
     var testCode = TestCode.parse(content);
@@ -46,7 +46,7 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     return super.assertDiagnostics(testCode.code, expectedDiagnostics);
   }
 
-  Future<void> assertDiagnosticsInBinFromMarkdown(String content) async {
+  Future<void> assertDiagnosticsInBinFromMarkup(String content) async {
     var testCode = TestCode.parse(content);
     var filePath = '$testPackageRootPath/bin/bin.dart';
     newFile(filePath, testCode.code);
@@ -57,7 +57,7 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     await assertDiagnosticsInFile(filePath, expectedDiagnostics);
   }
 
-  Future<void> assertDiagnosticsInFileNameFromMarkdown(
+  Future<void> assertDiagnosticsInFileNameFromMarkup(
     String fileName,
     String content,
   ) async {
@@ -71,7 +71,7 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     await assertDiagnosticsInFile(filePath, expectedDiagnostics);
   }
 
-  Future<void> assertDiagnosticsInHookFromMarkdown(
+  Future<void> assertDiagnosticsInHookFromMarkup(
     String fileName,
     String content,
   ) async {
@@ -85,11 +85,11 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     await assertDiagnosticsInFile(filePath, expectedDiagnostics);
   }
 
-  /// Assert that the given [content] has diagnostics at the marked ranges when
+  /// Asserts that the given [content] has diagnostics at the marked ranges when
   /// the file is in the `test` directory of the test package.
   ///
-  /// See the [TestCode] class for more information about the markdown format.
-  Future<void> assertDiagnosticsInTestDirFromMarkdown(String content) async {
+  /// See the [TestCode] class for more information about the markup format.
+  Future<void> assertDiagnosticsInTestDirFromMarkup(String content) async {
     var testCode = TestCode.parse(content);
     var filePath = '$testPackageRootPath/test/test.dart';
     newFile(filePath, testCode.code);

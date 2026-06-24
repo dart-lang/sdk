@@ -46,7 +46,7 @@ class A {
   }
 
   test_asx_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   A [!asa!]() {
     return A.from(this);
@@ -75,7 +75,7 @@ class A {
   }
 
   test_asx_private_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   // ignore: unused_element
   A [!_asa!]() {
@@ -138,7 +138,7 @@ class B {}
   }
 
   test_namedOtherwise_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   A [!foo!]() {
     return A.from(this);
@@ -152,7 +152,7 @@ class A {
   }
 
   test_namedOtherwise_private_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   // ignore: unused_element
   A [!_foo!]() {
@@ -210,7 +210,7 @@ class A {
   }
 
   test_tox_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   A [!toa!]() {
     return A.from(this);
@@ -239,7 +239,7 @@ class A {
   }
 
   test_tox_private_argumentIsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   // ignore: unused_element
   A [!_toa!]() {

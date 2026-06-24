@@ -24,7 +24,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -39,7 +39,7 @@ augment class A {
 part 'test.dart';
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 void f([!dynamic o!]) { }
@@ -54,7 +54,7 @@ part 'test.dart';
 void f(int i);
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment void f(int i) {
@@ -74,7 +74,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
@@ -91,7 +91,7 @@ part of 'test.dart';
 augment void f(dynamic o);
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 void f([!dynamic o!]) { }
@@ -107,7 +107,7 @@ augment void f(dynamic o);
 augment void f(dynamic o);
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 void f([!dynamic o!]) { }
@@ -116,7 +116,7 @@ void f([!dynamic o!]) { }
   }
 
   test_fieldFormals() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a;
   A([!dynamic this.a!]);
@@ -125,13 +125,13 @@ class A {
   }
 
   test_functionTypedParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(void g([!dynamic x!])) {}
 ''');
   }
 
   test_genericTypedef() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F = void Function([!dynamic x!]);
 ''');
   }
@@ -143,31 +143,31 @@ void f(p) {}
   }
 
   test_optionalNamedParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({[!dynamic p!]}) {}
 ''');
   }
 
   test_optionalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([[!dynamic p!]]) {}
 ''');
   }
 
   test_parameter_defaultValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([[!dynamic x = 1!]]) {}
 ''');
   }
 
   test_primaryConstructor_declaringParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!final dynamic a!]);
 ''');
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!dynamic this.a!]) {
   var a;
 }
@@ -175,13 +175,13 @@ class C([!dynamic this.a!]) {
   }
 
   test_primaryConstructor_simpleParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!dynamic a!]);
 ''');
   }
 
   test_primaryConstructor_superParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A(this.a, this.b) {
   var a;
   var b;
@@ -191,7 +191,7 @@ class B(/*[0*/dynamic super.a/*0]*/, /*[1*/dynamic super.b/*1]*/) extends A;
   }
 
   test_requiredParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!dynamic p!]) {}
 ''');
   }
@@ -205,7 +205,7 @@ dynamic f() {
   }
 
   test_super() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a;
   var b;
@@ -218,7 +218,7 @@ class B extends A {
   }
 
   test_typedef() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef void F([!dynamic x!]);
 ''');
   }

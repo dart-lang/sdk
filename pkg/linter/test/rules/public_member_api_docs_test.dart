@@ -27,7 +27,7 @@ class PublicMemberApiDocsExtensionTypesTest extends LintRuleTest {
   String get lintRule => LintNames.public_member_api_docs;
 
   test_extensionTypeDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type [!E!](int i) { }
 ''');
   }
@@ -45,7 +45,7 @@ extension type E(int i) {
   }
 
   test_field_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
 extension type E(int i) {
   static int? [!f!];
@@ -54,7 +54,7 @@ extension type E(int i) {
   }
 
   test_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
 extension type E(int i) {
   void [!m!]() { }
@@ -82,7 +82,7 @@ class PublicMemberApiDocsTest extends LintRuleTest {
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_abstractFinalConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract final class /*[0*/S/*0]*/ {
   S();
 }
@@ -93,7 +93,7 @@ final class /*[1*/A/*1]*/ extends S {}
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_abstractInterfaceConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract interface class /*[0*/S/*0]*/ {
   S();
 }
@@ -117,7 +117,7 @@ enum A {
   }
 
   test_constructor_namedGenerative() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class /*[0*/C/*0]*/ {
   C./*[1*/c/*1]*/();
 }
@@ -125,7 +125,7 @@ class /*[0*/C/*0]*/ {
   }
 
   test_constructor_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class /*[0*/C/*0]*/ {
   /*[1*/new/*1]*/();
 }
@@ -133,7 +133,7 @@ class /*[0*/C/*0]*/ {
   }
 
   test_constructor_unnamedFactory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class /*[0*/C/*0]*/ {
   C._();
 
@@ -143,7 +143,7 @@ class /*[0*/C/*0]*/ {
   }
 
   test_constructor_unnamedGenerative() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class /*[0*/C/*0]*/ {
   /*[1*/C/*1]*/();
 }
@@ -151,7 +151,7 @@ class /*[0*/C/*0]*/ {
   }
 
   test_enum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum /*[0*/A/*0]*/ {
   /*[1*/a/*1]*/,/*[2*/b/*2]*/,/*[3*/c/*3]*/;
   int /*[4*/x/*4]*/() => 0;
@@ -186,7 +186,7 @@ enum A {
 
   /// https://github.com/dart-lang/linter/issues/3525
   test_extension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension /*[0*/E/*0]*/ on Object {
   void /*[1*/f/*1]*/() { }
 }
@@ -303,7 +303,7 @@ var f = 1;
   }
 
   test_mixin_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// A mixin M.
 mixin M {
   String [!m!]() => '';
@@ -324,7 +324,7 @@ mixin M {
 part 'test.dart';
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 class [!A!] { }
@@ -332,7 +332,7 @@ class [!A!] { }
   }
 
   test_primaryConstructor_bodyPartNoDoc() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
 class C(int x) {
   [!this!];
@@ -351,13 +351,13 @@ class C(int x) {
   }
 
   test_primaryConstructor_classNoDoc() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!](var int x);
 ''');
   }
 
   test_primaryConstructor_declaringParameterNoDoc() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
 class [!C!](var int x);
 ''');
@@ -365,7 +365,7 @@ class [!C!](var int x);
 
   /// https://github.com/dart-lang/linter/issues/4526
   test_sealedConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 sealed class /*[0*/S/*0]*/ {
   S();
 }
@@ -375,7 +375,7 @@ final class /*[1*/A/*1]*/ extends S {}
   }
 
   test_topLevelMembers() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int /*[0*/g/*0]*/ = 1;
 typedef /*[1*/T/*1]*/ = void Function();
 int get /*[2*/z/*2]*/ => 0;

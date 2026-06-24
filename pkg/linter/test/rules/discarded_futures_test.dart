@@ -141,7 +141,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_cascadeSection() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   var _ = 0..[!g!]();
 }
@@ -185,7 +185,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_constructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A() {
     [!g!]();
@@ -291,7 +291,7 @@ class C {
   }
 
   Future<void> test_field_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var a = () {
     [!g!]();
@@ -303,7 +303,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_function() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!g!]();
 }
@@ -325,7 +325,7 @@ Future<int> g() async => 7;
   }
 
   Future<void> test_function_closure() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   () {
     [!createDir!]('.');
@@ -337,7 +337,7 @@ Future<void> createDir(String path) async {}
   }
 
   Future<void> test_function_closure2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<void> f() async {
   () {
     [!createDir!]('.');
@@ -362,7 +362,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_function_futureOr() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 import 'dart:async';
 
 void f() {
@@ -396,7 +396,7 @@ Future<int> g() async => 0;
 
   Future<void> test_function_unawaited() async {
     // https://github.com/dart-lang/sdk/issues/59204
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void baz(String path) {
@@ -438,7 +438,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m() {
     [!g!]();
@@ -564,7 +564,7 @@ void bar((FutureOr<int>,) r) {}
   }
 
   Future<void> test_newMethod_invocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   g().[!then!]((_) {});
 }
@@ -679,7 +679,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_topLevel_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = () {
   [!g!]();
 };
@@ -715,7 +715,7 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_variable_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var handler = <String, Function>{};
 
 void ff(String command) {

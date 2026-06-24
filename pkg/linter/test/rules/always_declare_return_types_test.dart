@@ -24,7 +24,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -39,7 +39,7 @@ augment class A {
 part 'test.dart';
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 [!f!]() { }
@@ -58,7 +58,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
@@ -75,7 +75,7 @@ part of 'test.dart';
 augment f();
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 [!f!]() { }
@@ -91,7 +91,7 @@ augment dynamic f();
 augment f();
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 [!f!]() { }
@@ -100,7 +100,7 @@ part 'b.dart';
   }
 
   test_extensionMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int {
   [!f!]() {}
 }
@@ -116,7 +116,7 @@ class C {
   }
 
   test_method_expressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!f!]() => 42;
 }
@@ -132,7 +132,7 @@ class A {
   }
 
   test_method_testUnderscore_notInPubPackageTest_noReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   [!test_foo!]() {}
 }
@@ -148,7 +148,7 @@ class C {
   }
 
   test_operator_binary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   operator [!+!](C c) => c;
 }
@@ -180,7 +180,7 @@ class MyTest {
   }
 
   test_pubPackageTest_method_notTest_noReturnType() async {
-    await assertDiagnosticsInTestDirFromMarkdown(r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 class MyTest {
   [!foo!]() {}
 }
@@ -226,7 +226,7 @@ int f() => 7;
   }
 
   test_topLevelFunction_expressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!f!]() => 7;
 ''');
   }
@@ -238,7 +238,7 @@ void f() { }
   }
 
   test_topLevelFunction_noReturn() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!f!]() {}
 ''');
   }
@@ -250,7 +250,7 @@ set f(int p) {}
   }
 
   test_typedef_oldStyle() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef [!t!](int x);
 ''');
   }

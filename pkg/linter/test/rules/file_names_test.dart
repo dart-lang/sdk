@@ -18,7 +18,7 @@ class FileNamesTest extends LintRuleTest {
   String get lintRule => LintNames.file_names;
 
   test_invalidName() async {
-    await assertDiagnosticsInFileNameFromMarkdown('a-test.dart', r'''
+    await assertDiagnosticsInFileNameFromMarkup('a-test.dart', r'''
 [!!]class A { }
 ''');
   }

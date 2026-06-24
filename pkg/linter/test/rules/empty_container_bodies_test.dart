@@ -26,14 +26,14 @@ class C {
   }
 
   test_class_onDifferentLines() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C [!{
 }!]
 ''');
   }
 
   test_class_onSameLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C [!{}!]
 ''');
   }
@@ -55,19 +55,19 @@ class C {
   }
 
   test_extension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension on String [!{}!]
 ''');
   }
 
   test_extensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(String self) [!{}!]
 ''');
   }
 
   test_mixin() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M [!{}!]
 ''');
   }

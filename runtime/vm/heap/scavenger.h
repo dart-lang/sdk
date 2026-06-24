@@ -35,7 +35,7 @@ struct GCLinkedLists;
 
 class SemiSpace {
  public:
-  explicit SemiSpace(intptr_t gc_threshold_in_words);
+  SemiSpace(intptr_t gc_threshold_in_words, Cage* cage);
   ~SemiSpace();
 
   Page* TryAllocatePageLocked(bool link);
@@ -67,6 +67,8 @@ class SemiSpace {
 
   Page* head_ = nullptr;
   Page* tail_ = nullptr;
+
+  Cage* const cage_;
 };
 
 // Statistics for a particular scavenge.

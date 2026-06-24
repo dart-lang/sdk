@@ -325,11 +325,11 @@ class Page {
   }
 
   // Returns nullptr on OOM.
-  static Page* Allocate(intptr_t size, uword flags);
+  static Page* Allocate(Cage* cage, intptr_t size, uword flags);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.
-  void Deallocate();
+  void Deallocate(Cage* cage);
 
   uword flags_;
   VirtualMemory* memory_;
@@ -373,6 +373,29 @@ class Page {
 static constexpr intptr_t kSlotsPerInterruptCheck = KB;
 static constexpr intptr_t kCardsPerInterruptCheck =
     kSlotsPerInterruptCheck / Page::kSlotsPerCard;
+
+class PageCache {
+ public:
+  PageCache();
+  ~PageCache();
+
+  VirtualMemory* Pop(uword flags, intptr_t size);
+  bool Push(uword flags, VirtualMemory* memory);
+  intptr_t Size();
+  void Abandon();
+  void Clear();
+
+ private:
+  // This cache needs to be at least as big as FLAG_new_gen_semi_max_size or
+  // munmap will noticeably impact performance. I.e., a scavenge should be able
+  // to fit a complete from-space into this cache. The standalone embedder sets
+  // the semispace size to 16/32MB. This cache is in units of regular heap
+  // pages, which are 512kB (Page::kPageSize).
+  static constexpr intptr_t kCapacity = 128 * kWordSize;
+  Mutex mutex_;
+  VirtualMemory* cache_[2][kCapacity] = {{nullptr}, {nullptr}};
+  intptr_t size_[2] = {0, 0};
+};
 
 }  // namespace dart
 

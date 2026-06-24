@@ -36,7 +36,7 @@ import 'package:foo/foo.dart';
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
 ''');
-    await assertDiagnosticsInTestDirFromMarkdown(r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 /// This provides [C].
 import [!'../lib/lib.dart'!];
 ''');
@@ -51,7 +51,7 @@ class C {}
 part 'test.dart';
 ''');
 
-    await assertDiagnosticsInTestDirFromMarkdown(r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 part of 'a.dart';
 
 /// This provides [C].

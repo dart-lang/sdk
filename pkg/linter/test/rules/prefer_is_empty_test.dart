@@ -19,7 +19,7 @@ class PreferIsEmptyTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_is_empty;
 
   test_iterableLength_notEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var i = Iterable.empty();
 var x = [!i.length != 0!];
 ''');
@@ -35,7 +35,7 @@ var x = ([].length as int) > 0;
   }
 
   test_listLength_eqEq_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length == -1!];
 ''');
   }
@@ -47,13 +47,13 @@ var x = [].length == 1;
   }
 
   test_listLength_eqEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length == 0!];
 ''');
   }
 
   test_listLength_greaterThan_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length > -1!];
 ''');
   }
@@ -71,13 +71,13 @@ bool x = [].length > 1;
   }
 
   test_listLength_greaterThan_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length > 0!];
 ''');
   }
 
   test_listLength_greaterThan_zero_inConditional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length > 0!] ? 7 : 6;
 ''');
   }
@@ -92,31 +92,31 @@ class A {
   }
 
   test_listLength_greaterThanEq_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length >= -1!];
 ''');
   }
 
   test_listLength_greaterThanEq_one() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length >= 1!];
 ''');
   }
 
   test_listLength_greaterThanEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length >= 0!];
 ''');
   }
 
   test_listLength_lessThan_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length < -1!];
 ''');
   }
 
   test_listLength_lessThan_one() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length < 1!];
 ''');
   }
@@ -129,13 +129,13 @@ var x = [].length < zero;
   }
 
   test_listLength_lessThan_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length < 0!];
 ''');
   }
 
   test_listLength_lessThanEq_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length <= -1!];
 ''');
   }
@@ -147,13 +147,13 @@ var x = [].length <= 1;
   }
 
   test_listLength_lessThanEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length <= 0!];
 ''');
   }
 
   test_listLength_notEq_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length != -1!];
 ''');
   }
@@ -165,7 +165,7 @@ var x = [].length != 1;
   }
 
   test_listLength_notEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [![].length != 0!];
 ''');
   }
@@ -177,43 +177,43 @@ var x = [].length + 1 > 0;
   }
 
   test_mapLength_parenthesized_eqEq_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!({1: 2}.length) == 0!];
 ''');
   }
 
   test_negativeOne_eqEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 == [].length!];
 ''');
   }
 
   test_negativeOne_greaterThan_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 > [].length!];
 ''');
   }
 
   test_negativeOne_greaterThanEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 >= [].length!];
 ''');
   }
 
   test_negativeOne_lessThan_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 < [].length!];
 ''');
   }
 
   test_negativeOne_lessThanEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 <= [].length!];
 ''');
   }
 
   test_negativeOne_notEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!-1 != [].length!];
 ''');
   }
@@ -225,7 +225,7 @@ var x = 1 == [].length;
   }
 
   test_one_greaterThan_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!1 > [].length!];
 ''');
   }
@@ -243,7 +243,7 @@ var x = 1 < [].length;
   }
 
   test_one_lessThanEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!1 <= [].length!];
 ''');
   }
@@ -255,7 +255,7 @@ var x = 1 != [].length;
   }
 
   test_stringLength_eqEq_zero_inConstructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final bool x;
   C(String s) : x = [!s.length == 0!];
@@ -280,37 +280,37 @@ var x = zero < [].length;
   }
 
   test_zero_eqEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 == [].length!];
 ''');
   }
 
   test_zero_greaterThan_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 > [].length!];
 ''');
   }
 
   test_zero_greaterThanEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 >= [].length!];
 ''');
   }
 
   test_zero_lessThan_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 < [].length!];
 ''');
   }
 
   test_zero_lessThanOrEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 <= [].length!];
 ''');
   }
 
   test_zero_notEq_listLength() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!0 != [].length!];
 ''');
   }

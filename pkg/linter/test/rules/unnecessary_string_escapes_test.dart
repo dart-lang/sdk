@@ -25,7 +25,7 @@ var x = '\\';
   }
 
   test_escapedColon() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = '[!\!]:';
 ''');
   }
@@ -37,7 +37,7 @@ var x = "\"";
   }
 
   test_escapedDoubleQuotes_inSingleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = '[!\!]"';
 ''');
   }
@@ -55,7 +55,7 @@ var x = """text"\""text""";
   }
 
   test_escapedDoubleQuotes_inThreeDoubleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = """[!\!]"text""";
 ''');
   }
@@ -67,13 +67,13 @@ var x = """text\"""";
   }
 
   test_escapedDoubleQuotes_inThreeSingleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var x = '''[!\!]"''';
 """);
   }
 
   test_escapedLowerA() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = '[!\!]a';
 ''');
   }
@@ -103,7 +103,7 @@ var x = '\t';
   }
 
   test_escapedSingleQuote_inDoubleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = "[!\!]'";
 ''');
   }
@@ -127,13 +127,13 @@ var x = '''text'\''text''';
   }
 
   test_escapedSingleQuote_inThreeDoubleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = """[!\!]'""";
 ''');
   }
 
   test_escapedSingleQuote_inThreeSingleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var x = '''[!\!]'text''';
 """);
   }

@@ -35,7 +35,7 @@ abstract class A {
   }
 
   test_extension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int x = 0;
 }
@@ -104,7 +104,7 @@ class A {
   }
 
   test_setterLike_blockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   int x = 0;
   void [!setX!](int x) {
@@ -115,7 +115,7 @@ abstract class A {
   }
 
   test_setterLike_expressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class A {
   int x = 0;
   void [!setX!](int x) => this.x = x;

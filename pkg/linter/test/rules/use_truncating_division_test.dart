@@ -26,7 +26,7 @@ void f(double x, double y) {
   }
 
   test_int_divide_truncate() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x, int y) {
   [!(x / y).toInt()!];
 }
@@ -34,7 +34,7 @@ void f(int x, int y) {
   }
 
   test_int_divide_truncate_moreParensAroundDivision() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x, int y) {
   [!(((x / y))).toInt()!];
 }
@@ -42,7 +42,7 @@ void f(int x, int y) {
   }
 
   test_int_divide_truncate_moreParensAroundOperands() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x, int y) {
   [!((x + 1) / (y - 1)).toInt()!];
 }

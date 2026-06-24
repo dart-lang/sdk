@@ -18,7 +18,7 @@ class UseFullHexValuesForFlutterColorsTest extends LintRuleTest {
   String get lintRule => LintNames.use_full_hex_values_for_flutter_colors;
 
   test_decimal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library dart.ui;
 
 var c = Color([!1!]);
@@ -67,7 +67,7 @@ class Color {
   }
 
   test_sixDigitHex_lower() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library dart.ui;
 
 var c = Color([!0x000000!]);
@@ -79,7 +79,7 @@ class Color {
   }
 
   test_sixDigitHex_upper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library dart.ui;
 
 var c = Color([!0X000000!]);
@@ -91,7 +91,7 @@ class Color {
   }
 
   test_sixDigitHex_withSeparators() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library dart.ui;
 
 var c = Color([!0x00_00_00!]);

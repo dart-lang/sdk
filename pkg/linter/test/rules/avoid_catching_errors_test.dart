@@ -26,7 +26,7 @@ void f() {
   }
 
   test_exactlyError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!on Error catch (_) {}!]
 }
@@ -42,7 +42,7 @@ void f() {
   }
 
   test_extensionTypeWrapsError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(Error e) implements Object {}
 void f() {
   try {} [!on E catch (_) {}!]
@@ -51,7 +51,7 @@ void f() {
   }
 
   test_extensionTypeWrapsSubclassOfError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(ArgumentError e) implements Object {}
 void f() {
   try {} [!on E catch (_) {}!]
@@ -60,7 +60,7 @@ void f() {
   }
 
   test_typeExtendsError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!on C {}!]
 }
@@ -71,7 +71,7 @@ class D extends C {}
   }
 
   test_typeExtendsTypeThatExtendsError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!on D {}!]
 }
@@ -82,7 +82,7 @@ class C extends Error {}
   }
 
   test_typeExtendsTypeThatImplementsError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!on B catch (_) {}!]
 }
@@ -93,7 +93,7 @@ abstract class B extends A {}
   }
 
   test_typeImplementsError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} [!on A catch (_) {}!]
 }

@@ -51,7 +51,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -88,7 +88,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -128,7 +128,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {

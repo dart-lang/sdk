@@ -28,7 +28,7 @@ void f(Iterable<int> i) {
   }
 
   test_hasKeyAndValue_blockBody_singleReturn() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Iterable<int> i) {
   [!Map.fromIterable(i, key: (k) { return k * 2; }, value: (v) { return 0; })!];
 }
@@ -36,7 +36,7 @@ void f(Iterable<int> i) {
   }
 
   test_hasKeyAndValue_closuresAreSimple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Iterable<int> i) {
   [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0)!];
 }
@@ -44,7 +44,7 @@ void f(Iterable<int> i) {
   }
 
   test_hasKeyAndValue_closuresReferenceE() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Iterable<int> i, int e) {
   [!Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e)!];
 }
@@ -52,7 +52,7 @@ void f(Iterable<int> i, int e) {
   }
 
   test_hasKeyAndValue_closuresShadowVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Iterable<int> i, int k) {
   [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => k)!];
 }

@@ -131,7 +131,7 @@ void switchString() {
 class NoDuplicateCaseValuesTestLanguage219 extends BaseNoDuplicateCaseValuesTest
     with LanguageVersion219Mixin {
   test_duplicateConstClassValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class ConstClass {
   final int v;
   const ConstClass(this.v);
@@ -152,7 +152,7 @@ void switchConstClass() {
   }
 
   test_duplicateEnumValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   one,
   two,
@@ -174,7 +174,7 @@ void switchEnum() {
   }
 
   test_duplicateIntConstant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void switchInt() {
   const int A = 1;
   int v = 5;
@@ -192,7 +192,7 @@ void switchInt() {
   }
 
   test_duplicateStringConstant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void switchString() {
   const String A = 'a';
   String v = 'aa';
