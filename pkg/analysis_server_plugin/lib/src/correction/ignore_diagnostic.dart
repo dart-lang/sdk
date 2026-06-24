@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
