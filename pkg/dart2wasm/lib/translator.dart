@@ -58,6 +58,7 @@ class TranslatorOptions {
   bool? omitImplicitTypeChecksOverride;
   bool omitExplicitTypeChecks = false;
   bool? omitBoundsChecksOverride;
+  bool? omitErrorDetailsOverride;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -78,6 +79,7 @@ class TranslatorOptions {
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;
   bool get minify => minifyOverride ?? optimizationLevel >= 2;
+  bool get omitErrorDetails => omitErrorDetailsOverride ?? optimizationLevel >= 2;
   bool get omitImplicitTypeChecks =>
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>

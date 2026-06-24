@@ -11,6 +11,10 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 void main() async {
+  if (!Platform.isMacOS && !Platform.isIOS) {
+    return;
+  }
+
   // Empty security context that trusts no root certificates.
   final untrustedContext = SecurityContext(withTrustedRoots: false);
   final client = HttpClient(context: untrustedContext);
