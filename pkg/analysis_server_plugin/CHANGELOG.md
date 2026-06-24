@@ -3,6 +3,8 @@
 - Avoid an issue where one plugin's configuration, as specified in analysis
   options, would bleed into another's. This effectively would remove one or
   more plugin configurations.
+- Require version `14.1.0-dev` of the `analyzer` package.
+- Require version `0.14.14-dev` of the `analyzer_plugin` package.
 
 ## 0.3.19
 
