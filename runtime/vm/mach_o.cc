@@ -2530,29 +2530,17 @@ void MachOHeader::CreateBSS() {
       mach_o::S_NO_ATTRIBUTES, /*has_contents=*/false);
   data_segment->AddContents(bss_section);
 
-  for (const auto& portion : text_section->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kSnapshotBssAsmSymbol;
-      label = SharedObjectWriter::kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
-    symbols->Add({symbol_name, SharedObjectWriter::SymbolData::Type::Section, 0,
-                  size, label});
-    bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
-                            symbols);
-  }
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
+  symbols->Add({kSnapshotBssAsmSymbol,
+                SharedObjectWriter::SymbolData::Type::Section, 0, size,
+                SharedObjectWriter::kIsolateBssLabel});
+  bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
+                          symbols);
 }
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)

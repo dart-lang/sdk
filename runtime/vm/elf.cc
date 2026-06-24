@@ -1157,37 +1157,25 @@ void ElfWriter::CreateBSS() {
   ASSERT(text_section->IsTextSection());
 
   auto* const bss_container = new (zone_) BssSection(type_);
-  for (const auto& portion : text_section->AsBitsContainer()->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kSnapshotBssAsmSymbol;
-      label = kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    uint8_t* bytes = nullptr;
-    if (type_ == Type::Snapshot) {
-      // Ideally the BSS segment would take no space in the object, but
-      // Android's "strip" utility truncates the memory-size of our segments to
-      // their file-size.
-      //
-      // Therefore we must insert zero-filled data for the BSS.
-      bytes = zone_->Alloc<uint8_t>(size);
-      memset(bytes, 0, size);
-    }
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
-    symbols->Add({symbol_name, SymbolData::Type::Section, 0, size, label});
-    bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  uint8_t* bytes = nullptr;
+  if (type_ == Type::Snapshot) {
+    // Ideally the BSS segment would take no space in the object, but
+    // Android's "strip" utility truncates the memory-size of our segments to
+    // their file-size.
+    //
+    // Therefore we must insert zero-filled data for the BSS.
+    bytes = zone_->Alloc<uint8_t>(size);
+    memset(bytes, 0, size);
   }
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
+  symbols->Add({kSnapshotBssAsmSymbol, SymbolData::Type::Section, 0, size,
+                kIsolateBssLabel});
+  bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
 
   section_table_->Add(bss_container, kBssName);
 }

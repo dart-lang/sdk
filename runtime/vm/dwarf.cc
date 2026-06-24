@@ -296,8 +296,8 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
     // The lowest instruction address in this object file that is part of our
     // compilation unit. Dwarf consumers use this to quickly decide which
     // compilation unit DIE to consult for a given pc.
-    auto const isolate_instructions_label = ImageWriter::SectionLabel(
-        ImageWriter::ProgramSection::Text, /*vm=*/false);
+    auto const isolate_instructions_label =
+        ImageWriter::SectionLabel(ImageWriter::ProgramSection::Text);
     stream->OffsetFromSymbol(isolate_instructions_label, 0);
 
     // DW_AT_high_pc
