@@ -5,6 +5,7 @@
 library test.proxy_type;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 // This test is much longer that is strictly necessary to test

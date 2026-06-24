@@ -22,7 +22,7 @@ var set1 = {
   0,
   if (i > 0) ...nullableList, // error
   if (i > 0) ...dynamicList, // ok
-  if (i > 0) ...nullableList! // ok
+  if (i > 0) ...nullableList!, // ok
 };
 
 var list1 = [
@@ -31,8 +31,11 @@ var list1 = [
   if (i > 0) ...nullableList!, // ok
 ];
 
-testMap<X extends dynamic, Y extends Map<int, String>?,
-    Z extends Map<int, String>>(X x, Y y, Z z) {
+testMap<
+  X extends dynamic,
+  Y extends Map<int, String>?,
+  Z extends Map<int, String>
+>(X x, Y y, Z z) {
   var map2 = {
     if (i > 0) ...x, // error
     if (i > 0) ...y, // error
@@ -42,7 +45,10 @@ testMap<X extends dynamic, Y extends Map<int, String>?,
 }
 
 testIterables<X extends dynamic, Y extends List<int>?, Z extends List<int>>(
-    X x, Y y, Z z) {
+  X x,
+  Y y,
+  Z z,
+) {
   var set2 = {
     0,
     if (i > 0) ...x, // error

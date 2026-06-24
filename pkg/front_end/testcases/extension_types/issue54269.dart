@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 typedef F<X> = X;
+
 extension type E(F<F<E>> it) {} /* Error */

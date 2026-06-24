@@ -47,5 +47,6 @@ FutureOr<FutureOr<void>> test6() {
 // values, because `Future` is a subtype of `void`.
 FutureOr<FutureOr<void>> test() {
   return Future<Future<Future<void>>>.value(
-      Future<Future<void>>.value(Future<void>.value(null)));
+    Future<Future<void>>.value(Future<void>.value(null)),
+  );
 }

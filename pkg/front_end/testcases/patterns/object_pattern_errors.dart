@@ -13,7 +13,7 @@ test(dynamic x) {
   if (x case B()) {} // Ok: the type argument is inferred.
   if (x case B<int>()) {} // Ok.
   if (x case B<String, num>()) {} // Error.
-  if (x case A(: 5)) {} // Error
+  if (x case A(:5)) {} // Error
   if (x case A(5)) {} // Error
   if (x case A(var a)) {} // Error
 }

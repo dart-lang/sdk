@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests.
+// dart format off
+
 // foo() => 42;
 import 'data:application/dart;charset=utf-8,foo%28%29%20%3D%3E%2042%3B';  //# percentencoded: ok
 import 'data:text/plain;charset=utf-8,foo%28%29%20%3D%3E%2042%3B';  //# wrongmime: ok

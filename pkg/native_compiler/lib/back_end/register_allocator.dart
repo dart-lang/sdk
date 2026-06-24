@@ -981,9 +981,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
                 input.value,
               );
             } else {
-              final from = liveRangeFor(
-                input,
-              ).bundle.findSplitChildAt(predEnd - 1);
+              final from = liveRangeFor(input).bundle
+                  .findSplitChildAt(predEnd - 1);
               if (from.allocatedLocation != to.allocatedLocation) {
                 _insertMoveBefore(
                   insertionPoint,

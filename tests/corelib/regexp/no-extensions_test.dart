@@ -23,6 +23,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 void main() {
@@ -38,9 +39,8 @@ void main() {
   assertEquals(new RegExp(r"[\x1g]").firstMatch("x")![0], "x");
   assertEquals(new RegExp(r"[\x1g]").firstMatch("1")![0], "1");
   assertEquals(
-    new RegExp(
-      r"\2147483648",
-    ).firstMatch(new String.fromCharCode(140) + "7483648")![0],
+    new RegExp(r"\2147483648")
+        .firstMatch(new String.fromCharCode(140) + "7483648")![0],
     new String.fromCharCode(140) + "7483648",
   );
   assertEquals(
@@ -74,9 +74,8 @@ void main() {
     new String.fromCharCode(8) + "q",
   );
   assertEquals(
-    new RegExp(
-      r"[\10q]",
-    ).firstMatch("y" + new String.fromCharCode(8) + "q")![0],
+    new RegExp(r"[\10q]")
+        .firstMatch("y" + new String.fromCharCode(8) + "q")![0],
     new String.fromCharCode(8),
   );
   assertEquals(

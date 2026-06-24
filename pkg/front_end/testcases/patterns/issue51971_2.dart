@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 test1(dynamic x1) {
   if (x1 case int a1 && < a1 || int a1) { // Error.
     return a1;
@@ -45,7 +48,7 @@ test4(dynamic x4) {
 test5(dynamic x5) {
   return switch (x5) {
     int a5 && < a5 => 1, // Error.
-    _ => 0
+    _ => 0,
   };
 }
 

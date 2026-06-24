@@ -6,6 +6,7 @@ library test_extension_test;
 
 import "dart:async";
 import "dart:isolate";
+
 import "test_relative_extension.dart";
 
 main() {

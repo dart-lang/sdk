@@ -9,5 +9,5 @@ test() {
 }
 
 main() {
-  if (add(1,2) < 3) test();
+  if (add(1, 2) < 3) test();
 }

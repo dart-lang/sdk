@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class Annotation {
@@ -46,9 +47,8 @@ void checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
 void main() {
   reflectClass(A).metadata;
   checkMetadata(
-    reflectClass(
-      A,
-    ).declarations.values.firstWhere((d) => d is TypeVariableMirror),
+    reflectClass(A).declarations.values
+        .firstWhere((d) => d is TypeVariableMirror),
     [],
   );
   checkMetadata(reflectClass(A).declarations[#foo]!, [const Annotation(A.foo)]);
@@ -57,9 +57,8 @@ void main() {
   checkMetadata(reflectClass(B), [const Annotation(B.foo)]);
   // Type variable metadata are not supported by reflection.
   checkMetadata(
-    reflectClass(
-      B,
-    ).declarations.values.firstWhere((d) => d is TypeVariableMirror),
+    reflectClass(B).declarations.values
+        .firstWhere((d) => d is TypeVariableMirror),
     [],
   );
   checkMetadata(reflectClass(B).declarations[#foo]!, [const Annotation(B.foo)]);
@@ -69,9 +68,8 @@ void main() {
   checkMetadata(reflectClass(C), [const Annotation(baz)]);
   // Type variable metadata are not supported by reflection.
   checkMetadata(
-    reflectClass(
-      C,
-    ).declarations.values.firstWhere((d) => d is TypeVariableMirror),
+    reflectClass(C).declarations.values
+        .firstWhere((d) => d is TypeVariableMirror),
     [],
   );
   // C.baz, not the top-level function baz.

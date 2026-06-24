@@ -6,7 +6,7 @@ extension type ET0(int it);
 
 extension type ET1(final bool it);
 
-extension type ET2([int?it]);
+extension type ET2([int? it]);
 
 extension type ET3([final bool? it]);
 

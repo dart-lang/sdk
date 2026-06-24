@@ -32,7 +32,7 @@ foo(int x, bool b) {
       bar();
   }
 }
- 
+
 abstract class A {
   foo(int x, bool b) {
     switch (x) {

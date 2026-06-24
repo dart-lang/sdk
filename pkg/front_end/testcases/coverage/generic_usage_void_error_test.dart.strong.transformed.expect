@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/coverage/generic_usage_void_error_test.dart:17:13: Error: Couldn't find constructor 'T'.
-//   C(): v7 = T(); // Error
-//             ^
+// pkg/front_end/testcases/coverage/generic_usage_void_error_test.dart:17:14: Error: Couldn't find constructor 'T'.
+//   C() : v7 = T(); // Error
+//              ^
 //
 import self as self;
 import "dart:core" as core;
@@ -13,8 +13,8 @@ typedef T<unrelated X extends core::Object? = dynamic> = void;
 abstract class C extends core::Object {
   final field void v7;
   constructor •() → self::C
-    : self::C::v7 = invalid-expression "pkg/front_end/testcases/coverage/generic_usage_void_error_test.dart:17:13: Error: Couldn't find constructor 'T'.
-  C(): v7 = T(); // Error
-            ^", super core::Object::•()
+    : self::C::v7 = invalid-expression "pkg/front_end/testcases/coverage/generic_usage_void_error_test.dart:17:14: Error: Couldn't find constructor 'T'.
+  C() : v7 = T(); // Error
+             ^", super core::Object::•()
     ;
 }

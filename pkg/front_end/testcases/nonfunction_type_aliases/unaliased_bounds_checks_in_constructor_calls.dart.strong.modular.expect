@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:9:7: Error: Type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:10:7: Error: Type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
 //   new A<dynamic, String>();
 //       ^
-// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:6:11: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef A<X extends num, Y> = C<X>;
 //           ^
 //

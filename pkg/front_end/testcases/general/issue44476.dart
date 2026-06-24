@@ -8,6 +8,7 @@ foo(A<num> x) {
   bar(A<num> y) {
     barbar(A<num> yy) => null;
   }
+
   var baz = (A<num> z) {
     var bazbaz = (A<num> zz) => null;
   };

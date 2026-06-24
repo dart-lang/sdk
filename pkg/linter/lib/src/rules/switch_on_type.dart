@@ -97,11 +97,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
 
-    if (expression case BinaryExpression(
-      :var leftOperand,
-      :var rightOperand,
-      :var operator,
-    ) when operator.lexeme == TokenType.PLUS.lexeme) {
+    if (expression
+        case BinaryExpression(
+          :var leftOperand,
+          :var rightOperand,
+          :var operator,
+        )
+        when operator.lexeme == TokenType.PLUS.lexeme) {
       return _processExpression(leftOperand, errorNode: errorNode) ||
           _processExpression(rightOperand, errorNode: errorNode);
     }

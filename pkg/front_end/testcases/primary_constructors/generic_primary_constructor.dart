@@ -39,6 +39,7 @@ enum E1<T> {
 
 enum E2<T>(T a, final T b) {
   a<int>(0, 1);
+
   final T d = a;
   final T e = b;
   final Type f = T;

@@ -38,8 +38,8 @@ extension<ReadType, WriteType> on Indexable<ReadType, WriteType> {
 }
 
 Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
-        ReadType value) =>
-    Indexable<ReadType, WriteType>(value);
+  ReadType value,
+) => Indexable<ReadType, WriteType>(value);
 
 main() {
   var c2Double = C2<double>();
@@ -47,5 +47,6 @@ main() {
 
   var listNum = <num>[];
   contextIterableQuestion<num>(
-      maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= listNum);
+    maybeIndexable<Iterable<int>?, Object?>(null)?[0] ??= listNum,
+  );
 }

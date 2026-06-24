@@ -22,8 +22,10 @@ import 'log.dart' show Logger, StdoutLogger, splitLines;
 
 import 'expectation.dart' show Expectation, ExpectationGroup, ExpectationSet;
 
-typedef CreateContext =
-    Future<ChainContext> Function(Chain suite, Map<String, String> environment);
+typedef CreateContext = Future<ChainContext> Function(
+  Chain suite,
+  Map<String, String> environment,
+);
 
 /// A test suite for tool chains, for example, a compiler.
 class Chain extends Suite {

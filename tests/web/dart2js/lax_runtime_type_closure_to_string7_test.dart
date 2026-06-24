@@ -6,6 +6,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart';
+
 import 'dart:_foreign_helper' show JS_GET_FLAG;
 
 class Class<T> {

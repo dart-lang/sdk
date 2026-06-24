@@ -19,8 +19,10 @@ class MyTest2 extends Object with MyTest {}
 
 main() {
   ClassMirror classMirror = reflectClass(MyTest2);
-  classMirror.instanceMembers
-      .forEach((Symbol symbol, MethodMirror memberMirror) {
+  classMirror.instanceMembers.forEach((
+    Symbol symbol,
+    MethodMirror memberMirror,
+  ) {
     if (memberMirror.simpleName == #foo) {
       print(memberMirror);
       print(_hasFailingTestAnnotation(memberMirror));

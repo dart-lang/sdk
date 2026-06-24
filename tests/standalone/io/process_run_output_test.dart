@@ -6,8 +6,10 @@
 // non-interactive processes started with Process.run.
 
 import "package:expect/expect.dart";
+
 import "dart:convert";
 import "dart:io";
+
 import "process_test_util.dart";
 
 checkOutput(String encoding, output) {

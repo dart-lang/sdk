@@ -18,9 +18,9 @@ class MessageType {
   final String name;
 
   const factory MessageType.parse(String name) {
-//^^^^^
-// [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
-// [cfe] Only redirecting factory constructors can be declared to be 'const'.
+    // [error column 3, length 5]
+    // [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
+    // [cfe] Only redirecting factory constructors can be declared to be 'const'.
     if (name == 'print') {
       return MessageType.print;
     }

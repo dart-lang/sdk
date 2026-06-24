@@ -47,21 +47,17 @@ class AnalysisDomainGetErrorsTest
       path.dirname(Platform.resolvedExecutable),
     );
 
-    Directory(
-      path.join(sdkPath, 'bin', 'snapshots'),
-    ).createSync(recursive: true);
+    Directory(path.join(sdkPath, 'bin', 'snapshots'))
+        .createSync(recursive: true);
 
-    File(
-      executableFilePathIn(standardSdkPath),
-    ).copySync(executableFilePathIn(sdkPath));
+    File(executableFilePathIn(standardSdkPath))
+        .copySync(executableFilePathIn(sdkPath));
 
-    File(
-      executableVmFilePathIn(standardSdkPath),
-    ).copySync(executableVmFilePathIn(sdkPath));
+    File(executableVmFilePathIn(standardSdkPath))
+        .copySync(executableVmFilePathIn(sdkPath));
 
-    File(
-      serverSnapshotPathIn(standardSdkPath),
-    ).copySync(serverSnapshotPathIn(sdkPath));
+    File(serverSnapshotPathIn(standardSdkPath))
+        .copySync(serverSnapshotPathIn(sdkPath));
 
     Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
@@ -85,12 +81,11 @@ class String {}
 class Type {}
 ''');
 
-    File(path.join(sdkPath, 'lib', 'async', 'async.dart')).writeAsStringSync(
-      r'''
+    File(path.join(sdkPath, 'lib', 'async', 'async.dart'))
+        .writeAsStringSync(r'''
 library dart.async;
 class Future<T> {}
-''',
-    );
+''');
 
     File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
 class Fake {}
@@ -99,9 +94,8 @@ class Fake {}
     var libsInternalDir = path.join(sdkPath, 'lib', '_internal');
     Directory(libsInternalDir).createSync(recursive: true);
 
-    File(
-      path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'),
-    ).writeAsStringSync('{}');
+    File(path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'))
+        .writeAsStringSync('{}');
 
     var libsDir = path.join(libsInternalDir, 'sdk_library_metadata', 'lib');
     Directory(libsDir).createSync(recursive: true);

@@ -4,6 +4,7 @@
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import 'dart:async';
 
 main() {
@@ -233,18 +234,16 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    Future<bool?>.value(
-      controller.stream.every((x) => throw error1),
-    ).catchError(expectErrorOnly);
+    Future<bool?>.value(controller.stream.every((x) => throw error1))
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    Future<bool?>.value(
-      controller.stream.any((x) => throw error1),
-    ).catchError(expectErrorOnly);
+    Future<bool?>.value(controller.stream.any((x) => throw error1))
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 

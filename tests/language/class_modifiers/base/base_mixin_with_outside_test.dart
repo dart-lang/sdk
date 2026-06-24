@@ -5,6 +5,7 @@
 // Allow base mixins to be mixed by multiple classes outside its library.
 
 import 'package:expect/expect.dart';
+
 import 'base_mixin_with_lib.dart';
 
 abstract base class AOutside with BaseMixin {}

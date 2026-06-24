@@ -6,6 +6,7 @@
 // Verify that bounds checks correctly happen when accessing short ByteData.
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 void testGet(ByteData data) {

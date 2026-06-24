@@ -20,7 +20,7 @@ const var3 = fn1(2);
 const var4 = fn1(3);
 int fn1(int a) {
   int b = a;
-  for (int i = 0;; i++) {
+  for (int i = 0; ; i++) {
     b *= 3;
     if (b > 10) return b;
   }
@@ -28,7 +28,7 @@ int fn1(int a) {
 
 const var5 = fn2();
 int fn2() {
-  for (int i = 0, j = 2;; i += 2, j += 1) {
+  for (int i = 0, j = 2; ; i += 2, j += 1) {
     if (i + j > 10) {
       return i + j;
     }

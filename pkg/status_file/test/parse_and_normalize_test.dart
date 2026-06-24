@@ -7,6 +7,7 @@
 library;
 
 import 'dart:io';
+
 import 'package:status_file/canonical_status_file.dart';
 
 final Uri repoRoot = Platform.script.resolve("../../../");

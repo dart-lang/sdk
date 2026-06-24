@@ -48,7 +48,7 @@ extension type JSFunctionType(js.JSValue _jsFunctionType)
     implements JSObjectType {}
 
 extension type JSExportedDartFunctionType(
-  js.JSValue _jsExportedDartFunctionType
+  js.JSValue _jsExportedDartFunctionType,
 ) implements JSFunctionType {}
 
 extension type JSArrayType(js.JSValue _jsArrayType) implements JSObjectType {}

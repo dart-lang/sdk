@@ -6,9 +6,11 @@
 // in another library.
 
 import 'package:expect/expect.dart';
+
 import 'interface_class_mixin_on_lib.dart';
 
 mixin MA on InterfaceClass {}
+
 mixin MB on InterfaceClass {}
 
 class ConcreteA extends A with MA, MB {

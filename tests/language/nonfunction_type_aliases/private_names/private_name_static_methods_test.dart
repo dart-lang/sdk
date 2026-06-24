@@ -8,6 +8,7 @@
 import "package:expect/expect.dart";
 
 import "package:expect/static_type_helper.dart";
+
 import "private_name_library.dart";
 
 /// Test that each public typedef can be used to access static methods.

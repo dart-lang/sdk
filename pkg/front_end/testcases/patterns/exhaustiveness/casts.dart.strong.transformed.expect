@@ -308,5 +308,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: LogicalExpression @ org-dartlang-testcase:///casts.dart:60:19 -> BoolConstant(true)
+Evaluated: LogicalExpression @ org-dartlang-testcase:///casts.dart:60:15 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 256, effectively constant: 1

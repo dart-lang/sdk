@@ -4,7 +4,8 @@
 
 main() {
   int count = 0;
-  yield: for (int a = 0; a < 10; ++a) {
+  yield:
+  for (int a = 0; a < 10; ++a) {
     for (int b = 0; b < 10; ++b) {
       ++count;
       if (count == 27) break yield;

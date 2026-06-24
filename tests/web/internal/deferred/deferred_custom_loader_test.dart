@@ -4,6 +4,7 @@
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import 'dart:_foreign_helper' show JS;
 
 import 'deferred_custom_loader_lib.dart' deferred as def;

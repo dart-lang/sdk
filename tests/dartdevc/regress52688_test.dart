@@ -11,6 +11,7 @@ class A<T> extends W with C<T> {}
 mixin C<S> on W {
   foo(M<S> c);
 }
+
 mixin M<R> on O {}
 
 class W {

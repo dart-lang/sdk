@@ -122,9 +122,8 @@ void f() {
   }
 
   Request _createGetErrorsRequest(String path) {
-    return AnalysisGetErrorsParams(
-      path,
-    ).toRequest(_requestId, clientUriConverter: server.uriConverter);
+    return AnalysisGetErrorsParams(path)
+        .toRequest(_requestId, clientUriConverter: server.uriConverter);
   }
 
   Future<List<AnalysisError>> _getErrors(String path) async {

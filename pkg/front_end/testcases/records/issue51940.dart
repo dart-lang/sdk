@@ -20,7 +20,7 @@ final class Error<T> extends Result<T> {
 
 Parser<void> not(Parser<dynamic> parser) {
   return (input) => switch (parser(input)) {
-        (Ok _, var _) => (const Error('unexpected input'), input),
-        _ => (const Ok(null), input),
-      };
+    (Ok _, var _) => (const Error('unexpected input'), input),
+    _ => (const Ok(null), input),
+  };
 }

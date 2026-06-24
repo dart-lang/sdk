@@ -12,6 +12,7 @@
 library reexport_core_test;
 
 import "package:expect/expect.dart";
+
 import 'reexport_core_helper.dart' as core;
 
 void main() {

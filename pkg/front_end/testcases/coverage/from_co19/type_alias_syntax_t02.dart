@@ -11,8 +11,10 @@ class C<T> {
   C(this.t);
 }
 
-@meta typedef CAlias1 = C;
-@meta typedef CAlias2<T> = C<T>;
+@meta
+typedef CAlias1 = C;
+@meta
+typedef CAlias2<T> = C<T>;
 typedef CAlias3 = C<String>;
 typedef CAlias4<T> = C<int>;
 

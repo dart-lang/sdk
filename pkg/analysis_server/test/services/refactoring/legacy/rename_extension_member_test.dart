@@ -91,8 +91,7 @@ extension E on int {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
-      expectedMessage:
-          "Usage of renamed method will be shadowed by local variable 'newName'.",
+      expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
       expectedContextSearch: 'test(); // marker',
     );
   }

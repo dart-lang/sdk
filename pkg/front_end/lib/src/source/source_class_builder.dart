@@ -645,12 +645,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    filteredConstructorsIterator<SourceMemberBuilder>(
-      includeDuplicates: false,
-    ).forEach(build);
-    filteredMembersIterator<SourceMemberBuilder>(
-      includeDuplicates: false,
-    ).forEach(build);
+    filteredConstructorsIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
+    filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
 
     for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
       if (memberBuilder is SourceConstructorBuilder &&

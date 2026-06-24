@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'main_lib1.dart' as exported;
+
 import 'dart:core' as imported;
+
 import 'main_lib2.dart' as imported;
 import 'main_lib3.dart' as imported;
 

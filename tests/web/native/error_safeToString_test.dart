@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "native_testing.dart";
+
 import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT;
 import 'dart:_interceptors'
     show

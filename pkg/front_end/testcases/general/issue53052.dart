@@ -15,11 +15,15 @@ FutureOr<Stream<int>> g() async* {
 main() async {
   var iterable = f();
   if (iterable is Future<Object?>) return;
-  expectThrows(() { int i = iterable.first; });
+  expectThrows(() {
+    int i = iterable.first;
+  });
 
   var stream = g();
   if (stream is Future<Object?>) return;
-  await expectAsyncThrows(() async { int i = await stream.first; });
+  await expectAsyncThrows(() async {
+    int i = await stream.first;
+  });
 }
 
 expectThrows(f) {
@@ -27,7 +31,7 @@ expectThrows(f) {
   try {
     f();
     hasThrown = false;
-  } catch(e) {}
+  } catch (e) {}
   if (!hasThrown) {
     throw "Expected the function to throw.";
   }
@@ -38,7 +42,7 @@ expectAsyncThrows(f) async {
   try {
     await f();
     hasThrown = false;
-  } catch(e) {}
+  } catch (e) {}
   if (!hasThrown) {
     throw "Expected the function to throw.";
   }

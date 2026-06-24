@@ -6,6 +6,7 @@
 library CTConst4Test;
 
 import "package:expect/expect.dart";
+
 import "const4_lib.dart" as mylib;
 
 const A = mylib.B;

@@ -82,13 +82,13 @@ library;
 //   factory C.factory9({int i}) => new C.constructor4(); // error
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
-//       : this.i = i; // error
-//                  ^
+// pkg/front_end/testcases/nnbd/issue42362.dart:19:16: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+//     : this.i = i; // error
+//                ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
-//       : this.i = i; // error
-//                  ^
+// pkg/front_end/testcases/nnbd/issue42362.dart:22:16: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+//     : this.i = i; // error
+//                ^
 //
 // pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
 //   C.constructor5([int? i]) : this.i = i; // error
@@ -116,14 +116,14 @@ class A extends core::Object {
     : self::A::i = i, super core::Object::•()
     ;
   constructor constructor5([core::int? i = #C1]) → self::A
-    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
-      : this.i = i; // error
-                 ^" in let core::int? #t1 = i in #t1 == null ?{core::int} #t1 as{TypeError} core::int : #t1{core::int}, super core::Object::•()
+    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:16: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+    : this.i = i; // error
+               ^" in let core::int? #t1 = i in #t1 == null ?{core::int} #t1 as{TypeError} core::int : #t1{core::int}, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C1}) → self::A
-    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
-      : this.i = i; // error
-                 ^" in let core::int? #t2 = i in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int}, super core::Object::•()
+    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:16: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+    : this.i = i; // error
+               ^" in let core::int? #t2 = i in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int}, super core::Object::•()
     ;
   constructor constructor7({required core::int i}) → self::A
     : self::A::i = i, super core::Object::•()

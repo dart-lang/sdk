@@ -224,8 +224,11 @@ void syncTests() {
   };
   edfWithThis = dartFunctionThis.toJSCaptureThis;
   Expect.equals(
-    (edfWithThis.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString)
-        .toDart,
+    (edfWithThis.callAsFunction(
+      this_,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
     'foobar',
   );
   Expect.identical(edfWithThis.toDart, dartFunctionThis);
@@ -402,9 +405,9 @@ void syncTests() {
   // test runner.
   if (supportsSharedArrayBuffer) {
     final sharedArrayBuffer = JSSharedArrayBuffer(4);
-    final sharedByteBuffer = JSUint8ArrayShared(
-      sharedArrayBuffer,
-    ).toDart.buffer;
+    final sharedByteBuffer = JSUint8ArrayShared(sharedArrayBuffer)
+        .toDart
+        .buffer;
     // Not a `JSArrayBuffer`.
     Expect.throws(() => sharedByteBuffer.toJS);
   }

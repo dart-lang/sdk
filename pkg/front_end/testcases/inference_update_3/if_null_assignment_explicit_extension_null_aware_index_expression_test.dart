@@ -38,15 +38,17 @@ extension Extension<ReadType, WriteType> on Indexable<ReadType, WriteType> {
 }
 
 Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
-        ReadType value) =>
-    Indexable<ReadType, WriteType>(value);
+  ReadType value,
+) => Indexable<ReadType, WriteType>(value);
 
 main() {
   var c2Double = C2<double>();
   contextB1Question(
-      Extension(maybeIndexable<C1<int>?, Object?>(null))?[0] ??= c2Double);
+    Extension(maybeIndexable<C1<int>?, Object?>(null))?[0] ??= c2Double,
+  );
 
   var listNum = <num>[];
   contextIterableQuestion<num>(
-      Extension(maybeIndexable<Iterable<int>?, Object?>(null))?[0] ??= listNum);
+    Extension(maybeIndexable<Iterable<int>?, Object?>(null))?[0] ??= listNum,
+  );
 }

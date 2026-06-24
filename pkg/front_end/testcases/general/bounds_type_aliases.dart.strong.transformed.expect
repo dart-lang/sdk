@@ -2,56 +2,56 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:32:5: Error: Generic type 'F' can't be used without type arguments in a type variable bound.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:33:7: Error: Generic type 'F' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'F' here.
-//     T1 extends F, // Error
-//     ^^
+//       T1 extends F, // Error
+//       ^^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: Bound of this variable references variable 'X' from the same declaration.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:40:5: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:41:7: Error: Generic type 'G' can't be used without type arguments in a type variable bound.
 // Try providing type arguments to 'G' here.
-//     S1 extends G, // Error
-//     ^^
+//       S1 extends G, // Error
+//       ^^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: Bound of this variable references variable 'X' from the same declaration.
 // class G<X extends Class<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:38:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:39:18: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//     T7 extends F<Object>, // Error
-//                ^
+//       T7 extends F<Object>, // Error
+//                  ^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:39:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:40:18: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//     T8 extends F<int>, // Error
-//                ^
+//       T8 extends F<int>, // Error
+//                  ^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef F<X extends Class<X>> = X;
 //           ^
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:46:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:47:18: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//     S7 extends G<Object>, // Error
-//                ^
+//       S7 extends G<Object>, // Error
+//                  ^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_type_aliases.dart:47:16: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+// pkg/front_end/testcases/general/bounds_type_aliases.dart:48:18: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_aliases.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//     S8 extends G<int> // Error
-//                ^
+//       S8 extends G<int> // Error
+//                  ^
 // pkg/front_end/testcases/general/bounds_type_aliases.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
 // class G<X extends Class<X>> {}
 //         ^

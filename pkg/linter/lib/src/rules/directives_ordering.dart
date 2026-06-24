@@ -313,7 +313,8 @@ extension on Iterable<NamespaceDirective> {
 
   /// The directives with 'package:' URIs, after the first set of directives
   /// with absolute URIs.
-  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris => where(
-    _isNotDartDirective,
-  ).skipWhile(_isAbsoluteDirective).where(_isPackageDirective);
+  Iterable<NamespaceDirective> get withPackageUrisSkippingAbsoluteUris =>
+      where(_isNotDartDirective)
+          .skipWhile(_isAbsoluteDirective)
+          .where(_isPackageDirective);
 }

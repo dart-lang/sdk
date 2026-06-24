@@ -510,9 +510,9 @@ void f(Other r) {
     var resolved = await resolveCompletion(completion);
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -3823,9 +3823,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4039,9 +4039,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4136,9 +4136,9 @@ void f(String a) {
     // Verify the edits.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -4329,15 +4329,15 @@ void f() {
 
     var newContentReplaceMode = applyTextEdits(
       code.code,
-      [
-        textEditForReplace(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [textEditForReplace(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     var newContentInsertMode = applyTextEdits(
       code.code,
-      [
-        textEditForInsert(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [textEditForInsert(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4405,9 +4405,9 @@ void f() {
     // Apply all current-document edits.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -4653,9 +4653,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4714,9 +4714,9 @@ class BaseImpl extends Base {
 
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     expect(
@@ -4929,9 +4929,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolvedCompletion.textEdit!),
-      ].followedBy(resolvedCompletion.additionalTextEdits ?? []).toList(),
+      [toTextEdit(resolvedCompletion.textEdit!)]
+          .followedBy(resolvedCompletion.additionalTextEdits ?? [])
+          .toList(),
     );
 
     expect(newContent, equalsNormalized(expectedContent));

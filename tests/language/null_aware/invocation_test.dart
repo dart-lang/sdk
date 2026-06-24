@@ -5,6 +5,7 @@
 // Verify semantics of the ?. operator when it is used to invoke a method.
 
 import "package:expect/expect.dart";
+
 import "conditional_access_helper.dart" as h;
 
 bad() {

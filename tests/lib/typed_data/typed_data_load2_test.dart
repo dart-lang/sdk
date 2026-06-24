@@ -6,6 +6,7 @@
 // the array's buffer.
 
 import "dart:typed_data";
+
 import 'package:expect/expect.dart';
 
 aliasWithByteData1() {

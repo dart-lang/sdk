@@ -28,33 +28,46 @@ class C6.primary() {
 }
 
 enum E1() {
-  a(), b.other();
+  a(),
+  b.other();
+
   const E1.other(); // Error
 }
 
 enum E2() {
-  a(), b.other1(), c.other2();
+  a(),
+  b.other1(),
+  c.other2();
+
   const new other1(); // Error
   const new other2(); // Error
 }
 
 enum E3() {
-  a(), b.other();
+  a(),
+  b.other();
+
   const new other() : this(); // Ok
 }
 
 enum E4() {
-  a(), b.other();
+  a(),
+  b.other();
+
   const new other() : this(); // Ok
 }
 
 enum E5.primary() {
-  a(), b.primary();
+  a(),
+  b.primary();
+
   const new(); // Error
 }
 
 enum E6.primary() {
-  a(), b.primary();
+  a(),
+  b.primary();
+
   const new() : this.primary(); // Ok
 }
 

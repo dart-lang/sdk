@@ -23,10 +23,10 @@ class NegativeLengthList<E> with ListMixin<E> {
 }
 
 int switchList(List<int> list) => switch (list) {
-      [_, _, ...] => 2,
-      [_] => 1,
-      [] => 0,
-    };
+  [_, _, ...] => 2,
+  [_] => 1,
+  [] => 0,
+};
 
 main() {
   expect(0, switchList([]));

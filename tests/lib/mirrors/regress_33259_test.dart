@@ -5,6 +5,7 @@
 // Regression test for http://dartbug.com/33259.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 void main() {

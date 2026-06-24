@@ -5,6 +5,7 @@
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
 import 'package:expect/expect.dart';
+
 // ignore: import_internal_library
 import 'dart:_wasm';
 
@@ -667,9 +668,8 @@ void _testV128() {
   Expect.isFalse(vZero.anyTrue);
   var vNonZero = WasmI32x4.splat(WasmI32.fromInt(1));
   Expect.isTrue(vNonZero.anyTrue);
-  var vOneBit = WasmI32x4.splat(
-    WasmI32.fromInt(0),
-  ).replaceLane(0, WasmI32.fromInt(1));
+  var vOneBit = WasmI32x4.splat(WasmI32.fromInt(0))
+      .replaceLane(0, WasmI32.fromInt(1));
   Expect.isTrue(vOneBit.anyTrue);
 }
 

@@ -27,9 +27,9 @@ class BulkFixDetails {
     var context = collection.contexts[0];
 
     for (var file in directory.listSync()) {
-      var resolvedFile =
-          await context.currentSession.getResolvedUnit(file.absolute.path)
-              as ResolvedUnitResult;
+      var resolvedFile = await context.currentSession.getResolvedUnit(
+        file.absolute.path,
+      ) as ResolvedUnitResult;
       for (var classDecl
           in resolvedFile.unit.declarations.whereType<ClassDeclaration>()) {
         var classElement = classDecl.declaredFragment?.element;

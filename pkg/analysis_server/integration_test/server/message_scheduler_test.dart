@@ -73,9 +73,8 @@ Exit process messages loop
 
     var futures = <Future<void>>[];
     futures.add(setRoots(included: [workspaceRootPath], excluded: []));
-    var request = ExecutionCreateContextParams(
-      '/a/b.dart',
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ExecutionCreateContextParams('/a/b.dart')
+        .toRequest('0', clientUriConverter: server.uriConverter);
     futures.add(handleSuccessfulRequest(request));
     await Future.wait(futures);
     await waitForTasksFinished();

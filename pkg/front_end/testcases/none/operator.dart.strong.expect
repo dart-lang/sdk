@@ -2,41 +2,41 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the type 'String'.
+// pkg/front_end/testcases/none/operator.dart:55:10: Error: The operator '-' isn't defined for the type 'String'.
 // Try correcting the operator to an existing operator, or defining a '-' operator.
 //   string - 42;
 //          ^
 //
-// pkg/front_end/testcases/none/operator.dart:66:12: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/operator.dart:80:12: Error: Too few positional arguments: 1 required, 0 given.
 //   -c.method();
 //            ^
 //
-// pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the type 'String'.
+// pkg/front_end/testcases/none/operator.dart:83:3: Error: The operator 'unary-' isn't defined for the type 'String'.
 // Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 //   -string;
 //   ^
 //
-// pkg/front_end/testcases/none/operator.dart:86:11: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
 //   c.method()[0];
 //           ^
 //
-// pkg/front_end/testcases/none/operator.dart:109:3: Error: Undefined name 'string'.
+// pkg/front_end/testcases/none/operator.dart:134:3: Error: Undefined name 'string'.
 //   string[0] = 42;
 //   ^^^^^^
 //
-// pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/operator.dart:131:11: Error: Too few positional arguments: 1 required, 0 given.
 //   c.method()[0] = 42;
 //           ^
 //
-// pkg/front_end/testcases/none/operator.dart:129:3: Error: Undefined name 'string'.
+// pkg/front_end/testcases/none/operator.dart:159:3: Error: Undefined name 'string'.
 //   string[0] += 42;
 //   ^^^^^^
 //
-// pkg/front_end/testcases/none/operator.dart:116:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
+// pkg/front_end/testcases/none/operator.dart:146:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
 //   map['foo'] += 0.5;
 //              ^
 //
-// pkg/front_end/testcases/none/operator.dart:126:11: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/operator.dart:156:11: Error: Too few positional arguments: 1 required, 0 given.
 //   c.method()[0] += 42;
 //           ^
 //
@@ -81,7 +81,7 @@ static method add(core::num n, core::int i, core::double d, self::Class<core::St
   core::print("DynamicInvocation (Never)");
   never{Never}.+(n);
   core::print("DynamicInvocation (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the type 'String'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:55:10: Error: The operator '-' isn't defined for the type 'String'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
   string - 42;
          ^" in string{<unresolved>}.-(42);
@@ -97,11 +97,11 @@ static method unaryMinus(core::num n, core::int i, core::double d, self::Class<c
   core::print("DynamicInvocation (Never)");
   never{Never}.unary-();
   core::print("DynamicInvocation (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:66:12: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:80:12: Error: Too few positional arguments: 1 required, 0 given.
   -c.method();
            ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.unary-();
   core::print("DynamicInvocation (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the type 'String'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:83:3: Error: The operator 'unary-' isn't defined for the type 'String'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   -string;
   ^" in string{<unresolved>}.unary-();
@@ -116,7 +116,7 @@ static method indexGet(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation (Never)");
   never{Never}.[](0);
   core::print("DynamicInvocation (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:86:11: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0];
           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.[](0);
   core::print("DynamicInvocation (Unresolved)");
@@ -132,18 +132,18 @@ static method indexSet(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation (Never)");
   never{Never}.[]=(0, 42);
   core::print("DynamicInvocation (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:106:11: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:131:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0] = 42;
           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.[]=(0, 42);
   core::print("DynamicInvocation (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:109:3: Error: Undefined name 'string'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:134:3: Error: Undefined name 'string'.
   string[0] = 42;
   ^^^^^^"{<invalid>}.[]=(0, 42);
 }
 static method compound(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never) → dynamic {
   core::print("InstanceInvocation");
   let final core::List<core::int> #t1 = list in let final core::int #t2 = 0 in #t1.{core::List::[]=}(#t2, #t1.{core::List::[]}(#t2){(core::int) → core::int}.{core::num::+}(42){(core::num) → core::int}){(core::int, core::int) → void};
-  let final core::Map<core::String, core::double> #t3 = map in let final core::String #t4 = "foo" in #t3.{core::Map::[]=}(#t4, invalid-expression "pkg/front_end/testcases/none/operator.dart:116:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
+  let final core::Map<core::String, core::double> #t3 = map in let final core::String #t4 = "foo" in #t3.{core::Map::[]=}(#t4, invalid-expression "pkg/front_end/testcases/none/operator.dart:146:14: Error: Operator '+' cannot be called on 'double?' because it is potentially null.
   map['foo'] += 0.5;
              ^" in #t3.{core::Map::[]}(#t4){(core::Object?) → core::double?}.{core::double::+}(0.5){(core::num) → core::double}){(core::String, core::double) → void};
   let final self::Class<core::String> #t5 = c in let final core::int #t6 = 0 in #t5.{self::Class::[]=}(#t6, #t5.{self::Class::[]}(#t6){(core::int) → self::Class<core::String>}.{self::Class::+}(c){(self::Class<core::String>) → self::Class<core::String>}){(core::int, self::Class<core::String>) → void};
@@ -152,11 +152,11 @@ static method compound(core::List<core::int> list, core::Map<core::String, core:
   core::print("DynamicInvocation (Never)");
   let final Never #t9 = never in let final core::int #t10 = 0 in #t9{Never}.[]=(#t10, #t9{Never}.[](#t10){Never}.+(42));
   core::print("DynamicInvocation (Invalid)");
-  let final invalid-type #t11 = invalid-expression "pkg/front_end/testcases/none/operator.dart:126:11: Error: Too few positional arguments: 1 required, 0 given.
+  let final invalid-type #t11 = invalid-expression "pkg/front_end/testcases/none/operator.dart:156:11: Error: Too few positional arguments: 1 required, 0 given.
   c.method()[0] += 42;
           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type} in let final core::int #t12 = 0 in #t11{<invalid>}.[]=(#t12, #t11{<invalid>}.[](#t12){<invalid>}.+(42));
   core::print("DynamicInvocation (Unresolved)");
-  let final invalid-type #t13 = invalid-expression "pkg/front_end/testcases/none/operator.dart:129:3: Error: Undefined name 'string'.
+  let final invalid-type #t13 = invalid-expression "pkg/front_end/testcases/none/operator.dart:159:3: Error: Undefined name 'string'.
   string[0] += 42;
   ^^^^^^" in let final core::int #t14 = 0 in #t13{<invalid>}.[]=(#t14, #t13{<invalid>}.[](#t14){<invalid>}.+(42));
 }

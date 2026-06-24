@@ -259,13 +259,12 @@ mixin SourceDeclarationBuilderMixin
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
     Iterator<SourceMemberBuilder> iterator =
-        filteredMembersIterator<SourceMemberBuilder>(
-          includeDuplicates: false,
-        ).join(
-          filteredConstructorsIterator<SourceMemberBuilder>(
-            includeDuplicates: false,
-          ),
-        );
+        filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+            .join(
+              filteredConstructorsIterator<SourceMemberBuilder>(
+                includeDuplicates: false,
+              ),
+            );
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count += declaration.buildBodyNodes(

@@ -7,8 +7,8 @@ use(o) {}
 void Function() f(List<int> list) {
   return switch (list) {
     [final item] => () {
-        use(item);
-      },
+      use(item);
+    },
     [...] => () {},
   };
 }

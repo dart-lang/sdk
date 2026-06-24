@@ -444,22 +444,18 @@ extension on String {
 
 extension on Element {
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement(
-      isOriginVariable: true,
-      :var variable,
-    ) when variable.isInAnalyzerPublicApi) {
+    if (this case PropertyAccessorElement(isOriginVariable: true, :var variable)
+        when variable.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case PropertyInducingElement(
-      isOriginGetterSetter: true,
-      :var getter?,
-    ) when getter.isInAnalyzerPublicApi) {
+    if (this
+        case PropertyInducingElement(isOriginGetterSetter: true, :var getter?)
+        when getter.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case PropertyInducingElement(
-      isOriginGetterSetter: true,
-      :var setter?,
-    ) when setter.isInAnalyzerPublicApi) {
+    if (this
+        case PropertyInducingElement(isOriginGetterSetter: true, :var setter?)
+        when setter.isInAnalyzerPublicApi) {
       return true;
     }
     if (metadata.annotations.any(_isPublicApiAnnotation)) {

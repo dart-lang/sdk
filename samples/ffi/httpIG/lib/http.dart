@@ -65,7 +65,9 @@ final counter = Uint8List(1);
 Function(Pointer<Utf8>) createServeSender(SendPort sendPort) {
   final sp = sendPort;
   return (Pointer<Utf8> requestPointer) {
-    mutex.runLocked(() { counter[0]++; });
+    mutex.runLocked(() {
+      counter[0]++;
+    });
     final typedList = requestPointer.cast<Uint8>().asTypedList(
           requestPointer.length,
         );

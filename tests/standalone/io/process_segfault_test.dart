@@ -7,7 +7,9 @@
 library ProcessSegfaultTest;
 
 import "dart:io";
+
 import "package:expect/expect.dart";
+
 import "process_test_util.dart";
 
 testExit() {

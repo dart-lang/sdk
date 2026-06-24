@@ -4,6 +4,7 @@
 library main;
 
 import "redirecting_factory_lib1.dart" deferred as lib1;
+
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 

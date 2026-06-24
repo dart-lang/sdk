@@ -57,12 +57,22 @@ MemoryMappedFile mmapFile(String filename) {
   try {
     final int length = File(filename).lengthSync();
     final int lengthRoundedUp = (length + kPageSize - 1) & ~(kPageSize - 1);
-    final Pointer<Uint8> result =
-        mmap(nullptr, lengthRoundedUp, kProtRead, kMapPrivate, fd, 0);
+    final Pointer<Uint8> result = mmap(
+      nullptr,
+      lengthRoundedUp,
+      kProtRead,
+      kMapPrivate,
+      fd,
+      0,
+    );
     if (result.address == kMapFailed) throw 'failed to map';
     try {
       final Uint8List bytes = toExternalDataWithFinalizer(
-          result, lengthRoundedUp, lengthRoundedUp, fd);
+        result,
+        lengthRoundedUp,
+        lengthRoundedUp,
+        fd,
+      );
       return MemoryMappedFile(bytes, length);
     } catch (_) {
       munmap(result, lengthRoundedUp);

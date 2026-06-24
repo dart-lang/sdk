@@ -6,6 +6,7 @@
 // VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 
 import 'dart:async' as async;
+
 import 'lib.dart' as l; // Minimal library containing "int async;".
 
 // Adapted from Analyzer test testing where `async` was not previously allowed.

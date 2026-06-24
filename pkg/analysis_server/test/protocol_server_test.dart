@@ -55,8 +55,7 @@ void f() {
       },
       messageKey:
           "Local variable 'x' can't be referenced before it is declared.",
-      correctionKey:
-          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      correctionKey: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       codeKey: 'referenced_before_declaration',
       urlKey: 'https://dart.dev/diagnostics/referenced_before_declaration',
       contextReferencesKey: [
@@ -106,8 +105,7 @@ export 'lib2.dart';
         endColumnKey: 19,
       },
       messageKey: engineDiagnostic.message,
-      correctionKey:
-          'Try removing the export of one of the libraries, or explicitly hiding the name in one of the export directives.',
+      correctionKey: 'Try removing the export of one of the libraries, or explicitly hiding the name in one of the export directives.',
       codeKey: 'ambiguous_export',
       urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
       hasFixKey: false,
@@ -144,8 +142,7 @@ void f() {
       },
       messageKey:
           "Local variable 'x' can't be referenced before it is declared.",
-      correctionKey:
-          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      correctionKey: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       codeKey: 'referenced_before_declaration',
       urlKey: 'https://dart.dev/diagnostics/referenced_before_declaration',
       contextReferencesKey: [

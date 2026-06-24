@@ -23,6 +23,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 void main() {
@@ -76,8 +77,7 @@ void main() {
   shouldBe(regexp03b, ["+,-"]);
 
   // The actual bug reported.
-  var bug21232 = (new RegExp(
-    r"^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$",
-  )).hasMatch('@');
+  var bug21232 = (new RegExp(r"^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$"))
+      .hasMatch('@');
   shouldBeFalse(bug21232);
 }

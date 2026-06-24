@@ -7,6 +7,7 @@
 // `class-modifier` is being shipped in.
 
 import 'package:expect/expect.dart';
+
 import 'mixin_class_no_modifier_old_version_lib.dart';
 
 abstract class OutsideA with Class {}

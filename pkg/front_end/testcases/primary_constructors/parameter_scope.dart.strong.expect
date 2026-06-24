@@ -2,15 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:9:10: Error: 'int' isn't a type.
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:12:10: Error: 'int' isn't a type.
 // class C2(int x) { // Error
 //          ^^^
 //
-// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:18:9: Error: 'int' isn't a type.
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:22:9: Error: 'int' isn't a type.
 // enum E2(int x) { // Error
 //         ^^^
 //
-// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:27:20: Error: 'int' isn't a type.
+// pkg/front_end/testcases/primary_constructors/parameter_scope.dart:32:20: Error: 'int' isn't a type.
 // extension type ET2(int x) { // Error
 //                    ^^^
 //
@@ -91,7 +91,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///parameter_scope.dart:
-- E1. (from org-dartlang-testcase:///parameter_scope.dart:13:8)
+- E1. (from org-dartlang-testcase:///parameter_scope.dart:16:8)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E2. (from org-dartlang-testcase:///parameter_scope.dart:18:8)
+- E2. (from org-dartlang-testcase:///parameter_scope.dart:22:8)

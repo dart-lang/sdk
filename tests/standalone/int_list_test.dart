@@ -8,6 +8,7 @@
 // VMOptions=--optimization-counter-threshold=20 --no-use-osr --no-background-compilation
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 main() {

@@ -32,37 +32,37 @@ library;
 //   this {
 //   ^^^^
 //
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:35:3: Error: A primary constructor body requires a primary constructor declaration.
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:36:3: Error: A primary constructor body requires a primary constructor declaration.
 // Try adding the primary constructor declaration.
 //   this;
 //   ^^^^
 //
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:40:3: Error: A primary constructor body requires a primary constructor declaration.
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:42:3: Error: A primary constructor body requires a primary constructor declaration.
 // Try adding the primary constructor declaration.
 //   this : assert(true);
 //   ^^^^
 //
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:46:3: Error: Only one primary constructor body declaration is allowed.
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:49:3: Error: Only one primary constructor body declaration is allowed.
 // Try removing all but one of the primary constructor body declarations.
 //   this : assert(true);
 //   ^^^^
 //
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:52:3: Error: Only one primary constructor body declaration is allowed.
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:56:3: Error: Only one primary constructor body declaration is allowed.
 // Try removing all but one of the primary constructor body declarations.
 //   this : assert(true);
 //   ^^^^
 //
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:57:3: Error: A primary constructor body requires a primary constructor declaration.
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:62:3: Error: A primary constructor body requires a primary constructor declaration.
 // Try adding the primary constructor declaration.
 //   this;
-//   ^^^^
-//
-// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:58:3: Error: Only one primary constructor body declaration is allowed.
-// Try removing all but one of the primary constructor body declarations.
-//   this : assert(true);
 //   ^^^^
 //
 // pkg/front_end/testcases/primary_constructors/body_without_primary.dart:63:3: Error: Only one primary constructor body declaration is allowed.
+// Try removing all but one of the primary constructor body declarations.
+//   this : assert(true);
+//   ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/body_without_primary.dart:68:3: Error: Only one primary constructor body declaration is allowed.
 // Try removing all but one of the primary constructor body declarations.
 //   this {
 //   ^^^^
@@ -174,7 +174,7 @@ org-dartlang-testcase:///body_without_primary.dart:
 - E0. (from org-dartlang-testcase:///body_without_primary.dart:33:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E1. (from org-dartlang-testcase:///body_without_primary.dart:38:6)
-- E2. (from org-dartlang-testcase:///body_without_primary.dart:43:8)
-- E3. (from org-dartlang-testcase:///body_without_primary.dart:49:8)
-- E4. (from org-dartlang-testcase:///body_without_primary.dart:55:6)
+- E1. (from org-dartlang-testcase:///body_without_primary.dart:39:6)
+- E2. (from org-dartlang-testcase:///body_without_primary.dart:45:8)
+- E3. (from org-dartlang-testcase:///body_without_primary.dart:52:8)
+- E4. (from org-dartlang-testcase:///body_without_primary.dart:59:6)

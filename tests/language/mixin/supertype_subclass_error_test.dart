@@ -14,9 +14,13 @@ class F extends E {}
 
 // M is mixed onto E which implements B, C and D.
 mixin MB on B {}
+
 mixin MC on C {}
+
 mixin MD on D {}
+
 mixin ME on E {}
+
 mixin MF on F {}
 
 class AB extends E with MB {}

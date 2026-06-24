@@ -30,7 +30,6 @@ test() {
   lib.Private._named(); // Error
   new lib.Private._named(); // Error
   const lib.Private._named(); // Error
-
 }
 
 class Super {
@@ -53,5 +52,3 @@ mixin Mixin {}
 class Class3 extends Private with Mixin {
   Class3.named() : super._named(); // Error
 }
-
-

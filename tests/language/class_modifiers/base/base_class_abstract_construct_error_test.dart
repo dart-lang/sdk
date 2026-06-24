@@ -7,6 +7,7 @@
 abstract base class NotConstructable {}
 
 mixin M {}
+
 abstract base class AlsoNotConstructable = Object with M;
 
 main() {

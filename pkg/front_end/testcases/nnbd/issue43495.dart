@@ -2,8 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-foo(bool condition, Iterable<dynamic> iterable, List<int>? a, Set<int>? b,
-    Iterable<int>? c, Map<int, int>? d) {
+foo(
+  bool condition,
+  Iterable<dynamic> iterable,
+  List<int>? a,
+  Set<int>? b,
+  Iterable<int>? c,
+  Map<int, int>? d,
+) {
   return [
     {...a}, // Error.
     {...b}, // Error.
@@ -43,9 +49,12 @@ foo(bool condition, Iterable<dynamic> iterable, List<int>? a, Set<int>? b,
   ];
 }
 
-bar<X extends List<int>?, Y extends Set<int>?, Z extends Iterable<int>?,
-        W extends Map<int, int>?>(
-    bool condition, Iterable<dynamic> iterable, X x, Y y, Z z, W w) {
+bar<
+  X extends List<int>?,
+  Y extends Set<int>?,
+  Z extends Iterable<int>?,
+  W extends Map<int, int>?
+>(bool condition, Iterable<dynamic> iterable, X x, Y y, Z z, W w) {
   return [
     {...x}, // Error.
     {...y}, // Error.

@@ -16,9 +16,8 @@ import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestParser(repoDir);
-  new File.fromUri(
-    computeTestParserUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeTestParserUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeTestParserUri(Uri repoDir) {
@@ -123,9 +122,8 @@ class TestParser extends Parser {
 
   out.writeln("}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {

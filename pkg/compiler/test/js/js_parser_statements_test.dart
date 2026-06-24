@@ -377,34 +377,24 @@ a = {1: 1,
         '};',
   );
 
-  testStatement(
-    'function foo(r, #) { return #[r](#) }',
-    [
-      ['a', 'b'],
-      'g',
-      ['b', 'a'],
-    ],
-    'function foo(r, a, b) {\n  return g[r](b, a);\n}',
-  );
-  testStatement(
-    'function foo(r, #a) { return #b[r](#c) }',
-    {
-      'a': ['a', 'b'],
-      'b': 'g',
-      'c': ['b', 'a'],
-    },
-    'function foo(r, a, b) {\n  return g[r](b, a);\n}',
-  );
+  testStatement('function foo(r, #) { return #[r](#) }', [
+    ['a', 'b'],
+    'g',
+    ['b', 'a'],
+  ], 'function foo(r, a, b) {\n  return g[r](b, a);\n}');
+  testStatement('function foo(r, #a) { return #b[r](#c) }', {
+    'a': ['a', 'b'],
+    'b': 'g',
+    'c': ['b', 'a'],
+  }, 'function foo(r, a, b) {\n  return g[r](b, a);\n}');
 
   // Sequence is printed flattened
   testStatement('x = #', [seq1], 'x = (1, 2, 3);');
   testStatement('x = (#, #)', [seq1, seq1], 'x = (1, 2, 3, 1, 2, 3);');
   testStatement('x = #, #', [seq1, seq1], 'x = (1, 2, 3), 1, 2, 3;');
-  testStatement(
-    'for (i = 0, j = #, k = 0; ; ++i, ++j, ++k){}',
-    [seq1],
-    'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}',
-  );
+  testStatement('for (i = 0, j = #, k = 0; ; ++i, ++j, ++k){}', [
+    seq1,
+  ], 'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}');
   testStatement('x = #a', {'a': seq1}, 'x = (1, 2, 3);');
   testStatement('x = (#a, #b)', {
     'a': seq1,
@@ -414,11 +404,9 @@ a = {1: 1,
     'a': seq1,
     'b': seq1,
   }, 'x = (1, 2, 3), 1, 2, 3;');
-  testStatement(
-    'for (i = 0, j = #a, k = 0; ; ++i, ++j, ++k){}',
-    {'a': seq1},
-    'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}',
-  );
+  testStatement('for (i = 0, j = #a, k = 0; ; ++i, ++j, ++k){}', {
+    'a': seq1,
+  }, 'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}');
 
   // Use the same name several times.
   testStatement(

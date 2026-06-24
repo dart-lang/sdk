@@ -5,7 +5,9 @@
 library test.enums;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
+
 import 'stringify.dart';
 
 class C {}
@@ -65,8 +67,8 @@ void main() {
       'Variable(s(values) in s(Suite), static, final, const)',
       'Method(s(Suite) in s(Suite), constructor)',
     ],
-    reflectClass(
-      Suite,
-    ).declarations.values.where((d) => !d.isPrivate).map(stringify),
+    reflectClass(Suite).declarations.values
+        .where((d) => !d.isPrivate)
+        .map(stringify),
   );
 }

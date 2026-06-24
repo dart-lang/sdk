@@ -129,27 +129,29 @@ class AccessorsTest extends AbstractCodeFragmentParserTest {
 @reflectiveTest
 class ConditionTest extends AbstractCodeFragmentParserTest {
   void test_and() {
-    var expression =
-        assertNoErrorsInCondition("'a' != 'b' && 'c' != 'd'")
-            as BinaryExpression;
+    var expression = assertNoErrorsInCondition(
+      "'a' != 'b' && 'c' != 'd'",
+    ) as BinaryExpression;
     expect(expression.leftOperand, isA<BinaryExpression>());
     expect(expression.operator, Operator.and);
     expect(expression.rightOperand, isA<BinaryExpression>());
   }
 
   void test_equal() {
-    var expression =
-        assertNoErrorsInCondition('a == b', variables: ['a', 'b'])
-            as BinaryExpression;
+    var expression = assertNoErrorsInCondition(
+      'a == b',
+      variables: ['a', 'b'],
+    ) as BinaryExpression;
     expect(expression.leftOperand, isA<VariableReference>());
     expect(expression.operator, Operator.equal);
     expect(expression.rightOperand, isA<VariableReference>());
   }
 
   void test_notEqual() {
-    var expression =
-        assertNoErrorsInCondition("a != 'b'", variables: ['a'])
-            as BinaryExpression;
+    var expression = assertNoErrorsInCondition(
+      "a != 'b'",
+      variables: ['a'],
+    ) as BinaryExpression;
     expect(expression.leftOperand, isA<VariableReference>());
     expect(expression.operator, Operator.notEqual);
     expect(expression.rightOperand, isA<LiteralString>());

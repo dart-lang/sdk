@@ -49,16 +49,16 @@ abstract class _E&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConst
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:10:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:12:3 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "e3"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:9:17 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:9:21 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "e2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:9:25 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "e3"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:9:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "e1"}, const E{_Enum.index: 1, _Enum._name: "e2"}, const E{_Enum.index: 2, _Enum._name: "e3"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:16:3 -> InstanceConstant(const F{_Enum.index: 0, _Enum._name: "f1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:17:3 -> InstanceConstant(const F{_Enum.index: 1, _Enum._name: "f2"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:18:3 -> InstanceConstant(const F{_Enum.index: 2, _Enum._name: "f3"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:15:6 -> ListConstant(const <F>[const F{_Enum.index: 0, _Enum._name: "f1"}, const F{_Enum.index: 1, _Enum._name: "f2"}, const F{_Enum.index: 2, _Enum._name: "f3"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:22:3 -> InstanceConstant(const G{_Enum.index: 0, _Enum._name: "g1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:23:3 -> InstanceConstant(const G{_Enum.index: 1, _Enum._name: "g2"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:24:3 -> InstanceConstant(const G{_Enum.index: 2, _Enum._name: "g3"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:21:6 -> ListConstant(const <G>[const G{_Enum.index: 0, _Enum._name: "g1"}, const G{_Enum.index: 1, _Enum._name: "g2"}, const G{_Enum.index: 2, _Enum._name: "g3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:10 -> InstanceConstant(const F{_Enum.index: 0, _Enum._name: "f1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:14 -> InstanceConstant(const F{_Enum.index: 1, _Enum._name: "f2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:18 -> InstanceConstant(const F{_Enum.index: 2, _Enum._name: "f3"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:11:6 -> ListConstant(const <F>[const F{_Enum.index: 0, _Enum._name: "f1"}, const F{_Enum.index: 1, _Enum._name: "f2"}, const F{_Enum.index: 2, _Enum._name: "f3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:14:3 -> InstanceConstant(const G{_Enum.index: 0, _Enum._name: "g1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:15:3 -> InstanceConstant(const G{_Enum.index: 1, _Enum._name: "g2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:16:3 -> InstanceConstant(const G{_Enum.index: 2, _Enum._name: "g3"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:13:6 -> ListConstant(const <G>[const G{_Enum.index: 0, _Enum._name: "g1"}, const G{_Enum.index: 1, _Enum._name: "g2"}, const G{_Enum.index: 2, _Enum._name: "g3"}])
 Extra constant evaluation: evaluated: 31, effectively constant: 12

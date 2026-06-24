@@ -408,13 +408,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (firstFragment != null && firstFragment != declaredFragment) {
       // If the receiver is a part file builder, then proactively cache the
       // library file builder so that imports can be finalized synchronously.
-      await addDartFileEdit(
-        firstFragment.source.fullName,
-        (builder) {
-          libraryEditBuilder = builder as DartFileEditBuilderImpl;
-        },
-        createEditsForImports: createEditsForImports,
-      );
+      await addDartFileEdit(firstFragment.source.fullName, (builder) {
+        libraryEditBuilder = builder as DartFileEditBuilderImpl;
+      }, createEditsForImports: createEditsForImports);
     }
 
     var eol = unitResult.content.endOfLine ?? defaultEol;
@@ -549,9 +545,7 @@ class EditBuilderImpl implements EditBuilder {
       var end = offset + _buffer.length;
       var length = end - start;
       if (length != 0) {
-        var position = Position(
-          fileEditBuilder.fileEdit.file,
-          start);
+        var position = Position(fileEditBuilder.fileEdit.file, start);
         fileEditBuilder._pendingPositions.add(
           _PendingPosition(
             position: position,
@@ -694,10 +688,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addLinkedPosition(SourceRange range, String groupName) {
     var group = changeBuilder.getLinkedEditGroup(groupName);
-    var position = Position(
-      fileEdit.file,
-      range.offset,
-    );
+    var position = Position(fileEdit.file, range.offset);
     group.addPosition(position, range.length);
     var revertData = changeBuilder._revertData;
     revertData._addedLinkedEditGroupPositions

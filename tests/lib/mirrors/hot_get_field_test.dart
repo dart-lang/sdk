@@ -5,6 +5,7 @@
 library test.hot_get_field;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class C {

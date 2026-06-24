@@ -5,6 +5,7 @@
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
+
 import "dart:typed_data";
 
 int32_add(a, b, c) => (a * c) + (b * c);

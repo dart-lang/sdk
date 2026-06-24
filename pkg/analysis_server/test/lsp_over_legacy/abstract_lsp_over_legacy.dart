@@ -292,9 +292,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       // Round-trip response via JSON because this doesn't happen automatically
       // when we're bypassing the streams (running in-process) and we want to
       // validate everything.
-      var lspNotificationJson =
-          jsonDecode(jsonEncode(params.lspNotification))
-              as Map<String, Object?>;
+      var lspNotificationJson = jsonDecode(
+        jsonEncode(params.lspNotification),
+      ) as Map<String, Object?>;
       var lspNotificationMessage = NotificationMessage.fromJson(
         lspNotificationJson,
       );
@@ -366,9 +366,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         // A client-provided response to an LSP reverse-request is always
         // a full LSP result payload as the "result". The legacy request should
         // always succeed and any errors handled as LSP error responses within.
-        result: LspHandleResult(
-          response,
-        ).toJson(clientUriConverter: uriConverter),
+        result: LspHandleResult(response)
+            .toJson(clientUriConverter: uriConverter),
       ),
     );
   }

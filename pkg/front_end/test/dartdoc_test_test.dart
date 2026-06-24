@@ -141,8 +141,7 @@ void _internal() {
     expect(tests.length, 2);
     List<impl.TestResult> expected = [
       new impl.TestResult(tests[0], impl.TestOutcome.CompilationError)
-        ..message =
-            """dartdoctest:tester:3:20: Error: This expression has type 'void' and can't be used.
+        ..message = """dartdoctest:tester:3:20: Error: This expression has type 'void' and can't be used.
   dartDocTest.test(_internal() + 2, 42);
                    ^
 dartdoctest:tester:3:32: Error: The operator '+' isn't defined for the type 'void'.
@@ -286,20 +285,17 @@ int _internal(int a, int b) {
     expect(tests.length, 4);
     List<impl.TestResult> expected = [
       new impl.TestResult(tests[0], impl.TestOutcome.CompilationError)
-        ..message =
-            """dartdoctest:tester:3:29: Error: Too many positional arguments: 2 allowed, but 3 found.
+        ..message = """dartdoctest:tester:3:29: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
   dartDocTest.test(_internal(21, 21, 21), 42);
                             ^""",
       new impl.TestResult(tests[1], impl.TestOutcome.CompilationError)
-        ..message =
-            """dartdoctest:tester:8:29: Error: Too many positional arguments: 2 allowed, but 3 found.
+        ..message = """dartdoctest:tester:8:29: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
   dartDocTest.test(_internal(21, 21, '''
                             ^""",
       new impl.TestResult(tests[2], impl.TestOutcome.CompilationError)
-        ..message =
-            """dartdoctest:tester:18:29: Error: Too few positional arguments: 2 required, 0 given.
+        ..message = """dartdoctest:tester:18:29: Error: Too few positional arguments: 2 required, 0 given.
   dartDocTest.test(_internal(), -1);
                             ^""",
     ];

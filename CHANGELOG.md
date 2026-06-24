@@ -129,95 +129,64 @@ To learn more about the feature, check out the
 
 [analyzer plugins]: https://dart.dev/tools/analyzer-plugins
 
-These changes are not language versioned and affect formatting all code:
+#### Formatter
 
-- Fix a bug where some collections or arguments might split unnecessarily.
+- Don't crash if an `analysis_options.yaml` file has an `include` that points to
+  a non-existent or unreadable file ([dart_style #1840][]).
+
+The following minor style bug fixes are not language versioned and apply to all
+formatted code:
+
+- Fix a bug in eager splitting optimization that in rare cases would lead to a
+  collection or argument list splitting unnecessarily ([dart_style #1809][]).
 
 - Don't add a blank line before a comment at the end of a compilation unit or
-  braced body.
+  braced body ([dart_style #1644][]).
 
 - Format extension type representation clauses the same way primary constructor
-  formal parameter lists are formatted:
-
-  ```dart
-  // Before:
-  extension type JSExportedDartFunction._(
-    JSExportedDartFunctionRepType _jsExportedDartFunction
-  )
-      implements JSFunction {}
-
-  // After:
-  extension type JSExportedDartFunction._(
-    JSExportedDartFunctionRepType _jsExportedDartFunction
-  ) implements JSFunction {}
-  ```
+  formal parameter lists are formatted.
 
 - When trailing commas are preserved, don't insert a newline before the `;` in
   an enum with members unless there actually is a trailing comma.
   (Fix by @Barbirosha.)
 
-These changes are [language versioned][] and only affect code at 3.13 or higher:
+The following changes only apply when formatting code at language version 3.13
+or higher:
 
-- Support block formatting parameter lists:
+- Fix a bug in an eager splitting optimization that would led the formatter to
+  prefer less desirable solutions ([dart_style #1847][]).
 
-  ```dart
-  // Before:
-  typedef DataViewBuilder<T> =
-      Widget Function(
-        BuildContext context,
-        PagingState<int, T> state,
-        NextPageCallback fetchNextPage,
-      );
+- Prefer to split call chains for single-element targets ([dart_style #1732][]).
 
-  // After:
-  typedef DataViewBuilder<T> = Widget Function(
-    BuildContext context,
-    PagingState<int, T> state,
-    NextPageCallback fetchNextPage,
-  );
-  ```
+- Allow block formatting parameter lists ([dart_style #1693][]).
 
-- Allow `as`, `is`, and `is!` expressions to be block formatted:
+- Allow `as`, `is`, and `is!` expressions to be block formatted
+  ([dart_style #1542][]).
 
-  ```dart
-  // Before:
-  variable =
-      function(
-            argument,
-            argument,
-            argument,
-          )
-          as Type;
+- Separate imports into sections ([dart_style #1120][]).
 
-  // After:
-  variable = function(
-    argument,
-    argument,
-    argument,
-  ) as Type;
-  ```
+- In if-case pieces, split the guard if the pattern block-splits
+  ([dart_style #1596][]).
+
+- When no solution fits the page width, prefer solutions where the overflowing
+  lines have trailing string literals or comments ([dart_style #1802][],
+  [dart_style #1803][], [dart_style #1837][]).
 
 - Force blank lines around a mixin or extension type declaration if it doesn't
-  have a `;` body:
+  have a `;` body.
 
-  ```dart
-  // Before:
-  int above;
-  extension type Inches(int x) {}
-  mixin M {}
-  int below;
-
-  // After:
-  int above;
-
-  extension type Inches(int x) {}
-
-  mixin M {}
-
-  int below;
-  ```
-
-[language versioned]: https://dart.dev/to/language-version
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+[dart_style #1809]: https://github.com/dart-lang/dart_style/issues/1809
+[dart_style #1644]: https://github.com/dart-lang/dart_style/issues/1644
+[dart_style #1847]: https://github.com/dart-lang/dart_style/issues/1847
+[dart_style #1732]: https://github.com/dart-lang/dart_style/issues/1732
+[dart_style #1693]: https://github.com/dart-lang/dart_style/issues/1693
+[dart_style #1542]: https://github.com/dart-lang/dart_style/issues/1542
+[dart_style #1120]: https://github.com/dart-lang/dart_style/issues/1120
+[dart_style #1596]: https://github.com/dart-lang/dart_style/issues/1596
+[dart_style #1802]: https://github.com/dart-lang/dart_style/issues/1802
+[dart_style #1803]: https://github.com/dart-lang/dart_style/issues/1803
+[dart_style #1837]: https://github.com/dart-lang/dart_style/issues/1837
 
 ### Dart Runtime
 

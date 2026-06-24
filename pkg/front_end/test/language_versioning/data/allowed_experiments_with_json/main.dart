@@ -6,6 +6,7 @@
 
 import 'foo/bin/bin_file.dart';
 import 'foo/test/test_file.dart';
+
 import 'package:collection/foo.dart';
 
 main() {

@@ -5,6 +5,7 @@
 library test.instance_members_with_override;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class S {

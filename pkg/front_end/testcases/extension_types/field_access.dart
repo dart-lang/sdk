@@ -31,7 +31,7 @@ extension type GenericInlineClass<T>(T it) {
 }
 
 extension type FunctionInlineClass<T>(T Function() it) {
-  void test(T Function()  t) {
+  void test(T Function() t) {
     var a1 = this.it;
     var a2 = it;
     var b1 = this.it<int>; // Error
@@ -63,7 +63,6 @@ extension type GenericFunctionInlineClass(T Function<T>() it) {
     var e2 = it<int>();
   }
 }
-
 
 extension type DynamicInlineClass(dynamic it) {
   void test() {
@@ -106,30 +105,30 @@ extension type ErroneousInlineClass(int a, String b) {
 }
 
 void test(
-    InlineClass inlineClass,
-    GenericInlineClass<String> genericInlineClass,
-    FunctionInlineClass<String> functionInlineClass,
-    GenericFunctionInlineClass genericFunctionInlineClass,
-    DynamicInlineClass dynamicInlineClass,
-    ErroneousInlineClass erroneousInlineClass,
-    PrivateInlineClass privateInlineClass) {
-
+  InlineClass inlineClass,
+  GenericInlineClass<String> genericInlineClass,
+  FunctionInlineClass<String> functionInlineClass,
+  GenericFunctionInlineClass genericFunctionInlineClass,
+  DynamicInlineClass dynamicInlineClass,
+  ErroneousInlineClass erroneousInlineClass,
+  PrivateInlineClass privateInlineClass,
+) {
   var a1 = inlineClass.it;
   var a2 = inlineClass.it<int>; // Error
   var a3 = inlineClass.it = 42; // Error,
-                                // should not resolve to extension method.
+  // should not resolve to extension method.
 
   var b1 = genericInlineClass.it;
   var b2 = genericInlineClass.it<int>; // Error
   var b3 = genericInlineClass.it = '42'; // Error, should not
-                                         // resolve to extension method.
+  // resolve to extension method.
 
   var c1 = functionInlineClass.it;
   var c2 = functionInlineClass.it<int>; // Error
   var c3 = functionInlineClass.it();
   var c4 = functionInlineClass.it.call();
   var c5 = functionInlineClass.it = () => '42'; // Error, should not
-                                                // resolve to extension method.
+  // resolve to extension method.
 
   var d1 = genericFunctionInlineClass.it;
   int Function() d2 = genericFunctionInlineClass.it;
@@ -137,22 +136,22 @@ void test(
   var d4 = genericFunctionInlineClass.it<int>();
   var d5 = genericFunctionInlineClass.it.call<int>();
   var d6 = genericFunctionInlineClass.it = <T>() => throw ''; // Error, should
-                                           // not resolve to extension method.
+  // not resolve to extension method.
 
   var e1 = dynamicInlineClass.it;
   var e2 = dynamicInlineClass.it<int>; // Error
   var e3 = dynamicInlineClass.it();
   var e4 = dynamicInlineClass.it = '42'; // Error, should not resolve
-                                         // to extension method.
+  // to extension method.
 
   var f1 = erroneousInlineClass.a;
   var f2 = erroneousInlineClass.a<int>; // Error
   var f3 = erroneousInlineClass.a = 42; // Error, should not resolve
-                                       // to extension method.
+  // to extension method.
   var g1 = erroneousInlineClass.b;
   var g2 = erroneousInlineClass.a<int>; // Error
   var g3 = erroneousInlineClass.b = '42'; // Error, should not resolve
-                                         // to extension method.
+  // to extension method.
 
   var h1 = privateInlineClass._it; // Error
   var h2 = privateInlineClass._it<int>; // Error

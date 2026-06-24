@@ -90,9 +90,8 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
   }
 
   void removeRange(int start, int end) {
-    new List<Element>.from(
-      _iterable.skip(start).take(end - start),
-    ).forEach((el) => el.remove());
+    new List<Element>.from(_iterable.skip(start).take(end - start))
+        .forEach((el) => el.remove());
   }
 
   void clear() {

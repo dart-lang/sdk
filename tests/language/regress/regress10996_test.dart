@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import "regress10996_lib.dart" as lib;
 
 foo(a, [b]) {

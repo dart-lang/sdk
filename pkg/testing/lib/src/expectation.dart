@@ -58,23 +58,24 @@ class Expectation {
 }
 
 class ExpectationSet {
-  static const ExpectationSet defaultExpectations =
-      ExpectationSet(<String, Expectation>{
-        "pass": Expectation.pass,
-        "crash": Expectation.crash,
-        "timeout": Expectation.timeout,
-        "fail": Expectation.fail,
-        "skip": Expectation.skip,
-        "missingcompiletimeerror": Expectation(
-          "MissingCompileTimeError",
-          ExpectationGroup.fail,
-        ),
-        "missingruntimeerror": Expectation(
-          "MissingRuntimeError",
-          ExpectationGroup.fail,
-        ),
-        "runtimeerror": Expectation("RuntimeError", ExpectationGroup.fail),
-      });
+  static const ExpectationSet defaultExpectations = ExpectationSet(
+    <String, Expectation>{
+      "pass": Expectation.pass,
+      "crash": Expectation.crash,
+      "timeout": Expectation.timeout,
+      "fail": Expectation.fail,
+      "skip": Expectation.skip,
+      "missingcompiletimeerror": Expectation(
+        "MissingCompileTimeError",
+        ExpectationGroup.fail,
+      ),
+      "missingruntimeerror": Expectation(
+        "MissingRuntimeError",
+        ExpectationGroup.fail,
+      ),
+      "runtimeerror": Expectation("RuntimeError", ExpectationGroup.fail),
+    },
+  );
 
   final Map<String, Expectation> internalMap;
 

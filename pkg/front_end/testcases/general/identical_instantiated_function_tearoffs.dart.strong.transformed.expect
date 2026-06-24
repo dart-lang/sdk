@@ -27,5 +27,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:19:13 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:20:5 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 29, effectively constant: 1

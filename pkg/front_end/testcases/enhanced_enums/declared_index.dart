@@ -71,7 +71,7 @@ enum E11 {
 }
 
 enum E12 {
-  index // Error.
+  index, // Error.
 }
 
 abstract class I13 {

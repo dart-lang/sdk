@@ -47,8 +47,9 @@ void test() {
 
     // error:INVALID_ASSIGNMENT
     Function2<int, String> l2 = (x) => x;
-    Function2<int, String> l3 =
-        (x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ x.substring(3);
+    Function2<int, String> l3 = (
+      x,
+    ) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ x.substring(3);
     Function2<String, String> l4 = (x) => x.substring(3);
   }
 }

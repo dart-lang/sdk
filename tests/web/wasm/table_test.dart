@@ -28,9 +28,8 @@ main() {
   funcrefTable[2.toWasmI32()] = WasmFunction.fromFunction(f3);
 
   // Reading and calling functions in untyped function table
-  WasmFunction<WasmVoid Function()>.fromFuncRef(
-    funcrefTable[0.toWasmI32()]!,
-  ).call();
+  WasmFunction<WasmVoid Function()>.fromFuncRef(funcrefTable[0.toWasmI32()]!)
+      .call();
   WasmFunction<WasmVoid Function(WasmI32)>.fromFuncRef(
     funcrefTable[1.toWasmI32()]!,
   ).call(4.toWasmI32());

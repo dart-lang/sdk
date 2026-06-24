@@ -10,5 +10,4 @@ extension Extension<T> on A<A<T>> {
   method2<A>(A a) {}
 }
 
-main() {
-}
+main() {}

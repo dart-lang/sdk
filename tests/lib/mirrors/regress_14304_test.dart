@@ -5,6 +5,7 @@
 // Regression test for Issue 14304.
 
 import "dart:mirrors";
+
 import "package:expect/expect.dart";
 
 class A<T> {

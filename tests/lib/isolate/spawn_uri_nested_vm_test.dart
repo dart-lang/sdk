@@ -13,15 +13,10 @@ main() {
   asyncTest(() async {
     final port = ReceivePort();
     final exitPort = ReceivePort();
-    Isolate.spawnUri(
-      Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'),
-      [],
-      [
-        [1, 2],
-        port.sendPort,
-      ],
-      onExit: exitPort.sendPort,
-    );
+    Isolate.spawnUri(Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'), [], [
+      [1, 2],
+      port.sendPort,
+    ], onExit: exitPort.sendPort);
     asyncStart();
     port.first.then(asyncSuccess);
     // ensure main isolate doesn't exit before child isolate exits

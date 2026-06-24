@@ -4,7 +4,7 @@
 
 class C {
   final (num, {String name}) r;
-  const C(int i, String s): r = (i + 1, name: s + "!");
+  const C(int i, String s) : r = (i + 1, name: s + "!");
 }
 
 main() {

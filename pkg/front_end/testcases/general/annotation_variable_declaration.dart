@@ -14,9 +14,13 @@ class Baz {
 
   factory Baz.bazFactory(@foo factoryFormal) => throw '';
 
-  fisk(@foo formal1, @Bar() formal2, @Bar.named(foo) formal3,
-      @foo @Bar.named(foo) formal4,
-      [@foo optional]) {
+  fisk(
+    @foo formal1,
+    @Bar() formal2,
+    @Bar.named(foo) formal3,
+    @foo @Bar.named(foo) formal4, [
+    @foo optional,
+  ]) {
     @foo
     var local1;
 

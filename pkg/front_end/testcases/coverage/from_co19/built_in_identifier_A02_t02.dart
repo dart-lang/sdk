@@ -5,6 +5,9 @@
 // Based on
 // tests/co19/src/Language/Expressions/Identifier_Reference/built_in_identifier_A02_t02.dart
 
+// Don't move the "Error" comments.
+// dart format off
+
 class C<as> // Error
 {}
 

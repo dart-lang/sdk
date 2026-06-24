@@ -6,7 +6,9 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
+
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+
 import 'utils.dart';
 
 main() {
@@ -46,9 +48,8 @@ main() {
           'with a value. Keycode and charcode should both have values for the '
           'keypress event.';
       KeyboardEventStream.onKeyDown(document.body!).listen(keydownHandlerTest);
-      KeyboardEventStream.onKeyPress(
-        document.body!,
-      ).listen(keypressHandlerTest);
+      KeyboardEventStream.onKeyPress(document.body!)
+          .listen(keypressHandlerTest);
       KeyboardEventStream.onKeyUp(document.body!).listen(keyupHandlerTest);
       KeyboardEventStream.onKeyUp(document.body!).listen(keyupHandlerTest2);
     });

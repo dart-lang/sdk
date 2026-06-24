@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class C<T> {
-}
+class C<T> {}
 
 extension ext<T> on C<T> {
   int field;
@@ -26,8 +25,7 @@ extension ext<T> on C<T> {
   }
 }
 
-main() {
-}
+main() {}
 
 errors() {
   C<int> c = new C<int>();

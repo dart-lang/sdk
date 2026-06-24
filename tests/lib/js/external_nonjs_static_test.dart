@@ -8,6 +8,7 @@
 library external_nonjs_static_test;
 
 import 'dart:html';
+
 import 'package:js/js.dart';
 
 external var topLevelField;

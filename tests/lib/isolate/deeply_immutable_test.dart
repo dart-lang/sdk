@@ -29,23 +29,36 @@ final class DeeplyImmutableFoo {
 testOnlyFinalCanBeCaptured() {
   List<String> list = <String>["Hello", "world"];
   Expect.throws(() {
-    final foo = DeeplyImmutableFoo(() { list.add("abc"); return list; } );
+    final foo = DeeplyImmutableFoo(() {
+      list.add("abc");
+      return list;
+    });
     print(foo.closure());
   }, (e) => e is ArgumentError && e.toString().contains("Only final not-late"));
 }
 
 testOnlyTriviallyImmutableCanBeCaptured() {
   final List<String> list = <String>["Hello", "world"];
-  Expect.throws(() {
-    final foo = DeeplyImmutableFoo(() { list.add("abc"); return list; } );
-    print(foo.closure());
-  }, (e) => e is ArgumentError &&
-            e.toString().contains("Only trivially-immutable values"));
+  Expect.throws(
+    () {
+      final foo = DeeplyImmutableFoo(() {
+        list.add("abc");
+        return list;
+      });
+      print(foo.closure());
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only trivially-immutable values"),
+  );
 }
 
 final List<String> globalList = <String>["Hello", "world"];
 testCaptureGlobal() {
-  final foo = DeeplyImmutableFoo(() { globalList.add("abc"); return globalList; });
+  final foo = DeeplyImmutableFoo(() {
+    globalList.add("abc");
+    return globalList;
+  });
   print(foo.closure());
 }
 
@@ -105,7 +118,7 @@ void testInstantiateDeeplyImmutable() {
       someClosure: () => 31,
     ),
     somePointer: Pointer.fromAddress(0xdeadbeef),
-    someClosure: () => 42
+    someClosure: () => 42,
   );
 }
 

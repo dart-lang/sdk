@@ -31,7 +31,7 @@ const _excludedEnvironmentVariables = [
   'no_proxy',
   'HTTP_PROXY',
   'HTTPS_PROXY',
-  'NO_PROXY'
+  'NO_PROXY',
 ];
 
 /// TestCase contains all the information needed to run a test and evaluate
@@ -59,8 +59,13 @@ class TestCase {
   Set<Expectation> expectedOutcomes;
   final TestFile testFile;
 
-  TestCase(this.displayName, this.commands, this.configuration,
-      this.expectedOutcomes, this.testFile) {
+  TestCase(
+    this.displayName,
+    this.commands,
+    this.configuration,
+    this.expectedOutcomes,
+    this.testFile,
+  ) {
     // A test case should do something.
     assert(commands.isNotEmpty);
   }
@@ -68,17 +73,21 @@ class TestCase {
   List<String> get experiments => getExperiments(testFile, configuration);
 
   static List<String> getExperiments(
-      TestFile testFile, TestConfiguration configuration) {
-    return [
-      ...testFile.experiments,
-      ...configuration.experiments,
-    ];
+    TestFile testFile,
+    TestConfiguration configuration,
+  ) {
+    return [...testFile.experiments, ...configuration.experiments];
   }
 
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
     return TestCase(
-        displayName, newCommands, configuration, expectedOutcomes, testFile);
+      displayName,
+      newCommands,
+      configuration,
+      expectedOutcomes,
+      testFile,
+    );
   }
 
   bool get hasRuntimeError => testFile.hasRuntimeError;
@@ -116,18 +125,22 @@ class TestCase {
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.isEmpty) {
-      throw Exception("CommandOutputs is empty, maybe no command was run? ("
-          "displayName: '$displayName', "
-          "configurationString: '$configurationString')");
+      throw Exception(
+        "CommandOutputs is empty, maybe no command was run? ("
+        "displayName: '$displayName', "
+        "configurationString: '$configurationString')",
+      );
     }
     return commandOutputs[commands[commandOutputs.length - 1]]!;
   }
 
   Command get lastCommandExecuted {
     if (commandOutputs.isEmpty) {
-      throw Exception("CommandOutputs is empty, maybe no command was run? ("
-          "displayName: '$displayName', "
-          "configurationString: '$configurationString')");
+      throw Exception(
+        "CommandOutputs is empty, maybe no command was run? ("
+        "displayName: '$displayName', "
+        "configurationString: '$configurationString')",
+      );
     }
     return commands[commandOutputs.length - 1];
   }
@@ -171,20 +184,19 @@ Future<List<int>> _getPidList(int parentId, List<String> diagnostics) async {
   late List<String> lines;
   var startLine = 0;
   if (io.Platform.isLinux || io.Platform.isMacOS) {
-    var result =
-        await io.Process.run("pgrep", ["-P", "${pids[0]}"], runInShell: true);
+    var result = await io.Process.run("pgrep", [
+      "-P",
+      "${pids[0]}",
+    ], runInShell: true);
     lines = (result.stdout as String).split('\n');
   } else if (io.Platform.isWindows) {
-    var result = await io.Process.run(
-        "wmic",
-        [
-          "process",
-          "where",
-          "(ParentProcessId=${pids[0]})",
-          "get",
-          "ProcessId"
-        ],
-        runInShell: true);
+    var result = await io.Process.run("wmic", [
+      "process",
+      "where",
+      "(ParentProcessId=${pids[0]})",
+      "get",
+      "ProcessId",
+    ], runInShell: true);
     lines = (result.stdout as String).split('\n');
     // Skip first line containing header "ProcessId".
     startLine = 1;
@@ -224,9 +236,12 @@ class RunningProcess {
   late Completer<CommandOutput> completer;
   final TestConfiguration configuration;
 
-  RunningProcess(this.command, this.timeout,
-      {required this.configuration, io.File? outputFile})
-      : _stdout = outputFile != null ? FileOutputLog(outputFile) : OutputLog();
+  RunningProcess(
+    this.command,
+    this.timeout, {
+    required this.configuration,
+    io.File? outputFile,
+  }) : _stdout = outputFile != null ? FileOutputLog(outputFile) : OutputLog();
 
   Future<CommandOutput> run() {
     completer = Completer();
@@ -242,112 +257,125 @@ class RunningProcess {
     } else {
       var processEnvironment = _createProcessEnvironment();
       var args = [...command.nonBatchArguments, ...command.arguments];
-      var processFuture = io.Process.start(command.executable, args,
-          environment: processEnvironment,
-          workingDirectory: command.workingDirectory);
-      processFuture.then<dynamic>((io.Process process) {
-        var stdoutFuture = process.stdout.pipe(_stdout);
-        var stderrFuture = process.stderr.pipe(_stderr);
-        pid = process.pid;
+      var processFuture = io.Process.start(
+        command.executable,
+        args,
+        environment: processEnvironment,
+        workingDirectory: command.workingDirectory,
+      );
+      processFuture
+          .then<dynamic>((io.Process process) {
+            var stdoutFuture = process.stdout.pipe(_stdout);
+            var stderrFuture = process.stderr.pipe(_stderr);
+            pid = process.pid;
 
-        // Close stdin so that tests that try to block on input will fail.
-        process.stdin.close();
-        FutureOr<int> timeoutHandler() async {
-          timedOut = true;
-          String? executable;
-          if (io.Platform.isLinux) {
-            executable = 'eu-stack';
-          } else if (io.Platform.isMacOS) {
-            // Try to print stack traces of the timed out process.
-            // `sample` is a sampling profiler but we ask it sample for 1
-            // second with a 4 second delay between samples so that we only
-            // sample the threads once.
-            executable = '/usr/bin/sample';
-          } else if (io.Platform.isWindows) {
-            var isX64 = command.executable.contains("X64") ||
-                command.executable.contains("SIMARM64") ||
-                command.executable.contains("SIMARM64C") ||
-                command.executable.contains("SIMRISCV64");
-            var isARM64 = !isX64 && command.executable.contains("ARM64");
-            if (configuration.windowsSdkPath != null) {
-              executable = [
-                configuration.windowsSdkPath!,
-                'Debuggers',
-                if (isX64) 'x64' else if (isARM64) 'arm64' else 'x86',
-                'cdb.exe',
-              ].join('\\');
-              diagnostics.add("Using $executable to print stack traces");
-            } else {
-              diagnostics.add("win_sdk_path not found");
-            }
-          } else {
-            diagnostics.add("Capturing stack traces on"
-                "${io.Platform.operatingSystem} not supported");
-          }
-          if (executable != null) {
-            var pids = await _getPidList(process.pid, diagnostics);
-            diagnostics.add("Process list including children: $pids");
-            for (var pid in pids) {
-              late List<String> arguments;
+            // Close stdin so that tests that try to block on input will fail.
+            process.stdin.close();
+            FutureOr<int> timeoutHandler() async {
+              timedOut = true;
+              String? executable;
               if (io.Platform.isLinux) {
-                arguments = ['-p $pid'];
+                executable = 'eu-stack';
               } else if (io.Platform.isMacOS) {
-                arguments = ['$pid', '1', '4000', '-mayDie'];
+                // Try to print stack traces of the timed out process.
+                // `sample` is a sampling profiler but we ask it sample for 1
+                // second with a 4 second delay between samples so that we only
+                // sample the threads once.
+                executable = '/usr/bin/sample';
               } else if (io.Platform.isWindows) {
-                arguments = ['-p', '$pid', '-c', '!uniqstack;qd'];
+                var isX64 =
+                    command.executable.contains("X64") ||
+                    command.executable.contains("SIMARM64") ||
+                    command.executable.contains("SIMARM64C") ||
+                    command.executable.contains("SIMRISCV64");
+                var isARM64 = !isX64 && command.executable.contains("ARM64");
+                if (configuration.windowsSdkPath != null) {
+                  executable = [
+                    configuration.windowsSdkPath!,
+                    'Debuggers',
+                    if (isX64) 'x64' else if (isARM64) 'arm64' else 'x86',
+                    'cdb.exe',
+                  ].join('\\');
+                  diagnostics.add("Using $executable to print stack traces");
+                } else {
+                  diagnostics.add("win_sdk_path not found");
+                }
               } else {
-                assert(false);
+                diagnostics.add(
+                  "Capturing stack traces on"
+                  "${io.Platform.operatingSystem} not supported",
+                );
               }
-              diagnostics.add("Trying to capture stack trace for pid $pid");
-              try {
-                var result = await io.Process.run(executable, arguments);
-                diagnostics.addAll((result.stdout as String).split('\n'));
-                diagnostics.addAll((result.stderr as String).split('\n'));
-              } catch (error) {
-                diagnostics.add("Unable to capture stack traces: $error");
+              if (executable != null) {
+                var pids = await _getPidList(process.pid, diagnostics);
+                diagnostics.add("Process list including children: $pids");
+                for (var pid in pids) {
+                  late List<String> arguments;
+                  if (io.Platform.isLinux) {
+                    arguments = ['-p $pid'];
+                  } else if (io.Platform.isMacOS) {
+                    arguments = ['$pid', '1', '4000', '-mayDie'];
+                  } else if (io.Platform.isWindows) {
+                    arguments = ['-p', '$pid', '-c', '!uniqstack;qd'];
+                  } else {
+                    assert(false);
+                  }
+                  diagnostics.add("Trying to capture stack trace for pid $pid");
+                  try {
+                    var result = await io.Process.run(executable, arguments);
+                    diagnostics.addAll((result.stdout as String).split('\n'));
+                    diagnostics.addAll((result.stderr as String).split('\n'));
+                  } catch (error) {
+                    diagnostics.add("Unable to capture stack traces: $error");
+                  }
+                }
               }
+              if (!process.kill()) {
+                diagnostics.add("Unable to kill ${process.pid}");
+              }
+              return 1;
             }
-          }
-          if (!process.kill()) {
-            diagnostics.add("Unable to kill ${process.pid}");
-          }
-          return 1;
-        }
 
-        // Wait for the process to finish or timeout.
-        process.exitCode
-            .timeout(Duration(seconds: timeout), onTimeout: timeoutHandler)
-            .then((exitCode) {
-          // This timeout is used to close stdio to the subprocess once we got
-          // the exitCode. Sometimes descendants of the subprocess keep stdio
-          // handles alive even though the direct subprocess is dead.
-          Future.wait([stdoutFuture, stderrFuture]).timeout(maxStdioDelay,
-              onTimeout: () async {
-            DebugLogger.warning(
-                "$maxStdioDelayPassedMessage (command: $command)");
-            await _stdout.cancel();
-            await _stderr.cancel();
-            return [];
-          }).then((_) {
-            if (_stdout is FileOutputLog) {
-              // Prevent logging data that has already been written to a file
-              // and is unlikely to add value in the logs because the command
-              // succeeded.
-              _stdout.clear();
-            }
-            _commandComplete(exitCode);
+            // Wait for the process to finish or timeout.
+            process.exitCode
+                .timeout(Duration(seconds: timeout), onTimeout: timeoutHandler)
+                .then((exitCode) {
+                  // This timeout is used to close stdio to the subprocess once we got
+                  // the exitCode. Sometimes descendants of the subprocess keep stdio
+                  // handles alive even though the direct subprocess is dead.
+                  Future.wait([stdoutFuture, stderrFuture])
+                      .timeout(
+                        maxStdioDelay,
+                        onTimeout: () async {
+                          DebugLogger.warning(
+                            "$maxStdioDelayPassedMessage (command: $command)",
+                          );
+                          await _stdout.cancel();
+                          await _stderr.cancel();
+                          return [];
+                        },
+                      )
+                      .then((_) {
+                        if (_stdout is FileOutputLog) {
+                          // Prevent logging data that has already been written to a file
+                          // and is unlikely to add value in the logs because the command
+                          // succeeded.
+                          _stdout.clear();
+                        }
+                        _commandComplete(exitCode);
+                      });
+                });
+          })
+          .catchError((e) {
+            // TODO(floitsch): should we try to report the stacktrace?
+            print("Process error:");
+            print("  Command: $command");
+            print("  Executable: ${command.executable}");
+            print("  Working directory: ${command.workingDirectory}");
+            print("  Error: $e");
+            _commandComplete(-1);
+            return true;
           });
-        });
-      }).catchError((e) {
-        // TODO(floitsch): should we try to report the stacktrace?
-        print("Process error:");
-        print("  Command: $command");
-        print("  Executable: ${command.executable}");
-        print("  Working directory: ${command.workingDirectory}");
-        print("  Error: $e");
-        _commandComplete(-1);
-        return true;
-      });
     }
   }
 
@@ -368,13 +396,14 @@ class RunningProcess {
     }
 
     var commandOutput = command.createOutput(
-        exitCode,
-        timedOut,
-        stdoutData,
-        stderrData,
-        DateTime.now().difference(startTime),
-        compilationSkipped,
-        pid ?? 0);
+      exitCode,
+      timedOut,
+      stdoutData,
+      stderrData,
+      DateTime.now().difference(startTime),
+      compilationSkipped,
+      pid ?? 0,
+    );
     commandOutput.diagnostics.addAll(diagnostics);
     return commandOutput;
   }

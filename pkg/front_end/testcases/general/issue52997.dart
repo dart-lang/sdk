@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void main() { foo<num>(false, 0, 0); }
+void main() {
+  foo<num>(false, 0, 0);
+}
 
 void foo<X>(bool test, X a, X b) {
   if (a is! int) return;
@@ -10,7 +12,7 @@ void foo<X>(bool test, X a, X b) {
     // UP(T, T) = T
     var c = (test ? a : a)
       ..toRadixString(2) // Allows int method.
-      ..st<E<X>>()  // Erases to X.
+      ..st<E<X>>() // Erases to X.
       ;
     {
       X v1 = c; // Assignable to X.
@@ -44,6 +46,7 @@ void foo<X>(bool test, X a, X b) {
 }
 
 extension Ext<T> on T {
-  void st<S extends E<T>>(){}
+  void st<S extends E<T>>() {}
 }
+
 typedef E<T> = T Function(T); // Invariant.

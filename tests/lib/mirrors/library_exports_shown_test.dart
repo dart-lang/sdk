@@ -5,7 +5,9 @@
 library test.library_exports_shown;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
+
 import 'stringify.dart';
 
 import 'library_exports_shown.dart';

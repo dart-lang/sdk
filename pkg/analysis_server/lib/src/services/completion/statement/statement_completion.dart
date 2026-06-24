@@ -918,12 +918,10 @@ class StatementCompletionProcessor {
       return false;
     }
     var argList =
-        _selectedNode(
-          at: selectionOffset,
-        )?.thisOrAncestorOfType<ArgumentList>() ??
-        _selectedNode(
-          at: parenError.offset,
-        )?.thisOrAncestorOfType<ArgumentList>();
+        _selectedNode(at: selectionOffset)
+            ?.thisOrAncestorOfType<ArgumentList>() ??
+        _selectedNode(at: parenError.offset)
+            ?.thisOrAncestorOfType<ArgumentList>();
     if (argList == null ||
         argList.thisOrAncestorMatching((n) => n == node) == null) {
       return false;

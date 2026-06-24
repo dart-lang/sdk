@@ -5,6 +5,7 @@
 // Test that deferred loader analyzer doesn't trip over unused classes.
 
 import "package:expect/expect.dart";
+
 import 'dart:async';
 
 import 'deferred_class_library.dart' deferred as lib;

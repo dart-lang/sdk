@@ -51,7 +51,7 @@ library;
 // const List<String> barWithCustomIterableSpread1 = [
 //                                                   ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:28:12: Context: Only lists and sets can be used in spreads in constant lists and sets.
-//   ...const CustomIterable()
+//   ...const CustomIterable(),
 //            ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:26:20: Context: While analyzing:
 // const List<String> barWithCustomIterableSpread1 = [
@@ -91,7 +91,7 @@ library;
 // const Set<String> quxWithCustomIterableSpread1 = {
 //                                                  ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:45:12: Context: Only lists and sets can be used in spreads in constant lists and sets.
-//   ...const CustomIterable()
+//   ...const CustomIterable(),
 //            ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:43:19: Context: While analyzing:
 // const Set<String> quxWithCustomIterableSpread1 = {
@@ -163,7 +163,7 @@ library;
 //                                                        ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:66:9: Context: The key 'WithEquals {i: 42}' does not have a primitive equality.
 //  - 'WithEquals' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
-//   const WithEquals(42): 42
+//   const WithEquals(42): 42,
 //         ^
 // pkg/front_end/testcases/general/constants/const_collections.dart:65:25: Context: While analyzing:
 // const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {

@@ -32,22 +32,19 @@ extension type JSFunctionType(interceptors.JavaScriptFunction _jsFunctionType)
     implements JSObjectType {}
 
 extension type JSExportedDartFunctionType(
-  interceptors.JavaScriptFunction _jsExportedDartFunctionType
-)
-    implements JSFunctionType {}
+  interceptors.JavaScriptFunction _jsExportedDartFunctionType,
+) implements JSFunctionType {}
 
 extension type JSArrayType(interceptors.JSArray<Object?> _jsArrayType)
     implements JSObjectType {}
 
 extension type JSBoxedDartObjectType(
-  interceptors.JSObject _jsBoxedDartObjectType
-)
-    implements JSObjectType {}
+  interceptors.JSObject _jsBoxedDartObjectType,
+) implements JSObjectType {}
 
 extension type JSArrayBufferType(
-  typed_data.NativeArrayBuffer _jsArrayBufferType
-)
-    implements JSObjectType {}
+  typed_data.NativeArrayBuffer _jsArrayBufferType,
+) implements JSObjectType {}
 
 extension type JSDataViewType(typed_data.NativeByteData _jsDataViewType)
     implements JSObjectType {}
@@ -62,9 +59,8 @@ extension type JSUint8ArrayType(typed_data.NativeUint8List _jsUint8ArrayType)
     implements JSTypedArrayType {}
 
 extension type JSUint8ClampedArrayType(
-  typed_data.NativeUint8ClampedList _jsUint8ClampedArrayType
-)
-    implements JSTypedArrayType {}
+  typed_data.NativeUint8ClampedList _jsUint8ClampedArrayType,
+) implements JSTypedArrayType {}
 
 extension type JSInt16ArrayType(typed_data.NativeInt16List _jsInt16ArrayType)
     implements JSTypedArrayType {}
@@ -79,14 +75,12 @@ extension type JSUint32ArrayType(typed_data.NativeUint32List _jsUint32ArrayType)
     implements JSTypedArrayType {}
 
 extension type JSFloat32ArrayType(
-  typed_data.NativeFloat32List _jsFloat32ArrayType
-)
-    implements JSTypedArrayType {}
+  typed_data.NativeFloat32List _jsFloat32ArrayType,
+) implements JSTypedArrayType {}
 
 extension type JSFloat64ArrayType(
-  typed_data.NativeFloat64List _jsFloat64ArrayType
-)
-    implements JSTypedArrayType {}
+  typed_data.NativeFloat64List _jsFloat64ArrayType,
+) implements JSTypedArrayType {}
 
 extension type JSNumberType(double _jsNumberType) implements JSAnyType {}
 

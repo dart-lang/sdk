@@ -15,27 +15,21 @@ Iterable<dynamic> test3(dynamic x, dynamic another) {
 }
 
 main() {
-  expectSetEquals(
-    test1([0, 2], {1, 2, 3}) as Set,
-    {1, 2, 3},
-  );
-  expectSetEquals(
-    test2([0, 0], {1, 2, 3}) as Set,
-    {},
-  );
+  expectSetEquals(test1([0, 2], {1, 2, 3}) as Set, {1, 2, 3});
+  expectSetEquals(test2([0, 0], {1, 2, 3}) as Set, {});
   expectThrows(() => test1([], {}));
 
-  expectSetEquals(
-    test2("foo", {1, 2, 3}) as Set,
-    {1, 2, 3},
-  );
-  expectSetEquals(
-    test2(false, {1, 2, 3}) as Set,
-    {},
-  );
+  expectSetEquals(test2("foo", {1, 2, 3}) as Set, {1, 2, 3});
+  expectSetEquals(test2(false, {1, 2, 3}) as Set, {});
 
   expectSetEquals(
-    test3([[0], [1]], {1, 2, 3}) as Set,
+    test3(
+      [
+        [0],
+        [1],
+      ],
+      {1, 2, 3},
+    ) as Set,
     {1, 2, 3},
   );
   expectThrows(() => test3([null], {}));

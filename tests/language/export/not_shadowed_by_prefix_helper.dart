@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export "not_shadowed_by_prefix_helper2.dart";
+
 import "dart:core" as f;

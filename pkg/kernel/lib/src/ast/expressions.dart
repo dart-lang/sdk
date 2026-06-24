@@ -5447,11 +5447,9 @@ class TypedefTearOff extends Expression {
     FreshStructuralParameters freshTypeParameters =
         getFreshStructuralParameters(structuralParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
-    type =
-        freshTypeParameters.substitute(
-              FunctionTypeInstantiator.instantiate(type, typeArguments),
-            )
-            as FunctionType;
+    type = freshTypeParameters.substitute(
+      FunctionTypeInstantiator.instantiate(type, typeArguments),
+    ) as FunctionType;
     return new FunctionType(
       type.positionalParameters,
       type.returnType,

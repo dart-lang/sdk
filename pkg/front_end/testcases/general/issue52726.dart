@@ -10,4 +10,3 @@ class WeakMap<K extends Object, V> {
     Object o = first.first; // Error.
   }
 }
-

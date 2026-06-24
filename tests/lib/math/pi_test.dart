@@ -6,6 +6,7 @@
 // simulation.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 var known_bad_seeds = const [50051, 55597, 59208];

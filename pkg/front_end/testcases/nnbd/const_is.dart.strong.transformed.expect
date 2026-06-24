@@ -105,14 +105,14 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:157:12 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:159:12 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:161:12 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:163:12 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:165:12 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:168:13 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:170:13 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:172:13 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:174:13 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:176:13 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:186:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:188:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:190:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:192:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:194:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:197:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:199:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:201:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:203:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:205:13 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 56, effectively constant: 10

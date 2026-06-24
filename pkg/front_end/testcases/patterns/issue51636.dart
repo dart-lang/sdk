@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 int f<A>() => switch (unknownName) {
-      <A>[] => 1,
-      <A>[var x, ...var xs] => 2,
-    };
+  <A>[] => 1,
+  <A>[var x, ...var xs] => 2,
+};
 
 void main() {}

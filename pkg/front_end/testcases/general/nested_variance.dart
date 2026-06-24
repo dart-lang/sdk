@@ -48,14 +48,20 @@ typedef FcovCyclicCoBound<X extends Function(X)> = X Function();
 typedef FconCyclicCoBound<X extends Function(X)> = Function(X);
 typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
 
-class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>, Y extends Function(Y)> {
-}
+class AcovCyclicCoBound<
+  X extends FcovCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
-class AconCyclicCoBound<X extends FconCyclicCoBound<Y>, Y extends Function(Y)> {
-}
+class AconCyclicCoBound<
+  X extends FconCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
-class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>, Y extends Function(Y)> {
-}
+class AinvCyclicCoBound<
+  X extends FinvCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
 class B<X> {}
 
@@ -150,7 +156,7 @@ void testTypeAliasAsTypeArgument(
   // regular-bounded.
   var fsource10 = toF(source10);
   F<AcovCyclicCoBound<FcovCyclicCoBound<Function(Never)>, Function(Never)>>
-      target10 = fsource10;
+  target10 = fsource10;
 
   // I2b: Use bounds (FconCyclicCoBound<Y>, Function(Y)), then break cycle {Y}
   // by replacing contravariant occurrence of `Y` in
@@ -227,7 +233,7 @@ void testNested(
 
   var fsource10 = toF(source10);
   F<B<AcovCyclicCoBound<FcovCyclicCoBound<Function(Never)>, Function(Never)>>>
-      target10 = fsource10;
+  target10 = fsource10;
 
   var fsource11 = toF(source11);
   F<B<AconCyclicCoBound<FconCyclicCoBound<Never>, Function(Never)>>> target11 =

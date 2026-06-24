@@ -5,6 +5,7 @@
 library utf8_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
@@ -28,15 +29,13 @@ test(List<int> bytes(List<int> input)) {
   );
   Expect.equals(
     "a",
-    new Utf8Codec(
-      allowMalformed: true,
-    ).decoder.convert(bytes([0xEF, 0xBB, 0xBF, 0x61])),
+    new Utf8Codec(allowMalformed: true).decoder
+        .convert(bytes([0xEF, 0xBB, 0xBF, 0x61])),
   );
   Expect.equals(
     "a",
-    new Utf8Decoder(
-      allowMalformed: true,
-    ).convert(bytes([0xEF, 0xBB, 0xBF, 0x61])),
+    new Utf8Decoder(allowMalformed: true)
+        .convert(bytes([0xEF, 0xBB, 0xBF, 0x61])),
   );
   Expect.equals("", utf8.decode(bytes([0xEF, 0xBB, 0xBF])));
   Expect.equals("", utf8.decoder.convert(bytes([0xEF, 0xBB, 0xBF])));
@@ -51,9 +50,8 @@ test(List<int> bytes(List<int> input)) {
   );
   Expect.equals(
     "",
-    new Utf8Codec(
-      allowMalformed: true,
-    ).decoder.convert(bytes([0xEF, 0xBB, 0xBF])),
+    new Utf8Codec(allowMalformed: true).decoder
+        .convert(bytes([0xEF, 0xBB, 0xBF])),
   );
   Expect.equals(
     "",
@@ -78,15 +76,13 @@ test(List<int> bytes(List<int> input)) {
   );
   Expect.equals(
     "a\u{FEFF}",
-    new Utf8Codec(
-      allowMalformed: true,
-    ).decoder.convert(bytes([0x61, 0xEF, 0xBB, 0xBF])),
+    new Utf8Codec(allowMalformed: true).decoder
+        .convert(bytes([0x61, 0xEF, 0xBB, 0xBF])),
   );
   Expect.equals(
     "a\u{FEFF}",
-    new Utf8Decoder(
-      allowMalformed: true,
-    ).convert(bytes([0x61, 0xEF, 0xBB, 0xBF])),
+    new Utf8Decoder(allowMalformed: true)
+        .convert(bytes([0x61, 0xEF, 0xBB, 0xBF])),
   );
 }
 

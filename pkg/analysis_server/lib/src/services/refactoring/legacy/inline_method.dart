@@ -531,7 +531,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
               functionDeclaration: FunctionDeclaration(
                 functionExpression: FunctionExpression(:var body),
               ),
-            ) when body is BlockFunctionBody) {
+            )
+        when body is BlockFunctionBody) {
       scope = ScopeResolverVisitor.getNodeNameScope(body.block);
     }
     // Remember parameters and variables occurrences.
@@ -1267,9 +1268,8 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     if (methodElement case MethodElement(:InstanceElement enclosingElement)) {
       instanceElement = enclosingElement;
     }
-    if (node.typeOrThrow case TypeParameterType(
-      :var element,
-    ) when bodyRange.covers(nodeRange)) {
+    if (node.typeOrThrow case TypeParameterType(:var element)
+        when bodyRange.covers(nodeRange)) {
       if (methodElement.typeParameters.contains(element)) {
         result.addTypeParameter(element, nodeRange);
       } else if (instanceElement?.typeParameters.contains(element) ?? false) {
@@ -1345,10 +1345,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
         // No block scope so all variables will be self-contained
         return;
       }
-      if (scope!.lookup(element.displayName) case ScopeLookupResult(
-        :var getter,
-        :var setter,
-      ) when getter == null && setter == null) {
+      if (scope!.lookup(element.displayName)
+          case ScopeLookupResult(:var getter, :var setter)
+          when getter == null && setter == null) {
         // No variable with the same name at the block scope
         return;
       }

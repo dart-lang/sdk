@@ -228,9 +228,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // If not supplied.
     await handleSuccessfulRequest(
-      ServerSetClientCapabilitiesParams(
-        [],
-      ).toRequest('-1', clientUriConverter: server.uriConverter),
+      ServerSetClientCapabilitiesParams([])
+          .toRequest('-1', clientUriConverter: server.uriConverter),
     );
     expect(server.clientCapabilities.supportsUris, isNull);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
@@ -363,9 +362,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_setSubscriptions_success() async {
     expect(server.serverServices, isEmpty);
     // send request
-    var request = ServerSetSubscriptionsParams([
-      ServerService.STATUS,
-    ]).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ServerSetSubscriptionsParams([ServerService.STATUS])
+        .toRequest('0', clientUriConverter: server.uriConverter);
     await handleSuccessfulRequest(request);
     // set of services has been changed
     expect(server.serverServices, contains(ServerService.STATUS));
@@ -386,9 +384,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     serverChannel.simulateResponseFromClient(
-      ServerShowMessageRequestResult(
-        action: 'a',
-      ).toResponse(request.id, clientUriConverter: server.uriConverter),
+      ServerShowMessageRequestResult(action: 'a')
+          .toResponse(request.id, clientUriConverter: server.uriConverter),
     );
     var response = await responseFuture;
     expect(response, 'a');

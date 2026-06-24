@@ -8,15 +8,17 @@ FutureOr topLevelField1;
 FutureOr<int?> topLevelField2;
 FutureOr<FutureOr> topLevelField3;
 
-void toplevelMethod1(
-    [FutureOr parameter1,
-    FutureOr<int?> parameter2,
-    FutureOr<FutureOr> parameter3]) {}
+void toplevelMethod1([
+  FutureOr parameter1,
+  FutureOr<int?> parameter2,
+  FutureOr<FutureOr> parameter3,
+]) {}
 
-void toplevelMethod2(
-    {FutureOr parameter1,
-    FutureOr<int?> parameter2,
-    FutureOr<FutureOr> parameter3}) {}
+void toplevelMethod2({
+  FutureOr parameter1,
+  FutureOr<int?> parameter2,
+  FutureOr<FutureOr> parameter3,
+}) {}
 
 class Class1 {
   FutureOr instanceField1;
@@ -27,25 +29,29 @@ class Class1 {
   static FutureOr<int?> staticField2;
   static FutureOr<FutureOr> staticField3;
 
-  void instanceMethod1(
-      [FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3]) {}
+  void instanceMethod1([
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  ]) {}
 
-  void instanceMethod2(
-      {FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3}) {}
+  void instanceMethod2({
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  }) {}
 
-  static void staticMethod1(
-      [FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3]) {}
+  static void staticMethod1([
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  ]) {}
 
-  static void staticMethod2(
-      {FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3}) {}
+  static void staticMethod2({
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  }) {}
 }
 
 class Class2 {
@@ -54,7 +60,10 @@ class Class2 {
   FutureOr<FutureOr> instanceField3;
 
   Class2.constructor1(
-      this.instanceField1, this.instanceField2, this.instanceField3);
+    this.instanceField1,
+    this.instanceField2,
+    this.instanceField3,
+  );
 
   Class2.constructor2();
 }
@@ -68,13 +77,15 @@ main() {
   print(local2);
   print(local3);
 
-  void localFunction1(
-      [FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3]) {}
+  void localFunction1([
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  ]) {}
 
-  void localFunction2(
-      {FutureOr parameter1,
-      FutureOr<int?> parameter2,
-      FutureOr<FutureOr> parameter3}) {}
+  void localFunction2({
+    FutureOr parameter1,
+    FutureOr<int?> parameter2,
+    FutureOr<FutureOr> parameter3,
+  }) {}
 }

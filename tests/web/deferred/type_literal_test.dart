@@ -10,6 +10,7 @@
 // happening before the bug was introduced).
 
 import 'type_literal_lib.dart' deferred as a;
+
 import 'package:expect/expect.dart';
 
 main() async {

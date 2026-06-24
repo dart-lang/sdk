@@ -97,11 +97,10 @@ class RemoteVm {
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    final isolateStartEventFuture = getEventStream('Isolate').firstWhere((
-      event,
-    ) {
-      return event['kind'] == 'IsolateStart';
-    });
+    final isolateStartEventFuture = getEventStream('Isolate')
+        .firstWhere((event) {
+          return event['kind'] == 'IsolateStart';
+        });
 
     var vm = await rpc.sendRequest('getVM', {});
     var isolates = vm['isolates'];

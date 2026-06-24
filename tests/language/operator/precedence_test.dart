@@ -84,7 +84,7 @@ void testTilde() {
   Expect.equals(~x++ + 7, (~4) + 7);
   Expect.equals(x, 5);
 
-  Expect.equals(~ --x + 7, (~4) + 7);
+  Expect.equals(~--x + 7, (~4) + 7);
   Expect.equals(x, 4);
   Expect.equals(~x-- + 7, (~4) + 7);
   Expect.equals(x, 3);

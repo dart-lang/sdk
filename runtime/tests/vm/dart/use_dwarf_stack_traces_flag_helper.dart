@@ -115,23 +115,15 @@ abstract class MultiArchDwarfState<T> extends DwarfState<T> {
   Future<void> makeTests(Trace nonDwarfTrace) async {
     await super.makeTests(nonDwarfTrace);
 
-    test(
-      'Testing $description single-architecture universal binary',
-      () async {
-        expect(singleArch, isNotNull);
-        await check(nonDwarfTrace, singleArch!);
-      },
-      skip: skipUniversalBinary,
-    );
+    test('Testing $description single-architecture universal binary', () async {
+      expect(singleArch, isNotNull);
+      await check(nonDwarfTrace, singleArch!);
+    }, skip: skipUniversalBinary);
 
-    test(
-      'Testing $description multi-architecture universal binary',
-      () async {
-        expect(multiArch, isNotNull);
-        await check(nonDwarfTrace, multiArch!);
-      },
-      skip: skipUniversalBinary,
-    );
+    test('Testing $description multi-architecture universal binary', () async {
+      expect(multiArch, isNotNull);
+      await check(nonDwarfTrace, multiArch!);
+    }, skip: skipUniversalBinary);
   }
 }
 

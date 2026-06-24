@@ -412,8 +412,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     analytics.assertEvents([
       _ExpectedEvent.session(
         eventData: {
-          'parameters':
-              'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
+          'parameters': 'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
         },
       ),
       _ExpectedEvent.contextStructure(),

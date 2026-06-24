@@ -29,28 +29,34 @@ main() {
   <num>{?contextType(null)..expectStaticType<Exactly<num?>>(), 0};
 
   <num, String>{
-    ?contextType(null)..expectStaticType<Exactly<num?>>():
-    contextType("")..expectStaticType<Exactly<String>>()};
+    ?contextType(null)..expectStaticType<Exactly<num?>>(): contextType("")
+      ..expectStaticType<Exactly<String>>(),
+  };
   <num, String>{
     0: "",
-    ?contextType(null)..expectStaticType<Exactly<num?>>():
-    contextType("")..expectStaticType<Exactly<String>>()};
+    ?contextType(null)..expectStaticType<Exactly<num?>>(): contextType("")
+      ..expectStaticType<Exactly<String>>(),
+  };
   <num, String>{
-    ?contextType(null)..expectStaticType<Exactly<num?>>():
-    contextType("")..expectStaticType<Exactly<String>>(),
-    0: ""};
+    ?contextType(null)..expectStaticType<Exactly<num?>>(): contextType("")
+      ..expectStaticType<Exactly<String>>(),
+    0: "",
+  };
 
   <bool, num>{
-    contextType(false)..expectStaticType<Exactly<bool>>():
-    ?contextType(null)..expectStaticType<Exactly<num?>>()};
+    contextType(false)..expectStaticType<Exactly<bool>>(): ?contextType(null)
+      ..expectStaticType<Exactly<num?>>(),
+  };
   <bool, num>{
     false: 0,
-    contextType(false)..expectStaticType<Exactly<bool>>():
-    ?contextType(null)..expectStaticType<Exactly<num?>>()};
+    contextType(false)..expectStaticType<Exactly<bool>>(): ?contextType(null)
+      ..expectStaticType<Exactly<num?>>(),
+  };
   <bool, num>{
-    contextType(false)..expectStaticType<Exactly<bool>>():
-    ?contextType(null)..expectStaticType<Exactly<num?>>(),
-    false: 0};
+    contextType(false)..expectStaticType<Exactly<bool>>(): ?contextType(null)
+      ..expectStaticType<Exactly<num?>>(),
+    false: 0,
+  };
 
   // 2. Upwards inference.
 
@@ -62,8 +68,12 @@ main() {
   acceptsMap({?foo(): 0, "": 0}..expectStaticType<Exactly<Map<String, int>>>());
 
   acceptsMap({false: ?foo()}..expectStaticType<Exactly<Map<bool, String>>>());
-  acceptsMap({true: "", false: ?foo()}..expectStaticType<Exactly<Map<bool, String>>>());
-  acceptsMap({false: ?foo(), true: ""}..expectStaticType<Exactly<Map<bool, String>>>());
+  acceptsMap(
+    {true: "", false: ?foo()}..expectStaticType<Exactly<Map<bool, String>>>(),
+  );
+  acceptsMap(
+    {false: ?foo(), true: ""}..expectStaticType<Exactly<Map<bool, String>>>(),
+  );
 
   [?foo()]..expectStaticType<Exactly<List<String>>>();
   ["", ?foo()]..expectStaticType<Exactly<List<String>>>();

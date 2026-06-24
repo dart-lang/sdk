@@ -6,6 +6,7 @@
 // library.
 
 import 'package:expect/expect.dart';
+
 import 'interface_class_extend_lib.dart';
 
 class AImpl extends A {}

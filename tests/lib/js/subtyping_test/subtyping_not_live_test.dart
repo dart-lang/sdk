@@ -5,6 +5,7 @@
 // Tests subtyping relationships without making package:js types live.
 
 import 'package:js/js.dart';
+
 import 'subtyping_test_util.dart';
 
 void main() {

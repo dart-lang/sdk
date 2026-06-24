@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 typedef F<Y extends num> = Y Function();
+
 class A<X extends F<X>> {}
 
 class A2<X extends F2<X>> {}
+
 typedef F2<Y extends num> = Y Function();
 
 main() {}

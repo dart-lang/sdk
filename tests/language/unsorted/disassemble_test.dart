@@ -5,6 +5,7 @@
 // Tests proper object recognition in disassembler.
 import 'dart:async';
 import 'dart:io';
+
 import "package:expect/expect.dart";
 
 Future runBinary(String binary, List<String> arguments) async {

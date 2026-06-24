@@ -825,6 +825,7 @@ delegation
 delete
 deleted
 deletes
+deliberate
 deliberately
 delimited
 delimiter
@@ -2964,6 +2965,7 @@ source
 sources
 space
 spaces
+spacing
 span
 spanning
 special

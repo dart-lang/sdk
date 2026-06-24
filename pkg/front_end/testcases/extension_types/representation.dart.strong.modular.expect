@@ -7,7 +7,7 @@ library;
 //                       ^
 //
 // pkg/front_end/testcases/extension_types/representation.dart:7:24: Error: Each extension type should have exactly one representation field.
-// extension type Multiple(bool instanceField1, int instanceField2) {}  // Error
+// extension type Multiple(bool instanceField1, int instanceField2) {} // Error
 //                        ^
 //
 // pkg/front_end/testcases/extension_types/representation.dart:9:50: Error: Duplicated parameter name 'instanceField'.

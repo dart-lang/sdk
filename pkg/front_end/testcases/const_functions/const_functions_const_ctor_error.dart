@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 const printString = "print";
 
 const var1 = Simple(printString);
+
 class Simple {
   final String name;
 
@@ -19,6 +20,7 @@ class Simple {
 }
 
 const var2 = Simple2(printString);
+
 class Simple2 {
   final String name;
 
@@ -28,6 +30,7 @@ class Simple2 {
 }
 
 const var3 = B();
+
 class A {
   const A() {
     assert(1 == 2);
@@ -39,6 +42,7 @@ class B extends A {
 }
 
 const var4 = C();
+
 class C {
   int? x;
 }

@@ -16,9 +16,12 @@ void useAddAll() {
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map1);
+    new Map<int, int>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map1,
+  );
 
   var map2 = <num, num>{
     ...dynamicMap1,
@@ -28,9 +31,12 @@ void useAddAll() {
   };
 
   expect(
-      new Map<num, num>.fromIterables(new List<num>.generate(12, (int i) => i),
-          new List<num>.generate(12, (int i) => 100 + i)),
-      map2);
+    new Map<num, num>.fromIterables(
+      new List<num>.generate(12, (int i) => i),
+      new List<num>.generate(12, (int i) => 100 + i),
+    ),
+    map2,
+  );
 
   Map<int, int> map3 = {
     ...dynamicMap1,
@@ -40,31 +46,34 @@ void useAddAll() {
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map3);
+    new Map<int, int>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map3,
+  );
 
-  var map4 = {
-    ...dynamicMap1,
-    ...dynamicMap2,
-    ...dynamicMap3,
-    ...intMap,
-  };
+  var map4 = {...dynamicMap1, ...dynamicMap2, ...dynamicMap3, ...intMap};
 
   expect(
-      new Map<dynamic, dynamic>.fromIterables(
-          new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map4);
+    new Map<dynamic, dynamic>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map4,
+  );
 
   {
     Map<int, int> intMap1 = {0: 100, 1: 101, 2: 102};
     Map<int, int> intMap2 = {3: 103, 4: 104, 5: 105};
     var map = {...intMap1, ...intMap2};
     expect(
-        new Map<int, int>.fromIterables(new List<int>.generate(6, (int i) => i),
-            new List<int>.generate(6, (int i) => 100 + i)),
-        map);
+      new Map<int, int>.fromIterables(
+        new List<int>.generate(6, (int i) => i),
+        new List<int>.generate(6, (int i) => 100 + i),
+      ),
+      map,
+    );
   }
 }
 
@@ -82,9 +91,12 @@ void useAddAllNullable() {
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map1);
+    new Map<int, int>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map1,
+  );
 
   var map2 = <num, num>{
     ...?dynamicMap1,
@@ -94,9 +106,12 @@ void useAddAllNullable() {
   };
 
   expect(
-      new Map<num, num>.fromIterables(new List<num>.generate(12, (int i) => i),
-          new List<num>.generate(12, (int i) => 100 + i)),
-      map2);
+    new Map<num, num>.fromIterables(
+      new List<num>.generate(12, (int i) => i),
+      new List<num>.generate(12, (int i) => 100 + i),
+    ),
+    map2,
+  );
 
   Map<int, int> map3 = {
     ...?dynamicMap1,
@@ -106,22 +121,22 @@ void useAddAllNullable() {
   };
 
   expect(
-      new Map<int, int>.fromIterables(new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map3);
+    new Map<int, int>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map3,
+  );
 
-  var map4 = {
-    ...?dynamicMap1,
-    ...?dynamicMap2,
-    ...?dynamicMap3,
-    ...?intMap,
-  };
+  var map4 = {...?dynamicMap1, ...?dynamicMap2, ...?dynamicMap3, ...?intMap};
 
   expect(
-      new Map<dynamic, dynamic>.fromIterables(
-          new List<int>.generate(12, (int i) => i),
-          new List<int>.generate(12, (int i) => 100 + i)),
-      map4);
+    new Map<dynamic, dynamic>.fromIterables(
+      new List<int>.generate(12, (int i) => i),
+      new List<int>.generate(12, (int i) => 100 + i),
+    ),
+    map4,
+  );
 }
 
 main() {

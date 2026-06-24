@@ -47,13 +47,12 @@ verifyIsTests() {
         is (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}),
   );
   Expect.isTrue(
-    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-        is (
-          List<dynamic>,
-          Map<dynamic, dynamic>, {
-          A<dynamic> foo,
-          dynamic bar,
-        }),
+    getP2N2(
+      const <int>[42],
+      <int, String>{1: 'hi'},
+      A<num>(),
+      10,
+    ) is (List<dynamic>, Map<dynamic, dynamic>, {A<dynamic> foo, dynamic bar}),
   );
   Expect.isTrue(
     getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
@@ -111,13 +110,12 @@ verifyAsChecks() {
         as (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}),
   );
   results.add(
-    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-        as (
-          List<dynamic>,
-          Map<dynamic, dynamic>, {
-          A<dynamic> foo,
-          dynamic bar,
-        }),
+    getP2N2(
+      const <int>[42],
+      <int, String>{1: 'hi'},
+      A<num>(),
+      10,
+    ) as (List<dynamic>, Map<dynamic, dynamic>, {A<dynamic> foo, dynamic bar}),
   );
   results.add(
     getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)

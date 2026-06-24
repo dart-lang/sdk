@@ -52,6 +52,7 @@ extension type ExtensionType(int it) {
   bool operator <(int i) => true;
   int operator >(int i) => 0;
 }
+
 typedef ExtensionType_ = ExtensionType?;
 
 objectPattern(o) {

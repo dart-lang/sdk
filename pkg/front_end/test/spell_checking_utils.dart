@@ -232,9 +232,9 @@ List<String> splitStringIntoWords(
     regExp = "(?:&[a-zA-Z0-9]+;|[$regExpStringInner]|\\\\n)+";
   }
 
-  Iterator<RegExpMatch> matchesIterator = new RegExp(
-    regExp,
-  ).allMatches(s).iterator;
+  Iterator<RegExpMatch> matchesIterator = new RegExp(regExp)
+      .allMatches(s)
+      .iterator;
   int latestMatch = 0;
   List<String> split = <String>[];
   List<int> splitOffset = <int>[];

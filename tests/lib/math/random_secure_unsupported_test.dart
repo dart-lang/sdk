@@ -5,6 +5,7 @@
 // Test that `Random.secure()` throws `UnsupportedError` each time it fails.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 main() {

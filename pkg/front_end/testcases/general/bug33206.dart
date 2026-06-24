@@ -28,7 +28,12 @@ Future<Object> f3() async {
 }
 
 Future<X> foo() async {
-  return X(Y()..f(await f1())..f(f2()), await f3());
+  return X(
+    Y()
+      ..f(await f1())
+      ..f(f2()),
+    await f3(),
+  );
 }
 
 Future<void> main() async {

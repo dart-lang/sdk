@@ -25,8 +25,7 @@ void main() {
           expect(
             result.stdout,
             isEmpty,
-            reason:
-                'Tests that hardcode descriptions make lint messages hard to evolve.',
+            reason: 'Tests that hardcode descriptions make lint messages hard to evolve.',
           );
         });
       }

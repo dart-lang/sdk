@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef void Typedef1(a,{b});
+typedef void Typedef1(a, {b});
 
 method0(a, {b = 0}) {
   int x = a;
@@ -12,8 +12,7 @@ method0(a, {b = 0}) {
 }
 
 class SuperClass {
-  void method(void f(a,{b})) {
-
+  void method(void f(a, {b})) {
     local(a, {b = 0}) {
       int x = a;
       String y = a; // Ok

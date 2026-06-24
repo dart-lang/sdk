@@ -61,8 +61,8 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:5:1
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:5:16 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:5:19 -> InstanceConstant(const Enum{_Enum.index: 2, _Enum._name: "c"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_switch.dart:5:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "a"}, const Enum{_Enum.index: 1, _Enum._name: "b"}, const Enum{_Enum.index: 2, _Enum._name: "c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:188:3 -> InstanceConstant(const GenericEnum<int>{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:189:3 -> InstanceConstant(const GenericEnum<String>{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:190:3 -> InstanceConstant(const GenericEnum<bool>{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:187:23 -> InstanceConstant(const GenericEnum<int>{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:187:33 -> InstanceConstant(const GenericEnum<String>{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_switch.dart:187:46 -> InstanceConstant(const GenericEnum<bool>{_Enum.index: 2, _Enum._name: "c"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_switch.dart:187:6 -> ListConstant(const <GenericEnum<dynamic>>[const GenericEnum<int>{_Enum.index: 0, _Enum._name: "a"}, const GenericEnum<String>{_Enum.index: 1, _Enum._name: "b"}, const GenericEnum<bool>{_Enum.index: 2, _Enum._name: "c"}])
 Extra constant evaluation: evaluated: 18, effectively constant: 8

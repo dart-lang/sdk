@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'type_builder.dart';
 
 // Tests for runtime type object normalization.

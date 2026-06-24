@@ -20,9 +20,9 @@ class A implements I {
   static String member2 = "member2";
 
   static void procedure() {} // Error.
-  
+
   static void set setter(String value) {} // Error.
-  
+
   static String fieldSetter = "fieldSetter"; // Error.
 
   static num get setterVsGetter => 0; // Error.

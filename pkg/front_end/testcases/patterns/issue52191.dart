@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void printBugsSwitch(int n) => switch (n) {
-      0 => print('no bugs'),
-      1 => print('one bug'),
-      _ => print('$n bugs'),
-    };
+  0 => print('no bugs'),
+  1 => print('one bug'),
+  _ => print('$n bugs'),
+};
 
 void printBugsConditional(int n) => n == 0
     ? print('no bugs')
     : n == 1
-        ? print('one bug')
-        : print('$n bugs');
+    ? print('one bug')
+    : print('$n bugs');
 
 main() {
   printBugsSwitch(0);

@@ -833,8 +833,10 @@ abstract class TreeVisitor1Default<R, A>
   R defaultMember(Member node, A arg) => defaultTreeNode(node, arg);
 }
 
-typedef DartTypeVisitorAuxiliaryFunction<R> =
-    R Function(AuxiliaryType node, R Function(AuxiliaryType node) recursor);
+typedef DartTypeVisitorAuxiliaryFunction<R> = R Function(
+  AuxiliaryType node,
+  R Function(AuxiliaryType node) recursor,
+);
 
 abstract class DartTypeVisitor<R> {
   const new();
@@ -902,12 +904,11 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
       defaultDartType(node);
 }
 
-typedef DartTypeVisitor1AuxiliaryFunction<R, A> =
-    R Function(
-      AuxiliaryType node,
-      A arg,
-      R Function(AuxiliaryType node, A arg) recursor,
-    );
+typedef DartTypeVisitor1AuxiliaryFunction<R, A> = R Function(
+  AuxiliaryType node,
+  A arg,
+  R Function(AuxiliaryType node, A arg) recursor,
+);
 
 abstract class DartTypeVisitor1<R, A> {
   const new();

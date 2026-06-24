@@ -2,51 +2,51 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:10:16: Error: 'E1' can't implement both 'A<String>' and 'A<int>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:13:16: Error: 'E1' can't implement both 'A<String>' and 'A<int>'
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // extension type E1(A<Never> it) implements A<String>, A<int> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:12:16: Error: 'E2' can't implement both 'A<String>' and 'A<double>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:15:16: Error: 'E2' can't implement both 'A<String>' and 'A<double>'
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // extension type E2(B<Never> it) implements B<String>, A<double> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:14:16: Error: 'E3' can't implement both 'A<String>' and 'A<num>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:17:16: Error: 'E3' can't implement both 'A<String>' and 'A<num>'
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // extension type E3(C it) implements C, A<num> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:17:16: Error: 'E42' can't implement both 'A<String>' and 'A<int>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:21:16: Error: 'E42' can't implement both 'A<String>' and 'A<int>'
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // extension type E42(A<Never> it) implements E41, A<int> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:19:16: Error: 'E5' can't implement both 'E<String>' and 'E<bool>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:23:16: Error: 'E5' can't implement both 'E<String>' and 'E<bool>'
 // extension type E5(E<Never> it) implements E<String>, E<bool> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:22:16: Error: 'E62' can't implement both 'E<num>' and 'E<String>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:27:16: Error: 'E62' can't implement both 'E<num>' and 'E<String>'
 // extension type E62(E<Never> it) implements E61, E<String> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:26:16: Error: 'E73' can't implement both 'E<double>' and 'E<bool>'
+// pkg/front_end/testcases/extension_types/issue53799.dart:33:16: Error: 'E73' can't implement both 'E<double>' and 'E<bool>'
 // extension type E73(E<Never> it) implements E71, E72 {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:10:54: Error: 'A' can only be implemented once.
+// pkg/front_end/testcases/extension_types/issue53799.dart:13:54: Error: 'A' can only be implemented once.
 // Try removing 1 of the occurrences.
 // extension type E1(A<Never> it) implements A<String>, A<int> {} // Error.
 //                                                      ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:14:39: Error: The implemented interface 'A<num>' must be a supertype of the representation type 'C' of extension type 'E3'.
+// pkg/front_end/testcases/extension_types/issue53799.dart:17:39: Error: The implemented interface 'A<num>' must be a supertype of the representation type 'C' of extension type 'E3'.
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 //  - 'C' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // Try changing the interface type to a supertype of 'C' or the representation type to a subtype of 'A<num>'.
 // extension type E3(C it) implements C, A<num> {} // Error.
 //                                       ^
 //
-// pkg/front_end/testcases/extension_types/issue53799.dart:19:54: Error: 'E' can only be implemented once.
+// pkg/front_end/testcases/extension_types/issue53799.dart:23:54: Error: 'E' can only be implemented once.
 // Try removing 1 of the occurrences.
 // extension type E5(E<Never> it) implements E<String>, E<bool> {} // Error.
 //                                                      ^

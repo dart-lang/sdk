@@ -10,6 +10,7 @@
 library spawn_tests;
 
 import 'dart:isolate';
+
 import 'package:expect/expect.dart';
 
 class MyClass {

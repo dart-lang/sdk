@@ -6,6 +6,7 @@
 // Additionally, allow their subclasses/subtypes to be used freely.
 
 import "package:expect/expect.dart";
+
 import 'sealed_class_extend_lib.dart';
 
 class AExtends extends A {

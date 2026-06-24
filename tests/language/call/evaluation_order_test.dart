@@ -13,6 +13,7 @@
 // evaluated before the getter.
 
 import 'package:expect/expect.dart';
+
 import 'evaluation_order_lib.dart' as lib;
 
 String effects = '';

@@ -11,6 +11,7 @@ X captureTypeArgument<X>() {
 }
 
 class A<X extends A<X>> {}
+
 typedef C<X extends A<X>> = A<X>;
 
 void topLevel1<X extends A<X>>(A<X> Function() g) => g();

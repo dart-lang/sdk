@@ -116,5 +116,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///horizontal_inference.dart:20:8 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///horizontal_inference.dart:21:8 -> IntConstant(0)
 Extra constant evaluation: evaluated: 154, effectively constant: 1

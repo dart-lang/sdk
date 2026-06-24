@@ -23,14 +23,17 @@ extension Extension1 on Class1 {
     print('Extension1.method on $this');
     return field;
   }
+
   num genericMethod<T extends num>(T t) {
     print('Extension1.genericMethod<$T>($t) on $this');
     return field + t;
   }
+
   int get property {
     print('Extension1.property get on $this');
     return field;
   }
+
   set property(int value) {
     field = value;
     print('Extension1.property set($value) on $this');
@@ -38,20 +41,22 @@ extension Extension1 on Class1 {
   }
 }
 
-
 extension Extension2 on Class2 {
   int method() {
     print('Extension2.method on $this');
     return field + 3;
   }
+
   num genericMethod<T extends num>(T t) {
     print('Extension2.genericMethod<$T>($t) on $this');
     return field + t + 4;
   }
+
   int get property {
     print('Extension2.property get on $this');
     return field + 5;
   }
+
   set property(int value) {
     print('Extension2.property set($value) on $this');
     value++;

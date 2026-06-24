@@ -1323,9 +1323,8 @@ class BinaryPrinter
 
   @override
   void visitConstructor(Constructor node) {
-    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(
-      node,
-    ).canonicalName;
+    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(node)
+        .canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }

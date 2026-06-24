@@ -8,6 +8,7 @@
 library metadata_test.dart;
 
 import "package:expect/expect.dart";
+
 import "lib.dart" as Meta;
 
 class Tag {

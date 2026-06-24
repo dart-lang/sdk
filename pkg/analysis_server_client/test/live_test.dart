@@ -17,14 +17,20 @@ void main() {
     var handler = TestHandler(server);
     server.listenToOutput(notificationProcessor: handler.handleEvent);
     if (!await handler.serverConnected(
-        timeLimit: const Duration(seconds: 15))) {
+      timeLimit: const Duration(seconds: 15),
+    )) {
       fail('failed to connect to server');
     }
 
     var json = await server.send(
-        serverRequestGetVersion, ServerGetVersionParams().toJson());
-    final result =
-        ServerGetVersionResult.fromJson(ResponseDecoder(null), 'result', json);
+      serverRequestGetVersion,
+      ServerGetVersionParams().toJson(),
+    );
+    final result = ServerGetVersionResult.fromJson(
+      ResponseDecoder(null),
+      'result',
+      json,
+    );
     await server.stop();
 
     expect(result.version, isNotEmpty);

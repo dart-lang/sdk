@@ -25,9 +25,8 @@ final dartDirectories = [
 main(List<String> args) async {
   final testFiles = await findValidTests(dartDirectories, true);
 
-  File(
-    stressTestListJson,
-  ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(testFiles));
+  File(stressTestListJson)
+      .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(testFiles));
 }
 
 Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {

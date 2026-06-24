@@ -5,9 +5,9 @@
 part of unaliased_bounds_checks_in_constructor_calls_with_parts_lib;
 
 class C<X> {}
+
 typedef A<X extends num, Y> = C<X>;
 
 foo() {
   new A<dynamic, String>();
 }
-

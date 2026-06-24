@@ -55,6 +55,6 @@ static method main() → dynamic {
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:43:59 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:43:59 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:47:59 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:47:59 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:47:57 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_explicit_extension_index_expression_test.dart:47:57 -> IntConstant(0)
 Extra constant evaluation: evaluated: 47, effectively constant: 4

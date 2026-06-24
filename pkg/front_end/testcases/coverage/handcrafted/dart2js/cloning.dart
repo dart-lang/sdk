@@ -6,10 +6,7 @@ class VariableDeclaration {
   String? _name;
   int flags = 0;
 
-  VariableDeclaration(
-    this._name, {
-    int flags = -1,
-  }) {
+  VariableDeclaration(this._name, {int flags = -1}) {
     if (flags != -1) {
       this.flags = flags;
     }

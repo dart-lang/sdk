@@ -31,8 +31,10 @@ void main() {
 
     test('general', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
       await sender.sendReport('test-error', StackTrace.current);
 
@@ -43,8 +45,10 @@ void main() {
 
     test('hits pii filters', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
       await sender.sendReport('filter this: filename.exe', StackTrace.current);
 
@@ -55,8 +59,10 @@ void main() {
 
     test('reportsSent', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
       expect(sender.reportsSent, 0);
 
@@ -71,11 +77,16 @@ void main() {
 
     test('contains message', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
-      await sender.sendReport('test-error', StackTrace.current,
-          comment: 'additional message');
+      await sender.sendReport(
+        'test-error',
+        StackTrace.current,
+        comment: 'additional message',
+      );
 
       String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String'));
@@ -85,8 +96,10 @@ void main() {
 
     test('has attachments', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
       await sender.sendReport(
         'test-error',
@@ -106,8 +119,10 @@ void main() {
 
     test('has ptime', () async {
       CrashReportSender sender = CrashReportSender.prod(
-          mockTrackingId, shouldSend,
-          httpClient: mockClient);
+        mockTrackingId,
+        shouldSend,
+        httpClient: mockClient,
+      );
 
       await sender.sendReport('test-error', StackTrace.current);
 

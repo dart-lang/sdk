@@ -28,11 +28,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
-typedef SnippetProducerGenerator =
-    SnippetProducer Function(
-      DartSnippetRequest, {
-      required Map<Element, LibraryElement?> elementImportCache,
-    });
+typedef SnippetProducerGenerator = SnippetProducer Function(
+  DartSnippetRequest, {
+  required Map<Element, LibraryElement?> elementImportCache,
+});
 
 /// [DartSnippetManager] determines if a snippet request is Dart specific
 /// and forwards those requests to all Snippet Producers that return `true` from

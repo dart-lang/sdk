@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension E<T> on T {
-  T Function(T) get f => (T t) => t;
+  T Function(T) get f =>
+      (T t) => t;
 }
 
 method1<S>(S s) {

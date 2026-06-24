@@ -5,6 +5,7 @@
 // dart2jsOptions=--enable-asserts --disable-inlining --disable-type-inference --no-minify
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart';
 

@@ -5,6 +5,7 @@
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
+
 import "dart:async";
 import "dart:io";
 
@@ -198,31 +199,32 @@ testCreateLoopingLink() {
   new Directory(join(base, 'a', 'b', 'c'))
       .create(recursive: true)
       .then(
-        (_) => new Link(
-          join(base, 'a', 'b', 'c', 'd'),
-        ).create(join(base, 'a', 'b')),
+        (_) =>
+            new Link(join(base, 'a', 'b', 'c', 'd'))
+                .create(join(base, 'a', 'b')),
       )
       .then(
         (_) => new Link(join(base, 'a', 'b', 'c', 'e')).create(join(base, 'a')),
       )
       .then(
-        (_) => new Directory(
-          join(base, 'a'),
-        ).list(recursive: true, followLinks: false).last,
+        (_) =>
+            new Directory(join(base, 'a'))
+                .list(recursive: true, followLinks: false)
+                .last,
       )
       .then(
         (_) =>
             // This directory listing must terminate, even though it contains loops.
-            new Directory(
-              join(base, 'a'),
-            ).list(recursive: true, followLinks: true).last,
+            new Directory(join(base, 'a'))
+                .list(recursive: true, followLinks: true)
+                .last,
       )
       .then(
         (_) =>
             // This directory listing must terminate, even though it contains loops.
-            new Directory(
-              join(base, 'a', 'b', 'c'),
-            ).list(recursive: true, followLinks: true).last,
+            new Directory(join(base, 'a', 'b', 'c'))
+                .list(recursive: true, followLinks: true)
+                .last,
       )
       .whenComplete(() {
         new Directory(base).deleteSync(recursive: true);
@@ -294,9 +296,9 @@ testRenameSync() {
 
 void testLinkErrorSync() {
   Expect.throws(
-    () => new Link(
-      'some-dir-that-does-not exist/some link file/bla/fisk',
-    ).createSync('bla bla bla/b lalal/blfir/sdfred/es'),
+    () =>
+        new Link('some-dir-that-does-not exist/some link file/bla/fisk')
+            .createSync('bla bla bla/b lalal/blfir/sdfred/es'),
     (e) => e is PathNotFoundException,
   );
 }

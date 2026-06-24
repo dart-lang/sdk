@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'liba.dart' deferred as liba;
 import 'libb.dart' deferred as libb;
 import 'lib_shared.dart';

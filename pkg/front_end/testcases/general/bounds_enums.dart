@@ -9,15 +9,15 @@ typedef A<X> = X Function(X);
 class B<X> {}
 
 enum E1<Y extends A<Y>> /* Error */ {
-  e1<Never>() // Ok
+  e1<Never>(), // Ok
 }
 
 enum E2<Y extends B<Y>> /* Error */ {
-  e2<Never>() // Ok
+  e2<Never>(), // Ok
 }
 
 enum E3<Y extends E3<Y>> /* Error */ {
-  e3<Never>() // Ok
+  e3<Never>(), // Ok
 }
 
 main() {}

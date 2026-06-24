@@ -64,5 +64,5 @@ static method throws(() → dynamic f, core::String message) → dynamic {
 
 Extra constant evaluation status:
 Evaluated: EqualsCall @ org-dartlang-testcase:///late_final_nullable_local_without_initializer.dart:12:9 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///late_final_nullable_local_without_initializer.dart:26:11 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///late_final_nullable_local_without_initializer.dart:28:11 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 69, effectively constant: 2

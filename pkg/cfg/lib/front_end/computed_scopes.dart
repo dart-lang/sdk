@@ -235,9 +235,8 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
     }
 
     for (final f in scopes._functions.values) {
-      f.capturedContexts = {
-        for (final v in f.accessedCapturedVars) v.context!,
-      }.toList();
+      f.capturedContexts = {for (final v in f.accessedCapturedVars) v.context!}
+          .toList();
     }
   }
 

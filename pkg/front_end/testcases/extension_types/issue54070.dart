@@ -13,9 +13,9 @@ class AssertIdentical {
   // and the CFE helpfully prints a string representation of the value
   // that can't be converted to a string by the potentially constant expression.
   const AssertIdentical(Object? v1, Object? v2)
-      : assert(identical(v1, v2), "${(v1, v2)}");
+    : assert(identical(v1, v2), "${(v1, v2)}");
   const AssertIdentical.not(Object? v1, Object? v2)
-      : assert(!identical(v1, v2), "${(v1, v2)}");
+    : assert(!identical(v1, v2), "${(v1, v2)}");
 }
 
 class C<T> {

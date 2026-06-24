@@ -11,26 +11,41 @@ import "dart:async" show FutureOr;
 
 // Any special, or semi-special, type is allowed.
 extension type V01(dynamic _) {}
+
 extension type V02(void _) {}
+
 extension type V03(Never _) {}
-//                 ^^^^^
+
+// [error line 17, column 20, length 5]
 // [analyzer] COMPILE_TIME_ERROR.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
-//                       ^
+// [error line 17, column 26]
 // [cfe] The representation type can't be a bottom type.
+
 extension type V04(Null _) {}
+
 extension type V05(Function _) {}
+
 extension type V06(Record _) {}
+
 extension type V07(Type _) {}
+
 extension type V08(Object? _) {}
+
 extension type V09(FutureOr<int> _) {}
+
 extension type V10(FutureOr<int>? _) {}
 
 // Interface types.
 extension type V11(List<int> _) {}
+
 extension type V12(IType _) {}
+
 extension type V13(FType _) {}
+
 extension type V14(SType _) {}
+
 extension type V15(MType _) {}
+
 extension type V16(EType _) {}
 
 // Extension types.
@@ -38,38 +53,62 @@ extension type V17(ExtType _) {}
 
 // Record types.
 extension type V18(() _) {}
+
 extension type V19((int,) _) {}
+
 extension type V20(({int x}) _) {}
+
 extension type V21((int, String) _) {}
+
 extension type V22((int, {String x}) _) {}
+
 extension type V23(({int x, String y}) _) {}
 
 // Function types
 extension type V24(Function() _) {}
+
 extension type V25(void Function() _) {}
+
 extension type V26(void Function(int) _) {}
+
 extension type V27(void Function(int x) _) {}
+
 extension type V28(void Function(int, String) _) {}
+
 extension type V29(void Function(int, [String]) _) {}
+
 extension type V30(void Function([int, String]) _) {}
+
 extension type V31(void Function(int, {String y}) _) {}
+
 extension type V32(void Function({int x, String y}) _) {}
+
 extension type V33(void Function(int, {required String y}) _) {}
+
 extension type V34(void Function({required int x, String y}) _) {}
+
 extension type V35(Function Function(Function) Function() _) {}
 
 // Type variables
 extension type V36<T>(T _) {}
+
 extension type V37<T>(List<T> _) {}
+
 extension type V38<T>(FutureOr<T?>? _) {}
 
 // Type aliases
 extension type V39(AType _) {}
+
 extension type V40(A<IType> _) {}
+
 extension type V41(A<FType> _) {}
+
 extension type V42(A<SType> _) {}
+
 extension type V43(A<MType> _) {}
+
 extension type V44(A<EType> _) {}
+
 extension type V45(A<ExtType> _) {}
 
 // And can be created.

@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class A {
-  const A({
-    this.d = 3.14,
-    this.s = 'default',
-  });
+  const A({this.d = 3.14, this.s = 'default'});
 
   final double d;
   final String s;

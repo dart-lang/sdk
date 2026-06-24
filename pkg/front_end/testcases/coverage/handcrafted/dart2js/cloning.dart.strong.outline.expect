@@ -15,5 +15,5 @@ class VariableDeclaration extends core::Object {
 
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:11:17 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:9:48 -> DoubleConstant(-1.0)
 Extra constant evaluation: evaluated: 4, effectively constant: 1

@@ -22,9 +22,9 @@ static const field core::List<core::int> list = const <core::int>[3];
 
 Extra constant evaluation status:
 Evaluated: MapConcatenation @ org-dartlang-testcase:///main.dart:7:7 -> MapConstant(const <int, String>{1: "a"})
-Evaluated: SetConcatenation @ org-dartlang-testcase:///main.dart:11:18 -> SetConstant(const <int>{2, 3})
-Evaluated: ListConcatenation @ org-dartlang-testcase:///main.dart:16:19 -> ListConstant(const <int>[3, 2])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///main.dart:9:18 -> SetConstant(const <int>{2, 3})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///main.dart:11:19 -> ListConstant(const <int>[3, 2])
 Evaluated: MapLiteral @ org-dartlang-testcase:///main_lib.dart:5:26 -> MapConstant(const <int, String>{1: "a"})
-Evaluated: SetLiteral @ org-dartlang-testcase:///main_lib.dart:9:18 -> SetConstant(const <int>{2})
-Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib.dart:13:19 -> ListConstant(const <int>[3])
+Evaluated: SetLiteral @ org-dartlang-testcase:///main_lib.dart:7:18 -> SetConstant(const <int>{2})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_lib.dart:9:19 -> ListConstant(const <int>[3])
 Extra constant evaluation: evaluated: 6, effectively constant: 6

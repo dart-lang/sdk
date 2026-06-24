@@ -30,9 +30,8 @@ import 'package:collection/collection.dart';
 Availability analyzeAvailability({
   required AbstractRefactoringContext refactoringContext,
 }) {
-  return _AvailabilityAnalyzer(
-    refactoringContext: refactoringContext,
-  ).analyze();
+  return _AvailabilityAnalyzer(refactoringContext: refactoringContext)
+      .analyze();
 }
 
 /// Continues analysis of the selection in [available], and returns either

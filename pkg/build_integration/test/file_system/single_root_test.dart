@@ -12,7 +12,10 @@ import 'package:test/test.dart';
 void main() {
   var root = Uri.parse('org-dartlang-test:///');
   var fileSystem = SingleRootFileSystem(
-      'single-root', root.resolve('A/B'), MemoryFileSystem(root));
+    'single-root',
+    root.resolve('A/B'),
+    MemoryFileSystem(root),
+  );
 
   SingleRootFileSystemEntity entityOf(String uri) =>
       fileSystem.entityForUri(Uri.parse(uri)) as SingleRootFileSystemEntity;
@@ -24,23 +27,33 @@ void main() {
   });
 
   test('URIs with the marker scheme are converted', () {
-    expect(effectiveUriOf('single-root:///a/b/1.dart'),
-        'org-dartlang-test:///A/B/a/b/1.dart');
+    expect(
+      effectiveUriOf('single-root:///a/b/1.dart'),
+      'org-dartlang-test:///A/B/a/b/1.dart',
+    );
   });
 
   test('single-root expects absolute paths', () {
-    expect(effectiveUriOf('single-root:///a/8.dart'),
-        'org-dartlang-test:///A/B/a/8.dart');
-    expect(effectiveUriOf('single-root:///../B/a/8.dart'),
-        'org-dartlang-test:///A/B/B/a/8.dart');
+    expect(
+      effectiveUriOf('single-root:///a/8.dart'),
+      'org-dartlang-test:///A/B/a/8.dart',
+    );
+    expect(
+      effectiveUriOf('single-root:///../B/a/8.dart'),
+      'org-dartlang-test:///A/B/B/a/8.dart',
+    );
   });
 
   test('URIs with other schemes are not supported', () {
-    expect(() => entityOf('foo-root:///a/b/1.dart'),
-        throwsA((e) => e is FileSystemException));
+    expect(
+      () => entityOf('foo-root:///a/b/1.dart'),
+      throwsA((e) => e is FileSystemException),
+    );
 
     // The scheme of the underlying file system is also not supported
-    expect(() => entityOf('org-dartlang-test:///a/b/1.dart'),
-        throwsA((e) => e is FileSystemException));
+    expect(
+      () => entityOf('org-dartlang-test:///a/b/1.dart'),
+      throwsA((e) => e is FileSystemException),
+    );
   });
 }

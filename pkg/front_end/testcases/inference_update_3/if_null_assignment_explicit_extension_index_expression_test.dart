@@ -44,5 +44,6 @@ main() {
 
   var listNum = <num>[];
   contextIterable<num>(
-      Extension(Indexable<Iterable<int>?, Object?>(null))[0] ??= listNum);
+    Extension(Indexable<Iterable<int>?, Object?>(null))[0] ??= listNum,
+  );
 }

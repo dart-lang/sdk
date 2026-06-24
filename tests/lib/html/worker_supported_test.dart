@@ -5,6 +5,7 @@
 library worker_test;
 
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+
 import 'dart:html';
 
 main() {

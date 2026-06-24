@@ -1223,9 +1223,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       args[2 * i + 3] = bufs[i].end;
     }
 
-    var response =
-        (await _IOService._dispatch(_IOService.sslProcessFilter, args))
-            as List<Object?>;
+    var response = (await _IOService._dispatch(
+      _IOService.sslProcessFilter,
+      args,
+    )) as List<Object?>;
     if (response.length == 2) {
       if (wasInHandshake) {
         // If we're in handshake, throw a handshake error.

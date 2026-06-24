@@ -69,15 +69,14 @@ void testStreamsIndependent() {
   }
 
   asyncStart();
-  Future.wait([multi.forEach(logList), multi.forEach(logList)]).whenComplete(
-    () {
-      Expect.equals(7, log.length);
-      for (var element in ["1", "1-0", "1-1", "2", "2-0", "2-1", "2-2"]) {
-        Expect.isTrue(log.contains(element));
-      }
-      asyncEnd();
-    },
-  );
+  Future.wait([multi.forEach(logList), multi.forEach(logList)])
+      .whenComplete(() {
+        Expect.equals(7, log.length);
+        for (var element in ["1", "1-0", "1-1", "2", "2-0", "2-1", "2-2"]) {
+          Expect.isTrue(log.contains(element));
+        }
+        asyncEnd();
+      });
 }
 
 /// Test that stream can be listened to again after having no listener.

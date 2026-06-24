@@ -3,12 +3,12 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/records/issue50515.dart:11:11: Error: Constant evaluation error:
-// test() => const <(A,)>{ (A(),) };
+// test() => const <(A,)>{(A(),)};
 //           ^
-// pkg/front_end/testcases/records/issue50515.dart:11:25: Context: The element '(A {})' does not have a primitive equality.
+// pkg/front_end/testcases/records/issue50515.dart:11:24: Context: The element '(A {})' does not have a primitive equality.
 //  - 'A' is from 'pkg/front_end/testcases/records/issue50515.dart'.
-// test() => const <(A,)>{ (A(),) };
-//                         ^
+// test() => const <(A,)>{(A(),)};
+//                        ^
 //
 import self as self;
 import "dart:core" as core;

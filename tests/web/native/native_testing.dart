@@ -6,10 +6,12 @@
 // collects common imports.
 
 import "package:expect/expect.dart";
+
 import 'dart:_js_helper' show Native;
 import 'dart:_foreign_helper' show JS;
 
 export "package:expect/expect.dart";
+
 export 'dart:_js_helper'
     show Creates, Native, JSName, Returns, applyTestExtensions;
 export 'dart:_foreign_helper' show JS;

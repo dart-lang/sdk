@@ -4,8 +4,10 @@
 
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
+
 import 'type_parser.dart';
 import 'type_hashcode_test.dart' show testCases;
+
 import 'package:test/test.dart';
 
 void checkType(DartType type) {
