@@ -174,8 +174,13 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
       atOffset(offset: sourceRange.offset, length: sourceRange.length);
 
   @override
-  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
-      atOffset(offset: span.start.offset, length: span.length);
+  LocatedDiagnostic atSourceSpan(SourceSpan span) {
+    var trimmedSpan = span.withoutTrailingLineTerminators;
+    return atOffset(
+      offset: trimmedSpan.start.offset,
+      length: trimmedSpan.length,
+    );
+  }
 
   @override
   LocatableDiagnostic withContextMessages(
@@ -297,8 +302,13 @@ final class LocatableDiagnosticImpl implements LocatableDiagnostic {
       atOffset(offset: sourceRange.offset, length: sourceRange.length);
 
   @override
-  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
-      atOffset(offset: span.start.offset, length: span.length);
+  LocatedDiagnostic atSourceSpan(SourceSpan span) {
+    var trimmedSpan = span.withoutTrailingLineTerminators;
+    return atOffset(
+      offset: trimmedSpan.start.offset,
+      length: trimmedSpan.length,
+    );
+  }
 
   @override
   LocatableDiagnostic withContextMessages(
@@ -318,4 +328,18 @@ final class LocatedDiagnostic {
   final int length;
 
   LocatedDiagnostic(this.locatableDiagnostic, this.offset, this.length);
+}
+
+extension on SourceSpan {
+  SourceSpan get withoutTrailingLineTerminators {
+    var end = length;
+    while (end > 0) {
+      var codeUnit = text.codeUnitAt(end - 1);
+      if (codeUnit != 0x0A && codeUnit != 0x0D) {
+        break;
+      }
+      end--;
+    }
+    return subspan(0, end);
+  }
 }

@@ -728,7 +728,8 @@ analyzer:
     - foo/bar.dart
     - 'test/**'
     - a: b
-// [diag.invalidSectionFormat][column 7][length 5] Invalid format for the 'exclude' section.
+//    ^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'exclude' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''

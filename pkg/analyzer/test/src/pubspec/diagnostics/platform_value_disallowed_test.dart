@@ -114,7 +114,7 @@ platforms:
   ios:
   web:
    - foo
-// [diag.platformValueDisallowed][column 4][length 42] Keys in the `platforms` field can't have values.
+// [diag.platformValueDisallowed][column 4][length 41] Keys in the `platforms` field can't have values.
    - bar  # <-- this is not allowed
 ''');
   }
@@ -128,7 +128,8 @@ platforms:
   ios:
   web:
     foo: bar  # <-- this is not allowed
-// [diag.platformValueDisallowed][column 5][length 36] Keys in the `platforms` field can't have values.
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
 ''');
   }
 
