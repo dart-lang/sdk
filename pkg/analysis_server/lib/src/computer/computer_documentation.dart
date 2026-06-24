@@ -91,8 +91,8 @@ class DartDocumentationComputer {
   }
 }
 
-/// The type of documentation the user prefers to see in hovers and other
-/// related displays in their editor.
+/// The preferred kind of documentation for requests that might return many
+/// results and could have large payloads when docs are included
 enum DocumentationPreference { none, summary, full }
 
 extension on Element {

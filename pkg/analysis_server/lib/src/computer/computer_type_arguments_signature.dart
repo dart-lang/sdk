@@ -18,17 +18,15 @@ class DartTypeArgumentsSignatureComputer {
   final AstNode? _node;
   final Set<lsp.MarkupKind>? preferredFormats;
   late TypeArgumentList _argumentList;
-  final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
   new(
     DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     int offset,
-    this.preferredFormats, {
-    this.documentationPreference = DocumentationPreference.full,
-  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-       _node = unit.nodeCovering(offset: offset);
+    this.preferredFormats,
+  ) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+      _node = unit.nodeCovering(offset: offset);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -56,10 +54,7 @@ class DartTypeArgumentsSignatureComputer {
     _argumentList = argumentList;
 
     var label = element.displayString();
-    var documentation = _documentationComputer.computePreferred(
-      element,
-      documentationPreference,
-    );
+    var documentation = _documentationComputer.compute(element)?.full;
 
     return _toSignatureHelp(
       label,
