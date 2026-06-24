@@ -5,9 +5,6 @@
 // Tests passing non-trivial const expressions to exceptionalReturn.
 //
 // VMOptions=
-// VMOptions=--stacktrace-every=100
-// VMOptions=--use-slow-path
-// VMOptions=--use-slow-path --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
