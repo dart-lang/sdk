@@ -2241,7 +2241,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -2262,7 +2262,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<String>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: String}
                   argumentList: ArgumentList
@@ -3167,7 +3167,7 @@ library
                         rightBracket: > @22
                       element: <testLibrary>::@enum::E
                       type: E<double>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: double}
                   argumentList: ArgumentList
@@ -5350,7 +5350,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -6045,7 +6045,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -6241,7 +6241,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int, int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int, U: int}
                   argumentList: ArgumentList
@@ -6695,11 +6695,11 @@ library
                     period: . @0
                     name: SimpleIdentifier
                       token: named @-1
-                      element: ConstructorMember
+                      element: SubstitutedConstructorElementImpl
                         baseElement: <testLibrary>::@enum::A::@constructor::named
                         substitution: {T: int}
                       staticType: null
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::named
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -8875,7 +8875,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -11903,7 +11903,7 @@ library
                         rightBracket: > @33
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -12062,7 +12062,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -12347,7 +12347,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {U: dynamic}
                   argumentList: ArgumentList
@@ -12867,7 +12867,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -13400,7 +13400,7 @@ library
                         rightBracket: > @30
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -13890,7 +13890,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -14000,7 +14000,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -14119,7 +14119,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -14239,7 +14239,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -14367,7 +14367,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -14499,7 +14499,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic, dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic, U: dynamic}
                   argumentList: ArgumentList
@@ -14619,7 +14619,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<num, num>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: num, U: num}
                   argumentList: ArgumentList
@@ -14940,7 +14940,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -15940,7 +15940,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -17738,7 +17738,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -18690,7 +18690,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -18959,7 +18959,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -19752,7 +19752,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList

@@ -219,7 +219,7 @@ library
                   name: C @134
                   element: <testLibrary>::@class::C
                   type: C<int>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {V: int}
               argumentList: ArgumentList
@@ -2431,7 +2431,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {U: int, V: T}
       getters
@@ -2624,7 +2624,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {V: U, W: int}
       methods
@@ -4468,7 +4468,7 @@ library
                     staticType: T
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
     hasNonFinalField isSimplyBounded class C

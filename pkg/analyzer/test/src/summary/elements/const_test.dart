@@ -414,7 +414,7 @@ library
                   name: C @96
                   element: <testLibrary>::@class::C
                   type: C<int>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
@@ -439,11 +439,11 @@ library
                 period: . @126
                 name: SimpleIdentifier
                   token: named @127
-                  element: ConstructorMember
+                  element: SubstitutedConstructorElementImpl
                     baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {T: dynamic}
                   staticType: null
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {T: int}
               argumentList: ArgumentList
@@ -1170,7 +1170,7 @@ library
                 element: <testLibrary>::@getter::b
                 staticType: int
               rightBracket: ] @41
-              element: MethodMember
+              element: SubstitutedMethodElementImpl
                 baseElement: dart:core::@class::List::@method::[]
                 substitution: {E: int}
               staticType: int
@@ -1295,7 +1295,7 @@ library
                       name: P1 @141
                       element: <testLibrary>::@class::P1
                       type: P1<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@class::P1::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -1316,7 +1316,7 @@ library
                         rightBracket: > @153
                       element: <testLibrary>::@class::P2
                       type: P2<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@class::P2::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -1352,7 +1352,7 @@ library
         hasEnclosingTypeParameterReference isConst isOriginDeclaration new
           reference: <testLibrary>::@class::P1::@constructor::new
           firstFragment: #F6
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::P::@constructor::new
             substitution: {T: T}
     isSimplyBounded class P2
@@ -1366,7 +1366,7 @@ library
         hasEnclosingTypeParameterReference isConst isOriginDeclaration new
           reference: <testLibrary>::@class::P2::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::P::@constructor::new
             substitution: {T: T}
   topLevelVariables
@@ -2257,11 +2257,11 @@ library
                 period: . @76
                 name: SimpleIdentifier
                   token: named @77
-                  element: ConstructorMember
+                  element: SubstitutedConstructorElementImpl
                     baseElement: <testLibrary>::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
@@ -2362,11 +2362,11 @@ library
                 period: . @48
                 name: SimpleIdentifier
                   token: named @49
-                  element: ConstructorMember
+                  element: SubstitutedConstructorElementImpl
                     baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
@@ -2454,11 +2454,11 @@ library
                 period: . @55
                 name: SimpleIdentifier
                   token: named @56
-                  element: ConstructorMember
+                  element: SubstitutedConstructorElementImpl
                     baseElement: package:test/a.dart::@class::C::@constructor::named
                     substitution: {K: int, V: String}
                   staticType: null
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
@@ -2532,7 +2532,7 @@ library
                   name: C @48
                   element: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: dynamic, V: dynamic}
               argumentList: ArgumentList
@@ -2623,7 +2623,7 @@ library
                   name: A @71
                   element: <testLibrary>::@class::A
                   type: A<int>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList
@@ -2735,7 +2735,7 @@ library
                     rightBracket: > @61
                   element: <testLibrary>::@class::C
                   type: C<int, String>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
@@ -2820,7 +2820,7 @@ library
                     rightBracket: > @47
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
@@ -2899,7 +2899,7 @@ library
                     rightBracket: > @54
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::new
                   substitution: {K: int, V: String}
               argumentList: ArgumentList

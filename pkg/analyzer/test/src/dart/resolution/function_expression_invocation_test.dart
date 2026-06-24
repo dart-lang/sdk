@@ -39,7 +39,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@method::call::@formalParameter::t
           substitution: {T: int}
         staticType: int
@@ -84,7 +84,7 @@ FunctionExpressionInvocation
             literal: 0
             staticType: int
         rightBracket: ]
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@method::call::@formalParameter::_
           substitution: {T: int}
         staticType: List<int>
@@ -380,7 +380,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: a@23
           substitution: {T: int}
         staticType: int

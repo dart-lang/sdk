@@ -257,7 +257,7 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::t
           substitution: {T: Map<int, double>?}
         staticType: Null

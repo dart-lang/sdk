@@ -428,7 +428,7 @@ void main() {
     var node = result.findNode.index('[0]');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-MethodMember
+SubstitutedMethodElementImpl
   baseElement: dart:core::@class::List::@method::[]
   substitution: {E: int}
 ''');

@@ -317,12 +317,12 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: int}
   declaredFragment: <testLibraryFragment> v@14
@@ -347,12 +347,12 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::new
     substitution: {T: int}
   declaredFragment: <testLibraryFragment> v@14
@@ -391,12 +391,12 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
             substitution: {T: double}
           staticType: double
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
   declaredFragment: <testLibraryFragment> v@14
@@ -899,7 +899,7 @@ EnumDeclaration
     constants
       EnumConstantDeclaration
         name: v
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::new
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@23
@@ -1351,12 +1351,12 @@ EnumDeclaration
             arguments
               IntegerLiteral
                 literal: 0
-                correspondingParameter: ParameterMember
+                correspondingParameter: SubstitutedFormalParameterElementImpl
                   baseElement: <testLibrary>::@enum::A::@constructor::named::@formalParameter::t
                   substitution: {T: int}
                 staticType: int
             rightParenthesis: )
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::named
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@23
@@ -1410,12 +1410,12 @@ EnumDeclaration
             arguments
               IntegerLiteral
                 literal: 0
-                correspondingParameter: ParameterMember
+                correspondingParameter: SubstitutedFormalParameterElementImpl
                   baseElement: <testLibrary>::@enum::A::@constructor::new::@formalParameter::t
                   substitution: {T: int}
                 staticType: int
             rightParenthesis: )
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::new
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@17

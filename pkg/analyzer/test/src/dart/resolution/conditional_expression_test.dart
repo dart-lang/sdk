@@ -353,7 +353,7 @@ f(bool b, C1<int> c1, C2<double> c2) {
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
-  correspondingParameter: ParameterMember
+  correspondingParameter: SubstitutedFormalParameterElementImpl
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>

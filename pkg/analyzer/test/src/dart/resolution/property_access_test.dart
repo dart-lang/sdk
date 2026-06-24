@@ -1016,7 +1016,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::A::@getter::foo
       substitution: {T: int}
     staticType: int
@@ -1387,7 +1387,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {U: int}
     staticType: int
@@ -1443,7 +1443,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::BiRecordExtension::@getter::foo
       substitution: {T: int, U: String}
     staticType: Map<int, String>
