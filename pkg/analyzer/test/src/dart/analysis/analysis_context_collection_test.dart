@@ -22,6 +22,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../resolution/node_text_expectations.dart';
 
 main() {
@@ -1725,11 +1726,10 @@ workspaces
   ) {
     var actual = _getContextCollectionText(collection);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   /// Asserts the text of a context collection created for a single included

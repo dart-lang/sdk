@@ -36,12 +36,10 @@ abstract class AbstractAnalysisOptionsTest
   void assertAnalysisOptionsText(AnalysisOptionsImpl options, String expected) {
     var actual = _AnalysisOptionsTextWriter().write(options);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
       printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   AnalysisOptionsParseResult parseAnalysisOptionsFile(

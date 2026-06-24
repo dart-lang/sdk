@@ -3225,7 +3225,6 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
       printPrettyDiff(expected, actual);
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   // TODO(scheglov): this is duplicate
