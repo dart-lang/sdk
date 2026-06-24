@@ -1029,7 +1029,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     late final Label slowPath = addSlowPath(() {
       assert(stackFrame.maxArgumentsStackSlots >= 3);
       _asm.loadFromPool(tempReg, dartType);
-      _asm.stp(resultReg, tempReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.stp(tempReg, resultReg, RegOffsetAddress(stackPointerReg, 0));
       _asm.str(
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 2 * wordSize),
@@ -1071,6 +1071,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         if (const IntType().isSubtypeOf(type)) {
           _asm.tbz(resultReg, smiBit, done);
+        } else if (!type.canBeInt) {
+          _asm.tbz(resultReg, smiBit, slowPath);
         }
         if (type.isNullable) {
           _asm.cmp(resultReg, nullReg);
