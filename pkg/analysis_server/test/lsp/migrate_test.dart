@@ -36,6 +36,7 @@ environment:
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.0.0 -> ^3.1.0''',
@@ -51,6 +52,7 @@ environment:
   Future<void> test_bumpSdkConstraint_emptyPubspec() async {
     await _setupProject(pubspecContent: '');
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: 'No SDK constraints were bumped.',
     );
   }
@@ -75,6 +77,7 @@ environment:
 
     await _assertMigrationResult(
       uris: [Uri.file(project1Path), Uri.file(project2Path)],
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
   - project1: ^3.0.0 -> ^3.1.0
@@ -99,6 +102,7 @@ name: test_project
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: 'No SDK constraints were bumped.',
     );
   }
@@ -112,6 +116,7 @@ environment:
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: contains('>=3.0.0 <4.0.0 -> >=3.1.0'),
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
@@ -132,7 +137,43 @@ environment:
     );
     await _assertMigrationResult(
       uris: [Uri.file(otherDirPath)],
+      apply: true,
       expectedSummary: contains('- other_project: Skipped (not analyzed)'),
+    );
+  }
+
+  Future<void> test_dryRun() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(var int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+Would bump SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes would be made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes would be made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
     );
   }
 
@@ -141,7 +182,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -164,7 +205,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [mainFileUri]),
+      DartMigrateParams(uris: [mainFileUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -190,7 +231,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [validUri, invalidUri]),
+      DartMigrateParams(uris: [validUri, invalidUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -210,7 +251,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -231,7 +272,7 @@ environment:
     var dirUri = Uri.file(convertPath('/non/existent/dir'));
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [dirUri]),
+      DartMigrateParams(uris: [dirUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -254,7 +295,7 @@ resolution: workspace
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -287,6 +328,7 @@ class C {
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -350,6 +392,7 @@ class D {
 
     await _assertMigrationResult(
       uris: [projectFolderUri, toUri(otherPackagePath)],
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -410,6 +453,7 @@ class C {
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -445,6 +489,7 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -479,6 +524,7 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -530,6 +576,7 @@ environment:
 
     await _assertMigrationResult(
       uris: [projectFolderUri, toUri(otherPackagePath)],
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -587,6 +634,7 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -624,6 +672,7 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0''',
@@ -668,6 +717,7 @@ environment:
 
     // Migrate ONLY the parent package.
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
   - test_project: ^3.12.0 -> ^3.13.0
@@ -690,18 +740,19 @@ environment:
 
   Future<void> test_validDirectory() async {
     await _setupProject(pubspecContent: 'name: test_project');
-    await _assertMigrationResult();
+    await _assertMigrationResult(apply: true);
   }
 
   Future<void> _assertMigrationResult({
     List<Uri>? uris,
     Object? expectedSummary,
     String? expectedEdit,
+    bool apply = false,
   }) async {
     await initialAnalysis;
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: uris ?? [projectFolderUri]),
+      DartMigrateParams(uris: uris ?? [projectFolderUri], apply: apply),
     );
     var response = await sendRequestToServer(request);
 
@@ -713,7 +764,9 @@ environment:
     if (expectedSummary != null) {
       expect(result.summary, expectedSummary);
     }
-    if (expectedEdit != null) {
+    if (!apply) {
+      expect(result.edit, isNull);
+    } else if (expectedEdit != null) {
       verifyEdit(result.edit!, expectedEdit);
     }
   }

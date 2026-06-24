@@ -52,26 +52,31 @@ class MigrateHandler
     var summaryBuffer = StringBuffer();
     var targets = validationResult.resultOrNull!;
 
+    var apply = params.apply ?? false;
     var migrationRunner = _MigrationRunner(
       server: server,
       pubspecTargets: targets,
       summaryBuffer: summaryBuffer,
+      apply: apply,
     );
 
     var fileEdits = await migrationRunner.computeEdits();
 
-    // Merge all the accumulated sequential edits per file.
-    var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
-    var sourceChange = SourceChange(
-      'Migrate package(s)',
-      edits: mergedFileEdits,
-    );
+    WorkspaceEdit? workspaceEdit;
+    if (apply) {
+      // Merge all the accumulated sequential edits per file.
+      var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
+      var sourceChange = SourceChange(
+        'Migrate package(s)',
+        edits: mergedFileEdits,
+      );
 
-    var workspaceEdit = createWorkspaceEdit(
-      server,
-      message.clientCapabilities!,
-      sourceChange,
-    );
+      workspaceEdit = createWorkspaceEdit(
+        server,
+        message.clientCapabilities!,
+        sourceChange,
+      );
+    }
     return success(
       DartMigrateResult(
         summary: summaryBuffer.toString().trim(),
@@ -156,6 +161,12 @@ class _MigrationRunner({
   @override required final AnalysisServer server,
   required final List<_PubspecTarget> pubspecTargets,
   required final StringBuffer summaryBuffer,
+
+  /// Whether to apply the migration edits to the files.
+  ///
+  /// If `false`, the migration is run as a dry run (previewing changes in the
+  /// summary without applying them to the workspace).
+  required final bool apply,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
@@ -200,9 +211,11 @@ class _MigrationRunner({
 
   void _applyAndRecordEdits(ChangeBuilder builder) {
     for (var fileEdit in builder.sourceChange.edits) {
-      // Record the edit to be returned to the client at the end of the entire
-      // migration.
-      _fileEdits.add(fileEdit);
+      if (apply) {
+        // Record the edit to be returned to the client at the end of the entire
+        // migration.
+        _fileEdits.add(fileEdit);
+      }
       // Apply the edit to the in-memory overlays so that subsequent analysis
       // (like post-migration or other packages in the workspace) sees the
       // updated code.
@@ -312,10 +325,12 @@ class _MigrationRunner({
     }
 
     if (bumpedLines.isEmpty) {
-      summaryBuffer.writeln('No SDK constraints were bumped.');
+      var verb = apply ? 'were' : 'would be';
+      summaryBuffer.writeln('No SDK constraints $verb bumped.');
     } else {
+      var action = apply ? 'Bumped' : 'Would bump';
       summaryBuffer.writeln(
-        'Bumped SDK constraints in ${bumpedLines.length} package(s):',
+        '$action SDK constraints in ${bumpedLines.length} package(s):',
       );
       for (var line in bumpedLines) {
         summaryBuffer.writeln('  $line');
@@ -444,8 +459,9 @@ class _MigrationRunner({
       var fixPlural = totalFixes == 1 ? 'fix' : 'fixes';
       var filePlural = totalFiles == 1 ? 'file' : 'files';
 
+      var verb = apply ? 'made' : 'would be made';
       buffer.writeln(
-        '  $totalFixes $fixPlural made in $totalFiles $filePlural.',
+        '  $totalFixes $fixPlural $verb in $totalFiles $filePlural.',
       );
 
       var sortedPaths = fixesMap.keys.toList()..sort();

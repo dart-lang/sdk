@@ -1438,27 +1438,37 @@ class DartMigrateParams implements ToJsonable {
     DartMigrateParams.fromJson,
   );
 
+  /// Whether to apply the migration changes.
+  final bool? apply;
+
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
 
   DartMigrateParams({
+    this.apply,
     required this.uris,
   });
-
   @override
-  int get hashCode => lspHashCode(uris);
+  int get hashCode => Object.hash(
+        apply,
+        lspHashCode(uris),
+      );
 
   @override
   bool operator ==(Object other) {
     return other is DartMigrateParams &&
         other.runtimeType == DartMigrateParams &&
+        apply == other.apply &&
         const DeepCollectionEquality().equals(uris, other.uris);
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (apply != null) {
+      result['apply'] = apply;
+    }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
     return result;
   }
@@ -1468,6 +1478,10 @@ class DartMigrateParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseBool(obj, reporter, 'apply',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       return _canParseListUri(obj, reporter, 'uris',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -1477,11 +1491,14 @@ class DartMigrateParams implements ToJsonable {
   }
 
   static DartMigrateParams fromJson(Map<String, Object?> json) {
+    final applyJson = json['apply'];
+    final apply = applyJson as bool?;
     final urisJson = json['uris'];
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
     return DartMigrateParams(
+      apply: apply,
       uris: uris,
     );
   }
