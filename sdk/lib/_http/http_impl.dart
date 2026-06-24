@@ -2312,7 +2312,9 @@ class _HttpClientConnection {
     if (_httpClient.userAgent != null) {
       request.headers.add(HttpHeaders.userAgentHeader, _httpClient.userAgent!);
     }
-    if (proxy.isAuthenticated) {
+    if (_proxyTunnel) {
+      // no proxy auth on tunneled requests
+    } else if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
       String auth = base64Encode(
