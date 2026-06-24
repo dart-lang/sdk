@@ -2407,10 +2407,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _declareLocalVariable(Variable variable, int initializedPosition) {
     bool isCaptured = locals.isCaptured(variable);
-    // Don't add initializing formals or wildcards.
-    if (variable.isInitializingFormal ||
-        variable.isSuperInitializingFormal ||
-        variable.isWildcard) {
+    // Don't add wildcards.
+    if (variable.isWildcard) {
       return;
     }
     asm.localVariableTable.declareVariable(
