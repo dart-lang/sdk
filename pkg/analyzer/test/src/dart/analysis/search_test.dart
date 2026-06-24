@@ -2251,6 +2251,37 @@ var v_p = p.A;
 ''');
   }
 
+  test_searchReferences_ConstructorElement_class_annotation() async {
+    var result = await resolveTestCode(r'''
+import 'test.dart' as p;
+
+class A {
+  const A();
+  const A.named();
+}
+
+@A()
+@p.A()
+@A.named()
+@p.A.named()
+void f() {}
+''');
+
+    var unnamed = result.findElement.unnamedConstructor('A');
+    await assertElementReferencesText(unnamed, r'''
+<testLibraryFragment> f@112
+  73 8:3 || INVOCATION qualified
+  80 9:5 || INVOCATION qualified
+''');
+
+    var named = result.findElement.constructor('named', of: 'A');
+    await assertElementReferencesText(named, r'''
+<testLibraryFragment> f@112
+  85 10:3 |.named| INVOCATION qualified
+  98 11:5 |.named| INVOCATION qualified
+''');
+  }
+
   test_searchReferences_ConstructorElement_class_method_sameName() async {
     var result = await resolveTestCode('''
 class A {

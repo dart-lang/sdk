@@ -664,6 +664,57 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAnnotation(Annotation node) {
+    if (node.element case ConstructorElement element) {
+      var baseElement = _getActualConstructorElement(element.baseElement);
+      if (node.constructorName case var constructorName?) {
+        var offset = node.period!.offset;
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          offset,
+          constructorName.end - offset,
+          true,
+        );
+      } else if (node.name case PrefixedIdentifier(
+        :var period,
+        identifier: SimpleIdentifier(element: ConstructorElement()),
+      )) {
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          period.offset,
+          node.name.end - period.offset,
+          true,
+        );
+      } else {
+        var offset = node.typeArguments?.end ?? node.name.end;
+        recordRelationOffset(
+          baseElement,
+          IndexRelationKind.IS_INVOKED_BY,
+          offset,
+          0,
+          true,
+        );
+      }
+
+      if (node.name case PrefixedIdentifier(
+        prefix: var prefix,
+        identifier: SimpleIdentifier(element: ConstructorElement()),
+      )) {
+        prefix.accept(this);
+      } else {
+        node.name.accept(this);
+      }
+      node.typeArguments?.accept(this);
+      node.arguments?.accept(this);
+      return;
+    }
+
+    super.visitAnnotation(node);
+  }
+
+  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     recordRelation(
       node.element,
