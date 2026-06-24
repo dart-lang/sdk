@@ -1229,6 +1229,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext = const UnknownType();
     }
     AwaitExpressionResult analysisResult = analyzeAwaitExpression(
+      node,
       node.operand,
       typeContext.wrapSharedTypeSchemaView(),
     );
@@ -13995,6 +13996,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitYieldStatement(YieldStatement node) {
     YieldStatementResult analysisResult = analyzeYieldStatement(
+      node,
       node.expression,
       isYieldStar: node.isYieldStar,
     );

@@ -12948,6 +12948,38 @@ Message _withArgumentsVariableCouldBeNullDueToWrite({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
+    required String variableName,
+    required String documentationUrl,
+  })
+>
+variableNotPromotedDueToSuspension = const Template(
+  "VariableNotPromotedDueToSuspension",
+  withArguments: _withArgumentsVariableNotPromotedDueToSuspension,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsVariableNotPromotedDueToSuspension({
+  required String variableName,
+  required String documentationUrl,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
+  return new Message(
+    variableNotPromotedDueToSuspension,
+    problemMessage:
+        """Variable '${variableName_0}' could not be promoted due to an 'await' or 'yield'.""",
+    correctionMessage:
+        """Try checking the type of the variable after the 'await' or 'yield'.  See ${documentationUrl_0}""",
+    arguments: {
+      'variableName': variableName,
+      'documentationUrl': documentationUrl,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode verificationErrorOriginContext = const MessageCode(
   "VerificationErrorOriginContext",
   severity: CfeSeverity.context,

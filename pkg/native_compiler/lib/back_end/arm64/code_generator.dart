@@ -1029,7 +1029,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     late final Label slowPath = addSlowPath(() {
       assert(stackFrame.maxArgumentsStackSlots >= 3);
       _asm.loadFromPool(tempReg, dartType);
-      _asm.stp(resultReg, tempReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.stp(tempReg, resultReg, RegOffsetAddress(stackPointerReg, 0));
       _asm.str(
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 2 * wordSize),
@@ -1071,6 +1071,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         if (const IntType().isSubtypeOf(type)) {
           _asm.tbz(resultReg, smiBit, done);
+        } else if (!type.canBeInt) {
+          _asm.tbz(resultReg, smiBit, slowPath);
         }
         if (type.isNullable) {
           _asm.cmp(resultReg, nullReg);
@@ -1381,9 +1383,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for AllocateClosure slow path',
+      assert(stackFrame.maxArgumentsStackSlots >= 4);
+      _asm.loadImmediate(tempReg, lengthAndFlags << smiShift);
+      _asm.stp(
+        nullReg, // Context.
+        tempReg,
+        RegOffsetAddress(stackPointerReg, 0),
       );
+      _asm.loadFromPool(tempReg, function);
+      _asm.stp(
+        tempReg,
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 2 * wordSize),
+      );
+      _asm.callRuntime(RuntimeEntry.AllocateClosure, 3);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
       _asm.b(done);
     });
 
@@ -1432,9 +1446,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for AllocateContext slow path',
+      assert(stackFrame.maxArgumentsStackSlots >= 2);
+      _asm.loadImmediate(tempReg, instr.length << smiShift);
+      _asm.stp(
+        tempReg,
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
       );
+      _asm.callRuntime(RuntimeEntry.AllocateContext, 1);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 1 * wordSize));
       _asm.b(done);
     });
 
@@ -1481,9 +1501,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for AllocateList slow path',
+      assert(stackFrame.maxArgumentsStackSlots >= 3);
+      _asm.loadImmediate(tempReg, length << smiShift);
+      _asm.stp(
+        nullReg, // Type arguments.
+        tempReg, // Array length.
+        RegOffsetAddress(stackPointerReg, 0),
       );
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 2 * wordSize),
+      );
+      _asm.callRuntime(RuntimeEntry.AllocateArray, 2);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
       _asm.b(done);
     });
 
@@ -1505,12 +1535,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
       initializeFields: true,
     );
 
-    _asm.bind(done);
     _asm.loadImmediate(scratch1Reg, length << smiShift);
     _asm.str(
       scratch1Reg,
       _asm.fieldAddress(resultReg, vmOffsets.Array_length_offset),
     );
+    _asm.bind(done);
   }
 
   @override
@@ -1551,9 +1581,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for AllocateRecord slow path',
+      assert(stackFrame.maxArgumentsStackSlots >= 2);
+      _asm.loadFromPool(tempReg, instr.type.shape);
+      _asm.stp(
+        tempReg, // Record shape.
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
       );
+      _asm.callRuntime(RuntimeEntry.AllocateRecord, 1);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 1 * wordSize));
       _asm.b(done);
     });
 

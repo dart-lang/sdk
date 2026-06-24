@@ -750,7 +750,7 @@ class AwaitExpression extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    var result = h.typeAnalyzer.analyzeAwaitExpression(this, operand, schema);
     h.irBuilder.apply(
       'awaitExpr',
       [Kind.expression],
@@ -6491,6 +6491,7 @@ class YieldStatement extends Statement {
   @override
   StatementTypeAnalysisResult visit(Harness h) {
     var result = h.typeAnalyzer.analyzeYieldStatement(
+      this,
       operand,
       isYieldStar: isYieldStar,
     );

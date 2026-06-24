@@ -30278,7 +30278,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional value
+            #E0 requiredPositional isCovariant value
               firstFragment: #F6
               type: int
           returnType: void
@@ -46761,7 +46761,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional value
+            #E0 requiredPositional isCovariant value
               firstFragment: #F5
               type: int
           returnType: void

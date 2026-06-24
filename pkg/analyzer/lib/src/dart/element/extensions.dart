@@ -137,8 +137,7 @@ extension FormalParameterElementMixinExtension
       kind ?? parameterKind,
       baseFormalParameter: baseElement,
     );
-    element.firstFragment.isExplicitlyCovariant =
-        isCovariant ?? this.isCovariant;
+    element.isCovariant = isCovariant ?? this.isCovariant;
     return element;
   }
 }

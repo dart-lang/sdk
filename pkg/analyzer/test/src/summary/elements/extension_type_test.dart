@@ -2649,7 +2649,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional isDeclaring isFinal this.it
+            #E0 requiredPositional isCovariant isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -2715,7 +2715,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional isDeclaring isFinal this.it
+            #E0 requiredPositional isCovariant isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
               field: <testLibrary>::@extensionType::A::@field::it

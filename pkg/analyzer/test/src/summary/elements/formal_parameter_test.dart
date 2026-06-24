@@ -82,7 +82,7 @@ library
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed a
+            #E0 optionalNamed isCovariant a
               firstFragment: #F4
               type: A
           returnType: void
@@ -127,7 +127,7 @@ library
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional a
+            #E0 optionalPositional isCovariant a
               firstFragment: #F4
               type: A
           returnType: void
@@ -172,7 +172,7 @@ library
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional a
+            #E0 requiredPositional isCovariant a
               firstFragment: #F4
               type: A
           returnType: void
@@ -242,7 +242,7 @@ library
           reference: <testLibrary>::@class::A::@method::f
           firstFragment: #F4
           formalParameters
-            #E2 requiredPositional t
+            #E2 requiredPositional isCovariant t
               firstFragment: #F5
               type: T
           returnType: void
@@ -265,7 +265,7 @@ library
           reference: <testLibrary>::@class::B::@method::f
           firstFragment: #F9
           formalParameters
-            #E3 requiredPositional inheritsCovariant t
+            #E3 requiredPositional isCovariant t
               firstFragment: #F10
               type: T
           returnType: void
@@ -326,7 +326,7 @@ library
           reference: <testLibrary>::@class::A::@method::m
           firstFragment: #F3
           formalParameters
-            #E0 optionalNamed a
+            #E0 optionalNamed isCovariant a
               firstFragment: #F4
               type: A
           returnType: void
@@ -344,7 +344,7 @@ library
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F7
           formalParameters
-            #E1 optionalNamed inheritsCovariant a
+            #E1 optionalNamed isCovariant a
               firstFragment: #F8
               type: B
           returnType: void

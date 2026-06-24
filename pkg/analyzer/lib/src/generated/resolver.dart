@@ -2203,6 +2203,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var analysisResult = analyzeAwaitExpression(
+      node,
       node.expression,
       contextType.wrapSharedTypeSchemaView(),
     );
@@ -5237,6 +5238,18 @@ class _WhyNotPromotedVisitor
   }
 
   @override
+  List<DiagnosticMessage> visitDemoteViaSuspension(
+    DemoteViaSuspension<PromotableElementImpl> reason,
+  ) {
+    var node = reason.node as AstNode;
+    if (_dataForTesting != null) {
+      _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
+    }
+    var variableName = reason.variable.name;
+    return [_contextMessageForSuspension(variableName, node, reason)];
+  }
+
+  @override
   List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
   ) {
@@ -5371,6 +5384,22 @@ class _WhyNotPromotedVisitor
         url: reason.documentationLink.url,
       ),
     ];
+  }
+
+  DiagnosticMessageImpl _contextMessageForSuspension(
+    String? variableName,
+    AstNode node,
+    DemoteViaSuspension<PromotableElementImpl> reason,
+  ) {
+    return DiagnosticMessageImpl(
+      filePath: source.fullName,
+      message:
+          "Variable '${variableName!}' could not be promoted due to an "
+          "'await' or 'yield'",
+      offset: node.offset,
+      length: node.length,
+      url: reason.documentationLink.url,
+    );
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(

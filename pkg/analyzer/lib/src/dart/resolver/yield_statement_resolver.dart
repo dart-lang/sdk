@@ -158,6 +158,7 @@ class YieldStatementResolver {
     YieldStatementImpl node,
   ) {
     _resolver.analyzeYieldStatement(
+      node,
       node.expression,
       isYieldStar: node.star != null,
     );
