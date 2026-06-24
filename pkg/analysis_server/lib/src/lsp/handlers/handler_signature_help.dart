@@ -63,6 +63,8 @@ class SignatureHelpHandler
 
     return (unit, offset).mapResultsSync((unit, offset) {
       var formats = clientCapabilities.signatureHelpDocumentationFormats;
+      var noActiveParameterSupport =
+          clientCapabilities.signatureHelpNoActiveParameterSupport;
       var dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
 
       // First check if we're in a type args list and if so build some
@@ -73,6 +75,7 @@ class SignatureHelpHandler
         offset,
         autoTriggered,
         formats,
+        noActiveParameterSupport,
       );
       if (typeArgsSignature != null) {
         return success(typeArgsSignature);
@@ -95,7 +98,13 @@ class SignatureHelpHandler
         return success(null);
       }
 
-      return success(toSignatureHelp(formats, signature));
+      return success(
+        toSignatureHelp(
+          formats,
+          signature,
+          noActiveParameterSupport: noActiveParameterSupport,
+        ),
+      );
     });
   }
 
@@ -110,12 +119,14 @@ class SignatureHelpHandler
     int offset,
     bool autoTriggered,
     Set<MarkupKind>? formats,
+    bool noActiveParameterSupport,
   ) {
     var typeArgsComputer = DartTypeArgumentsSignatureComputer(
       dartDocInfo,
       unit,
       offset,
       formats,
+      noActiveParameterSupport: noActiveParameterSupport,
     );
     if (!typeArgsComputer.offsetIsValid) {
       return null;

@@ -95,6 +95,7 @@ class LspClientCapabilities {
   final Set<DiagnosticTag> diagnosticTags;
   final Set<MarkupKind>? completionDocumentationFormats;
   final Set<MarkupKind>? signatureHelpDocumentationFormats;
+  final bool signatureHelpNoActiveParameterSupport;
   final Set<MarkupKind>? hoverContentFormats;
   final Set<SymbolKind> documentSymbolKinds;
   final Set<SymbolKind> workspaceSymbolKinds;
@@ -182,6 +183,8 @@ class LspClientCapabilities {
     var signatureHelpDocumentationFormats = _listToNullableSet(
       signatureInformation?.documentationFormat,
     );
+    var signatureHelpNoActiveParameterSupport =
+        signatureInformation?.noActiveParameterSupport ?? false;
     var workDoneProgress = raw.window?.workDoneProgress ?? false;
     var workspaceSymbolKinds = _listToSet(
       workspaceSymbol?.symbolKind?.valueSet,
@@ -214,6 +217,8 @@ class LspClientCapabilities {
       diagnosticTags: diagnosticTags,
       completionDocumentationFormats: completionDocumentationFormats,
       signatureHelpDocumentationFormats: signatureHelpDocumentationFormats,
+      signatureHelpNoActiveParameterSupport:
+          signatureHelpNoActiveParameterSupport,
       hoverContentFormats: hoverContentFormats,
       documentSymbolKinds: documentSymbolKinds,
       workspaceSymbolKinds: workspaceSymbolKinds,
@@ -255,6 +260,7 @@ class LspClientCapabilities {
     required this.diagnosticTags,
     required this.completionDocumentationFormats,
     required this.signatureHelpDocumentationFormats,
+    required this.signatureHelpNoActiveParameterSupport,
     required this.hoverContentFormats,
     required this.documentSymbolKinds,
     required this.workspaceSymbolKinds,

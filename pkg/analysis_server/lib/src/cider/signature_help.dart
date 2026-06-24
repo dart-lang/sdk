@@ -31,6 +31,7 @@ class CiderSignatureHelpComputer {
       resolvedUnit.unit,
       offset,
       formats,
+      noActiveParameterSupport: false,
     );
     if (typeArgsComputer.offsetIsValid) {
       var typeSignature = typeArgsComputer.compute();

@@ -743,6 +743,17 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setSignatureHelpNoActiveParameterSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'signatureHelp': {
+          'signatureInformation': {'noActiveParameterSupport': supported},
+        },
+      },
+    );
+  }
+
   void setSnippetTextEditSupport([bool supported = true]) {
     experimentalCapabilities['snippetTextEdit'] = supported;
   }

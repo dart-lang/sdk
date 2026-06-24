@@ -338,6 +338,20 @@ void f(int a, int b) {
     );
   }
 
+  Future<void>
+  test_activeParameter_invalid_clientSupportsNoActiveParameter() async {
+    setSignatureHelpNoActiveParameterSupport();
+
+    var result = await _getSignatureHelpJson('''
+void f(int a) {
+  f(1, ^);
+}
+''');
+
+    expect(result.containsKey('activeParameter'), isTrue);
+    expect(result['activeParameter'], isNull);
+  }
+
   Future<void> test_augmentation_method() async {
     var content = '''
 part 'a.dart';
@@ -964,6 +978,30 @@ class Bar extends Foo<^> {}
     );
   }
 
+  Future<void>
+  test_typeParams_activeParameter_clientSupportsNoActiveParameter() async {
+    setSignatureHelpNoActiveParameterSupport();
+
+    var result = await _getSignatureHelpJson('''
+class Foo<T1, T2 extends String> {}
+
+class Bar extends Foo<^> {}
+''');
+
+    expect(result.containsKey('activeParameter'), isTrue);
+    expect(result['activeParameter'], isNull);
+  }
+
+  Future<void> test_typeParams_activeParameter_clientWithoutSupport() async {
+    var result = await _getSignatureHelpJson('''
+class Foo<T1, T2 extends String> {}
+
+class Bar extends Foo<^> {}
+''');
+
+    expect(result['activeParameter'], 2);
+  }
+
   Future<void> test_typeParams_function() async {
     var content = '''
 /// My Foo.
@@ -1027,6 +1065,25 @@ var a = A<^>();
       expectedLabel,
       expectedParams: expectedParams,
     );
+  }
+
+  Future<Map<String, Object?>> _getSignatureHelpJson(String content) async {
+    var code = TestCode.parse(content);
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+
+    var request = makeRequest(
+      Method.textDocument_signatureHelp,
+      SignatureHelpParams(
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
+        position: code.position.position,
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(response.error, isNull);
+    return response.result as Map<String, Object?>;
   }
 
   Future<void> test_unopenFile() async {

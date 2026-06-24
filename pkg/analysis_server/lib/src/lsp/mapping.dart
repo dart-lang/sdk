@@ -1526,8 +1526,9 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
 
 lsp.SignatureHelp toSignatureHelp(
   Set<lsp.MarkupKind>? preferredFormats,
-  server.SignatureInformation signature,
-) {
+  server.SignatureInformation signature, {
+  bool noActiveParameterSupport = false,
+}) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
   // is at the end ready to provide another argument).
@@ -1573,8 +1574,11 @@ lsp.SignatureHelp toSignatureHelp(
   }
 
   var cleanedDoc = cleanDartdoc(signature.dartdoc);
+  var activeParameter =
+      signature.activeParameterIndex ??
+      (noActiveParameterSupport ? null : signature.parameters.length);
 
-  return lsp.SignatureHelp(
+  return signatureHelpWithNullableActiveParameter(
     signatures: [
       lsp.SignatureInformation(
         label: getSignatureLabel(signature),
@@ -1585,16 +1589,46 @@ lsp.SignatureHelp toSignatureHelp(
       ),
     ],
     activeSignature: 0, // activeSignature
-    // We must provide a unsigned integer here but it's possible there isn't
-    // a valid value (because the user might be in the 10th argument of an
-    // invocation that only takes 1). The LSP spec allows us to send an
-    // out-of-bounds value so send the first out-of-bound value (`.length`). The
-    // spec says this may be treated as 0, however VS Code will not highlight
-    // any parameter in this case (which is preferred and hopefully other
-    // clients may copy).
-    activeParameter:
-        signature.activeParameterIndex ?? signature.parameters.length,
+    // If supported by the client, use `null` to indicate there is no active
+    // parameter. Otherwise, send the first out-of-bounds value (`.length`) so
+    // older clients do not highlight any parameter.
+    activeParameter: activeParameter,
+    includeActiveParameter: noActiveParameterSupport,
   );
+}
+
+lsp.SignatureHelp signatureHelpWithNullableActiveParameter({
+  required List<lsp.SignatureInformation> signatures,
+  int? activeSignature,
+  int? activeParameter,
+  required bool includeActiveParameter,
+}) {
+  return _SignatureHelpWithNullableActiveParameter(
+    signatures: signatures,
+    activeSignature: activeSignature,
+    activeParameter: activeParameter,
+    includeActiveParameter: includeActiveParameter,
+  );
+}
+
+class _SignatureHelpWithNullableActiveParameter extends lsp.SignatureHelp {
+  final bool includeActiveParameter;
+
+  _SignatureHelpWithNullableActiveParameter({
+    required super.signatures,
+    super.activeSignature,
+    super.activeParameter,
+    required this.includeActiveParameter,
+  });
+
+  @override
+  Map<String, Object?> toJson() {
+    var json = super.toJson();
+    if (includeActiveParameter && activeParameter == null) {
+      json['activeParameter'] = null;
+    }
+    return json;
+  }
 }
 
 List<lsp.SnippetableTextEdit> toSnippetTextEdits(
