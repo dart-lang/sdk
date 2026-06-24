@@ -3902,6 +3902,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
     this._firstFragment, {
     FormalParameterElementImpl? baseFormalParameter,
   }) : _baseFormalParameter = baseFormalParameter {
+    isCovariant = _firstFragment.isExplicitlyCovariant;
     for (var fragment in _fragments) {
       fragment._element = this;
     }
@@ -3946,7 +3947,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return {
       ...super.flagsForTesting,
       'hasDefaultValue': hasDefaultValue,
-      'inheritsCovariant': inheritsCovariant,
+      'isCovariant': isCovariant,
     };
   }
 
@@ -3959,30 +3960,15 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // TODO(augmentations): Implement the merge of formal parameters.
   bool get hasDefaultValue => defaultValueCode != null;
 
-  /// Whether this formal parameter inherits from a covariant formal parameter.
-  /// This happens when it overrides a method in a supertype that has a
-  /// corresponding covariant formal parameter.
   @generated
-  bool get inheritsCovariant {
-    return hasFlag(
-      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
-    );
-  }
-
-  @generated
-  set inheritsCovariant(bool value) {
-    setFlag(
-      _ElementStorageFlag.formalParameterElement_inheritsCovariant,
-      value,
-    );
-  }
-
   @override
   bool get isCovariant {
-    if (_firstFragment.isExplicitlyCovariant || inheritsCovariant) {
-      return true;
-    }
-    return false;
+    return hasFlag(_ElementStorageFlag.formalParameterElement_isCovariant);
+  }
+
+  @generated
+  set isCovariant(bool value) {
+    setFlag(_ElementStorageFlag.formalParameterElement_isCovariant, value);
   }
 
   @override
@@ -12023,7 +12009,7 @@ enum _ElementStorageFlag {
   executableElement_hasEnclosingTypeParameterReference,
   executableElement_isExtensionTypeMember,
   fieldElement_hasEnclosingTypeParameterReference,
-  formalParameterElement_inheritsCovariant,
+  formalParameterElement_isCovariant,
   instanceElement_isSimplyBounded,
   libraryElement_isSynthetic,
   propertyInducingElement_isTypeInferredFromInitializer,
@@ -12088,7 +12074,7 @@ enum _FieldFormalParameterElementFlags {
 
 enum _FormalParameterElementFlags {
   hasDefaultValue(element: _ElementFlagSource.computed),
-  inheritsCovariant(element: _ElementFlagSource.stored),
+  isCovariant(element: _ElementFlagSource.stored),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaration(fragment: true),
   isOriginMixinApplicationClassConstructor(fragment: true),

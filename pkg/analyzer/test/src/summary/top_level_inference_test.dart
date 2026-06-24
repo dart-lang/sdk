@@ -12630,7 +12630,7 @@ library
           reference: <testLibrary>::@class::A::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional isCovariant _
               firstFragment: #F6
               type: num
           returnType: void
@@ -12662,7 +12662,7 @@ library
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional inheritsCovariant value
+            #E1 requiredPositional isCovariant value
               firstFragment: #F12
               type: int
           returnType: void
@@ -12746,7 +12746,7 @@ library
           reference: <testLibrary>::@class::A::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional isCovariant _
               firstFragment: #F6
               type: num
           returnType: void
@@ -12771,7 +12771,7 @@ library
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional inheritsCovariant _
+            #E1 requiredPositional isCovariant _
               firstFragment: #F11
               type: int
           returnType: void
