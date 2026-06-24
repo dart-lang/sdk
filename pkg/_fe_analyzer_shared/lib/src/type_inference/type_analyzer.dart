@@ -392,6 +392,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes the operand expression.
   AwaitExpressionResult analyzeAwaitExpression(
+    Expression node,
     Expression operand,
     SharedTypeSchemaView schema,
   ) {
@@ -426,6 +427,8 @@ mixin TypeAnalyzer<
       isVoidAllowed: false,
     );
     // Stack: (operand)
+
+    flow.suspension(node);
 
     // Let T_1 be the static type of m_1.
     SharedTypeView t1 = m1.type;
@@ -2422,6 +2425,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes the operand expression.
   YieldStatementResult analyzeYieldStatement(
+    Statement node,
     Expression operand, {
     required bool isYieldStar,
   }) {
@@ -2453,6 +2457,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
+    flow.suspension(node);
     return new YieldStatementResult(operandType: operandResult.type);
   }
 

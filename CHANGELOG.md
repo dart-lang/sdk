@@ -67,6 +67,13 @@ To learn more about the feature, check out the
 
 [primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
 
+#### Breaking changes
+
+- A minor change has been made to type promotion to avoid unsound behavior. See
+  SDK issue [#62889][] for details.
+
+[#62889]: https://github.com/dart-lang/sdk/issues/62889
+
 ### Libraries
 
 #### `dart:async`

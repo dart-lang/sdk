@@ -5713,6 +5713,30 @@ class _WhyNotPromotedVisitor
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  List<LocatedMessage> visitDemoteViaSuspension(
+    DemoteViaSuspension<InternalVariable> reason,
+  ) {
+    TreeNode node = reason.node as TreeNode;
+    if (inferrer.dataForTesting != null) {
+      inferrer
+              .dataForTesting!
+              .flowAnalysisResult
+              .nonPromotionReasonTargets[node] =
+          reason.shortName;
+    }
+    int offset = node.fileOffset;
+    return [
+      diag.variableNotPromotedDueToSuspension
+          .withArguments(
+            variableName: reason.variable.cosmeticName!,
+            documentationUrl: reason.documentationLink.url,
+          )
+          .withLocation(inferrer.fileUri, offset, noLength),
+    ];
+  }
+
+  @override
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
     PropertyNotPromotedForNonInherentReason reason,
   ) {

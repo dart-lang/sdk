@@ -433,6 +433,12 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   }
 
   @override
+  void visitYieldStatement(YieldStatement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitYieldStatement(node);
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitDoStatement(node);

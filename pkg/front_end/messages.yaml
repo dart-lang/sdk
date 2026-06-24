@@ -5585,6 +5585,24 @@ variableCouldBeNullDueToWrite:
   includeErrorContext: true
   exampleAllowOtherCodes: true
 
+variableNotPromotedDueToSuspension:
+  parameters:
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "Variable '#variableName' could not be promoted due to an 'await' or 'yield'."
+  correctionMessage: "Try checking the type of the variable after the 'await' or 'yield'.  See #documentationUrl"
+  script: |
+    void foo(int? i) {
+      void bar() async {
+        if (i == null) return;
+        await null;
+        i.isEven;
+      }
+      i = 0;
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
+
 fieldNotPromotedBecauseNotEnabled:
   parameters:
     Name variableName: The name of the unpromoted variable.

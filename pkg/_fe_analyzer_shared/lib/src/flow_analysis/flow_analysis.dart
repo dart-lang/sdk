@@ -82,6 +82,37 @@ class DemoteViaExplicitWrite<Variable extends Object>
   String toString() => 'DemoteViaExplicitWrite($node)';
 }
 
+/// Non-promotion reason describing the situation where a promotion was lost
+/// because the current function was suspended (due to an `await` or `yield`
+/// statement) while inside a local function, allowing other code to execute and
+/// potentially modify the variable.
+class DemoteViaSuspension<Variable extends Object> extends NonPromotionReason {
+  /// The local variable that was not promoted.
+  final Variable variable;
+
+  /// The node representing the suspension (e.g. an `await` or `yield`).
+  ///
+  /// This is the node that was passed to [FlowAnalysis.suspension].
+  final Object node;
+
+  DemoteViaSuspension(this.variable, this.node);
+
+  @override
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.suspension;
+
+  @override
+  String get shortName => 'demoteViaSuspension';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object>(
+    NonPromotionReasonVisitor<R, Node, Variable> visitor,
+  ) => visitor.visitDemoteViaSuspension(this as DemoteViaSuspension<Variable>);
+
+  @override
+  String toString() => 'DemoteViaSuspension($node)';
+}
+
 /// Information gathered by flow analysis about an expression. This includes its
 /// static type, whether it refers to `null` or to something promotable, and the
 /// flow models representing execution state after the expression is evaluated.
@@ -1105,6 +1136,18 @@ abstract class FlowAnalysis<
   /// is write captured.
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
+
+  /// Call this method after visiting an `await` expression or `yield`
+  /// statement.
+  ///
+  /// Both of these constructs have the effect of suspending the execution of
+  /// the current function and allowing other code to execute, so flow analysis
+  /// may need to demote some variables.
+  ///
+  /// [Node] should be the AST node of the `await` expression or `yield`
+  /// statement. This will be reported back via [DemoteViaSuspension.node] if
+  /// any promotions are lost due to this suspension.
+  void suspension(Node node);
 
   /// Call this method just after visiting a `case` or `default` body.
   ///
@@ -2446,6 +2489,11 @@ class FlowAnalysisDebug<
   }
 
   @override
+  void suspension(Node node) {
+    _wrap('suspension($node)', () => _wrapped.suspension(node));
+  }
+
+  @override
   bool switchStatement_afterCase() {
     return _wrap(
       'switchStatement_afterCase()',
@@ -2857,8 +2905,9 @@ class FlowModel {
   FlowModel conservativeJoin(
     FlowModelHelper helper,
     Iterable<int> writtenVariables,
-    Iterable<int> capturedVariables,
-  ) {
+    Iterable<int> capturedVariables, {
+    NonPromotionReason? Function(int variableKey)? getNonPromotionReason,
+  }) {
     FlowModel result = this;
 
     for (int variableKey in writtenVariables) {
@@ -2869,7 +2918,9 @@ class FlowModel {
       // guaranteed to be already assigned and won't be assigned again.
       if (helper.isFinal(variableKey)) continue;
 
-      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned();
+      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned(
+        nonPromotionReason: getNonPromotionReason?.call(variableKey),
+      );
       if (!identical(info, newInfo)) {
         result = result.updatePromotionInfo(helper, variableKey, newInfo);
       }
@@ -3556,7 +3607,12 @@ enum NonPromotionDocumentationLink {
   /// The expression in question is a reference to a local variable. It couldn't
   /// be promoted because the variable was written to between the type test and
   /// the usage.
-  write('http://dart.dev/go/non-promo-write');
+  write('http://dart.dev/go/non-promo-write'),
+
+  /// The expression in question is a reference to a local variable. It couldn't
+  /// be promoted because the local variable was demoted due to an 'await' or
+  /// 'yield' expression/statement.
+  suspension('http://dart.dev/go/non-promo-suspension');
 
   /// The link URL, as a text string.
   final String url;
@@ -3625,6 +3681,8 @@ abstract class NonPromotionReasonVisitor<
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
   R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
+
+  R visitDemoteViaSuspension(DemoteViaSuspension<Variable> reason);
 
   R visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
@@ -3773,13 +3831,27 @@ class PromotionModel {
   ///
   /// Used by [FlowModel.conservativeJoin] to update the state of variables at
   /// the top of loops whose bodies write to them.
-  PromotionModel discardPromotionsAndMarkNotUnassigned() {
+  PromotionModel discardPromotionsAndMarkNotUnassigned({
+    NonPromotionReason? nonPromotionReason,
+  }) {
+    NonPromotionHistory? newNonPromotionHistory;
+    if (nonPromotionReason != null) {
+      newNonPromotionHistory = nonPromotionHistory;
+      for (int i = promotedTypes.length - 1; i >= 0; i--) {
+        newNonPromotionHistory = new NonPromotionHistory(
+          promotedTypes[i],
+          nonPromotionReason,
+          newNonPromotionHistory,
+        );
+      }
+    }
     return new PromotionModel(
       promotedTypes: const [],
       tested: tested,
       assigned: assigned,
       unassigned: false,
       ssaNode: writeCaptured ? null : new SsaNode(),
+      nonPromotionHistory: newNonPromotionHistory,
     );
   }
 
@@ -5220,6 +5292,12 @@ class _FlowAnalysisImpl<
   /// anonymous method, if there is one. Otherwise `null`.
   _AnonymousBlockContext? _anonymousBlockContext;
 
+  /// Stack of [AssignedVariablesNodeInfo] for any local function, function
+  /// expression, or late variable initializer expression that encloses the
+  /// point in flow control that's currently being analyzed.
+  final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
+      [];
+
   _FlowAnalysisImpl(
     this.operations,
     this._assignedVariables, {
@@ -5653,6 +5731,7 @@ class _FlowAnalysisImpl<
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
+    assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
   @override
@@ -6550,6 +6629,36 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  void suspension(Node node) {
+    // During an async suspension or yield, other code may execute. If the
+    // current point in flow control is inside a local function, this means that
+    // enclosing functions may resume executing.
+    //
+    // Therefore, any variables that are read within the current local function,
+    // and written to anywhere, but not declared in the current local function,
+    // might potentially get written to, blowing away any promotions that are
+    // currently in effect.
+    if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
+      Set<int> variablesToDemote = info.read
+          .intersection(_assignedVariables.anywhere.written)
+          .difference(info.declared);
+      _current = _current.conservativeJoin(
+        this,
+        variablesToDemote,
+        const [],
+        getNonPromotionReason: (variableKey) {
+          Variable? variable = promotionKeyStore.variableForKey(variableKey);
+          // `variableKey` should be one of the keys in `variableToDemote`;
+          // those keys in turn should always correspond to actual variables
+          // declared by the user. So `variable` should never be `null`.
+          assert(variablesToDemote.contains(variableKey));
+          return new DemoteViaSuspension<Variable>(variable!, node);
+        },
+      );
+    }
+  }
+
+  @override
   bool switchStatement_afterCase() {
     _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
     bool isLocallyReachable = _current.reachable.locallyReachable;
@@ -7240,6 +7349,7 @@ class _FlowAnalysisImpl<
 
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _enclosingFunctionExpressionInfoStack.add(info);
     _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(
       new _FunctionExpressionContext(_current, _anonymousBlockContext),
@@ -7255,6 +7365,7 @@ class _FlowAnalysisImpl<
   void _functionExpression_end() {
     _FunctionExpressionContext context =
         _stack.removeLast() as _FunctionExpressionContext;
+    _enclosingFunctionExpressionInfoStack.removeLast();
     _current = context._previous;
     _anonymousBlockContext = context._previousAnonymousBlockContext;
   }
