@@ -1362,7 +1362,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     final function = tearOffConstant.function;
     final positionalCount = function.positionalParameters.length;
-    final names = function.namedParameters.map((p) => p.name!).toList();
+    final names = function.namedParameters.map((p) => p.parameterName).toList();
     final instantiationOfTearOffRepresentation = translator.closureLayouter
         .getClosureRepresentation(0, positionalCount, names)!;
     final tearOffRepresentation = tearOffClosure.representation;
@@ -1810,7 +1810,7 @@ class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
     final representation = translator.closureLayouter.getClosureRepresentation(
       0,
       function.positionalParameters.length,
-      function.namedParameters.map((p) => p.name!).toList(),
+      function.namedParameters.map((p) => p.parameterName).toList(),
     )!;
     return w.RefType.def(representation.closureStruct, nullable: false);
   }

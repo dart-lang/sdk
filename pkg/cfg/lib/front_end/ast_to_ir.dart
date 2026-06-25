@@ -2240,7 +2240,7 @@ class LocalVariableIndexer {
 
   LocalVariable variableForDeclaration(ast.Variable declaration) =>
       _declaredVariables[declaration] ??= builder.declareLocalVariable(
-        declaration.name ?? '#temp',
+        declaration.cosmeticName ?? '#temp',
         declaration,
         declaration.isLate
             ? const LateValueType()

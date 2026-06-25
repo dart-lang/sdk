@@ -2086,7 +2086,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     subBuilder.invokeTarget?.function?.positionalParameters;
                 if (positionals != null &&
                     positionals.isNotEmpty &&
-                    isExtensionThisName(positionals.first.name) &&
+                    isExtensionThisName(positionals.first.cosmeticName) &&
                     usedDefinitions.containsKey(syntheticThisName)) {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly

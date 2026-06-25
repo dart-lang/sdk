@@ -552,7 +552,7 @@ abstract class CombinedMemberSignatureBase {
     }
     PositionalParameter setterParameter =
         new PositionalParameter(
-            cosmeticName: parameter?.name ?? 'value',
+            cosmeticName: parameter?.cosmeticName ?? 'value',
             type: type,
             isCovariantByDeclaration: isCovariantByDeclaration,
           )
@@ -620,7 +620,7 @@ abstract class CombinedMemberSignatureBase {
       );
       PositionalParameter positionalParameter = extern
           .createPositionalParameter(
-            cosmeticName: parameter.name,
+            cosmeticName: parameter.cosmeticName,
             type: parameterType,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration,
             defaultValue: cloner.cloneOptional(parameter.initializer),
@@ -668,7 +668,7 @@ abstract class CombinedMemberSignatureBase {
       }
       for (int i = 0; i < namedParameterCount; i++) {
         NamedParameter parameter = function.namedParameters[i];
-        NamedType namedParameterType = namedTypes[parameter.name]!;
+        NamedType namedParameterType = namedTypes[parameter.parameterName]!;
         namedParameters.add(cloneNamedParameter(parameter, namedParameterType));
       }
     }

@@ -258,7 +258,7 @@ class InvocationVisitor extends RecursiveVisitor {
           arguments.positional[i],
           positionalParameters[i],
           node,
-          "/* ${positionalParameters[i].name} = */",
+          "/* ${positionalParameters[i].cosmeticName} = */",
         );
       }
     }

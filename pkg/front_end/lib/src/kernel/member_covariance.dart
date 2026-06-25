@@ -135,11 +135,11 @@ class Covariance {
     Map<String, int>? namedParameters;
     if (function.namedParameters.isNotEmpty) {
       for (int index = 0; index < function.namedParameters.length; index++) {
-        Variable parameter = function.namedParameters[index];
+        NamedParameter parameter = function.namedParameters[index];
         int covariance = covarianceFromParameter(parameter);
         if (covariance != 0) {
           namedParameters ??= {};
-          namedParameters[parameter.name!] = covariance;
+          namedParameters[parameter.parameterName] = covariance;
         }
       }
     }
@@ -306,8 +306,11 @@ class Covariance {
         }
       }
       if (_namedParameters != null) {
-        for (Variable parameter in function.namedParameters) {
-          covarianceToParameter(getNamedVariance(parameter.name!), parameter);
+        for (NamedParameter parameter in function.namedParameters) {
+          covarianceToParameter(
+            getNamedVariance(parameter.parameterName),
+            parameter,
+          );
         }
       }
       List<bool>? typeParameters = _typeParameters;

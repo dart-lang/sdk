@@ -1732,9 +1732,9 @@ class Translator with KernelNodes {
   ({
     List<TypeParameter> typeParameters,
     List<DartType> typeParametersToTypeCheck,
-    List<Variable> positional,
+    List<PositionalParameter> positional,
     List<DartType> positionalToTypeCheck,
-    List<Variable> named,
+    List<NamedParameter> named,
     List<DartType> namedToTypeCheck,
   })
   getParametersToCheck(Member member) {
@@ -1742,8 +1742,9 @@ class Translator with KernelNodes {
     final List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
-    final List<Variable> positional = memberFunction.positionalParameters;
-    final List<Variable> named = memberFunction.namedParameters;
+    final List<PositionalParameter> positional =
+        memberFunction.positionalParameters;
+    final List<NamedParameter> named = memberFunction.namedParameters;
 
     // If this is a CFE-inserted `forwarding-stub` then the types we have to
     // check against are those from the forwarding target.
@@ -1799,8 +1800,8 @@ class Translator with KernelNodes {
   }
 
   List<DartType> _typeFromNamedParameters(
-    List<Variable> namedOrder,
-    List<Variable> namedType,
+    List<NamedParameter> namedOrder,
+    List<NamedParameter> namedType,
   ) {
     if (namedOrder.isEmpty) return const [];
     final namedTypes = <DartType>[];
@@ -1810,7 +1811,7 @@ class Translator with KernelNodes {
 
       for (int j = 0; j < namedType.length; ++j) {
         final other = namedType[j];
-        if (named.name == other.name) {
+        if (named.parameterName == other.parameterName) {
           type = other.type;
           break;
         }
@@ -2930,7 +2931,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     Expression? initializerForNamedParamInMember(String paramName) {
       for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
-        if (functionNode.namedParameters[i].name == paramName) {
+        if (functionNode.namedParameters[i].parameterName == paramName) {
           return functionNode.namedParameters[i].initializer;
         }
       }

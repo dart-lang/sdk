@@ -28,10 +28,10 @@ static method testNotCapturedImplicitTypes() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+  on core::Object catch(catch-variable final e, catch-variable final s)/* scope=[
     #ctx1: not-captured VariableContext([
-      catch-variable e;
-      catch-variable s;
+      catch-variable final e;
+      catch-variable final s;
     ]),
   ] */ {
   }
@@ -40,10 +40,10 @@ static method testNotCapturedExplicitTypes() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::StateError catch(catch-variable e, catch-variable s)/* scope=[
+  on core::StateError catch(catch-variable final e, catch-variable final s)/* scope=[
     #ctx2: not-captured VariableContext([
-      catch-variable e;
-      catch-variable s;
+      catch-variable final e;
+      catch-variable final s;
     ]),
   ] */ {
   }
@@ -52,10 +52,10 @@ static method testNotCapturedWildcards() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::Object catch(catch-variable _#wc0#formal, catch-variable _#wc1#formal)/* scope=[
+  on core::Object catch(catch-variable final wildcard _#wc0#formal, catch-variable final wildcard _#wc1#formal)/* scope=[
     #ctx3: not-captured VariableContext([
-      catch-variable _#wc0#formal;
-      catch-variable _#wc1#formal;
+      catch-variable final wildcard _#wc0#formal;
+      catch-variable final wildcard _#wc1#formal;
     ]),
   ] */ {
   }
@@ -64,10 +64,10 @@ static method testDirectCaptured() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+  on core::Object catch(catch-variable final e, catch-variable final s)/* scope=[
     #ctx4: direct-captured VariableContext([
-      catch-variable e;
-      catch-variable s;
+      catch-variable final e;
+      catch-variable final s;
     ]),
   ] */ {
     return () /* #ctx4 */ → core::List<core::Object> => <core::Object>[e, s];
@@ -77,10 +77,10 @@ static method testAssertCaptured() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+  on core::Object catch(catch-variable final e, catch-variable final s)/* scope=[
     #ctx5: assert-captured VariableContext([
-      catch-variable e;
-      catch-variable s;
+      catch-variable final e;
+      catch-variable final s;
     ]),
   ] */ {
     return () /* #ctx5 */ → Null {
@@ -99,10 +99,10 @@ static method testErroneousOneOptional() → dynamic {
   try {
     throw new core::StateError::•("error");
   }
-  on core::Object catch(catch-variable e, catch-variable s)/* scope=[
+  on core::Object catch(catch-variable final e, catch-variable final s)/* scope=[
     #ctx6: not-captured VariableContext([
-      catch-variable e;
-      catch-variable s;
+      catch-variable final e;
+      catch-variable final s;
     ]),
   ] */ {
   }

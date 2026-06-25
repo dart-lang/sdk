@@ -28,8 +28,8 @@ class FunctionNodeSignature implements FunctionSignature {
   @override
   Map<String, ParameterInfo> get namedParameters {
     Map<String, ParameterInfo> map = {};
-    for (Variable formal in _function.namedParameters) {
-      map[formal.name!] = (
+    for (NamedParameter formal in _function.namedParameters) {
+      map[formal.parameterName] = (
         type: formal.type,
         hasDeclaredInitializer: formal.hasDeclaredInitializer,
       );

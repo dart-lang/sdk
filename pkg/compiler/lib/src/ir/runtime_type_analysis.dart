@@ -463,7 +463,7 @@ class _NullAwareExpression {
 _NullAwareExpression? _getNullAwareExpression(ir.TreeNode node) {
   if (node is ir.Let) {
     ir.Expression body = node.body;
-    if (node.variable.name == null &&
+    if (node.variable.cosmeticName == null &&
         node.variable.isFinal &&
         body is ir.ConditionalExpression) {
       final condition = body.condition;

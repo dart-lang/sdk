@@ -1272,46 +1272,21 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeWord('catch-variable');
     }
 
-    // TODO(cstefantsova): Should [Variable]s have annotations?
-    // writeAnnotationList(node.annotations, separateLines: false);
-    if (node.hasIsLowered) {
-      writeModifier(node.isLowered, 'lowered');
-    }
-    // TODO(johnniwinther): Remove this. This should be equivalent to
-    //  `is LateVariable`.
-    if (node.hasIsLate) {
-      writeModifier(node.isLate, 'late');
-    }
-    if (node.hasIsRequired) {
-      writeModifier(node.isRequired, 'required');
-    }
-    if (node.hasIsCovariantByDeclaration) {
-      writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
-    }
-    if (node.hasIsCovariantByClass) {
-      writeModifier(node.isCovariantByClass, 'covariant-by-class');
-    }
-    if (node.hasIsFinal) {
-      writeModifier(node.isFinal, 'final');
-    }
-    if (node.hasIsConst) {
-      writeModifier(node.isConst, 'const');
-    }
-    if (node.hasIsSynthesized) {
-      writeModifier(
-        node.isSynthesized && node.cosmeticName != null,
-        'synthesized',
-      );
-    }
-    if (node.hasIsHoisted) {
-      writeModifier(node.isHoisted, 'hoisted');
-    }
-    if (node.hasIsWildcard) {
-      writeModifier(node.isWildcard, 'wildcard');
-    }
-    if (node.hasIsErroneouslyInitialized) {
-      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
-    }
+    writeModifier(node.isLowered, 'lowered');
+    writeModifier(node.isLate, 'late');
+    writeModifier(node.isRequired, 'required');
+    writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
+    writeModifier(node.isCovariantByClass, 'covariant-by-class');
+    writeModifier(node.isFinal, 'final');
+    writeModifier(node.isConst, 'const');
+    writeModifier(
+      node.isSynthesized && node.cosmeticName != null,
+      'synthesized',
+    );
+    writeModifier(node.isHoisted, 'hoisted');
+    writeModifier(node.isWildcard, 'wildcard');
+    writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+
     // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
     // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
     writeWord(getVariableName(node));
@@ -2770,7 +2745,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
-    writeModifier(node.isSynthesized && node.name != null, 'synthesized');
+    writeModifier(
+      node.isSynthesized && node.cosmeticName != null,
+      'synthesized',
+    );
     writeModifier(node.isHoisted, 'hoisted');
     writeModifier(node.isWildcard, 'wildcard');
     writeModifier(node.isInitializingFormal, 'initializing-formal');

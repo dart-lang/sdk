@@ -746,7 +746,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
   }) {
     void handleParameter(ir.Variable parameter, {bool isOptional = true}) {
       DartType type = elementMap.getDartType(parameter.type);
-      String? name = parameter.name;
+      String? name = parameter.cosmeticName;
       ConstantValue? defaultValue;
       if (parameter.isRequired) {
         defaultValue = elementMap.getRequiredSentinelConstantValue();

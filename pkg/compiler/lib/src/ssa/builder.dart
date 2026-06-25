@@ -1238,8 +1238,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // And add them to `builtArguments` in calling-convention order.
     function.namedParameters.toList()
       ..sort(namedOrdering)
-      ..forEach((ir.Variable parameter) {
-        var argument = namedArguments[parameter.name];
+      ..forEach((ir.NamedParameter parameter) {
+        var argument = namedArguments[parameter.parameterName];
         argument ??= _defaultValueForParameter(parameter);
         builtArguments.add(argument);
       });
@@ -2157,10 +2157,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       handleParameter(functionNode.positionalParameters[position]);
     }
     if (functionNode.namedParameters.isNotEmpty) {
-      List<ir.Variable> namedParameters = functionNode.namedParameters
+      List<ir.NamedParameter> namedParameters = functionNode.namedParameters
           // Filter elided parameters.
           .where(
-            (p) => function.parameterStructure.namedParameters.contains(p.name),
+            (p) => function.parameterStructure.namedParameters.contains(
+              p.parameterName,
+            ),
           )
           .toList();
       // Sort by file offset to visit parameters in declaration order.
@@ -4937,12 +4939,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         var namedParameters = target.namedParameters.toList();
         assert(
           namedValues.keys.every(
-            (k) => namedParameters.any((p) => p.name == k),
+            (k) => namedParameters.any((p) => p.parameterName == k),
           ),
         );
         namedParameters.sort(nativeOrdering);
-        for (ir.Variable parameter in namedParameters) {
-          final value = namedValues[parameter.name];
+        for (ir.NamedParameter parameter in namedParameters) {
+          final value = namedValues[parameter.parameterName];
           values.add(value);
         }
       }
@@ -5031,19 +5033,23 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // TODO(sra): Ensure the stored order is canonical so we don't have to
       // sort. The old builder uses CallStructure.makeArgumentList which depends
       // on the old element model.
-      List<ir.Variable> namedParameters =
+      List<ir.NamedParameter> namedParameters =
           target.namedParameters
               // Filter elided parameters.
-              .where((p) => parameterStructure.namedParameters.contains(p.name))
+              .where(
+                (p) => parameterStructure.namedParameters.contains(
+                  p.parameterName,
+                ),
+              )
               .toList()
             ..sort(namedOrdering);
-      for (ir.Variable parameter in namedParameters) {
-        final value = namedValues[parameter.name];
+      for (ir.NamedParameter parameter in namedParameters) {
+        final value = namedValues[parameter.parameterName];
         if (value == null) {
           values.add(_defaultValueForParameter(parameter));
         } else {
           values.add(value);
-          namedValues.remove(parameter.name);
+          namedValues.remove(parameter.parameterName);
         }
       }
       assert(namedValues.isEmpty);
@@ -7040,12 +7046,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // TODO(johnniwinther): can we elide those parameters? This should be
       // consistent with what we do with instance methods.
       final procedure = node as ir.Procedure;
-      List<ir.Variable> namedParameters = procedure.function.namedParameters
+      List<ir.NamedParameter> namedParameters = procedure
+          .function
+          .namedParameters
           .toList();
 
       namedParameters.sort(nativeOrdering);
-      for (ir.Variable variable in namedParameters) {
-        String parameterName = variable.name!;
+      for (ir.NamedParameter variable in namedParameters) {
+        String parameterName = variable.parameterName;
         // TODO(jacobr): consider throwing if parameter names do not match
         // names of properties in the class.
         final argument = arguments[i];

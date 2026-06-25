@@ -953,7 +953,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
         extern.createNamedExpression(
-          parameter.name!,
+          parameter.parameterName,
           extern.createVariableGet(newParameter, fileOffset: fileOffset),
         ),
       );

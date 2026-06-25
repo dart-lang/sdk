@@ -291,6 +291,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 }
 
-int compareNamedParameters(Variable a, Variable b) {
-  return a.name!.compareTo(b.name!);
+int compareNamedParameters(NamedParameter a, NamedParameter b) {
+  return a.parameterName.compareTo(b.parameterName);
 }

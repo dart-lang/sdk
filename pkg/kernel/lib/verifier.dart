@@ -1478,7 +1478,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       NamedExpression argument = arguments.named[i];
       String name = argument.name;
       for (int j = 0; j < function.namedParameters.length; ++j) {
-        if (function.namedParameters[j].name == name) continue namedLoop;
+        if (function.namedParameters[j].parameterName == name) {
+          continue namedLoop;
+        }
       }
       return false;
     }

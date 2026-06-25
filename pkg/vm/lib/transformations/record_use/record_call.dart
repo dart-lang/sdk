@@ -110,7 +110,7 @@ class CallRecorder {
     final bool hasReceiver =
         (target.function.positionalParameters.isNotEmpty &&
             isExtensionThisName(
-              target.function.positionalParameters[0].name,
+              target.function.positionalParameters[0].cosmeticName,
             )) ||
         isTearOffLowering;
 
@@ -143,10 +143,8 @@ class CallRecorder {
     // Fill up with the default values
     for (final parameter in node.target.function.namedParameters) {
       final initializer = parameter.initializer;
-      final name = parameter.name;
-      if (initializer != null &&
-          name != null &&
-          !namedArguments.containsKey(name)) {
+      final name = parameter.parameterName;
+      if (initializer != null && !namedArguments.containsKey(name)) {
         namedArguments[name] = evaluateExpression(initializer);
       }
     }
@@ -206,7 +204,7 @@ Definition definitionFromMember(ast.Member target) {
     final bool hasReceiver =
         (target.function.positionalParameters.isNotEmpty &&
             isExtensionThisName(
-              target.function.positionalParameters[0].name,
+              target.function.positionalParameters[0].cosmeticName,
             )) ||
         isTearOffLowering;
 

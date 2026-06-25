@@ -82,7 +82,7 @@ final class ContextDesc implements Context {
 
   @override
   String toString() =>
-      'Context[captured: $captured, variables: ${variables.map((v) => v.name).join(', ')}]';
+      'Context[captured: $captured, variables: ${variables.map((v) => v.cosmeticName).join(', ')}]';
 }
 
 class ScopeDesc implements Scope {

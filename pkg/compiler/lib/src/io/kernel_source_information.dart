@@ -55,9 +55,9 @@ String? computeKernelElementNameForSourceMaps(
       while (node is! ir.Member) {
         if (node is ir.FunctionDeclaration) {
           if (name != null) {
-            name = '${node.variable.name}.$name';
+            name = '${node.variable.cosmeticName}.$name';
           } else {
-            name = node.variable.name;
+            name = node.variable.cosmeticName;
           }
         } else if (node is ir.FunctionExpression) {
           if (name != null) {

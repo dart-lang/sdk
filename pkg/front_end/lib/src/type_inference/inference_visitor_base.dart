@@ -2963,7 +2963,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case NamedArgument():
             if (!signature.namedParameters.any(
               // Coverage-ignore(suite): Not run.
-              (declaration) => declaration.name == argument.name,
+              (declaration) => declaration.parameterName == argument.name,
             )) {
               return true;
             }

@@ -1925,7 +1925,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         fileOffset = declaredMember.fileOffset;
       } else {
         message = diag.overrideTypeMismatchParameter.withArguments(
-          parameterName: declaredParameter.name!,
+          parameterName: declaredParameter.cosmeticName!,
           declaredMemberName: declaredMemberName,
           declaredType: declaredType,
           overriddenType: interfaceType,
@@ -2131,23 +2131,25 @@ class SourceClassBuilder extends ClassBuilderImpl
       );
     }
 
-    int compareNamedParameters(Variable p0, Variable p1) {
-      return p0.name!.compareTo(p1.name!);
+    int compareNamedParameters(NamedParameter p0, NamedParameter p1) {
+      return p0.parameterName.compareTo(p1.parameterName);
     }
 
-    List<Variable> sortedFromDeclared = new List.of(
+    List<NamedParameter> sortedFromDeclared = new List.of(
       declaredFunction.namedParameters,
     )..sort(compareNamedParameters);
-    List<Variable> sortedFromInterface = new List.of(
+    List<NamedParameter> sortedFromInterface = new List.of(
       interfaceFunction.namedParameters,
     )..sort(compareNamedParameters);
-    Iterator<Variable> declaredNamedParameters = sortedFromDeclared.iterator;
-    Iterator<Variable> interfaceNamedParameters = sortedFromInterface.iterator;
+    Iterator<NamedParameter> declaredNamedParameters =
+        sortedFromDeclared.iterator;
+    Iterator<NamedParameter> interfaceNamedParameters =
+        sortedFromInterface.iterator;
     outer:
     while (declaredNamedParameters.moveNext() &&
         interfaceNamedParameters.moveNext()) {
-      while (declaredNamedParameters.current.name !=
-          interfaceNamedParameters.current.name) {
+      while (declaredNamedParameters.current.parameterName !=
+          interfaceNamedParameters.current.parameterName) {
         if (!declaredNamedParameters.moveNext()) {
           reportInvalidOverride(
             isInterfaceCheck,
@@ -2156,7 +2158,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               declaredMemberName:
                   "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              parameterName: interfaceNamedParameters.current.name!,
+              parameterName: interfaceNamedParameters.current.parameterName,
               overriddenMemberName:
                   "${interfaceMember.enclosingClass!.name}."
                   "${interfaceMember.name.text}",
@@ -2177,7 +2179,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           break outer;
         }
       }
-      Variable declaredParameter = declaredNamedParameters.current;
+      NamedParameter declaredParameter = declaredNamedParameters.current;
       _checkTypes(
         types,
         interfaceSubstitution,
@@ -2198,7 +2200,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck,
           declaredMember,
           diag.overrideMismatchRequiredNamedParameter.withArguments(
-            parameterName: declaredParameter.name!,
+            parameterName: declaredParameter.parameterName,
             declaredMemberName:
                 "${declaredMember.enclosingClass!.name}."
                 "${declaredMember.name.text}",

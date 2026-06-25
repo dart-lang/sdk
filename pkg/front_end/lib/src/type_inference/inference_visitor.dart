@@ -3014,8 +3014,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
         .map(
-          (Variable decl) => new NamedType(
-            decl.name!,
+          (NamedParameter decl) => new NamedType(
+            decl.parameterName,
             substitution.substituteType(decl.type),
             isRequired: decl.isRequired,
           ),
@@ -3151,8 +3151,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<NamedType> named = function.namedParameters
         .map(
           // Coverage-ignore(suite): Not run.
-          (Variable decl) => new NamedType(
-            decl.name!,
+          (NamedParameter decl) => new NamedType(
+            decl.parameterName,
             substitution.substituteType(decl.type),
             isRequired: decl.isRequired,
           ),
@@ -13560,11 +13560,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         Map<String, DartType> inferredVariableTypes = {
           for (Variable variable in pattern.declaredVariables)
-            variable.name!: variable.type,
+            variable.cosmeticName!: variable.type,
         };
         if (headIndex == 0) {
           for (Variable jointVariable in switchCase.jointVariables) {
-            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            DartType? inferredType =
+                inferredVariableTypes[jointVariable.cosmeticName!];
             if (inferredType != null) {
               jointVariable.type = inferredType;
             } else {
@@ -13577,14 +13578,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Variable jointVariable = switchCase.jointVariables[i];
             // The error on joint variables not present in all case heads is
             // reported in BodyBuilder.
-            DartType? inferredType = inferredVariableTypes[jointVariable.name!];
+            DartType? inferredType =
+                inferredVariableTypes[jointVariable.cosmeticName!];
             if (!jointVariablesNotInAll.contains(jointVariable) &&
                 inferredType != null &&
                 jointVariable.type != inferredType) {
               jointVariable.initializer = problemReporting.buildProblem(
                 compilerContext: compilerContext,
                 message: diag.jointPatternVariablesMismatch.withArguments(
-                  variableName: jointVariable.name!,
+                  variableName: jointVariable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset:

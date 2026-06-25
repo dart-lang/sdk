@@ -1264,8 +1264,8 @@ class ClosureRepresentationsForParameterCount {
 
   void registerFunction(FunctionNode functionNode) {
     int? prevIndex;
-    for (Variable named in functionNode.namedParameters) {
-      String name = named.name!;
+    for (NamedParameter named in functionNode.namedParameters) {
+      String name = named.parameterName;
       int nameIndex = nameIds.putIfAbsent(name, () => nameUnions.add());
       if (prevIndex != null) {
         nameUnions.union(prevIndex, nameIndex);

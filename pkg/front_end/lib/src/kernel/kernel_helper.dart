@@ -102,7 +102,7 @@ class DelayedDefaultValueCloner {
                  if (synthesized
                          .function!
                          .namedParameters[namedParameterIndex]
-                         .name ==
+                         .parameterName ==
                      namedSuperParameters[superParameterIndex]) {
                    ++superParameterIndex;
                  }
@@ -166,7 +166,10 @@ class DelayedDefaultValueCloner {
       int superParameterNameIndex = 0;
       Map<String, int> originalNamedParameterIndices = {};
       for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalNamedParameterIndices[_original.namedParameters[i].name!] = i;
+        originalNamedParameterIndices[_original
+                .namedParameters[i]
+                .parameterName] =
+            i;
       }
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
@@ -176,7 +179,7 @@ class DelayedDefaultValueCloner {
           );
         } else if (superParameterNameIndex < namedSuperParameters.length &&
             namedSuperParameters[superParameterNameIndex] ==
-                _synthesized.namedParameters[i].name) {
+                _synthesized.namedParameters[i].parameterName) {
           String superParameterName =
               namedSuperParameters[superParameterNameIndex];
           int? originalNamedParameterIndex =
@@ -231,15 +234,15 @@ class DelayedDefaultValueCloner {
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, Variable> originalParameters = {};
+        Map<String, NamedParameter> originalParameters = {};
         for (int i = 0; i < _original.namedParameters.length; i++) {
-          originalParameters[_original.namedParameters[i].name!] =
+          originalParameters[_original.namedParameters[i].parameterName] =
               _original.namedParameters[i];
         }
         for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          Variable synthesizedParameter = _synthesized.namedParameters[i];
-          Variable? originalParameter =
-              originalParameters[synthesizedParameter.name!];
+          NamedParameter synthesizedParameter = _synthesized.namedParameters[i];
+          NamedParameter? originalParameter =
+              originalParameters[synthesizedParameter.parameterName];
           if (originalParameter != null) {
             if (!originalParameter.isRequired &&
                 !synthesizedParameter.isRequired) {
@@ -297,10 +300,10 @@ class DelayedDefaultValueCloner {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
             superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.name!,
+            superParameterName: synthesizedParameter.cosmeticName!,
           ),
           synthesizedParameter.fileOffset,
-          synthesizedParameter.name?.length ?? 1,
+          synthesizedParameter.cosmeticName?.length ?? 1,
           synthesized.fileUri,
         );
         synthesizedParameter.isErroneouslyInitialized = true;
