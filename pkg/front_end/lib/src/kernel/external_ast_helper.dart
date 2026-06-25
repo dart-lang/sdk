@@ -839,6 +839,7 @@ NamedParameter createNamedParameter({
   bool isLowered = false,
   bool isSynthesized = false,
   bool isWildcard = false,
+  bool isRenamedPrivateNamedParameter = false,
   required int fileOffset,
 }) {
   return new NamedParameter(
@@ -855,6 +856,7 @@ NamedParameter createNamedParameter({
     isLowered: isLowered,
     isSynthesized: isSynthesized,
     isWildcard: isWildcard,
+    isRenamedPrivateNamedParameter: isRenamedPrivateNamedParameter,
   )..fileOffset = fileOffset;
 }
 

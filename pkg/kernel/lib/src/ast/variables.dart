@@ -39,6 +39,7 @@ sealed class Variable extends VariableBase implements ContextConsumer {
   static const int FlagWildcard = 1 << 11;
   static const int FlagSuperInitializingFormal = 1 << 12;
   static const int FlagErroneouslyInitialized = 1 << 13;
+  static const int FlagRenamedPrivateNamedParameter = 1 << 14;
 
   /// The static type of the variable, either declared or inferred type during
   /// type inference.
@@ -1274,7 +1275,19 @@ class NamedParameter extends FunctionParameter {
     super.isLowered = false,
     super.isSynthesized = false,
     super.isWildcard = false,
-  }) : type = type ?? const DynamicType();
+    bool isRenamedPrivateNamedParameter = false,
+  }) : type = type ?? const DynamicType() {
+    this.isRenamedPrivateNamedParameter = isRenamedPrivateNamedParameter;
+  }
+
+  bool get isRenamedPrivateNamedParameter =>
+      flags & Variable.FlagRenamedPrivateNamedParameter != 0;
+
+  void set isRenamedPrivateNamedParameter(bool value) {
+    flags = value
+        ? (flags | Variable.FlagRenamedPrivateNamedParameter)
+        : (flags & ~Variable.FlagRenamedPrivateNamedParameter);
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.

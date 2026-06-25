@@ -467,6 +467,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
             hasDeclaredDefaultValue: hasDeclaredInitializer,
             isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
+            isRenamedPrivateNamedParameter: publicName != null,
             isImplicitlyTyped: isTypeOmitted,
             fileOffset: fileOffset,
           );

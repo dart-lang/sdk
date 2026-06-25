@@ -1563,8 +1563,9 @@ type VariableInternal {
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
               isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
-              isErroneouslyInitialized);
-  // For named parameters, this is the parameter name.
+              isErroneouslyInitialized, isRenamedPrivateNamedParameter);
+  // For named parameters, this is the parameter name (which has been renamed if
+  // isRenamedPrivateNamedParameter is set).
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
   StringReference name;
