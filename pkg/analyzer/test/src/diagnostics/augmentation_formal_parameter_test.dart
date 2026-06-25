@@ -1181,6 +1181,28 @@ augment void f(String p1) {}
 ''');
   }
 
+  test_topLevelFunction_rP1__rP1_dynamic_objectQuestion() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(dynamic p1);
+//             ^^
+// [context 1] The formal parameter is here.
+augment void f(Object? p1) {}
+//             ^^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'Object?' must be the same as the declaration's formal parameter type 'dynamic'.
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1_objectQuestion_dynamic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Object? p1);
+//             ^^
+// [context 1] The formal parameter is here.
+augment void f(dynamic p1) {}
+//             ^^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'dynamic' must be the same as the declaration's formal parameter type 'Object?'.
+''');
+  }
+
   test_topLevelFunction_rP1__rP1_omittedType() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(int p1);

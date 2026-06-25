@@ -221,6 +221,16 @@ augment mixin M {
 ''');
   }
 
+  test_topLevelFunction_dynamic_objectQuestion() async {
+    await resolveTestCodeWithDiagnostics(r'''
+dynamic foo() => null;
+
+augment Object? foo();
+//      ^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'Object?' must be the same as the introductory declaration's return type 'dynamic'.
+''');
+  }
+
   test_topLevelFunction_int_int_withImportPrefix() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
@@ -229,6 +239,16 @@ import 'dart:core' as core;
 int foo() => 0;
 
 augment core.int foo();
+''');
+  }
+
+  test_topLevelFunction_objectQuestion_dynamic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Object? foo() => null;
+
+augment dynamic foo();
+//      ^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'dynamic' must be the same as the introductory declaration's return type 'Object?'.
 ''');
   }
 

@@ -42,7 +42,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     MarkupKind? expectedFormat = MarkupKind.Markdown,
     SignatureHelpContext? context,
     _FileState state = _FileState.open,
-    int? activeParameter,
+    Matcher? activeParameter,
   }) async {
     var code = TestCode.parse(content);
     if (state == _FileState.closed) {
@@ -169,7 +169,7 @@ void f({int a, int b}) {
       content,
       'f({int a, int b})',
       // We matched on the name.
-      activeParameter: 1,
+      activeParameter: equals(1),
     );
   }
 
@@ -184,7 +184,7 @@ void f({int a}) {
       content,
       'f({int a})',
       // First invalid index, because we don't match a named parameter.
-      activeParameter: 1,
+      activeParameter: equals(1),
     );
   }
 
@@ -199,7 +199,7 @@ void f({int a, int b}) {
       content,
       'f({int a, int b})',
       // We matched on the name.
-      activeParameter: 1,
+      activeParameter: equals(1),
     );
   }
 
@@ -214,7 +214,7 @@ void f({int a, int b, int c}) {
       content,
       'f({int a, int b, int c})',
       // We matched on the name.
-      activeParameter: 2,
+      activeParameter: equals(2),
     );
   }
 
@@ -229,7 +229,7 @@ void f({int a}) {
       content,
       'f({int a})',
       // First invalid index, because we don't try to guess named parameters.
-      activeParameter: 1,
+      activeParameter: equals(1),
     );
   }
 
@@ -244,11 +244,13 @@ void f({int a, int b}) {
       content,
       'f({int a, int b})',
       // First invalid index, because we don't try to guess named parameters.
-      activeParameter: 2,
+      activeParameter: equals(2),
     );
   }
 
-  Future<void> test_activeParameter_none() async {
+  Future<void> test_activeParameter_none_nullNotSupported() async {
+    setSignatureHelpNullActiveParameterSupport(false);
+
     var content = '''
 void f() {
   f(^);
@@ -259,8 +261,20 @@ void f() {
       content,
       'f()',
       // First invalid index (there is no 0th parameter).
-      activeParameter: 0,
+      activeParameter: equals(0),
     );
+  }
+
+  Future<void> test_activeParameter_none_nullSupported() async {
+    setSignatureHelpNullActiveParameterSupport();
+
+    var content = '''
+void f() {
+  f(^);
+}
+''';
+
+    await _expectSignature(content, 'f()', activeParameter: isNull);
   }
 
   Future<void> test_activeParameter_positional1() async {
@@ -274,7 +288,7 @@ void f(int a) {
       content,
       'f(int a)',
       // Matched on index.
-      activeParameter: 0,
+      activeParameter: equals(0),
     );
   }
 
@@ -289,7 +303,7 @@ void f(int a, int b) {
       content,
       'f(int a, int b)',
       // Matched on index.
-      activeParameter: 1,
+      activeParameter: equals(1),
     );
   }
 
@@ -304,7 +318,7 @@ void f(int a, int b, int c, {int d}) {
       content,
       'f(int a, int b, int c, {int d})',
       // Matched on index of positionals (c).
-      activeParameter: 2,
+      activeParameter: equals(2),
     );
   }
 
@@ -319,7 +333,7 @@ void f(int a) {
       content,
       'f(int a)',
       // Matched on index.
-      activeParameter: 0,
+      activeParameter: equals(0),
     );
   }
 
@@ -334,7 +348,7 @@ void f(int a, int b) {
       content,
       'f(int a, int b)',
       // First invalid index because there's no valid parameter.
-      activeParameter: 2,
+      activeParameter: equals(2),
     );
   }
 
@@ -920,6 +934,38 @@ foo(String s, int i) {
         isRetrigger: false,
       ),
     );
+  }
+
+  Future<void> test_typeArgs_activeParameter_nullNotSupported() async {
+    setSignatureHelpNullActiveParameterSupport(false);
+
+    var content = '''
+class C<T1, T2> {}
+
+var x = C<^>();
+''';
+
+    const expectedLabel = 'class C<T1, T2>';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      activeParameter: equals(2), // First invalid index
+    );
+  }
+
+  Future<void> test_typeArgs_activeParameter_nullSupported() async {
+    setSignatureHelpNullActiveParameterSupport();
+
+    var content = '''
+class C<T1, T2> {}
+
+var x = C<^>();
+''';
+
+    const expectedLabel = 'class C<T1, T2>';
+
+    await _expectSignature(content, expectedLabel, activeParameter: isNull);
   }
 
   Future<void> test_typeArgs_dartDocPreference_full() =>

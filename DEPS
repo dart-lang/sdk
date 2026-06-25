@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:deb6854eec93529b2bd30178d400ad2ee7665cd4",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:d31e02004d860452bc7273f002f6890d0adc94fa",
+  "gn_version": "git_revision:ed2a73266f1d9a0aeeebc3e1e07045848a62254e",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "aba417e711baa6eb92c8553ee59a15694c6f3819",
-  "boringssl_rev": "2bbaed043ea4871536611964aabc0c663e631728",
+  "boringssl_rev": "1862b7706b62495f512815e3a5ec4a05444cdc1c",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "3eca94a79d17c9a3e77b51a2d2d6cb306cda9c2a",
@@ -128,24 +128,24 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "78f5f40880139f6c127bbd70f7a5996b7250d814",
-  "dartdoc_rev": "1d56f263955f329b6701d8f84f069eb0aef353a4",
-  "ecosystem_rev": "911a6bf618e248228fb499e658fa2cf43b5d0f5b",
+  "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
+  "dartdoc_rev": "77a52b6125ce8cc8a88a8a399d80701254e43838",
+  "ecosystem_rev": "319ff812d463fc194999a0d4b682097450279332",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "89cec60a4249ae0a0316f7a50d37ac56597f52c3",
-  "i18n_rev": "3be91bcd5887b874a07c2c358225d7d809e83270",
+  "http_rev": "c140dc012da1df74b0fb99230b8736438b8eba6a",
+  "i18n_rev": "2ae32fdd9ca14ecdca77dc37787dbba3c9e2c48a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "b814f5393753e0cd752ce3ad733f5e66dd5949ce", # rolled manually while record_use is experimental
   "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
   "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
-  "shelf_rev": "b4c3878b4752050ac21a79d6dfd588f485c633f4",
+  "shelf_rev": "74d58bc1499115f91f8120dbd08f77c83f7f343d",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "1020c783adbebea6dc64627e2418cc6f7576fde6",
+  "test_rev": "2adf8b546d878cb7f6534653d0a821ac7e1f5753",
   "tools_rev": "7fec8be9af0cd0367d03dbec29b66b3f46565720",
-  "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "eb8c3fc61a1e35f48f865836c7c7342897d91bcc",
+  "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
+  "web_rev": "19d0315df54225d3aa3c11531619a55bbd4d30be",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
@@ -575,7 +575,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "EmfiOMUge_nnNS33BJW7L2mdnGJkAf2IYfWdCsDpK-oC",
+      "version": "tRDjAwjqDhSv0B666Mgf7Zl4JDbwNugMZlBkvaVoVasC",
       }
     ],
     "condition": 'download_fuchsia_deps',

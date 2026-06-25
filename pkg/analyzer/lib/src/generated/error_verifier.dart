@@ -2877,7 +2877,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var actualType = formalParameter.explicitFragmentType;
       if (actualType != null) {
         var expectedType = firstParameter.element.type;
-        if (!typeSystem.isEqualTo(actualType, expectedType)) {
+        if (actualType is InvalidType || expectedType is InvalidType) {
+          return;
+        }
+        if (actualType != expectedType) {
           diagnosticReporter.report(
             diag.augmentationFormalParameterTypeMismatch
                 .withArguments(
@@ -3140,7 +3143,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var expectedType = fragment.element.returnType;
     var actualType = returnTypeNode.typeOrThrow;
-    if (typeSystem.isEqualTo(actualType, expectedType)) {
+    if (actualType is InvalidType || expectedType is InvalidType) {
+      return;
+    }
+    if (actualType == expectedType) {
       return;
     }
 
@@ -3207,8 +3213,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (typeParameterNode.bound case var boundNode?) {
         var firstBound = firstTypeParameter.element.bound;
-        if (firstBound == null ||
-            !typeSystem.isEqualTo(boundNode.typeOrThrow, firstBound)) {
+        if (firstBound == null || boundNode.typeOrThrow != firstBound) {
           diagnosticReporter.report(
             diag.augmentationTypeParameterBound.at(boundNode),
           );

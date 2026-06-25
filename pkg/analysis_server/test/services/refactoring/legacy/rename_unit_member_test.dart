@@ -448,6 +448,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_ClassElement_annotationReferences() async {
+    await indexTestUnit('''
+import '' as self;
+@self.Foo()
+@Foo()
+class Fo^o {
+  const new();
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import '' as self;
+@self.NewName()
+@NewName()
+class NewName {
+  const new();
+}
+''');
+  }
+
   Future<void> test_createChange_ClassElement_flutterWidget() async {
     writeTestPackageConfig(flutter: true);
     await indexTestUnit('''

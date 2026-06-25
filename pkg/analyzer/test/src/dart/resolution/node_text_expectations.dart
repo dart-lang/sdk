@@ -299,8 +299,10 @@ class NodeTextExpectationsCollector {
 
   static final Map<String, _File> _files = {};
 
+  static bool get shouldPrintFailureDetails => !currentTestIsExpectedToFail;
+
   static void add(String actual, {String? intraInvocationId}) {
-    if (!updatingIsEnabled) {
+    if (!updatingIsEnabled || currentTestIsExpectedToFail) {
       return;
     }
 

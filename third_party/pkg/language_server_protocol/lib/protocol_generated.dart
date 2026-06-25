@@ -1941,31 +1941,6 @@ bool _canParseCompletionItemLabelDetails(
   return true;
 }
 
-bool _canParseCompletionItemResolutionInfo(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionItemResolutionInfo.canParse(value, reporter)) {
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseCompletionItemTagOptions(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2033,6 +2008,31 @@ bool _canParseCompletionOptions(
     }
     if ((!nullCheck || value != null) &&
         !CompletionOptions.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseCompletionResolutionInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !CompletionResolutionInfo.canParse(value, reporter)) {
       return false;
     }
   } finally {
@@ -13864,7 +13864,7 @@ class CompletionItem implements ToJsonable {
 
   /// A data entry field that is preserved on a completion item between a
   /// [CompletionRequest] and a [CompletionResolveRequest].
-  final CompletionItemResolutionInfo? data;
+  final CompletionResolutionInfo? data;
 
   /// Indicates if this item is deprecated.
   /// @deprecated Use `tags` instead.
@@ -14123,7 +14123,7 @@ class CompletionItem implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionItemResolutionInfo(obj, reporter, 'data',
+      if (!_canParseCompletionResolutionInfo(obj, reporter, 'data',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -14206,8 +14206,7 @@ class CompletionItem implements ToJsonable {
         .toList();
     final dataJson = json['data'];
     final data = dataJson != null
-        ? CompletionItemResolutionInfo.fromJson(
-            dataJson as Map<String, Object?>)
+        ? CompletionResolutionInfo.fromJson(dataJson as Map<String, Object?>)
         : null;
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;

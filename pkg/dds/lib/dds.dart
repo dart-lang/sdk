@@ -63,6 +63,7 @@ abstract class DartDevelopmentService {
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
     UriConverter? uriConverter,
+    bool disableServiceOriginCheck = false,
   }) async {
     if (!remoteVmServiceUri.isScheme('http')) {
       throw ArgumentError(
@@ -104,6 +105,7 @@ abstract class DartDevelopmentService {
       enableServicePortFallback,
       uriConverter,
       appName,
+      disableServiceOriginCheck,
     );
     await service.startService();
     return service;

@@ -37,7 +37,9 @@ abstract class AbstractAnalysisOptionsTest
     var actual = _AnalysisOptionsTextWriter().write(options);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -135,8 +137,10 @@ abstract class AbstractAnalysisOptionsTest
       var actual = actualCodeByFile[entry.key]!;
       if (actual != entry.value) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
-        print('-------- ${entry.key.path} --------');
-        printPrettyDiff(entry.value, actual);
+        if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+          print('-------- ${entry.key.path} --------');
+          printPrettyDiff(entry.value, actual);
+        }
         hasMismatch = true;
       }
       index++;

@@ -587,6 +587,17 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setCompletionListApplyKindSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionList': {'applyKindSupport': supported},
+        },
+      },
+    );
+  }
+
   void setCompletionListDefaults(List<String> defaults) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -738,6 +749,17 @@ mixin ClientCapabilitiesHelperMixin {
           'signatureInformation': {
             'documentationFormat': formats?.map((k) => k.toJson()).toList(),
           },
+        },
+      },
+    );
+  }
+
+  void setSignatureHelpNullActiveParameterSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'signatureHelp': {
+          'signatureInformation': {'noActiveParameterSupport': supported},
         },
       },
     );

@@ -272,7 +272,7 @@ class LspMetaModelCleaner {
   TypeBase? _getImprovedType(String interfaceName, String? fieldName) {
     const improvedTypeMappings = <String, Map<String, String>>{
       'Diagnostic': {'code': 'String'},
-      'CompletionItem': {'data': 'CompletionItemResolutionInfo'},
+      'CompletionItem': {'data': 'CompletionResolutionInfo'},
       'ParameterInformation': {'label': 'String'},
       'TextDocumentEdit': {'edits': 'TextDocumentEditEdits'},
       'TypeHierarchyItem': {'data': 'TypeHierarchyItemInfo'},

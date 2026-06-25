@@ -82,7 +82,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     );
     if (actual != code) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(code, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -103,7 +105,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }

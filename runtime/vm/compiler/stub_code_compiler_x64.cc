@@ -420,6 +420,10 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
     __ movsd(reg, Address(args, (2 + kNumberOfCpuRegisters + reg) *
                                     target::kWordSize));
   }
+  // The pointer to the return struct (if any) is passed to the call
+  // as the first argument register, so already handled above.
+  static_assert(CallingConventions::kPointerToReturnStructRegisterCall ==
+                CallingConventions::kArg1Reg);
 
   __ call(Address(args, (2 + kNumberOfCpuRegisters + kNumberOfFpuRegisters) *
                             target::kWordSize));
@@ -449,6 +453,10 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
         reg);
   }
 #endif
+  // The pointer to the return struct (if any) is returned from the call
+  // as the first argument register, so already handled above.
+  static_assert(CallingConventions::kPointerToReturnStructRegisterReturn ==
+                CallingConventions::kReturnReg);
 
 #if defined(DART_TARGET_OS_WINDOWS)
   __ leaq(RSP, Address(RBP, -24));

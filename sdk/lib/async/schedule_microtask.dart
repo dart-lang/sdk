@@ -150,7 +150,7 @@ void scheduleMicrotask(void Function() callback) {
     _rootScheduleMicrotask(null, null, _rootZone, callback);
     return;
   }
-  _ZoneFunction implementation = currentZone._scheduleMicrotask;
+  var implementation = currentZone._scheduleMicrotask;
   if (identical(_rootZone, implementation.zone) &&
       _rootZone.inSameErrorZone(currentZone)) {
     _rootScheduleMicrotask(

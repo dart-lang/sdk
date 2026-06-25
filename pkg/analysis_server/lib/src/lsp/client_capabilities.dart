@@ -103,7 +103,9 @@ class LspClientCapabilities {
   final bool completionLabelDetails;
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
+  final bool completionListApplyKind;
   final bool experimentalSnippetTextEdit;
+  final bool signatureHelpNullActiveParameter;
   final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
 
@@ -137,6 +139,7 @@ class LspClientCapabilities {
     var codeActionKinds = _listToSet(
       codeActionLiteral?.codeActionKind.valueSet,
     );
+    var completionListApplyKind = completionList?.applyKindSupport ?? false;
     var completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
     var completionDocumentationFormats = _listToNullableSet(
       completionItem?.documentationFormat,
@@ -182,6 +185,8 @@ class LspClientCapabilities {
     var signatureHelpDocumentationFormats = _listToNullableSet(
       signatureInformation?.documentationFormat,
     );
+    var signatureHelpNullActiveParameter =
+        signatureInformation?.noActiveParameterSupport ?? false;
     var workDoneProgress = raw.window?.workDoneProgress ?? false;
     var workspaceSymbolKinds = _listToSet(
       workspaceSymbol?.symbolKind?.valueSet,
@@ -220,9 +225,11 @@ class LspClientCapabilities {
       completionItemKinds: completionItemKinds,
       completionInsertTextModes: completionInsertTextModes,
       completionLabelDetails: completionLabelDetails,
+      completionListApplyKind: completionListApplyKind,
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimental.snippetTextEdit,
+      signatureHelpNullActiveParameter: signatureHelpNullActiveParameter,
       supportedInteractiveFormInputTypes:
           experimental.interactiveFormInputTypes,
       supportsShowMessageRequest: experimental.showMessageRequest,
@@ -261,9 +268,11 @@ class LspClientCapabilities {
     required this.completionItemKinds,
     required this.completionInsertTextModes,
     required this.completionLabelDetails,
+    required this.completionListApplyKind,
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
+    required this.signatureHelpNullActiveParameter,
     required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
     required this.supportedCommands,

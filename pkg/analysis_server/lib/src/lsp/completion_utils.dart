@@ -185,7 +185,7 @@ lsp.CompletionItem? toLspCompletionItem(
   required DocumentationPreference includeDocumentation,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  lsp.CompletionItemResolutionInfo? resolutionData,
+  lsp.CompletionResolutionInfo? resolutionData,
   required DartCompletionRequest request,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
