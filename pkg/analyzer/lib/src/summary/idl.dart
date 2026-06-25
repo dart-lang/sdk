@@ -182,14 +182,14 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get elementNameUnitMemberIds;
 
   /// Each item of this list corresponds to a unique referenced element.  It is
-  /// the index into [unitLibraryUris] and [unitUnitUris] for the library
+  /// the index into [unitLibraryPaths] and [unitUnitPaths] for the library
   /// specific unit where the element is declared.
   @Id(5)
   List<int> get elementUnits;
 
   /// Support for indexing `part` and `part of` directives.
   ///
-  /// This is the index into [unitLibraryUris] and [unitUnitUris].
+  /// This is the index into [unitLibraryPaths] and [unitUnitPaths].
   /// This is the library fragment referenced by the directive.
   @Id(21)
   List<int> get libFragmentRefTargets;
@@ -227,17 +227,17 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   @Id(18)
   List<int> get supertypes;
 
-  /// Each item of this list corresponds to the library URI of a unique library
+  /// Each item of this list corresponds to the library path of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
   @Id(2)
-  List<int> get unitLibraryUris;
+  List<int> get unitLibraryPaths;
 
-  /// Each item of this list corresponds to the unit URI of a unique library
+  /// Each item of this list corresponds to the unit path of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
   @Id(3)
-  List<int> get unitUnitUris;
+  List<int> get unitUnitPaths;
 
   /// Each item of this list is the `true` if the corresponding element usage
   /// is qualified with some prefix.
