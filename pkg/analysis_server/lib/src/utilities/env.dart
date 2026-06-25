@@ -20,9 +20,6 @@ DashTool? get topLevelTool {
 }
 
 Map<String, String> get _locaEnvironment =>
-    // TODO(natebosch): bump dependency after package rollout is settled.
-    // platform.NativePlatform.current!.environment;
-    // ignore: deprecated_member_use
     const platform.LocalPlatform().environment;
 
 /// Returns a copy of the current environment with the given analytics values set.
