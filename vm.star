@@ -319,9 +319,10 @@ _nightly_builder(
 )
 
 # vm|aot
-_nightly_builder(
+_vm_builder(
     "vm-modaot-mac-debug-arm64",
     category = "vm|aot|mod",
+    channels = ["try"],
     dimensions = [mac, arm64],
     location_filters = paths.to_location_filters(paths.modular_aot),
 )
