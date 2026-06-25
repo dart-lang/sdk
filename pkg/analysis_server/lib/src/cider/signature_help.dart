@@ -30,7 +30,8 @@ class CiderSignatureHelpComputer {
       dartDocInfo,
       resolvedUnit.unit,
       offset,
-      formats,
+      preferredFormats: formats,
+      clientSupportsNullActiveParameter: false,
     );
     if (typeArgsComputer.offsetIsValid) {
       var typeSignature = typeArgsComputer.compute();
@@ -52,7 +53,11 @@ class CiderSignatureHelpComputer {
       var signature = computer.compute();
       if (signature != null) {
         return SignatureHelpResponse(
-          toSignatureHelp(formats, signature),
+          toSignatureHelp(
+            signature,
+            preferredFormats: formats,
+            clientSupportsNullActiveParameter: false,
+          ),
           lineInfo.getLocation(signature.argumentList.offset + 1),
         );
       }

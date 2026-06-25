@@ -104,6 +104,7 @@ class LspClientCapabilities {
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
+  final bool signatureHelpNullActiveParameter;
   final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
 
@@ -182,6 +183,8 @@ class LspClientCapabilities {
     var signatureHelpDocumentationFormats = _listToNullableSet(
       signatureInformation?.documentationFormat,
     );
+    var signatureHelpNullActiveParameter =
+        signatureInformation?.noActiveParameterSupport ?? false;
     var workDoneProgress = raw.window?.workDoneProgress ?? false;
     var workspaceSymbolKinds = _listToSet(
       workspaceSymbol?.symbolKind?.valueSet,
@@ -223,6 +226,7 @@ class LspClientCapabilities {
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimental.snippetTextEdit,
+      signatureHelpNullActiveParameter: signatureHelpNullActiveParameter,
       supportedInteractiveFormInputTypes:
           experimental.interactiveFormInputTypes,
       supportsShowMessageRequest: experimental.showMessageRequest,
@@ -264,6 +268,7 @@ class LspClientCapabilities {
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
+    required this.signatureHelpNullActiveParameter,
     required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
     required this.supportedCommands,

@@ -1525,9 +1525,10 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
 }
 
 lsp.SignatureHelp toSignatureHelp(
-  Set<lsp.MarkupKind>? preferredFormats,
-  server.SignatureInformation signature,
-) {
+  server.SignatureInformation signature, {
+  required Set<lsp.MarkupKind>? preferredFormats,
+  required bool clientSupportsNullActiveParameter,
+}) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
   // is at the end ready to provide another argument).
@@ -1585,15 +1586,17 @@ lsp.SignatureHelp toSignatureHelp(
       ),
     ],
     activeSignature: 0, // activeSignature
-    // We must provide a unsigned integer here but it's possible there isn't
-    // a valid value (because the user might be in the 10th argument of an
-    // invocation that only takes 1). The LSP spec allows us to send an
-    // out-of-bounds value so send the first out-of-bound value (`.length`). The
-    // spec says this may be treated as 0, however VS Code will not highlight
-    // any parameter in this case (which is preferred and hopefully other
-    // clients may copy).
     activeParameter:
-        signature.activeParameterIndex ?? signature.parameters.length,
+        signature.activeParameterIndex ??
+        // If the client doesn't support `null`, we still must provide an
+        // unsigned integer. The LSP spec allows us to send an out-of-bounds
+        // value so send the first out-of-bound value (`.length`). The spec
+        // says this may be treated as 0, however VS Code will not highlight
+        // any parameter in this case (which is preferred and hopefully other
+        // clients may copy).
+        (clientSupportsNullActiveParameter
+            ? null
+            : signature.parameters.length),
   );
 }
 
