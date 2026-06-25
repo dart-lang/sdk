@@ -1151,7 +1151,7 @@ lsp.CompletionItem toCompletionItem(
   required DocumentationPreference includeDocumentation,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  CompletionItemResolutionInfo? resolutionData,
+  CompletionResolutionInfo? resolutionData,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.

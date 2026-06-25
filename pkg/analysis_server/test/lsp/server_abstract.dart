@@ -587,6 +587,17 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setCompletionListApplyKindSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionList': {'applyKindSupport': supported},
+        },
+      },
+    );
+  }
+
   void setCompletionListDefaults(List<String> defaults) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
