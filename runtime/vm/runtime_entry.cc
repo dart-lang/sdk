@@ -1217,6 +1217,35 @@ struct FfiCallArguments {
   uword cpu_registers[kNumberOfCpuRegisters];
   uword fpu_registers[kNumberOfFpuRegisters];
   uword target;
+
+  const char* ToCString(Zone* zone) const {
+    ZoneTextBuffer buffer(zone);
+    buffer.Printf("  Target: %#" Px "\n", target);
+    buffer.AddString("  CPU registers:\n");
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const char* name = RegisterNames::RegisterName(static_cast<Register>(i));
+      buffer.Printf("   %5s: %#" Px "\n", name, cpu_registers[i]);
+    }
+    buffer.AddString("  FPU registers:\n");
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      const char* name =
+          RegisterNames::FpuRegisterName(static_cast<FpuRegister>(i));
+      buffer.Printf("   %5s: %#" Px "\n", name, fpu_registers[i]);
+    }
+    buffer.Printf("  Stack area (size %" Pu "):", stack_area_end - stack_area);
+    auto* current = reinterpret_cast<const uint8_t*>(stack_area);
+    auto* const end = reinterpret_cast<const uint8_t*>(stack_area_end);
+    for (; current < end; ++current) {
+      if (((end - current) % kWordSize) == 0) {
+        buffer.Printf("\n    %#" Px ": ", reinterpret_cast<uword>(current));
+      } else if (((end - current) % kWordSize) == (kWordSize / 2)) {
+        buffer.AddString("  ");
+      }
+      buffer.Printf("%02x", *current);
+    }
+    buffer.AddString("\n");
+    return buffer.buffer();
+  }
 };
 
 #if defined(HOST_ARCH_ARM64)
@@ -1357,31 +1386,116 @@ static void PassFfiCallArguments(
         CallingConventions::kFpuArgumentRegisters;
   }
 #endif  // defined(TARGET_ARCH_X64)
+
+  if (marshaller.ReturnsCompound()) {
+    const intptr_t arg_index = compiler::ffi::kResultIndex;
+    const auto& loc = marshaller.Location(arg_index);
+    if (loc.IsPointerToMemory()) {
+      // Pass a pointer to the space allocated in stack_area to native code.
+      const auto& pointer_loc = loc.AsPointerToMemory().pointer_location();
+      if (!pointer_loc.IsRegisters()) {
+        UNIMPLEMENTED();
+      }
+      ASSERT_EQUAL(pointer_loc.AsRegisters().num_regs(), 1);
+      const Register reg = pointer_loc.AsRegisters().reg_at(0);
+      ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+      const intptr_t offset = marshaller.PassByPointerStackOffset(arg_index);
+      ASSERT((offset >= 0) &&
+             (args->stack_area + offset + loc.payload_type().SizeInBytes() <=
+              args->stack_area_end));
+      args->cpu_registers[reg] = args->stack_area + offset;
+    }
+  }
 }
 
 static ObjectPtr ReceiveFfiCallResult(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
-    FfiCallArguments* args) {
-  if (marshaller.ReturnsCompound()) {
-    UNIMPLEMENTED();
-  }
+    const FfiCallArguments& args) {
   const intptr_t arg_index = compiler::ffi::kResultIndex;
-  if (marshaller.IsPointerPointer(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+  if (marshaller.IsCompoundCType(arg_index)) {
+    auto* const zone = thread->zone();
+    const auto& loc = marshaller.Location(arg_index);
+    const auto& compound_contents = TypedData::Handle(
+        zone, TypedData::New(kTypedDataUint8ArrayCid,
+                             marshaller.CompoundReturnSizeInBytes()));
+    if (loc.IsPointerToMemory()) {
+      auto const size = loc.payload_type().SizeInBytes();
+      const intptr_t offset = marshaller.PassByPointerStackOffset(arg_index);
+      ASSERT((offset >= 0) &&
+             (args.stack_area + offset + size <= args.stack_area_end));
+      auto* const src = reinterpret_cast<const void*>(args.stack_area + offset);
+      NoSafepointScope scope;
+      memcpy(compound_contents.DataAddr(0), src, size);  // NOLINT
+    } else {
+      // Copy to the TypedData buffer from a list of native locations.
+      ASSERT(loc.IsMultiple());
+      const auto& multiple = loc.AsMultiple();
+      intptr_t offset_in_bytes = 0;
+
+      for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
+        const auto& portion = *multiple.locations().At(i);
+        // Only structs small enough to fit in a CPU + FPU register combo
+        // or two FPU registers are sent as multiple locations.
+        if (!portion.payload_type().IsPrimitive()) {
+          UNIMPLEMENTED();
+        }
+        auto const size = portion.payload_type().SizeInBytes();
+        ASSERT(size <= kWordSize);
+        uword value;
+        if (portion.IsRegisters()) {
+          ASSERT(portion.AsRegisters().num_regs() == 1);
+          const auto src_reg = portion.AsRegisters().reg_at(0);
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfCpuRegisters));
+          value = args.cpu_registers[src_reg];
+        } else if (portion.IsFpuRegisters()) {
+          const FpuRegister src_reg = portion.AsFpuRegisters().fpu_reg();
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfFpuRegisters));
+          value = args.fpu_registers[src_reg];
+        } else {
+          UNIMPLEMENTED();
+        }
+        NoSafepointScope scope;
+        auto* dst = compound_contents.DataAddr(offset_in_bytes);
+        memcpy(dst, &value, size);  // NOLINT
+        offset_in_bytes += size;
+      }
+    }
+    // Now that the contents have been collected, time to install the
+    // appropriate wrapper.
+    auto* const object_store = thread->isolate_group()->object_store();
+    const auto& typed_data_field =
+        Field::Handle(zone, object_store->compound_typed_data_base_field());
+    const auto& offset_in_bytes_field =
+        Field::Handle(zone, object_store->compound_offset_in_bytes_field());
+
+    const auto& compound_type =
+        AbstractType::Handle(zone, marshaller.CType(arg_index));
+    const auto& compound_sub_class =
+        Class::Handle(zone, compound_type.type_class());
+    compound_sub_class.EnsureIsFinalized(thread);
+
+    const auto& wrapper =
+        Instance::Handle(zone, Instance::New(compound_sub_class));
+    wrapper.SetField(typed_data_field, compound_contents);
+    wrapper.SetField(offset_in_bytes_field, Smi::Handle(Smi::New(0)));
+
+    return wrapper.ptr();
+  } else if (marshaller.IsPointerPointer(arg_index)) {
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
     return Pointer::New(value);
   } else if (marshaller.IsTypedDataPointer(arg_index)) {
     UNREACHABLE();  // Only supported for FFI call arguments.
   } else if (marshaller.IsCompoundPointer(arg_index)) {
     UNREACHABLE();  // Only supported for FFI call arguments.
   } else if (marshaller.IsHandleCType(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
     return reinterpret_cast<LocalHandle*>(value)->ptr();
   } else if (marshaller.IsVoid(arg_index)) {
     return Object::null();
   } else if (marshaller.IsBool(arg_index)) {
     int64_t value =
-        TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+        TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
                        marshaller.Location(arg_index)
                            .payload_type()
                            .AsPrimitive()
@@ -1392,7 +1506,7 @@ static ObjectPtr ReceiveFfiCallResult(
     const auto rep = marshaller.RepInDart(arg_index);
     if (RepresentationUtils::IsUnboxedInteger(rep)) {
       const int64_t value =
-          TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+          TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
                          marshaller.Location(arg_index)
                              .payload_type()
                              .AsPrimitive()
@@ -1401,11 +1515,11 @@ static ObjectPtr ReceiveFfiCallResult(
       return Integer::New(value);
     } else if (rep == kUnboxedDouble) {
       double value = bit_cast<double, uint64_t>(
-          args->fpu_registers[CallingConventions::kReturnFpuReg]);
+          args.fpu_registers[CallingConventions::kReturnFpuReg]);
       return Double::New(value);
     } else if (rep == kUnboxedFloat) {
       float value = bit_cast<float, uint32_t>(static_cast<uint32_t>(
-          args->fpu_registers[CallingConventions::kReturnFpuReg]));
+          args.fpu_registers[CallingConventions::kReturnFpuReg]));
       return Double::New(static_cast<double>(value));
     } else {
       UNREACHABLE();
@@ -1542,7 +1656,7 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   }
 
   arguments.SetReturn(
-      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, &args)));
+      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, args)));
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
