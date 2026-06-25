@@ -1110,14 +1110,15 @@ class ConstantsTransformer extends RemovingTransformer {
         // declared in the heads aren't compatible to each other.
         Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
           for (Variable variable in switchCase.jointVariables)
-            variable.name!: extern.createUninitializedVariableDeclaration(
-              type: const DynamicType(),
-              // Avoid step debugging on the declaration of intermediate
-              // variables.
-              // TODO(johnniwinther): Find a more systematic way of omitting
-              // offsets for better step debugging.
-              fileOffset: TreeNode.noOffset,
-            ),
+            variable.cosmeticName!: extern
+                .createUninitializedVariableDeclaration(
+                  type: const DynamicType(),
+                  // Avoid step debugging on the declaration of intermediate
+                  // variables.
+                  // TODO(johnniwinther): Find a more systematic way of omitting
+                  // offsets for better step debugging.
+                  fileOffset: TreeNode.noOffset,
+                ),
         };
 
         bool isContinueTarget = switchCaseIndex.containsKey(switchCase);
@@ -1149,11 +1150,15 @@ class ConstantsTransformer extends RemovingTransformer {
             }
 
             for (Variable variable in pattern.declaredVariables) {
-              (declaredVariablesByName[variable.name!] ??= []).add(variable);
+              (declaredVariablesByName[variable.cosmeticName!] ??= []).add(
+                variable,
+              );
             }
           } else {
             for (Variable variable in pattern.declaredVariables) {
-              (caseVariablesByName[variable.name!] ??= []).add(variable);
+              (caseVariablesByName[variable.cosmeticName!] ??= []).add(
+                variable,
+              );
             }
             caseVariables.addAll(pattern.declaredVariables);
           }
@@ -1174,7 +1179,7 @@ class ConstantsTransformer extends RemovingTransformer {
           }
 
           for (Variable declaredVariable in pattern.declaredVariables) {
-            String variableName = declaredVariable.name!;
+            String variableName = declaredVariable.cosmeticName!;
 
             VariableDeclaration? variableHelper =
                 caseDeclaredVariableHelpersByName[variableName];
@@ -1225,7 +1230,10 @@ class ConstantsTransformer extends RemovingTransformer {
             for (int i = 0; i < variables.length; i++) {
               Variable variable = variables[i];
               variable.isLowered = true;
-              variable.name = createJoinedIntermediateName(variable.name!, i);
+              variable.cosmeticName = createJoinedIntermediateName(
+                variable.cosmeticName!,
+                i,
+              );
             }
           }
         }
@@ -1243,7 +1251,8 @@ class ConstantsTransformer extends RemovingTransformer {
             //         `declaredVariableHelper`{`declaredVariable.type`}
             //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
             jointVariable.initializer = extern.createVariableGet(
-              caseDeclaredVariableHelpersByName[jointVariable.name!]!.variable,
+              caseDeclaredVariableHelpersByName[jointVariable.cosmeticName!]!
+                  .variable,
               promotedType: jointVariable.type,
             )..parent = jointVariable;
           }
@@ -1388,7 +1397,7 @@ class ConstantsTransformer extends RemovingTransformer {
       for (List<Variable> variables in declaredVariablesByName.values) {
         if (variables.length > 1) {
           for (int i = 1; i < variables.length; i++) {
-            variables[i].name = '${variables[i].name}${"#$i"}';
+            variables[i].cosmeticName = '${variables[i].cosmeticName}${"#$i"}';
           }
         }
       }
@@ -3730,7 +3739,7 @@ class ConstantEvaluator
       }
       for (final Variable parameter in function.namedParameters) {
         final Constant value =
-            namedArguments[parameter.name] ??
+            namedArguments[parameter.cosmeticName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
@@ -5068,7 +5077,7 @@ class ConstantEvaluator
 
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
     Variable variable = target.function.namedParameters.singleWhere(
-      (v) => v.name == 'defaultValue',
+      (v) => v.cosmeticName == 'defaultValue',
     );
     return evaluateExpressionInContext(target, variable.initializer!);
   }
@@ -5360,7 +5369,7 @@ class ConstantEvaluator
       }
       for (final Variable parameter in function.namedParameters) {
         final Constant value =
-            namedArguments[parameter.name] ??
+            namedArguments[parameter.cosmeticName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;

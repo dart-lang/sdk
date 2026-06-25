@@ -70,9 +70,9 @@ static method tryCatchRethrow(positional-parameter a, positional-parameter b, po
     try {
       x = x.{core::num::+}(await a){(core::num) → core::int};
     }
-    on core::Object catch(catch-variable e)/* scope=[
+    on core::Object catch(catch-variable final e)/* scope=[
       #ctx10: not-captured VariableContext([
-        catch-variable e;
+        catch-variable final e;
       ]),
     ] */ {
       if(e is core::Error) {

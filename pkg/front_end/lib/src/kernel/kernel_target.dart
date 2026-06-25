@@ -1078,7 +1078,7 @@ class KernelTarget {
       required bool isPositional,
     }) {
       PositionalParameter copy = extern.createPositionalParameter(
-        cosmeticName: formal.name,
+        cosmeticName: formal.cosmeticName,
         type: const UnknownType(),
         isFinal: formal.isFinal,
         isRequired: formal.isRequired,
@@ -1140,7 +1140,7 @@ class KernelTarget {
       namedParameters.add(clone);
       named.add(
         new NamedExpression(
-          formal.name!,
+          formal.parameterName,
           new VariableGet(namedParameters.last),
         ),
       );

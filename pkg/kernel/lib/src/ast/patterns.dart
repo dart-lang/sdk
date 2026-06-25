@@ -940,11 +940,11 @@ class AssignedVariablePattern extends Pattern {
   List<Variable> get declaredVariables => const [];
 
   @override
-  String? get variableName => variable.name!;
+  String? get variableName => variable.cosmeticName!;
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(variable.name!);
+    printer.write(variable.cosmeticName!);
   }
 
   @override
@@ -1335,7 +1335,7 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  String? get variableName => variable.name;
+  String? get variableName => variable.cosmeticName;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitVariablePattern(this);
@@ -1379,7 +1379,7 @@ class VariablePattern extends Pattern {
     } else {
       printer.write("var ");
     }
-    printer.write(variable.name!);
+    printer.write(variable.cosmeticName!);
   }
 
   @override

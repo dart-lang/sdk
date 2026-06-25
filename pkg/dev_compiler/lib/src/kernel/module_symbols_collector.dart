@@ -201,7 +201,7 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
     Variable node,
     VariableSymbolKind kind,
   ) => VariableSymbol(
-    name: node.name!,
+    name: node.cosmeticName!,
     kind: kind,
     isConst: node.isConst,
     isFinal: node.isFinal,

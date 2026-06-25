@@ -2550,7 +2550,7 @@ class BinaryPrinter
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);
     writeUInt30(node.flags);
-    writeStringReference(node.name ?? '');
+    writeStringReference(node.cosmeticName ?? '');
     writeNode(node.type);
     writeOptionalNode(node.initializer);
     // Declare the variable after its initializer. It is not in scope in its

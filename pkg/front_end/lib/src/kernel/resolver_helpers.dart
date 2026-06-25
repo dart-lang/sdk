@@ -725,10 +725,10 @@ class _InitializerBuilder {
           int positionalSuperParameterCount =
               superTarget.function.positionalParameters.length;
           Set<String> superTargetNamedParameterNames = {
-            for (Variable namedParameter
+            for (NamedParameter namedParameter
                 in superTarget.function.namedParameters)
-              ?namedParameter // Coverage-ignore(suite): Not run.
-                  .name,
+              namedParameter // Coverage-ignore(suite): Not run.
+                  .parameterName,
           };
           int positionalIndex = 0;
           for (Argument argument in superParameterArguments.arguments) {

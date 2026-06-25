@@ -280,7 +280,7 @@ mixin FinalizableTransformer on Transformer {
     if (_isFinalizable(node.type)) {
       if (_possiblyUninitialized(node)) {
         final alwaysInitializedDeclaration = SyntheticVariable(
-          cosmeticName: ':${node.name}:finalizableValue',
+          cosmeticName: ':${node.cosmeticName}:finalizableValue',
           type: node.type.withDeclaredNullability(Nullability.nullable),
           isSynthesized: false,
         );

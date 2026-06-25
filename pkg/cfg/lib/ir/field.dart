@@ -37,7 +37,7 @@ final class ContextField extends SyntheticField {
 
   ContextField(this.variable, this.index)
     : super(
-        '#context-field:${variable.name}',
+        '#context-field:${variable.cosmeticName}',
         type: variable.type,
         isFinal: variable.isFinal,
         isLate: variable.isLate,

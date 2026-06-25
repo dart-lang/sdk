@@ -127,11 +127,11 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   static DartType _getTypeOfVariable(Variable node) => node.type;
 
   static NamedType _getNamedTypeOfVariable(
-    Variable node, [
+    NamedParameter node, [
     Substitution? substitution,
   ]) {
     return new NamedType(
-      node.name!,
+      node.parameterName,
       substitution != null ? substitution.substituteType(node.type) : node.type,
       isRequired: node.isRequired,
     );
@@ -180,8 +180,8 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   static FunctionType computeFunctionTypeFromData({
     required DartType returnType,
     required List<TypeParameter> typeParameters,
-    required List<Variable> positionalParameters,
-    required List<Variable> namedParameters,
+    required List<PositionalParameter> positionalParameters,
+    required List<NamedParameter> namedParameters,
     required Nullability nullability,
     required int requiredParameterCount,
   }) {

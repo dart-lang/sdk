@@ -1230,12 +1230,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
-      Map<String, Variable> originNamedMap = <String, Variable>{};
-      for (Variable originNamed in origin.function.namedParameters) {
-        originNamedMap[originNamed.name!] = originNamed;
+      Map<String, NamedParameter> originNamedMap = {};
+      for (NamedParameter originNamed in origin.function.namedParameters) {
+        originNamedMap[originNamed.parameterName] = originNamed;
       }
-      for (Variable forwarderNamed in forwarder.function.namedParameters) {
-        Variable? originNamed = originNamedMap[forwarderNamed.name];
+      for (NamedParameter forwarderNamed
+          in forwarder.function.namedParameters) {
+        NamedParameter? originNamed =
+            originNamedMap[forwarderNamed.parameterName];
         if (originNamed == null) {
           return unhandled(
             "null",

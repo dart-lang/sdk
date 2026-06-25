@@ -84,10 +84,10 @@ class MatchingCache {
   ) {
     Map<String, Variable> jointVariablesMap = {};
     for (Variable variable in jointVariables) {
-      jointVariablesMap[variable.name!] = variable;
+      jointVariablesMap[variable.cosmeticName!] = variable;
     }
     for (Variable variable in variables1) {
-      Variable? jointVariable = jointVariablesMap[variable.name!];
+      Variable? jointVariable = jointVariablesMap[variable.cosmeticName!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
@@ -98,7 +98,7 @@ class MatchingCache {
       }
     }
     for (Variable variable in variables2) {
-      Variable? jointVariable = jointVariablesMap[variable.name!];
+      Variable? jointVariable = jointVariablesMap[variable.cosmeticName!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
@@ -1353,7 +1353,7 @@ class Cache {
                 )
                 ..isConst = _isConst
                 ..isLate = _isLate
-                ..name = _name;
+                ..cosmeticName = _name;
           if (_isLate) {
             // Coverage-ignore-block(suite): Not run.
             // Avoid step debugging on the declaration of caching variables.

@@ -463,7 +463,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
   bool get isSetter => false;
 
   @override
-  List<Variable> get parameters {
+  List<NamedParameter> get parameters {
     // Compute the named parameters that were used in the given `invocation`.
     // Note that we preserve the procedure's ordering and not the invocation's.
     // This is also used below for the names of object literal arguments in
@@ -472,21 +472,21 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .map((expr) => expr.name)
         .toSet();
     return function.namedParameters
-        .where((decl) => usedArgs.contains(decl.name))
+        .where((decl) => usedArgs.contains(decl.parameterName))
         .toList();
   }
 
-  /// The name to use in JavaScript for the Dart parameter [variable].
+  /// The name to use in JavaScript for the Dart parameter [parameter].
   ///
-  /// This defaults to the name of the [variable], but can be changed with a
+  /// This defaults to the name of the [parameter], but can be changed with a
   /// `@JS()` annotation.
-  String _jsKey(Variable variable) {
+  String _jsKey(NamedParameter parameter) {
     // Only support `@JS` renaming on extension type object literal
     // constructors.
     final changedName = interopMethod.isExtensionTypeMember
-        ? getDartJSInteropJSName(variable)
+        ? getDartJSInteropJSName(parameter)
         : '';
-    return changedName.isEmpty ? variable.name! : changedName;
+    return changedName.isEmpty ? parameter.parameterName : changedName;
   }
 
   @override
@@ -523,7 +523,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     final interopProcedureType = interopProcedure
         .computeSignatureOrFunctionType();
     final arguments = parameters
-        .map<Expression>((decl) => namedArgs[decl.name!]!)
+        .map<Expression>((decl) => namedArgs[decl.parameterName]!)
         .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {

@@ -131,7 +131,7 @@ class KFieldAnalysis {
                   );
                   if (constantValue != null && constantValue.isConstant) {
                     initializerValue = Initializer.named(
-                      parameter.name,
+                      parameter.parameterName,
                       constantValue,
                     );
                   }

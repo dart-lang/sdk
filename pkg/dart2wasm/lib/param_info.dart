@@ -90,11 +90,11 @@ class ParameterInfo {
       });
 
       final named = {
-        for (Variable param in function.namedParameters)
+        for (NamedParameter param in function.namedParameters)
           if (param.isRequired)
-            param.name!: null
+            param.parameterName: null
           else
-            param.name!: useDefaultValueSentinel
+            param.parameterName: useDefaultValueSentinel
                 ? defaultValueSentinel
                 : _defaultValue(param)!,
       };
@@ -120,8 +120,8 @@ class ParameterInfo {
       return _defaultValue(function.positionalParameters[i]);
     });
     final named = {
-      for (Variable param in function.namedParameters)
-        param.name!: _defaultValue(param),
+      for (NamedParameter param in function.namedParameters)
+        param.parameterName: _defaultValue(param),
     };
     return ParameterInfo._(true, typeParamCount, positional, named);
   }

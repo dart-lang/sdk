@@ -2368,7 +2368,7 @@ class TypeFlowAnalysis
   @override
   SharedVariable getSharedVariable(Variable variable) =>
       _sharedCapturedVariables[variable] ??= _SharedVariableImpl(
-        variable.name ?? '__tmp',
+        variable.cosmeticName ?? '__tmp',
       );
 
   @override

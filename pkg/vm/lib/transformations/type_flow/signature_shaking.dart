@@ -249,8 +249,8 @@ class _Collect extends RecursiveVisitor {
       localParameters[param] = info.ensurePositional(i)
         ..observeParameter(member, param, shaker);
     }
-    for (Variable param in fun.namedParameters) {
-      localParameters[param] = info.ensureNamed(param.name!)
+    for (NamedParameter param in fun.namedParameters) {
+      localParameters[param] = info.ensureNamed(param.parameterName)
         ..observeParameter(member, param, shaker);
     }
 

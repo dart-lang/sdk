@@ -284,14 +284,14 @@ abstract class AstCodeGenerator
 
     void setupParamLocal(
       DartType variableTypeToCheck,
-      Variable variable,
+      FunctionParameter variable,
       int index,
       Constant? defaultValue,
       bool isRequired,
     ) {
       final localIndex = implicitParams + index;
       w.Local local = paramLocals[localIndex];
-      final variableName = variable.name;
+      final variableName = variable.cosmeticName;
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
@@ -354,7 +354,7 @@ abstract class AstCodeGenerator
           }
           b.local_get(operand);
           _generateArgumentTypeCheck(
-            variable.name!,
+            variable.cosmeticName!,
             operand.type as w.RefType,
             variableTypeToCheck,
           );
@@ -395,8 +395,8 @@ abstract class AstCodeGenerator
       setupParamLocal(
         typeToCheck,
         param,
-        paramInfo.nameIndex[param.name]!,
-        paramInfo.named[param.name],
+        paramInfo.nameIndex[param.parameterName]!,
+        paramInfo.named[param.parameterName],
         param.isRequired,
       );
     }
@@ -411,7 +411,7 @@ abstract class AstCodeGenerator
               parameterType.classNode == translator.wasmExternRefClass)) {
         w.Local newLocal = addLocal(
           translateType(parameterType),
-          name: parameter.name,
+          name: parameter.cosmeticName,
         );
         b.local_get(local);
         translator.convertType(b, local.type, newLocal.type);
@@ -777,7 +777,7 @@ abstract class AstCodeGenerator
     if (capture == null || !capture.written) {
       // Variable is not captured, or never updated after initialization. Keep
       // the value in a local.
-      local = addLocal(type, name: node.name);
+      local = addLocal(type, name: node.cosmeticName);
       locals[node] = local;
     }
 
@@ -830,7 +830,7 @@ abstract class AstCodeGenerator
     if (capture == null || !capture.written) {
       // Variable is not captured, or never updated after initialization. Keep
       // the value in a local.
-      local = addLocal(type, name: node.name);
+      local = addLocal(type, name: node.cosmeticName);
       locals[node] = local;
     }
 
@@ -2723,7 +2723,7 @@ abstract class AstCodeGenerator
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
-    b.comment("Local call of ${decl.variable.name}");
+    b.comment("Local call of ${decl.variable.cosmeticName}");
     return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
@@ -3926,7 +3926,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
           final param = targetPositionalParams[i];
           b.local_get(paramValue);
           _generateArgumentTypeCheck(
-            param.name!,
+            param.cosmeticName!,
             translator.topType,
             param.type,
           );
@@ -3959,7 +3959,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
               i];
       final name = targetParamInfo.names[i];
       final namedParam = targetNamedParams.firstWhereOrNull(
-        (n) => n.name == name,
+        (n) => n.parameterName == name,
       );
       final callerIndex = callShape.named.indexOf(name);
       if (0 <= callerIndex) {
@@ -4219,7 +4219,7 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
     for (int i = 0; i < parameters.length; i++) {
       final variable = parameters[i];
       final local = paramLocals[parameterOffset++];
-      final variableName = variable.name;
+      final variableName = variable.cosmeticName;
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }

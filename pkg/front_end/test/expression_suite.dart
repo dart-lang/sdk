@@ -228,17 +228,18 @@ class OutputParametersMatches
               "positional parameters: Expected ${test.definitions.length} "
               "(${test.definitions.join(", ")}) "
               "but had ${positionals.length} "
-              "(${positionals.map((p) => p.name).join(", ")}).",
+              "(${positionals.map((p) => p.cosmeticName).join(", ")}).",
             ),
           );
         }
         for (int i = 0; i < positionals.length; i++) {
-          if (positionals[i].name != test.definitions[i]) {
+          if (positionals[i].cosmeticName != test.definitions[i]) {
             return Future.value(
               fail(
                 tests,
                 "Compiled expression doesn't contain '${test.definitions[i]}' "
-                "but '${positionals[i].name}' as positional parameter $i.",
+                "but '${positionals[i].cosmeticName}' as positional parameter "
+                "$i.",
               ),
             );
           }

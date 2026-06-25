@@ -6338,11 +6338,11 @@ class InternalFunctionNode {
       typeParameters: typeParameters,
       // TODO(johnniwinther): Can we avoid creating a list of ast variables?
       positionalParameters: [
-        for (InternalVariable parameter in positionalParameters)
+        for (InternalPositionalParameter parameter in positionalParameters)
           parameter.astVariable,
       ],
       namedParameters: [
-        for (InternalVariable parameter in namedParameters)
+        for (InternalNamedParameter parameter in namedParameters)
           parameter.astVariable,
       ],
       nullability: Nullability.nonNullable,

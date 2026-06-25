@@ -830,7 +830,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   ParameterDeclaration getParameterDeclaration(Variable variable) {
-    final name = variable.name!;
+    final name = variable.cosmeticName!;
     final lib = name.startsWith('_') ? enclosingMember!.enclosingLibrary : null;
     final nameHandle = objectTable.getNameHandle(lib, name);
     final typeHandle = objectTable.getHandle(variable.type)!;
@@ -2186,7 +2186,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         for (int i = 0; i < numOptionalNamed; i++) {
           final param = locals.sortedNamedParameters[i];
           final localIndex = locals.getParamIndexInFrame(param);
-          asm.emitLoadConstant(localIndex, cp.addName(param.name!));
+          asm.emitLoadConstant(localIndex, cp.addName(param.parameterName));
           asm.emitLoadConstant(localIndex, _getDefaultParamConstIndex(param));
         }
       }
@@ -2540,7 +2540,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     for (var hostParam in function.namedParameters) {
       Variable targetParam = forwardingTarget.function!.namedParameters
-          .firstWhere((p) => p.name == hostParam.name);
+          .firstWhere((p) => p.parameterName == hostParam.parameterName);
       forwardingParams[hostParam] = forwardingSubstitution!.substituteType(
         targetParam.type,
       );
@@ -2718,7 +2718,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         ? forwardingParameterTypes[variable]!
         : variable.type;
     asm.emitPush(locals.getParamIndexInFrame(variable));
-    _genAssertAssignable(type, name: variable.name);
+    _genAssertAssignable(type, name: variable.cosmeticName);
     asm.emitDrop1();
   }
 
@@ -2883,7 +2883,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var v in function.positionalParameters) {
       parameters.add(
         new NameAndType(
-          objectTable.getPublicNameHandle(v.name!),
+          objectTable.getPublicNameHandle(v.cosmeticName!),
           objectTable.getHandle(v.type)!,
         ),
       );
@@ -2891,7 +2891,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var v in function.namedParameters) {
       parameters.add(
         new NameAndType(
-          objectTable.getPublicNameHandle(v.name!),
+          objectTable.getPublicNameHandle(v.parameterName),
           objectTable.getHandle(v.type)!,
         ),
       );
@@ -4462,7 +4462,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _genPushContextIfCaptured(node.variable);
-    _genClosure(node, node.variable.name!, node.function);
+    _genClosure(node, node.variable.cosmeticName!, node.function);
     asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }
@@ -4912,7 +4912,9 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
+      if (options.emitLocalVarInfo &&
+          !asm.isUnreachable &&
+          node.cosmeticName != null) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }
 

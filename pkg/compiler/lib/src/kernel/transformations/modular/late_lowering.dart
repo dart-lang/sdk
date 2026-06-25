@@ -254,7 +254,7 @@ class LateLowering {
   Variable _uninitializedVariableCell(Variable variable) {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
+    String? name = variable.cosmeticName;
     final cell = SyntheticVariable(
       cosmeticName: name,
       initializer: _callCellConstructor(
@@ -283,7 +283,7 @@ class LateLowering {
   Variable _initializedVariableCell(Variable variable) {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
+    String? name = variable.cosmeticName;
     final cell = SyntheticVariable(
       cosmeticName: name,
       initializer: _callInitializedCellConstructor(

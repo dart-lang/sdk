@@ -1534,7 +1534,7 @@ class Arguments extends TreeNode {
           .map<Expression>((p) => new VariableGet(p))
           .toList(),
       named: function.namedParameters
-          .map((p) => new NamedExpression(p.name!, new VariableGet(p)))
+          .map((p) => new NamedExpression(p.parameterName, new VariableGet(p)))
           .toList(),
       types: function.typeParameters
           .map<DartType>((p) => new TypeParameterType.withDefaultNullability(p))

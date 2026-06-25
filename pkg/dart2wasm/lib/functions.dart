@@ -378,7 +378,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.name;
+      final functionNodeName = lambdaNode.variable.cosmeticName;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -737,12 +737,13 @@ List<w.ValueType> _getInputTypes(
     assert(member is Procedure);
     FunctionNode function = member.function!;
     typeParamCount = function.typeParameters.length;
-    List<String> names = [for (var p in function.namedParameters) p.name!]
-      ..sort();
+    List<String> names = [
+      for (var p in function.namedParameters) p.parameterName,
+    ]..sort();
     final typeForParam = translator.typeOfParameterVariable;
     Map<String, DartType> nameTypes = {
       for (var p in function.namedParameters)
-        p.name!: typeForParam(p, p.isRequired),
+        p.parameterName: typeForParam(p, p.isRequired),
     };
     final positionals = function.positionalParameters;
     params = [
@@ -975,12 +976,12 @@ final class MethodCallShape extends CallShape {
     }
     final namedParams = target.namedParameters;
     for (final name in namedParams) {
-      if (name.isRequired && !named.contains(name.name)) {
+      if (name.isRequired && !named.contains(name.parameterName)) {
         return false;
       }
     }
     for (final name in named) {
-      if (!namedParams.any((n) => n.name == name)) {
+      if (!namedParams.any((n) => n.parameterName == name)) {
         return false;
       }
     }

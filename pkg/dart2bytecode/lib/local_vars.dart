@@ -149,9 +149,9 @@ class LocalVariables {
   bool get isSuspendableFunction => _currentFrame.isSuspendableFunction;
   bool get makesCopyOfParameters => _currentFrame.makesCopyOfParameters;
 
-  List<Variable> get originalNamedParameters =>
+  List<NamedParameter> get originalNamedParameters =>
       _currentFrame.originalNamedParameters;
-  List<Variable> get sortedNamedParameters =>
+  List<NamedParameter> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
   LocalVariables(Member node, this.options, this.staticTypeContext) {
@@ -224,8 +224,8 @@ class Frame {
   final Frame? parent;
   late Scope topScope;
 
-  late List<Variable> originalNamedParameters;
-  late List<Variable> sortedNamedParameters;
+  late List<NamedParameter> originalNamedParameters;
+  late List<NamedParameter> sortedNamedParameters;
   int numParameters = 0;
   int numTypeArguments = 0;
   bool hasOptionalParameters = false;
@@ -305,9 +305,12 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   _ScopeBuilder(this.locals);
 
-  List<Variable> _sortNamedParameters(FunctionNode function) {
+  List<NamedParameter> _sortNamedParameters(FunctionNode function) {
     final params = function.namedParameters.toList();
-    params.sort((Variable a, Variable b) => a.name!.compareTo(b.name!));
+    params.sort(
+      (NamedParameter a, NamedParameter b) =>
+          a.parameterName.compareTo(b.parameterName),
+    );
     return params;
   }
 

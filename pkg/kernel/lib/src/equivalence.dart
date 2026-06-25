@@ -6091,7 +6091,7 @@ class EquivalenceStrategy {
     if (other is! LocalVariable) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkLocalVariable_cosmeticName(visitor, node, other)) {
+    if (!checkLocalVariable_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_type(visitor, node, other)) {
@@ -6129,7 +6129,7 @@ class EquivalenceStrategy {
     if (other is! LateVariable) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkLateVariable_cosmeticName(visitor, node, other)) {
+    if (!checkLateVariable_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLateVariable_type(visitor, node, other)) {
@@ -13482,16 +13482,12 @@ class EquivalenceStrategy {
     return checkVariableBase_fileOffset(visitor, node, other);
   }
 
-  bool checkLocalVariable_cosmeticName(
+  bool checkLocalVariable_name(
     EquivalenceVisitor visitor,
     LocalVariable node,
     LocalVariable other,
   ) {
-    return visitor.checkValues(
-      node.cosmeticName,
-      other.cosmeticName,
-      'cosmeticName',
-    );
+    return visitor.checkValues(node.name, other.name, 'name');
   }
 
   bool checkLocalVariable_type(
@@ -13583,16 +13579,12 @@ class EquivalenceStrategy {
     return checkVariable_fileOffset(visitor, node, other);
   }
 
-  bool checkLateVariable_cosmeticName(
+  bool checkLateVariable_name(
     EquivalenceVisitor visitor,
     LateVariable node,
     LateVariable other,
   ) {
-    return visitor.checkValues(
-      node.cosmeticName,
-      other.cosmeticName,
-      'cosmeticName',
-    );
+    return visitor.checkValues(node.name, other.name, 'name');
   }
 
   bool checkLateVariable_type(

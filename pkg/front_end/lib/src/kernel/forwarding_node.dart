@@ -378,12 +378,13 @@ class ForwardingNode {
         List<NamedExpression> namedArguments = new List.generate(
           function.namedParameters.length,
           (int index) {
-            Variable parameter = function.namedParameters[index];
+            NamedParameter parameter = function.namedParameters[index];
             int fileOffset = parameter.fileOffset;
             Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.namedParameters
                 .singleWhere(
-                  (NamedType namedType) => namedType.name == parameter.name,
+                  (NamedType namedType) =>
+                      namedType.name == parameter.parameterName,
                 )
                 .type;
             if (isForwardingSemiStub) {
@@ -403,7 +404,10 @@ class ForwardingNode {
                 );
               }
             }
-            return extern.createNamedExpression(parameter.name!, expression);
+            return extern.createNamedExpression(
+              parameter.parameterName,
+              expression,
+            );
           },
           growable: true,
         );

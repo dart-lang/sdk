@@ -817,7 +817,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
         _declareParameter(
-          decl.name!,
+          decl.cosmeticName!,
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.positionalParameters[i].type,
@@ -827,7 +827,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
         _declareParameter(
-          decl.name!,
+          decl.parameterName,
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.namedParameters[i].type,
@@ -1022,7 +1022,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
           if (function.namedParameters.isNotEmpty) {
             for (var param in function.namedParameters) {
-              names.add(param.name!);
+              names.add(param.parameterName);
             }
             // TODO(dartbug.com/32292): make sure parameters are sorted in
             // kernel AST and remove this sorting.
@@ -1215,7 +1215,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Join _makeJoin(int varIndex, TypeExpr value) {
     final Variable variable = _variablesInfo.varDeclarations[varIndex];
-    final name = '${variable.name}_${_variableVersions[varIndex]++}';
+    final name = '${variable.cosmeticName}_${_variableVersions[varIndex]++}';
     final Join join = new Join(name, variable.type);
     join.condition = _currentCondition;
     _summary.add(join);

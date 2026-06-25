@@ -143,10 +143,8 @@ class InstanceRecorder {
         : (target as ast.Constructor).function;
     for (final parameter in function.namedParameters) {
       final initializer = parameter.initializer;
-      final name = parameter.name;
-      if (initializer != null &&
-          name != null &&
-          !namedArguments.containsKey(name)) {
+      final name = parameter.parameterName;
+      if (initializer != null && !namedArguments.containsKey(name)) {
         namedArguments[name] = evaluateExpression(initializer);
       }
     }

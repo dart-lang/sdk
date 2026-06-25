@@ -2145,7 +2145,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isTransformed = true;
       }
       newParameters.add(
-        PositionalParameter(cosmeticName: parameter.name, type: newType),
+        PositionalParameter(
+          cosmeticName: parameter.cosmeticName,
+          type: newType,
+        ),
       );
       newArguments.add(newArgument);
     }
@@ -2299,7 +2302,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               subExpression.receiver,
               StaticGet(offsetGetter),
               fileOffset,
-              variableName: "${parameter.name}#value",
+              variableName: "${parameter.cosmeticName}#value",
             ),
           );
         }
@@ -2339,7 +2342,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               subExpression.arguments.positional[1], // index.
             ),
             fileOffset,
-            variableName: "${parameter.name}#value",
+            variableName: "${parameter.cosmeticName}#value",
           ),
         );
 

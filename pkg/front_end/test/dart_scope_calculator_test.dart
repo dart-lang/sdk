@@ -391,7 +391,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
           getVariableIndexerForTesting() as VariableIndexer2?;
       Map<String, DartType> expectedVariablesMap = {};
       for (Variable variable in varIndexer?.declsOrder ?? const []) {
-        String? name = variable.name;
+        String? name = variable.cosmeticName;
         if (name != null && name != "" && !variable.isSynthesized) {
           if (variable.isHoisted && !setVariables.contains(variable)) {
             // A hoisted variable that isn't set (yet) --- pretend it isn't

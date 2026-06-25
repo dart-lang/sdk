@@ -46,7 +46,7 @@ class LateVarInitTransformer {
     );
     final fn = FunctionDeclaration(
       SyntheticVariable(
-        cosmeticName: "#${node.declaration.variable.name}#initializer",
+        cosmeticName: "#${node.declaration.variable.cosmeticName}#initializer",
         type: functionType,
       ),
       fnNode,

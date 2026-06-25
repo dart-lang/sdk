@@ -945,7 +945,7 @@ void _testCascade() {
       type: const DynamicType(),
       initializer: new IntLiteral(0),
       isFinal: true,
-    )..name = '#0',
+    )..cosmeticName = '#0',
     isImplicitlyTyped: false,
     fileOffset: TreeNode.noOffset,
   );

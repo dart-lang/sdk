@@ -591,13 +591,14 @@ class KernelToElementMap implements IrToElementMap {
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = <DartType>[];
-    List<ir.Variable> sortedNamedParameters = node.namedParameters.toList()
-      ..sort((a, b) => a.name!.compareTo(b.name!));
-    for (ir.Variable variable in sortedNamedParameters) {
-      namedParameters.add(variable.name!);
+    List<ir.NamedParameter> sortedNamedParameters =
+        node.namedParameters.toList()
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
+    for (ir.NamedParameter variable in sortedNamedParameters) {
+      namedParameters.add(variable.parameterName);
       namedParameterTypes.add(getParameterType(variable));
       if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name!);
+        requiredNamedParameters.add(variable.parameterName);
       }
     }
     List<FunctionTypeVariable> typeVariables;
@@ -902,12 +903,13 @@ class KernelToElementMap implements IrToElementMap {
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
-    List<ir.Variable> sortedNamedParameters = node.namedParameters.toList()
-      ..sort((a, b) => a.name!.compareTo(b.name!));
+    List<ir.NamedParameter> sortedNamedParameters =
+        node.namedParameters.toList()
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
     for (var variable in sortedNamedParameters) {
-      namedParameters.add(variable.name!);
+      namedParameters.add(variable.parameterName);
       if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name!);
+        requiredNamedParameters.add(variable.parameterName);
       }
     }
     return ParameterStructure(
@@ -1626,7 +1628,7 @@ class KernelToElementMap implements IrToElementMap {
       String? name;
       late ir.FunctionNode function;
       if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
+        name = node.variable.cosmeticName;
         function = node.function;
       } else if (node is ir.FunctionExpression) {
         function = node.function;
