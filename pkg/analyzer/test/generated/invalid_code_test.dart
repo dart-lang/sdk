@@ -247,9 +247,9 @@ void f({a = [for (@b c = 0;;)]}) {}
 
   test_fuzz_13() async {
     // `x is int` promotes the type of `x` to `S extends int`, and the
-    // underlying element is `TypeParameterMember`, which by itself is
-    // questionable.  But this is not a valid constant anyway, so we should
-    // not even try to serialize it.
+    // underlying element is a substituted type parameter element, which by
+    // itself is questionable. But this is not a valid constant anyway, so we
+    // should not even try to serialize it.
     await _assertCanBeResolved(r'''
 const v = [<S extends num>(S x) => x is int ? x : 0];
 ''');

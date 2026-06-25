@@ -248,6 +248,37 @@ zap: baz
     expect(listener.diagnostics.first.length, length);
   }
 
+  test_atSourceSpan_trimsTrailingLineTerminators() async {
+    var source = FileSource(newFile('/test.dart', ''));
+    var reporter = DiagnosticReporter(listener, source);
+
+    var text = 'foo: bar\r\nzap: baz\r\n';
+    var offset = text.indexOf('baz');
+
+    var span = SourceSpanBase(
+      SourceLocation(offset),
+      SourceLocation(offset + 'baz\r\n'.length),
+      'baz\r\n',
+    );
+
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
+    );
+    reporter.report(diag.abstractClassMember.atSourceSpan(span));
+
+    expect(listener.diagnostics, hasLength(2));
+    for (var diagnostic in listener.diagnostics) {
+      expect(diagnostic.offset, offset);
+      expect(diagnostic.length, 'baz'.length);
+    }
+  }
+
   test_creation() async {
     var source = FileSource(newFile('/test.dart', ''));
     var reporter = DiagnosticReporter(listener, source);

@@ -8,7 +8,7 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 
 /// Instances of the class [AnalysisOptionsMap] map [File]s under analysis to
 /// their corresponding [AnalysisOptions].

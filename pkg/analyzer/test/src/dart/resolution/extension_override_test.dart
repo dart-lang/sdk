@@ -101,7 +101,7 @@ FunctionExpressionInvocation
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extension::E::@method::call
     substitution: {T: String}
   staticInvokeType: int Function(String)
@@ -208,7 +208,7 @@ FunctionExpressionInvocation
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: package:test/lib.dart::@extension::E::@method::call
     substitution: {T: String}
   staticInvokeType: int Function(String)

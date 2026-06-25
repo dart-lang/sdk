@@ -42,7 +42,7 @@ VariableDeclaration
       arguments
         SimpleIdentifier
           token: g
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
@@ -73,7 +73,7 @@ VariableDeclaration
           declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: InvalidType Function(Object?)
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
@@ -109,7 +109,7 @@ VariableDeclaration
       arguments
         SimpleIdentifier
           token: g
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
@@ -140,7 +140,7 @@ VariableDeclaration
           declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: int Function(String)
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: int Function(String)

@@ -26741,7 +26741,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
     BaseTextBuffer* buffer,
     uword call_addr,
     uword instructions,
-    bool vm,
     LoadingUnit* unit = nullptr) {
   const Image image(reinterpret_cast<const uint8_t*>(instructions));
   if (!image.contains(call_addr)) return false;
@@ -26755,7 +26754,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_shared_object()) {
+  if (image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -26769,7 +26768,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions,
                                            const Array& loading_units,
                                            LoadingUnit* unit) {
   if (!loading_units.IsNull()) {
@@ -26781,15 +26779,13 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
       auto const instructions =
           reinterpret_cast<uword>(unit->instructions_image());
       if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                    instructions,
-                                                    /*vm=*/false, unit)) {
+                                                    instructions, unit)) {
         return;
       }
     }
   } else {
     if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                  isolate_instructions,
-                                                  /*vm=*/false)) {
+                                                  isolate_instructions)) {
       return;
     }
   }
@@ -27066,8 +27062,7 @@ const char* StackTrace::ToCString() const {
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }
@@ -27079,8 +27074,7 @@ const char* StackTrace::ToCString() const {
         // non-symbolic stack traces.
         PrintSymbolicStackFrameIndex(&buffer, frame_index);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }

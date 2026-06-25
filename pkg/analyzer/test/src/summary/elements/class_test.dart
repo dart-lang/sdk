@@ -2260,7 +2260,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F8
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {S: T}
   mixins
@@ -4454,7 +4454,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
 ''');
@@ -4652,7 +4652,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {T1: int, T2: double}
     isSimplyBounded class D
@@ -4752,7 +4752,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: B}
 ''');
@@ -7432,7 +7432,7 @@ library
                     staticType: E
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: E}
   mixins
@@ -9006,7 +9006,7 @@ library
                     staticType: List<dynamic>
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
             substitution: {T: dynamic}
 ''');
@@ -9131,7 +9131,7 @@ library
                     staticType: List<List<U>>
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
             substitution: {T: List<U>}
 ''');
@@ -23397,10 +23397,10 @@ library
             #E2 requiredPositional hasImplicitType isFinal super.a
               firstFragment: #F6
               type: int
-              superConstructorParameter: SuperFormalParameterMember
+              superConstructorParameter: SubstitutedSuperFormalParameterElementImpl
                 baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
                 substitution: {T: String}
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
     isSimplyBounded class B
@@ -24390,7 +24390,7 @@ library
                           rightBracket: > @94
                         element: <testLibrary>::@class::A
                         type: A<dynamic Function()>
-                      element: ConstructorMember
+                      element: SubstitutedConstructorElementImpl
                         baseElement: <testLibrary>::@class::A::@constructor::new
                         substitution: {T: dynamic Function()}
                     argumentList: ArgumentList
@@ -25324,7 +25324,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25343,7 +25343,7 @@ library
         hasEnclosingTypeParameterReference isOriginDeclaration named
           reference: <testLibrary>::@class::D::@constructor::named
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
 ''');
@@ -25419,7 +25419,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::named
             substitution: {T: T2, U: U2}
 ''');
@@ -25497,7 +25497,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25635,7 +25635,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25757,7 +25757,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25980,7 +25980,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25999,7 +25999,7 @@ library
         hasEnclosingTypeParameterReference isOriginDeclaration new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
 ''');
@@ -26074,7 +26074,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T2, U: U2}
 ''');
@@ -26124,7 +26124,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting redirected
           reference: <testLibrary>::@class::A::@constructor::redirected
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
 ''');
@@ -26199,7 +26199,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: U, U: T}
       methods
@@ -26340,7 +26340,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -26515,7 +26515,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -27028,7 +27028,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
             redirectedConstructor: <testLibrary>::@class::A::@constructor::new
@@ -27074,10 +27074,10 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
-            redirectedConstructor: ConstructorMember
+            redirectedConstructor: SubstitutedConstructorElementImpl
               baseElement: <testLibrary>::@class::A::@constructor::new
               substitution: {T: V}
               redirectedConstructor: <null>
@@ -27118,7 +27118,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: int}
             superConstructor: <testLibrary>::@class::A::@constructor::new
@@ -27159,10 +27159,10 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: int}
-            superConstructor: ConstructorMember
+            superConstructor: SubstitutedConstructorElementImpl
               baseElement: <testLibrary>::@class::A::@constructor::new
               substitution: {T: String}
               superConstructor: dart:core::@class::Object::@constructor::new
@@ -27230,7 +27230,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::named
             substitution: {T: int}
 ''');
@@ -30735,7 +30735,7 @@ library
                         rightBracket: > @81
                       element: <testLibrary>::@class::A
                       type: A<int Function(double)>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@class::A::@constructor::new
                       substitution: {T: int Function(double)}
                   argumentList: ArgumentList

@@ -1048,7 +1048,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
           substitution: {T: T}
         staticType: T
@@ -1061,7 +1061,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          element: GetterMember
+          element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
           staticType: T?
@@ -1077,7 +1077,7 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
           substitution: {T: T}
         staticType: T?
@@ -1090,7 +1090,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          element: GetterMember
+          element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
           staticType: T
@@ -1233,7 +1233,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: GetterMember
+          element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
             substitution: {T: T}
           staticType: T Function()
@@ -1253,7 +1253,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            element: GetterMember
+            element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
             staticType: T? Function()
@@ -1276,7 +1276,7 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: GetterMember
+          element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
             substitution: {T: T}
           staticType: T? Function()
@@ -1296,7 +1296,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            element: GetterMember
+            element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
             staticType: T Function()

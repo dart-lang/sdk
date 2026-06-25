@@ -669,9 +669,9 @@ f() {
 
   test_castFrom() async {
     // This test exercises a corner case of legacy erasure: due to the type
-    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
-    // a synthetic `ParameterMember` that belongs to no library.  We need to
-    // make sure this doesn't lead to a crash.
+    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up
+    // with a synthetic `SubstitutedFormalParameterElementImpl` that belongs to
+    // no library. We need to make sure this doesn't lead to a crash.
     await resolveTestCodeWithDiagnostics('''
 class C {}
 

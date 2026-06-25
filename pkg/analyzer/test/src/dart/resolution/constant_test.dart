@@ -201,7 +201,7 @@ C<double Function(int)>
         typeArguments
           double
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: double Function(int)}
   variable: <testLibrary>::@topLevelVariable::v

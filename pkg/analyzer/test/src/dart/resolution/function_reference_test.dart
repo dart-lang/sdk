@@ -1884,11 +1884,11 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: expectStaticType
-      element: MethodMember
+      element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
       staticType: void Function<X extends int Function(int)>()
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
     staticType: void Function<X extends int Function(int)>()
@@ -2439,11 +2439,11 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: expectStaticType
-      element: MethodMember
+      element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
       staticType: void Function<X extends int Function(int)>()
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
     staticType: void Function<X extends int Function(int)>()
@@ -4666,12 +4666,12 @@ FunctionReference
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
         substitution: {E: void Function<T>(T)}
       staticType: int
     rightBracket: ]
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: dart:core::@class::List::@method::[]
       substitution: {E: void Function<T>(T)}
     staticType: void Function<T>(T)

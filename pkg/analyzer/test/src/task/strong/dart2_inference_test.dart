@@ -48,7 +48,7 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 0
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
@@ -68,7 +68,7 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 1
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
@@ -105,7 +105,7 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 0
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
@@ -125,7 +125,7 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 1
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int

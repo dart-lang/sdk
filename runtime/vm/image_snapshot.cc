@@ -516,7 +516,7 @@ void ImageWriter::DumpStatistics() {
 }
 #endif
 
-void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
+void ImageWriter::Write(NonStreamingWriteStream* clustered_stream) {
   Heap* heap = thread_->heap();
   TIMELINE_DURATION(thread_, Isolate, "WriteInstructions");
 
@@ -560,19 +560,19 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
     }
   }
 
-  WriteBss(vm);
+  WriteBss();
 
-  offset_space_ = vm ? IdSpace::kVmText : IdSpace::kIsolateText;
-  WriteText(vm);
+  offset_space_ = IdSpace::kIsolateText;
+  WriteText();
 
   // Append the direct-mapped RO data objects after the clustered snapshot
   // and then for shared object and assembly outputs, add appropriate sections
   // with that combined data.
-  offset_space_ = vm ? IdSpace::kVmData : IdSpace::kIsolateData;
-  WriteROData(clustered_stream, vm);
+  offset_space_ = IdSpace::kIsolateData;
+  WriteROData(clustered_stream);
 }
 
-void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
+void ImageWriter::WriteROData(NonStreamingWriteStream* stream) {
   ASSERT(Utils::IsAligned(stream->Position(), kRODataAlignment));
   // Heap page starts here.
   intptr_t section_start = stream->Position();
@@ -699,7 +699,7 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
   return tags;
 }
 
-const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
+const char* ImageWriter::SectionSymbol(ProgramSection section) {
   switch (section) {
     case ProgramSection::Text:
       return kSnapshotTextAsmSymbol;
@@ -752,12 +752,12 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
 #define EMIT_UNWIND_DIRECTIVES_PER_FUNCTION 1
 #endif
 
-void ImageWriter::WriteText(bool vm) {
+void ImageWriter::WriteText() {
   const bool bare_instruction_payloads = FLAG_precompiled_mode;
 
   // Start snapshot at page boundary.
   intptr_t alignment_padding = 0;
-  if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment,
+  if (!EnterSection(ProgramSection::Text, ImageWriter::kTextAlignment,
                     &alignment_padding)) {
     return;
   }
@@ -785,13 +785,13 @@ void ImageWriter::WriteText(bool vm) {
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
 
 #if defined(DART_PRECOMPILER)
-  const char* instructions_symbol = SectionSymbol(ProgramSection::Text, vm);
+  const char* instructions_symbol = SectionSymbol(ProgramSection::Text);
   ASSERT(instructions_symbol != nullptr);
-  intptr_t instructions_label = SectionLabel(ProgramSection::Text, vm);
+  intptr_t instructions_label = SectionLabel(ProgramSection::Text);
   ASSERT(instructions_label > 0);
-  const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
+  const char* bss_symbol = SectionSymbol(ProgramSection::Bss);
   ASSERT(bss_symbol != nullptr);
-  intptr_t bss_label = SectionLabel(ProgramSection::Bss, vm);
+  intptr_t bss_label = SectionLabel(ProgramSection::Bss);
   ASSERT(bss_label > 0);
 
   if (profile_writer_ != nullptr) {
@@ -845,7 +845,7 @@ void ImageWriter::WriteText(bool vm) {
     text_offset += RelocatedAddress(text_offset, instructions_label);
     // 4) The GNU build ID note offset from this section.
     text_offset += Relocation(text_offset, instructions_label,
-                              SectionLabel(ProgramSection::BuildId, vm));
+                              SectionLabel(ProgramSection::BuildId));
 
     const intptr_t section_contents_alignment =
         bare_instruction_payloads
@@ -988,7 +988,7 @@ void ImageWriter::WriteText(bool vm) {
   FrameUnwindEpilogue();
 #endif
 
-  ExitSection(ProgramSection::Text, vm, text_offset);
+  ExitSection(ProgramSection::Text, text_offset);
 }
 
 intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
@@ -1212,19 +1212,9 @@ AssemblyImageWriter::AssemblyImageWriter(
   // Set up the label mappings for the section symbols for use in relocations.
   for (intptr_t i = 0; i < kNumProgramSections; i++) {
     auto const section = static_cast<ProgramSection>(i);
-
-    auto const vm_name = SectionSymbol(section, /*vm=*/true);
-    auto const vm_label = SectionLabel(section, /*vm=*/true);
-    label_to_symbol_name_.Insert(vm_label, vm_name);
-
-    auto const isolate_name = SectionSymbol(section, /*vm=*/false);
-    auto const isolate_label = SectionLabel(section, /*vm=*/false);
-    if (vm_label != isolate_label) {
-      label_to_symbol_name_.Insert(isolate_label, isolate_name);
-    } else {
-      // Make sure the names also match.
-      ASSERT_EQUAL(strcmp(vm_name, isolate_name), 0);
-    }
+    auto const isolate_name = SectionSymbol(section);
+    auto const isolate_label = SectionLabel(section);
+    label_to_symbol_name_.Insert(isolate_label, isolate_name);
   }
 }
 
@@ -1465,21 +1455,19 @@ const char* ImageWriter::Deobfuscate(Zone* zone,
   return OS::SCreate(zone, "%s", buffer.buffer());
 }
 
-void AssemblyImageWriter::WriteBss(bool vm) {
-  EnterSection(ProgramSection::Bss, vm, ImageWriter::kBssAlignment);
-  auto const entry_count =
-      vm ? BSS::kVmEntryCount : BSS::kIsolateGroupEntryCount;
+void AssemblyImageWriter::WriteBss() {
+  EnterSection(ProgramSection::Bss, ImageWriter::kBssAlignment);
+  auto const entry_count = BSS::kIsolateGroupEntryCount;
   for (intptr_t i = 0; i < entry_count; i++) {
     // All bytes in the .bss section must be zero.
     WriteTargetWord(0);
   }
-  ExitSection(ProgramSection::Bss, vm,
-              entry_count * compiler::target::kWordSize);
+  ExitSection(ProgramSection::Bss, entry_count * compiler::target::kWordSize);
 }
 
-void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
-                                      bool vm) {
-  if (!EnterSection(ProgramSection::Data, vm, ImageWriter::kRODataAlignment)) {
+void AssemblyImageWriter::WriteROData(
+    NonStreamingWriteStream* clustered_stream) {
+  if (!EnterSection(ProgramSection::Data, ImageWriter::kRODataAlignment)) {
     return;
   }
   // The clustered stream already has some data on it from the serializer, so
@@ -1495,7 +1483,7 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
         V8SnapshotProfileWriter::kArtificialRootId, padding);
   }
   // First write the read-only data objects to the clustered stream.
-  ImageWriter::WriteROData(clustered_stream, vm);
+  ImageWriter::WriteROData(clustered_stream);
   // Next, write the bytes of the clustered stream (along with any symbols
   // if appropriate) to the assembly output.
   const uint8_t* bytes = clustered_stream->buffer();
@@ -1520,11 +1508,10 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
     last_position = symbol.offset;
   }
   WriteBytes(bytes + last_position, len - last_position);
-  ExitSection(ProgramSection::Data, vm, len);
+  ExitSection(ProgramSection::Data, len);
 }
 
 bool AssemblyImageWriter::EnterSection(ProgramSection section,
-                                       bool vm,
                                        intptr_t alignment,
                                        intptr_t* alignment_padding) {
   ASSERT(FLAG_precompiled_mode);
@@ -1564,16 +1551,16 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
     case ProgramSection::BuildId:
       break;
   }
-  current_section_label_ = SectionLabel(section, vm);
+  current_section_label_ = SectionLabel(section);
   ASSERT(current_section_label_ > 0);
   if (global_symbol) {
-    assembly_stream_->Printf(".globl %s\n", SectionSymbol(section, vm));
+    assembly_stream_->Printf(".globl %s\n", SectionSymbol(section));
   }
   intptr_t padding = Align(alignment, 0, 0);
   if (alignment_padding != nullptr) {
     *alignment_padding = padding;
   }
-  assembly_stream_->Printf("%s:\n", SectionSymbol(section, vm));
+  assembly_stream_->Printf("%s:\n", SectionSymbol(section));
   return true;
 }
 
@@ -1600,16 +1587,14 @@ static void AddSharedObjectSection(
   }
 }
 
-void AssemblyImageWriter::ExitSection(ProgramSection name,
-                                      bool vm,
-                                      intptr_t size) {
+void AssemblyImageWriter::ExitSection(ProgramSection name, intptr_t size) {
   // We should still be in the same section as the last EnterSection.
-  ASSERT_EQUAL(current_section_label_, SectionLabel(name, vm));
+  ASSERT_EQUAL(current_section_label_, SectionLabel(name));
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
     defined(DART_TARGET_OS_FUCHSIA)
   // Output the size of the section symbol to the assembly stream.
-  assembly_stream_->Printf(".size %s, %zu\n", SectionSymbol(name, vm), size);
-  assembly_stream_->Printf(".type %s, %%object\n", SectionSymbol(name, vm));
+  assembly_stream_->Printf(".size %s, %zu\n", SectionSymbol(name), size);
+  assembly_stream_->Printf(".type %s, %%object\n", SectionSymbol(name));
 #elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   // MachO symbol tables don't include the size of the symbol, so don't bother
   // printing it to the assembly output.
@@ -1633,7 +1618,7 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   //
   // Since we don't want to add the actual contents of the segment in the
   // separate debugging information, we pass nullptr for the bytes.
-  AddSharedObjectSection(debug_so_, name, SectionSymbol(name, vm),
+  AddSharedObjectSection(debug_so_, name, SectionSymbol(name),
                          current_section_label_, /*bytes=*/nullptr, size,
                          current_symbols_);
   current_section_label_ = 0;
@@ -1656,7 +1641,7 @@ intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
                                          intptr_t target_offset) {
   // TODO(dartbug.com/43274): Remove once we generate consistent build IDs
   // between assembly snapshots and their debugging information.
-  if (target_label == SectionLabel(ProgramSection::BuildId, /*vm=*/false)) {
+  if (target_label == SectionLabel(ProgramSection::BuildId)) {
     return WriteTargetWord(Image::kNoBuildId);
   }
 
@@ -1843,8 +1828,7 @@ intptr_t AssemblyImageWriter::Align(intptr_t alignment,
 
 #if defined(DART_PRECOMPILER)
 BlobImageWriter::BlobImageWriter(Thread* thread,
-                                 NonStreamingWriteStream* vm_instructions,
-                                 NonStreamingWriteStream* isolate_instructions,
+                                 NonStreamingWriteStream* instructions,
                                  const Trie<const char>* deobfuscation_trie,
                                  SharedObjectWriter* debug_so,
                                  SharedObjectWriter* so,
@@ -1855,15 +1839,13 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                   deobfuscation_trie),
 #else
 BlobImageWriter::BlobImageWriter(Thread* thread,
-                                 NonStreamingWriteStream* vm_instructions,
-                                 NonStreamingWriteStream* isolate_instructions,
+                                 NonStreamingWriteStream* instructions,
                                  SharedObjectWriter* debug_so,
                                  SharedObjectWriter* so,
                                  bool needs_unique_names)
     : ImageWriter(thread, /*generates_assembly=*/false, needs_unique_names),
 #endif
-      vm_instructions_(vm_instructions),
-      isolate_instructions_(isolate_instructions),
+      instructions_(instructions),
       so_(so),
       debug_so_(debug_so) {
 #if defined(DART_PRECOMPILER)
@@ -1898,20 +1880,19 @@ intptr_t BlobImageWriter::WriteBytes(const void* bytes, intptr_t size) {
   return size;
 }
 
-void BlobImageWriter::WriteBss(bool vm) {
+void BlobImageWriter::WriteBss() {
 #if defined(DART_PRECOMPILER)
   // We don't actually write a BSS segment, it's created as part of the
   // Finalize() method of the shared object writer.
 #endif
 }
 
-void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
-                                  bool vm) {
+void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream) {
 #if defined(DART_PRECOMPILER)
   const intptr_t start_position = clustered_stream->Position();
 #endif
   current_section_stream_ = ASSERT_NOTNULL(clustered_stream);
-  if (!EnterSection(ProgramSection::Data, vm, ImageWriter::kRODataAlignment)) {
+  if (!EnterSection(ProgramSection::Data, ImageWriter::kRODataAlignment)) {
     return;
   }
 #if defined(DART_PRECOMPILER)
@@ -1922,12 +1903,12 @@ void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
         V8SnapshotProfileWriter::kArtificialRootId, padding);
   }
 #endif
-  ImageWriter::WriteROData(clustered_stream, vm);
-  ExitSection(ProgramSection::Data, vm, clustered_stream->bytes_written());
+  ImageWriter::WriteROData(clustered_stream);
+  ExitSection(ProgramSection::Data, clustered_stream->bytes_written());
 }
 
 bool BlobImageWriter::EnterSection(ProgramSection section,
-                                   bool vm,
+
                                    intptr_t alignment,
                                    intptr_t* alignment_padding) {
 #if defined(DART_PRECOMPILER)
@@ -1938,8 +1919,7 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
   ASSERT(section == ProgramSection::Data || current_section_stream_ == nullptr);
   switch (section) {
     case ProgramSection::Text:
-      current_section_stream_ =
-          ASSERT_NOTNULL(vm ? vm_instructions_ : isolate_instructions_);
+      current_section_stream_ = ASSERT_NOTNULL(instructions_);
 #if defined(DART_PRECOMPILER)
       if (so_ != nullptr || debug_so_ != nullptr) {
         current_relocations_ =
@@ -1976,18 +1956,16 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
   return true;
 }
 
-void BlobImageWriter::ExitSection(ProgramSection name, bool vm, intptr_t size) {
+void BlobImageWriter::ExitSection(ProgramSection name, intptr_t size) {
 #if defined(DART_PRECOMPILER)
-  AddSharedObjectSection(so_, name, SectionSymbol(name, vm),
-                         SectionLabel(name, vm),
+  AddSharedObjectSection(so_, name, SectionSymbol(name), SectionLabel(name),
                          current_section_stream_->buffer(), size,
                          current_symbols_, current_relocations_);
   // We create the corresponding segment in the debugging information as well,
   // since it needs the contents to create the correct build ID.
-  AddSharedObjectSection(debug_so_, name, SectionSymbol(name, vm),
-                         SectionLabel(name, vm),
-                         current_section_stream_->buffer(), size,
-                         current_symbols_, current_relocations_);
+  AddSharedObjectSection(debug_so_, name, SectionSymbol(name),
+                         SectionLabel(name), current_section_stream_->buffer(),
+                         size, current_symbols_, current_relocations_);
   current_relocations_ = nullptr;
   current_symbols_ = nullptr;
 #endif

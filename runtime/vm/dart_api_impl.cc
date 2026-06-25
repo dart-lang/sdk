@@ -6658,8 +6658,6 @@ static void CreateAppAOTSnapshotHelper(
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
                                              "WriteAppAOTSnapshot"));
 
-  ZoneWriteStream vm_snapshot_data(T->zone(), FullSnapshotWriter::kInitialSize);
-  ZoneWriteStream vm_snapshot_instructions(T->zone(), kInitialSize);
   ZoneWriteStream isolate_snapshot_data(T->zone(),
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(T->zone(), kInitialSize);
@@ -6744,8 +6742,7 @@ static void CreateAppAOTSnapshotHelper(
     use_output_writer(&assembly_writer);
   } else {
     BlobImageWriter blob_writer(
-        T, &vm_snapshot_instructions, &isolate_snapshot_instructions,
-        deobfuscation_trie, debug_so, so,
+        T, &isolate_snapshot_instructions, deobfuscation_trie, debug_so, so,
         /*needs_unique_names=*/object_callback_data != nullptr);
     use_output_writer(&blob_writer);
   }
@@ -7102,8 +7099,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(
       Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
-  BlobImageWriter image_writer(T, /*vm_instructions=*/nullptr,
-                               &isolate_snapshot_instructions);
+  BlobImageWriter image_writer(T, &isolate_snapshot_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, &isolate_snapshot_data,
                             &image_writer);
   writer.WriteFullSnapshot();

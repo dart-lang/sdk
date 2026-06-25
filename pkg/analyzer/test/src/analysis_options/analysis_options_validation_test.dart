@@ -99,7 +99,8 @@ AnalysisOptionsImpl
 analyzer:
   cannot-ignore:
     one_error_code: true
-// [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'cannot-ignore' section.
+//  ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'cannot-ignore' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -126,7 +127,7 @@ analyzer:
 analyzer:
   cannot-ignore:
     one_error_code:
-// [diag.invalidSectionFormat][column 5][length 31] Invalid format for the 'cannot-ignore' section.
+// [diag.invalidSectionFormat][column 5][length 30] Invalid format for the 'cannot-ignore' section.
       foo: bar
 ''');
 
@@ -204,7 +205,8 @@ AnalysisOptionsImpl
 analyzer:
   enable-experiment:
     experiment: true
-// [diag.invalidSectionFormat][column 5][length 17] Invalid format for the 'enable-experiment' section.
+//  ^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -231,7 +233,8 @@ AnalysisOptionsImpl
 analyzer:
   enable-experiment:
     - test-experiment: true
-// [diag.invalidSectionFormat][column 7][length 22] Invalid format for the 'enable-experiment' section.
+//    ^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'enable-experiment' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -367,7 +370,7 @@ AnalysisOptionsImpl
 analyzer:
   errors:
     - invalid_annotation
-// [diag.invalidSectionFormat][column 5][length 41] Invalid format for the 'errors' section.
+// [diag.invalidSectionFormat][column 5][length 40] Invalid format for the 'errors' section.
     - unused_import
 ''');
 
@@ -387,7 +390,8 @@ include: included.yaml
 analyzer:
   errors:
     - invalid_annotation
-// [diag.invalidSectionFormat][column 5][length 21] Invalid format for the 'errors' section.
+//  ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'errors' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -507,7 +511,8 @@ AnalysisOptionsImpl
 analyzer:
   language:
     - notAnOption: true
-// [diag.invalidSectionFormat][column 5][length 20] Invalid format for the 'language' section.
+//  ^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'language' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -555,7 +560,8 @@ analyzer:
   language:
     strict-casts:
       value: true
-// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-casts' section.
+//    ^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'strict-casts' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -569,7 +575,8 @@ analyzer:
   language:
     strict-inference:
       value: true
-// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-inference' section.
+//    ^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'strict-inference' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -611,7 +618,8 @@ analyzer:
   language:
     strict-raw-types:
       value: true
-// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'strict-raw-types' section.
+//    ^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'strict-raw-types' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -702,7 +710,8 @@ AnalysisOptionsImpl
 analyzer:
   optional-checks:
     - chrome-os-manifest-checks
-// [diag.invalidSectionFormat][column 5][length 28] Invalid format for the 'optional-checks' section.
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'optional-checks' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -781,7 +790,8 @@ analyzer:
   optional-checks:
     propagate-linter-exceptions:
       value: true
-// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'propagate-linter-exceptions' section.
+//    ^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'propagate-linter-exceptions' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1036,7 +1046,8 @@ analyzer:
   strong-mode:
     implicit-casts:
       value: true
-// [diag.invalidSectionFormat][column 7][length 12] Invalid format for the 'implicit-casts' section.
+//    ^^^^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'implicit-casts' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1238,7 +1249,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   - format
-// [diag.invalidSectionFormat][column 3][length 9] Invalid format for the 'code-style' section.
+//^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1436,7 +1448,8 @@ AnalysisOptionsImpl
 formatter:
   trailing_commas:
     a: b
-// [diag.invalidOption][column 5][length 5] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
+//  ^^^^
+// [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -3666,7 +3679,8 @@ version: 0.0.1
       innerOptionsFile: '''
 plugins:
   one: ^1.0.0
-// [diag.pluginsInInnerOptions][column 3][length 12] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
+//^^^^^^^^^^^
+// [diag.pluginsInInnerOptions] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
 ''',
     });
 

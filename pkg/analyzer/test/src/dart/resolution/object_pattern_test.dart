@@ -185,7 +185,7 @@ ObjectPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element: GetterMember
+      element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
@@ -1241,7 +1241,7 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
@@ -1297,7 +1297,7 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
@@ -1310,7 +1310,7 @@ PatternVariableDeclaration
         name: A
         element: <testLibrary>::@class::A
         type: A<int>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
     argumentList: ArgumentList
@@ -1359,7 +1359,7 @@ PatternVariableDeclaration
             element: isPublic
               type: int
           matchedValueType: dynamic
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
@@ -1372,7 +1372,7 @@ PatternVariableDeclaration
         name: A
         element: <testLibrary>::@class::A
         type: A<dynamic>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: dynamic}
     argumentList: ArgumentList

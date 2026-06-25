@@ -30,11 +30,11 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -53,7 +53,7 @@ InstanceCreationExpression
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -79,11 +79,11 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -106,7 +106,7 @@ InstanceCreationExpression
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -235,7 +235,7 @@ InstanceCreationExpression
         rightBracket: >
       element: package:test/a.dart::@class::C
       type: C<int>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList

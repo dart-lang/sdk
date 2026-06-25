@@ -30,7 +30,7 @@ name: foo
 version: 1.0.0
 platforms:
   - android
-// [diag.invalidPlatformsField][column 3][length 26] The 'platforms' field must be a map with platforms as keys.
+// [diag.invalidPlatformsField][column 3][length 25] The 'platforms' field must be a map with platforms as keys.
   - ios
   - web
 ''');

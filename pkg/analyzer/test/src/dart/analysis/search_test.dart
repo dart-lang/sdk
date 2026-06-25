@@ -100,7 +100,6 @@ class SearchTest extends PubPackageResolutionTest {
       printPrettyDiff(expected, actual);
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertElementReferencesText(
@@ -114,7 +113,6 @@ class SearchTest extends PubPackageResolutionTest {
       printPrettyDiff(expected, actual);
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertLibraryFragmentReferencesText(
@@ -124,10 +122,10 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.referencesLibraryFragment(fragment);
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertLibraryImportReferencesText(
@@ -137,10 +135,10 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.referencesLibraryImport(import);
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertUnresolvedMemberReferencesText(
@@ -150,10 +148,10 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.unresolvedMemberReferences(name);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   test_classMembers_class() async {

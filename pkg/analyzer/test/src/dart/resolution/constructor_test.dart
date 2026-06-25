@@ -37,10 +37,10 @@ ConstructorName
     name: B
     element: <testLibrary>::@class::B
     type: B<int>
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {U: int}
-    redirectedConstructor: ConstructorMember
+    redirectedConstructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
       redirectedConstructor: <null>
@@ -308,11 +308,11 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: U}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: U}
   body: EmptyFunctionBody
@@ -444,7 +444,7 @@ ConstructorDeclaration
         rightBracket: >
       element: <testLibrary>::@class::A
       type: A<U>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: U}
   body: EmptyFunctionBody

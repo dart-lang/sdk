@@ -32,7 +32,7 @@ transforms:
         uris: ['test.dart']
         variable: 'v'
 ''',
-      [error(diag.incompatibleElementKind, 191, 42)],
+      [error(diag.incompatibleElementKind, 191, 41)],
     );
   }
 }

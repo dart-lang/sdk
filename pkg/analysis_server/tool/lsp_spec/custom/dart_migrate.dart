@@ -16,6 +16,12 @@ final dartMigrateClasses = <LspEntity>[
           'The URIs of the directories (packages or workspaces) to migrate. '
           'Individual file URIs are not supported.',
     ),
+    field(
+      'apply',
+      type: 'boolean',
+      canBeUndefined: true,
+      comment: 'Whether to apply the migration changes.',
+    ),
   ]),
   interface('DartMigrateResult', [
     field(

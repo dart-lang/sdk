@@ -293,12 +293,12 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
       substitution: {T: double}
     staticType: int
   rightBracket: ]
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   staticType: double
@@ -353,13 +353,13 @@ IndexExpression
   leftBracket: [
   index: SimpleIdentifier
     token: b
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
       substitution: {E: int}
     element: <null>
     staticType: InvalidType
   rightBracket: ]
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   staticType: int
@@ -627,7 +627,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
@@ -639,11 +639,11 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
-  readElement: MethodMember
+  readElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   readType: double
-  writeElement: MethodMember
+  writeElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
@@ -866,7 +866,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
@@ -876,13 +876,13 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
       substitution: {T: double}
     staticType: double
   readElement: <null>
   readType: null
-  writeElement: MethodMember
+  writeElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double

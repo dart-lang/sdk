@@ -257,7 +257,7 @@ library
                             rightBracket: > @72
                           element: <testLibrary>::@class::A
                           type: A<dynamic Function()>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
                       argumentList: ArgumentList
@@ -678,7 +678,7 @@ library
                           name: B @81
                           element: <testLibrary>::@class::B
                           type: B<int, double>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: int, T2: double}
                       argumentList: ArgumentList
@@ -768,7 +768,7 @@ library
                           name: B @68
                           element: <testLibrary>::@class::B
                           type: B<Never>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
@@ -865,7 +865,7 @@ library
                           name: B @134
                           element: <testLibrary>::@class::B
                           type: B<Never>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
@@ -959,7 +959,7 @@ library
                       name: B @57
                       element: <testLibrary>::@class::B
                       type: B<Never>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@class::B::@constructor::new
                       substitution: {T: Never}
                   argumentList: ArgumentList
@@ -1045,7 +1045,7 @@ library
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
@@ -1143,7 +1143,7 @@ library
                           name: B @84
                           element: <testLibrary>::@class::B
                           type: B<Never, Never>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: Never, T2: Never}
                       argumentList: ArgumentList
@@ -1241,7 +1241,7 @@ library
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>
-                        element: ConstructorMember
+                        element: SubstitutedConstructorElementImpl
                           baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList

@@ -89,7 +89,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: fromIterable
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: dart:async::@class::Stream::@constructor::fromIterable
       substitution: {T: int}
     staticType: null
@@ -98,7 +98,7 @@ DotShorthandConstructorInvocation
     arguments
       SimpleIdentifier
         token: iter
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::elements
           substitution: {T: int}
         element: iter@26
@@ -131,7 +131,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: Never}
     staticType: null
@@ -709,7 +709,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: id
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::id
       substitution: {T: dynamic}
     staticType: null
@@ -718,7 +718,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::id::@formalParameter::value
           substitution: {T: dynamic}
         staticType: int
@@ -795,7 +795,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: filled
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: dart:core::@class::List::@constructor::filled
       substitution: {E: String}
     staticType: null
@@ -804,7 +804,7 @@ DotShorthandConstructorInvocation
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:core::@class::List::@constructor::filled::@formalParameter::length
           substitution: {E: String}
         staticType: int
@@ -873,7 +873,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: T}
     staticType: null
@@ -907,7 +907,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: Never}
     staticType: null
@@ -1114,7 +1114,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
           substitution: {T: int}
         staticType: int
@@ -1246,7 +1246,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
@@ -1263,7 +1263,7 @@ DotShorthandConstructorInvocation
           leftParenthesis: (
           rightParenthesis: )
         isDotShorthand: true
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
@@ -1294,7 +1294,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
@@ -1308,7 +1308,7 @@ DotShorthandConstructorInvocation
           element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
         isDotShorthand: true
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>

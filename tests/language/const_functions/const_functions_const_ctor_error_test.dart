@@ -34,7 +34,7 @@ class Simple2 {
     //                     ^
     // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
     return Simple2(this.name);
-    // [error column 4]
+    // [error column 5]
     // [cfe] Constructors can't have a return type.
     //     ^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR

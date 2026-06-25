@@ -19,7 +19,7 @@ namespace dart {
 
 DEFINE_FLAG(bool,
             pointer_cage,
-            true,
+            false,
             "Pad compressed heaps with guard regions large enough to prevent "
             "any indexed load from reaching outside the compressed heap.");
 

@@ -431,7 +431,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @55
                 rightParenthesis: ) @56
-              element: ConstructorMember
+              element: SubstitutedConstructorElementImpl
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
           inducedGetter: #F5
@@ -503,7 +503,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @55
             rightParenthesis: ) @56
-          element: ConstructorMember
+          element: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int Function(String)}
       type: int
@@ -597,7 +597,7 @@ library
                     rightBracket: > @66
                   element: <testLibrary>::@class::A
                   type: A<String Function({int? a})>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function({int? a})}
               argumentList: ArgumentList
@@ -707,7 +707,7 @@ library
                     rightBracket: > @66
                   element: <testLibrary>::@class::A
                   type: A<String Function([int?])>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function([int?])}
               argumentList: ArgumentList
@@ -817,7 +817,7 @@ library
                     rightBracket: > @74
                   element: <testLibrary>::@class::A
                   type: A<String Function({required int a})>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function({required int a})}
               argumentList: ArgumentList
@@ -924,7 +924,7 @@ library
                     rightBracket: > @63
                   element: <testLibrary>::@class::A
                   type: A<String Function(int)>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: String Function(int)}
               argumentList: ArgumentList
@@ -1055,7 +1055,7 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: void Function()}
   mixins

@@ -830,11 +830,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: Object?}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: Object?}
     staticType: null
@@ -844,12 +844,12 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: Object?}
 ''');
@@ -857,7 +857,7 @@ Annotation
 A<Object?>
   f: List<List<Object?>>
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: Object?}
     positionalArguments
@@ -890,12 +890,12 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: Object?}
 ''');
@@ -903,7 +903,7 @@ Annotation
 A<Object?>
   f: List<List<Object?>>
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: Object?}
     positionalArguments
@@ -934,11 +934,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -947,12 +947,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -960,7 +960,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -992,12 +992,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -1005,7 +1005,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1069,11 +1069,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: dynamic}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: dynamic}
     staticType: null
@@ -1082,12 +1082,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: dynamic}
 ''');
@@ -1095,7 +1095,7 @@ Annotation
 A<dynamic>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: dynamic}
     positionalArguments
@@ -1169,7 +1169,7 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -1178,12 +1178,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -1191,7 +1191,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -1231,12 +1231,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -1244,7 +1244,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1277,12 +1277,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: dynamic}
 ''');
@@ -1290,7 +1290,7 @@ Annotation
 A<dynamic>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: dynamic}
     positionalArguments
@@ -1326,12 +1326,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1340,13 +1340,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1385,12 +1385,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1399,13 +1399,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1441,12 +1441,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1455,13 +1455,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1496,12 +1496,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1510,13 +1510,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1552,12 +1552,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1566,13 +1566,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1610,12 +1610,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1624,13 +1624,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1674,12 +1674,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1688,13 +1688,13 @@ B<int>
   (super): A<int>
     f: int 42
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
         0: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -2080,7 +2080,7 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -2089,12 +2089,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2102,7 +2102,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -2147,12 +2147,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2160,7 +2160,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -2211,7 +2211,7 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -2220,12 +2220,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2233,7 +2233,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -2286,12 +2286,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2299,7 +2299,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -2387,7 +2387,7 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int, U: double}
     staticType: null
@@ -2396,18 +2396,18 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int, U: double}
 ''');
@@ -2416,7 +2416,7 @@ A<int, double>
   t: int 42
   u: double 1.2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int, U: double}
     positionalArguments
@@ -2460,18 +2460,18 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int, U: double}
 ''');
@@ -2480,7 +2480,7 @@ A<int, double>
   t: int 42
   u: double 1.2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: double}
     positionalArguments
@@ -2514,11 +2514,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -2527,12 +2527,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2540,7 +2540,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -2574,12 +2574,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2587,7 +2587,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -2627,7 +2627,7 @@ Annotation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -2636,12 +2636,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2649,7 +2649,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -2691,12 +2691,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2704,7 +2704,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -2737,11 +2737,11 @@ Annotation
     period: .
     identifier: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::named
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     staticType: null
@@ -2750,12 +2750,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2763,7 +2763,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -2797,12 +2797,12 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element: ConstructorMember
+  element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2810,7 +2810,7 @@ Annotation
 A<int>
   f: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments

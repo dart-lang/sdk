@@ -5631,7 +5631,7 @@ library
                   name: A @46
                   element: <testLibrary>::@class::A
                   type: A<int>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList

@@ -8,8 +8,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -23,9 +23,9 @@ import 'package:analyzer/src/summary2/package_bundle_format.dart';
 export 'package:analyzer/dart/analysis/analysis_options.dart'
     show AnalysisOptions;
 export 'package:analyzer/source/source.dart' show Source;
-export 'package:analyzer/src/context/packages.dart' show Packages, Package;
-export 'package:analyzer/src/dart/analysis/analysis_options.dart'
+export 'package:analyzer/src/analysis_options/analysis_options.dart'
     show AnalysisOptionsImpl;
+export 'package:analyzer/src/context/packages.dart' show Packages, Package;
 export 'package:analyzer/src/dart/analysis/byte_store.dart' show ByteStore;
 export 'package:analyzer/src/dart/analysis/experiments.dart'
     show ExperimentStatus;

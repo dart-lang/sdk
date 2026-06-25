@@ -98,7 +98,7 @@ DotShorthandInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::member::@formalParameter::x
           substitution: {U: int}
         staticType: int
@@ -545,7 +545,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
           substitution: {T: int}
         staticType: int
@@ -760,7 +760,7 @@ DotShorthandInvocation
         period: .
         constructorName: SimpleIdentifier
           token: new
-          element: ConstructorMember
+          element: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: C<dynamic>}
           staticType: null
@@ -777,14 +777,14 @@ DotShorthandInvocation
                 leftParenthesis: (
                 rightParenthesis: )
               isDotShorthand: true
-              correspondingParameter: FieldFormalParameterMember
+              correspondingParameter: SubstitutedFieldFormalParameterElementImpl
                 baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                 substitution: {T: C<dynamic>}
               staticInvokeType: C<int> Function()
               staticType: C<int>
           rightParenthesis: )
         isDotShorthand: true
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::memberType::@formalParameter::u
           substitution: {U: C<C<dynamic>>, V: dynamic}
         staticType: C<C<dynamic>>

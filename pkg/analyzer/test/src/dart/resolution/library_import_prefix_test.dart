@@ -99,7 +99,7 @@ InstanceCreationExpression
       name: C
       element: <testLibrary>::@class::C
       type: C<dynamic>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
@@ -107,7 +107,7 @@ InstanceCreationExpression
     arguments
       SimpleIdentifier
         token: p
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
         element: <testLibraryFragment>::@prefix::p
