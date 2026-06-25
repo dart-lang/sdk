@@ -37,16 +37,26 @@ static method loops(positional-parameter list) → asy::Future<core::int> async 
       local-variable i;
     ]),
   ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    for /* scope=[
-      #ctx6: not-captured VariableContext([
-        local-variable j;
-      ]),
-    ] */ (local-variable j in list) {
-      sum = sum.{core::num::+}(i.{core::num::+}(j){(core::num) → core::int}.{core::num::+}(await self::foo()){(core::num) → core::int}){(core::num) → core::int};
+    {
+      :sync-for-iterator := list.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for /* scope=[
+        #ctx6: not-captured VariableContext([
+          synthetic-variable synthesized :sync-for-iterator;
+        ]),
+      ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
+        #ctx7: not-captured VariableContext([
+          local-variable j;
+        ]),
+      ] */ {
+        j := :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          sum = sum.{core::num::+}(i.{core::num::+}(j){(core::num) → core::int}.{core::num::+}(await self::foo()){(core::num) → core::int}){(core::num) → core::int};
+        }
+      }
     }
   }
   for /* scope=[
-    #ctx7: not-captured VariableContext([
+    #ctx8: not-captured VariableContext([
       local-variable k;
     ]),
   ] */ (k := 0; k.{core::num::<}(10){(core::num) → core::bool}; k = k.{core::num::+}(1){(core::num) → core::int}) {
@@ -55,13 +65,13 @@ static method loops(positional-parameter list) → asy::Future<core::int> async 
   return sum;
 }
 static method tryCatchRethrow(positional-parameter a, positional-parameter b, positional-parameter c) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
-  #ctx8: not-captured VariableContext([
+  #ctx9: not-captured VariableContext([
     positional-parameter a;
     positional-parameter b;
     positional-parameter c;
   ]),
 ] */ /* scope=[
-  #ctx9: not-captured VariableContext([
+  #ctx10: not-captured VariableContext([
     local-variable x;
   ]),
 ] */ {
@@ -71,7 +81,7 @@ static method tryCatchRethrow(positional-parameter a, positional-parameter b, po
       x = x.{core::num::+}(await a){(core::num) → core::int};
     }
     on core::Object catch(catch-variable final e)/* scope=[
-      #ctx10: not-captured VariableContext([
+      #ctx11: not-captured VariableContext([
         catch-variable final e;
       ]),
     ] */ {
@@ -88,20 +98,20 @@ static method tryCatchRethrow(positional-parameter a, positional-parameter b, po
   }
 }
 static method closure(positional-parameter a) → dynamic/* scope=[
-  #ctx11: direct-captured VariableContext([
+  #ctx12: direct-captured VariableContext([
     positional-parameter a;
   ]),
 ] */ /* scope=[
-  #ctx12: direct-captured VariableContext([
+  #ctx13: direct-captured VariableContext([
     local-variable x;
   ]),
-  #ctx13: not-captured VariableContext([
+  #ctx14: not-captured VariableContext([
     local-variable final nested;
   ]),
 ] */ {
   x := 3;
-  function nested() /* #ctx11 #ctx12 */ → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
-    #ctx14: not-captured VariableContext([
+  function nested() /* #ctx12 #ctx13 */ → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+    #ctx15: not-captured VariableContext([
       local-variable y;
     ]),
   ] */ {
@@ -118,7 +128,7 @@ static method closure(positional-parameter a) → dynamic/* scope=[
   return nested;
 }
 static method testAssert(positional-parameter a) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
-  #ctx15: not-captured VariableContext([
+  #ctx16: not-captured VariableContext([
     positional-parameter a;
   ]),
 ] */ {

@@ -376,7 +376,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   String getVariableReference(Variable node) {
-    return getVariableName(node);
+    return node is ThisVariable ? 'this-variable' : getVariableName(node);
   }
 
   String getTypeParameterName(TypeParameter node) {
@@ -2807,22 +2807,26 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         );
       }
       if (showMetadata) writeMetadata(node);
-      writeModifier(
-        variable.isErroneouslyInitialized,
-        'erroneously-initialized',
-      );
+      if (variable is! SyntheticVariable) {
+        writeModifier(
+          variable.isErroneouslyInitialized,
+          'erroneously-initialized',
+        );
+      }
       bool hasImplicitInitializer =
           variable.initializer is NullLiteral ||
           (variable.initializer is ConstantExpression &&
               (variable.initializer as ConstantExpression).constant
                   is NullConstant);
-      if ((variable.initializer == null || hasImplicitInitializer) &&
+      if (variable is! SyntheticVariable &&
+          (variable.initializer == null || hasImplicitInitializer) &&
           variable.hasDeclaredInitializer) {
         writeModifier(
           variable.hasDeclaredInitializer,
           'has-declared-initializer',
         );
-      } else if (variable.initializer != null &&
+      } else if (variable is! SyntheticVariable &&
+          variable.initializer != null &&
           !hasImplicitInitializer &&
           !variable.hasDeclaredInitializer) {
         writeModifier(

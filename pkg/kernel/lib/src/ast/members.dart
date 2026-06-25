@@ -277,6 +277,8 @@ class Field extends Member implements ScopeProvider {
   @override
   Scope? scope;
 
+  ThisVariable? thisVariable;
+
   new mutable(
     Name name, {
     this.type = const DynamicType(),

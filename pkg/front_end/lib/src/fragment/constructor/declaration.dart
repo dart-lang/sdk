@@ -774,9 +774,9 @@ mixin _ConstructorEncodingMixin
   @override
   void registerFunctionBody(
     Statement? body,
-    Scope? scope,
-    ThisVariable? thisVariable,
-  ) {
+    Scope? scope, {
+    required ThisVariable? thisVariable,
+  }) {
     _encoding.registerFunctionBody(
       body: body,
       scope: scope,
@@ -785,8 +785,8 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  void registerNoBodyConstructor() {
-    _encoding.registerNoBodyConstructor();
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+    _encoding.registerNoBodyConstructor(thisVariable: thisVariable);
   }
 
   @override
@@ -1501,11 +1501,11 @@ abstract class ConstructorFragmentDeclaration {
 
   void registerFunctionBody(
     Statement? body,
-    Scope? scope,
-    ThisVariable? thisVariable,
-  );
+    Scope? scope, {
+    required ThisVariable? thisVariable,
+  });
 
-  void registerNoBodyConstructor();
+  void registerNoBodyConstructor({required ThisVariable? thisVariable});
 
   InternalVariable? get thisVariable;
 

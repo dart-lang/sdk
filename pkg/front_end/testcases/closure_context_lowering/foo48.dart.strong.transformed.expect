@@ -18,35 +18,25 @@ static method callClosure(positional-parameter func) → void/* scope=[
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)
     func(){() → void};
 }
-static method foo45() → void /* scope=[
-  #ctx2: direct-captured VariableContext([
-    local-variable a;
-  ]),
-] */ {
-  a := 10;
-  self::callClosure(() /* #ctx2 */ → void {
-    a = a.{core::num::+}(11){(core::num) → core::int};
-  });
+static method foo48() → void {
+  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
+    #ctx2: direct-captured VariableContext([
+      local-variable a;
+    ]),
+  ] */ {
+    a := 10;
+    self::callClosure(() /* #ctx2 */ → void {
+      a = a.{core::num::+}(11){(core::num) → core::int};
+    });
+  }
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
     #ctx3: direct-captured VariableContext([
       local-variable b;
     ]),
   ] */ {
     b := 20;
-    self::callClosure(() /* #ctx2 #ctx3 */ → void {
-      a = a.{core::num::+}(12){(core::num) → core::int};
+    self::callClosure(() /* #ctx3 */ → void {
       b = b.{core::num::+}(22){(core::num) → core::int};
-    });
-  }
-  if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
-    #ctx4: direct-captured VariableContext([
-      local-variable c;
-    ]),
-  ] */ {
-    c := 30;
-    self::callClosure(() /* #ctx2 #ctx4 */ → void {
-      a = a.{core::num::+}(13){(core::num) → core::int};
-      c = c.{core::num::+}(33){(core::num) → core::int};
     });
   }
 }
@@ -63,6 +53,6 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-testcase:///foo45.dart:
+org-dartlang-testcase:///foo48.dart:
 - pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

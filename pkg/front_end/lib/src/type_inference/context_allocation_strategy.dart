@@ -35,7 +35,6 @@ enum ScopeProviderInfoKind {
 
 class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
-
   Scope? scope;
   ThisVariable? thisVariable;
 
@@ -181,7 +180,6 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   });
 }
 
-// Coverage-ignore(suite): Not run.
 class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
@@ -200,6 +198,7 @@ class TrivialContextAllocationStrategy
   }) => new ScopeProviderInfo(kind: scopeProviderInfoKind);
 }
 
+// Coverage-ignore(suite): Not run.
 class CollectorScopeProviderInfo extends ScopeProviderInfo {
   /// Link to [CollectorScopeProviderInfo] that the current info object
   /// delegates collecting captured variables to.
@@ -212,6 +211,7 @@ class CollectorScopeProviderInfo extends ScopeProviderInfo {
   new({required super.kind});
 }
 
+// Coverage-ignore(suite): Not run.
 class LoopDepthAllocationStrategy
     extends ContextAllocationStrategy<CollectorScopeProviderInfo> {
   @override

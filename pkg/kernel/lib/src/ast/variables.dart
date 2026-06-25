@@ -1363,7 +1363,7 @@ class NamedParameter extends FunctionParameter {
 /// The variable storage for `this`.
 class ThisVariable extends Variable {
   @override
-  String get cosmeticName => "this-variable";
+  String get cosmeticName => "";
 
   @override
   void set cosmeticName(String? value) {}
@@ -1824,10 +1824,14 @@ enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 /// serves as the "declaration" of the variables it contains for the runtime
 /// environments.
 class VariableContext {
-  final CaptureKind captureKind;
-  final List<VariableBase> variables;
+  CaptureKind captureKind;
+  List<VariableBase> variables;
 
-  new({required this.captureKind, required this.variables});
+  new({required this.captureKind, required this.variables}) {
+    for (VariableBase variable in variables) {
+      variable.context = this;
+    }
+  }
 
   void addVariable(VariableBase variable) {
     variable.context = this;

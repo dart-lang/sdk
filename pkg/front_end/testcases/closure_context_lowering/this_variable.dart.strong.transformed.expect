@@ -538,3 +538,12 @@ class B extends self::A {
 constants  {
   #C1 = core::_Override {}
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:138:21 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:138:26 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:138:26 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:292:27 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:292:32 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///this_variable.dart:292:32 -> NullConstant(null)
+Extra constant evaluation: evaluated: 262, effectively constant: 6
