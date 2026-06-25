@@ -33,6 +33,7 @@ import 'isolate_manager.dart';
 import 'package_uri_converter.dart';
 import 'rpc_error_codes.dart';
 import 'stream_manager.dart';
+import 'utils/validation.dart';
 
 @visibleForTesting
 typedef PeerBuilder = Future<json_rpc.Peer> Function(WebSocketChannel, dynamic);
@@ -66,6 +67,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this._enableServicePortFallback,
     this.uriConverter,
     this.appName,
+    this._disableServiceOriginCheck,
   ) {
     _clientManager = ClientManager(this);
     _expressionEvaluator = ExpressionEvaluator(this);
@@ -187,6 +189,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         ),
       );
     }
+    pipeline = pipeline.addMiddleware(_originCheckMiddleware);
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
     pipeline = pipeline.addMiddleware(
         createMiddleware(errorHandler: (Object error, StackTrace st) {
@@ -334,6 +337,46 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
     return base64Url.encode(bytes);
   }
+
+  bool _isAllowedOrigin(String origin) {
+    return isAllowedOrigin(
+      origin,
+      allowedHosts: [_server.address.host, _server.address.address],
+      allowedPort: _server.port,
+    );
+  }
+
+  /// Shelf middleware to validate Host and Origin headers to prevent
+  /// DNS-rebinding and CSRF attacks.
+  Handler _originCheckMiddleware(Handler innerHandler) => (Request request) {
+        if (_disableServiceOriginCheck) {
+          return innerHandler(request);
+        }
+
+        // Validate Host header first to prevent DNS rebinding.
+        final hostHeader = request.headers[HttpHeaders.hostHeader];
+        if (hostHeader == null) {
+          return Response.forbidden('forbidden host');
+        }
+        if (!_isAllowedOrigin('http://$hostHeader')) {
+          return Response.forbidden('forbidden host');
+        }
+
+        // Check the Origin header for cross-origin requests.
+        final origin = request.headers['Origin'];
+        if (origin == null) {
+          // No origin sent. This is a non-browser client or a same-origin request.
+          // Since we already validated the Host header, we know it's a legitimate
+          // local same-origin request (or a local non-browser tool).
+          return innerHandler(request);
+        }
+
+        if (_isAllowedOrigin(origin)) {
+          return innerHandler(request);
+        }
+
+        return Response.forbidden('forbidden origin');
+      };
 
   /// Shelf middleware to verify authentication tokens before processing a
   /// request.
@@ -507,11 +550,14 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   @override
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
+
+  bool get disableServiceOriginCheck => _disableServiceOriginCheck;
   String? get authCode => _authCode;
   String? _authCode;
 
   final bool _enableServicePortFallback;
   final bool shouldLogRequests;
+  final bool _disableServiceOriginCheck;
 
   @override
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
