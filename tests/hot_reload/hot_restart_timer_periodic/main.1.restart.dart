@@ -34,7 +34,7 @@ void main() async {
  bool calledBeforeRestart = false;
  bool calledAfterRestart = false;
  void callback(_) {
-@@ -18,9 +18,7 @@ void callback(_) {
+@@ -19,9 +19,7 @@ void callback(_) {
  }
  
  void main() async {
