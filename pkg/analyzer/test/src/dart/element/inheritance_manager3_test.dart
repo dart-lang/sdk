@@ -3222,7 +3222,9 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     var actual = _interfaceText(element);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }

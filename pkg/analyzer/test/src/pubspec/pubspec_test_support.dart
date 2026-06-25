@@ -25,7 +25,9 @@ class PubspecDiagnosticTest with ResourceProviderMixin {
     );
     if (actual != content) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(content, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(content, actual);
+      }
       fail('See the difference above.');
     }
   }

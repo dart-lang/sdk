@@ -68,7 +68,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = buffer.toString();
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -137,7 +139,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = buffer.toString();
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -166,7 +170,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = buffer.toString();
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -175,7 +181,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -332,8 +340,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       var actual = actualCodeByFile[file.file]!;
       if (actual != file.code) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
-        print('-------- ${file.file.path} --------');
-        printPrettyDiff(file.code, actual);
+        if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+          print('-------- ${file.file.path} --------');
+          printPrettyDiff(file.code, actual);
+        }
         hasMismatch = true;
       }
     }
@@ -421,7 +431,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
     if (actual != code) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(code, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
       fail('See the difference above.');
     }
 

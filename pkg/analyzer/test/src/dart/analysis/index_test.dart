@@ -34,7 +34,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).elementRelations(element);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -47,7 +49,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).libraryFragmentReferences(fragment);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -56,7 +60,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).nameRelations(name);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -65,7 +71,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _toPosixPaths(_IndexTextBuilder(result).subtypes());
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
