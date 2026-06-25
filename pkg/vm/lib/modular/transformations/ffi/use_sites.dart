@@ -651,6 +651,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           isLeaf,
           reportErrorOn: node,
         );
+        if (dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         if (_isMissingArguments(node)) {
@@ -679,6 +682,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           isLeaf,
           reportErrorOn: node,
         );
+        if (dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
         final DartType nativeSignature = nativeType.typeArguments[0];
 
         return _replaceAsFunction(
@@ -687,7 +693,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             nativeType,
           ]),
           nativeSignature: nativeSignature,
-          dartSignature: dartType as FunctionType,
+          dartSignature: dartType,
           isLeaf: isLeaf,
           fileOffset: node.fileOffset,
         );
@@ -716,16 +722,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType dartType = func.getStaticType(staticTypeContext!);
 
         ensureNativeTypeValid(nativeType, node);
-        final ffiFuncType =
-            ensureNativeTypeMatch(
-                  FfiTypeCheckDirection.dartToNative,
-                  nativeType,
-                  dartType,
-                  node,
-                )
-                as FunctionType;
+        final ffiFuncType = ensureNativeTypeMatch(
+          FfiTypeCheckDirection.dartToNative,
+          nativeType,
+          dartType,
+          node,
+        );
+        if (ffiFuncType is! FunctionType || dartType is! FunctionType) {
+          throw FfiStaticTypeError();
+        }
 
-        final funcType = dartType as FunctionType;
+        final funcType = dartType;
 
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
@@ -1308,16 +1315,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node);
-    final ffiFuncType =
-        ensureNativeTypeMatch(
-              FfiTypeCheckDirection.dartToNative,
-              nativeType,
-              dartType,
-              node,
-            )
-            as FunctionType;
+    final ffiFuncType = ensureNativeTypeMatch(
+      FfiTypeCheckDirection.dartToNative,
+      nativeType,
+      dartType,
+      node,
+    );
+    if (ffiFuncType is! FunctionType ||
+        dartType is! FunctionType ||
+        node.arguments.types[0] is! FunctionType) {
+      throw FfiStaticTypeError();
+    }
 
-    final funcType = dartType as FunctionType;
+    final funcType = dartType;
 
     // Check `exceptionalReturn`'s type.
     final Class expectedReturnClass =
