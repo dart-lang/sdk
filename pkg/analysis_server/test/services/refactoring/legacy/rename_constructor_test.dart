@@ -22,6 +22,70 @@ void main() {
 
 @reflectiveTest
 class RenameConstructorClassTest extends _RenameConstructorTest {
+  Future<void> test_annotation_named() async {
+    await indexTestUnit('''
+@Foo.foo^()
+class const Foo.foo();
+''');
+    _createAnnotationRefactoring();
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+@Foo()
+class const Foo();
+''');
+  }
+
+  Future<void> test_annotation_named_prefixed() async {
+    await indexTestUnit('''
+import '' as self;
+@self.Foo.foo^()
+class const Foo.foo();
+''');
+    _createAnnotationRefactoring();
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+import '' as self;
+@self.Foo()
+class const Foo();
+''');
+  }
+
+  Future<void> test_annotation_unnamed() async {
+    await indexTestUnit('''
+@Foo()
+class Foo {
+  const new^();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+@Foo.newName()
+class Foo {
+  const new newName();
+}
+''');
+  }
+
+  Future<void> test_annotation_unnamed_prefixed() async {
+    await indexTestUnit('''
+import '' as self;
+@self.Foo()
+class Foo {
+  const new^();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+import '' as self;
+@self.Foo.newName()
+class Foo {
+  const new newName();
+}
+''');
+  }
+
   Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 void f() {
@@ -35,7 +99,8 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
+      expectedMessage:
+          "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
     );
   }
 
@@ -1478,6 +1543,15 @@ void f() {
 }
 
 class _RenameConstructorTest extends RenameRefactoringTest {
+  void _createAnnotationRefactoring({int index = 0, bool range = false}) {
+    var node = _searchWith<Annotation>(index: index, range: range);
+    if (node == null) {
+      return;
+    }
+    var element = node.element;
+    createRenameRefactoringForElement2(element);
+  }
+
   void _createConstructorDeclarationRefactoring({
     int index = 0,
     bool range = false,
