@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 Future<SourceEdit?> buildEditForInsertedConstructor(
   CompilationUnitMember container,
   void Function(DartEditBuilder builder) buildEdit, {
-  required bool isNamed,
+  bool isNamed = false,
   required ResolvedUnitResult resolvedUnit,
   required AnalysisSession session,
 }) async {
