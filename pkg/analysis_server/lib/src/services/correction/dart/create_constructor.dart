@@ -157,7 +157,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
           targetElementName,
           argumentList: argumentList,
         );
-      }, isNamed: false);
+      });
     });
   }
 

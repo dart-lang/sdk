@@ -217,7 +217,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           builder.write('${_getInitalizersString(fieldsForInitializers)}, ');
         }
         builder.write('super(key: key);');
-      }, isNamed: false);
+      });
     });
   }
 
@@ -257,7 +257,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           builder.write(' : ${_getInitalizersString(fieldsForInitializers)}');
         }
         builder.write(';');
-      }, isNamed: false);
+      });
     });
   }
 
@@ -331,7 +331,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
 
         builder.write(';');
-      }, isNamed: false);
+      });
     });
   }
 
@@ -364,7 +364,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           hasWritten = true;
         }
         builder.write(');');
-      }, isNamed: false);
+      });
     });
   }
 
