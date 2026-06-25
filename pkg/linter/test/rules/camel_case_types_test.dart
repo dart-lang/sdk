@@ -53,6 +53,7 @@ augment enum e {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There are unexpected diagnostics.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

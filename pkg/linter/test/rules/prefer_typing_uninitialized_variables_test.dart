@@ -21,6 +21,7 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There is a diagnostic in b.dart.',
   )
+  // TODO(scheglov): implement augmentation
   test_field_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
@@ -120,6 +121,7 @@ void f() {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There is a diagnostic in b.dart.',
   )
+  // TODO(scheglov): implement augmentation
   test_topLevelVariable_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';

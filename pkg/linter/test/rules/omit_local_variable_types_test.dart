@@ -156,8 +156,7 @@ f() {
 ''');
   }
 
-  /// https://github.com/dart-lang/linter/issues/3016
-  @failingTest
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3016')
   test_paramIsType() async {
     await assertDiagnosticsFromMarkup(r'''
 T bar<T>(T d) => d;

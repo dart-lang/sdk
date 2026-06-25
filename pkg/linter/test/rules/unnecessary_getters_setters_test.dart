@@ -77,6 +77,7 @@ class C {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  // TODO(scheglov): implement augmentation
   test_unnecessary_augmentationAddedGetterAndSetter() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
@@ -101,6 +102,7 @@ class [!A!] {}
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
+  // TODO(scheglov): implement augmentation
   test_unnecessary_augmentationAddedSetter() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';

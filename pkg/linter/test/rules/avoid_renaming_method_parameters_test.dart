@@ -23,6 +23,7 @@ class AvoidRenamingMethodParametersTest extends LintRuleTest {
     reason: 'lint is limited to methods',
     issue: 'https://github.com/dart-lang/linter/issues/4891',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedFunction() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -41,6 +42,7 @@ augment void f(int q) [!{!]}
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There are unexpected diagnostics.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

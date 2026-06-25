@@ -43,6 +43,7 @@ augment class A {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There is a diagnostic in b.dart.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedField() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
