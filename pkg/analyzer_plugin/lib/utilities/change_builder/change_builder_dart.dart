@@ -604,7 +604,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   void insertConstructor(
     CompilationUnitMember container,
     void Function(DartEditBuilder builder) buildEdit, {
-    required bool isNamed,
+    bool isNamed = false,
   });
 
   /// Inserts the code for a field.

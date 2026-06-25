@@ -2223,7 +2223,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void insertConstructor(
     CompilationUnitMember container,
     void Function(DartEditBuilder builder) buildEdit, {
-    required bool isNamed,
+    bool isNamed = false,
   }) {
     if (container is! ClassDeclaration &&
         container is! EnumDeclaration &&
