@@ -2219,4 +2219,5 @@ external bool jsIdentical(Object? a, Object? b);
 /// This is useful when the error is expected to be caught by or displayed to
 /// JS users rather than Dart code. Dart's additional wrappers and properties
 /// can obscure JS error information in those contexts.
+@Since('3.13')
 external Never jsThrow(JSAny error);
