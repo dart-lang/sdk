@@ -1684,7 +1684,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 
   const uword fp = frame->fp();
   const uword sp = arguments.GetCallerSP();
-  ASSERT((fp < sp) && (sp <= frame->sp()));
+  ASSERT_LESS_OR_EQUAL(fp, sp);
+  ASSERT_LESS_OR_EQUAL(sp, frame->sp());
   MSAN_UNPOISON(reinterpret_cast<uint8_t*>(fp), sp - fp);
 
   ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(sp);
