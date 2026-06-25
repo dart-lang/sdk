@@ -1,6 +1,6 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::String s1, dart.core::String s2) → dynamic
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::String _s1, dart.core::String _s2) → dynamic
   return (() → dart.core::String {
-    return "${s1} ${s2}";
+    return "${this{dynamic}.s1} ${this{dynamic}.s2} ${_s1} ${_s2}";
   })(){() → dart.core::String};

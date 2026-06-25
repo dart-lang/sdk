@@ -250,6 +250,7 @@ class ForInLowering {
       initializer: syncForIteratorVariableInitializer,
       type: iteratorType,
       fileOffset: iterable.fileOffset,
+      variableWithContext: stmt.variable,
     );
 
     final condition = InstanceInvocation(
@@ -275,34 +276,38 @@ class ForInLowering {
           initializer: syncForLoopVariableInitializer,
         );
 
-    final Block body = Block([
-      syncForLoopVariableInitialization
-        ..fileOffset = syncForLoopVariableInitialization.fileOffset,
-      stmt.body,
-    ])..fileOffset = stmt.bodyOffset;
+    final Block body = Block([syncForLoopVariableInitialization, stmt.body])
+      ..fileOffset = stmt.bodyOffset;
+    if (isClosureContextLoweringEnabled) {
+      CaptureKind stmtVariableCaptureType = stmt.variable.context.captureKind;
+      stmt.variable.context.variables.remove(stmt.variable);
+      VariableContext stmtVariableContext = new VariableContext(
+        captureKind: stmtVariableCaptureType,
+        variables: [stmt.variable],
+      );
+      body.scope = new Scope(contexts: [stmtVariableContext]);
+    }
 
     final forStatement = ForStatement([], condition, [], body)
-      ..scope = stmt.scope
-      ..fileOffset = stmt.fileOffset;
+      ..fileOffset = stmt.fileOffset
+      ..scope = stmt.scope;
 
-    return Block([
-      syncForIteratorVariableInitialization
-        ..fileOffset = syncForIteratorVariableInitialization.fileOffset,
-      forStatement,
-    ]);
+    return Block([syncForIteratorVariableInitialization, forStatement]);
   }
 
   (Variable, Statement) _createSyncForIteratorVariableAndInitialization({
     required Expression initializer,
     required DartType type,
     required int fileOffset,
+    required Variable variableWithContext,
   }) {
     if (isClosureContextLoweringEnabled) {
       final variable = SyntheticVariable(
         cosmeticName: ForInVariables.syncForIterator,
         type: type,
         initializer: initializer,
-      );
+      )..context = variableWithContext.context;
+      variable.context.variables.add(variable);
       final initialization = VariableStatement(
         VariableDeclaration(variable)..fileOffset = fileOffset,
       )..fileOffset = fileOffset;

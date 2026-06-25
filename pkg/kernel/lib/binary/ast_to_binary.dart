@@ -29,6 +29,8 @@ class BinaryPrinter
   final StringIndexer stringIndexer;
   final ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
+  final VariableContextIndexer _variableContextIndexer =
+      new VariableContextIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool?> _sourcesFromRealImplementation = <bool?>[];
   final List<bool?> _sourcesUsedInLibrary = <bool?>[];
@@ -650,6 +652,29 @@ class BinaryPrinter
         outputStringViaBuffer(s, new Uint8List(s.length * 3));
       }
     }
+  }
+
+  void writeOptionalScope(Scope? scope) {
+    if (scope == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeList(scope.contexts, _writeVariableContext);
+    }
+  }
+
+  void writeScopeSize(Scope? scope) {
+    writeUInt30(scope?.contexts.length ?? 0);
+  }
+
+  void _writeVariableContext(VariableContext variableContext) {
+    writeByte(variableContext.captureKind.index);
+    // TODO(63494): Remove the cast when function type variables are
+    // supported.
+    writeList<Variable>(
+      variableContext.variables.cast<Variable>(),
+      _writeVariableReference,
+    );
   }
 
   /// Collect metadata repositories associated with the component.
@@ -1348,7 +1373,9 @@ class BinaryPrinter
       node.function.positionalParameters.length +
           node.function.namedParameters.length,
     );
+    _variableContextIndexer.restoreScope(node.function.scope);
     writeNodeList(node.initializers);
+    _variableContextIndexer.leaveRestoredScope(node.function.scope);
 
     leaveScope(memberScope: true);
   }
@@ -1497,6 +1524,7 @@ class BinaryPrinter
       }
     }
     enterScope(memberScope: true);
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.Field);
     _writeNonNullCanonicalName(fieldCanonicalName);
     _writeNonNullCanonicalName(getterCanonicalName);
@@ -1506,9 +1534,15 @@ class BinaryPrinter
     writeOffset(node.fileEndOffset);
     writeUInt30(node.flags);
     writeName(node.name);
+    writeScopeSize(node.scope);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
+    // TODO(63493): Don't serialize `thisVariable` separately when the scopes
+    // are serialized before function bodies.
+    writeOptionalVariable(node.thisVariable);
     writeOptionalNode(node.initializer);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     leaveScope(memberScope: true);
   }
 
@@ -1564,6 +1598,7 @@ class BinaryPrinter
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     enterScope(typeParameters: node.typeParameters, variableScope: true);
+    _variableContextIndexer.enterOptionalScope(node.scope);
     LabelIndexer? oldLabels = _labelIndexer;
     _labelIndexer = null;
     SwitchCaseIndexer? oldCases = _switchCaseIndexer;
@@ -1573,7 +1608,11 @@ class BinaryPrinter
     writeOffset(node.fileEndOffset);
     writeByte(node.asyncMarker.index);
     writeByte(node.dartAsyncMarker.index);
+    writeScopeSize(node.scope);
     writeNodeList(node.typeParameters);
+    // TODO(63493): Don't serialize `thisVariable` separately when the scopes
+    // are serialized before function bodies.
+    writeOptionalVariable(node.thisVariable);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
     writeUInt30(node.requiredParameterCount);
     writePositionalParameterList(node.positionalParameters);
@@ -1603,8 +1642,11 @@ class BinaryPrinter
       }
     }
     writeOptionalNode(node.body);
+    writeOptionalScope(node.scope);
+    writeOptionalCapturedContexts(node.capturedContexts);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
+    _variableContextIndexer.exitOptionalScope(node.scope);
     leaveScope(typeParameters: node.typeParameters, variableScope: true);
   }
 
@@ -2223,8 +2265,12 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
+    writeScopeSize(node.scope);
     writeNodeList(node.body.statements);
     writeNode(node.value);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2269,10 +2315,14 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.Block);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+    writeScopeSize(node.scope);
     writeNodeList(node.statements);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2337,8 +2387,12 @@ class BinaryPrinter
   void visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
     writeOffset(node.fileOffset);
+    _variableContextIndexer.enterOptionalScope(node.scope);
+    writeScopeSize(node.scope);
     writeNode(node.condition);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
   }
 
   @override
@@ -2354,12 +2408,16 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
+    writeScopeSize(node.scope);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2368,12 +2426,16 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
     writeOffset(node.bodyOffset);
+    writeScopeSize(node.scope);
     writeVariable(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2448,11 +2510,15 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
+    _variableContextIndexer.enterOptionalScope(node.scope);
     writeOffset(node.fileOffset);
+    writeScopeSize(node.scope);
     writeNode(node.guard);
     writeOptionalVariable(node.exception);
     writeOptionalVariable(node.stackTrace);
     writeNode(node.body);
+    writeOptionalScope(node.scope);
+    _variableContextIndexer.exitOptionalScope(node.scope);
     variableIndexer.popScope();
   }
 
@@ -2522,6 +2588,7 @@ class BinaryPrinter
   void writeVariableDeclaration(VariableDeclaration node) {
     writeByte(Tag.VariableDeclaration);
     writeOffset(node.fileOffset);
+    writeOptionalCapturedContexts(node.capturedContexts);
     writeVariable(node.variable);
   }
 
@@ -2552,10 +2619,27 @@ class BinaryPrinter
     writeUInt30(node.flags);
     writeStringReference(node.cosmeticName ?? '');
     writeNode(node.type);
-    writeOptionalNode(node.initializer);
+
+    writeOptionalNode(node is ThisVariable ? null : node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
     (_variableIndexer ??= _newVariableIndexer()).declare(node);
+  }
+
+  void writeOptionalCapturedContexts(List<VariableContext>? capturedContexts) {
+    if (capturedContexts == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeUInt30(capturedContexts.length);
+      for (VariableContext variableContext in capturedContexts) {
+        writeVariableContextReference(variableContext);
+      }
+    }
+  }
+
+  void writeVariableContextReference(VariableContext variableContext) {
+    writeUInt30(_variableContextIndexer[variableContext]);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
@@ -3616,6 +3700,42 @@ class TypeParameterIndexer {
     assert(parameter is TypeParameter || parameter is StructuralParameter);
     return index[parameter] ??
         (throw new ArgumentError('Type parameter $parameter is not indexed'));
+  }
+}
+
+class VariableContextIndexer {
+  final Map<VariableContext, int> index = new Map<VariableContext, int>();
+  int stackHeight = 0;
+
+  void enterOptionalScope(Scope? scope) {
+    if (scope != null) {
+      for (VariableContext variableContext in scope.contexts) {
+        index[variableContext] = stackHeight;
+        stackHeight++;
+      }
+    }
+  }
+
+  void exitOptionalScope(Scope? scope) {
+    if (scope != null) {
+      stackHeight -= scope.contexts.length;
+      for (VariableContext variableContext in scope.contexts) {
+        index.remove(variableContext);
+      }
+    }
+  }
+
+  void restoreScope(Scope? scope) {
+    enterOptionalScope(scope);
+  }
+
+  void leaveRestoredScope(Scope? scope) {
+    exitOptionalScope(scope);
+  }
+
+  int operator [](VariableContext variableContext) {
+    return index[variableContext] ??
+        (throw new ArgumentError("Variable context is not indexed."));
   }
 }
 

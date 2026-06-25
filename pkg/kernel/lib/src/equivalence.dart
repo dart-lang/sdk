@@ -2375,6 +2375,9 @@ class EquivalenceStrategy {
     if (!checkField_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkField_thisVariable(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkField_fileEndOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -8079,6 +8082,18 @@ class EquivalenceStrategy {
   bool checkField_scope(EquivalenceVisitor visitor, Field node, Field other) {
     'scope';
     return checkScope(visitor, node.scope, other.scope);
+  }
+
+  bool checkField_thisVariable(
+    EquivalenceVisitor visitor,
+    Field node,
+    Field other,
+  ) {
+    return visitor.checkNodes(
+      node.thisVariable,
+      other.thisVariable,
+      'thisVariable',
+    );
   }
 
   bool checkMember_fileEndOffset(

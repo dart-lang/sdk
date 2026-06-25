@@ -611,11 +611,15 @@ void ScopeBuilder::VisitProcedure() {
 void ScopeBuilder::VisitField() {
   FieldHelper field_helper(&helper_);
   field_helper.ReadUntilExcluding(FieldHelper::kType);
-  VisitDartType();              // read type.
+  VisitDartType();  // read type.
+  if (helper_.ReadTag() == kSomething) {
+    helper_.SkipVariable();  // read this_variable.
+  }
   Tag tag = helper_.ReadTag();  // read initializer (part 1).
   if (tag == kSomething) {
     VisitExpression();  // read initializer (part 2).
   }
+  helper_.SkipScope();
 }
 
 void ScopeBuilder::VisitFunctionNode() {
@@ -643,6 +647,9 @@ void ScopeBuilder::VisitFunctionNode() {
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
   }
+
+  helper_.SkipScope();
+  helper_.SkipCapturedContexts();
 }
 
 void ScopeBuilder::VisitInitializer() {
@@ -1000,12 +1007,15 @@ void ScopeBuilder::VisitExpression() {
       EnterScope(offset);
 
       helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read scope size.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {
         VisitStatement();  // read ith statement.
       }
       VisitExpression();  // read expression.
+
+      helper_.SkipScope();
 
       ExitScope(helper_.reader_.min_position(), helper_.reader_.max_position());
       return;
@@ -1115,6 +1125,7 @@ void ScopeBuilder::VisitStatement() {
       EnterScope(offset);
       helper_.ReadPosition();  // read block start offset.
       helper_.ReadPosition();  // read block end offset.
+      helper_.ReadUInt();      // read scope size.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -1122,6 +1133,9 @@ void ScopeBuilder::VisitStatement() {
       }
 
       ExitScope(helper_.reader_.min_position(), helper_.reader_.max_position());
+
+      helper_.SkipScope();
+
       return;
     }
     case kEmptyStatement:
@@ -1176,8 +1190,11 @@ void ScopeBuilder::VisitStatement() {
     case kWhileStatement:
       ++depth_.loop_;
       helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read scpoe size.
       VisitExpression();       // read condition.
       VisitStatement();        // read body.
+      helper_.SkipScope();
+
       --depth_.loop_;
       return;
     case kDoStatement:
@@ -1196,6 +1213,7 @@ void ScopeBuilder::VisitStatement() {
       EnterScope(offset);
 
       TokenPosition position = helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();                               // read scope size.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of variables.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -1208,6 +1226,8 @@ void ScopeBuilder::VisitStatement() {
       }
       VisitListOfExpressions();  // read updates.
       VisitStatement();          // read body.
+
+      helper_.SkipScope();
 
       ExitScope(position, helper_.reader_.max_position());
       --depth_.loop_;
@@ -1281,6 +1301,7 @@ void ScopeBuilder::VisitStatement() {
         EnterScope(offset);
 
         helper_.ReadPosition();   // read position.
+        helper_.ReadUInt();       // read scope size.
         VisitDartType();          // Read the guard.
         tag = helper_.ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -1291,6 +1312,8 @@ void ScopeBuilder::VisitStatement() {
           VisitVariable();  // read stack trace.
         }
         VisitStatement();  // read body.
+
+        helper_.SkipScope();
 
         ExitScope(helper_.reader_.min_position(),
                   helper_.reader_.max_position());
@@ -1383,7 +1406,8 @@ void ScopeBuilder::VisitArguments() {
 void ScopeBuilder::VisitVariableDeclaration() {
   helper_.ReadTag();       // read tag.
   helper_.ReadPosition();  // read position.
-  VisitVariable();         // read variable.
+  helper_.SkipCapturedContexts();
+  VisitVariable();  // read variable.
 }
 
 void ScopeBuilder::VisitVariable() {

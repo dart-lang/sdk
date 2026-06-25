@@ -47,7 +47,7 @@ static method foo(positional-parameter functions) → dynamic/* scope=[
                 local-variable g;
               ]),
             ] */ {
-              g := () /* #ctx7 #ctx6 #ctx4 #ctx3 */ → void => <core::int>[b, c, e, f];
+              g := () /* #ctx7 #ctx6 #ctx4 #ctx3 */ → void => core::_GrowableList::_literal4<core::int>(b, c, e, f);
               functions.{core::List::add}(g){(() → void) → void};
             }
           }

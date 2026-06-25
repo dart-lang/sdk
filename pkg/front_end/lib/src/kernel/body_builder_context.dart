@@ -386,7 +386,7 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers that the constructor has no body.
-  void registerNoBodyConstructor() {
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
     throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 

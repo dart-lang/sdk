@@ -1325,7 +1325,9 @@ class Resolver {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      bodyBuilderContext.registerNoBodyConstructor();
+      bodyBuilderContext.registerNoBodyConstructor(
+        thisVariable: scopeProviderInfo?.thisVariable,
+      );
     } else if (body != null &&
         bodyBuilderContext.isMixinClass &&
         !bodyBuilderContext.isFactory) {

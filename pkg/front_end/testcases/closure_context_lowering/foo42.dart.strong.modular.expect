@@ -71,22 +71,28 @@ static method foo42() → void /* scope=[
   for /* scope=[
     #ctx4: direct-captured VariableContext([
       local-variable i;
+    ]),
+  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
+    #ctx5: direct-captured VariableContext([
       local-variable h;
     ]),
-  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+  ] */ {
     h := self::opaqueVal();
-    self::callClosure(() /* #ctx4 */ → void {
+    self::callClosure(() /* #ctx5 #ctx4 */ → void {
       core::print(h);
       core::print(i);
     });
     for /* scope=[
-      #ctx5: direct-captured VariableContext([
+      #ctx6: direct-captured VariableContext([
         local-variable j;
+      ]),
+    ] */ (j := 0; j.{core::num::<}(10){(core::num) → core::bool}; j = j.{core::num::+}(1){(core::num) → core::int})/* scope=[
+      #ctx7: direct-captured VariableContext([
         local-variable k;
       ]),
-    ] */ (j := 0; j.{core::num::<}(10){(core::num) → core::bool}; j = j.{core::num::+}(1){(core::num) → core::int}) {
+    ] */ {
       k := 90;
-      self::callClosure(() /* #ctx5 */ → void {
+      self::callClosure(() /* #ctx6 #ctx7 */ → void {
         j = j.{core::num::+}(2){(core::num) → core::int};
         k = k.{core::num::+}(91){(core::num) → core::int};
       });
