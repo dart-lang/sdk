@@ -47,6 +47,7 @@ import 'package:kernel/kernel.dart'
         LibraryPart,
         Name,
         NamedNode,
+        NamedParameter,
         Node,
         Nullability,
         Procedure,
@@ -1876,6 +1877,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Map<String, DartType> usedDefinitions = new Map<String, DartType>.of(
       inputDefinitions,
     );
+    final Set<String> renamedPrivateNamedParameter = {};
 
     return await context.runInContext((_) async {
       CompilationUnit? compilationUnit = lastGoodKernelTarget!.loader
@@ -1952,6 +1954,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             }
 
             DartType? existingType = usedDefinitions[def.key];
+
+            if (existingType != null &&
+                def.value is NamedParameter &&
+                (def.value as NamedParameter).isRenamedPrivateNamedParameter) {
+              // We have to rename this for correct scope lookups.
+              renamedPrivateNamedParameter.add(def.key);
+            }
 
             if (existingType == null) {
               // We found a variable, but we weren't told about it.
@@ -2255,6 +2264,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<PositionalParameter> positionalParameters = [];
       for (MapEntry<String, DartType> def in usedDefinitions.entries) {
         String name = def.key;
+        if (renamedPrivateNamedParameter.contains(name)) {
+          // We rename it here so scopes will be correct.
+          name = "_$name";
+        }
         DartType type = def.value;
         PositionalParameter variable = extern.createPositionalParameter(
           cosmeticName: name,

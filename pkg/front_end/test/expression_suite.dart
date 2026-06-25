@@ -233,7 +233,14 @@ class OutputParametersMatches
           );
         }
         for (int i = 0; i < positionals.length; i++) {
-          if (positionals[i].cosmeticName != test.definitions[i]) {
+          String? positionalName = positionals[i].cosmeticName;
+          if (positionalName != test.definitions[i]) {
+            if (positionalName != null &&
+                positionalName.startsWith("_") &&
+                positionalName.substring(1) == test.definitions[i]) {
+              // Probably a renamed private named variable.
+              continue;
+            }
             return Future.value(
               fail(
                 tests,

@@ -25,4 +25,4 @@ static: false
 offset: 84 # On "_s2" in the parameters.
 scriptUri: main.dart
 expression: |
-  () { return "$s1 $s2"; }()
+  () { return "$s1 $s2 $_s1 $_s2"; }()
