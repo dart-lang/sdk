@@ -664,6 +664,7 @@ class _Utf8Decoder {
     return buffer.toString();
   }
 
+  // Used by patch code.
   static Uint8List _makeUint8List(List<int> codeUnits, int start, int end) {
     final int length = end - start;
     final Uint8List bytes = Uint8List(length);

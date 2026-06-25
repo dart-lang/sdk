@@ -4,10 +4,94 @@
 
 part of 'dart:async';
 
-class _ZoneFunction<T extends Function> {
+// A pair of zone and value for each configurable override of [_Zone].
+// Not reusing the same class or superclass with a type parameter to avoid any
+// overhead from generics.
+// (Not using records because a planned later change will need the
+// zone to be mutable.)
+
+final class _ZoneRun {
   final _Zone zone;
-  final T function;
-  const _ZoneFunction(this.zone, this.function);
+  final RunHandler function;
+  const _ZoneRun(this.zone, this.function);
+}
+
+final class _ZoneRunUnary {
+  final _Zone zone;
+  final RunUnaryHandler function;
+  const _ZoneRunUnary(this.zone, this.function);
+}
+
+final class _ZoneRunBinary {
+  final _Zone zone;
+  final RunBinaryHandler function;
+  const _ZoneRunBinary(this.zone, this.function);
+}
+
+final class _ZoneRegisterCallback {
+  final _Zone zone;
+  final RegisterCallbackHandler function;
+  const _ZoneRegisterCallback(this.zone, this.function);
+}
+
+final class _ZoneRegisterUnaryCallback {
+  final _Zone zone;
+  final RegisterUnaryCallbackHandler function;
+  const _ZoneRegisterUnaryCallback(this.zone, this.function);
+}
+
+final class _ZoneRegisterBinaryCallback {
+  final _Zone zone;
+  final RegisterBinaryCallbackHandler function;
+  const _ZoneRegisterBinaryCallback(this.zone, this.function);
+}
+
+final class _ZoneErrorCallback {
+  final _Zone zone;
+  final ErrorCallbackHandler function;
+  const _ZoneErrorCallback(this.zone, this.function);
+}
+
+final class _ZoneScheduleMicrotask {
+  final _Zone zone;
+  final ScheduleMicrotaskHandler function;
+  const _ZoneScheduleMicrotask(this.zone, this.function);
+}
+
+final class _ZoneCreateTimer {
+  final _Zone zone;
+  final CreateTimerHandler function;
+  const _ZoneCreateTimer(this.zone, this.function);
+}
+
+final class _ZoneCreatePeriodicTimer {
+  final _Zone zone;
+  final CreatePeriodicTimerHandler function;
+  const _ZoneCreatePeriodicTimer(this.zone, this.function);
+}
+
+final class _ZonePrint {
+  final _Zone zone;
+  final PrintHandler function;
+  const _ZonePrint(this.zone, this.function);
+}
+
+final class _ZoneFork {
+  final _Zone zone;
+  final ForkHandler function;
+  const _ZoneFork(this.zone, this.function);
+}
+
+final class _ZoneHandleUncaughtError {
+  final _Zone zone;
+  final HandleUncaughtErrorHandler function;
+  const _ZoneHandleUncaughtError(this.zone, this.function);
+}
+
+final class _ZoneValues {
+  final _Zone zone;
+  final Map<Object?, Object?> map;
+  const _ZoneValues(this.zone, this.map);
 }
 
 /// A zone represents an environment that remains stable across asynchronous
@@ -440,26 +524,25 @@ abstract final class Zone {
 abstract base class _Zone implements Zone {
   const _Zone();
 
-  // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
-  // all fields.
-  _ZoneFunction<RunHandler> get _run;
-  _ZoneFunction<RunUnaryHandler> get _runUnary;
-  _ZoneFunction<RunBinaryHandler> get _runBinary;
-  _ZoneFunction<RegisterCallbackHandler> get _registerCallback;
-  _ZoneFunction<RegisterUnaryCallbackHandler> get _registerUnaryCallback;
-  _ZoneFunction<RegisterBinaryCallbackHandler> get _registerBinaryCallback;
-  _ZoneFunction<ErrorCallbackHandler> get _errorCallback;
-  _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask;
-  _ZoneFunction<CreateTimerHandler> get _createTimer;
-  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer;
-  _ZoneFunction<PrintHandler> get _print;
-  _ZoneFunction<ForkHandler> get _fork;
-  _ZoneFunction<HandleUncaughtErrorHandler> get _handleUncaughtError;
+  _ZoneRun get _run;
+  _ZoneRunUnary get _runUnary;
+  _ZoneRunBinary get _runBinary;
+  _ZoneRegisterCallback get _registerCallback;
+  _ZoneRegisterUnaryCallback get _registerUnaryCallback;
+  _ZoneRegisterBinaryCallback get _registerBinaryCallback;
+  _ZoneErrorCallback get _errorCallback;
+  _ZoneScheduleMicrotask get _scheduleMicrotask;
+  _ZoneCreateTimer get _createTimer;
+  _ZoneCreatePeriodicTimer get _createPeriodicTimer;
+  _ZonePrint get _print;
+  _ZoneFork get _fork;
+  _ZoneHandleUncaughtError get _handleUncaughtError;
+  _ZoneValues get _zoneValues;
+
   // Parent zone. Only `null` for the root zone.
   _Zone? get parent;
   ZoneDelegate get _delegate;
   ZoneDelegate get _parentDelegate;
-  Map<Object?, Object?> get _map;
 
   bool inSameErrorZone(Zone otherZone) {
     return identical(this, otherZone) ||
@@ -473,13 +556,17 @@ abstract base class _Zone implements Zone {
       _rootHandleError(error, stackTrace);
       return;
     }
-    HandleUncaughtErrorHandler handler = implementation.function;
-    ZoneDelegate parentDelegate = implZone._parentDelegate;
     _Zone parentZone = implZone.parent!; // Not null for non-root zones.
     _Zone currentZone = Zone._current;
     try {
       Zone._current = parentZone;
-      handler(implZone, parentDelegate, zone, error, stackTrace);
+      implementation.function(
+        implZone,
+        implZone._parentDelegate,
+        zone,
+        error,
+        stackTrace,
+      );
       Zone._current = currentZone;
     } catch (e, s) {
       Zone._current = currentZone;
@@ -495,21 +582,24 @@ abstract base class _Zone implements Zone {
 base class _CustomZone extends _Zone {
   // The actual zone and implementation of each of these
   // inheritable zone functions.
-  // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
-  // all fields, but we can't use generic function types as type arguments.
-  _ZoneFunction<RunHandler> _run;
-  _ZoneFunction<RunUnaryHandler> _runUnary;
-  _ZoneFunction<RunBinaryHandler> _runBinary;
-  _ZoneFunction<RegisterCallbackHandler> _registerCallback;
-  _ZoneFunction<RegisterUnaryCallbackHandler> _registerUnaryCallback;
-  _ZoneFunction<RegisterBinaryCallbackHandler> _registerBinaryCallback;
-  _ZoneFunction<ErrorCallbackHandler> _errorCallback;
-  _ZoneFunction<ScheduleMicrotaskHandler> _scheduleMicrotask;
-  _ZoneFunction<CreateTimerHandler> _createTimer;
-  _ZoneFunction<CreatePeriodicTimerHandler> _createPeriodicTimer;
-  _ZoneFunction<PrintHandler> _print;
-  _ZoneFunction<ForkHandler> _fork;
-  _ZoneFunction<HandleUncaughtErrorHandler> _handleUncaughtError;
+  _ZoneRun _run;
+  _ZoneRunUnary _runUnary;
+  _ZoneRunBinary _runBinary;
+  _ZoneRegisterCallback _registerCallback;
+  _ZoneRegisterUnaryCallback _registerUnaryCallback;
+  _ZoneRegisterBinaryCallback _registerBinaryCallback;
+  _ZoneErrorCallback _errorCallback;
+  _ZoneScheduleMicrotask _scheduleMicrotask;
+  _ZoneCreateTimer _createTimer;
+  _ZoneCreatePeriodicTimer _createPeriodicTimer;
+  _ZonePrint _print;
+  _ZoneFork _fork;
+  _ZoneHandleUncaughtError _handleUncaughtError;
+
+  /// The zone's scoped value declaration map.
+  ///
+  /// Its [_ZoneValues.map] is always a mutable [HashMap].
+  _ZoneValues _zoneValues;
 
   // A cached delegate to this zone.
   ZoneDelegate? _delegateCache;
@@ -517,16 +607,14 @@ base class _CustomZone extends _Zone {
   /// The parent zone.
   final _Zone parent;
 
-  /// The zone's scoped value declaration map.
-  ///
-  /// This is always a [HashMap].
-  final Map<Object?, Object?> _map;
-
   ZoneDelegate get _delegate => _delegateCache ??= _ZoneDelegate(this);
   ZoneDelegate get _parentDelegate => parent._delegate;
 
-  _CustomZone(this.parent, ZoneSpecification specification, this._map)
-    : _run = parent._run,
+  _CustomZone(
+    this.parent,
+    ZoneSpecification? specification,
+    Map<Object?, Object?>? variables,
+  ) : _run = parent._run,
       _runUnary = parent._runUnary,
       _runBinary = parent._runBinary,
       _registerCallback = parent._registerCallback,
@@ -538,79 +626,68 @@ base class _CustomZone extends _Zone {
       _createPeriodicTimer = parent._createPeriodicTimer,
       _print = parent._print,
       _fork = parent._fork,
-      _handleUncaughtError = parent._handleUncaughtError {
+      _handleUncaughtError = parent._handleUncaughtError,
+      _zoneValues = parent._zoneValues {
     // The root zone will have implementations of all parts of the
     // specification, so it will never try to access the (null) parent.
     // All other zones have a non-null parent.
-    var run = specification.run;
-    if (run != null) {
-      _run = _ZoneFunction<RunHandler>(this, run);
+    if (specification != null) {
+      if (specification.run case var run?) {
+        _run = _ZoneRun(this, run);
+      }
+      if (specification.runUnary case var runUnary?) {
+        _runUnary = _ZoneRunUnary(this, runUnary);
+      }
+      if (specification.runBinary case var runBinary?) {
+        _runBinary = _ZoneRunBinary(this, runBinary);
+      }
+      if (specification.registerCallback case var registerCallback?) {
+        _registerCallback = _ZoneRegisterCallback(this, registerCallback);
+      }
+      if (specification.registerUnaryCallback case var registerUnaryCallback?) {
+        _registerUnaryCallback = _ZoneRegisterUnaryCallback(
+          this,
+          registerUnaryCallback,
+        );
+      }
+      if (specification.registerBinaryCallback
+          case var registerBinaryCallback?) {
+        _registerBinaryCallback = _ZoneRegisterBinaryCallback(
+          this,
+          registerBinaryCallback,
+        );
+      }
+      if (specification.errorCallback case var errorCallback?) {
+        _errorCallback = _ZoneErrorCallback(this, errorCallback);
+      }
+      if (specification.scheduleMicrotask case var scheduleMicrotask?) {
+        _scheduleMicrotask = _ZoneScheduleMicrotask(this, scheduleMicrotask);
+      }
+      if (specification.createTimer case var createTimer?) {
+        _createTimer = _ZoneCreateTimer(this, createTimer);
+      }
+      if (specification.createPeriodicTimer case var createPeriodicTimer?) {
+        _createPeriodicTimer = _ZoneCreatePeriodicTimer(
+          this,
+          createPeriodicTimer,
+        );
+      }
+      if (specification.print case var print?) {
+        _print = _ZonePrint(this, print);
+        printToZone = _printToZone;
+      }
+      if (specification.fork case var fork?) {
+        _fork = _ZoneFork(this, fork);
+      }
+      if (specification.handleUncaughtError case var handleUncaughtError?) {
+        _handleUncaughtError = _ZoneHandleUncaughtError(
+          this,
+          handleUncaughtError,
+        );
+      }
     }
-    var runUnary = specification.runUnary;
-    if (runUnary != null) {
-      _runUnary = _ZoneFunction<RunUnaryHandler>(this, runUnary);
-    }
-    var runBinary = specification.runBinary;
-    if (runBinary != null) {
-      _runBinary = _ZoneFunction<RunBinaryHandler>(this, runBinary);
-    }
-    var registerCallback = specification.registerCallback;
-    if (registerCallback != null) {
-      _registerCallback = _ZoneFunction<RegisterCallbackHandler>(
-        this,
-        registerCallback,
-      );
-    }
-    var registerUnaryCallback = specification.registerUnaryCallback;
-    if (registerUnaryCallback != null) {
-      _registerUnaryCallback = _ZoneFunction<RegisterUnaryCallbackHandler>(
-        this,
-        registerUnaryCallback,
-      );
-    }
-    var registerBinaryCallback = specification.registerBinaryCallback;
-    if (registerBinaryCallback != null) {
-      _registerBinaryCallback = _ZoneFunction<RegisterBinaryCallbackHandler>(
-        this,
-        registerBinaryCallback,
-      );
-    }
-    var errorCallback = specification.errorCallback;
-    if (errorCallback != null) {
-      _errorCallback = _ZoneFunction<ErrorCallbackHandler>(this, errorCallback);
-    }
-    var scheduleMicrotask = specification.scheduleMicrotask;
-    if (scheduleMicrotask != null) {
-      _scheduleMicrotask = _ZoneFunction<ScheduleMicrotaskHandler>(
-        this,
-        scheduleMicrotask,
-      );
-    }
-    var createTimer = specification.createTimer;
-    if (createTimer != null) {
-      _createTimer = _ZoneFunction<CreateTimerHandler>(this, createTimer);
-    }
-    var createPeriodicTimer = specification.createPeriodicTimer;
-    if (createPeriodicTimer != null) {
-      _createPeriodicTimer = _ZoneFunction<CreatePeriodicTimerHandler>(
-        this,
-        createPeriodicTimer,
-      );
-    }
-    var print = specification.print;
-    if (print != null) {
-      _print = _ZoneFunction<PrintHandler>(this, print);
-    }
-    var fork = specification.fork;
-    if (fork != null) {
-      _fork = _ZoneFunction<ForkHandler>(this, fork);
-    }
-    var handleUncaughtError = specification.handleUncaughtError;
-    if (handleUncaughtError != null) {
-      _handleUncaughtError = _ZoneFunction<HandleUncaughtErrorHandler>(
-        this,
-        handleUncaughtError,
-      );
+    if (variables != null) {
+      _zoneValues = _ZoneValues(this, variables);
     }
   }
 
@@ -679,22 +756,31 @@ base class _CustomZone extends _Zone {
   }
 
   dynamic operator [](Object? key) {
-    var result = _map[key];
-    if (result != null || _map.containsKey(key)) return result;
-    // If we are not the root zone, look up in the parent zone.
-    if (parent != null) {
-      // We do not optimize for repeatedly looking up a key which isn't
-      // there. That would require storing the key and keeping it alive.
-      // Copying the key/value from the parent does not keep any new values
-      // alive.
-      var value = parent[key];
-      if (value != null) {
-        _map[key] = value;
+    var variables = _zoneValues;
+    if (identical(variables, _RootZone._rootValues)) return null;
+    var map = variables.map;
+    var result = map[key];
+    return (result != null || map.containsKey(key))
+        ? result
+        : _recursiveLookup(variables, key);
+  }
+
+  Object? _recursiveLookup(_ZoneValues variables, Object? key) {
+    Object? result;
+    var cursor = variables;
+    while (true) {
+      cursor = cursor.zone.parent!._zoneValues;
+      if (identical(cursor, _RootZone._rootValues)) break;
+      var map = cursor.map;
+      result = map[key];
+      if (result != null || map.containsKey(key)) {
+        // Update original entry where the key was first looked up,
+        // so later lookups on the same zone finds the value immediately.
+        variables.map[key] = result;
+        break;
       }
-      return value;
     }
-    assert(this == _rootZone);
-    return null;
+    return result;
   }
 
   // Methods that can be customized by the zone specification.
@@ -708,11 +794,10 @@ base class _CustomZone extends _Zone {
     Map<Object?, Object?>? zoneValues,
   }) {
     var implementation = this._fork;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    ForkHandler handler = implementation.function;
-    return handler(
-      implementation.zone,
-      parentDelegate,
+    var zone = implementation.zone;
+    return implementation.function(
+      zone,
+      zone._parentDelegate,
       this,
       specification,
       zoneValues,
@@ -721,143 +806,130 @@ base class _CustomZone extends _Zone {
 
   R run<R>(R f()) {
     var implementation = this._run;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RunHandler;
-    return handler(implementation.zone, parentDelegate, this, f);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, f);
   }
 
   R runUnary<R, T>(R f(T arg), T arg) {
     var implementation = this._runUnary;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RunUnaryHandler;
-    return handler(implementation.zone, parentDelegate, this, f, arg);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, f, arg);
   }
 
   R runBinary<R, T1, T2>(R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
     var implementation = this._runBinary;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RunBinaryHandler;
-    return handler(implementation.zone, parentDelegate, this, f, arg1, arg2);
+    var zone = implementation.zone;
+    return implementation.function(
+      zone,
+      zone._parentDelegate,
+      this,
+      f,
+      arg1,
+      arg2,
+    );
   }
 
   ZoneCallback<R> registerCallback<R>(R callback()) {
     var implementation = this._registerCallback;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RegisterCallbackHandler;
-    return handler(implementation.zone, parentDelegate, this, callback);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, callback);
   }
 
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(R callback(T arg)) {
     var implementation = this._registerUnaryCallback;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RegisterUnaryCallbackHandler;
-    return handler(implementation.zone, parentDelegate, this, callback);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, callback);
   }
 
   ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
     R callback(T1 arg1, T2 arg2),
   ) {
     var implementation = this._registerBinaryCallback;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    var handler = implementation.function as RegisterBinaryCallbackHandler;
-    return handler(implementation.zone, parentDelegate, this, callback);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, callback);
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
     var implementation = this._errorCallback;
-    final _Zone implementationZone = implementation.zone;
-    if (identical(implementationZone, _rootZone)) return null;
-    final ZoneDelegate parentDelegate = implementationZone._parentDelegate;
-    ErrorCallbackHandler handler = implementation.function;
-    return handler(implementationZone, parentDelegate, this, error, stackTrace);
+    var zone = implementation.zone;
+    if (identical(zone, _rootZone)) return null;
+    return implementation.function(
+      zone,
+      zone._parentDelegate,
+      this,
+      error,
+      stackTrace,
+    );
   }
 
   void scheduleMicrotask(void f()) {
     var implementation = this._scheduleMicrotask;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    ScheduleMicrotaskHandler handler = implementation.function;
-    return handler(implementation.zone, parentDelegate, this, f);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, f);
   }
 
   Timer createTimer(Duration duration, void f()) {
     var implementation = this._createTimer;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    CreateTimerHandler handler = implementation.function;
-    return handler(implementation.zone, parentDelegate, this, duration, f);
+    var zone = implementation.zone;
+    return implementation.function(
+      zone,
+      zone._parentDelegate,
+      this,
+      duration,
+      f,
+    );
   }
 
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
     var implementation = this._createPeriodicTimer;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    CreatePeriodicTimerHandler handler = implementation.function;
-    return handler(implementation.zone, parentDelegate, this, duration, f);
+    var zone = implementation.zone;
+    return implementation.function(
+      zone,
+      zone._parentDelegate,
+      this,
+      duration,
+      f,
+    );
   }
 
   void print(String line) {
     var implementation = this._print;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    PrintHandler handler = implementation.function;
-    return handler(implementation.zone, parentDelegate, this, line);
+    var zone = implementation.zone;
+    return implementation.function(zone, zone._parentDelegate, this, line);
   }
 }
 
 base class _RootZone extends _Zone {
+  static const _rootValues = _ZoneValues(_rootZone, <Object?, Object?>{});
+
   const _RootZone();
 
-  _ZoneFunction<RunHandler> get _run =>
-      const _ZoneFunction<RunHandler>(_rootZone, _rootRun);
-  _ZoneFunction<RunUnaryHandler> get _runUnary =>
-      const _ZoneFunction<RunUnaryHandler>(_rootZone, _rootRunUnary);
-  _ZoneFunction<RunBinaryHandler> get _runBinary =>
-      const _ZoneFunction<RunBinaryHandler>(_rootZone, _rootRunBinary);
-  _ZoneFunction<RegisterCallbackHandler> get _registerCallback =>
-      const _ZoneFunction<RegisterCallbackHandler>(
-        _rootZone,
-        _rootRegisterCallback,
-      );
-  _ZoneFunction<RegisterUnaryCallbackHandler> get _registerUnaryCallback =>
-      const _ZoneFunction<RegisterUnaryCallbackHandler>(
-        _rootZone,
-        _rootRegisterUnaryCallback,
-      );
-  _ZoneFunction<RegisterBinaryCallbackHandler> get _registerBinaryCallback =>
-      const _ZoneFunction<RegisterBinaryCallbackHandler>(
-        _rootZone,
-        _rootRegisterBinaryCallback,
-      );
-  _ZoneFunction<ErrorCallbackHandler> get _errorCallback =>
-      const _ZoneFunction<ErrorCallbackHandler>(_rootZone, _rootErrorCallback);
-  _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask =>
-      const _ZoneFunction<ScheduleMicrotaskHandler>(
-        _rootZone,
-        _rootScheduleMicrotask,
-      );
-  _ZoneFunction<CreateTimerHandler> get _createTimer =>
-      const _ZoneFunction<CreateTimerHandler>(_rootZone, _rootCreateTimer);
-  _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer =>
-      const _ZoneFunction<CreatePeriodicTimerHandler>(
-        _rootZone,
-        _rootCreatePeriodicTimer,
-      );
-  _ZoneFunction<PrintHandler> get _print =>
-      const _ZoneFunction<PrintHandler>(_rootZone, _rootPrint);
-  _ZoneFunction<ForkHandler> get _fork =>
-      const _ZoneFunction<ForkHandler>(_rootZone, _rootFork);
-  _ZoneFunction<HandleUncaughtErrorHandler> get _handleUncaughtError =>
-      const _ZoneFunction<HandleUncaughtErrorHandler>(
-        _rootZone,
-        _rootHandleUncaughtError,
-      );
+  _ZoneRun get _run => const _ZoneRun(_rootZone, _rootRun);
+  _ZoneRunUnary get _runUnary => const _ZoneRunUnary(_rootZone, _rootRunUnary);
+  _ZoneRunBinary get _runBinary =>
+      const _ZoneRunBinary(_rootZone, _rootRunBinary);
+  _ZoneRegisterCallback get _registerCallback =>
+      const _ZoneRegisterCallback(_rootZone, _rootRegisterCallback);
+  _ZoneRegisterUnaryCallback get _registerUnaryCallback =>
+      const _ZoneRegisterUnaryCallback(_rootZone, _rootRegisterUnaryCallback);
+  _ZoneRegisterBinaryCallback get _registerBinaryCallback =>
+      const _ZoneRegisterBinaryCallback(_rootZone, _rootRegisterBinaryCallback);
+  _ZoneErrorCallback get _errorCallback =>
+      const _ZoneErrorCallback(_rootZone, _rootErrorCallback);
+  _ZoneScheduleMicrotask get _scheduleMicrotask =>
+      const _ZoneScheduleMicrotask(_rootZone, _rootScheduleMicrotask);
+  _ZoneCreateTimer get _createTimer =>
+      const _ZoneCreateTimer(_rootZone, _rootCreateTimer);
+  _ZoneCreatePeriodicTimer get _createPeriodicTimer =>
+      const _ZoneCreatePeriodicTimer(_rootZone, _rootCreatePeriodicTimer);
+  _ZonePrint get _print => const _ZonePrint(_rootZone, _rootPrint);
+  _ZoneFork get _fork => const _ZoneFork(_rootZone, _rootFork);
+  _ZoneHandleUncaughtError get _handleUncaughtError =>
+      const _ZoneHandleUncaughtError(_rootZone, _rootHandleUncaughtError);
+  _ZoneValues get _zoneValues => _rootValues;
 
   // The parent zone.
   _Zone? get parent => null;
-
-  /// The zone's scoped value declaration map.
-  ///
-  /// This is always a [HashMap].
-  Map<Object?, Object?> get _map => _rootMap;
-
-  static final _rootMap = HashMap();
 
   static ZoneDelegate? _rootDelegate;
 
