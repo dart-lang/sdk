@@ -1293,6 +1293,69 @@ static int64_t TruncateFfiInt(int64_t value,
   }
 }
 
+static const void* GetDataAddress(const Instance& inst,
+                                  intptr_t offset_in_bytes) {
+  if (inst.IsTypedDataBase()) {
+    return TypedDataBase::Cast(inst).DataAddr(offset_in_bytes);
+  } else if (inst.IsPointer()) {
+    return reinterpret_cast<const void*>(
+        reinterpret_cast<const uint8_t*>(Pointer::Cast(inst).NativeAddress()) +
+        offset_in_bytes);
+  } else {
+    UNIMPLEMENTED();
+  }
+}
+
+static void PassFfiCallCompoundArgumentPortion(
+    Thread* thread,
+    FfiCallArguments* args,
+    const compiler::ffi::NativeLocation& loc,
+    const Instance& compound_contents,
+    intptr_t offset_in_bytes) {
+  auto const size = loc.payload_type().SizeInBytes();
+  if (loc.IsMultiple()) {
+    // Copy from the TypedData to from a list of native locations.
+    const auto& multiple = loc.AsMultiple();
+    for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
+      const auto& portion = *multiple.locations().At(i);
+      PassFfiCallCompoundArgumentPortion(thread, args, portion,
+                                         compound_contents, offset_in_bytes);
+      offset_in_bytes += portion.payload_type().SizeInBytes();
+    }
+  } else if (loc.IsStack()) {
+    const intptr_t offset = loc.AsStack().offset_in_bytes();
+    ASSERT((offset >= 0) &&
+           (args->stack_area + offset + size <= args->stack_area_end));
+    auto* const dst = reinterpret_cast<uint8_t*>(args->stack_area) + offset;
+    NoSafepointScope scope;
+    auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+    memcpy(dst, src, size);  // NOLINT
+  } else {
+    if (!loc.payload_type().IsPrimitive()) {
+      UNIMPLEMENTED();
+    }
+    ASSERT(size <= kWordSize);
+    uword value;
+    {
+      NoSafepointScope scope;
+      auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+      memcpy(&value, src, size);  // NOLINT
+    }
+    if (loc.IsRegisters()) {
+      ASSERT(loc.AsRegisters().num_regs() == 1);
+      const auto dst_reg = loc.AsRegisters().reg_at(0);
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
+      args->cpu_registers[dst_reg] = value;
+    } else if (loc.IsFpuRegisters()) {
+      const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
+      args->fpu_registers[dst_reg] = value;
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+}
+
 static void PassFfiCallArguments(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
@@ -1300,12 +1363,61 @@ static void PassFfiCallArguments(
     FfiCallArguments* args) {
   Zone* zone = thread->zone();
   ApiLocalScope* scope = thread->api_top_scope();
+  auto* const stack_top = reinterpret_cast<uint8_t*>(args->stack_area);
+  auto* const stack_end = reinterpret_cast<uint8_t*>(args->stack_area_end);
+  // Fields needed for working with compound values.
+  auto* const object_store = thread->isolate_group()->object_store();
+  const auto& typed_data_field =
+      Field::Handle(zone, object_store->compound_typed_data_base_field());
+  const auto& offset_in_bytes_field =
+      Field::Handle(zone, object_store->compound_offset_in_bytes_field());
+  auto& compound_contents = Instance::Handle(zone);
   auto& arg = Object::Handle(zone);
   for (intptr_t i = 0; i < marshaller.num_args(); ++i) {
+    arg = argv[i];
+    const auto& loc = marshaller.Location(i);
     if (marshaller.IsCompoundCType(i)) {
-      UNIMPLEMENTED();
+      compound_contents ^= Instance::Cast(arg).GetField(typed_data_field);
+      intptr_t offset_in_bytes = Smi::Value(
+          Smi::RawCast(Instance::Cast(arg).GetField(offset_in_bytes_field)));
+      if (loc.IsPointerToMemory()) {
+        const auto& arg_loc = loc.AsPointerToMemory();
+        auto const size = arg_loc.payload_type().SizeInBytes();
+        auto* const dst = stack_top + marshaller.PassByPointerStackOffset(i);
+        ASSERT(stack_top <= dst && dst + size <= stack_end);
+        // First copy the contents of the struct to the stack area.
+        {
+          NoSafepointScope scope;
+          auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+          memcpy(dst, src, size);  // NOLINT
+        }
+        // Then copy the pointer to that memory to the expected location.
+        const auto& ptr_loc = arg_loc.pointer_location();
+        uword ptr = reinterpret_cast<uword>(dst);
+        if (ptr_loc.IsRegisters()) {
+          ASSERT(ptr_loc.AsRegisters().num_regs() == 1);
+          // For structs passed by value as pointers to memory, the value
+          // is copied to the stack and the value of the pointer register
+          // is set to the appropriate portion of stack_area.
+          const auto ptr_reg = ptr_loc.AsRegisters().reg_at(0);
+          args->cpu_registers[ptr_reg] = ptr;
+        } else if (ptr_loc.IsStack()) {
+          auto* const ptr_slot =
+              stack_top + ptr_loc.AsStack().offset_in_bytes();
+          ASSERT((stack_top <= ptr_slot) && (ptr_slot <= stack_end));
+          *reinterpret_cast<uword*>(ptr_slot) = ptr;
+        } else {
+          UNIMPLEMENTED();
+        }
+      } else {
+        PassFfiCallCompoundArgumentPortion(thread, args, loc, compound_contents,
+                                           offset_in_bytes);
+      }
     } else {
-      arg = argv[i];
+      if (!loc.payload_type().IsPrimitive()) {
+        UNIMPLEMENTED();
+      }
+      ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
       uword value;
       if (marshaller.IsHandleCType(i)) {
         LocalHandle* handle = scope->local_handles()->AllocateHandle();
@@ -1316,35 +1428,22 @@ static void PassFfiCallArguments(
       } else if (marshaller.IsTypedDataPointer(i)) {
         value = reinterpret_cast<uword>(TypedDataBase::Cast(arg).DataAddr(0));
       } else if (marshaller.IsCompoundPointer(i)) {
-        ObjectStore* object_store = thread->isolate_group()->object_store();
-        auto& obj = Object::Handle(zone);
-        obj = object_store->compound_offset_in_bytes_field();
-        ASSERT(!obj.IsNull());
-        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
-        const uword offset_in_bytes =
-            static_cast<uword>(Integer::Cast(obj).Value());
-        obj = object_store->compound_typed_data_base_field();
-        ASSERT(!obj.IsNull());
-        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
-        if (obj.IsPointer()) {
-          value = Pointer::Cast(obj).NativeAddress() + offset_in_bytes;
-        } else {
-          ASSERT(obj.IsTypedDataBase());
-          value = reinterpret_cast<uword>(
-              TypedDataBase::Cast(obj).DataAddr(offset_in_bytes));
-        }
+        compound_contents ^= Instance::Cast(arg).GetField(typed_data_field);
+        intptr_t offset_in_bytes = Smi::Value(
+            Smi::RawCast(Instance::Cast(arg).GetField(offset_in_bytes_field)));
+        NoSafepointScope scope;
+        value = reinterpret_cast<uword>(
+            GetDataAddress(compound_contents, offset_in_bytes));
       } else if (marshaller.IsBool(i)) {
-        value = Bool::Cast(arg).value() ? static_cast<uword>(-1) : 0;
+        value = static_cast<uword>(Bool::Cast(arg).value());
       } else {
         ASSERT(!marshaller.IsVoid(i));
         const auto rep = marshaller.RepInDart(i);
         if (RepresentationUtils::IsUnboxedInteger(rep)) {
-          value = TruncateFfiInt(Integer::Cast(arg).Value(),
-                                 marshaller.Location(i)
-                                     .payload_type()
-                                     .AsPrimitive()
-                                     .representation(),
-                                 /*is_return=*/false);
+          value =
+              TruncateFfiInt(Integer::Cast(arg).Value(),
+                             loc.payload_type().AsPrimitive().representation(),
+                             /*is_return=*/false);
         } else if (rep == kUnboxedDouble) {
           value = bit_cast<uint64_t, double>(Double::Cast(arg).value());
         } else if (rep == kUnboxedFloat) {
@@ -1354,26 +1453,19 @@ static void PassFfiCallArguments(
           UNREACHABLE();
         }
       }
-      const auto& arg_target = marshaller.Location(i);
-      if (!arg_target.payload_type().IsPrimitive()) {
-        UNIMPLEMENTED();
-      }
-      if (arg_target.IsRegisters()) {
-        const auto& dst = arg_target.AsRegisters();
-        ASSERT(dst.num_regs() == 1);
-        const auto dst_reg = dst.reg_at(0);
+      if (loc.IsRegisters()) {
+        ASSERT(loc.AsRegisters().num_regs() == 1);
+        const auto dst_reg = loc.AsRegisters().reg_at(0);
         ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
         args->cpu_registers[dst_reg] = value;
-      } else if (arg_target.IsFpuRegisters()) {
-        const FpuRegister dst_reg = arg_target.AsFpuRegisters().fpu_reg();
+      } else if (loc.IsFpuRegisters()) {
+        const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
         ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
         args->fpu_registers[dst_reg] = value;
-      } else if (arg_target.IsStack()) {
-        const auto& dst = arg_target.AsStack();
-        const intptr_t offset = dst.offset_in_bytes();
-        ASSERT((offset >= 0) &&
-               (args->stack_area + offset + kWordSize <= args->stack_area_end));
-        *reinterpret_cast<uword*>(args->stack_area + offset) = value;
+      } else if (loc.IsStack()) {
+        auto* const dst = stack_top + loc.AsStack().offset_in_bytes();
+        ASSERT((stack_top <= dst) && (dst + kWordSize <= stack_end));
+        *reinterpret_cast<uword*>(dst) = value;
       }
     }
   }
