@@ -16,6 +16,15 @@ main() {
 
 @reflectiveTest
 class AugmentationTypeParameterBoundTest extends PubPackageResolutionTest {
+  test_class_dynamic_objectQuestion() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T extends dynamic> {}
+augment class A<T extends Object?> {}
+//                        ^^^^^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
+  }
+
   test_class_method_nothing_num() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -103,6 +112,15 @@ augment class A<T extends core.num> {}
 class A<T extends num> {}
 augment class A<T extends Object> {}
 //                        ^^^^^^
+// [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+''');
+  }
+
+  test_class_objectQuestion_dynamic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T extends Object?> {}
+augment class A<T extends dynamic> {}
+//                        ^^^^^^^
 // [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
 ''');
   }
