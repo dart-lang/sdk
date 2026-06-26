@@ -42,6 +42,7 @@ extension type E(A a) implements A {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There are unexpected diagnostics.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

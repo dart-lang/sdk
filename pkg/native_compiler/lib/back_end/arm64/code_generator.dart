@@ -1251,6 +1251,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
+    switch (computeTypeArgumentsReuse(instr.types)) {
+      case .instantiator:
+        _asm.mov(outputReg(instr), inputReg(instr, 0));
+        return;
+      case .function:
+        _asm.mov(outputReg(instr), inputReg(instr, 1));
+        return;
+      case .none:
+        break;
+    }
     _asm.loadConstant(
       InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
       ConstantValue(TypeArgumentsConstant(instr.types)),

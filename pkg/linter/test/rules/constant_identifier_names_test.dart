@@ -51,6 +51,7 @@ const [!PI!] = 3.14;
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There are unexpected diagnostics.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedEnumValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -73,6 +74,7 @@ augment enum E {
     issue: 'https://github.com/dart-lang/sdk/issues/56174',
     reason: 'There are unexpected diagnostics.',
   )
+  // TODO(scheglov): implement augmentation
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
