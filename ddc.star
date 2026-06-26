@@ -12,7 +12,6 @@ load(
     "arm64",
     "chrome",
     "firefox",
-    "jammy",
     "mac",
     "safari_17_6",
     "windows",
@@ -38,7 +37,6 @@ def _ddc_builder(
 _ddc_builder(
     "ddc-linux-chrome",
     category = "ddc|chrome|l",
-    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
     enable_cq = True,
 )
@@ -76,7 +74,6 @@ cron.nightly_builder(
     "ddc-canary-linux-chrome",
     category = "ddc|c",
     channels = ["try"],
-    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 

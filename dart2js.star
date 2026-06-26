@@ -12,7 +12,6 @@ load(
     "arm64",
     "chrome",
     "firefox",
-    "jammy",
     "mac",
     "safari_17_6",
     "windows",
@@ -39,7 +38,6 @@ _dart2js_builder(
     "dart2js-canary-linux",
     category = "dart2js|c",
     channels = ["try"],
-    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 _dart2js_builder(
@@ -61,14 +59,12 @@ _dart2js_builder(
 _dart2js_builder(
     "dart2js-linux-chrome",
     category = "dart2js|chrome|l",
-    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     enable_cq = True,
     properties = [chrome],
 )
 _dart2js_builder(
     "dart2js-minified-csp-linux-chrome",
     category = "dart2js|chrome|csp",
-    dimensions = [jammy],  # TODO(https://github.com/dart-lang/sdk/issues/63603): Unpin.
     properties = [chrome],
 )
 cron.nightly_builder(
