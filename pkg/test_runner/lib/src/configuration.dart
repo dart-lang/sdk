@@ -72,6 +72,7 @@ class TestConfiguration {
     required this.reproducingArguments,
     this.fastTestsOnly = false,
     this.printPassingStdout = false,
+    this.noSandbox = false,
   }) : packages = packages ?? '.dart_tool/package_config.json';
 
   final Map<String, RegExp?> selectors;
@@ -101,6 +102,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool noSandbox;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;

@@ -2222,8 +2222,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   void insertConstructor(
     CompilationUnitMember container,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) {
+    void Function(DartEditBuilder builder) buildEdit, {
+    bool isNamed = false,
+  }) {
     if (container is! ClassDeclaration &&
         container is! EnumDeclaration &&
         container is! ExtensionTypeDeclaration) {
@@ -2236,14 +2237,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             'declarations.',
       );
     }
-    final sortConstructorsFirst = resolvedUnit.session.analysisContext
+    final codeStyleOptions = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
-        .codeStyleOptions
-        .sortConstructorsFirst;
-    var lastMemberFilter = sortConstructorsFirst
-        ? (member) => member is ConstructorDeclaration
-        : (member) =>
-              member is ConstructorDeclaration || member is FieldDeclaration;
+        .codeStyleOptions;
+    bool Function(ClassMember) lastMemberFilter;
+    if (codeStyleOptions.sortConstructorsFirst) {
+      lastMemberFilter = (member) => member is ConstructorDeclaration;
+    } else if (!isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+      lastMemberFilter = (member) =>
+          (member is ConstructorDeclaration && member.name == null) ||
+          member is FieldDeclaration;
+    } else {
+      lastMemberFilter = (member) =>
+          member is ConstructorDeclaration || member is FieldDeclaration;
+    }
     insertIntoUnitMember(
       container,
       buildEdit,

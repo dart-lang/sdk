@@ -63,6 +63,9 @@ final completionResolutionClasses = <LspEntity>[
       'importUris',
       type: 'string',
       array: true,
+      // Optional, because we may use resolve for documentation even without
+      // imports.
+      canBeUndefined: true,
       comment: 'The URIs to be imported if this completion is selected.',
     ),
     field(

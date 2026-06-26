@@ -411,6 +411,7 @@ class OptionsParser {
         ),
         fastTestsOnly: data["fast-tests"] as bool,
         printPassingStdout: data["print-passing-stdout"] as bool,
+        noSandbox: data["no-sandbox"] as bool,
       );
 
       if (configuration.validate()) {
@@ -728,6 +729,11 @@ test options, specifying how tests should be run.''',
   ..addFlag(
     'build',
     help: 'Build the necessary targets to test this configuration',
+  )
+  ..addFlag(
+    'no-sandbox',
+    defaultsTo: Platform.isLinux,
+    help: 'Pass --no-sandbox to Chrome.',
   )
   ..addFlag(
     'host-asserts',

@@ -61,12 +61,12 @@ class CompletionResolveHandler
     CancellationToken token,
   ) async {
     var file = data.file;
-    var importUris = data.importUris.map(Uri.parse).toList();
+    var importUris = data.importUris?.map(Uri.parse).toList() ?? [];
     var elementReference = data.ref;
 
     // We only need to continue if we need to handle import statements, or fetch
     // docs. If we have no import URIs and already had docs, return early.
-    if (importUris.isEmpty && item.documentation == null) {
+    if (importUris.isEmpty && item.documentation != null) {
       return success(item);
     }
 
@@ -116,6 +116,14 @@ class CompletionResolveHandler
         }
 
         var changes = builder.sourceChange;
+        // This is an unexpected case, but it shouldn't cause failures so only
+        // flag it in an assert for during tests.
+        assert(
+          importUris.isEmpty || changes.edits.isNotEmpty,
+          'completionItem/resolve was provided import URIs that did not result '
+          'in edits. This may indicate that completion items included '
+          'unnecessary imports.',
+        );
         var thisFilesChanges = changes.edits
             .where((e) => e.file == file)
             .toList();

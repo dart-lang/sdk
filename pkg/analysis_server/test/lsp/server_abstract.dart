@@ -771,6 +771,12 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setSnippetTextEditSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {'snippetEditSupport': supported},
+    });
+  }
+
   /// Sets the supported [CodeActionKind]s for this client. This implies
   /// `codeActionLiteralSupport`.
   void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {

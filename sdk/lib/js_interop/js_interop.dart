@@ -213,6 +213,23 @@ extension type JSObject._(JSObjectType _jsObject)
   /// The object is created using the JavaScript object initializer syntax
   /// (`{}`), and this constructor is more efficient than `{}.jsify()`.
   JSObject() : _jsObject = _createObjectLiteral();
+
+  /// The JavaScript prototype of the JavaScript [value], if any.
+  ///
+  /// If [value] is a primitive value, the result is the prototype of its object
+  /// wrapper, as if converted by the JavaScript `Object(value)` first.
+  ///
+  /// A JavaScript object may not have a prototype. This includes objects
+  /// created by [`Object.create(null)`][`Object.create`] and
+  /// [`Object.prototype`].
+  ///
+  /// See [`Object.getPrototypeOf`].
+  ///
+  /// [`Object.getPrototypeOf`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf
+  /// [`Object.create`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
+  /// [`Object.prototype`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
+  @Since('3.13')
+  external static JSObject? getPrototypeOf(JSAny value);
 }
 
 // TODO(srujzs): Move this member to `JSObject` once we can patch extension type

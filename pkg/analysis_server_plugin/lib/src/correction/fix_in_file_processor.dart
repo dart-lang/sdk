@@ -25,7 +25,7 @@ final class FixInFileProcessor {
   /// performed.
   FixInFileProcessor(this._fixContext, {this.alreadyCalculated});
 
-  Future<List<Fix>> compute() async {
+  Future<List<Fix>> compute({Iterable<Diagnostic>? diagnostics}) async {
     var diagnostic = _fixContext.diagnostic;
 
     var generators = _getGenerators(diagnostic.diagnosticCode);
@@ -50,7 +50,7 @@ final class FixInFileProcessor {
       return const <Fix>[];
     }
 
-    var diagnostics = _fixContext.unitResult.diagnostics.where(
+    diagnostics ??= _fixContext.unitResult.diagnostics.where(
       (e) =>
           diagnostic.diagnosticCode.lowerCaseName ==
           e.diagnosticCode.lowerCaseName,

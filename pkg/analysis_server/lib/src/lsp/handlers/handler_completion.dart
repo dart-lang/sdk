@@ -4,7 +4,8 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
+import 'package:analysis_server/lsp_protocol/protocol.dart'
+    hide Declaration, Element;
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/completion_utils.dart';
@@ -25,15 +26,15 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
-import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -48,6 +49,18 @@ class CompletionHandler
   /// the initial unit and the completion code running.
   @visibleForTesting
   static Future<void>? delayAfterResolveForTests;
+
+  /// The maximum size of a documentation comment for it to be included inline
+  /// in a completion item.
+  ///
+  /// Docs shorter than this might still be ommitted (if resolution data is
+  /// already being provided), but any docs longer than this will always use
+  /// `/resolve` for docs.
+  ///
+  /// The overhead of adding resolution data is around 80 chars, whereas the
+  /// overhead of docs is around 55 chars. So when the docs are more than 25
+  /// chars, it would've been better to delay until `/resolve`.
+  static const maxDocSizeForInlining = 25;
 
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
@@ -383,6 +396,8 @@ class CompletionHandler
   ) async {
     var useNotImportedCompletions =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
+    var preferredDocumentation =
+        server.lspClientConfiguration.global.preferredDocumentation;
     // If the client supports applyKind for completionList we can merge the
     // 'data' field from each item onto the top-level CompletionList one.
     var clientSupportsMergedData = capabilities.completionListApplyKind;
@@ -523,49 +538,75 @@ class CompletionHandler
           itemInsertLength,
         );
 
-        // For items that need imports, we'll round-trip some additional info
-        // to allow their additional edits (and documentation) to be handled
-        // lazily to reduce the payload.
-        CompletionResolutionInfo? resolutionInfo;
+        // Compute information that may be included in resolution data to
+        // support a `/resolve` call for a given completion item. This is
+        // usually to delay documentation or computing edits for imports so it
+        // can be done when this item is being selected rather than for every
+        // completion item up-front.
+        List<Uri> importUris = [];
+        Element? element;
+        ElementLocation? elementLocation;
+        if (item is ElementBasedSuggestion) {
+          element = (item as ElementBasedSuggestion).element;
+          elementLocation = ElementLocation.forElement(element);
+        }
 
-        if (item is ElementBasedSuggestion && item is ImportableSuggestion) {
-          var element = (item as ElementBasedSuggestion).element;
-
+        if (item is ImportableSuggestion) {
+          var isNotImported = item.importData?.isNotImported ?? false;
           var importUri = item.importData?.libraryUri;
-          if (importUri != null) {
-            resolutionInfo = DartCompletionItemResolutionInfo(
-              file: clientSupportsMergedData ? null : unit.path,
-              importUris: [importUri.toString()],
-              ref: ElementLocation.forElement(element)?.encoding,
-            );
+          assert(!isNotImported || importUri != null);
+          if (isNotImported && importUri != null) {
+            importUris.add(importUri);
           }
         } else if (item is OverrideSuggestion) {
           var overrideData = item.data;
-          if (overrideData != null && overrideData.imports.isNotEmpty) {
-            var element = (item as ElementBasedSuggestion).element;
-
-            var importUris = overrideData.imports;
-            resolutionInfo = DartCompletionItemResolutionInfo(
-              file: clientSupportsMergedData ? null : unit.path,
-              importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: ElementLocation.forElement(element)?.encoding,
-            );
+          if (overrideData != null) {
+            importUris.addAll(overrideData.imports);
           }
         } else if (item is TypedSuggestion) {
           var typedData = item.data;
-          if (typedData != null && typedData.imports.isNotEmpty) {
-            var element = item.ifTypeOrNull<ElementBasedSuggestion>()?.element;
-            ElementLocation? elementLocation;
-            if (element != null) {
-              elementLocation = ElementLocation.forElement(element);
-            }
+          if (typedData != null) {
+            importUris.addAll(typedData.imports);
+          }
+        }
 
-            var importUris = typedData.imports;
-            resolutionInfo = DartCompletionItemResolutionInfo(
-              file: clientSupportsMergedData ? null : unit.path,
-              importUris: importUris.map((uri) => uri.toString()).toList(),
-              ref: elementLocation?.encoding,
-            );
+        // Compute resolution info if anything needs to be handled via
+        // `/resolve`.
+        CompletionResolutionInfo? resolutionInfo;
+
+        // Completion item needs to add imports.
+        if (importUris.isNotEmpty) {
+          resolutionInfo = DartCompletionItemResolutionInfo(
+            file: clientSupportsMergedData ? null : unit.path,
+            importUris: importUris.map((uri) => uri.toString()).toList(),
+            ref: elementLocation?.encoding,
+          );
+        }
+
+        // Grab docs and see whether we should include them inline or delay
+        // them to resolve. If we are already including resolution info, we will
+        // always delay docs too so we don't need to check them here.
+        String? cleanedDoc;
+        if (resolutionInfo == null && element != null) {
+          // Maybe include docs.
+          // Compute cleaned docs as they would be shown.
+          cleanedDoc = getCleanElementDocumentation(
+            element,
+            completionRequest,
+            preferredDocumentation,
+          );
+          if ((cleanedDoc?.length ?? 0) > maxDocSizeForInlining) {
+            // Docs are long, so handle them via resolution.
+            var elementLocation = ElementLocation.forElement(element);
+            if (elementLocation != null) {
+              // We need an ElementLocation in order to get back to docs later
+              // so we won't fall into here for things like parameters.
+              // Currently their docs will still be included inline.
+              resolutionInfo = DartCompletionItemResolutionInfo(
+                file: clientSupportsMergedData ? null : unit.path,
+                ref: elementLocation.encoding,
+              );
+            }
           }
         }
 
@@ -588,11 +629,9 @@ class CompletionHandler
               server.lspClientConfiguration.global.previewCommitCharacters,
           completeFunctionCalls: completeFunctionCalls,
           resolutionData: resolutionInfo,
-          // Exclude docs if we will be providing them via
-          // `completionItem/resolve`, otherwise use users preference.
-          includeDocumentation: resolutionInfo != null
-              ? DocumentationPreference.none
-              : server.lspClientConfiguration.global.preferredDocumentation,
+          // Only include docs if we don't have resolution info that would
+          // allow us to provide them during `/resolve`.
+          cleanedDoc: resolutionInfo == null ? cleanedDoc : null,
         );
       }
 

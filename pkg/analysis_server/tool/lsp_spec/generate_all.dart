@@ -310,6 +310,7 @@ List<LspEntity> getCustomClasses() {
       baseType: ArrayType(
         UnionType([
           TypeReference('LegacySnippetTextEdit'),
+          TypeReference('SnippetTextEdit'),
           TypeReference('AnnotatedTextEdit'),
           TypeReference('TextEdit'),
         ]),

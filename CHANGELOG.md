@@ -118,6 +118,7 @@ To learn more about the feature, check out the
   purely descriptive and intended for increased static type safety. Importantly,
   the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
   For more details, see SDK issue [#54557][].
+- `JSObject.getPrototypeOf` is added.
 
 [#54557]: https://github.com/dart-lang/sdk/issues/54557
 

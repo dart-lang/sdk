@@ -105,6 +105,7 @@ class LspClientCapabilities {
   final bool completionDefaultTextMode;
   final bool completionListApplyKind;
   final bool legacySnippetTextEdit;
+  final bool snippetTextEdit;
   final bool signatureHelpNullActiveParameter;
   final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
@@ -229,6 +230,7 @@ class LspClientCapabilities {
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
       legacySnippetTextEdit: experimental.legacySnippetTextEdit,
+      snippetTextEdit: workspaceEdit?.snippetEditSupport ?? false,
       signatureHelpNullActiveParameter: signatureHelpNullActiveParameter,
       supportedInteractiveFormInputTypes:
           experimental.interactiveFormInputTypes,
@@ -272,6 +274,7 @@ class LspClientCapabilities {
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
     required this.legacySnippetTextEdit,
+    required this.snippetTextEdit,
     required this.signatureHelpNullActiveParameter,
     required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
