@@ -803,6 +803,15 @@ class TypeSystemOperations
   }
 
   @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): Implement lookupMemberTypeInternal.
+    throw UnimplementedError();
+  }
+
+  @override
   TypeImpl lubInternal(TypeImpl type1, TypeImpl type2) {
     return typeSystem.leastUpperBound(type1, type2);
   }
