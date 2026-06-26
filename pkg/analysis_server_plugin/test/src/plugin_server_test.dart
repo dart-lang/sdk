@@ -409,6 +409,42 @@ var n = ^10;
     expect(result.fixes.first.fixes, hasLength(4));
   }
 
+  Future<void> test_handleEditGetFixes_multiFixInFile() async {
+    writeAnalysisOptionsWithPlugin();
+    var code = TestCode.parseNormalized('''
+void f() {
+  bool b1 = ^false;
+  bool b2 = true;
+  bool b3 = false;
+}
+''');
+    newFile(filePath, code.code);
+
+    await _setContextRootsAndReadFirstErrors();
+
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, code.position.offset),
+    );
+    var result = protocol.EditGetFixesResult.fromResponse(response);
+    expect(result.fixes, isNotEmpty);
+    var fixes = result.fixes.first.fixes;
+
+    // Should have fixes available: both individual and multi-fix versions
+    // plus 3 ignore fixes
+    expect(fixes.length, greaterThanOrEqualTo(4));
+
+    // Verify we have the multi-fix version available
+    var multiFixMessages = fixes
+        .map((f) => f.change.message)
+        .where((msg) => msg.contains('everywhere'))
+        .toList();
+    expect(
+      multiFixMessages.length,
+      greaterThan(0),
+      reason: 'Should have a multi-fix ("everywhere in file") option',
+    );
+  }
+
   Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
     writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'error'});
     newFile(filePath, 'double x = 3.14;');
@@ -1019,6 +1055,12 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
     'Wrap in quotes',
   );
 
+  static const _wrapInQuotesAllKind = FixKind(
+    'dart.fix.wrapInQuotes.multi',
+    10,
+    'Wrap in quotes everywhere in file',
+  );
+
   _WrapInQuotes({required super.context});
 
   @override
@@ -1027,6 +1069,9 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => _wrapInQuotesKind;
+
+  @override
+  FixKind? get multiFixKind => _wrapInQuotesAllKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

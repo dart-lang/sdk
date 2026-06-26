@@ -5,6 +5,7 @@
   more plugin configurations.
 - Require version `14.1.0-dev` of the `analyzer` package.
 - Require version `0.14.14-dev` of the `analyzer_plugin` package.
+- Allows fixes to be applied to the whole file with `multiFixKind` and the valid `applicability` options.
 
 ## 0.3.19
 

@@ -29,9 +29,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -255,6 +255,8 @@ class PluginServer {
     var lineInfo = unitResult.lineInfo;
     var requestLine = lineInfo.getLocation(offset).lineNumber;
 
+    var diagnostics = errors.map((e) => e.diagnostic);
+
     var lintAtOffset = errors.where((error) {
       var errorLine = lineInfo.getLocation(error.diagnostic.offset).lineNumber;
       return errorLine == requestLine;
@@ -279,7 +281,7 @@ class PluginServer {
       try {
         // TODO(srawlins): Somehow wrap each ProducerGenerator invocation in a
         // zone, to support `print` capturing per-plugin.
-        fixes = await computeFixes(context);
+        fixes = await computeFixes(context, diagnostics: diagnostics);
       } on InconsistentAnalysisException {
         // TODO(srawlins): Is it important to at least log this? Or does it
         // happen on the regular?
