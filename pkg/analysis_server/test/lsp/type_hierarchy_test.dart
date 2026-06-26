@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -317,6 +318,74 @@ extension type E^1(A a) {}
         ),
       ]),
     );
+  }
+
+  Future<void> test_issue62425() async {
+    // Code used in test files. This contains a reference to a class inside the
+    // dependency where we'll invoke Show Type Hierarchy so that it is scoped
+    // to a specific version of the dependency without starting in that version.
+    var code = TestCode.parse('''
+import 'package:a/a.dart';
+Depende^ncyClass? x;
+''');
+
+    /// Helper to create a version of a simple dependency (`package:a`) that
+    /// contains a class and subclass.
+    void createDependency(int version) {
+      var dependencyPath = convertPath('$packagesRootPath/v$version/a');
+      writePackageConfig(convertPath(dependencyPath));
+      newFile('$dependencyPath/lib/a.dart', '''
+class DependencyClass;
+
+class SubClass extends DependencyClass;
+''');
+    }
+
+    /// Helper to create a test package number [i] that references
+    /// version [i] of of `package:a`.
+    void createTestPackage(int i) {
+      var packagePath = convertPath('$projectFolderPath/package$i');
+      writePackageConfig(
+        packagePath,
+        config: (PackageConfigFileBuilder()
+          // Package i references version i of the dependency.
+          ..add(name: 'a', rootFolder: getFolder('$packagesRootPath/v$i/a'))),
+      );
+      newFile('$packagePath/lib/foo.dart', code.code);
+    }
+
+    // Create two versions the dependency, `package:a` with a sample class.
+    createDependency(1);
+    createDependency(2);
+
+    // Create two packages, one that references each version of the dependency.
+    createTestPackage(1);
+    createTestPackage(2);
+
+    await initialize();
+
+    // Now for each test package, verify that we can invoke type hierarchy
+    // and get back the corresponding version of `package:a`s types in the
+    // results.
+    for (var i in [1, 2]) {
+      // Get the anchor element via test package i.
+      var prepareResult = await prepareTypeHierarchy(
+        Uri.file(convertPath('$projectFolderPath/package$i/lib/foo.dart')),
+        code.position.position,
+      );
+
+      // Fetch subtypes, which should find the subtype inside the correct
+      // version of the dependency.
+      var subtypes = await typeHierarchySubtypes(prepareResult!.single);
+      expect(subtypes, hasLength(1));
+      var subtype = subtypes!.single;
+      // Ensure we get a result for dependency version i.
+      expect(subtype.name, 'SubClass');
+      expect(
+        subtype.uri,
+        toUri(convertPath('$packagesRootPath/v$i/a/lib/a.dart')),
+      );
+    }
   }
 
   Future<void> test_on() async {
