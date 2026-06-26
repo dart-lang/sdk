@@ -3450,7 +3450,7 @@ bool _canParseLinkedEditingRangeClientCapabilities(
   return true;
 }
 
-bool _canParseListAnnotatedTextEditLegacySnippetTextEditTextEdit(
+bool _canParseListAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -3470,9 +3470,10 @@ bool _canParseListAnnotatedTextEditLegacySnippetTextEditTextEdit(
             value.any((item) =>
                 !AnnotatedTextEdit.canParse(item, reporter) &&
                 !LegacySnippetTextEdit.canParse(item, reporter) &&
+                !SnippetTextEdit.canParse(item, reporter) &&
                 !TextEdit.canParse(item, reporter)))) {
       reporter.reportError(
-          'must be of type List<Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>>');
+          'must be of type List<Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit>>');
       return false;
     }
   } finally {
@@ -7194,16 +7195,20 @@ bool _canParseWorkspaceSymbolClientCapabilities(
   return true;
 }
 
-Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>
-    _eitherAnnotatedTextEditLegacySnippetTextEditTextEdit(Object? value) {
+Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit>
+    _eitherAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
+        Object? value) {
   return AnnotatedTextEdit.canParse(value, nullLspJsonReporter)
-      ? Either3.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
+      ? Either4.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
       : LegacySnippetTextEdit.canParse(value, nullLspJsonReporter)
-          ? Either3.t2(
+          ? Either4.t2(
               LegacySnippetTextEdit.fromJson(value as Map<String, Object?>))
-          : TextEdit.canParse(value, nullLspJsonReporter)
-              ? Either3.t3(TextEdit.fromJson(value as Map<String, Object?>))
-              : throw '$value was not one of (AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit)';
+          : SnippetTextEdit.canParse(value, nullLspJsonReporter)
+              ? Either4.t3(
+                  SnippetTextEdit.fromJson(value as Map<String, Object?>))
+              : TextEdit.canParse(value, nullLspJsonReporter)
+                  ? Either4.t4(TextEdit.fromJson(value as Map<String, Object?>))
+                  : throw '$value was not one of (AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit)';
 }
 
 Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>
@@ -39998,7 +40003,7 @@ class TextDocumentEdit implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListAnnotatedTextEditLegacySnippetTextEditTextEdit(
+      if (!_canParseListAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
           obj, reporter, 'edits',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -40016,7 +40021,8 @@ class TextDocumentEdit implements ToJsonable {
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
         .map((item) =>
-            _eitherAnnotatedTextEditLegacySnippetTextEditTextEdit(item))
+            _eitherAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
+                item))
         .toList();
     final textDocumentJson = json['textDocument'];
     final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(

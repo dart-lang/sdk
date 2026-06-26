@@ -931,8 +931,9 @@ typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
 
-typedef TextDocumentEditEdits
-    = List<Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>>;
+typedef TextDocumentEditEdits = List<
+    Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit,
+        TextEdit>>;
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(

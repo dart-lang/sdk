@@ -88,3 +88,34 @@ extension RangeExtension on Range {
 
   String toText() => '${start.toText()}-${end.toText()}';
 }
+
+extension TextEditUnionExtension
+    on
+        Either4<
+          AnnotatedTextEdit,
+          LegacySnippetTextEdit,
+          SnippetTextEdit,
+          TextEdit
+        > {
+  /// Extracts a TextEdit from a union of TextEdits and SnippetTextEdits.
+  ///
+  /// For testing purposes, we just map snippet text edits into normal
+  /// edits so that the snippet string just appears verbatim in the
+  /// string.
+  TextEdit extractTextEdit() {
+    // All types extend from TextEdit except SnippetTextEdit which we just
+    // copy over manually.
+    return map(
+      (e) => e,
+      (e) => e,
+      // For testing purposes, we just map snippet text edits into normal
+      // edits so that the snippet string just appears verbatim in the
+      // string.
+      (snippetEdit) => TextEdit(
+        range: snippetEdit.range,
+        newText: snippetEdit.snippet.value,
+      ),
+      (e) => e,
+    );
+  }
+}
