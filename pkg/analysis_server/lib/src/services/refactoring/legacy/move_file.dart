@@ -64,6 +64,81 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   String get refactoringName => 'Move File';
 
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var referencesToUpdate = <_FileReference>{};
+
+    // First, resolve any folders to their child files in the mapping so
+    // we have a complete flat list, and a way to quickly map target files to
+    // their new paths when rewriting imports.
+    var resolvedMapping = <String, String>{};
+    for (var MapEntry(key: oldPath, value: newPath) in _renameMapping.entries) {
+      if (newPath == null) {
+        throw StateError('Rename mapping contains oldPath without newPath');
+      }
+      var resource = resourceProvider.getResource(oldPath);
+      _resolveMapping(resolvedMapping, resource, newPath);
+    }
+
+    try {
+      // Next, collect all source references that might need updating.
+      for (var MapEntry(key: oldPath, value: newPath)
+          in resolvedMapping.entries) {
+        await _collectSourceReferences(referencesToUpdate, oldPath, newPath);
+
+        if (isCancellationRequested) {
+          return;
+        }
+      }
+
+      // Group references by the files, so we can make edits to each file in a
+      // single change builder.
+      Map<String, Set<_FileReference>> referencesByFile = {};
+      for (var reference in referencesToUpdate) {
+        referencesByFile
+            .putIfAbsent(reference.sourceFile, () => {})
+            .add(reference);
+      }
+
+      // For each file, produce edits to update any URIs that are different when
+      // taking into account that both files might have been moved.
+      for (var MapEntry(key: sourceFile, value: references)
+          in referencesByFile.entries) {
+        if (references.isEmpty) continue;
+        await builder.addDartFileEdit(sourceFile, (builder) {
+          for (var reference in references) {
+            var targetFile = reference.targetFile;
+            var newSource = resolvedMapping[sourceFile] ?? sourceFile;
+            var newTarget = resolvedMapping[targetFile] ?? targetFile;
+
+            var (:startQuote, :endQuote, unquotedValue: uriValue) =
+                _extractQuotes(reference.quotedUriValue);
+
+            var newUri = _computeNewUri(
+              sourceFile: newSource,
+              targetFile: newTarget,
+              currentUriValue: uriValue,
+            );
+            if (newUri != uriValue) {
+              builder.addSimpleReplacement(
+                reference.range,
+                '$startQuote$newUri$endQuote',
+              );
+            }
+          }
+        });
+      }
+    } on InconsistentAnalysisException {
+      // If an InconsistentAnalysisException occurs, it's likely the user
+      // modified the source and is no longer interested in the results.
+      //
+      // TODO(brianwilkerson): This exception should be caught higher up in the
+      //  stack so that every refactor is protected.
+      throw StateError(
+        'Refactor cancelled due to concurrent file modifications.',
+      );
+    }
+  }
+
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var oldFiles = _renameMapping.keys.toSet();
@@ -111,75 +186,10 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     builder ??= ChangeBuilder(session: _session);
-    var referencesToUpdate = <_FileReference>{};
-
-    // First, resolve any folders to their child files in the mapping so
-    // we have a complete flat list, and a way to quickly map target files to
-    // their new paths when rewriting imports.
-    var resolvedMapping = <String, String>{};
-    for (var MapEntry(key: oldPath, value: newPath) in _renameMapping.entries) {
-      if (newPath == null) {
-        throw StateError('Rename mapping contains oldPath without newPath');
-      }
-      var resource = resourceProvider.getResource(oldPath);
-      _resolveMapping(resolvedMapping, resource, newPath);
-    }
-
-    try {
-      // Next, collect all source references that might need updating.
-      for (var MapEntry(key: oldPath, value: newPath)
-          in resolvedMapping.entries) {
-        await _collectSourceReferences(referencesToUpdate, oldPath, newPath);
-
-        if (isCancellationRequested) {
-          return SourceChange('Refactor cancelled');
-        }
-      }
-
-      // Group references by the files, so we can make edits to each file in a
-      // single change builder.
-      Map<String, Set<_FileReference>> referencesByFile = {};
-      for (var reference in referencesToUpdate) {
-        referencesByFile
-            .putIfAbsent(reference.sourceFile, () => {})
-            .add(reference);
-      }
-
-      // For each file, produce edits to update any URIs that are different when
-      // taking into account that both files might have been moved.
-      for (var MapEntry(key: sourceFile, value: references)
-          in referencesByFile.entries) {
-        if (references.isEmpty) continue;
-        await builder.addDartFileEdit(sourceFile, (builder) {
-          for (var reference in references) {
-            var targetFile = reference.targetFile;
-            var newSource = resolvedMapping[sourceFile] ?? sourceFile;
-            var newTarget = resolvedMapping[targetFile] ?? targetFile;
-
-            var (:startQuote, :endQuote, unquotedValue: uriValue) =
-                _extractQuotes(reference.quotedUriValue);
-
-            var newUri = _computeNewUri(
-              sourceFile: newSource,
-              targetFile: newTarget,
-              currentUriValue: uriValue,
-            );
-            if (newUri != uriValue) {
-              builder.addSimpleReplacement(
-                reference.range,
-                '$startQuote$newUri$endQuote',
-              );
-            }
-          }
-        });
-      }
-    } on InconsistentAnalysisException {
-      // If an InconsistentAnalysisException occurs, it's likely the user
-      // modified the source and is no longer interested in the results.
-      return SourceChange('Refactor cancelled by file modifications');
-    }
-
-    return builder.sourceChange;
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   /// Collects all source references that may need changing because of a move
