@@ -77,7 +77,7 @@ package:analysis_server_plugin/edit/change_builder/change_builder.dart:
     importLibraryElement (method: ImportLibraryElementResult Function(Uri, {String? prefix, String? showName, bool useShow}))
     importsLibrary (method: bool Function(Uri))
     insertCaseClauseAtEnd (method: void Function(void Function(DartEditBuilder), {required Token leftBracket, required Token rightBracket, required Token rightParenthesis, required Token switchKeyword}))
-    insertConstructor (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
+    insertConstructor (method: void Function(CompilationUnitMember, void Function(DartEditBuilder), {bool isNamed}))
     insertField (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     insertGetter (method: void Function(CompilationUnitMember, void Function(DartEditBuilder)))
     insertIntoUnitMember (method: void Function(CompilationUnitMember, void Function(DartEditBuilder), {bool indent, bool Function(ClassMember)? lastMemberFilter}))

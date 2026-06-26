@@ -355,6 +355,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
     requiredNamedParametersFirst (getter: bool)
     sortCombinators (getter: bool)
     sortConstructorsFirst (getter: bool)
+    sortUnnamedConstructorsFirst (getter: bool)
     specifyReturnTypes (getter: bool)
     specifyTypes (getter: bool)
     useFormatter (getter: bool)
