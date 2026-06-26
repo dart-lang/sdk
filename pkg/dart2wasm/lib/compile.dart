@@ -727,6 +727,7 @@ Future<CompilationResult> _runOptPhase(
   final wasmOptFlags = <String>[
     ...(options.useMultiModuleOpt ? _binaryenFlagsMultiModule : _binaryenFlags),
     if (options.stripToolchainAnnotations) '--strip-toolchain-annotations',
+    '--emit-module-names',
   ];
 
   await Future.wait([
