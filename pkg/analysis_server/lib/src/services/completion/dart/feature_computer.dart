@@ -604,7 +604,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.end <= offset) {
       // RHS
-      if (node.operator.type == TokenType.EQ) {
+      if (node.operator.type case .EQ || .QUESTION_QUESTION_EQ) {
         return node.writeType;
       }
       var method = node.element;
@@ -627,7 +627,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
       if (node.operator.type == TokenType.EQ_EQ ||
-          node.operator.type == TokenType.BANG_EQ) {
+          node.operator.type == TokenType.BANG_EQ ||
+          node.operator.type == TokenType.QUESTION_QUESTION) {
         var rightOperand = node.rightOperand;
         if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
           return node.leftOperand.staticType;
