@@ -116,6 +116,14 @@ class CompletionResolveHandler
         }
 
         var changes = builder.sourceChange;
+        // This is an unexpected case, but it shouldn't cause failures so only
+        // flag it in an assert for during tests.
+        assert(
+          importUris.isEmpty || changes.edits.isNotEmpty,
+          'completionItem/resolve was provided import URIs that did not result '
+          'in edits. This may indicate that completion items included '
+          'unnecessary imports.',
+        );
         var thisFilesChanges = changes.edits
             .where((e) => e.file == file)
             .toList();

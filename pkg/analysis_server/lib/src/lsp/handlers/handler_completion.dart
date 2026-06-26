@@ -531,8 +531,10 @@ class CompletionHandler
         if (item is ElementBasedSuggestion && item is ImportableSuggestion) {
           var element = (item as ElementBasedSuggestion).element;
 
+          var isNotImported = item.importData?.isNotImported ?? false;
           var importUri = item.importData?.libraryUri;
-          if (importUri != null) {
+          assert(!isNotImported || importUri != null);
+          if (isNotImported && importUri != null) {
             resolutionInfo = DartCompletionItemResolutionInfo(
               file: clientSupportsMergedData ? null : unit.path,
               importUris: [importUri.toString()],

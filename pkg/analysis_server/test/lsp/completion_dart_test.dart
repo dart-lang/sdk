@@ -1614,6 +1614,41 @@ void f() {
     writeTestPackageConfig(flutter: true);
   }
 
+  Future<void> test_alreadyImported_noImportUris() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+class MyClass {}
+''');
+
+    content = '''
+import 'my_class.dart';
+
+void f() {
+  MyClass^
+}
+''';
+
+    await initialize();
+
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    var completion = res.where((c) => c.label == 'MyClass').single;
+    // Either we should have no data, or the data should have no importUris
+    // because there's nothing to import.
+    expect(
+      completion.data,
+      anyOf(
+        isNull,
+        isA<DartCompletionItemResolutionInfo>().having(
+          (item) => item.importUris,
+          'importUris',
+          isEmpty,
+        ),
+      ),
+    );
+  }
+
   Future<void> test_annotation_beforeMember() async {
     content = '''
 class B {
