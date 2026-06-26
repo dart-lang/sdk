@@ -234,6 +234,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
           constructorName: newName,
           isConst: node is EnumDeclaration,
         ),
+        isNamed: newName.isNotEmpty,
       );
     });
   }

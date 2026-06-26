@@ -344,6 +344,11 @@ final class _AnalysisOptionsTextWriter {
       defaultCodeStyleOptions.sortConstructorsFirst,
     );
     addBoolProperty(
+      'sortUnnamedConstructorsFirst',
+      codeStyleOptions.sortUnnamedConstructorsFirst,
+      defaultCodeStyleOptions.sortUnnamedConstructorsFirst,
+    );
+    addBoolProperty(
       'specifyReturnTypes',
       codeStyleOptions.specifyReturnTypes,
       defaultCodeStyleOptions.specifyReturnTypes,

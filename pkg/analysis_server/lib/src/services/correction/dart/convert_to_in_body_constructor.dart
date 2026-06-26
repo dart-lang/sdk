@@ -13,6 +13,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
   new({required super.context});
@@ -138,24 +139,44 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
       }
 
       if (body == null) {
-        var constructorOffset = _offsetForConstructor(members, fieldOffset);
+        var isNamed = declaration.constructorName != null;
+        var constructorOffset = _offsetForConstructor(
+          members,
+          fieldOffset,
+          isNamed,
+        );
         // Add explicit fields and add a new constructor.
         if (constructorOffset == fieldOffset) {
+          var codeStyleOptions = getCodeStyleOptions(unitResult.file);
           builder.addInsertion(constructorOffset, (builder) {
             if (needsSemicolon) {
               builder.write(';');
             }
-            _writeImplicitlyDeclaredFields(
-              builder: builder,
-              parameterList: parameterList,
-              needsBlankLine: fieldOffset != leftBracket.end,
-            );
-            _writeFullInBodyConstructor(
-              builder,
-              declaration,
-              referencingFields,
-              body,
-            );
+            if (codeStyleOptions.sortConstructorsFirst) {
+              _writeFullInBodyConstructor(
+                builder,
+                declaration,
+                referencingFields,
+                body,
+              );
+              _writeImplicitlyDeclaredFields(
+                builder: builder,
+                parameterList: parameterList,
+                needsBlankLine: fieldOffset != leftBracket.end,
+              );
+            } else {
+              _writeImplicitlyDeclaredFields(
+                builder: builder,
+                parameterList: parameterList,
+                needsBlankLine: fieldOffset != leftBracket.end,
+              );
+              _writeFullInBodyConstructor(
+                builder,
+                declaration,
+                referencingFields,
+                body,
+              );
+            }
             if (members.isNotEmpty || leftBracket.end == rightBracket.offset) {
               builder.writeln();
             }
@@ -284,11 +305,37 @@ class ConvertToInBodyConstructor extends ResolvedCorrectionProducer {
   /// existing [members] of the declaration to which the constructor is being
   /// added.
   ///
-  /// This will either be before the first constructor or at the [defaultOffset]
-  int _offsetForConstructor(List<ClassMember> members, int defaultOffset) {
-    // TODO(brianwilkerson): This should take into account the enablement of the
-    //  `sort_constructors_first` and `sort_unnamed_constructors_first` lint
-    //  rules.
+  /// [isNamed] indicates whether the constructor being inserted is named,
+  /// which affects placement when the `sort_unnamed_constructors_first` lint is
+  /// enabled.
+  int _offsetForConstructor(
+    List<ClassMember> members,
+    int defaultOffset,
+    bool isNamed,
+  ) {
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+    if (codeStyleOptions.sortConstructorsFirst) {
+      return members.lastWhereOrNull((m) => m is ConstructorDeclaration)?.end ??
+          defaultOffset;
+    }
+    if (!isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+      return members
+              .lastWhereOrNull(
+                (m) =>
+                    (m is ConstructorDeclaration && m.name == null) ||
+                    m is FieldDeclaration,
+              )
+              ?.end ??
+          defaultOffset;
+    }
+    if (isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+      return members
+              .lastWhereOrNull(
+                (m) => m is ConstructorDeclaration && m.name == null,
+              )
+              ?.end ??
+          defaultOffset;
+    }
     ClassMember? previousMember;
     for (var member in members) {
       if (member is ConstructorDeclaration) {

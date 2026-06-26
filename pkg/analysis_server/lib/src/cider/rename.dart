@@ -403,6 +403,7 @@ class CheckNameResponse {
     }
     var edit = await buildEditForInsertedConstructor(
       node,
+      isNamed: newName.isNotEmpty,
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
