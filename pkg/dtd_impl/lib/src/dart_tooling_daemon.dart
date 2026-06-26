@@ -360,62 +360,11 @@ class DartToolingDaemon {
     return dtd;
   }
 
-  bool _isAllowedOrigin(String origin) {
-    Uri uri;
-    try {
-      uri = Uri.parse(origin);
-    } catch (_) {
-      return false;
-    }
-    // Is it loopback?
-    if (uri.host == 'localhost' ||
-        uri.host == '127.0.0.1' ||
-        uri.host == '::1') {
-      return true;
-    }
-    // Is it the bound address?
-    if (uri.host == _server.address.host && uri.port == _server.port) {
-      return true;
-    }
-    // Is it the bound address IP?
-    if (uri.host == _server.address.address && uri.port == _server.port) {
-      return true;
-    }
-    return false;
-  }
-
-  Handler _originCheckMiddleware(Handler innerHandler) => (Request request) {
-    // Validate Host header first to prevent DNS rebinding.
-    final hostHeader = request.headers[HttpHeaders.hostHeader];
-    if (hostHeader == null) {
-      return Response.forbidden('forbidden host');
-    }
-    if (!_isAllowedOrigin('http://$hostHeader')) {
-      return Response.forbidden('forbidden host');
-    }
-
-    // Check the Origin header for cross-origin requests.
-    final origin = request.headers['Origin'];
-    if (origin == null) {
-      // No origin sent. This is a non-browser client or a same-origin request.
-      // Since we already validated the Host header, we know it's a legitimate
-      // local same-origin request (or a local non-browser tool).
-      return innerHandler(request);
-    }
-
-    if (_isAllowedOrigin(origin)) {
-      return innerHandler(request);
-    }
-
-    return Response.forbidden('forbidden origin');
-  };
-
   // Attempt to upgrade HTTP requests to a websocket before processing them as
   // standard HTTP requests. The websocket handler will fail quickly if the
   // request doesn't appear to be a websocket upgrade request.
   Handler _handlers() {
     return const Pipeline()
-        .addMiddleware(_originCheckMiddleware)
         .addMiddleware(_uriTokenHandler)
         .addHandler(
           Cascade().add(_webSocketHandler()).add(_sseHandler()).handler,

@@ -462,16 +462,6 @@ class Server {
       // Always allow.
       return true;
     }
-
-    // Always validate Host header first to prevent DNS rebinding.
-    final hostHeader = request.headers.value('Host');
-    if (hostHeader == null) {
-      return false;
-    }
-    if (!_isAllowedOrigin('http://$hostHeader')) {
-      return false;
-    }
-
     // First check the web-socket specific origin.
     List<String>? origins = request.headers['Sec-WebSocket-Origin'];
     if (origins == null) {
@@ -480,8 +470,6 @@ class Server {
     }
     if (origins == null) {
       // No origin sent. This is a non-browser client or a same-origin request.
-      // Since we already validated the Host header, we know it's a legitimate
-      // local same-origin request (or a local non-browser tool).
       return true;
     }
     for (final origin in origins) {
@@ -629,14 +617,6 @@ class Server {
       return;
     }
     if (request.method == 'PUT') {
-      // Validate auth token first.
-      final result = _checkAuthTokenAndGetPath(request.uri);
-      if (result == null) {
-        request.response.statusCode = HttpStatus.forbidden;
-        request.response.write('missing or invalid authentication code');
-        request.response.close();
-        return;
-      }
       // PUT requests are forwarded to DevFS for processing.
       await _processDevFSRequest(request);
       return;
