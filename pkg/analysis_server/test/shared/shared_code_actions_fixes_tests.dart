@@ -720,7 +720,7 @@ name: class^
   }
 
   Future<void> test_snippets() async {
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
 
     const content = '''
 abstract class A {
@@ -768,7 +768,7 @@ class A {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -801,7 +801,7 @@ class B extends A {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -829,7 +829,7 @@ void f() {
 useFunction(int g(a, b)) {}
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -843,7 +843,7 @@ useFunction(int g(a, b)) {}
   /// workspace/applyEdit) so even if enabled, they should not be returned.
   Future<void> test_snippets_unsupportedForCommands() async {
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    setSnippetTextEditSupport(); // will be ignored
+    setLegacySnippetTextEditSupport(); // will be ignored
 
     const content = '''
 abstract class A {

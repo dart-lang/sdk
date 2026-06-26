@@ -932,7 +932,7 @@ typedef LSPObject = Object;
 typedef LSPUri = Uri;
 
 typedef TextDocumentEditEdits
-    = List<Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>>;
+    = List<Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>>;
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -3937,6 +3937,93 @@ class InteractiveParams implements ToJsonable {
   }
 }
 
+/// A custom TextEdit that supports snippets according to the specification at
+/// https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit.
+/// LSP v3.18 introduced standard (but slightly different) support for
+/// SnippetTextEdits which replaces this. This will soon be removed.
+class LegacySnippetTextEdit implements TextEdit, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    LegacySnippetTextEdit.canParse,
+    LegacySnippetTextEdit.fromJson,
+  );
+
+  final InsertTextFormat insertTextFormat;
+
+  /// The string to be inserted. For delete operations use an empty string.
+  @override
+  final String newText;
+
+  /// The range of the text document to be manipulated. To insert text into a
+  /// document create a range where start === end.
+  @override
+  final Range range;
+  LegacySnippetTextEdit({
+    required this.insertTextFormat,
+    required this.newText,
+    required this.range,
+  });
+  @override
+  int get hashCode => Object.hash(
+        insertTextFormat,
+        newText,
+        range,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is LegacySnippetTextEdit &&
+        other.runtimeType == LegacySnippetTextEdit &&
+        insertTextFormat == other.insertTextFormat &&
+        newText == other.newText &&
+        range == other.range;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['insertTextFormat'] = insertTextFormat.toJson();
+    result['newText'] = newText;
+    result['range'] = range.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'newText',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type LegacySnippetTextEdit');
+      return false;
+    }
+  }
+
+  static LegacySnippetTextEdit fromJson(Map<String, Object?> json) {
+    final insertTextFormatJson = json['insertTextFormat'];
+    final insertTextFormat =
+        InsertTextFormat.fromJson(insertTextFormatJson as int);
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    return LegacySnippetTextEdit(
+      insertTextFormat: insertTextFormat,
+      newText: newText,
+      range: range,
+    );
+  }
+}
+
 class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Message.canParse,
@@ -4927,89 +5014,6 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
       kind: kind,
       parameterLabel: parameterLabel,
       parameterTitle: parameterTitle,
-    );
-  }
-}
-
-class SnippetableTextEdit implements TextEdit, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SnippetableTextEdit.canParse,
-    SnippetableTextEdit.fromJson,
-  );
-
-  final InsertTextFormat insertTextFormat;
-
-  /// The string to be inserted. For delete operations use an empty string.
-  @override
-  final String newText;
-
-  /// The range of the text document to be manipulated. To insert text into a
-  /// document create a range where start === end.
-  @override
-  final Range range;
-  SnippetableTextEdit({
-    required this.insertTextFormat,
-    required this.newText,
-    required this.range,
-  });
-  @override
-  int get hashCode => Object.hash(
-        insertTextFormat,
-        newText,
-        range,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is SnippetableTextEdit &&
-        other.runtimeType == SnippetableTextEdit &&
-        insertTextFormat == other.insertTextFormat &&
-        newText == other.newText &&
-        range == other.range;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['insertTextFormat'] = insertTextFormat.toJson();
-    result['newText'] = newText;
-    result['range'] = range.toJson();
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseString(obj, reporter, 'newText',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type SnippetableTextEdit');
-      return false;
-    }
-  }
-
-  static SnippetableTextEdit fromJson(Map<String, Object?> json) {
-    final insertTextFormatJson = json['insertTextFormat'];
-    final insertTextFormat =
-        InsertTextFormat.fromJson(insertTextFormatJson as int);
-    final newTextJson = json['newText'];
-    final newText = newTextJson as String;
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return SnippetableTextEdit(
-      insertTextFormat: insertTextFormat,
-      newText: newText,
-      range: range,
     );
   }
 }

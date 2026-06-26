@@ -1113,7 +1113,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     }, 'ClientCapabilities.experimental.commands must be a List<String>?');
   }
 
-  Future<void> test_invalidExperimental_snippetTextEdit() async {
+  Future<void> test_invalidExperimental_legacySnippetTextEdit() async {
     await expectInvalidExperimentalParams({
       'snippetTextEdit': 1,
     }, 'ClientCapabilities.experimental.snippetTextEdit must be a bool?');

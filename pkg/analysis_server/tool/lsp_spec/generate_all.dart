@@ -276,14 +276,19 @@ List<LspEntity> getCustomClasses() {
       field('label', type: 'string'),
     ]),
 
-    // Custom types for experimental SnippetTextEdits
+    // Custom types for experimental (legacy) SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
-    // This class is named SnippetableTextEdit because LSP v3.18 introduced
-    // a class named SnippetTextEdit. If it supports what we need, we should
-    // migrate and remove this one.
-    interface('SnippetableTextEdit', [
-      field('insertTextFormat', type: 'InsertTextFormat'),
-    ], baseType: 'TextEdit'),
+    interface(
+      'LegacySnippetTextEdit',
+      [field('insertTextFormat', type: 'InsertTextFormat')],
+      baseType: 'TextEdit',
+      comment:
+          'A custom TextEdit that supports snippets according to the '
+          'specification at '
+          'https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit'
+          '. LSP v3.18 introduced standard (but slightly different) support '
+          'for SnippetTextEdits which replaces this. This will soon be removed.',
+    ),
     // Return type for refactor.validate command.
     interface('ValidateRefactorResult', [
       field('valid', type: 'boolean'),
@@ -304,7 +309,7 @@ List<LspEntity> getCustomClasses() {
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
         UnionType([
-          TypeReference('SnippetableTextEdit'),
+          TypeReference('LegacySnippetTextEdit'),
           TypeReference('AnnotatedTextEdit'),
           TypeReference('TextEdit'),
         ]),

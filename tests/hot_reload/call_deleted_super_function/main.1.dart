@@ -40,7 +40,8 @@ Future<void> main() async {
 +class C {}
  
 -class D extends C {
--  curry() => () => super.deleted();
+-  curry() =>
+-      () => super.deleted();
 -}
 +class D extends C {}
  
