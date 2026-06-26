@@ -721,6 +721,12 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('hover');
   }
 
+  /// Enables support for the legacy custom SnippetTextEdit support that was
+  /// used prior to LSP v3.18 getting standard support.
+  void setLegacySnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
   void setLineFoldingOnly() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -763,10 +769,6 @@ mixin ClientCapabilitiesHelperMixin {
         },
       },
     );
-  }
-
-  void setSnippetTextEditSupport([bool supported = true]) {
-    experimentalCapabilities['snippetTextEdit'] = supported;
   }
 
   /// Sets the supported [CodeActionKind]s for this client. This implies

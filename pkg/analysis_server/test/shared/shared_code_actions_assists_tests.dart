@@ -87,7 +87,7 @@ Future? f;
   }
 
   Future<void> test_codeActionLiterals_supported() async {
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
     const content = '''
@@ -113,7 +113,7 @@ Widget build() {
   }
 
   Future<void> test_codeActionLiterals_unsupported() async {
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
 
     const content = '''
@@ -208,7 +208,7 @@ Widget build() {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -217,38 +217,48 @@ Widget build() {
     );
   }
 
-  Future<void> test_logsExecution() async {
+  Future<void> test_legacySnippetTextEdit_editGroupsAndSelection() async {
     const content = '''
-import '[!dart:async!]';
-
-Future? f;
+void f() {
+  [!print(0);!]
+}
 ''';
 
-    var action = await expectCodeActionLiteral(
+    const expectedContent = r'''
+void f() {
+  if (${1:condition}) {
+    print(0);
+  }$0
+}
+''';
+
+    setLegacySnippetTextEditSupport();
+    var verifier = await verifyCodeActionLiteralEdits(
       content,
-      kind: CodeActionKind('refactor.add.showCombinator'),
-      title: "Add explicit 'show' combinator",
+      expectedContent,
+      kind: CodeActionKind('refactor.surround.if'),
+      title: "Surround with 'if'",
     );
 
-    await executeCommand(action.command!);
-    expectCommandLogged('dart.assist.add.showCombinator');
+    // Also ensure there was a single edit that was correctly marked
+    // as a LegacySnippetTextEdit.
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map(
+          (edit) => edit.map(
+            (e) =>
+                throw 'Expected LegacySnippetTextEdit, got AnnotatedTextEdit',
+            (e) => e,
+            (e) => throw 'Expected LegacySnippetTextEdit, got TextEdit',
+          ),
+        )
+        .toList();
+    expect(textEdits, hasLength(1));
+    expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
 
-  Future<void> test_nonDartFile() async {
-    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
-
-    createFile(pubspecFilePath, simplePubspecContent);
-    await initializeServer();
-
-    var codeActions = await getCodeActions(
-      pubspecFileUri,
-      range: startOfDocRange,
-    );
-    expect(codeActions, isEmpty);
-  }
-
-  Future<void> test_snippetTextEdits_multiEditGroup() async {
-    // As test_snippetTextEdits_singleEditGroup, but uses an assist that
+  Future<void> test_legacySnippetTextEdits_multiEditGroup() async {
+    // As test_legacySnippetTextEdits_singleEditGroup, but uses an assist that
     // produces multiple linked edit groups.
 
     const content = '''
@@ -283,7 +293,7 @@ build() {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -292,7 +302,7 @@ build() {
     );
   }
 
-  Future<void> test_snippetTextEdits_singleEditGroup() async {
+  Future<void> test_legacySnippetTextEdits_singleEditGroup() async {
     // This tests experimental support for including Snippets in TextEdits.
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
     //
@@ -337,7 +347,7 @@ build() {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     var verifier = await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -346,19 +356,50 @@ build() {
     );
 
     // Also ensure there was a single edit that was correctly marked
-    // as a SnippetableTextEdit.
+    // as a LegacySnippetTextEdit.
     var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map(
           (edit) => edit.map(
-            (e) => throw 'Expected SnippetableTextEdit, got AnnotatedTextEdit',
+            (e) =>
+                throw 'Expected LegacySnippetTextEdit, got AnnotatedTextEdit',
             (e) => e,
-            (e) => throw 'Expected SnippetableTextEdit, got TextEdit',
+            (e) => throw 'Expected LegacySnippetTextEdit, got TextEdit',
           ),
         )
         .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
+  }
+
+  Future<void> test_logsExecution() async {
+    const content = '''
+import '[!dart:async!]';
+
+Future? f;
+''';
+
+    var action = await expectCodeActionLiteral(
+      content,
+      kind: CodeActionKind('refactor.add.showCombinator'),
+      title: "Add explicit 'show' combinator",
+    );
+
+    await executeCommand(action.command!);
+    expectCommandLogged('dart.assist.add.showCombinator');
+  }
+
+  Future<void> test_nonDartFile() async {
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
+    createFile(pubspecFilePath, simplePubspecContent);
+    await initializeServer();
+
+    var codeActions = await getCodeActions(
+      pubspecFileUri,
+      range: startOfDocRange,
+    );
+    expect(codeActions, isEmpty);
   }
 
   Future<void> test_snippetTextEdits_unsupported() async {
@@ -398,7 +439,7 @@ build() {
     // Ensure the edit does _not_ have a format of Snippet, nor does it include
     // any $ characters that would indicate snippet text.
     for (var edit in textEdits) {
-      expect(edit, isNot(TypeMatcher<SnippetableTextEdit>()));
+      expect(edit, isNot(TypeMatcher<LegacySnippetTextEdit>()));
       expect(edit.newText, isNot(contains(r'$')));
     }
   }
@@ -432,45 +473,6 @@ build() => Contai^ner(child: Container());
         DartAssistKind.flutterRemoveWidget.message,
       ]),
     );
-  }
-
-  Future<void> test_surround_editGroupsAndSelection() async {
-    const content = '''
-void f() {
-  [!print(0);!]
-}
-''';
-
-    const expectedContent = r'''
-void f() {
-  if (${1:condition}) {
-    print(0);
-  }$0
-}
-''';
-
-    setSnippetTextEditSupport();
-    var verifier = await verifyCodeActionLiteralEdits(
-      content,
-      expectedContent,
-      kind: CodeActionKind('refactor.surround.if'),
-      title: "Surround with 'if'",
-    );
-
-    // Also ensure there was a single edit that was correctly marked
-    // as a SnippetableTextEdit.
-    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
-        .expand((tde) => tde.edits)
-        .map(
-          (edit) => edit.map(
-            (e) => throw 'Expected SnippetableTextEdit, got AnnotatedTextEdit',
-            (e) => e,
-            (e) => throw 'Expected SnippetableTextEdit, got TextEdit',
-          ),
-        )
-        .toList();
-    expect(textEdits, hasLength(1));
-    expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
 }
 

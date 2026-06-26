@@ -104,7 +104,7 @@ class LspClientCapabilities {
   final bool completionDefaultEditRange;
   final bool completionDefaultTextMode;
   final bool completionListApplyKind;
-  final bool experimentalSnippetTextEdit;
+  final bool legacySnippetTextEdit;
   final bool signatureHelpNullActiveParameter;
   final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
@@ -228,7 +228,7 @@ class LspClientCapabilities {
       completionListApplyKind: completionListApplyKind,
       completionDefaultEditRange: completionDefaultEditRange,
       completionDefaultTextMode: completionDefaultTextMode,
-      experimentalSnippetTextEdit: experimental.snippetTextEdit,
+      legacySnippetTextEdit: experimental.legacySnippetTextEdit,
       signatureHelpNullActiveParameter: signatureHelpNullActiveParameter,
       supportedInteractiveFormInputTypes:
           experimental.interactiveFormInputTypes,
@@ -271,7 +271,7 @@ class LspClientCapabilities {
     required this.completionListApplyKind,
     required this.completionDefaultEditRange,
     required this.completionDefaultTextMode,
-    required this.experimentalSnippetTextEdit,
+    required this.legacySnippetTextEdit,
     required this.signatureHelpNullActiveParameter,
     required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
@@ -298,13 +298,16 @@ class _ExperimentalClientCapabilities {
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> errors;
 
-  final bool snippetTextEdit;
+  /// Legacy custom snippet support for text edits based on the Rust Analyzer
+  /// specification. This was replaced by proper snippet support in LSP v3.18.
+  final bool legacySnippetTextEdit;
+
   final Set<String> interactiveFormInputTypes;
   final Set<String> commands;
   final bool showMessageRequest;
 
   new({
-    required this.snippetTextEdit,
+    required this.legacySnippetTextEdit,
     required this.interactiveFormInputTypes,
     required this.commands,
     required this.showMessageRequest,
@@ -350,7 +353,10 @@ class _ExperimentalClientCapabilities {
     var experimental = expectMap('', raw) ?? const {};
 
     // Snippets.
-    var snippetTextEdit = expectBool(
+    var legacySnippetTextEdit = expectBool(
+      // The key name here is part of the spec so we can't rename it, but we
+      // use the "legacy" prefix in all code we can to avoid confusion with the
+      // now-standard (but slightly different) snippet support.
       '.snippetTextEdit',
       experimental['snippetTextEdit'],
     );
@@ -385,7 +391,7 @@ class _ExperimentalClientCapabilities {
     );
 
     return _ExperimentalClientCapabilities(
-      snippetTextEdit: snippetTextEdit ?? false,
+      legacySnippetTextEdit: legacySnippetTextEdit ?? false,
       interactiveFormInputTypes: interactiveFormInputTypes ?? {},
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
