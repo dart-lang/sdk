@@ -190,6 +190,7 @@ class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
     newFile(join(projectFolderPath, 'my_class.dart'), '''
 typedef MyClass2 = MyClass;
 
+/// Class.
 abstract class MyClass {}
 ''');
 
@@ -203,6 +204,36 @@ void f() {
 
     var completion = await getCompletionItem('MyClass');
     expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Class.'));
+  }
+
+  /// Test dartdocs for elements that are already imported file because in the
+  /// past we would only delay docs from not-imported items until resolve
+  /// (because it was only those who got resolution data).
+  Future<void> test_alreadyImported() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+/// This is MyClass with a long dartdoc that should be delayed until resolve
+/// despite being already-imported!
+class MyClass {}
+''');
+    content = '''
+import 'my_class.dart';
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('with a long dartdoc'));
+    expectDocumentation(resolved, hasLength(greaterThan(100)));
   }
 
   Future<void> test_class() async {
@@ -265,8 +296,9 @@ void f() {
 ''';
     await initializeServer();
 
-    var completion = await getCompletionItem('c1()');
-    expectDocumentation(completion, equals('This is a constructor.'));
+    var completion = await getCompletionItem('c1()'); // Expect 1 item
+    var resolved = await resolveCompletion(completion); // Resolve for docs
+    expectDocumentation(resolved, equals('This is a constructor.'));
   }
 
   Future<void> test_class_constructorNamed() async {
@@ -660,6 +692,59 @@ void f(t.Other r) {
     );
   }
 
+  /// Test dartdocs for elements in the same file because in the
+  /// past we would only delay docs from not-imported items until resolve
+  /// (because it was only those who got resolution data).
+  Future<void> test_sameFile() async {
+    content = '''
+/// This is MyClass with a long dartdoc that should be delayed until resolve
+/// despite being in the same file.
+class MyClass {}
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('with a long dartdoc'));
+    expectDocumentation(resolved, hasLength(greaterThan(100)));
+  }
+
+  /// Ensure we consider the length of copied docs when deciding to attach
+  /// resolution info, so copied docs can also be delayed until `/resolve`.
+  Future<void> test_sameFile_copiedDoc() async {
+    content = '''
+class A {
+  /// This is a long doc comment that should be delayed until /resolve and not
+  /// included inline in the initial completion items.
+  int get foo => 42;
+}
+class B extends A {
+  @override
+  int get foo => 42;
+}
+void f(B b) {
+  b.foo^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('foo');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('This is a long doc comment'));
+    expectDocumentation(resolved, contains('Copied from `A`'));
+    expectDocumentation(resolved, hasLength(greaterThan(100)));
+  }
+
   Future<void> test_typeAlias_constructors() async {
     newFile(join(projectFolderPath, 'lib', 'alias1.dart'), '''
 import 'main.dart';
@@ -690,7 +775,7 @@ var id = myConstru^
         (completion) => completion.label == label,
       );
       var info = completion.data as DartCompletionMergedResolutionInfo?;
-      var importUri = info?.importUris.singleOrNull;
+      var importUri = info?.importUris?.singleOrNull;
 
       expect(importUri, autoImport ?? isNull);
     }
@@ -1477,17 +1562,18 @@ A^
     await initialAnalysis;
     var res = await getCompletion(mainFileUri, code.position.position);
     var completion = res.singleWhere((c) => c.label == 'A');
+    var resolved = await resolveCompletion(completion); // Resolve for docs
 
     if (includesSummary) {
-      expectDocumentation(completion, contains('Summary.'));
+      expectDocumentation(resolved, contains('Summary.'));
     } else {
-      expectDocumentation(completion, isNot(contains('Summary.')));
+      expectDocumentation(resolved, isNot(contains('Summary.')));
     }
 
     if (includesFull) {
-      expectDocumentation(completion, contains('Full.'));
+      expectDocumentation(resolved, contains('Full.'));
     } else {
-      expectDocumentation(completion, isNot(contains('Full.')));
+      expectDocumentation(resolved, isNot(contains('Full.')));
     }
   }
 

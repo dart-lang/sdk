@@ -1214,9 +1214,6 @@ class CompletionResolutionInfo implements ToJsonable {
         json, nullLspJsonReporter)) {
       return DartCompletionMergedResolutionInfo.fromJson(json);
     }
-    if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
-      return DartCompletionItemResolutionInfo.fromJson(json);
-    }
     if (DartCompletionRequestResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return DartCompletionRequestResolutionInfo.fromJson(json);
@@ -1224,6 +1221,9 @@ class CompletionResolutionInfo implements ToJsonable {
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
+    }
+    if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
+      return DartCompletionItemResolutionInfo.fromJson(json);
     }
     return CompletionResolutionInfo();
   }
@@ -1314,7 +1314,7 @@ class DartCompletionItemResolutionInfo
   final String? file;
 
   /// The URIs to be imported if this completion is selected.
-  final List<String> importUris;
+  final List<String>? importUris;
 
   /// The encoded ElementLocation2 of the item being completed.
   ///
@@ -1322,7 +1322,7 @@ class DartCompletionItemResolutionInfo
   final String? ref;
   DartCompletionItemResolutionInfo({
     this.file,
-    required this.importUris,
+    this.importUris,
     this.ref,
   });
   @override
@@ -1347,7 +1347,9 @@ class DartCompletionItemResolutionInfo
     if (file != null) {
       result['file'] = file;
     }
-    result['importUris'] = importUris;
+    if (importUris != null) {
+      result['importUris'] = importUris;
+    }
     if (ref != null) {
       result['ref'] = ref;
     }
@@ -1364,7 +1366,7 @@ class DartCompletionItemResolutionInfo
         return false;
       }
       if (!_canParseListString(obj, reporter, 'importUris',
-          allowsUndefined: false, allowsNull: false)) {
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       return _canParseString(obj, reporter, 'ref',
@@ -1383,8 +1385,8 @@ class DartCompletionItemResolutionInfo
     final fileJson = json['file'];
     final file = fileJson as String?;
     final importUrisJson = json['importUris'];
-    final importUris = (importUrisJson as List<Object?>)
-        .map((item) => item as String)
+    final importUris = (importUrisJson as List<Object?>?)
+        ?.map((item) => item as String)
         .toList();
     final refJson = json['ref'];
     final ref = refJson as String?;
@@ -1415,7 +1417,7 @@ class DartCompletionMergedResolutionInfo
 
   /// The URIs to be imported if this completion is selected.
   @override
-  final List<String> importUris;
+  final List<String>? importUris;
 
   /// The encoded ElementLocation2 of the item being completed.
   ///
@@ -1424,7 +1426,7 @@ class DartCompletionMergedResolutionInfo
   final String? ref;
   DartCompletionMergedResolutionInfo({
     required this.file,
-    required this.importUris,
+    this.importUris,
     this.ref,
   });
   @override
@@ -1447,7 +1449,9 @@ class DartCompletionMergedResolutionInfo
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['file'] = file;
-    result['importUris'] = importUris;
+    if (importUris != null) {
+      result['importUris'] = importUris;
+    }
     if (ref != null) {
       result['ref'] = ref;
     }
@@ -1464,7 +1468,7 @@ class DartCompletionMergedResolutionInfo
         return false;
       }
       if (!_canParseListString(obj, reporter, 'importUris',
-          allowsUndefined: false, allowsNull: false)) {
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       return _canParseString(obj, reporter, 'ref',
@@ -1481,8 +1485,8 @@ class DartCompletionMergedResolutionInfo
     final fileJson = json['file'];
     final file = fileJson as String;
     final importUrisJson = json['importUris'];
-    final importUris = (importUrisJson as List<Object?>)
-        .map((item) => item as String)
+    final importUris = (importUrisJson as List<Object?>?)
+        ?.map((item) => item as String)
         .toList();
     final refJson = json['ref'];
     final ref = refJson as String?;

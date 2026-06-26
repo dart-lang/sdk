@@ -61,12 +61,12 @@ class CompletionResolveHandler
     CancellationToken token,
   ) async {
     var file = data.file;
-    var importUris = data.importUris.map(Uri.parse).toList();
+    var importUris = data.importUris?.map(Uri.parse).toList() ?? [];
     var elementReference = data.ref;
 
     // We only need to continue if we need to handle import statements, or fetch
     // docs. If we have no import URIs and already had docs, return early.
-    if (importUris.isEmpty && item.documentation == null) {
+    if (importUris.isEmpty && item.documentation != null) {
       return success(item);
     }
 
