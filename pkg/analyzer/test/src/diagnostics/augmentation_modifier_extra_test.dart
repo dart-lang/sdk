@@ -41,6 +41,28 @@ augment abstract base class A {}
 ''');
   }
 
+  test_class_constructor_secondary_nothing_const() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+  augment const A();
+//        ^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'const' modifier that the declaration doesn't have.
+}
+''');
+  }
+
+  test_class_constructor_secondary_nothing_factory() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+  augment factory A();
+//        ^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'factory' modifier that the declaration doesn't have.
+}
+''');
+  }
+
   test_class_nothing_abstract() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -113,6 +135,35 @@ class A {}
 augment sealed class A {}
 //      ^^^^^^
 // [diag.augmentationModifierExtra] The augmentation has the 'sealed' modifier that the declaration doesn't have.
+''');
+  }
+
+  test_enum_constructor_primary_const_factory() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E.named() {
+  v.named();
+}
+
+augment enum E {
+  ;
+  augment factory E.named();
+//^^^^^^^
+// [diag.augmentationModifierMissing] The augmentation is missing the 'const' modifier that the declaration has.
+//        ^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'factory' modifier that the declaration doesn't have.
+}
+''');
+  }
+
+  test_extensionType_constructor_primary_nothing_factory() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it);
+
+augment extension type E {
+  augment factory E(int it);
+//        ^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'factory' modifier that the declaration doesn't have.
+}
 ''');
   }
 

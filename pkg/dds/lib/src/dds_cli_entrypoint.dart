@@ -103,8 +103,6 @@ ${argParser.usage}
   );
   final disableServiceAuthCodes =
       argResults[DartDevelopmentServiceOptions.disableServiceAuthCodesFlag];
-  final disableServiceOriginCheck =
-      argResults[DartDevelopmentServiceOptions.disableServiceOriginCheckFlag];
 
   final serveDevTools =
       argResults[DartDevelopmentServiceOptions.serveDevToolsFlag];
@@ -130,7 +128,6 @@ ${argParser.usage}
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
-      disableServiceOriginCheck: disableServiceOriginCheck,
       // Only use IPv6 to serve DDS if either the remote VM Service address or
       // the bind address cannot be resolved to an IPv4 address.
       ipv6: !doesVmServiceAddressResolveToIpv4Address ||

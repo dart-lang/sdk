@@ -29,7 +29,7 @@ import 'package:flutter/widgets.dart';
 part 'test.dart';
 
 class W extends StatelessWidget {
-  W();
+  const W();
 
   @override
   Widget build(BuildContext context) => Container();
