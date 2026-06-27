@@ -671,6 +671,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+    _checkForConstructorAugmentationModifierMismatch(node, fragment);
     _checkForAugmentationFormalParameters(
       executableFragment: fragment,
       formalParameterList: node.parameters,
@@ -3128,6 +3129,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForAugmentationModifierMismatch({
+    required Token augmentKeyword,
+    required bool inAugmentation,
+    required bool inIntroductory,
+    required Token? modifierToken,
+    required String modifierName,
+  }) {
+    if (inAugmentation != inIntroductory) {
+      if (inAugmentation) {
+        if (modifierToken != null) {
+          diagnosticReporter.report(
+            diag.augmentationModifierExtra
+                .withArguments(modifier: modifierName)
+                .at(modifierToken),
+          );
+        }
+      } else {
+        diagnosticReporter.report(
+          diag.augmentationModifierMissing
+              .withArguments(modifier: modifierName)
+              .at(augmentKeyword),
+        );
+      }
+    }
+  }
+
   void _checkForAugmentationReturnTypeMismatch({
     required ExecutableFragmentImpl fragment,
     required TypeAnnotation? returnTypeNode,
@@ -3372,62 +3399,43 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    void checkModifier({
-      required bool inAugmentation,
-      required bool inIntroductory,
-      required Token? modifierToken,
-      required String modifierName,
-    }) {
-      if (inAugmentation != inIntroductory) {
-        if (inAugmentation) {
-          if (modifierToken != null) {
-            diagnosticReporter.report(
-              diag.augmentationModifierExtra
-                  .withArguments(modifier: modifierName)
-                  .at(modifierToken),
-            );
-          }
-        } else {
-          diagnosticReporter.report(
-            diag.augmentationModifierMissing
-                .withArguments(modifier: modifierName)
-                .at(augmentKeyword),
-          );
-        }
-      }
-    }
-
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isAbstract,
       inIntroductory: firstFragment.isAbstract,
       modifierToken: node.abstractKeyword,
       modifierName: 'abstract',
     );
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isBase,
       inIntroductory: firstFragment.isBase,
       modifierToken: node.baseKeyword,
       modifierName: 'base',
     );
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isFinal,
       inIntroductory: firstFragment.isFinal,
       modifierToken: node.finalKeyword,
       modifierName: 'final',
     );
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isInterface,
       inIntroductory: firstFragment.isInterface,
       modifierToken: node.interfaceKeyword,
       modifierName: 'interface',
     );
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isSealed,
       inIntroductory: firstFragment.isSealed,
       modifierToken: node.sealedKeyword,
       modifierName: 'sealed',
     );
-    checkModifier(
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
       inAugmentation: declaredFragment.isMixinClass,
       inIntroductory: firstFragment.isMixinClass,
       modifierToken: node.mixinKeyword,
@@ -4198,6 +4206,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (type.element is MixinElement) {
       diagnosticReporter.report(diag.mixinInstantiate.at(namedType));
     }
+  }
+
+  void _checkForConstructorAugmentationModifierMismatch(
+    ConstructorDeclarationImpl node,
+    ConstructorFragmentImpl declaredFragment,
+  ) {
+    var augmentKeyword = node.augmentKeyword;
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    var firstFragment = declaredFragment.element.firstFragment;
+    if (identical(declaredFragment, firstFragment)) {
+      return;
+    }
+
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
+      inAugmentation: declaredFragment.isConst,
+      inIntroductory: firstFragment.isConst,
+      modifierToken: node.constKeyword,
+      modifierName: 'const',
+    );
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
+      inAugmentation: declaredFragment.isFactory,
+      inIntroductory: firstFragment.isFactory,
+      modifierToken: node.factoryKeyword,
+      modifierName: 'factory',
+    );
   }
 
   bool _checkForConstVariableAugmentation({
@@ -5912,23 +5950,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (declaredFragment.isBase != firstFragment.isBase) {
-      if (declaredFragment.isBase) {
-        if (node.baseKeyword case var baseKeyword?) {
-          diagnosticReporter.report(
-            diag.augmentationModifierExtra
-                .withArguments(modifier: 'base')
-                .at(baseKeyword),
-          );
-        }
-      } else {
-        diagnosticReporter.report(
-          diag.augmentationModifierMissing
-              .withArguments(modifier: 'base')
-              .at(augmentKeyword),
-        );
-      }
-    }
+    _checkForAugmentationModifierMismatch(
+      augmentKeyword: augmentKeyword,
+      inAugmentation: declaredFragment.isBase,
+      inIntroductory: firstFragment.isBase,
+      modifierToken: node.baseKeyword,
+      modifierName: 'base',
+    );
   }
 
   /// Verify that mixin classes must have 'Object' as their superclass and that
