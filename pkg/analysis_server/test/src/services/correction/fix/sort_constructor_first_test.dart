@@ -45,6 +45,35 @@ class B {
 ''');
   }
 
+  Future<void> test_multiple_enums() async {
+    await resolveTestCode('''
+enum A {
+  a;
+  void m() {}
+  A();
+}
+
+enum B {
+  b;
+  void n() {}
+  B();
+}
+''');
+    await assertHasFix('''
+enum A {
+  a;
+  A();
+  void m() {}
+}
+
+enum B {
+  b;
+  B();
+  void n() {}
+}
+''');
+  }
+
   Future<void> test_single_class() async {
     await resolveTestCode('''
 class A {
@@ -78,6 +107,75 @@ class SortConstructorFirstTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.sort_constructors_first;
+
+  Future<void> test_enum_constHead() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  void m() {}
+  new();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+  new();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_enum_named() async {
+    await resolveTestCode('''
+enum E {
+  a.named();
+  void m() {}
+  E.named();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a.named();
+  E.named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_enum_noConstants() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+enum E {
+  ;
+  void m() {}
+  E();
+}
+''');
+    await assertHasFix('''
+enum E {
+  ;
+  E();
+  void m() {}
+}
+''', filter: lintNameFilter(lintCode));
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  void m() {}
+  E();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+  E();
+  void m() {}
+}
+''');
+  }
 
   Future<void> test_hasComment() async {
     await resolveTestCode('''
