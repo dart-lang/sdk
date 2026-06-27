@@ -1591,6 +1591,7 @@ indicated
 indicates
 indicating
 indication
+indications
 indices
 indirect
 indirectly
@@ -1965,6 +1966,7 @@ medium
 meet
 member
 member's
+membered
 members
 memory
 mention
@@ -2760,6 +2762,7 @@ roll
 rolled
 root
 roots
+roster
 round
 routed
 rule
@@ -2812,6 +2815,7 @@ searched
 searches
 searching
 second
+secondary
 section
 security
 see

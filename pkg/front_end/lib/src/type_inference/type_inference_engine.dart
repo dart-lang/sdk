@@ -1179,6 +1179,53 @@ class OperationsCfe
       types.cast(),
     ).substitute(typeToSubstitute);
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType? lookupMemberTypeInternal(DartType type, String lookupName) {
+    switch (type) {
+      case InterfaceType(:var classNode):
+        Member? member = typeEnvironment.hierarchy.getInterfaceMember(
+          classNode,
+          new Name(lookupName, classNode.enclosingLibrary),
+        );
+        if (member == null) {
+          return null;
+        } else {
+          Class? memberEnclosingClass = member.enclosingClass;
+          if (memberEnclosingClass == null) {
+            return null;
+          } else {
+            DartType? memberType =
+                member is Procedure && member.kind == ProcedureKind.Getter
+                ? member.getterType
+                : member.function?.computeFunctionType(Nullability.nullable);
+            if (memberType == null) {
+              return null;
+            } else {
+              if (memberEnclosingClass.typeParameters.isEmpty) {
+                return memberType;
+              } else {
+                InterfaceType? asInstanceOfMemberEnclosingClass =
+                    typeEnvironment.hierarchy.getInterfaceTypeAsInstanceOfClass(
+                      type,
+                      memberEnclosingClass,
+                    );
+                if (asInstanceOfMemberEnclosingClass == null) {
+                  return null;
+                } else {
+                  return Substitution.fromInterfaceType(
+                    asInstanceOfMemberEnclosingClass,
+                  ).substituteType(memberType);
+                }
+              }
+            }
+          }
+        }
+      default:
+        return null;
+    }
+  }
 }
 
 /// Type inference results used for testing.

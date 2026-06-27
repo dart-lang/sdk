@@ -3960,6 +3960,15 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
+
+  @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): implement lookupMemberTypeInternal
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

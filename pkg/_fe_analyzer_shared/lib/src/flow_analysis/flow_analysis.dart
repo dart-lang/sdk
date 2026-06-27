@@ -6475,8 +6475,12 @@ class _FlowAnalysisImpl<
     // even if the underlying variable whose property is being referenced has
     // changed, because the next time the property is accessed, it will be
     // accessed through a new SSA node, and thus a new promotion key).
+    //
+    // If the scrutinee is `this`, promote it too.
     if (scrutineeReference != null &&
         (scrutineeReference is _PropertyReference ||
+            (scrutineeReference.isThisOrSuper &&
+                typeAnalyzerOptions.thisPromotionEnabled) ||
             _current.promotionInfo
                     ?.get(this, matchedValueReference.promotionKey)!
                     .ssaNode ==

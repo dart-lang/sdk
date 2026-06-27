@@ -5749,6 +5749,77 @@ main() {
           }),
         ]);
       });
+
+      test('switchStatement this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard(type: 'D').then([checkPromoted(this_, 'D')]),
+          ]),
+        ]);
+      });
+
+      test('switchStatement this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard(type: 'D').then([checkNotPromoted(this_)]),
+          ]),
+        ]);
+      });
+
+      test('switchExpression this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switchExpr(this_, [
+            wildcard(type: 'D').thenExpr(checkPromoted(this_, 'D')),
+          ]),
+        ]);
+      });
+
+      test('switchExpression this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switchExpr(this_, [
+            wildcard(type: 'D').thenExpr(checkNotPromoted(this_)),
+          ]),
+        ]);
+      });
+
+      test('ifCase this promotes', () {
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard(type: 'D'), [checkPromoted(this_, 'D')]),
+        ]);
+      });
+
+      test('ifCase this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C';
+        h.addExhaustiveness('C', false);
+        h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard(type: 'D'), [checkNotPromoted(this_)]),
+        ]);
+      });
     });
   });
 
