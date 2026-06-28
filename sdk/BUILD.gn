@@ -30,6 +30,7 @@ declare_args() {
   dartvm_stripped_binary = "dartvm"
   dart_stripped_binary = "dart"
   dart_aotruntime_stripped_binary = "dartaotruntime_product"
+  dart_cliruntime_stripped_binary = "dartcliruntime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
   analyze_snapshot_binary = "analyze_snapshot"
   wasm_opt_stripped_binary = "wasm-opt"
@@ -46,6 +47,7 @@ declare_args() {
 # ......dartvm or dartvm.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dartaotruntime or dartaotruntime.exe (executable)
+# ......dartcliruntime (Linux only)
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot (JIT snapshot)
@@ -386,6 +388,30 @@ if (_has_dot_sym) {
   }
 }
 
+if (is_linux) {
+  copy("copy_dart_cliruntime") {
+    visibility = [ ":*" ]
+    deps = [ "../runtime/bin:dartcliruntime_product" ]
+    src_dir =
+        get_label_info("../runtime/bin:dartcliruntime_product", "root_out_dir")
+    sources =
+        [ "$src_dir/${dart_cliruntime_stripped_binary}${executable_suffix}" ]
+    outputs = [
+      "$root_out_dir/$dart_sdk_output/bin/dartcliruntime${executable_suffix}",
+    ]
+  }
+  if (_has_dot_sym) {
+    copy("copy_dart_cliruntime_sym") {
+      visibility = [ ":*" ]
+      deps = [ "../runtime/bin:dartcliruntime_product" ]
+      src_dir = get_label_info("../runtime/bin:dartcliruntime_product",
+                               "root_out_dir")
+      sources = [ "$src_dir/dartcliruntime_product${executable_suffix}.sym" ]
+      outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartcliruntime.sym" ]
+    }
+  }
+}
+
 copy_sanitizer_deps = []
 
 # If the default toolchain is already using a sanitizer, the sanitizer variant
@@ -427,7 +453,18 @@ if (!using_sanitizer && current_os == "linux" &&
           [ "$src_dir/${dart_aotruntime_stripped_binary}${executable_suffix}" ]
       outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartaotruntime_${sanitizer}${executable_suffix}" ]
     }
+    copy("copy_dart_cliruntime_$sanitizer") {
+      visibility = [ ":*" ]
+      deps = [ "../runtime/bin:dartcliruntime_product(${current_toolchain}_${sanitizer})" ]
+      src_dir = get_label_info(
+              "../runtime/bin:dartcliruntime_product(${current_toolchain}_${sanitizer})",
+              "root_out_dir")
+      sources =
+          [ "$src_dir/${dart_cliruntime_stripped_binary}${executable_suffix}" ]
+      outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartcliruntime_${sanitizer}${executable_suffix}" ]
+    }
     copy_sanitizer_deps += [ ":copy_dart_aotruntime_$sanitizer" ]
+    copy_sanitizer_deps += [ ":copy_dart_cliruntime_$sanitizer" ]
   }
 }
 
@@ -481,8 +518,14 @@ group("group_dart2native") {
     ":copy_gen_snapshot",
     ":copy_vm_platform_product",
   ]
+  if (is_linux) {
+    deps += [ ":copy_dart_cliruntime" ]
+  }
   if (_has_dot_sym) {
     deps += [ ":copy_dart_aotruntime_sym" ]
+    if (is_linux) {
+      deps += [ ":copy_dart_cliruntime_sym" ]
+    }
   }
 }
 
