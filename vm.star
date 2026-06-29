@@ -11,6 +11,7 @@ load(
     "//lib/defaults.star",
     "android_deps",
     "arm64",
+    "bisect_failures",
     "flutter_pool",
     "fuchsia_deps",
     "kvm",
@@ -60,12 +61,12 @@ def _vm_builder(name, category = None, on_cq = False, location_filters = None, *
     _postponed_alt_console_entry(name, category)
 
 def _nightly_builder(name, category, channels = ["try"], properties = {}, **kwargs):
-    properties = union({"bisection_enabled": True}, properties)
+    properties = union(bisect_failures, properties)
     cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     _postponed_alt_console_entry(name, category)
 
 def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
-    properties = union({"bisection_enabled": True}, properties)
+    properties = union(bisect_failures, properties)
     cron.nightly_builder(
         name,
         category = None,  # Don't add to main console.

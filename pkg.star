@@ -10,6 +10,7 @@ load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
     "arm64",
+    "bisect_failures",
     "build_devtools",
     "chrome",
     "flute",
@@ -41,12 +42,12 @@ def _pkg_builder(
         **kwargs
     )
 
-def _pkg_nightly_builder(name, category = None, properties = [], **kwargs):
+def _pkg_nightly_builder(name, channels = ["try"], properties = [], **kwargs):
     # Some pkg unittests need flute sources.
-    default_properties = union({}, [flute])
+    default_properties = union({}, [bisect_failures, flute])
     cron.nightly_builder(
         name,
-        category = category,
+        channels = channels,
         properties = union(default_properties, properties),
         **kwargs
     )
@@ -54,7 +55,7 @@ def _pkg_nightly_builder(name, category = None, properties = [], **kwargs):
 _pkg_builder(
     "pkg-linux-release",
     category = "pkg|l",
-    properties = chrome,
+    properties = [chrome],
 )
 _pkg_builder(
     "pkg-linux-release-arm64",
@@ -64,8 +65,8 @@ _pkg_builder(
 _pkg_builder(
     "pkg-mac-release",
     category = "pkg|m",
-    dimensions = mac,
-    properties = chrome,
+    dimensions = [mac],
+    properties = [chrome],
 )
 _pkg_builder(
     "pkg-mac-release-arm64",
@@ -78,7 +79,7 @@ _pkg_builder(
     "pkg-win-release",
     category = "pkg|w",
     dimensions = windows,
-    properties = chrome,
+    properties = [chrome],
 )
 _pkg_builder(
     "pkg-win-release-arm64",
@@ -89,8 +90,7 @@ _pkg_builder(
 _pkg_nightly_builder(
     "pkg-linux-debug",
     category = "pkg|ld",
-    channels = ["try"],
-    properties = chrome,
+    properties = [chrome],
 )
 
 dart.poller("devtools-gitiles-trigger", branches = ["main"], paths = paths.devtools)

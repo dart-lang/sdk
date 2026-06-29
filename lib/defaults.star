@@ -32,6 +32,7 @@ _JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 _FLUTE = {"custom_vars": {"checkout_flute": True}}
 _SLOW_BUILD = {"$dart/build": {"timeout": (60 * time.minute) // time.second}}
 _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
+_BISECT_FAILURES = {"bisection_enabled": True}
 
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
@@ -82,3 +83,4 @@ slow_build = _SLOW_BUILD
 slow_shards = _SLOW_SHARDS
 no_caches = _NO_CACHES
 no_reclient = _NO_RECLIENT
+bisect_failures = _BISECT_FAILURES
