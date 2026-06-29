@@ -320,7 +320,7 @@ def Main():
     if options.kill_browsers == 'True':
         status += KillBrowsers()
     if options.kill_android == 'True':
-        status += KillAndroid()
+        status += KillAndroidEmulator()
     return status
 
 

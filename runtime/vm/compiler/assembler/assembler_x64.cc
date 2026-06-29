@@ -2169,6 +2169,7 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
       movq(RAX, compiler::Address(
                     THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
       break;
+    case kFourBytes:
     case kUnsignedFourBytes:
       movq(RAX, compiler::Address(
                     THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
@@ -2182,7 +2183,7 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
   movq(compiler::Assembler::VMTagAddress(),
        compiler::Immediate(VMTag::kDartTagId));
 
-  MoveRegister(dst, RAX);
+  ExtendValue(dst, RAX, size);
 
   // RSP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
