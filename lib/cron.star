@@ -31,19 +31,22 @@ def _image_builder(name, notifies = None, **kwargs):
 def _nightly_builder(name, notifies = None, **kwargs):
     # Stagger the scheduled times so they don't all try to run at once. Note
     # that MSAN and TSAN are particularlly expensive.
-    if name.find("-tsan-") > 0:
+    def contains(needle):
+        return name.find(needle) >= 0
+
+    if contains("-tsan-"):
         hour = 6
         minute = 40
-    elif name.find("-msan-") > 0:
+    elif contains("-msan-"):
         hour = 6
         minute = 20
-    elif name.find("-asan-") > 0 or name.find("-lsan-") > 0 or name.find("-ubsan-") > 0:
+    elif contains("-asan-") or contains("-lsan-") or contains("-ubsan-"):
         hour = 6
         minute = 0
-    elif name.find("-aot-") > 0:
+    elif contains("-aot-"):
         hour = 5
         minute = 30
-    elif name.find("vm-") > 0:
+    elif contains("vm-"):
         hour = 5
         minute = 0
     else:
