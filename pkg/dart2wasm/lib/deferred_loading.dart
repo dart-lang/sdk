@@ -48,6 +48,13 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
   Future<void> processComponentAfterTfa(
     DeferredModuleLoadingMap loadingMap,
   ) async {
+    if (loadingMap.loadIds.isEmpty) {
+      // No deferred imports, use a monolithic module.
+      moduleOutputData = ModuleOutputData.monolithic(
+        ModuleMetadataBuilder(options).buildModuleMetadata(),
+      );
+      return;
+    }
     ConstraintData? constraints;
     if (options.programSplitConstraintsUri != null) {
       final json = await ioManager.readString(
