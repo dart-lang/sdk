@@ -982,8 +982,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeParameterList(
-    List<Variable> positional,
-    List<Variable> named,
+    List<PositionalParameter> positional,
+    List<NamedParameter> named,
     int requiredParameterCount,
   ) {
     writeSymbol('(');

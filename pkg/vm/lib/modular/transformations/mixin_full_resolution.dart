@@ -181,7 +181,8 @@ class MixinFullResolution {
           Procedure? setter = setters[field.name];
           if (setter != null) {
             setters.remove(field.name);
-            Variable parameter = setter.function.positionalParameters.first;
+            PositionalParameter parameter =
+                setter.function.positionalParameters.first;
             clone.isCovariantByDeclaration = parameter.isCovariantByDeclaration;
             clone.isCovariantByClass = parameter.isCovariantByClass;
           }

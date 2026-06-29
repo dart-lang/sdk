@@ -1219,14 +1219,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         );
       }
       for (int j = 0; j < positionalCount; ++j) {
-        Variable forwarderParameter =
+        PositionalParameter forwarderParameter =
             forwarder.function.positionalParameters[j];
-        Variable originParameter = origin.function.positionalParameters[j];
-        if (originParameter.initializer != null) {
-          forwarderParameter.initializer = cloner.clone(
-            originParameter.initializer!,
+        PositionalParameter originParameter =
+            origin.function.positionalParameters[j];
+        if (originParameter.defaultValue != null) {
+          forwarderParameter.defaultValue = cloner.clone(
+            originParameter.defaultValue!,
           );
-          forwarderParameter.initializer!.parent = forwarderParameter;
+          forwarderParameter.defaultValue!.parent = forwarderParameter;
         }
       }
 
@@ -1246,9 +1247,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             origin.fileUri,
           );
         }
-        if (originNamed.initializer == null) continue;
-        forwarderNamed.initializer = cloner.clone(originNamed.initializer!);
-        forwarderNamed.initializer!.parent = forwarderNamed;
+        if (originNamed.defaultValue == null) continue;
+        forwarderNamed.defaultValue = cloner.clone(originNamed.defaultValue!);
+        forwarderNamed.defaultValue!.parent = forwarderNamed;
       }
 
       ++count;

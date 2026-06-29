@@ -274,7 +274,7 @@ class TypeCheckingVisitor
         );
       }
     }
-    for (Variable namedParameter in node.namedParameters) {
+    for (NamedParameter namedParameter in node.namedParameters) {
       if (!namedParameter.isRequired) {
         handleOptionalParameter(
           namedParameter,
@@ -304,12 +304,12 @@ class TypeCheckingVisitor
   }
 
   void handleOptionalParameter(
-    Variable parameter, {
+    FunctionParameter parameter, {
     required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod,
   }) {
-    Expression? initializer = parameter.initializer;
+    Expression? initializer = parameter.defaultValue;
     if (initializer != null &&
-        !parameter.isErroneouslyInitialized &&
+        !parameter.hasErroneousDefaultValue &&
         !isPartOfAbstractExternalOrNoSuchMethodForwarderMethod) {
       // Default parameter values cannot be downcast.
       checkExpressionNoDowncast(initializer, parameter.type);

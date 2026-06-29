@@ -94,7 +94,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
@@ -382,7 +382,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  Variable? getTearOffParameter(int index) => null;
+  FunctionParameter? getTearOffParameter(int index) => null;
 
   @override
   void onInferredType(DartType type) {
@@ -457,7 +457,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ///
   /// This map is used to set the default values on the closure parameters when
   /// these have been built.
-  Map<Variable, Variable>? _extensionTearOffParameterMap;
+  Map<Variable, FunctionParameter>? _extensionTearOffParameterMap;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -780,7 +780,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
         .variable

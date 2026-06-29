@@ -245,7 +245,7 @@ class _Collect extends RecursiveVisitor {
     useDependencies.clear();
     final FunctionNode fun = member.function!;
     for (int i = 0; i < fun.positionalParameters.length; i++) {
-      final Variable param = fun.positionalParameters[i];
+      final PositionalParameter param = fun.positionalParameters[i];
       localParameters[param] = info.ensurePositional(i)
         ..observeParameter(member, param, shaker);
     }
@@ -434,8 +434,8 @@ class _Transform extends RecursiveVisitor {
           eliminateUsedParameter(member, param, variable);
         } else {
           positional.add(variable);
-          variable.initializer = null;
-          variable.hasDeclaredInitializer = false;
+          variable.defaultValue = null;
+          variable.hasDeclaredDefaultValue = false;
         }
       } else {
         unusedParams.add(variable);
@@ -498,7 +498,7 @@ class _Transform extends RecursiveVisitor {
             // The parameter is required, but it is not always passed. This is
             // possible if the method is overridden by a method which makes the
             // parameter optional.
-            assert(variable.initializer == null);
+            assert(variable.defaultValue == null);
             requiredParameterCount++;
           }
         }

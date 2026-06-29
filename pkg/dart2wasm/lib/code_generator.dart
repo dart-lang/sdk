@@ -315,7 +315,7 @@ abstract class AstCodeGenerator
         );
         b.ref_eq();
         b.if_();
-        translateExpression(variable.initializer!, local.type);
+        translateExpression(variable.defaultValue!, local.type);
         b.local_set(local);
         b.end();
       }
@@ -480,10 +480,10 @@ abstract class AstCodeGenerator
     for (TypeParameter typeParam in functionNode.typeParameters) {
       typeLocals[typeParam] = paramLocals[paramIndex++];
     }
-    for (Variable param in functionNode.positionalParameters) {
+    for (PositionalParameter param in functionNode.positionalParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
-    for (Variable param in functionNode.namedParameters) {
+    for (NamedParameter param in functionNode.namedParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
 
@@ -3935,7 +3935,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       } else {
         // Default to use if the callee has the `i` parameter.
         final defaultFunctionValue = i < targetPositionalParams.length
-            ? (targetPositionalParams[i].initializer as ConstantExpression?)
+            ? (targetPositionalParams[i].defaultValue as ConstantExpression?)
                   ?.constant
             : null;
         // Default to use if callee doesn't have the `i` parameter.
@@ -3978,7 +3978,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       } else {
         // Default to use if callee has the `name` parameter.
         final defaultFunctionValue =
-            (namedParam?.initializer as ConstantExpression?)?.constant;
+            (namedParam?.defaultValue as ConstantExpression?)?.constant;
         // Default to use if callee doesn't have `name` parameter.
         final defaultValue = targetParamInfo.named[name];
         // The target wasm function corresponding to an instance method may have

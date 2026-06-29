@@ -2091,7 +2091,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
-                List<Variable>? positionals =
+                List<PositionalParameter>? positionals =
                     subBuilder.invokeTarget?.function?.positionalParameters;
                 if (positionals != null &&
                     positionals.isNotEmpty &&

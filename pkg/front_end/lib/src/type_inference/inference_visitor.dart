@@ -3010,7 +3010,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       targetType.typeArguments,
     );
     List<DartType> positional = function.positionalParameters
-        .map((Variable decl) => substitution.substituteType(decl.type))
+        .map(
+          (PositionalParameter decl) => substitution.substituteType(decl.type),
+        )
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
         .map(
@@ -3146,7 +3148,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       targetType.typeArguments,
     );
     List<DartType> positional = function.positionalParameters
-        .map((Variable decl) => substitution.substituteType(decl.type))
+        .map(
+          (PositionalParameter decl) => substitution.substituteType(decl.type),
+        )
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
         .map(

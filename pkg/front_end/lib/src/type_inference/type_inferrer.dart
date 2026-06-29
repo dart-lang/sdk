@@ -95,13 +95,13 @@ abstract class TypeInferrer {
     required List<int>? indices,
   });
 
-  /// Performs type inference on the given function parameter initializer
+  /// Performs type inference on the given function parameter default value
   /// expression.
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   });
 
   /// Infers the type arguments a redirecting factory target reference.
@@ -335,19 +335,19 @@ class TypeInferrerImpl implements TypeInferrer {
     );
 
     List<InternalVariable> positionalParameters = [
-      for (Variable positionalParameter
+      for (PositionalParameter positionalParameter
           in redirectingFactoryFunction.positionalParameters)
         new InternalPositionalParameter(
-          astVariable: positionalParameter as PositionalParameter,
+          astVariable: positionalParameter,
           isImplicitlyTyped: false,
           fileOffset: positionalParameter.fileOffset,
         ),
     ];
     List<InternalVariable> namedParameters = [
-      for (Variable namedParameter
+      for (NamedParameter namedParameter
           in redirectingFactoryFunction.namedParameters)
         new InternalNamedParameter(
-          astVariable: namedParameter as NamedParameter,
+          astVariable: namedParameter,
           isImplicitlyTyped: false,
           fileOffset: namedParameter.fileOffset,
         ),
@@ -477,11 +477,11 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -489,16 +489,16 @@ class TypeInferrerImpl implements TypeInferrer {
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
     ExpressionInferenceResult result = visitor.inferExpression(
-      initializer,
+      defaultValue,
       declaredType,
     );
-    if (hasDeclaredInitializer) {
-      initializer = visitor
+    if (hasDeclaredDefaultValue) {
+      defaultValue = visitor
           .ensureAssignableResult(declaredType, result)
           .expression;
     }
     visitor.checkCleanState();
-    return initializer;
+    return defaultValue;
   }
 }
 
@@ -630,18 +630,18 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferParameterInitializer);
-    Expression result = impl.inferParameterInitializer(
+    Expression result = impl.inferParameterDefaultValue(
       fileUri: fileUri,
-      initializer: initializer,
+      defaultValue: defaultValue,
       declaredType: declaredType,
-      hasDeclaredInitializer: hasDeclaredInitializer,
+      hasDeclaredDefaultValue: hasDeclaredDefaultValue,
     );
     benchmarker.endSubdivide();
     return result;

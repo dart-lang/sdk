@@ -142,10 +142,10 @@ class InstanceRecorder {
         ? target.function
         : (target as ast.Constructor).function;
     for (final parameter in function.namedParameters) {
-      final initializer = parameter.initializer;
+      final defaultValue = parameter.defaultValue;
       final name = parameter.parameterName;
-      if (initializer != null && !namedArguments.containsKey(name)) {
-        namedArguments[name] = evaluateExpression(initializer);
+      if (defaultValue != null && !namedArguments.containsKey(name)) {
+        namedArguments[name] = evaluateExpression(defaultValue);
       }
     }
     for (
@@ -154,9 +154,9 @@ class InstanceRecorder {
       i++
     ) {
       final parameter = function.positionalParameters[i];
-      final initializer = parameter.initializer;
-      if (initializer != null) {
-        positionalArguments.add(evaluateExpression(initializer));
+      final defaultValue = parameter.defaultValue;
+      if (defaultValue != null) {
+        positionalArguments.add(evaluateExpression(defaultValue));
       }
     }
 

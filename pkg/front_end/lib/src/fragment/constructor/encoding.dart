@@ -46,7 +46,7 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   InternalVariable? get thisVariable;
 
@@ -355,7 +355,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -404,7 +404,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -689,7 +689,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -748,7 +748,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -1256,7 +1256,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
@@ -1266,7 +1266,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
     ];

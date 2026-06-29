@@ -358,7 +358,7 @@ Statement createSetterBody(
   CoreTypes coreTypes,
   int fileOffset,
   String name,
-  Variable parameter,
+  PositionalParameter parameter,
   DartType type, {
   required bool shouldReturnValue,
   required Expression createVariableWrite(Expression value),

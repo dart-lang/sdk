@@ -2062,7 +2062,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           namedParameter.name: namedParameter,
       };
       DartType reifyParameter(
-        Variable parameter,
+        FunctionParameter parameter,
         DartType fComputedParameter,
       ) => isCovariantParameter(parameter)
           ? _coreTypes.objectNullableRawType
@@ -4296,7 +4296,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    void initParameter(Variable p, js_ast.Identifier jsParam, bool isOptional) {
+    void initParameter(
+      FunctionParameter p,
+      js_ast.Identifier jsParam,
+      bool isOptional,
+    ) {
       // When the parameter is covariant, insert the null check before the
       // covariant cast to avoid a TypeError when testing equality with null.
       if (name == '==') {
@@ -4319,7 +4323,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               isOptional &&
               isConstructorTearOffLowering(f.parent as Procedure) &&
               !p.type.isPotentiallyNullable &&
-              !p.initializer!
+              !p.defaultValue!
                   .getStaticType(_staticTypeContext)
                   .isPotentiallyNonNullable)) {
         var castExpr = _emitCast(jsParam, p.type);

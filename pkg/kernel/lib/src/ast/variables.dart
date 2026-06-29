@@ -979,9 +979,11 @@ sealed class FunctionParameter extends Variable {
   @override
   void set variableDeclaration(VariableDeclaration? value) {}
 
+  @Deprecated('Use FunctionParameter.defaultValue instead.')
   @override
   Expression? get initializer => defaultValue;
 
+  @Deprecated('Use FunctionParameter.defaultValue instead.')
   @override
   void set initializer(Expression? value) {
     defaultValue = value;
@@ -1078,9 +1080,11 @@ sealed class FunctionParameter extends Variable {
         : (flags & ~Variable.FlagHasDeclaredInitializer);
   }
 
+  @Deprecated('Use FunctionParameter.hasDeclaredDefaultValue instead.')
   @override
   bool get hasDeclaredInitializer => hasDeclaredDefaultValue;
 
+  @Deprecated('Use FunctionParameter.hasDeclaredDefaultValue instead.')
   @override
   void set hasDeclaredInitializer(bool value) {
     hasDeclaredDefaultValue = value;
@@ -1096,10 +1100,21 @@ sealed class FunctionParameter extends Variable {
         : (flags & ~Variable.FlagSynthesized);
   }
 
+  bool get hasErroneousDefaultValue =>
+      flags & Variable.FlagErroneouslyInitialized != 0;
+
+  void set hasErroneousDefaultValue(bool value) {
+    flags = value
+        ? (flags | Variable.FlagErroneouslyInitialized)
+        : (flags & ~Variable.FlagErroneouslyInitialized);
+  }
+
+  @Deprecated('Use FunctionParameter.hasErroneousDefaultValue instead.')
   @override
   bool get isErroneouslyInitialized =>
       flags & Variable.FlagErroneouslyInitialized != 0;
 
+  @Deprecated('Use FunctionParameter.hasErroneousDefaultValue instead.')
   @override
   void set isErroneouslyInitialized(bool value) {
     flags = value

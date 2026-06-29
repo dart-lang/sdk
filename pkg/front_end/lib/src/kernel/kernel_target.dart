@@ -1082,7 +1082,7 @@ class KernelTarget {
         type: const UnknownType(),
         isFinal: formal.isFinal,
         isRequired: formal.isRequired,
-        hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
         fileOffset: TreeNode.noOffset,
       );
       if (!hasTypeDependency && formal.type is! UnknownType) {
@@ -1102,7 +1102,7 @@ class KernelTarget {
         type: const UnknownType(),
         isFinal: formal.isFinal,
         isRequired: formal.isRequired,
-        hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
         fileOffset: TreeNode.noOffset,
       );
       if (!hasTypeDependency && formal.type is! UnknownType) {

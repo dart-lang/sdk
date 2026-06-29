@@ -350,7 +350,8 @@ class ForwardingNode {
         List<Expression> positionalArguments = new List.generate(
           function.positionalParameters.length,
           (int index) {
-            Variable parameter = function.positionalParameters[index];
+            PositionalParameter parameter =
+                function.positionalParameters[index];
             int fileOffset = parameter.fileOffset;
             Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.positionalParameters[index];
@@ -565,25 +566,28 @@ class ForwardingNode {
     FunctionType signatureType = procedure.function.computeFunctionType(
       procedure.enclosingLibrary.nonNullable,
     );
-    List<Variable> positionalParameters =
+    List<PositionalParameter> positionalParameters =
         procedure.function.positionalParameters;
-    List<Variable> namedParameters = procedure.function.namedParameters;
+    List<NamedParameter> namedParameters = procedure.function.namedParameters;
     int requiredParameterCount = procedure.function.requiredParameterCount;
     bool hasUpdate = false;
-    bool updateNullability(Variable parameter, {required bool isRequired}) {
+    bool updateNullability(
+      FunctionParameter parameter, {
+      required bool isRequired,
+    }) {
       // Parameters in nnbd libraries that backends might not be able to pass
       // a non-null value for must be nullable. This allows backends to do the
       // appropriate parameter checks in the forwarder stub for null placeholder
       // arguments. Covariance indicates the type must stay the same.
       return !(isRequired ||
-              parameter.hasDeclaredInitializer ||
+              parameter.hasDeclaredDefaultValue ||
               parameter.isCovariantByDeclaration ||
               parameter.isCovariantByClass) &&
           parameter.type.nullability != Nullability.nullable;
     }
 
     for (int i = 0; i < positionalParameters.length; i++) {
-      Variable parameter = positionalParameters[i];
+      PositionalParameter parameter = positionalParameters[i];
       bool isRequired = i < requiredParameterCount;
       if (updateNullability(parameter, isRequired: isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
@@ -593,7 +597,7 @@ class ForwardingNode {
       }
     }
 
-    for (Variable parameter in namedParameters) {
+    for (NamedParameter parameter in namedParameters) {
       if (updateNullability(parameter, isRequired: parameter.isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
           Nullability.nullable,

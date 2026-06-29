@@ -1144,7 +1144,7 @@ class TreeShaker {
     }
   }
 
-  void addUsedParameters(List<Variable> params) {
+  void addUsedParameters(List<FunctionParameter> params) {
     for (var param in params) {
       // Do not visit initializer (default value) of a parameter as it is
       // going to be removed during pass 2.
@@ -2492,10 +2492,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   void _removeDefaultValuesOfParameters(FunctionNode function) {
     for (var p in function.positionalParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
     for (var p in function.namedParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
   }
 

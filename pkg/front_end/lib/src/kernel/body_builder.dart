@@ -126,7 +126,7 @@ abstract class BodyBuilder {
     required Token? beginInitializers,
   });
 
-  BuildParameterInitializerResult buildParameterInitializer({
+  BuildParameterDefaultValueResult buildParameterDefaultValue({
     required Token initializerToken,
   });
 
@@ -5509,7 +5509,7 @@ class BodyBuilderImpl extends StackListenerImpl
           fileOffset: nameOffset,
           nameOffset: nameOffset,
           fileUri: uri,
-          hasImmediatelyDeclaredInitializer: initializerStart != null,
+          hasImmediatelyDeclaredDefaultValue: initializerStart != null,
           wildcardIndex: wildcardIndex,
           publicName: publicName,
         );
@@ -5541,7 +5541,7 @@ class BodyBuilderImpl extends StackListenerImpl
           );
           functionParameter.isErroneouslyInitialized = true;
         } else {
-          if (!parameter.initializerWasInferred) {
+          if (!parameter.defaultValueWasInferred) {
             functionParameter.astVariable.initializer = initializer
               ..parent = functionParameter.astVariable;
           }
@@ -11392,11 +11392,11 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  BuildParameterInitializerResult buildParameterInitializer({
+  BuildParameterDefaultValueResult buildParameterDefaultValue({
     required Token initializerToken,
   }) {
     Expression initializer = _parseInitializer(initializerToken);
-    return new BuildParameterInitializerResult(
+    return new BuildParameterDefaultValueResult(
       initializer,
       _takePendingAnnotations(),
     );

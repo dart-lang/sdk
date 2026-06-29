@@ -1322,6 +1322,20 @@ class InternalLateVariable extends InternalVariable {
 sealed class InternalFunctionParameter extends InternalVariable {
   @override
   FunctionParameter get astVariable;
+
+  bool get hasErroneousDefaultValue => astVariable.hasErroneousDefaultValue;
+
+  void set hasErroneousDefaultValue(bool value) {
+    astVariable.hasErroneousDefaultValue = value;
+  }
+
+  @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
+  @override
+  bool get isErroneouslyInitialized;
+
+  @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
+  @override
+  void set isErroneouslyInitialized(bool value);
 }
 
 class InternalPositionalParameter extends InternalFunctionParameter {
@@ -1678,6 +1692,7 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
     astVariable.isConst = value;
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
 
   void set isErroneouslyInitialized(bool value) {

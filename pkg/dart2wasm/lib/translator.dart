@@ -2932,7 +2932,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     Expression? initializerForNamedParamInMember(String paramName) {
       for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
         if (functionNode.namedParameters[i].parameterName == paramName) {
-          return functionNode.namedParameters[i].initializer;
+          return functionNode.namedParameters[i].defaultValue;
         }
       }
       return null;
