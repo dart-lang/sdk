@@ -49,7 +49,6 @@ bool _originCheckDisabled = false;
 
 // Location of file to output VM service connection info.
 @entrypoint
-// ignore: unused_element
 String? _serviceInfoFilename;
 
 @entrypoint
@@ -64,7 +63,10 @@ bool _isFuchsia = false;
 Stream<ProcessSignal> Function(ProcessSignal signal)? _signalWatch;
 
 @entrypoint
-RawReceivePort boot() => DartRuntimeServiceVMBackend.isolateControlPort;
+RawReceivePort boot() {
+  // Return the port we expect isolate control messages on.
+  return DartRuntimeServiceVMBackend.isolateControlPort;
+}
 
 final _isolateRegistrationStreamController = StreamController<VmRunningIsolate>(
   sync: true,
@@ -148,6 +150,7 @@ Future<void> main([List<String> args = const []]) async {
         port: _ddsPort,
       ),
       residentCompilerInfoFile: _residentCompilerInfoFile,
+      serviceInfoFilename: _serviceInfoFilename,
     ),
   );
   NativeBindings().notifyFinishedInitializing();
