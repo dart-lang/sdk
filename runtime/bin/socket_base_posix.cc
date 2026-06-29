@@ -163,14 +163,17 @@ intptr_t SocketBase::ReceiveMessage(intptr_t fd,
     new (control_message) SocketControlMessage(
         cmsg->cmsg_level, cmsg->cmsg_type, copied_data, data_length);
 
-    int fd;
-    memmove(&fd, CMSG_DATA(cmsg), sizeof(int));
-
 #ifndef MSG_CMSG_CLOEXEC
-    // MSG_CMSG_CLOEXEC is not supported on macOS.
-    if (!FDUtils::SetCloseOnExec(fd)) {
-      FDUtils::SaveErrorAndClose(fd);
-      return -1;
+    // MSG_CMSG_CLOEXEC is not supported on macOS, so set close-on-exec on each
+    // received descriptor. A single SCM_RIGHTS message can carry more than one.
+    const intptr_t num_fds = data_length / sizeof(int);
+    const int* fds = reinterpret_cast<int*>(copied_data);
+    for (intptr_t i = 0; i < num_fds; i++) {
+      const int fd = fds[i];
+      if (!FDUtils::SetCloseOnExec(fd)) {
+        FDUtils::SaveErrorAndClose(fd);
+        return -1;
+      }
     }
 #endif
   }
