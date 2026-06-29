@@ -13,6 +13,7 @@ load(
     "arm64",
     "flutter_pool",
     "fuchsia_deps",
+    "kvm",
     "linux",
     "mac",
     "no_reclient",
@@ -292,13 +293,13 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-android-debug-x64c",
     category = "vm|aot|android|d",
-    dimensions = [linux, {"host_class": "virtualization"}],
+    dimensions = [linux, kvm],
     properties = [android_deps],
 )
 _vm_builder(
     "vm-aot-android-release-x64c",
     category = "vm|aot|android|r",
-    dimensions = [linux, {"host_class": "virtualization"}],
+    dimensions = [linux, kvm],
     properties = [android_deps],
 )
 
@@ -366,7 +367,7 @@ _vm_builder(
     "vm-fuchsia-release-x64",
     category = "vm|ffi|f",
     channels = ["try"],
-    dimensions = [linux, {"host_class": "virtualization"}],
+    dimensions = [linux, kvm],
     properties = [fuchsia_deps],
     location_filters = paths.to_location_filters(paths.fuchsia),
 )
@@ -558,15 +559,27 @@ _nightly_misc_builder(
     dimensions = [windows],
 )
 _nightly_misc_builder(
+    "vm-hwasan-android-release-x64c",
+    category = "sanitizer|android|a",
+    dimensions = [linux, kvm],
+    properties = [android_deps],
+)
+_nightly_misc_builder(
+    "vm-ubsan-android-release-x64c",
+    category = "sanitizer|android|u",
+    dimensions = [linux, kvm],
+    properties = [android_deps],
+)
+_nightly_misc_builder(
     "vm-asan-fuchsia-release-x64",
     category = "sanitizer|fuchsia|a",
-    dimensions = [linux, {"host_class": "virtualization"}],
+    dimensions = [linux, kvm],
     properties = [fuchsia_deps],
 )
 _nightly_misc_builder(
     "vm-ubsan-fuchsia-release-x64",
     category = "sanitizer|fuchsia|u",
-    dimensions = [linux, {"host_class": "virtualization"}],
+    dimensions = [linux, kvm],
     properties = [fuchsia_deps],
 )
 

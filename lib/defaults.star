@@ -42,6 +42,7 @@ _RESOLUTE = {"os": "Ubuntu-26"}
 _WINDOWS = {"os": "Windows"}
 _SAFARI_17_6 = {"safari": "Safari-17.6"}
 _SAFARI_26_5 = {"safari": "Safari-26.5"}
+_KVM = {"host_class": "virtualization"}
 
 _FLUTTER_POOL = {"pool": "luci.flutter.prod"}
 _EXPERIMENTAL = {"host_class": "experimental"}
@@ -65,6 +66,7 @@ resolute = _RESOLUTE
 windows = _WINDOWS
 safari_17_6 = _SAFARI_17_6
 safari_26_5 = _SAFARI_26_5
+kvm = _KVM
 
 # Properties
 
