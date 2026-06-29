@@ -275,6 +275,7 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                intptr_t host_len,
                                OSError** os_error) {
   errno = ENOSYS;
+  *os_error = new OSError();
   return false;
 }
 
