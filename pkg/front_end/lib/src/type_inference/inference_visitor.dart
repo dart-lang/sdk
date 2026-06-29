@@ -575,22 +575,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DynamicGet node,
     DartType typeContext,
   ) {
-    // The node has already been inferred, for instance as part of a for-in
-    // loop, so just compute the result type.
-    DartType resultType;
-    switch (node.kind) {
-      case DynamicAccessKind.Dynamic:
-        resultType = const DynamicType();
-        break;
-      case DynamicAccessKind.Never:
-        resultType = NeverType.fromNullability(Nullability.nonNullable);
-        break;
-      case DynamicAccessKind.Invalid:
-      case DynamicAccessKind.Unresolved:
-        resultType = const InvalidType();
-        break;
-    }
-    return new ExpressionInferenceResult(resultType, node);
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -599,11 +584,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InstanceGet node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -612,11 +593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InstanceTearOff node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -625,11 +602,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DynamicInvocation node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -638,11 +611,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DynamicSet node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -651,11 +620,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     EqualsCall node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -664,11 +629,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     EqualsNull node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -677,23 +638,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionInvocation node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceInvocation(
     InstanceInvocation node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -702,11 +656,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InstanceGetterInvocation node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -715,11 +665,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InstanceSet node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -728,11 +674,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     LocalFunctionInvocation node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -753,11 +695,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionTearOff node,
     DartType typeContext,
   ) {
-    // This node is created as part of a lowering and doesn't need inference.
-    return new ExpressionInferenceResult(
-      node.getStaticType(staticTypeContext),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -12462,43 +12400,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     RecordIndexGet node,
     DartType typeContext,
   ) {
-    ExpressionInferenceResult result = inferExpression(
-      node.receiver,
-      const UnknownType(),
-      continueNullShorting: true,
-    );
-
-    Expression receiver = result.expression;
-    DartType receiverType = result.inferredType;
-
-    node.receiver = receiver..parent = node;
-
-    if (receiverType is RecordType) {
-      if (node.index < receiverType.positional.length) {
-        DartType resultType = receiverType.positional[node.index];
-        return new ExpressionInferenceResult(resultType, node);
-      } else {
-        return wrapExpressionInferenceResultInProblem(
-          new ExpressionInferenceResult(const InvalidType(), node),
-          diag.indexOutOfBoundInRecordIndexGet.withArguments(
-            index: node.index,
-            positionalFieldCount: receiverType.positional.length,
-            recordType: receiverType,
-          ),
-          node.fileOffset,
-          noLength,
-        );
-      }
-    } else {
-      return wrapExpressionInferenceResultInProblem(
-        new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArguments(
-          operation: "RecordIndexGet",
-        ),
-        node.fileOffset,
-        noLength,
-      );
-    }
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -12507,48 +12409,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     RecordNameGet node,
     DartType typeContext,
   ) {
-    ExpressionInferenceResult result = inferExpression(
-      node.receiver,
-      const UnknownType(),
-      continueNullShorting: true,
-    );
-
-    Expression receiver = result.expression;
-    DartType receiverType = result.inferredType;
-
-    node.receiver = receiver..parent = node;
-
-    if (receiverType is RecordType) {
-      DartType? resultType;
-      for (NamedType namedType in receiverType.named) {
-        if (namedType.name == node.name) {
-          resultType = namedType.type;
-          break;
-        }
-      }
-      if (resultType != null) {
-        return new ExpressionInferenceResult(resultType, node);
-      } else {
-        return wrapExpressionInferenceResultInProblem(
-          new ExpressionInferenceResult(const InvalidType(), node),
-          diag.nameNotFoundInRecordNameGet.withArguments(
-            fieldName: node.name,
-            recordType: receiverType,
-          ),
-          node.fileOffset,
-          noLength,
-        );
-      }
-    } else {
-      return wrapExpressionInferenceResultInProblem(
-        new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArguments(
-          operation: "RecordIndexGet",
-        ),
-        node.fileOffset,
-        noLength,
-      );
-    }
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -13187,17 +13048,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AbstractSuperPropertyGet node,
     DartType typeContext,
   ) {
-    if (isClosureContextLoweringEnabled) {
-      node.receiver = new VariableGet(internalThisVariable)
-        ..fileOffset = node.fileOffset;
-    }
-    return inferSuperPropertyGet(
-      name: node.name,
-      typeContext: typeContext,
-      member: node.interfaceTarget,
-      node: node,
-      nameOffset: node.fileOffset,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -13224,27 +13075,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AbstractSuperPropertySet node,
     DartType typeContext,
   ) {
-    DartType writeContext = computeSuperPropertySetWriteContext(
-      node.interfaceTarget,
-    );
-    ExpressionInferenceResult rhsResult = inferExpression(
-      node.value,
-      writeContext,
-      isVoidAllowed: true,
-    );
-    if (isClosureContextLoweringEnabled) {
-      node.receiver = new VariableGet(internalThisVariable)
-        ..fileOffset = node.fileOffset;
-    }
-    return inferSuperPropertySet(
-      name: node.name,
-      member: node.interfaceTarget,
-      rhsResult: rhsResult,
-      writeContext: writeContext,
-      assignOffset: node.fileOffset,
-      nameOffset: node.fileOffset,
-      node: node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   @override
@@ -14071,10 +13902,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     // TODO(cstefantsova): Figure out the suitable nullability for that.
-    return new ExpressionInferenceResult(
-      coreTypes.objectRawType(Nullability.nullable),
-      node,
-    );
+    return _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitEquals(
