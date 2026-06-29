@@ -4293,17 +4293,16 @@ DEFINE_EMIT(Int32x4Select,
              VRegister mask,
              VRegister trueValue,
              VRegister falseValue,
-             Temp<VRegister> temp)) {
-  // Copy mask.
-  __ vmov(temp, mask);
-  // Invert it.
-  __ vnot(temp, temp);
-  // mask = mask & trueValue.
-  __ vand(mask, mask, trueValue);
-  // temp = temp & falseValue.
-  __ vand(temp, temp, falseValue);
-  // out = mask | temp.
-  __ vorr(out, mask, temp);
+             Temp<VRegister> temp1,
+             Temp<VRegister> temp2)) {
+  // temp2 = ~mask.
+  __ vnot(temp2, mask);
+  // temp1 = mask & trueValue.
+  __ vand(temp1, mask, trueValue);
+  // temp2 = (~mask) & falseValue.
+  __ vand(temp2, temp2, falseValue);
+  // out = temp1 | temp2.
+  __ vorr(out, temp1, temp2);
 }
 
 DEFINE_EMIT(Int32x4WithFlag,
