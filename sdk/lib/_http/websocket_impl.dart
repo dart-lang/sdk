@@ -314,12 +314,16 @@ class _WebSocketProtocolTransformer
 
           _opcode = (byte & OPCODE);
 
-          if (_opcode != _WebSocketOpcode.CONTINUATION) {
-            if ((byte & RSV1) != 0) {
-              _compressed = true;
-            } else {
-              _compressed = false;
-            }
+          bool isMessageCompressed = (byte & RSV1) != 0;
+          if (isMessageCompressed &&
+              (_deflate == null ||
+                  _opcode == _WebSocketOpcode.CONTINUATION ||
+                  _isControlFrame())) {
+            throw WebSocketException("Protocol error");
+          }
+
+          if (_opcode != _WebSocketOpcode.CONTINUATION && !_isControlFrame()) {
+            _compressed = isMessageCompressed;
           }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
