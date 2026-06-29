@@ -45,12 +45,6 @@ class CommandResolveHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    // If the experiment is not enabled, never do any work, just pass the
-    // command back as-is.
-    if (!server.lspClientConfiguration.global.experimentalInteractiveForms) {
-      return success(command);
-    }
-
     if (RefactoringProcessor.generators[command.command] case var generator?) {
       return await _handleRefactorCommand(command, generator, message, token);
     }

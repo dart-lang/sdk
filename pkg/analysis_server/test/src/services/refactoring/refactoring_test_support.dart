@@ -132,14 +132,8 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
   @override
-  Future<void> initializeServer({
-    bool experimentalOptInFlag = true,
-    bool experimentalInteractiveForms = false,
-  }) async {
-    var config = {
-      if (experimentalOptInFlag) 'experimentalRefactors': true,
-      if (experimentalInteractiveForms) 'experimentalInteractiveForms': true,
-    };
+  Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
+    var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
     await provideConfig(super.initializeServer, config);
   }

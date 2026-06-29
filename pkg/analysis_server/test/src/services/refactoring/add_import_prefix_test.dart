@@ -234,7 +234,7 @@ import 'package:test/main.dart' as custom_prefix;
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var completedCommand = await completeInteractiveForm(action.command!, {
       'name': 'custom_prefix',
@@ -252,7 +252,7 @@ import 'package:test/main.dart' as custom_prefix;
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var command = action.asCommand;
     var interactiveCommand = await resolveCommand(

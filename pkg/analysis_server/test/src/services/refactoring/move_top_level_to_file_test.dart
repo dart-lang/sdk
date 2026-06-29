@@ -37,19 +37,6 @@ void main() {
 class InteractiveFormsMoveTopLevelToFileTest extends MoveTopLevelToFileTest
     with InteractiveFormsTestMixin {
   @override
-  Future<void> initializeServer({
-    bool experimentalOptInFlag = true,
-    // We default this to true for these tests, though it's false in the
-    // the super implementation.
-    bool experimentalInteractiveForms = true,
-  }) {
-    return super.initializeServer(
-      experimentalOptInFlag: experimentalOptInFlag,
-      experimentalInteractiveForms: experimentalInteractiveForms,
-    );
-  }
-
-  @override
   void setUp() {
     super.setUp();
 
