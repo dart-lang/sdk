@@ -233,8 +233,10 @@ ${ownType} is not a subtype of ${superType}
     }
 
     for (int i = 0; i < superFunction.positionalParameters.length; ++i) {
-      final Variable ownParameter = ownFunction.positionalParameters[i];
-      final Variable superParameter = superFunction.positionalParameters[i];
+      final PositionalParameter ownParameter =
+          ownFunction.positionalParameters[i];
+      final PositionalParameter superParameter =
+          superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
         ownSubstitution.substituteType(ownParameter.type),
         superSubstitution.substituteType(superParameter.type),

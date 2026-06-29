@@ -415,7 +415,8 @@ abstract class CombinedMemberSignatureBase {
           );
           break;
         case ProcedureKind.Setter:
-          Variable parameter = member.function.positionalParameters.first;
+          PositionalParameter parameter =
+              member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
             declarationNode,
             indexedContainer,
@@ -623,8 +624,8 @@ abstract class CombinedMemberSignatureBase {
             cosmeticName: parameter.cosmeticName,
             type: parameterType,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-            defaultValue: cloner.cloneOptional(parameter.initializer),
-            hasDeclaredDefaultValue: parameter.hasDeclaredInitializer,
+            defaultValue: cloner.cloneOptional(parameter.defaultValue),
+            hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
             isCovariantByClass: parameter.isCovariantByClass,
             fileOffset: copyLocation
                 ?
@@ -644,8 +645,8 @@ abstract class CombinedMemberSignatureBase {
         type: freshTypeParameters.substitute(namedType.type),
         isRequired: namedType.isRequired,
         isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-        defaultValue: cloner.cloneOptional(parameter.initializer),
-        hasDeclaredDefaultValue: parameter.hasDeclaredInitializer,
+        defaultValue: cloner.cloneOptional(parameter.defaultValue),
+        hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
         isCovariantByClass: parameter.isCovariantByClass,
         fileOffset: copyLocation
             ?

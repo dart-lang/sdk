@@ -899,7 +899,7 @@ class JsInteropChecks extends RecursiveVisitor {
       ...node.positionalParameters,
       ...node.namedParameters,
     ]) {
-      if (param.hasDeclaredInitializer) {
+      if (param.hasDeclaredDefaultValue) {
         _reporter.report(
           diag.jsInteropStaticInteropParameterInitializersAreIgnored,
           param.fileOffset,

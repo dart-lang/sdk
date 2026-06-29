@@ -338,7 +338,7 @@ class FactoryDeclarationImpl
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -417,7 +417,7 @@ abstract class FactoryFragmentDeclaration {
   ///
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,

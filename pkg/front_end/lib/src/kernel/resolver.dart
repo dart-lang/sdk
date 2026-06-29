@@ -618,15 +618,15 @@ class Resolver {
     return expressions;
   }
 
-  Expression buildParameterInitializer({
+  Expression buildParameterDefaultValue({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required Uri fileUri,
-    required Token initializerToken,
+    required Token defaultValueToken,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -646,16 +646,16 @@ class Resolver {
       formalParameterScope: null,
       internalThisVariable: null,
     );
-    BuildParameterInitializerResult result = bodyBuilder
-        .buildParameterInitializer(initializerToken: initializerToken);
-    Expression initializer = context.typeInferrer.inferParameterInitializer(
+    BuildParameterDefaultValueResult result = bodyBuilder
+        .buildParameterDefaultValue(initializerToken: defaultValueToken);
+    Expression defaultValue = context.typeInferrer.inferParameterDefaultValue(
       fileUri: fileUri,
-      initializer: result.initializer,
+      defaultValue: result.defaultValue,
       declaredType: declaredType,
-      hasDeclaredInitializer: hasDeclaredInitializer,
+      hasDeclaredDefaultValue: hasDeclaredDefaultValue,
     );
     context.performBacklog(result.annotations);
-    return initializer;
+    return defaultValue;
   }
 
   void buildPrimaryConstructor({
@@ -924,7 +924,7 @@ class Resolver {
                 nameOffset: null,
                 fileOffset: formal.fileOffset,
                 fileUri: fileUri,
-                hasImmediatelyDeclaredInitializer: false,
+                hasImmediatelyDeclaredDefaultValue: false,
                 wildcardIndex: wildcardIndex,
                 variable: formal,
               );
@@ -1391,50 +1391,49 @@ class Resolver {
       int declaredParameterIndex = 0;
       for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
         if (parameter.isExtensionThis) continue;
-        Expression? initializer = parameter.variable.astVariable.initializer;
-        bool inferInitializer;
+        Expression? defaultValue = parameter.variable.astVariable.defaultValue;
+        bool inferDefaultValue;
         if (parameter.isSuperInitializingFormal) {
           // Super-parameters can inherit the default value from the super
           // constructor so we only handle explicit default values here.
-          inferInitializer = parameter.hasImmediatelyDeclaredInitializer;
-        } else if (initializer != null) {
-          inferInitializer = true;
+          inferDefaultValue = parameter.hasImmediatelyDeclaredDefaultValue;
+        } else if (defaultValue != null) {
+          inferDefaultValue = true;
         } else {
-          inferInitializer = parameter.isOptional;
+          inferDefaultValue = parameter.isOptional;
         }
-        if (inferInitializer) {
-          if (!parameter.initializerWasInferred) {
+        if (inferDefaultValue) {
+          if (!parameter.defaultValueWasInferred) {
             // Coverage-ignore(suite): Not run.
-            initializer ??= intern.createNullLiteral(
+            defaultValue ??= intern.createNullLiteral(
               // TODO(ahe): Should store: originParameter.fileOffset
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
             InternalVariable originParameter = parameter.variable;
-            initializer = context.typeInferrer.inferParameterInitializer(
+            defaultValue = context.typeInferrer.inferParameterDefaultValue(
               fileUri: fileUri,
-              initializer: initializer,
+              defaultValue: defaultValue,
               declaredType: originParameter.type,
-              hasDeclaredInitializer: parameter.hasDeclaredInitializer,
+              hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
             );
-            originParameter.astVariable.initializer = initializer
+            originParameter.astVariable.initializer = defaultValue
               ..parent = originParameter.astVariable;
-            if (initializer is InvalidExpression) {
+            if (defaultValue is InvalidExpression) {
               originParameter.isErroneouslyInitialized = true;
             }
-            parameter.initializerWasInferred = true;
+            parameter.defaultValueWasInferred = true;
           }
-          Variable? tearOffParameter = bodyBuilderContext.getTearOffParameter(
-            declaredParameterIndex,
-          );
+          FunctionParameter? tearOffParameter = bodyBuilderContext
+              .getTearOffParameter(declaredParameterIndex);
           if (tearOffParameter != null) {
-            Expression tearOffInitializer = _simpleCloner.cloneInContext(
-              initializer!,
+            Expression tearOffDefaultValue = _simpleCloner.cloneInContext(
+              defaultValue!,
             );
-            tearOffParameter.initializer = tearOffInitializer
+            tearOffParameter.defaultValue = tearOffDefaultValue
               ..parent = tearOffParameter;
-            tearOffParameter.isErroneouslyInitialized =
-                parameter.variable.isErroneouslyInitialized;
+            tearOffParameter.hasErroneousDefaultValue =
+                parameter.variable.hasErroneousDefaultValue;
           }
         }
         declaredParameterIndex++;

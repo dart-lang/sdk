@@ -317,7 +317,7 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       fileOffset: -1,
       nameOffset: null,
       fileUri: dummyUri,
-      hasImmediatelyDeclaredInitializer: false,
+      hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(

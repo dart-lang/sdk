@@ -462,8 +462,8 @@ class BuildInitializersResult(
   final PendingAnnotations? annotations,
 );
 
-class BuildParameterInitializerResult(
-  final Expression initializer,
+class BuildParameterDefaultValueResult(
+  final Expression defaultValue,
   final PendingAnnotations? annotations,
 );
 

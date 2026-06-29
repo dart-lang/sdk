@@ -404,24 +404,24 @@ class ConstantsTransformer extends RemovingTransformer {
     transformTypeParameterList(node.typeParameters, node);
     final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
-      final Variable variable = node.positionalParameters[i];
-      transformAnnotations(variable.annotations, variable);
-      Expression? initializer = variable.initializer;
-      if (initializer != null) {
-        variable.initializer = evaluateAndTransformWithContext(
-          variable,
-          initializer,
-        )..parent = variable;
+      final PositionalParameter parameter = node.positionalParameters[i];
+      transformAnnotations(parameter.annotations, parameter);
+      Expression? defaultValue = parameter.defaultValue;
+      if (defaultValue != null) {
+        parameter.defaultValue = evaluateAndTransformWithContext(
+          parameter,
+          defaultValue,
+        )..parent = parameter;
       }
     }
-    for (final Variable variable in node.namedParameters) {
-      transformAnnotations(variable.annotations, variable);
-      Expression? initializer = variable.initializer;
-      if (initializer != null) {
-        variable.initializer = evaluateAndTransformWithContext(
-          variable,
-          initializer,
-        )..parent = variable;
+    for (final NamedParameter parameter in node.namedParameters) {
+      transformAnnotations(parameter.annotations, parameter);
+      Expression? defaultValue = parameter.defaultValue;
+      if (defaultValue != null) {
+        parameter.defaultValue = evaluateAndTransformWithContext(
+          parameter,
+          defaultValue,
+        )..parent = parameter;
       }
     }
     if (node.body != null) {
@@ -3729,19 +3729,19 @@ class ConstantEvaluator
         env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
       }
       for (int i = 0; i < function.positionalParameters.length; i++) {
-        final Variable parameter = function.positionalParameters[i];
+        final PositionalParameter parameter = function.positionalParameters[i];
         final Constant value = (i < positionalArguments.length)
             ? positionalArguments[i]
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
-            : _evaluateNullableSubexpression(parameter.initializer);
+            : _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      for (final Variable parameter in function.namedParameters) {
+      for (final NamedParameter parameter in function.namedParameters) {
         final Constant value =
             namedArguments[parameter.cosmeticName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
-            _evaluateNullableSubexpression(parameter.initializer);
+            _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
@@ -4932,7 +4932,7 @@ class ConstantEvaluator
     } else {
       if (variable.parent is Let ||
           variable.parent is LocalInitializer ||
-          _isFormalParameter(variable)) {
+          variable is FunctionParameter) {
         return env.lookupVariable(node.variable) ??
             createEvaluationErrorConstant(
               node,
@@ -5359,19 +5359,19 @@ class ConstantEvaluator
         env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
       }
       for (int i = 0; i < function.positionalParameters.length; i++) {
-        final Variable parameter = function.positionalParameters[i];
+        final PositionalParameter parameter = function.positionalParameters[i];
         final Constant value = (i < positionalArguments.length)
             ? positionalArguments[i]
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
-            : _evaluateNullableSubexpression(parameter.initializer);
+            : _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      for (final Variable parameter in function.namedParameters) {
+      for (final NamedParameter parameter in function.namedParameters) {
         final Constant value =
             namedArguments[parameter.cosmeticName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
-            _evaluateNullableSubexpression(parameter.initializer);
+            _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
@@ -6832,17 +6832,6 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   bool visitTypeParameterType(TypeParameterType node) {
     return true;
   }
-}
-
-bool _isFormalParameter(Variable variable) {
-  final TreeNode? parent = variable.parent;
-  if (variable is FunctionParameter) {
-    return true;
-  } else if (parent is FunctionNode) {
-    return parent.positionalParameters.contains(variable) ||
-        parent.namedParameters.contains(variable);
-  }
-  return false;
 }
 
 class _InlinedBlock extends Block {

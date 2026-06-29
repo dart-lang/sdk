@@ -41,7 +41,7 @@ import "package:kernel/ast.dart"
         Procedure,
         TreeNode,
         TypeParameter,
-        Variable;
+        PositionalParameter;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
@@ -50,10 +50,10 @@ import "package:testing/testing.dart"
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
+import 'testing/environment_keys.dart';
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show runDiff, openWrite;
 import 'utils/suite_utils.dart';
-import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -218,7 +218,7 @@ class OutputParametersMatches
             fail(tests, "Compiled expression contains named parameters."),
           );
         }
-        List<Variable> positionals =
+        List<PositionalParameter> positionals =
             compiledProcedure.function.positionalParameters;
         if (positionals.length != test.definitions.length) {
           return Future.value(

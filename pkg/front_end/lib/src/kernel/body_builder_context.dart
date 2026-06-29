@@ -292,7 +292,7 @@ abstract class BodyBuilderContext {
   /// Returns the [Variable] for the [index]th formal parameter
   /// declared in the constructor, factory, or method tear-off currently being
   /// built.
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     throw new UnsupportedError('${runtimeType}.getTearOffParameter');
   }
 

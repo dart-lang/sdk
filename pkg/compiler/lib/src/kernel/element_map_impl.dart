@@ -581,11 +581,11 @@ class KernelToElementMap implements IrToElementMap {
       );
     }
 
-    for (ir.Variable variable in node.positionalParameters) {
+    for (ir.PositionalParameter parameter in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getParameterType(variable));
+        optionalParameterTypes.add(getParameterType(parameter));
       } else {
-        parameterTypes.add(getParameterType(variable));
+        parameterTypes.add(getParameterType(parameter));
       }
     }
     List<String> namedParameters = <String>[];
@@ -594,11 +594,11 @@ class KernelToElementMap implements IrToElementMap {
     List<ir.NamedParameter> sortedNamedParameters =
         node.namedParameters.toList()
           ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
-    for (ir.NamedParameter variable in sortedNamedParameters) {
-      namedParameters.add(variable.parameterName);
-      namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired) {
-        requiredNamedParameters.add(variable.parameterName);
+    for (ir.NamedParameter parameter in sortedNamedParameters) {
+      namedParameters.add(parameter.parameterName);
+      namedParameterTypes.add(getParameterType(parameter));
+      if (parameter.isRequired) {
+        requiredNamedParameters.add(parameter.parameterName);
       }
     }
     List<FunctionTypeVariable> typeVariables;

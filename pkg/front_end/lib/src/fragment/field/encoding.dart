@@ -665,7 +665,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   );
 
   @override
@@ -929,7 +929,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
@@ -1030,7 +1030,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
@@ -1092,7 +1092,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) => throw new UnsupportedError(
     '$runtimeType._createSetterBody is not supported.',
   );

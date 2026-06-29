@@ -1325,73 +1325,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  void checkVarianceInFunction(
-    Procedure procedure,
-    TypeEnvironment typeEnvironment,
-    List<TypeParameter> typeParameters,
-  ) {
-    List<TypeParameter> functionTypeParameters =
-        procedure.function.typeParameters;
-    List<Variable> positionalParameters =
-        procedure.function.positionalParameters;
-    List<Variable> namedParameters = procedure.function.namedParameters;
-    DartType returnType = procedure.function.returnType;
-
-    for (TypeParameter functionParameter in functionTypeParameters) {
-      for (TypeParameter typeParameter in typeParameters) {
-        Variance typeVariance = Variance.invariant.combine(
-          computeVariance(typeParameter, functionParameter.bound),
-        );
-        reportVariancePositionIfInvalid(
-          typeVariance,
-          typeParameter,
-          fileUri,
-          functionParameter.fileOffset,
-        );
-      }
-    }
-    for (Variable formal in positionalParameters) {
-      if (!formal.isCovariantByDeclaration) {
-        for (TypeParameter typeParameter in typeParameters) {
-          Variance formalVariance = Variance.contravariant.combine(
-            computeVariance(typeParameter, formal.type),
-          );
-          reportVariancePositionIfInvalid(
-            formalVariance,
-            typeParameter,
-            fileUri,
-            formal.fileOffset,
-          );
-        }
-      }
-    }
-    for (Variable named in namedParameters) {
-      for (TypeParameter typeParameter in typeParameters) {
-        Variance namedVariance = Variance.contravariant.combine(
-          computeVariance(typeParameter, named.type),
-        );
-        reportVariancePositionIfInvalid(
-          namedVariance,
-          typeParameter,
-          fileUri,
-          named.fileOffset,
-        );
-      }
-    }
-
-    for (TypeParameter typeParameter in typeParameters) {
-      Variance returnTypeVariance = computeVariance(typeParameter, returnType);
-      reportVariancePositionIfInvalid(
-        returnTypeVariance,
-        typeParameter,
-        fileUri,
-        procedure.function.fileOffset,
-        isReturnType: true,
-      );
-    }
-  }
-
   void reportVariancePositionIfInvalid(
     Variance variance,
     TypeParameter typeParameter,
@@ -2071,8 +2004,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           i < interfaceFunction.positionalParameters.length;
       i++
     ) {
-      Variable declaredParameter = declaredFunction.positionalParameters[i];
-      Variable interfaceParameter = interfaceFunction.positionalParameters[i];
+      PositionalParameter declaredParameter =
+          declaredFunction.positionalParameters[i];
+      PositionalParameter interfaceParameter =
+          interfaceFunction.positionalParameters[i];
       DartType declaredParameterType = declaredParameter.type;
       if (declaredSignatureType != null) {
         declaredParameterType = declaredSignatureType.positionalParameters[i];
@@ -2312,7 +2247,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     );
     DartType declaredType = declaredMember.setterType;
     DartType interfaceType = interfaceMember.setterType;
-    Variable? declaredParameter = declaredMember.function?.positionalParameters
+    PositionalParameter? declaredParameter = declaredMember
+        .function
+        ?.positionalParameters
         .elementAt(0);
     bool isCovariantByDeclaration =
         declaredParameter?.isCovariantByDeclaration ?? false;

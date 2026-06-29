@@ -207,7 +207,7 @@ bool _isProcedureFromForeignHelper(String name, Procedure p) =>
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.
-bool isCovariantParameter(Variable p) {
+bool isCovariantParameter(FunctionParameter p) {
   return p.isCovariantByDeclaration || p.isCovariantByClass;
 }
 

@@ -327,10 +327,6 @@ class EnumElementDeclaration
     );
     MemberBuilder? constructorBuilder = result?.getable;
 
-    List<Expression> enumSyntheticArguments = <Expression>[
-      extern.createIntLiteral(coreTypes, elementIndex, fileOffset: fileOffset),
-      extern.createStringLiteral(constant, fileOffset: fileOffset),
-    ];
     TypeArguments? typeArguments;
     List<TypeBuilder>? typeArgumentBuilders =
         _fragment.constructorReferenceBuilder?.typeArguments;
@@ -358,6 +354,10 @@ class EnumElementDeclaration
         length: noLength,
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
+      List<Expression> enumSyntheticArguments = <Expression>[
+        intern.createIntLiteral(fileOffset, elementIndex),
+        intern.createStringLiteral(fileOffset, constant),
+      ];
       var (Expression initializer, DartType? fieldType) = libraryBuilder.loader
           .createResolver()
           .buildEnumConstant(
@@ -387,6 +387,14 @@ class EnumElementDeclaration
         inferredFieldType = fieldType;
       }
     } else {
+      List<Expression> enumSyntheticArguments = <Expression>[
+        extern.createIntLiteral(
+          coreTypes,
+          elementIndex,
+          fileOffset: fileOffset,
+        ),
+        extern.createStringLiteral(constant, fileOffset: fileOffset),
+      ];
       Arguments arguments = extern.createArguments(
         enumSyntheticArguments,
         fileOffset: fileOffset,

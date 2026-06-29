@@ -821,7 +821,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.positionalParameters[i].type,
-          decl.initializer,
+          decl.defaultValue,
         );
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
@@ -831,7 +831,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.namedParameters[i].type,
-          decl.initializer,
+          decl.defaultValue,
         );
       }
 
@@ -1097,7 +1097,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   Parameter _declareParameter(
     String name,
     DartType? type,
-    Expression? initializer, {
+    Expression? defaultValue, {
     bool isReceiver = false,
   }) {
     Type? staticType;
@@ -1108,23 +1108,24 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _summary.add(param);
     assert(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {
-      if (initializer != null) {
-        if (initializer is ConstantExpression) {
+      if (defaultValue != null) {
+        if (defaultValue is ConstantExpression) {
           param.defaultValue = constantAllocationCollector.typeFor(
-            initializer.constant,
+            defaultValue.constant,
           );
-        } else if (initializer is BasicLiteral ||
-            initializer is SymbolLiteral ||
-            initializer is TypeLiteral) {
-          param.defaultValue = _visit(initializer) as Type;
+        } else if (defaultValue is BasicLiteral ||
+            defaultValue is SymbolLiteral ||
+            defaultValue is TypeLiteral) {
+          param.defaultValue = _visit(defaultValue) as Type;
         } else {
-          throw 'Unexpected parameter $name default value ${initializer.runtimeType} $initializer';
+          throw 'Unexpected parameter $name default value '
+              '${defaultValue.runtimeType} $defaultValue';
         }
       } else {
         param.defaultValue = _nullType;
       }
     } else {
-      assert(initializer == null);
+      assert(defaultValue == null);
     }
     return param;
   }

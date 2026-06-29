@@ -1085,9 +1085,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
           positionalIndex++
         ) {
           if (positionalIndex >= node.requiredParameterCount) {
-            Variable positionalParameter =
+            PositionalParameter positionalParameter =
                 node.positionalParameters[positionalIndex];
-            if (positionalParameter.initializer == null &&
+            if (positionalParameter.defaultValue == null &&
                 // Global transformations like TFA may not maintain this
                 // invariant.
                 stage != VerificationStage.afterGlobalTransformations) {
@@ -1099,9 +1099,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
             }
           }
         }
-        for (Variable namedParameter in node.namedParameters) {
+        for (NamedParameter namedParameter in node.namedParameters) {
           if (!namedParameter.isRequired &&
-              namedParameter.initializer == null &&
+              namedParameter.defaultValue == null &&
               // Global transformations like TFA may not maintain this
               // invariant.
               stage != VerificationStage.afterGlobalTransformations) {

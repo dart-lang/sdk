@@ -38,11 +38,11 @@ class ParameterInfo {
 
   int get paramCount => positional.length + named.length;
 
-  static Constant? _defaultValue(Variable param) {
-    Expression? initializer = param.initializer;
-    if (initializer is ConstantExpression) {
-      return initializer.constant;
-    } else if (initializer == null) {
+  static Constant? _defaultValue(FunctionParameter param) {
+    Expression? defaultValue = param.defaultValue;
+    if (defaultValue is ConstantExpression) {
+      return defaultValue.constant;
+    } else if (defaultValue == null) {
       return null;
     } else {
       throw "Non-constant default value";

@@ -273,10 +273,10 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
     // The constructor is special in that the parameters from the contained
     // function node is in scope in the initializers.
     // Here we add all parameters, i.e. we don't filter initializing formals.
-    for (Variable param in node.function.positionalParameters) {
+    for (PositionalParameter param in node.function.positionalParameters) {
       scopes.last.add(param);
     }
-    for (Variable param in node.function.namedParameters) {
+    for (NamedParameter param in node.function.namedParameters) {
       scopes.last.add(param);
     }
     for (Initializer initializer in node.initializers) {

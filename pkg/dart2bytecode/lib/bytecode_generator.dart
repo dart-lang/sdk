@@ -482,10 +482,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     FunctionNode function,
   ) {
     final parameterNodeLists = <List<Expression>>[];
-    for (Variable variable in function.positionalParameters) {
+    for (PositionalParameter variable in function.positionalParameters) {
       parameterNodeLists.add(variable.annotations);
     }
-    for (Variable variable in function.namedParameters) {
+    for (NamedParameter variable in function.namedParameters) {
       parameterNodeLists.add(variable.annotations);
     }
 
@@ -829,11 +829,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     );
   }
 
-  ParameterDeclaration getParameterDeclaration(Variable variable) {
-    final name = variable.cosmeticName!;
+  ParameterDeclaration getParameterDeclaration(FunctionParameter parameter) {
+    final name = parameter.cosmeticName!;
     final lib = name.startsWith('_') ? enclosingMember!.enclosingLibrary : null;
     final nameHandle = objectTable.getNameHandle(lib, name);
-    final typeHandle = objectTable.getHandle(variable.type)!;
+    final typeHandle = objectTable.getHandle(parameter.type)!;
     return new ParameterDeclaration(nameHandle, typeHandle);
   }
 
@@ -2392,14 +2392,14 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitSourcePosition();
   }
 
-  void _copyParamIfCaptured(Variable variable) {
-    if (locals.isCaptured(variable)) {
+  void _copyParamIfCaptured(FunctionParameter parameter) {
+    if (locals.isCaptured(parameter)) {
       if (options.emitLocalVarInfo) {
-        _declareLocalVariable(variable, enclosingFunction!.fileOffset);
+        _declareLocalVariable(parameter, enclosingFunction!.fileOffset);
       }
-      _genPushContextForVariable(variable);
-      asm.emitPush(locals.getParamIndexInFrame(variable));
-      _genStoreVar(variable);
+      _genPushContextForVariable(parameter);
+      asm.emitPush(locals.getParamIndexInFrame(parameter));
+      _genStoreVar(parameter);
       // TODO(alexmarkov): We need to store null at the original parameter
       // location, because the original value may need to be GC'ed.
     }
@@ -2504,7 +2504,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// If member being compiled is a forwarding stub, then returns parameter
   /// types to check for the forwarding stub target.
-  Map<Variable, DartType>? _getForwardingParameterTypes(
+  Map<FunctionParameter, DartType>? _getForwardingParameterTypes(
     FunctionNode function,
     Member? forwardingTarget,
     Substitution? forwardingSubstitution,
@@ -2515,7 +2515,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (forwardingTarget is Field) {
       if ((enclosingMember as Procedure).isGetter) {
-        return const <Variable, DartType>{};
+        return const <FunctionParameter, DartType>{};
       } else {
         // Forwarding stub for a covariant field setter.
         assert((enclosingMember as Procedure).isSetter);
@@ -2524,14 +2524,14 @@ class BytecodeGenerator extends RecursiveVisitor {
               function.positionalParameters.length == 1 &&
               function.namedParameters.isEmpty,
         );
-        return <Variable, DartType>{
+        return <FunctionParameter, DartType>{
           function.positionalParameters.single: forwardingSubstitution!
               .substituteType(forwardingTarget.type),
         };
       }
     }
 
-    final forwardingParams = <Variable, DartType>{};
+    final forwardingParams = <FunctionParameter, DartType>{};
     for (int i = 0; i < function.positionalParameters.length; ++i) {
       DartType type = forwardingSubstitution!.substituteType(
         forwardingTarget.function!.positionalParameters[i].type,
@@ -2539,7 +2539,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       forwardingParams[function.positionalParameters[i]] = type;
     }
     for (var hostParam in function.namedParameters) {
-      Variable targetParam = forwardingTarget.function!.namedParameters
+      NamedParameter targetParam = forwardingTarget.function!.namedParameters
           .firstWhere((p) => p.parameterName == hostParam.parameterName);
       forwardingParams[hostParam] = forwardingSubstitution!.substituteType(
         targetParam.type,
@@ -2637,8 +2637,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   /// Returns true if type of [param] should be checked.
   bool _parameterNeedsTypeCheck(
-    Variable param,
-    Map<Variable, DartType>? forwardingParameterTypes,
+    FunctionParameter param,
+    Map<FunctionParameter, DartType>? forwardingParameterTypes,
   ) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !param.isCovariantByDeclaration &&
@@ -2659,7 +2659,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   bool _hasSkippableTypeChecks(
     FunctionNode function,
     Map<TypeParameter, DartType>? forwardingBounds,
-    Map<Variable, DartType>? forwardingParamTypes,
+    Map<FunctionParameter, DartType>? forwardingParamTypes,
   ) {
     for (var typeParam in function.typeParameters) {
       if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {

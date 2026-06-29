@@ -369,7 +369,7 @@ mixin _ConstructorDeclarationMixin
       if (formal.isSuperInitializingFormal) {
         superInitializingFormalIndex++;
         bool hasImmediatelyDeclaredInitializer =
-            formal.hasImmediatelyDeclaredInitializer;
+            formal.hasImmediatelyDeclaredDefaultValue;
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
@@ -377,9 +377,9 @@ mixin _ConstructorDeclarationMixin
             ParameterInfo parameterInfo =
                 positionalSuperInfo[superInitializingFormalIndex];
             if (formal.isOptional) {
-              formal.hasDeclaredInitializer =
+              formal.hasDeclaredDefaultValue =
                   hasImmediatelyDeclaredInitializer ||
-                  parameterInfo.hasDeclaredInitializer;
+                  parameterInfo.hasDeclaredDefaultValue;
             }
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer &&
@@ -403,9 +403,9 @@ mixin _ConstructorDeclarationMixin
           ParameterInfo? parameterInfo = namedSuperInfo[formal.name];
           if (parameterInfo != null) {
             if (formal.isOptional) {
-              formal.hasDeclaredInitializer =
+              formal.hasDeclaredDefaultValue =
                   hasImmediatelyDeclaredInitializer ||
-                  parameterInfo.hasDeclaredInitializer;
+                  parameterInfo.hasDeclaredDefaultValue;
             }
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
@@ -423,7 +423,7 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable.hasDeclaredInitializer = formal.hasDeclaredInitializer;
+        formal.variable.hasDeclaredInitializer = formal.hasDeclaredDefaultValue;
       }
     }
 
@@ -756,7 +756,7 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -1515,7 +1515,7 @@ abstract class ConstructorFragmentDeclaration {
 
   /// Returns the [Variable] for the tear off, if any, of the
   /// [index]th formal parameter declared in the constructor.
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 

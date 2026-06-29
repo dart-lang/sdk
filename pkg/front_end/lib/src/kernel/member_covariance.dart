@@ -16,7 +16,7 @@ class Covariance {
   static const int Covariant = 2;
 
   /// Returns the covariance mask for [parameter].
-  static int covarianceFromParameter(Variable parameter) =>
+  static int covarianceFromParameter(FunctionParameter parameter) =>
       (parameter.isCovariantByDeclaration ? Covariant : 0) |
       (parameter.isCovariantByClass ? GenericCovariantImpl : 0);
 
@@ -26,7 +26,10 @@ class Covariance {
       (field.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Applies the [covariance] mask to [parameter].
-  static void covarianceToParameter(int covariance, Variable parameter) {
+  static void covarianceToParameter(
+    int covariance,
+    FunctionParameter parameter,
+  ) {
     if ((covariance & Covariant) != 0) {
       parameter.isCovariantByDeclaration = true;
     }

@@ -331,7 +331,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final int offset;
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
-  late SourceChange change;
+
+  /// The builder used to build the edits.
+  ///
+  /// This refactor is unusual in that it builds the edits as part of checking
+  /// the final conditions rather than waiting until [buildChange] is called. It
+  /// also creates the builder while checking the initial conditions.
+  late ChangeBuilder builder;
 
   @override
   bool isDeclaration = false;
@@ -386,7 +392,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    change = SourceChange(refactoringName);
     var result = RefactoringStatus();
     // check for compatibility of "deleteSource" and "inlineAll"
     if (deleteSource && !inlineAll) {
@@ -403,18 +408,18 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         methodRange,
         skipLeadingEmptyLines: true,
       );
-      doSourceChange_addFragmentEdit(
-        change,
-        _methodElement!.firstFragment,
-        newSourceEdit_range(linesRange, ''),
-      );
+      var fragment = _methodElement!.firstFragment;
+      var filePath = fragment.libraryFragment.source.fullName;
+      await builder.addDartFileEdit(filePath, (builder) {
+        builder.addDeletion(linesRange);
+      });
     }
-    // done
     return result;
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    builder = ChangeBuilder(session: unitResult.session);
     var result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -454,7 +459,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
-      var processor = _ReferenceProcessor(this, reference);
+      var processor = _ReferenceProcessor(this, reference, builder);
       await processor.init();
       _referenceProcessors.add(processor);
     }
@@ -463,7 +468,11 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) {
-    return Future.value(change);
+    // The parameter `builder` is unused because the edits were already built
+    // in [checkFinalConditions].
+    var sourceChange = this.builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return Future.value(sourceChange);
   }
 
   @override
@@ -531,8 +540,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
               functionDeclaration: FunctionDeclaration(
                 functionExpression: FunctionExpression(:var body),
               ),
-            )
-        when body is BlockFunctionBody) {
+            ) when body is BlockFunctionBody) {
       scope = ScopeResolverVisitor.getNodeNameScope(body.block);
     }
     // Remember parameters and variables occurrences.
@@ -676,6 +684,7 @@ class _ParameterOccurrence {
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
+  final ChangeBuilder builder;
   final Map<TypeParameterElement, DartType> _argumentTypes = {};
   final Map<TypeParameterElement, DartType> _instanceArgumentTypes = {};
 
@@ -685,7 +694,7 @@ class _ReferenceProcessor {
   SourceRange? _refLineRange;
   late String _refPrefix;
 
-  new(this.ref, this.reference);
+  new(this.ref, this.reference, this.builder);
 
   Future<void> init() async {
     refElement = reference.element;
@@ -705,10 +714,6 @@ class _ReferenceProcessor {
       _refLineRange = null;
       _refPrefix = _refUtils.getLinePrefix(_node.offset);
     }
-  }
-
-  void _addRefEdit(SourceEdit edit) {
-    doSourceChange_addSourceEdit(ref.change, reference.unitSource, edit);
   }
 
   bool _canInlineBody(AstNode usage) {
@@ -815,7 +820,7 @@ class _ReferenceProcessor {
         );
 
         // If there are variable declarations, insert them before the statement.
-        _insertVariableDeclarations(
+        await _insertVariableDeclarations(
           result.variableDeclarations,
           introducedVariableNames,
           _refLineRange,
@@ -829,11 +834,9 @@ class _ReferenceProcessor {
           ensureTrailingNewline: true,
         );
         // do insert
-        var edit = newSourceEdit_range(
-          SourceRange(_refLineRange!.offset, 0),
-          source,
-        );
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addSimpleInsertion(_refLineRange!.offset, source);
+        });
       }
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
@@ -857,7 +860,7 @@ class _ReferenceProcessor {
         );
 
         // If there are variable declarations, insert them before the statement.
-        _insertVariableDeclarations(
+        await _insertVariableDeclarations(
           result.variableDeclarations,
           introducedVariableNames,
           _refLineRange,
@@ -900,11 +903,13 @@ class _ReferenceProcessor {
           ref._methodExpressionPart!._prefix,
           _refPrefix,
         );
-        var edit = newSourceEdit_range(nodeToReplaceRange, source);
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addSimpleReplacement(nodeToReplaceRange, source);
+        });
       } else {
-        var edit = newSourceEdit_range(_refLineRange!, '');
-        _addRefEdit(edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addDeletion(_refLineRange!);
+        });
       }
       return;
     }
@@ -919,16 +924,17 @@ class _ReferenceProcessor {
       source = source.trim();
     }
     // do insert
-    var edit = newSourceEdit_range(range.node(_node), source);
-    _addRefEdit(edit);
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleReplacement(range.node(_node), source);
+    });
   }
 
   /// Inserts [variableDeclarations] in front of the code at [refLineRange].
-  void _insertVariableDeclarations(
+  Future<void> _insertVariableDeclarations(
     List<_VariableDeclaration> variableDeclarations,
     Set<String> introducedVariableNames,
     SourceRange? refLineRange,
-  ) {
+  ) async {
     if (variableDeclarations.isEmpty) return;
 
     var offset = _refLineRange?.offset ?? _node.offset;
@@ -944,7 +950,9 @@ class _ReferenceProcessor {
         '${_refPrefix}var ${variable.name} = ${variable.initializer};${_refUtils.endOfLine}',
       );
     }
-    _addRefEdit(SourceEdit(insertOffset, 0, buffer.toString()));
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleInsertion(insertOffset, buffer.toString());
+    });
   }
 
   Future<void> _process(RefactoringStatus status) async {
@@ -983,8 +991,11 @@ class _ReferenceProcessor {
             }
           }
           if (ref._alreadyMadeAsync.add(refElement)) {
-            var bodyStart = range.startLength(body, 0);
-            _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
+            await builder.addDartFileEdit(reference.unitSource.fullName, (
+              builder,
+            ) {
+              builder.addSimpleInsertion(body.offset, 'async ');
+            });
           }
         }
       }
@@ -1066,8 +1077,9 @@ class _ReferenceProcessor {
         source = removeEnd(source, ';')!;
       }
       // do insert
-      var edit = newSourceEdit_range(range.node(_node), source);
-      _addRefEdit(edit);
+      await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+        builder.addSimpleReplacement(range.node(_node), source);
+      });
     }
   }
 
@@ -1268,8 +1280,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     if (methodElement case MethodElement(:InstanceElement enclosingElement)) {
       instanceElement = enclosingElement;
     }
-    if (node.typeOrThrow case TypeParameterType(:var element)
-        when bodyRange.covers(nodeRange)) {
+    if (node.typeOrThrow case TypeParameterType(
+      :var element,
+    ) when bodyRange.covers(nodeRange)) {
       if (methodElement.typeParameters.contains(element)) {
         result.addTypeParameter(element, nodeRange);
       } else if (instanceElement?.typeParameters.contains(element) ?? false) {
@@ -1345,9 +1358,10 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
         // No block scope so all variables will be self-contained
         return;
       }
-      if (scope!.lookup(element.displayName)
-          case ScopeLookupResult(:var getter, :var setter)
-          when getter == null && setter == null) {
+      if (scope!.lookup(element.displayName) case ScopeLookupResult(
+        :var getter,
+        :var setter,
+      ) when getter == null && setter == null) {
         // No variable with the same name at the block scope
         return;
       }

@@ -599,7 +599,7 @@ void forEachOrderedParameterByFunctionNode(
   ir.FunctionNode node,
   ParameterStructure parameterStructure,
   void Function(
-    ir.Variable parameter, {
+    ir.FunctionParameter parameter, {
     required bool isOptional,
     required bool isElided,
   })
@@ -611,7 +611,7 @@ void forEachOrderedParameterByFunctionNode(
     position < node.positionalParameters.length;
     position++
   ) {
-    ir.Variable variable = node.positionalParameters[position];
+    ir.PositionalParameter variable = node.positionalParameters[position];
     f(
       variable,
       isOptional: position >= parameterStructure.requiredPositionalParameters,

@@ -58,7 +58,7 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  Variable? getTearOffParameter(int index) => null;
+  FunctionParameter? getTearOffParameter(int index) => null;
 
   @override
   void registerFunctionBody({

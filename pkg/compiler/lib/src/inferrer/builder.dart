@@ -280,15 +280,15 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return result;
   }
 
-  void handleParameter(ir.Variable node, {required bool isOptional}) {
+  void handleParameter(ir.FunctionParameter node, {required bool isOptional}) {
     Local local = _localsMap.getLocalVariable(node);
     final parameterType = _inferrer.typeOfParameter(local);
     _state.setLocal(_inferrer, _capturedAndBoxed, local, parameterType);
 
     if (isOptional) {
       TypeInformation type;
-      if (node.initializer != null) {
-        type = visit(node.initializer)!;
+      if (node.defaultValue != null) {
+        type = visit(node.defaultValue)!;
         if (_inferrer.abstractValueDomain.isNull(type.type).isDefinitelyTrue &&
             !node.type.isPotentiallyNullable) {
           // TODO(52582): Make optional nonnullable parameters nullable until
@@ -423,14 +423,14 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   void handleParameters(ir.FunctionNode node) {
     int position = 0;
-    for (ir.Variable parameter in node.positionalParameters) {
+    for (ir.FunctionParameter parameter in node.positionalParameters) {
       handleParameter(
         parameter,
         isOptional: position >= node.requiredParameterCount,
       );
       position++;
     }
-    for (ir.Variable parameter in node.namedParameters) {
+    for (ir.FunctionParameter parameter in node.namedParameters) {
       handleParameter(parameter, isOptional: true);
     }
   }

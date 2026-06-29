@@ -270,7 +270,7 @@ class MethodDeclarationImpl
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -330,5 +330,5 @@ abstract class MethodFragmentDeclaration {
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 }
