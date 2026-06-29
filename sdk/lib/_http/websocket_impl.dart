@@ -163,8 +163,8 @@ class _WebSocketProtocolTransformer
 
           _opcode = (byte & OPCODE);
 
-          bool reserved1 = (byte & RSV1) != 0;
-          if (reserved1 &&
+          bool isMessageCompressed = (byte & RSV1) != 0;
+          if (isMessageCompressed &&
               (_deflate == null ||
                   _opcode == _WebSocketOpcode.CONTINUATION ||
                   _isControlFrame())) {
@@ -172,7 +172,7 @@ class _WebSocketProtocolTransformer
           }
 
           if (_opcode != _WebSocketOpcode.CONTINUATION && !_isControlFrame()) {
-            _compressed = reserved1;
+            _compressed = isMessageCompressed;
           }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
