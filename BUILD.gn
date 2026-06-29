@@ -481,6 +481,7 @@ if (is_fuchsia) {
     "tests/standalone/io/delete_symlink_test.dart",
     "tests/standalone/io/directory_chdir_test.dart",
     "tests/standalone/io/directory_create_race_test.dart",
+    "tests/standalone/io/directory_delete_race_test.dart",
     "tests/standalone/io/directory_error_test.dart",
     "tests/standalone/io/directory_fuzz_test.dart",
     "tests/standalone/io/directory_list_nonexistent_test.dart",

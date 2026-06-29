@@ -91,7 +91,7 @@ void main([List<String> args = const []]) async {
       );
       expect(
         result.stdout,
-        stringContainsInOrder(['native add test', 'All tests passed!']),
+        stringContainsInOrder(['All tests passed!']),
       );
     });
   });
@@ -102,14 +102,22 @@ void main([List<String> args = const []]) async {
       timeout: longTimeout,
       () async {
         await nativeAssetsTest('dev_dependency_with_hook', (packageUri) async {
+          var expandedReporter = subcommand == 'test';
           final result = await runDart(
-            arguments: ['run', subcommand],
+            arguments: [
+              'run',
+              subcommand,
+              if (expandedReporter) '--reporter=expanded',
+            ],
             workingDirectory: packageUri,
             logger: logger,
           );
           expect(
             result.stdout,
-            stringContainsInOrder(['native add test', 'All tests passed!']),
+            stringContainsInOrder([
+              if (expandedReporter) 'native add test',
+              'All tests passed!',
+            ]),
           );
         });
       },

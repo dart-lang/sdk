@@ -414,7 +414,7 @@ class AndroidEmulators {
 
     p = await Process.start(
       sdkmanager,
-      ["--install", "system-images;android-28;default;x86_64"],
+      ["--install", "system-images;android-30;default;x86_64"],
       environment: _environment,
       mode: ProcessStartMode.inheritStdio,
     );
@@ -446,7 +446,7 @@ class AndroidEmulators {
       "--name",
       "test-$port",
       "--package",
-      "system-images;android-28;default;x86_64",
+      "system-images;android-30;default;x86_64",
     ], environment: _environment);
     _forward(p, "avdmanager create");
     p.stdin.writeln("no"); // Create custom hardware profile?
