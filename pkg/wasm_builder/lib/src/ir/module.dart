@@ -35,7 +35,8 @@ class Module implements Serializable {
   late final DataSegments _dataSegments;
   late final Imports _imports;
   late final List<int> _watchPoints;
-  late final Uri? _sourceMapUrl;
+  // Allow source map URL to be updated for deserialized modules.
+  late Uri? sourceMapUrl;
   late final List<ExtraCustomSection> _extraCustomSections;
 
   Module.uninitialized() : _initialized = false;
@@ -73,7 +74,7 @@ class Module implements Serializable {
     _dataSegments = dataSegments;
     _imports = imports;
     _watchPoints = watchPoints;
-    _sourceMapUrl = sourceMapUrl;
+    this.sourceMapUrl = sourceMapUrl;
     _extraCustomSections = extraCustomSections;
   }
 
@@ -90,7 +91,6 @@ class Module implements Serializable {
   DataSegments get dataSegments => _dataSegments;
   Imports get imports => _imports;
   List<int> get watchPoints => _watchPoints;
-  Uri? get sourceMapUrl => _sourceMapUrl;
   List<ExtraCustomSection> get extraCustomSections => _extraCustomSections;
 
   /// Serialize a module to its binary representation.
