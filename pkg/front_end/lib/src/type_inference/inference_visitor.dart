@@ -13475,25 +13475,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ThisExpression node,
     DartType typeContext,
   ) {
-    DartType thisType =
+    DartType? promotedTypeOfThis =
         flowAnalysis.promotedTypeOfThis
                 // Coverage-ignore(suite): Not run.
                 ?.unwrapTypeView()
-            as DartType? ??
-        this.thisType!;
+            as DartType?;
+    DartType thisType = promotedTypeOfThis ?? this.thisType!;
+    Expression loweredExpression;
+    if (isClosureContextLoweringEnabled) {
+      loweredExpression =
+          new VariableGet(_contextAllocationStrategy.thisVariable)
+            ..fileOffset = node.fileOffset
+            ..promotedType = promotedTypeOfThis;
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (promotedTypeOfThis != null) {
+      loweredExpression = new AsExpression(node, promotedTypeOfThis)
+        ..fileOffset = node.fileOffset
+        ..isUnchecked = true;
+    } else {
+      loweredExpression = node;
+    }
     flowAnalysis.storeExpressionInfo(
-      node,
+      loweredExpression,
       flowAnalysis.thisOrSuper(new SharedTypeView(thisType), isSuper: false),
     );
-    if (isClosureContextLoweringEnabled) {
-      return new ExpressionInferenceResult(
-        thisType,
-        new VariableGet(_contextAllocationStrategy.thisVariable)
-          ..fileOffset = node.fileOffset,
-      );
-    } else {
-      return new ExpressionInferenceResult(thisType, node);
-    }
+    return new ExpressionInferenceResult(thisType, loweredExpression);
   }
 
   @override
