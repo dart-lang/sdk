@@ -69,6 +69,7 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
 
       Token? previousOperator;
       Token? semicolon;
+      Expression? initializerToParenthesize;
       var previous = cascadeStatements[index - 1];
       if (previous is ExpressionStatement) {
         semicolon = previous.semicolon;
@@ -81,6 +82,20 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
           return;
         }
         semicolon = previous.endToken;
+        // If the initializer is an AssignmentExpression, the cascade operator
+        // `..` has higher precedence than assignment operators (e.g. `??=`,
+        // `=`, `+=`). Without parentheses, `var b = a[1] ??= C(2)..i = 3`
+        // would be parsed as `var b = a[1] ??= (C(2)..i = 3)`, changing the
+        // program's behavior. Wrap the initializer in parentheses to produce
+        // `var b = (a[1] ??= C(2))..i = 3` instead.
+        // See: https://github.com/dart-lang/sdk/issues/63354
+        if (index == 1) {
+          var initializer =
+              previous.variables.variables.single.initializer;
+          if (initializer is AssignmentExpression) {
+            initializerToParenthesize = initializer;
+          }
+        }
       } else {
         return;
       }
@@ -94,6 +109,11 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         if (previousOperator != null) {
           builder.addSimpleInsertion(previousOperator.offset, '.');
+        }
+        if (initializerToParenthesize != null) {
+          builder.addSimpleInsertion(
+              initializerToParenthesize.offset, '(');
+          builder.addSimpleInsertion(initializerToParenthesize.end, ')');
         }
         if (semicolon != null) {
           builder.addDeletion(range.token(semicolon));
