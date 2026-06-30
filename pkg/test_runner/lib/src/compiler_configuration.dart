@@ -827,7 +827,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // from pkg/dev_compiler/lib/src/compiler/js_names.dart to handle the
       // invalid library names from test files encountered so far.
       var libraryName = inputUri.path
-          .substring(repositoryUri.path.length)
           .replaceAll('/', '__')
           .replaceAll('-', '_')
           .replaceAll('.dart', '')
