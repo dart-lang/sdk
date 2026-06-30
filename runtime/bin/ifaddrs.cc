@@ -51,6 +51,11 @@ static void SetAddresses(struct ifaddrs* ifaddr,
     sockaddr_in6* socketaddr = new sockaddr_in6;
     socketaddr->sin6_family = AF_INET6;
     socketaddr->sin6_scope_id = index;
+    // The attribute length comes from the netlink message and is not guaranteed
+    // to match the address family, so cap the copy at the destination size.
+    if (len > sizeof(socketaddr->sin6_addr)) {
+      len = sizeof(socketaddr->sin6_addr);
+    }
     memmove(&socketaddr->sin6_addr, data, len);
     ifaddr->ifa_addr = reinterpret_cast<sockaddr*>(socketaddr);
     return;
@@ -58,6 +63,9 @@ static void SetAddresses(struct ifaddrs* ifaddr,
   ASSERT(family == AF_INET);
   sockaddr_in* socketaddr = new sockaddr_in;
   socketaddr->sin_family = AF_INET;
+  if (len > sizeof(socketaddr->sin_addr)) {
+    len = sizeof(socketaddr->sin_addr);
+  }
   memmove(&socketaddr->sin_addr, data, len);
   ifaddr->ifa_addr = reinterpret_cast<sockaddr*>(socketaddr);
 }
