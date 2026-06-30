@@ -4549,7 +4549,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       // [ForInElement] will be desugared later into a [ForStatement], which
       // will be responsible for the scope. Therefore, the supplied
       // [ScopeProviderInfoKind] to [enterScopeProvider] is
@@ -4580,7 +4579,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         initialized: true,
       );
       if (isClosureContextLoweringEnabled) {
-        // Coverage-ignore-block(suite): Not run.
         _contextAllocationStrategy.handleDeclarationOfVariable(
           declaredVariable.astVariable,
           captureKind: _captureKindForVariable(declaredVariable),
@@ -4588,8 +4586,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       if (declaredVariable?.astVariable != variable) {
+        // Coverage-ignore-block(suite): Not run.
         // [variable] is synthesized.
         _contextAllocationStrategy.handleDeclarationOfVariable(
           variable,
@@ -4611,7 +4609,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
     if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [element]
       // is desugared into.
@@ -7773,7 +7770,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       // [ForInMapEntry] will be desugared later into a [ForStatement], which
       // will be responsible for the scope. Therefore, the supplied
       // [ScopeProviderInfoKind] to [enterScopeProvider] is
@@ -7803,7 +7799,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         initialized: true,
       );
       if (isClosureContextLoweringEnabled) {
-        // Coverage-ignore-block(suite): Not run.
         _contextAllocationStrategy.handleDeclarationOfVariable(
           declaredVariable.astVariable,
           captureKind: _captureKindForVariable(declaredVariable),
@@ -7811,8 +7806,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       if (declaredVariable?.astVariable != variable) {
+        // Coverage-ignore-block(suite): Not run.
         // [variable] is synthesized.
         _contextAllocationStrategy.handleDeclarationOfVariable(
           variable,
@@ -7840,7 +7835,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
     if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [entry]
       // is desugared into.
