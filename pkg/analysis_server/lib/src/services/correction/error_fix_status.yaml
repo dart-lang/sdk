@@ -2190,8 +2190,10 @@ empty_container_bodies:
   status: hasFix
 empty_statements:
   status: hasFix
-eol_at_end_of_file:
-  status: hasFix
+eol_at_end_of_file_missing:
+  status: needsEvaluation
+eol_at_end_of_file_too_many:
+  status: needsEvaluation
 erase_dart_type_extension_types:
   status: needsEvaluation
 exhaustive_cases:
