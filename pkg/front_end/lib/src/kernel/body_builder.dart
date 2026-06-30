@@ -821,21 +821,25 @@ class BodyBuilderImpl extends StackListenerImpl
     String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
     Message message = diag.duplicatedDeclaration.withArguments(name: name);
-    if (variable.astVariable.initializer == null) {
-      variable.astVariable.initializer = buildProblem(
-        message: message,
-        fileUri: uri,
-        fileOffset: offset,
-        length: name.length,
-        context: context,
-      )..parent = variable.astVariable;
+    if (variable.initializer == null) {
+      variable.updateInitializer(
+        buildProblem(
+          message: message,
+          fileUri: uri,
+          fileOffset: offset,
+          length: name.length,
+          context: context,
+        ),
+      );
     } else {
-      variable.astVariable.initializer = problemReporting.wrapInLocatedProblem(
-        compilerContext: compilerContext,
-        expression: variable.astVariable.initializer!,
-        message: message.withLocation(uri, offset, name.length),
-        context: context,
-      )..parent = variable;
+      variable.updateInitializer(
+        problemReporting.wrapInLocatedProblem(
+          compilerContext: compilerContext,
+          expression: variable.initializer!,
+          message: message.withLocation(uri, offset, name.length),
+          context: context,
+        ),
+      );
     }
   }
 
@@ -3580,7 +3584,7 @@ class BodyBuilderImpl extends StackListenerImpl
           node as InternalVariableDeclaration;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
-          declaration.variable.astVariable.addAnnotation(annotations[i]);
+          declaration.variable.addAnnotation(annotations[i]);
         }
         _registerSingleTargetAnnotations(declaration.variable.astVariable);
       }
@@ -3605,7 +3609,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (annotations != null) {
         InternalVariableDeclaration first = variables.first;
         for (int i = 0; i < annotations.length; i++) {
-          first.variable.astVariable.addAnnotation(annotations[i]);
+          first.variable.addAnnotation(annotations[i]);
         }
         _registerMultiTargetAnnotations(
           variables.map((v) => v.variable.astVariable).toList(),
@@ -5542,19 +5546,20 @@ class BodyBuilderImpl extends StackListenerImpl
           functionParameter.isErroneouslyInitialized = true;
         } else {
           if (!parameter.defaultValueWasInferred) {
-            functionParameter.astVariable.initializer = initializer
-              ..parent = functionParameter.astVariable;
+            functionParameter.updateInitializer(initializer);
           }
         }
       } else if (kind.isOptional) {
-        functionParameter.astVariable.initializer ??= intern.createNullLiteral(
-          noLocation,
-        )..parent = functionParameter.astVariable;
+        if (functionParameter.initializer == null) {
+          functionParameter.updateInitializer(
+            intern.createNullLiteral(noLocation),
+          );
+        }
       }
       if (annotations != null) {
-        functionParameter.astVariable.clearAnnotations();
+        functionParameter.clearAnnotations();
         for (Expression annotation in annotations) {
-          functionParameter.astVariable.addAnnotation(annotation);
+          functionParameter.addAnnotation(annotation);
         }
         // TODO(johnniwinther): This seems wrong. If we add the annotations, we
         //  should infer them.
@@ -7935,7 +7940,7 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalVariable variable = declaration.variable;
       if (annotations != null) {
         for (Expression annotation in annotations) {
-          variable.astVariable.addAnnotation(annotation);
+          variable.addAnnotation(annotation);
         }
       }
       declaration.hasImplicitReturnType = hasImplicitReturnType;
@@ -7954,9 +7959,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
       declaration.function = function;
       Statement statement;
-      if (variable.astVariable.initializer != null) {
+      if (variable.initializer != null) {
         // This must have been a compile-time error.
-        assert(isErroneousNode(variable.astVariable.initializer!));
+        assert(isErroneousNode(variable.initializer!));
 
         statement = intern.createBlock(
           fileOffset: declaration.fileOffset,
@@ -7964,12 +7969,12 @@ class BodyBuilderImpl extends StackListenerImpl
           <Statement>[
             intern.createExpressionStatement(
               fileOffset: offsetForToken(token),
-              variable.astVariable.initializer!,
+              variable.initializer!,
             ),
             declaration,
           ],
         );
-        variable.astVariable.initializer = null;
+        variable.updateInitializer(null);
       } else {
         statement = declaration;
       }
@@ -8200,9 +8205,8 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       return;
     }
-    variable.astVariable.initializer = receiver;
-    variable.astVariable.initializer!.parent = variable.astVariable;
-    int variableOffset = variable.astVariable.initializer!.fileOffset;
+    variable.updateInitializer(receiver);
+    int variableOffset = receiver.fileOffset;
 
     // Build the result expression.
     bool isNullAware = beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
@@ -8435,7 +8439,7 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalVariableDeclaration declaration = lvalue.declaration;
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      declaration.variable.astVariable.initializer = null;
+      declaration.variable.updateInitializer(null);
       declaration.variable.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
@@ -8460,7 +8464,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // Coverage-ignore-block(suite): Not run.
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      lvalue.variable.astVariable.initializer = null;
+      lvalue.variable.updateInitializer(null);
       lvalue.variable.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.

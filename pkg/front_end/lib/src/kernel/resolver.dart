@@ -1391,7 +1391,7 @@ class Resolver {
       int declaredParameterIndex = 0;
       for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
         if (parameter.isExtensionThis) continue;
-        Expression? defaultValue = parameter.variable.astVariable.defaultValue;
+        Expression? defaultValue = parameter.variable.defaultValue;
         bool inferDefaultValue;
         if (parameter.isSuperInitializingFormal) {
           // Super-parameters can inherit the default value from the super
@@ -1410,17 +1410,16 @@ class Resolver {
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
-            InternalVariable originParameter = parameter.variable;
+            InternalFunctionParameter originParameter = parameter.variable;
             defaultValue = context.typeInferrer.inferParameterDefaultValue(
               fileUri: fileUri,
               defaultValue: defaultValue,
               declaredType: originParameter.type,
               hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
             );
-            originParameter.astVariable.initializer = defaultValue
-              ..parent = originParameter.astVariable;
+            originParameter.updateDefaultValue(defaultValue);
             if (defaultValue is InvalidExpression) {
-              originParameter.isErroneouslyInitialized = true;
+              originParameter.hasErroneousDefaultValue = true;
             }
             parameter.defaultValueWasInferred = true;
           }

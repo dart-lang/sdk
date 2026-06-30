@@ -698,7 +698,7 @@ class Cascade extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable.astVariable);
+    printer.writeVariableInitialization(variable._astVariable);
     printer.write(' in cascade {');
     printer.incIndentation();
     for (Expression expression in expressions) {
@@ -711,7 +711,7 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableName(variable.astVariable));
+    printer.write(printer.getVariableName(variable._astVariable));
   }
 }
 
@@ -754,7 +754,7 @@ class AnonymousMethodExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable.astVariable);
+    printer.writeVariableInitialization(variable._astVariable);
     printer.write(' in ');
     printer.writeExpression(body);
   }
@@ -799,7 +799,7 @@ class AnonymousMethodBlock extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable.astVariable);
+    printer.writeVariableInitialization(variable._astVariable);
     printer.write(' in ');
     printer.writeStatement(body);
   }
@@ -835,7 +835,7 @@ class DeferredCheck extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable.astVariable);
+    printer.writeVariableInitialization(variable._astVariable);
     printer.write(' in ');
     printer.writeExpression(expression);
   }
@@ -1192,7 +1192,7 @@ class ReturnStatementImpl extends ReturnStatement {
 
 class InternalLocalVariable extends InternalVariable {
   @override
-  LocalVariable astVariable;
+  LocalVariable _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1204,7 +1204,7 @@ class InternalLocalVariable extends InternalVariable {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1217,19 +1217,13 @@ class InternalLocalVariable extends InternalVariable {
   }
 
   @override
+  LocalVariable get astVariable => _astVariable;
+
+  @override
   bool get isAssignable {
     if (isStaticLate) return true;
     return super.isAssignable;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(VariableVisitor<R> v) => v.visitLocalVariable(astVariable);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
-      v.visitLocalVariable(astVariable, arg);
 
   @override
   String toString() {
@@ -1239,7 +1233,7 @@ class InternalLocalVariable extends InternalVariable {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1248,16 +1242,16 @@ class InternalLocalVariable extends InternalVariable {
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
-    if (astVariable.initializer != null) {
+    if (_astVariable.initializer != null) {
       printer.write(' = ');
-      printer.writeExpression(astVariable.initializer!);
+      printer.writeExpression(_astVariable.initializer!);
     }
   }
 }
 
 class InternalLateVariable extends InternalVariable {
   @override
-  LateVariable astVariable;
+  LateVariable _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1269,7 +1263,7 @@ class InternalLateVariable extends InternalVariable {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1281,19 +1275,13 @@ class InternalLateVariable extends InternalVariable {
   }
 
   @override
+  LateVariable get astVariable => _astVariable;
+
+  @override
   bool get isAssignable {
     if (isStaticLate) return true;
     return super.isAssignable;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(VariableVisitor<R> v) => v.visitLateVariable(astVariable);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
-      v.visitLateVariable(astVariable, arg);
 
   @override
   String toString() {
@@ -1303,7 +1291,7 @@ class InternalLateVariable extends InternalVariable {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1312,9 +1300,9 @@ class InternalLateVariable extends InternalVariable {
     if (modifiers.isNotEmpty) {
       printer.write("[${modifiers.join(",")}]");
     }
-    if (astVariable.initializer != null) {
+    if (_astVariable.initializer != null) {
       printer.write(' = ');
-      printer.writeExpression(astVariable.initializer!);
+      printer.writeExpression(_astVariable.initializer!);
     }
   }
 }
@@ -1323,10 +1311,13 @@ sealed class InternalFunctionParameter extends InternalVariable {
   @override
   FunctionParameter get astVariable;
 
-  bool get hasErroneousDefaultValue => astVariable.hasErroneousDefaultValue;
+  @override
+  FunctionParameter get _astVariable;
+
+  bool get hasErroneousDefaultValue => _astVariable.hasErroneousDefaultValue;
 
   void set hasErroneousDefaultValue(bool value) {
-    astVariable.hasErroneousDefaultValue = value;
+    _astVariable.hasErroneousDefaultValue = value;
   }
 
   @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
@@ -1336,11 +1327,30 @@ sealed class InternalFunctionParameter extends InternalVariable {
   @Deprecated('Use InternalFunctionParameter.hasErroneousDefaultValue instead.')
   @override
   void set isErroneouslyInitialized(bool value);
+
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredDefaultValue => _astVariable.hasDeclaredDefaultValue;
+
+  Expression? get defaultValue => _astVariable.defaultValue;
+
+  void updateDefaultValue(Expression? value) {
+    _astVariable.defaultValue = value?..parent = _astVariable;
+  }
+
+  @Deprecated('Use InternalFunctionParameter.defaultValue instead.')
+  @override
+  Expression? get initializer => _astVariable.initializer;
+
+  @Deprecated('Use InternalFunctionParameter.updateDefaultValue instead.')
+  @override
+  void updateInitializer(Expression? value) {
+    _astVariable.initializer = value?..parent = _astVariable;
+  }
 }
 
 class InternalPositionalParameter extends InternalFunctionParameter {
   @override
-  PositionalParameter astVariable;
+  PositionalParameter _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1352,7 +1362,7 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1362,13 +1372,7 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(VariableVisitor<R> v) => v.visitPositionalParameter(astVariable);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
-      v.visitPositionalParameter(astVariable, arg);
+  PositionalParameter get astVariable => _astVariable;
 
   @override
   String toString() {
@@ -1378,7 +1382,7 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1388,27 +1392,11 @@ class InternalPositionalParameter extends InternalFunctionParameter {
       printer.write("[${modifiers.join(",")}]");
     }
   }
-
-  // Coverage-ignore(suite): Not run.
-  Expression? get defaultValue => astVariable.defaultValue;
-
-  // Coverage-ignore(suite): Not run.
-  void set defaultValue(Expression? value) {
-    astVariable.defaultValue = value;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
-
-  // Coverage-ignore(suite): Not run.
-  void set hasDeclaredDefaultValue(bool value) {
-    astVariable.hasDeclaredDefaultValue = value;
-  }
 }
 
 class InternalNamedParameter extends InternalFunctionParameter {
   @override
-  NamedParameter astVariable;
+  NamedParameter _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1420,7 +1408,7 @@ class InternalNamedParameter extends InternalFunctionParameter {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1430,13 +1418,7 @@ class InternalNamedParameter extends InternalFunctionParameter {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(VariableVisitor<R> v) => v.visitNamedParameter(astVariable);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
-      v.visitNamedParameter(astVariable, arg);
+  NamedParameter get astVariable => _astVariable;
 
   @override
   String toString() {
@@ -1446,7 +1428,7 @@ class InternalNamedParameter extends InternalFunctionParameter {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1458,23 +1440,12 @@ class InternalNamedParameter extends InternalFunctionParameter {
   }
 
   // Coverage-ignore(suite): Not run.
-  Expression? get defaultValue => astVariable.defaultValue;
-
-  // Coverage-ignore(suite): Not run.
-  void set defaultValue(Expression? value) {
-    astVariable.defaultValue = value;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
-
-  // Coverage-ignore(suite): Not run.
-  String get parameterName => astVariable.parameterName;
+  String get parameterName => _astVariable.parameterName;
 }
 
 class InternalCatchVariable extends InternalVariable {
   @override
-  CatchVariable astVariable;
+  CatchVariable _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1486,7 +1457,7 @@ class InternalCatchVariable extends InternalVariable {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1496,14 +1467,12 @@ class InternalCatchVariable extends InternalVariable {
   }
 
   @override
-  String toString() {
-    return "InternalCatchVariable(${toStringInternal()})";
-  }
+  CatchVariable get astVariable => _astVariable;
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1515,12 +1484,17 @@ class InternalCatchVariable extends InternalVariable {
   }
 
   // Coverage-ignore(suite): Not run.
-  String get catchVariableName => astVariable.catchVariableName;
+  String get catchVariableName => _astVariable.catchVariableName;
+
+  @override
+  String toString() {
+    return "InternalCatchVariable(${toStringInternal()})";
+  }
 }
 
 class InternalAnonymousMethodParameter extends InternalVariable {
   @override
-  SyntheticVariable astVariable;
+  SyntheticVariable _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1535,7 +1509,7 @@ class InternalAnonymousMethodParameter extends InternalVariable {
   final bool isWildcard;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1551,9 +1525,12 @@ class InternalAnonymousMethodParameter extends InternalVariable {
   }
 
   @override
+  SyntheticVariable get astVariable => _astVariable;
+
+  @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1563,15 +1540,11 @@ class InternalAnonymousMethodParameter extends InternalVariable {
       printer.write("[${modifiers.join(",")}]");
     }
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String get name => astVariable.cosmeticName!;
 }
 
 class InternalSyntheticVariable extends InternalVariable {
   @override
-  SyntheticVariable astVariable;
+  SyntheticVariable _astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1583,7 +1556,7 @@ class InternalSyntheticVariable extends InternalVariable {
   final bool isLocalFunction;
 
   new({
-    required this.astVariable,
+    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
@@ -1598,9 +1571,12 @@ class InternalSyntheticVariable extends InternalVariable {
   }
 
   @override
+  SyntheticVariable get astVariable => _astVariable;
+
+  @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(astVariable);
+    printer.writeExpressionVariable(_astVariable);
     List<String> modifiers = [
       if (forSyntheticToken) "forSyntheticToken",
       if (isImplicitlyTyped) "isImplicitlyTyped",
@@ -1624,6 +1600,8 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   /// * checking semantic properties of an AST node, such as [isExtensionThis]
   ///   in `lowering_predicates.dart`.
   Variable get astVariable;
+
+  Variable get _astVariable;
 
   bool get forSyntheticToken;
 
@@ -1674,78 +1652,92 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   /// lowering is enabled.
   String? lateName;
 
-  String? get cosmeticName => astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.cosmeticName;
 
   void set cosmeticName(String? value) {
-    astVariable.cosmeticName = value;
+    _astVariable.cosmeticName = value;
   }
 
-  bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
 
   void set hasDeclaredInitializer(bool value) {
-    astVariable.hasDeclaredInitializer = value;
+    _astVariable.hasDeclaredInitializer = value;
   }
 
-  bool get isConst => astVariable.isConst;
+  bool get isConst => _astVariable.isConst;
 
   void set isConst(bool value) {
-    astVariable.isConst = value;
+    _astVariable.isConst = value;
   }
 
   // Coverage-ignore(suite): Not run.
   bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
 
   void set isErroneouslyInitialized(bool value) {
-    astVariable.isErroneouslyInitialized = value;
+    _astVariable.isErroneouslyInitialized = value;
   }
 
-  bool get isFinal => astVariable.isFinal;
+  bool get isFinal => _astVariable.isFinal;
 
   void set isFinal(bool value) {
-    astVariable.isFinal = value;
+    _astVariable.isFinal = value;
   }
 
-  bool get isLate => astVariable.isLate;
+  bool get isLate => _astVariable.isLate;
 
   void set isLate(bool value) {
-    astVariable.isLate = value;
+    _astVariable.isLate = value;
   }
 
   // Coverage-ignore(suite): Not run.
-  bool get isLowered => astVariable.isLowered;
+  bool get isLowered => _astVariable.isLowered;
 
   void set isLowered(bool value) {
-    astVariable.isLowered = value;
+    _astVariable.isLowered = value;
   }
 
-  bool get isRequired => astVariable.isRequired;
+  bool get isRequired => _astVariable.isRequired;
 
   // Coverage-ignore(suite): Not run.
   void set isRequired(bool value) {
-    astVariable.isRequired = value;
+    _astVariable.isRequired = value;
   }
 
-  bool get isSynthesized => astVariable.isSynthesized;
+  bool get isSynthesized => _astVariable.isSynthesized;
 
   // Coverage-ignore(suite): Not run.
   void set isSynthesized(bool value) {
-    astVariable.isSynthesized = value;
+    _astVariable.isSynthesized = value;
   }
 
-  bool get isWildcard => astVariable.isWildcard;
+  bool get isWildcard => _astVariable.isWildcard;
 
   // Coverage-ignore(suite): Not run.
   void set isWildcard(bool value) {
-    astVariable.isWildcard = value;
+    _astVariable.isWildcard = value;
   }
 
-  DartType get type => astVariable.type;
+  DartType get type => _astVariable.type;
 
   void set type(DartType value) {
-    astVariable.type = value;
+    _astVariable.type = value;
   }
 
-  bool get isAssignable => astVariable.isAssignable;
+  bool get isAssignable => _astVariable.isAssignable;
+
+  Expression? get initializer => _astVariable.initializer;
+
+  void updateInitializer(Expression? value) {
+    _astVariable.initializer = value?..parent = _astVariable;
+  }
+
+  void addAnnotation(Expression annotation) {
+    _astVariable.addAnnotation(annotation);
+  }
+
+  void clearAnnotations() {
+    _astVariable.clearAnnotations();
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1757,14 +1749,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   // Coverage-ignore(suite): Not run.
   R accept1<R, A>(VariableVisitor1<R, A> v, A arg) {
     unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  String? get name => astVariable.cosmeticName;
-
-  // Coverage-ignore(suite): Not run.
-  void set name(String? value) {
-    astVariable.cosmeticName = value;
   }
 }
 
@@ -5534,8 +5518,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
     required int forOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
-    //InternalVariable internalLoopVariable = variableDeclaration.variable;
-    Variable loopVariable = variableDeclaration.variable.astVariable;
+    Variable loopVariable = variableDeclaration.variable._astVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
     if (variableDeclaration.variable.isImplicitlyTyped) {
@@ -5599,7 +5582,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableInitialization(
-      variableDeclaration.variable.astVariable,
+      variableDeclaration.variable._astVariable,
       includeInitializer: false,
       isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
     );
@@ -5634,7 +5617,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
       InternalVariableDeclaration variableDeclaration = variableDeclarations[i];
       if (i == 0) {
         printer.writeVariableInitialization(
-          variableDeclaration.variable.astVariable,
+          variableDeclaration.variable._astVariable,
           includeModifiersAndType: true,
           includeInitializer: false,
           isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
@@ -5642,7 +5625,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
       } else {
         printer.write(', ');
         printer.writeVariableInitialization(
-          variableDeclaration.variable.astVariable,
+          variableDeclaration.variable._astVariable,
           includeModifiersAndType: false,
           includeInitializer: false,
         );
@@ -5666,7 +5649,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
             in variableDeclarations)
           extern.createVariableStatement(
             extern.createVariableDeclaration(
-              variableDeclaration.variable.astVariable,
+              variableDeclaration.variable._astVariable,
               fileOffset: variableDeclaration.fileOffset,
             ),
           ),
@@ -6354,11 +6337,11 @@ class InternalFunctionNode {
       // TODO(johnniwinther): Can we avoid creating a list of ast variables?
       positionalParameters: [
         for (InternalPositionalParameter parameter in positionalParameters)
-          parameter.astVariable,
+          parameter._astVariable,
       ],
       namedParameters: [
         for (InternalNamedParameter parameter in namedParameters)
-          parameter.astVariable,
+          parameter._astVariable,
       ],
       nullability: Nullability.nonNullable,
       requiredParameterCount: requiredParameterCount,
@@ -7796,14 +7779,14 @@ class InternalCatch extends TreeNode with InternalTreeNode {
       }
       printer.write('catch (');
       printer.writeVariableInitialization(
-        exception!.astVariable,
+        exception!._astVariable,
         includeModifiersAndType: false,
         includeInitializer: false,
       );
       if (stackTrace != null) {
         printer.write(', ');
         printer.writeVariableInitialization(
-          stackTrace!.astVariable,
+          stackTrace!._astVariable,
           includeModifiersAndType: false,
         );
       }
@@ -7910,7 +7893,7 @@ class InternalForStatement extends InternalStatement implements LoopStatement {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variables[index].variable.astVariable,
+        variables[index].variable._astVariable,
         includeModifiersAndType: index == 0,
       );
     }
@@ -7953,7 +7936,7 @@ class InternalLet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable.astVariable);
+    printer.writeVariableInitialization(variable._astVariable);
     printer.write(' in ');
     printer.writeExpression(body);
   }
@@ -7966,14 +7949,18 @@ class InternalLet extends InternalExpression {
 
 class InternalThisVariable extends InternalVariable {
   @override
-  final ThisVariable astVariable;
+  final ThisVariable _astVariable;
 
-  new({required this.astVariable, required int fileOffset}) {
+  new({required this._astVariable, required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
+
+  @override
+  ThisVariable get astVariable => _astVariable;
+
   @override
   // Coverage-ignore(suite): Not run.
-  String get cosmeticName => astVariable.cosmeticName;
+  String get cosmeticName => _astVariable.cosmeticName;
 
   @override
   // Coverage-ignore(suite): Not run.

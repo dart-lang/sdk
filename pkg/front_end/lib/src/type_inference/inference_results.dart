@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../kernel/external_ast_helper.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/internal_ast.dart';
 import '../source/check_helper.dart';
 import 'inference_visitor_base.dart';
@@ -617,18 +618,22 @@ class NullAwareGuard {
     // for non-nullable receivers in cascades.
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
-        ? new NullLiteral()
+        ? extern.createNullLiteral(fileOffset: TreeNode.noOffset)
         : createVariableGet(_nullAwareVariable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
-    ConditionalExpression condition = new ConditionalExpression(
+    ConditionalExpression condition = extern.createConditionalExpression(
       equalsNull,
       typeSafeIfNullBranch,
       nullAwareAction,
-      inferredType,
-    )..fileOffset = _nullAwareFileOffset;
-    return new Let(_nullAwareVariable, condition)
-      ..fileOffset = _nullAwareFileOffset;
+      staticType: inferredType,
+      fileOffset: _nullAwareFileOffset,
+    );
+    return extern.createLet(
+      _nullAwareVariable,
+      condition,
+      fileOffset: _nullAwareFileOffset,
+    );
   }
 
   @override
