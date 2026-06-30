@@ -1350,13 +1350,25 @@ const LinterLintWithoutArguments enableNullSafety = LinterLintWithoutArguments(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments eolAtEndOfFile = LinterLintWithoutArguments(
-  name: 'eol_at_end_of_file',
-  problemMessage: "Missing a newline at the end of the file.",
-  correctionMessage: "Try adding a newline at the end of the file.",
-  uniqueName: 'eol_at_end_of_file',
-  expectedTypes: [],
-);
+const LinterLintWithoutArguments eolAtEndOfFileMissing =
+    LinterLintWithoutArguments(
+      name: 'eol_at_end_of_file',
+      problemMessage: "Missing a newline at the end of the file.",
+      correctionMessage: "Try adding a newline at the end of the file.",
+      uniqueName: 'eol_at_end_of_file_missing',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const LinterLintWithoutArguments eolAtEndOfFileTooMany =
+    LinterLintWithoutArguments(
+      name: 'eol_at_end_of_file',
+      problemMessage: "Too many newlines at the end of the file.",
+      correctionMessage:
+          "Try removing the extra newlines at the end of the file.",
+      uniqueName: 'eol_at_end_of_file_too_many',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const LinterLintWithoutArguments
