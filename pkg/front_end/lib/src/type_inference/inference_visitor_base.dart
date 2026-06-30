@@ -4178,15 +4178,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
-      expressionInfo = flowAnalysis.thisOrSuper(
-        new SharedTypeView(variable.type),
-        isSuper: true,
-      );
       promotedType =
           flowAnalysis.promotedTypeOfThis
                   // Coverage-ignore(suite): Not run.
                   ?.unwrapTypeView()
               as DartType?;
+      expressionInfo = flowAnalysis.thisOrSuper(
+        new SharedTypeView(promotedType ?? variable.type),
+        isSuper: true,
+      );
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;
