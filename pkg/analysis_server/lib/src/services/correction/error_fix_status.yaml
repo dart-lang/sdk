@@ -2191,9 +2191,9 @@ empty_container_bodies:
 empty_statements:
   status: hasFix
 eol_at_end_of_file_missing:
-  status: needsEvaluation
+  status: hasFix
 eol_at_end_of_file_too_many:
-  status: needsEvaluation
+  status: hasFix
 erase_dart_type_extension_types:
   status: needsEvaluation
 exhaustive_cases:
