@@ -5,6 +5,7 @@
 // VMOptions=--no-enable-fast-object-copy
 // VMOptions=--enable-fast-object-copy
 
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ffi';
@@ -47,6 +48,8 @@ Future main(List<String> args) async {
     final rp = ReceivePort();
     final sendPort = rp.sendPort;
 
+    Timeline.startSync("TestCopies");
+
     sendPort.send(Object());
     sendPort.send(
       List<dynamic>.filled(2, null)
@@ -55,18 +58,20 @@ Future main(List<String> args) async {
     );
     sendPort.send(Uint8List(11));
 
+    Timeline.finishSync();
+
     rp.close();
     return;
   }
 
-  final timelineEvents = await runAndCollectTimeline('Isolate', ['--child']);
+  final timelineEvents = await runAndCollectTimeline('Isolate,Dart', [
+    '--child',
+  ]);
   final mainIsolateId = findMainIsolateId(timelineEvents);
   final copyOperations = getCopyOperations(timelineEvents, mainIsolateId);
 
-  // We're only interested in the last 3 operations (which are done by the
-  // application).
-  copyOperations.removeRange(0, copyOperations.length - 3);
-
+  print(copyOperations);
+  Expect.equals(3, copyOperations.length);
   Expect.equals(1, copyOperations[0].objectsCopied);
   Expect.equals(3, copyOperations[1].objectsCopied);
   Expect.equals(1, copyOperations[2].objectsCopied);
@@ -86,6 +91,7 @@ List<ObjectCopyOperation> getCopyOperations(
   final copyOperations = <ObjectCopyOperation>[];
 
   TimelineEvent? start = null;
+  bool underMarker = false;
 
   events.sort((a, b) {
     if (a.tid == b.tid) return a.ts.compareTo(b.ts);
@@ -93,6 +99,12 @@ List<ObjectCopyOperation> getCopyOperations(
   });
   for (final e in events) {
     if (e.isolateId != isolateId) continue;
+
+    print(e.name);
+    if (e.name == 'TestCopies' && e.isStart) underMarker = true;
+    if (e.name == 'TestCopies' && e.isEnd) underMarker = false;
+    if (!underMarker) continue;
+
     if (e.name != 'CopyMutableObjectGraph') continue;
 
     if (start != null) {
