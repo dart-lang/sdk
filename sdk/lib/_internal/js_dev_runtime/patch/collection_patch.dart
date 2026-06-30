@@ -21,39 +21,6 @@ import 'dart:_js_helper'
         notNull,
         putLinkedMapKey;
 
-@patch
-class HashMap<K, V> {
-  @patch
-  factory HashMap({
-    bool Function(K, K)? equals,
-    int Function(K)? hashCode,
-    bool Function(dynamic)? isValidKey,
-  }) {
-    if (isValidKey == null) {
-      if (hashCode == null) {
-        if (equals == null) {
-          if (identical(K, String) || identical(K, int)) {
-            return IdentityMap<K, V>();
-          }
-          return LinkedMap<K, V>();
-        }
-        hashCode = dart.hashCode;
-      } else if (identical(identityHashCode, hashCode) &&
-          identical(identical, equals)) {
-        return IdentityMap<K, V>();
-      }
-      return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
-    }
-    return CustomKeyHashMap<K, V>(
-      equals ?? dart.equals,
-      hashCode ?? dart.hashCode,
-      isValidKey,
-    );
-  }
-
-  @patch
-  factory HashMap.identity() = IdentityMap<K, V>;
-}
 
 @patch
 class LinkedHashMap<K, V> {
@@ -89,38 +56,6 @@ class LinkedHashMap<K, V> {
   factory LinkedHashMap.identity() = IdentityMap<K, V>;
 }
 
-@patch
-class HashSet<E> {
-  @patch
-  factory HashSet({
-    bool Function(E, E)? equals,
-    int Function(E)? hashCode,
-    bool Function(dynamic)? isValidKey,
-  }) {
-    if (isValidKey == null) {
-      if (hashCode == null) {
-        if (equals == null) {
-          if (identical(E, String) || identical(E, int)) {
-            return IdentitySet<E>();
-          }
-          return LinkedSet<E>();
-        }
-      } else if (identical(identityHashCode, hashCode) &&
-          identical(identical, equals)) {
-        return IdentitySet<E>();
-      }
-      return CustomHashSet<E>(equals ?? dart.equals, hashCode ?? dart.hashCode);
-    }
-    return CustomKeyHashSet<E>(
-      equals ?? dart.equals,
-      hashCode ?? dart.hashCode,
-      isValidKey,
-    );
-  }
-
-  @patch
-  factory HashSet.identity() = IdentitySet<E>;
-}
 
 @patch
 class LinkedHashSet<E> {

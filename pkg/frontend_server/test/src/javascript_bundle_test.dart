@@ -33,8 +33,6 @@ final Map<String, Map<String, List<String>>> additionalRequiredClasses = {
     'ListBase': [],
     'MapBase': [],
     'LinkedHashSet': [],
-    '_HashSet': [],
-    '_IdentityHashSet': [],
   },
   'dart:math': {'Rectangle': []},
   'dart:html': {},
