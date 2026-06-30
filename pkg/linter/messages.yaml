@@ -5462,9 +5462,10 @@ LinterLintCode:
       b() {
       }
       ```
-  eolAtEndOfFile:
+  eolAtEndOfFileMissing:
     type: lint
     parameters: none
+    sharedName: eolAtEndOfFile
     problemMessage: "Missing a newline at the end of the file."
     correctionMessage: "Try adding a newline at the end of the file."
     state:
@@ -5486,6 +5487,13 @@ LinterLintCode:
       }
           <-- newline
       ```
+  eolAtEndOfFileTooMany:
+    type: lint
+    parameters: none
+    sharedName: eolAtEndOfFile
+    problemMessage: "Too many newlines at the end of the file."
+    correctionMessage: "Try removing the extra newlines at the end of the file."
+    hasPublishedDocs: false
   eraseDartTypeExtensionTypes:
     # TODO(nshahan): Update.
     type: lint
