@@ -170,6 +170,7 @@ Cage::~Cage() {
   size_ = 0;
   pages_ = nullptr;
   minimum_free_page_id_ = 0;
+  delete reservation_;
 }
 
 void* Cage::GetRegion() {

@@ -368,17 +368,23 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-asan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-(asan|hwasan|lsan|tsan|ubsan)-android-(debug|product|release)-(x64|x64c|arm64|arm64c)": {},
+      "vm-aot-(asan|hwasan|lsan|tsan|ubsan)-android-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+      "options": {
+        "gen-snapshot-format": "elf"
+      }
+    },
+    "vm-asan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-ubsan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm64|simriscv64)": {},
+    "vm-ubsan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-(asan|lsan|tsan|ubsan)-mac-(debug|product|release)-(x64|arm64|simarm64)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
     },
-    "vm-aot-asan-(fuchsia|linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-asan-(fuchsia|linux|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -393,12 +399,12 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-tsan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+    "vm-aot-tsan-linux-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm64|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-ubsan-(fuchsia|linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-ubsan-(fuchsia|linux|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -861,6 +867,41 @@
           ],
           "fileset": "android",
           "shards": 4
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-hwasan-android-release-x64c",
+        "vm-ubsan-android-release-x64c"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm precomp builders on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
+        },
+        {
+          "name": "vm jit tests",
+          "arguments": [
+            "-nvm-${sanitizer}-android-${mode}-${arch}",
+            "ffi",
+            "standalone/io/"
+          ]
+        },
+        {
+          "name": "vm aot tests",
+          "arguments": [
+            "-nvm-aot-${sanitizer}-android-${mode}-${arch}",
+            "ffi",
+            "standalone/io/"
+          ]
         }
       ]
     },

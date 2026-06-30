@@ -10,7 +10,11 @@ import 'package:expect/expect.dart';
 
 import 'reload_utils.dart';
 
-final N = runningInSimulator ? 2 : math.min(20, Platform.numberOfProcessors);
+final N = runningInSimulator
+    ? 2
+    : Platform.isWindows
+    ? math.min(8, Platform.numberOfProcessors)
+    : math.min(20, Platform.numberOfProcessors);
 
 main() async {
   if (!currentVmSupportsReload) return;

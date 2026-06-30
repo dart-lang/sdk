@@ -85,10 +85,14 @@ final class DartDevelopmentServiceManager {
         serveDevTools: frontend.config.serveDevTools,
         serviceUri: ddsBindUri,
       );
-      unawaited(_launcher!.done.then((_) => _cleanup()));
+      // We don't monitor _launcher.done (process exit) here because DDS is
+      // spawned in detached mode, so its exitCode future won't complete.
+      // Instead, we rely on the WebSocket connection closing (client.done)
+      // to detect DDS disconnection in _yieldControlToDDS.
       _logger.info('DDS is served at $uri');
     } on ExistingDartDevelopmentServiceException catch (e) {
       _logger.warning('A DDS instance already exists at ${e.ddsUri}.');
+      rethrow;
     } on DartDevelopmentServiceException catch (e) {
       switch (e.errorCode) {
         case DartDevelopmentServiceException.connectionError:
@@ -96,6 +100,7 @@ final class DartDevelopmentServiceManager {
         case DartDevelopmentServiceException.failedToStartError:
           _logger.warning('Failed to start DDS: ${e.message}');
       }
+      rethrow;
     }
   }
 
@@ -136,11 +141,11 @@ final class DartDevelopmentServiceManager {
     json_rpc.Parameters params,
     Client client,
   ) async {
-    var uri = _launcher?.uri;
+    var uri = _launcher?.uri ?? frontend.clientConnectionController.redirectUri;
     if (uri != null) {
       RpcException.featureDisabled.throwException(
         data: {
-          'ddsUri': uri,
+          'ddsUri': uri.toString(),
           'details': 'A DDS instance is already connected at $uri.',
         },
       );

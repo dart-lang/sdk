@@ -92,8 +92,7 @@ class DartRuntimeService {
     scheme: 'http',
     pathSegments: [
       ...uri.pathSegments,
-      // Adds a trailing '/' for backwards compatibility.
-      '',
+      if (uri.pathSegments.isEmpty || uri.pathSegments.last.isNotEmpty) '',
     ],
   );
 

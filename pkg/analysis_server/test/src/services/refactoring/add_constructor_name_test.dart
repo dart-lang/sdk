@@ -350,7 +350,7 @@ void f() {
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var completedCommand = await completeInteractiveForm(action.command!, {
       'name': 'customName',
@@ -372,7 +372,7 @@ void f() {
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var command = action.asCommand;
     var interactiveCommand = await resolveCommand(

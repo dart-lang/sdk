@@ -3,6 +3,8 @@
 - Avoid an issue where one plugin's configuration, as specified in analysis
   options, would bleed into another's. This effectively would remove one or
   more plugin configurations.
+- Fix an issue with Dart SDKs <= 3.12.x, where `dart analyze` could spin
+  indefinitely.
 - Require version `14.1.0-dev` of the `analyzer` package.
 - Require version `0.14.14-dev` of the `analyzer_plugin` package.
 - Allows fixes to be applied to the whole file with `multiFixKind` and the valid `applicability` options.

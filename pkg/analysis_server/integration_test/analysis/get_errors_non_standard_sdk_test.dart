@@ -41,6 +41,15 @@ class AnalysisDomainGetErrorsTest
       );
     }
 
+    String vmServiceSnapshotPathIn(String sdkPath) {
+      return path.join(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart_runtime_service_vm.dart.snapshot',
+      );
+    }
+
     var sdkPath = path.join(sourceDirectory.path, 'sdk');
 
     var standardSdkPath = path.dirname(
@@ -58,6 +67,11 @@ class AnalysisDomainGetErrorsTest
 
     File(serverSnapshotPathIn(standardSdkPath))
         .copySync(serverSnapshotPathIn(sdkPath));
+
+    var vmServiceSnapshot = File(vmServiceSnapshotPathIn(standardSdkPath));
+    if (vmServiceSnapshot.existsSync()) {
+      vmServiceSnapshot.copySync(vmServiceSnapshotPathIn(sdkPath));
+    }
 
     Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);

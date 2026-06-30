@@ -224,11 +224,68 @@ bool b = false;
   Future<void> test_handleAnalysisSetContextRoots() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await _setRoots();
-    var paramsQueue = _analysisErrorsParams;
+
+    var notifications = channel.notifications.asBroadcastStream();
+    var statusQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_STATUS)
+          .map((n) => protocol.PluginStatusParams.fromNotification(n)),
+    );
+    var paramsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n)),
+    );
+
+    var setRootsFuture = _setRoots();
+
+    var status1 = await statusQueue.next;
+    expect(status1.analysis!.isAnalyzing, isTrue);
+
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
+
+    var status2 = await statusQueue.next;
+    expect(status2.analysis!.isAnalyzing, isFalse);
+
+    await setRootsFuture;
+  }
+
+  Future<void> test_handleAnalysisSetContextRoots_only() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var notifications = channel.notifications.asBroadcastStream();
+    var statusQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_STATUS)
+          .map((n) => protocol.PluginStatusParams.fromNotification(n)),
+    );
+    var paramsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n)),
+    );
+
+    // Rather than using `_setRoots`, this test emulates Dart Analysis Server
+    // <= 3.12.0, where only `protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS` is
+    // sent.
+    var requestFuture = channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var status1 = await statusQueue.next;
+    expect(status1.analysis!.isAnalyzing, isTrue);
+
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+
+    var status2 = await statusQueue.next;
+    expect(status2.analysis!.isAnalyzing, isFalse);
+
+    await requestFuture;
   }
 
   Future<void> test_handleEditGetAssists() async {
@@ -976,12 +1033,13 @@ mixin PluginServerTestMixin on PluginServerTestBase {
   }
 
   Future<void> _setRoots() async {
-    await channel.sendRequest(
+    var future1 = channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
-    await channel.sendRequest(
+    var future2 = channel.sendRequest(
       protocol.AnalysisSetAnalysisRootsParams([contextRoot.root], []),
     );
+    await Future.wait([future1, future2]);
   }
 }
 
