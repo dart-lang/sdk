@@ -3349,6 +3349,7 @@ void Assembler::TsanLoadAcquire(Register dst,
       lx(TMP2, compiler::Address(
                    THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
       break;
+    case kFourBytes:
     case kUnsignedFourBytes:
       lx(TMP2, compiler::Address(
                    THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
@@ -3362,7 +3363,7 @@ void Assembler::TsanLoadAcquire(Register dst,
   LoadImmediate(TMP2, VMTag::kDartTagId);
   sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
 
-  MoveRegister(dst, A0);
+  ExtendValue(dst, A0, size);
 
   subi(SP, FP, registers.SpillSize() + 4 * target::kWordSize);
   PopRegisters(registers);
