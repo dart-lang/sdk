@@ -414,13 +414,6 @@ def ProcessOptions(args):
        (socket.getfqdn().endswith('.corp.google.com') or
         socket.getfqdn().endswith('.c.googlers.com')):
         print('You can speed up your build by following: go/dart-rbe')
-    old_rbe_cfg = 'win-intel.cfg' if HOST_OS == 'win32' else 'linux-intel.cfg'
-    new_rbe_cfg = 'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg'
-    if os.environ.get('RBE_cfg') == os.path.join(os.getcwd(), 'build', 'rbe',
-                                                 old_rbe_cfg):
-        print(f'warning: {old_rbe_cfg} is deprecated, please update your '
-              f'RBE_cfg variable to {new_rbe_cfg} use RBE=1 instead per '
-              'go/dart-rbe')
     return True
 
 
