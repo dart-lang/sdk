@@ -99,7 +99,7 @@ class CreateField extends CreateFieldOrGetter {
         var bound = target.typeParameterCorrespondingTo(fieldType);
         builder.writeFieldDeclaration(
           _fieldName,
-          isFinal: targetNode is EnumDeclaration,
+          isFinal: targetNode is EnumDeclaration && !staticModifier,
           isStatic: staticModifier,
           nameGroupName: 'NAME',
           type: bound ?? fieldType,
@@ -174,7 +174,10 @@ class CreateField extends CreateFieldOrGetter {
         if (targetElement == null) {
           return;
         }
-        staticModifier = targetElement.kind == ElementKind.CLASS;
+        staticModifier =
+            targetElement.kind == .CLASS ||
+            targetElement.kind == .ENUM ||
+            targetElement.kind == .MIXIN;
       }
     } else if (parent is DotShorthandPropertyAccess) {
       targetClassElement = computeDotShorthandContextTypeElement(
@@ -195,9 +198,11 @@ class CreateField extends CreateFieldOrGetter {
     var fieldTypeParent = fieldTypeNode.parent;
     if (targetClassElement is EnumElement &&
         fieldTypeParent is AssignmentExpression &&
-        fieldTypeNode == fieldTypeParent.leftHandSide) {
+        fieldTypeNode == fieldTypeParent.leftHandSide &&
+        !staticModifier) {
       // Any field on an enum must be final; creating a final field does not
-      // make sense when seen in an assignment expression.
+      // make sense when seen in an assignment expression. Only static fields
+      // could be assigned.
       return;
     }
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);

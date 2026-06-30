@@ -468,6 +468,8 @@ void test(E e) {
     await assertHasFix(
       '''
 enum E {
+  ;
+
   int bar() {}
 }
 
@@ -526,6 +528,8 @@ void test() {
     await assertHasFix(
       '''
 enum E {
+  ;
+
   static int bar() {}
 }
 

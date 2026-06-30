@@ -33,6 +33,8 @@ int f(E e) {
     await assertHasFix(
       '''
 enum E {
+  ;
+
   final int a;
 }
 
@@ -40,11 +42,32 @@ int f(E e) {
   return e.a;
 }
 ''',
-      filter: (error) {
+      filter: (diagnostic) {
         // Filter to ignore enum_without_constants
-        return error.diagnosticCode == diag.undefinedGetter;
+        return diagnostic.diagnosticCode == diag.undefinedGetter;
       },
     );
+  }
+
+  Future<void> test_getter_static() async {
+    await resolveTestCode('''
+enum E { a }
+
+void f() {
+  int _ = E.test;
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static int test;
+}
+
+void f() {
+  int _ = E.test;
+}
+''');
   }
 
   Future<void> test_initializingFormal_dynamic() async {
@@ -104,6 +127,27 @@ enum E {
 ''');
   }
 
+  Future<void> test_setter_static() async {
+    await resolveTestCode('''
+enum E { a }
+
+void f() {
+  E.test = 0;
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static int test;
+}
+
+void f() {
+  E.test = 0;
+}
+''');
+  }
+
   Future<void> test_usedAsGetter() async {
     await resolveTestCode('''
 enum E {
@@ -141,7 +185,7 @@ E f() {
 enum E {
   one, two;
 
-  static final E a;
+  static E a;
 }
 
 E f() {
@@ -229,6 +273,23 @@ void f(M m) {
 ''');
   }
 
+  Future<void> test_getter_static() async {
+    await resolveTestCode('''
+mixin M {}
+void f() {
+  int _ = M.test;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static int test;
+}
+void f() {
+  int _ = M.test;
+}
+''');
+  }
+
   Future<void> test_setter_qualified_instance_hasField() async {
     await resolveTestCode('''
 mixin M {
@@ -254,6 +315,23 @@ mixin M {
 
 void f(M m) {
   m.test = 5;
+}
+''');
+  }
+
+  Future<void> test_setter_static() async {
+    await resolveTestCode('''
+mixin M {}
+void f() {
+  M.test = 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static int test;
+}
+void f() {
+  M.test = 0;
 }
 ''');
   }
@@ -296,7 +374,7 @@ A f() {
 enum A {
   ONE;
 
-  static final A test;
+  static A test;
 }
 A f() {
   return .test;
@@ -313,15 +391,17 @@ A f() {
 ''');
     await assertHasFix(
       '''
-enum A {;
-  static final A test;
+enum A {
+  ;
+
+  static A test;
 }
 A f() {
   return .test;
 }
 ''',
-      filter: (e) {
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+      filter: (diagnostic) {
+        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
       },
     );
   }
@@ -335,15 +415,16 @@ A f() {
 ''');
     await assertHasFix(
       '''
-enum A {;
-  static final A test;
+enum A {
+  ;
+  static A test;
 }
 A f() {
   return .test;
 }
 ''',
-      filter: (e) {
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+      filter: (diagnostic) {
+        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
       },
     );
   }
@@ -796,7 +877,16 @@ void f() {
   MyEnum.foo;
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+enum MyEnum {
+  AAA, BBB;
+
+  static var foo;
+}
+void f() {
+  MyEnum.foo;
+}
+''');
   }
 
   Future<void> test_initializingFormal_functionTyped() async {
