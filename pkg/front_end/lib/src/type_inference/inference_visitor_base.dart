@@ -2304,36 +2304,35 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    for (InternalVariable parameter in function.positionalParameters) {
+    for (InternalPositionalParameter parameter
+        in function.positionalParameters) {
       flowAnalysis.declare(
         parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter.astVariable);
-      if (parameter.astVariable.initializer != null) {
+      if (parameter.defaultValue != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.astVariable.initializer!,
+          parameter.defaultValue!,
           parameter.type,
         );
-        parameter.astVariable.initializer = initializerResult.expression
-          ..parent = parameter.astVariable;
+        parameter.updateDefaultValue(initializerResult.expression);
       }
     }
-    for (InternalVariable parameter in function.namedParameters) {
+    for (InternalNamedParameter parameter in function.namedParameters) {
       flowAnalysis.declare(
         parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter.astVariable);
-      if (parameter.astVariable.initializer != null) {
+      if (parameter.defaultValue != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.astVariable.initializer!,
+          parameter.defaultValue!,
           parameter.type,
         );
-        parameter.astVariable.initializer = initializerResult.expression
-          ..parent = parameter.astVariable;
+        parameter.updateDefaultValue(initializerResult.expression);
       }
     }
 
@@ -4171,8 +4170,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required DartType typeContext,
     required int nameOffset,
   }) {
-    VariableGet result = new VariableGet(variable.astVariable)
-      ..fileOffset = nameOffset;
+    VariableGet result = extern.createVariableGet(
+      variable.astVariable,
+      fileOffset: nameOffset,
+    );
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     ExpressionInfo? expressionInfo;
@@ -4214,7 +4215,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         flowAnalysis.getExpressionInfo(result),
       );
     } else {
-      resultExpression = result..variable = variable.astVariable;
+      resultExpression = result;
     }
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable);
@@ -5714,12 +5715,12 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<LocatedMessage> visitDemoteViaSuspension(
     DemoteViaSuspension<InternalVariable> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       inferrer
               .dataForTesting!
               .flowAnalysisResult

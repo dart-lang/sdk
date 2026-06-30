@@ -4005,13 +4005,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   String? get name {
-    for (var fragment in fragments) {
+    var fragment = _firstWhereInlined((fragment) {
       var name = fragment.name;
-      if (name != null && name != '_') {
-        return name;
-      }
-    }
-    return _firstFragment.name;
+      return name != null && name != '_';
+    });
+    return (fragment ?? _firstFragment).name;
   }
 
   @override
@@ -4082,6 +4080,24 @@ class FormalParameterElementImpl extends PromotableElementImpl
     if (enclosingElement is ExecutableElementImpl) {
       enclosingElement._ensureReadResolution();
     }
+  }
+
+  /// The first element in [fragments] that satisfies the given predicate [test]
+  /// or `null` if there is no such element.
+  ///
+  /// Used for avoiding allocating a list via [fragments] when all that is
+  /// needed is to find a fragment satisfying some test.
+  /// Marked for inlining which should avoid allocating closures and contexts.
+  @pragma("vm:prefer-inline")
+  FormalParameterFragmentImpl? _firstWhereInlined(
+    bool Function(FormalParameterFragmentImpl element) test,
+  ) {
+    FormalParameterFragmentImpl? fragment = _firstFragment;
+    while (fragment != null) {
+      if (test(fragment)) return fragment;
+      fragment = fragment.nextFragment;
+    }
+    return null;
   }
 }
 

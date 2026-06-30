@@ -577,7 +577,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             return d + 1;
           }
         }
@@ -651,7 +651,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             _index[i] = _HashBase._DELETED_PAIR;
             _HashBase._setDeletedAt(_data, d);
             V value = _data[d + 1] as V;
@@ -681,7 +681,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             return _data[d + 1];
           }
         }
@@ -721,6 +721,28 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
       action(key, value);
       if (_isModifiedSince(data, checkSum)) {
         throw ConcurrentModificationError(this);
+      }
+    }
+  }
+
+  void removeWhere(bool Function(K, V) test) {
+    final data = _data;
+    var checkSum = _checkSum;
+    final len = _usedData;
+    for (int offset = 0; offset < len; offset += 2) {
+      final current = data[offset];
+      if (_HashBase._isDeleted(data, current)) continue;
+      final key = internal.unsafeCast<K>(current);
+      final value = internal.unsafeCast<V>(data[offset + 1]);
+      var remove = test(key, value);
+      if (_isModifiedSince(data, checkSum)) {
+        throw ConcurrentModificationError(this);
+      }
+      if (remove) {
+        _HashBase._setDeletedAt(data, offset);
+        _HashBase._setDeletedAt(data, offset + 1);
+        ++_deletedKeys;
+        checkSum = _checkSum;
       }
     }
   }
@@ -1029,7 +1051,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
         }
       } else {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           return false;
         }
       }
@@ -1061,7 +1083,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           return _data[d]; // Note: Must return the existing key.
         }
       }
@@ -1089,7 +1111,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           _index[i] = _HashBase._DELETED_PAIR;
           _HashBase._setDeletedAt(_data, d);
           ++_deletedKeys;
@@ -1145,6 +1167,34 @@ base class _Set<E> extends _LinkedHashBase
   static Set<R> _newEmpty<R>() => _Set<R>();
 
   Set<E> toSet() => _Set<E>()..addAll(this);
+
+  void removeWhere(bool Function(E) test) {
+    _filter(test, true);
+  }
+
+  void retainWhere(bool Function(E) test) {
+    _filter(test, false);
+  }
+
+  void _filter(bool Function(E) test, bool removeIf) {
+    final data = _data;
+    var checkSum = _checkSum;
+    final len = _usedData;
+    for (int offset = 0; offset < len; offset++) {
+      final current = data[offset];
+      if (_HashBase._isDeleted(data, current)) continue;
+      final element = internal.unsafeCast<E>(current);
+      var testResult = test(element);
+      if (_isModifiedSince(data, checkSum)) {
+        throw ConcurrentModificationError(this);
+      }
+      if (removeIf == testResult) {
+        _HashBase._setDeletedAt(data, offset);
+        ++_deletedKeys;
+        checkSum = _checkSum;
+      }
+    }
+  }
 }
 
 @pragma("vm:entry-point")
@@ -1210,7 +1260,7 @@ mixin _ImmutableLinkedHashSetMixin<E>
         final int d = hashPattern ^ pair;
         if (d < maxEntries) {
           // We should not already find an entry in the index.
-          assert(!_equals(key, _data[d]));
+          assert(!_equals(_data[d], key));
         }
 
         i = _HashBase._nextProbe(i, sizeMask);

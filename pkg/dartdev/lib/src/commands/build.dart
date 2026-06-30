@@ -397,13 +397,9 @@ then that is used instead.''',
       for (final e in executables) {
         String? recordedUsagesPath;
         if (recordUseEnabled) {
-          final stableDirUri =
-              pubspecUri?.resolve('.dart_tool/native_assets/') ?? tempDir.uri;
-          final stableDir = Directory.fromUri(stableDirUri);
-          await stableDir.create(recursive: true);
-          recordedUsagesPath = stableDir.uri
-              .resolve('recorded_usages.json')
-              .toFilePath();
+          // Enable concurrently running `dart build cli`. Don't store file in
+          // .dart_tool/.
+          recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
         }
         final outputExeUri = binDirectory.uri.resolve(
           targetOS.executableFileName(e.name),

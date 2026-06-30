@@ -251,7 +251,7 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   Set<T> toSet() => _clone();
 
-  T lookup(Object? key) => _source.lookup(key) as T;
+  T? lookup(Object? key) => _source.lookup(key) as T?;
 }
 
 class CastMap<SK, SV, K, V> extends MapBase<K, V> {
