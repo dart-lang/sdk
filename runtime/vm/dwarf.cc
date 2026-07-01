@@ -26,43 +26,10 @@ DEFINE_FLAG(charp,
             nullptr,
             "Print comments associated with instructions into the given file");
 
-class DwarfPosition {
- public:
-  DwarfPosition(int32_t line, int32_t column) : line_(line), column_(column) {
-    // Should only have no line information if also no column information.
-    ASSERT(line_ > kNoLine || column_ <= kNoColumn);
-  }
-  // CodeSourceMaps start the line and column registers at -1, not at 0, and
-  // the arguments passed to ChangePosition are retrieved from CodeSourceMaps.
-  explicit DwarfPosition(int32_t line) : DwarfPosition(line, -1) {}
-  constexpr DwarfPosition() : line_(-1), column_(-1) {}
-
-  // The DWARF standard uses 0 to denote missing line or column
-  // information.
-  static constexpr int32_t kNoLine = 0;
-  static constexpr int32_t kNoColumn = 0;
-
-  int32_t line() const { return line_ > kNoLine ? line_ : kNoLine; }
-  int32_t column() const { return column_ > kNoColumn ? column_ : kNoColumn; }
-
-  // Adjusts the contents given the arguments to a ChangePosition instruction
-  // from CodeSourceMaps.
-  void ChangePosition(int32_t line_delta, int32_t new_column) {
-    line_ = Utils::AddWithWrapAround(line_, line_delta);
-    column_ = new_column;
-  }
-
- private:
-  int32_t line_;
-  int32_t column_;
-};
-
-static constexpr auto kNoDwarfPositionInfo = DwarfPosition();
-
 class InliningNode : public ZoneObject {
  public:
   InliningNode(const Function& function,
-               const DwarfPosition& position,
+               const DebugInfoPosition& position,
                int32_t start_pc_offset)
       : function(function),
         position(position),
@@ -85,7 +52,7 @@ class InliningNode : public ZoneObject {
   }
 
   const Function& function;
-  DwarfPosition position;
+  DebugInfoPosition position;
   int32_t start_pc_offset;
   int32_t end_pc_offset;
   InliningNode* children_head;
@@ -415,13 +382,13 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
-  GrowableArray<DwarfPosition> token_positions(zone_, 4);
+  GrowableArray<DebugInfoPosition> token_positions(zone_, 4);
 
   NoSafepointScope no_safepoint;
   ReadStream stream(map.Data(), map.Length());
 
   int32_t current_pc_offset = 0;
-  token_positions.Add(kNoDwarfPositionInfo);
+  token_positions.Add(kNoDebugInfoPositionInfo);
   InliningNode* root_node =
       new (zone_) InliningNode(root_function, token_positions.Last(), 0);
   root_node->end_pc_offset = code.Size();
@@ -433,7 +400,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
     const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg1, &arg2);
     switch (opcode) {
       case CodeSourceMapOps::kChangePosition: {
-        DwarfPosition& pos = token_positions[token_positions.length() - 1];
+        DebugInfoPosition& pos = token_positions[token_positions.length() - 1];
         pos.ChangePosition(arg1, arg2);
         break;
       }
@@ -456,7 +423,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
             InliningNode(child_func, token_positions.Last(), current_pc_offset);
         node_stack.Last()->AppendChild(child_node);
         node_stack.Add(child_node);
-        token_positions.Add(kNoDwarfPositionInfo);
+        token_positions.Add(kNoDebugInfoPositionInfo);
         break;
       }
       case CodeSourceMapOps::kPopFunction: {
@@ -541,18 +508,16 @@ class DwarfLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
     return dwarf_->LookupScript(script);
   }
 
-  bool EmitRow(intptr_t file,
+  void EmitRow(intptr_t file,
                intptr_t line,
                intptr_t column,
                intptr_t label,
                intptr_t pc_offset) override {
-    const bool emitted = AddRow(file, line, column, label, pc_offset);
-    if (emitted) {
+    if (AddRow(file, line, column, label, pc_offset)) {
       // Address register must be updated from 0 before emitting an LNP row
       // (dartbug.com/41756).
       stream_->u1(Dwarf::DW_LNS_copy);
     }
-    return emitted;
   }
 
   // Associates the given file, line, and column information for the instruction
@@ -573,14 +538,14 @@ class DwarfLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
       file_ = file;
       source_info_changed = true;
     }
-    ASSERT(line >= DwarfPosition::kNoLine);
+    ASSERT(line >= DebugInfoPosition::kNoLine);
     if (line != line_) {
       stream_->u1(Dwarf::DW_LNS_advance_line);
       stream_->sleb128(line - line_);
       line_ = line;
       source_info_changed = true;
     }
-    ASSERT(column >= DwarfPosition::kNoColumn);
+    ASSERT(column >= DebugInfoPosition::kNoColumn);
     if (column != column_) {
       stream_->u1(Dwarf::DW_LNS_set_column);
       stream_->uleb128(column);
@@ -690,8 +655,8 @@ void Dwarf::WriteSyntheticLineNumberProgram(
         current_line++;
         i++;
       }
-      USE(writer->EmitRow(comments_file_index, current_line - 1,
-                          DwarfPosition::kNoColumn, label, current_pc_offset));
+      writer->EmitRow(comments_file_index, current_line - 1,
+                      DebugInfoPosition::kNoColumn, label, current_pc_offset);
     }
   }
 

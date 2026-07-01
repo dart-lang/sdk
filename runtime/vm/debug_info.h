@@ -53,6 +53,8 @@ class DebugInfoPosition {
   int32_t column_;
 };
 
+static constexpr auto kNoDebugInfoPositionInfo = DebugInfoPosition();
+
 class DebugInfoLineNumberProgramWriter : public ValueObject {
  public:
   explicit DebugInfoLineNumberProgramWriter(Zone* zone)
@@ -61,7 +63,7 @@ class DebugInfoLineNumberProgramWriter : public ValueObject {
 
   virtual intptr_t LookupCodeLabel(const Code& code) = 0;
   virtual intptr_t LookupScript(const Script& script) = 0;
-  virtual bool EmitRow(intptr_t file,
+  virtual void EmitRow(intptr_t file,
                        intptr_t line,
                        intptr_t column,
                        intptr_t label,

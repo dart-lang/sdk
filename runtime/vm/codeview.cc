@@ -58,7 +58,7 @@ class CVLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
     return writer_->LookupDebugScript(script);
   }
 
-  bool EmitRow(intptr_t file,
+  void EmitRow(intptr_t file,
                intptr_t line,
                intptr_t column,
                intptr_t label,
@@ -69,7 +69,7 @@ class CVLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
     ASSERT(column >= 0);
 
     if (file == file_ && line == line_ && column == column_) {
-      return false;
+      return;
     }
     file_ = file;
     line_ = line;
@@ -77,14 +77,14 @@ class CVLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
 
     ASSERT(file <= script_count_);
     if (line == 0) {
-      return false;
+      return;
     }
     ASSERT(pc_offset <= code_size_);
     if (pc_offset == code_size_) {
       // CodeView line rows describe instruction offsets inside the function
       // body. A trailing row exactly at code_size is the DWARF end-address
       // boundary and has no instruction to attach to in DEBUG_S_LINES.
-      return false;
+      return;
     }
 
     CVLineRow row;
@@ -95,11 +95,11 @@ class CVLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
     if (!rows_.is_empty()) {
       ASSERT(row.pc_offset > rows_.Last().pc_offset);
       if (row.pc_offset <= rows_.Last().pc_offset) {
-        return false;
+        return;
       }
     }
     rows_.Add(row);
-    return true;
+    return;
   }
 
   const GrowableArray<CVLineRow>& rows() const { return rows_; }
