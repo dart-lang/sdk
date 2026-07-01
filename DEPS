@@ -129,14 +129,14 @@ vars = {
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
   "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
-  "dartdoc_rev": "77a52b6125ce8cc8a88a8a399d80701254e43838",
+  "dartdoc_rev": "1d56f263955f329b6701d8f84f069eb0aef353a4",
   "ecosystem_rev": "319ff812d463fc194999a0d4b682097450279332",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "c140dc012da1df74b0fb99230b8736438b8eba6a",
   "i18n_rev": "2ae32fdd9ca14ecdca77dc37787dbba3c9e2c48a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "4dab66c9aa059bc730c2fb86c5716eaac3bd9f4b", # rolled manually while record_use is experimental
+  "native_rev": "81e464e7ff06aa66246b38a326025e3dba6928d3", # rolled manually while record_use is experimental
   "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
   "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
   "shelf_rev": "74d58bc1499115f91f8120dbd08f77c83f7f343d",

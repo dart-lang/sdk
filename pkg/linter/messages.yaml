@@ -14014,6 +14014,7 @@ LinterLintCode:
     correctionMessage: "Try removing the 'await'."
     state:
       stable: "2.1"
+      deprecated: "3.13"
     categories: [style]
     hasPublishedDocs: true
     documentation: |-
@@ -14055,6 +14056,10 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
+      **NOTE:** As following this lint rule everywhere (specially when not reported) can
+      lead to unexpected errors, this lint has been deprecated.
+      Remove all inclusions of this lint from your analysis options.
+
       Avoid returning an awaited expression when the expression type is assignable to
       the function's return type.
 

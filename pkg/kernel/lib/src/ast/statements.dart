@@ -638,7 +638,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
   // Has no initializer.
-  Variable variable;
+  DeclaredVariable variable;
 
   Expression iterable;
 

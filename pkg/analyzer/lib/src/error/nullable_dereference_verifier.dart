@@ -74,7 +74,7 @@ class NullableDereferenceVerifier {
       messages = _resolver.computeWhyNotPromotedMessages(
         errorNode,
         _resolver.flowAnalysis.flow?.whyNotPromoted(
-          _resolver.flowAnalysis.flow?.getExpressionInfo(errorNode),
+          _resolver.flowAnalysis.getExpressionInfo(errorNode),
         )(),
       );
     }

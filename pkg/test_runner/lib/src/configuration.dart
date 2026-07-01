@@ -494,6 +494,16 @@ class TestConfiguration {
       isValid = false;
     }
 
+    if (genSnapshotFormat == GenSnapshotFormat.coff &&
+        (system != System.win ||
+            !(architecture == Architecture.x64 ||
+                architecture == Architecture.x64c))) {
+      print(
+        "Error: COFF gen_snapshot output is only supported on Windows x64.",
+      );
+      isValid = false;
+    }
+
     if (shard < 1 || shard > shardCount) {
       print("Error: shard index is $shard out of $shardCount shards");
       isValid = false;

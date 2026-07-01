@@ -21,7 +21,7 @@
   (@binaryen.inline 0)
   (func $useFoo
     call $useFooAsType
-    i64.const 0
+    i64.const 1
     i32.const 1
     call_indirect (param i64) (result i32)
     drop

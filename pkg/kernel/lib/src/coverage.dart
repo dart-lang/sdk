@@ -1011,6 +1011,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    visited.add(VariableKind.SyntheticVariable);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitCatchVariable(CatchVariable node) {
     visited.add(VariableKind.CatchVariable);
     node.visitChildren(this);
@@ -1031,12 +1037,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitThisVariable(ThisVariable node) {
     visited.add(VariableKind.ThisVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSyntheticVariable(SyntheticVariable node) {
-    visited.add(VariableKind.SyntheticVariable);
     node.visitChildren(this);
   }
 

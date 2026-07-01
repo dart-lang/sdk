@@ -157,6 +157,7 @@ abstract class ExpressionGeneratorHelper {
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
+    bool isImplicitThis = false,
   });
 
   Expression buildSuperInvocation(

@@ -35,7 +35,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable block scope', (TestHarness test) {
-    Variable variable = test.makeVariable();
+    DeclaredVariable variable = test.makeVariable();
     test.addNode(
       Block([
         new Block([new VariableStatement(VariableDeclaration(variable))]),

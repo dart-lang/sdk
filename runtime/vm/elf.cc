@@ -7,8 +7,8 @@
 #include "platform/elf.h"
 #include "platform/unwinding_records.h"
 #include "vm/cpu.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/stack_frame.h"
@@ -1267,8 +1267,8 @@ void ElfWriter::FinalizeEhFrame() {
     fdes.Add({portion.label, portion.size});
   }
 
-  ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-  DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+  ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+  DebugInfoStream dwarf_stream(zone_, &stream);
   Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
 
   auto* const eh_frame = new (zone_)
@@ -1307,8 +1307,7 @@ void ElfWriter::FinalizeDwarfSections() {
   // Currently we only output DWARF information involving code.
   ASSERT(section_table_->HasSectionNamed(kTextName));
 
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     auto const container =
         new (zone_) BitsContainer(elf::SectionHeaderType::SHT_PROGBITS);
     container->AddPortion(stream.buffer(), stream.bytes_written(),
@@ -1316,22 +1315,22 @@ void ElfWriter::FinalizeDwarfSections() {
     section_table_->Add(container, name);
   };
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(".debug_abbrev", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(".debug_info", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(".debug_line", dwarf_stream);
   }

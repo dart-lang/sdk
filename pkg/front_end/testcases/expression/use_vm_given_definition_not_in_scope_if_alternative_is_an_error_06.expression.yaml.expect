@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<bar extends dart.core::Object? = dynamic>(dart.core::_Smi bar) → dynamic
+  return #lib1::debugExpr::bar%;

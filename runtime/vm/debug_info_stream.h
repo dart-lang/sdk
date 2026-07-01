@@ -1,32 +1,34 @@
-// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_DWARF_SO_WRITER_H_
-#define RUNTIME_VM_DWARF_SO_WRITER_H_
+#ifndef RUNTIME_VM_DEBUG_INFO_STREAM_H_
+#define RUNTIME_VM_DEBUG_INFO_STREAM_H_
 
 #include "platform/globals.h"
 
 #if defined(DART_PRECOMPILER)
 
 #include "vm/datastream.h"
-#include "vm/dwarf.h"
+#include "vm/debug_info.h"
 #include "vm/so_writer.h"
 
 namespace dart {
 
-class DwarfSharedObjectStream : public DwarfWriteStream {
+class DebugInfoStream : public DebugInfoWriteStream {
  public:
-  DwarfSharedObjectStream(Zone* zone, NonStreamingWriteStream* stream)
+  DebugInfoStream(Zone* zone, NonStreamingWriteStream* stream)
       : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
         relocations_(new (zone) SharedObjectWriter::RelocationArray()) {}
 
   static constexpr intptr_t kInitialBufferSize = 64 * KB;
 
+  uint8_t* buffer() { return stream_->buffer(); }
   const uint8_t* buffer() const { return stream_->buffer(); }
   intptr_t bytes_written() const { return stream_->bytes_written(); }
   intptr_t Position() const { return stream_->Position(); }
+  void SetPosition(intptr_t value) { stream_->SetPosition(value); }
 
   void sleb128(intptr_t value) override { stream_->WriteSLEB128(value); }
   void uleb128(uintptr_t value) override { stream_->WriteLEB128(value); }
@@ -34,18 +36,17 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
   void u2(uint16_t value) override { stream_->WriteFixed(value); }
   void u4(uint32_t value) override { stream_->WriteFixed(value); }
   void u8(uint64_t value) override { stream_->WriteFixed(value); }
+  void bytes(const void* addr, intptr_t len) { stream_->WriteBytes(addr, len); }
   void string(const char* cstr) override {  // NOLINT
     // Unlike stream_->WriteString(), we want the null terminator written.
     stream_->WriteBytes(cstr, strlen(cstr) + 1);
   }
-  // The prefix is ignored for DwarfSharedObjectStreams.
+  // The prefix is ignored for binary debug-info streams.
   void WritePrefixedLength(const char* unused,
                            std::function<void()> body) override {
     const intptr_t fixup = stream_->Position();
-    // We assume DWARF v2 currently, so all sizes are 32-bit.
+    // DWARF v2 sizes and CodeView subsection sizes are both 32-bit here.
     u4(0);
-    // All sizes for DWARF sections measure the size of the section data _after_
-    // the size value.
     const intptr_t start = stream_->Position();
     body();
     const intptr_t end = stream_->Position();
@@ -53,9 +54,33 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
     u4(end - start);
     stream_->SetPosition(end);
   }
-  // Shorthand for when working directly with DwarfSharedObjectStreams.
+  // Shorthand for when working directly with DebugInfoStreams.
   void WritePrefixedLength(std::function<void()> body) {
     WritePrefixedLength(nullptr, body);
+  }
+  void WritePrefixedLengthU16(std::function<void()> body) {
+    const intptr_t fixup = stream_->Position();
+    u2(0);
+    const intptr_t start = stream_->Position();
+    body();
+    const intptr_t end = stream_->Position();
+    const intptr_t length = end - start;
+    ASSERT(length <= kMaxUint16);
+    stream_->SetPosition(fixup);
+    u2(static_cast<uint16_t>(length));
+    stream_->SetPosition(end);
+  }
+
+  uint8_t LoadU1(intptr_t offset) const {
+    ASSERT(offset >= 0);
+    ASSERT(offset < bytes_written());
+    return stream_->buffer()[offset];
+  }
+
+  void StoreU1(intptr_t offset, uint8_t value) {
+    ASSERT(offset >= 0);
+    ASSERT(offset < bytes_written());
+    stream_->buffer()[offset] = value;
   }
 
   void OffsetFromSymbol(intptr_t label,
@@ -96,8 +121,10 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
     stream_->WriteBytes(&placeholder, size);
   }
 
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
-    return stream_->Align(alignment, offset);
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) {
+    return stream_->Align(alignment, offset, fill_byte);
   }
 
   const SharedObjectWriter::RelocationArray* relocations() const {
@@ -112,11 +139,11 @@ class DwarfSharedObjectStream : public DwarfWriteStream {
   intptr_t abstract_origins_size_ = -1;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(DwarfSharedObjectStream);
+  DISALLOW_COPY_AND_ASSIGN(DebugInfoStream);
 };
 
 }  // namespace dart
 
 #endif  // DART_PRECOMPILER
 
-#endif  // RUNTIME_VM_DWARF_SO_WRITER_H_
+#endif  // RUNTIME_VM_DEBUG_INFO_STREAM_H_

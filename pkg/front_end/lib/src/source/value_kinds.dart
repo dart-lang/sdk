@@ -255,8 +255,8 @@ class ValueKinds {
       const SingleValueKind<List<type.NominalParameterBuilder>>(
         NullValues.NominalParameters,
       );
-  static const ValueKind InternalVariableListOrNull =
-      const SingleValueKind<List<type.InternalVariable>>(
+  static const ValueKind InternalDeclaredVariableListOrNull =
+      const SingleValueKind<List<type.InternalDeclaredVariable>>(
         NullValues.VariableDeclarationList,
       );
 }

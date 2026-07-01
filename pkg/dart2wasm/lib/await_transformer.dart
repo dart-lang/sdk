@@ -336,7 +336,7 @@ class _AwaitTransformer extends Transformer {
     // variables before the updates.
     //
     // temps.first is the flag 'first'.
-    List<Variable> temps = <Variable>[
+    List<SyntheticVariable> temps = <SyntheticVariable>[
       SyntheticVariable(initializer: BoolLiteral(true), isSynthesized: false),
     ];
     List<Statement> loopBody = <Statement>[];
@@ -393,7 +393,8 @@ class _AwaitTransformer extends Transformer {
     labeled.body = WhileStatement(BoolLiteral(true), Block(loopBody))
       ..parent = labeled;
     return Block(<Statement>[
-      for (Variable temp in temps) VariableStatement(VariableDeclaration(temp)),
+      for (SyntheticVariable temp in temps)
+        VariableStatement(VariableDeclaration(temp)),
       labeled,
     ]);
   }
@@ -680,7 +681,7 @@ class _ExpressionTransformer extends Transformer {
   int nameIndex = 0;
 
   /// Variables created for temporaries.
-  final List<Variable> variables = <Variable>[];
+  final List<SyntheticVariable> variables = <SyntheticVariable>[];
 
   final _AwaitTransformer _statementTransformer;
 
@@ -1259,7 +1260,7 @@ class _ExpressionTransformer extends Transformer {
   @override
   TreeNode visitLet(Let expr) {
     final body = transform(expr.body);
-    final Variable variable = expr.variable;
+    final SyntheticVariable variable = expr.variable;
     if (seenAwait) {
       // There is an await in the body of `let var x = initializer in body` or
       // to its right.  We will produce the sequence of statements:

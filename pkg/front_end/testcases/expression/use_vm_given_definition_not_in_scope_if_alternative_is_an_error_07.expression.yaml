@@ -1,0 +1,40 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# The VM sometimes provides definitions that aren't actually in scope,
+# but if the alternative is to give an error we should use it anyway.
+# If something is in scope though, we use that.
+
+sources: |
+  import "dart:developer";
+
+  class Foo extends Bar {
+    int _bar;
+    int baz;
+    Foo({required this._bar}) : baz = _bar {
+      debugger();
+      print(_bar);
+    }
+  }
+
+  class Bar {
+    String get bar => "22";
+  }
+
+  void main() {
+    Foo(bar: 42);
+  }
+
+definitions: ["bar"]
+definition_types: ["dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: "main.dart#Foo"
+method: "Foo"
+static: false
+offset: 120 # on 'debugger'
+scriptUri: main.dart
+expression: |
+  bar

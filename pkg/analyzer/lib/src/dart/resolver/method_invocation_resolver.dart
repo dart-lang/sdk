@@ -1396,7 +1396,10 @@ class MethodInvocationResolver with ScopeHelpers {
             element,
             SharedTypeView(getterReturnType),
           );
-          flow.storeExpressionInfo(functionExpression, expressionInfo);
+          _resolver.flowAnalysis.storeExpressionInfo(
+            functionExpression,
+            expressionInfo,
+          );
           targetType = wrappedPromotedType?.unwrapTypeView() ?? targetType;
         }
       }
@@ -1418,12 +1421,17 @@ class MethodInvocationResolver with ScopeHelpers {
         var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
           target is SuperExpressionImpl
               ? SuperPropertyTarget.singleton
-              : ExpressionPropertyTarget(flow.getExpressionInfo(target)),
+              : ExpressionPropertyTarget(
+                  _resolver.flowAnalysis.getExpressionInfo(target),
+                ),
           methodName.name,
           methodName.element,
           SharedTypeView(getterReturnType),
         );
-        flow.storeExpressionInfo(functionExpression, expressionInfo);
+        _resolver.flowAnalysis.storeExpressionInfo(
+          functionExpression,
+          expressionInfo,
+        );
         targetType = wrappedPromotedType?.unwrapTypeView() ?? targetType;
       }
     }

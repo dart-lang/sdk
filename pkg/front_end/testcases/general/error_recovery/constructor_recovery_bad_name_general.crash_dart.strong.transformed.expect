@@ -358,6 +358,5 @@ Try removing the return type.
     invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:11: Error: A setter should have exactly one formal parameter.
   set Foo => 0;
           ^";
-    return 0;
   }
 }

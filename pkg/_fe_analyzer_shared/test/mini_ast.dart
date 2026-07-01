@@ -7207,7 +7207,6 @@ class _MiniAstTypeAnalyzer
       SharedTypeView(thisType),
       isSuper: false,
     );
-    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7230,9 +7229,6 @@ class _MiniAstTypeAnalyzer
       SharedTypeView(memberType),
     );
     var promotedType = wrappedPromotedType?.unwrapTypeView();
-    if (flowAnalysisInfo != null) {
-      flow.storeExpressionInfo(node, flowAnalysisInfo);
-    }
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(promotedType ?? memberType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7331,7 +7327,6 @@ class _MiniAstTypeAnalyzer
   ) {
     var (promotedType, flowAnalysisInfo) = flow.variableRead(variable);
     callback?.call(promotedType?.unwrapTypeView());
-    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7926,9 +7921,6 @@ class _MiniAstTypeAnalyzer
       member,
       SharedTypeView(memberType),
     );
-    if (propertyGetNode != null && flowAnalysisInfo != null) {
-      flow.storeExpressionInfo(propertyGetNode, flowAnalysisInfo);
-    }
     return ExpressionTypeAnalysisResult(
       type: wrappedPromotedType ?? SharedTypeView(memberType),
       flowAnalysisInfo: flowAnalysisInfo,

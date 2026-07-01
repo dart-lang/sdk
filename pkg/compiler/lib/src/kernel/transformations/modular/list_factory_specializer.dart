@@ -97,7 +97,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     // If the length is a constant, use the constant directly so that the
     // inferrer can see the constant length.
     int? lengthConstant = _getLengthArgument(args);
-    Variable? lengthVariable;
+    SyntheticVariable? lengthVariable;
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
@@ -260,7 +260,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   final Variable listVariable;
   final FunctionNode function;
   late final Variable argument;
-  late final Variable parameter;
+  late final SyntheticVariable parameter;
   int functionNestingLevel = 0;
 
   ListGenerateLoopBodyInliner(

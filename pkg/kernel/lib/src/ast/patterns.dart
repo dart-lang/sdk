@@ -9,7 +9,7 @@ sealed class Pattern extends TreeNode {
   ///
   /// These variables are initialized to the values captured by the variable
   /// patterns nested in the pattern.
-  List<Variable> get declaredVariables;
+  List<DeclaredVariable> get declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor);
@@ -64,7 +64,7 @@ class ConstantPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitConstantPattern(this);
@@ -105,7 +105,7 @@ class AndPattern extends Pattern {
   Pattern right;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     ...left.declaredVariables,
     ...right.declaredVariables,
   ];
@@ -158,13 +158,16 @@ class OrPattern extends Pattern {
   Pattern left;
   Pattern right;
 
-  final List<Variable> orPatternJointVariables;
+  final List<DeclaredVariable> orPatternJointVariables;
 
   @override
-  List<Variable> get declaredVariables => orPatternJointVariables;
+  List<DeclaredVariable> get declaredVariables => orPatternJointVariables;
 
-  new(this.left, this.right, {required List<Variable> orPatternJointVariables})
-    : orPatternJointVariables = orPatternJointVariables {
+  new(
+    this.left,
+    this.right, {
+    required List<DeclaredVariable> orPatternJointVariables,
+  }) : orPatternJointVariables = orPatternJointVariables {
     left.parent = this;
     right.parent = this;
   }
@@ -220,7 +223,7 @@ class CastPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitCastPattern(this);
@@ -272,7 +275,7 @@ class NullAssertPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>
@@ -321,7 +324,7 @@ class NullCheckPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitNullCheckPattern(this);
@@ -475,7 +478,7 @@ class ListPattern extends Pattern {
   FunctionType? indexGetType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (Pattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
@@ -655,7 +658,7 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables {
+  List<DeclaredVariable> get declaredVariables {
     return [for (NamedPattern field in fields) ...field.declaredVariables];
   }
 
@@ -758,7 +761,7 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>
@@ -820,7 +823,7 @@ class WildcardPattern extends Pattern {
   new(this.type);
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitWildcardPattern(this);
@@ -937,7 +940,7 @@ class AssignedVariablePattern extends Pattern {
   void visitChildren(Visitor v) {}
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   String? get variableName => variable.cosmeticName!;
@@ -1017,7 +1020,7 @@ class MapPattern extends Pattern {
   FunctionType? indexGetType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (MapPatternEntry entry in entries)
       if (entry is! MapPatternRestEntry) ...entry.value.declaredVariables,
   ];
@@ -1183,7 +1186,7 @@ class NamedPattern extends Pattern {
   List<DartType>? typeArguments;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   new(this.name, this.pattern) {
     pattern.parent = this;
@@ -1269,7 +1272,7 @@ class RecordPattern extends Pattern {
   RecordType? lookupType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (Pattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
@@ -1320,7 +1323,7 @@ class RecordPattern extends Pattern {
 class VariablePattern extends Pattern {
   // TODO(johnniwinther): Should this be accessed through [variable] instead?
   DartType? type;
-  Variable variable;
+  DeclaredVariable variable;
 
   /// The type of the expression against which this pattern is matched.
   ///
@@ -1328,7 +1331,7 @@ class VariablePattern extends Pattern {
   DartType? matchedValueType;
 
   @override
-  List<Variable> get declaredVariables => [variable];
+  List<DeclaredVariable> get declaredVariables => [variable];
 
   new(this.type, this.variable) {
     variable.parent = this;
@@ -1422,7 +1425,7 @@ class RestPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables =>
+  List<DeclaredVariable> get declaredVariables =>
       subPattern?.declaredVariables ?? const [];
 
   @override
@@ -1443,7 +1446,7 @@ class InvalidPattern extends Pattern {
   Expression invalidExpression;
 
   @override
-  final List<Variable> declaredVariables;
+  final List<DeclaredVariable> declaredVariables;
 
   new(this.invalidExpression, {required this.declaredVariables}) {
     invalidExpression.parent = this;
@@ -1753,7 +1756,7 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   bool hasLabel;
 
-  final List<Variable> jointVariables;
+  final List<DeclaredVariable> jointVariables;
 
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;

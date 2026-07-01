@@ -78,15 +78,15 @@ class MatchingCache {
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
   void declareJointVariables(
-    List<Variable> jointVariables,
-    List<Variable> variables1,
-    List<Variable> variables2,
+    List<DeclaredVariable> jointVariables,
+    List<DeclaredVariable> variables1,
+    List<DeclaredVariable> variables2,
   ) {
-    Map<String, Variable> jointVariablesMap = {};
-    for (Variable variable in jointVariables) {
+    Map<String, DeclaredVariable> jointVariablesMap = {};
+    for (DeclaredVariable variable in jointVariables) {
       jointVariablesMap[variable.cosmeticName!] = variable;
     }
-    for (Variable variable in variables1) {
+    for (DeclaredVariable variable in variables1) {
       Variable? jointVariable = jointVariablesMap[variable.cosmeticName!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
@@ -97,8 +97,9 @@ class MatchingCache {
         registerDeclaration(createVariableDeclaration(variable));
       }
     }
-    for (Variable variable in variables2) {
-      Variable? jointVariable = jointVariablesMap[variable.cosmeticName!];
+    for (DeclaredVariable variable in variables2) {
+      DeclaredVariable? jointVariable =
+          jointVariablesMap[variable.cosmeticName!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
@@ -1241,13 +1242,13 @@ class Cache {
   /// non-late variable.
   ///
   /// Otherwise [_variable] is unused.
-  Variable? _variable;
+  DeclaredVariable? _variable;
 
   /// If cached using late lowering, this will be the boolean variable that
   /// tracks whether [_variable] as been initialized.
   ///
   /// Otherwise [_isSetVariable] is unused.
-  Variable? _isSetVariable;
+  DeclaredVariable? _isSetVariable;
 
   /// The name used to name [_variable], [_isSetVariable] and [_getVariable].
   final String _name;
@@ -1341,7 +1342,7 @@ class Cache {
       if (!_isLate) {
         // To avoid closurizing initializers we always inline the initializer
         // unless it is not a late variable.
-        Variable? variable = _variable;
+        DeclaredVariable? variable = _variable;
         if (variable == null) {
           variable = _variable =
               createVariableCache(

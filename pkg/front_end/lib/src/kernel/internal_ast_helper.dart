@@ -380,7 +380,7 @@ ForInMapEntry createForInMapEntry(
 
 // Coverage-ignore(suite): Not run.
 ForInStatement createForInStatement(
-  Variable variable,
+  DeclaredVariable variable,
   Expression expression,
   Statement body, {
   required bool isAsync,
@@ -594,7 +594,7 @@ Expression createIntLiteralLarge(
 
 InternalPattern createInvalidPattern(
   Expression expression, {
-  required List<InternalVariable> declaredVariables,
+  required List<InternalDeclaredVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: expression,
@@ -627,7 +627,7 @@ LabeledStatement createLabeledStatement(Statement statement) {
   return new LabeledStatement(statement)..fileOffset = statement.fileOffset;
 }
 
-InternalVariable createLateVariable({
+InternalLateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
@@ -711,7 +711,7 @@ LoadLibrary createLoadLibrary(
   return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
 }
 
-InternalVariable createLocalVariable({
+InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
@@ -850,6 +850,7 @@ Expression createMethodInvocation(
   TypeArguments? typeArguments,
   ActualArguments arguments, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
   return new MethodInvocation(
     expression,
@@ -857,6 +858,7 @@ Expression createMethodInvocation(
     typeArguments,
     arguments,
     isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
   )..fileOffset = fileOffset;
 }
 
@@ -978,7 +980,7 @@ InternalPattern createOrPattern(
   int fileOffset,
   InternalPattern left,
   InternalPattern right, {
-  required List<InternalVariable> orPatternJointVariables,
+  required List<InternalDeclaredVariable> orPatternJointVariables,
 }) {
   return new InternalOrPattern(
     left,
@@ -1080,7 +1082,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   Statement body, {
   required bool isDefault,
   required List<Label>? labels,
-  required List<InternalVariable>? jointVariables,
+  required List<InternalDeclaredVariable>? jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
 }) {
   return new InternalPatternSwitchCase(
@@ -1107,7 +1109,7 @@ Statement createPatternSwitchStatement(
   );
 }
 
-Statement createPatternVariableDeclaration(
+InternalPatternVariableDeclaration createPatternVariableDeclaration(
   int fileOffset,
   InternalPattern pattern,
   Expression initializer, {
@@ -1164,9 +1166,14 @@ Expression createPropertyGet(
   Expression receiver,
   Name name, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
-  return new PropertyGet(receiver, name, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new PropertyGet(
+    receiver,
+    name,
+    isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
+  )..fileOffset = fileOffset;
 }
 
 Expression createPropertySet(
@@ -1177,6 +1184,7 @@ Expression createPropertySet(
   required bool forEffect,
   bool readOnlyReceiver = false,
   required bool isNullAware,
+  required isImplicitThis,
 }) {
   return new PropertySet(
     receiver,
@@ -1185,6 +1193,7 @@ Expression createPropertySet(
     forEffect: forEffect,
     readOnlyReceiver: readOnlyReceiver,
     isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
   )..fileOffset = fileOffset;
 }
 
@@ -1453,7 +1462,9 @@ InternalSyntheticVariable createSyntheticVariable({
   );
 }
 
-InternalVariable createSyntheticVariableForEffect(Expression expression) {
+InternalSyntheticVariable createSyntheticVariableForEffect(
+  Expression expression,
+) {
   return createSyntheticVariable(
     initializer: expression,
     isFinal: true,
@@ -1538,7 +1549,7 @@ UnaryExpression createUnary(
 }
 
 InternalVariableDeclaration createVariableDeclaration(
-  InternalVariable variable, {
+  InternalDeclaredVariable variable, {
   int? fileOffset,
 }) {
   return new InternalVariableDeclaration(variable)
@@ -1555,7 +1566,7 @@ InternalVariableGet createVariableGet(
 InternalPattern createVariablePattern(
   int fileOffset,
   DartType? type,
-  InternalVariable variable,
+  InternalDeclaredVariable variable,
 ) {
   return new InternalVariablePattern(
     type: type,

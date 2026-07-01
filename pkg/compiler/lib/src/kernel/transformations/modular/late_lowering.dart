@@ -577,13 +577,13 @@ class LateLowering {
         //   }
         //   return value;
         // }
-        Variable value = SyntheticVariable(
+        SyntheticVariable value = SyntheticVariable(
           cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
-        Variable result = SyntheticVariable(
+        SyntheticVariable result = SyntheticVariable(
           cosmeticName: 'result',
           initializer: initializer,
           type: type,
@@ -633,7 +633,7 @@ class LateLowering {
         //
         // This lowering avoids generating an extra narrowing node in inference,
         // but the generated code is worse due to poor register allocation.
-        Variable value = SyntheticVariable(
+        SyntheticVariable value = SyntheticVariable(
           cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,

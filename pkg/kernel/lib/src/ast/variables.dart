@@ -45,9 +45,6 @@ sealed class Variable extends VariableBase implements ContextConsumer {
   /// type inference.
   abstract DartType type;
 
-  /// Declaration node for the variable, if available.
-  abstract VariableDeclaration? variableDeclaration;
-
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
   ///
@@ -171,11 +168,20 @@ sealed class Variable extends VariableBase implements ContextConsumer {
   }
 }
 
+/// A variable declared within the body of a member.
+///
+/// This excludes [FunctionParameter], [ThisVariable] and [CatchVariable] which
+/// are all declared by the enclosing node.
+sealed class DeclaredVariable extends Variable {
+  /// Declaration node for the variable, if available.
+  abstract VariableDeclaration? variableDeclaration;
+}
+
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in
 /// the [VariableContext] it appears in. [VariableInitializationBase]
 /// (which is a [Statement]) marks the spot of the original variable declaration
 /// in the Dart program.
-class LocalVariable extends Variable {
+class LocalVariable extends DeclaredVariable {
   /// The name of the variable as provided in the source code.
   String name;
 
@@ -432,7 +438,7 @@ class LocalVariable extends Variable {
 }
 
 /// A late local variable.
-class LateVariable extends Variable {
+class LateVariable extends DeclaredVariable {
   String name;
 
   @override
@@ -732,16 +738,6 @@ class CatchVariable extends Variable {
   }
 
   @override
-  VariableDeclaration? get variableDeclaration {
-    throw new UnsupportedError("${this.runtimeType}.variableInitialization");
-  }
-
-  @override
-  void set variableDeclaration(VariableDeclaration? value) {
-    throw new UnsupportedError("${this.runtimeType}.variableInitialization=");
-  }
-
-  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -971,13 +967,6 @@ sealed class FunctionParameter extends Variable {
   /// they aren't final.
   @override
   bool get isAssignable => !isFinal;
-
-  /// Function parameters don't have initializers, only default values.
-  @override
-  VariableDeclaration? get variableDeclaration => null;
-
-  @override
-  void set variableDeclaration(VariableDeclaration? value) {}
 
   @Deprecated('Use FunctionParameter.defaultValue instead.')
   @override
@@ -1384,12 +1373,6 @@ class ThisVariable extends Variable {
   void set cosmeticName(String? value) {}
 
   @override
-  VariableDeclaration? get variableDeclaration => null;
-
-  @override
-  void set variableDeclaration(VariableDeclaration? value) {}
-
-  @override
   DartType type;
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
@@ -1590,7 +1573,7 @@ class ThisVariable extends Variable {
 
 /// A variable introduced during desugaring. Such variables don't correspond to
 /// any variable declared by the programmer.
-class SyntheticVariable extends Variable {
+class SyntheticVariable extends DeclaredVariable {
   @override
   String? cosmeticName;
 
@@ -1926,7 +1909,7 @@ sealed class ContextConsumer implements TreeNode {
 /// Declaration of a variable with an initial value.
 class VariableDeclaration extends TreeNode implements ContextConsumer {
   /// The declared variable.
-  Variable variable;
+  DeclaredVariable variable;
 
   /// Contexts of the variables captured by the late variable initializer.
   ///

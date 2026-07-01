@@ -4091,6 +4091,8 @@ typedef enum {
   Dart_AotBinaryFormat_Elf = 0,
   Dart_AotBinaryFormat_Assembly = 1,
   Dart_AotBinaryFormat_MachO_Dylib = 2,
+  /* PE/COFF object output is only supported when targeting Windows x64. */
+  Dart_AotBinaryFormat_PECoff_Obj = 3,
 } Dart_AotBinaryFormat;
 
 /**
@@ -4128,7 +4130,7 @@ typedef enum {
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat snapshot_format,
                                   Dart_StreamingWriteCallback callback,
                                   void* callback_data,
                                   bool stripped,
