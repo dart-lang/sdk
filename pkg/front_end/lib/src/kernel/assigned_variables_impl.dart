@@ -146,12 +146,8 @@ class AssignedVariablesImpl
 
   @override
   AssignedVariablesNodeInfo popNode() {
-    _insideAsserts
-        // Coverage-ignore(suite): Not run.
-        ?.popNode();
-    _outsideAsserts
-        // Coverage-ignore(suite): Not run.
-        ?.popNode();
+    _insideAsserts?.popNode();
+    _outsideAsserts?.popNode();
     return _delegate.popNode();
   }
 
@@ -163,12 +159,8 @@ class AssignedVariablesImpl
   @override
   void pushNode(AssignedVariablesNodeInfo node) {
     _delegate.pushNode(node);
-    _insideAsserts
-    // Coverage-ignore(suite): Not run.
-    ?.pushNode(node);
-    _outsideAsserts
-    // Coverage-ignore(suite): Not run.
-    ?.pushNode(node);
+    _insideAsserts?.pushNode(node);
+    _outsideAsserts?.pushNode(node);
   }
 
   @override

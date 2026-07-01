@@ -662,6 +662,8 @@ abstract class A {
 }
 
 enum E implements A {
+  ;
+
   @override
   void foo() {
     // TODO: implement foo
