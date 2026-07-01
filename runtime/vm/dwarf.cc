@@ -6,7 +6,7 @@
 
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
-#include "vm/dwarf_so_writer.h"
+#include "vm/debug_info_stream.h"
 #include "vm/elf.h"
 #include "vm/image_snapshot.h"
 #include "vm/object_store.h"
@@ -524,21 +524,35 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
 // Helper class for tracking state of DWARF registers and emitting
 // line number program commands to set these registers to the right
 // state.
-class LineNumberProgramWriter {
+class DwarfLineNumberProgramWriter : public DebugInfoLineNumberProgramWriter {
  public:
-  explicit LineNumberProgramWriter(DwarfWriteStream* stream)
-      : stream_(stream) {}
+  DwarfLineNumberProgramWriter(Zone* zone,
+                               Dwarf* dwarf,
+                               DwarfWriteStream* stream)
+      : DebugInfoLineNumberProgramWriter(zone),
+        dwarf_(ASSERT_NOTNULL(dwarf)),
+        stream_(stream) {}
 
-  void EmitRow(intptr_t file,
+  intptr_t LookupCodeLabel(const Code& code) override {
+    return dwarf_->LookupCodeLabel(code);
+  }
+
+  intptr_t LookupScript(const Script& script) override {
+    return dwarf_->LookupScript(script);
+  }
+
+  bool EmitRow(intptr_t file,
                intptr_t line,
                intptr_t column,
                intptr_t label,
-               intptr_t pc_offset) {
-    if (AddRow(file, line, column, label, pc_offset)) {
+               intptr_t pc_offset) override {
+    const bool emitted = AddRow(file, line, column, label, pc_offset);
+    if (emitted) {
       // Address register must be updated from 0 before emitting an LNP row
       // (dartbug.com/41756).
       stream_->u1(Dwarf::DW_LNS_copy);
     }
+    return emitted;
   }
 
   // Associates the given file, line, and column information for the instruction
@@ -621,6 +635,7 @@ class LineNumberProgramWriter {
     pc_offset_ = pc_offset;
   }
 
+  Dwarf* const dwarf_;
   DwarfWriteStream* const stream_;
   // The initial values for the line number program state machine registers
   // according to the DWARF standard.
@@ -634,7 +649,8 @@ class LineNumberProgramWriter {
   intptr_t label_ = 0;
 };
 
-void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
+void Dwarf::WriteSyntheticLineNumberProgram(
+    DebugInfoLineNumberProgramWriter* writer) {
   // We emit it last after all other scripts.
   const intptr_t comments_file_index = scripts_.length() + 1;
 
@@ -674,172 +690,13 @@ void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
         current_line++;
         i++;
       }
-      writer->EmitRow(comments_file_index, current_line - 1,
-                      DwarfPosition::kNoColumn, label, current_pc_offset);
+      USE(writer->EmitRow(comments_file_index, current_line - 1,
+                          DwarfPosition::kNoColumn, label, current_pc_offset));
     }
   }
 
   file_write(comments_buffer.buffer(), comments_buffer.length(), comments_file);
   file_close(comments_file);
-}
-
-void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
-    LineNumberProgramWriter* writer) {
-  Function& root_function = Function::Handle(zone_);
-  Script& script = Script::Handle(zone_);
-  CodeSourceMap& map = CodeSourceMap::Handle(zone_);
-  Array& functions = Array::Handle(zone_);
-  GrowableArray<const Function*> function_stack(zone_, 8);
-  GrowableArray<DwarfPosition> token_positions(zone_, 8);
-
-  for (intptr_t i = 0; i < codes_.length(); i++) {
-    const Code& code = *(codes_[i]);
-    auto const label = code_to_label_.LookupValue(&code);
-    ASSERT(label > 0);
-
-    map = code.code_source_map();
-    if (map.IsNull()) {
-      continue;
-    }
-    root_function = code.function();
-    functions = code.inlined_id_to_function();
-
-    NoSafepointScope no_safepoint;
-    ReadStream code_map_stream(map.Data(), map.Length());
-
-    function_stack.Clear();
-    token_positions.Clear();
-
-    // CodeSourceMap might start in the following way:
-    //
-    //   ChangePosition function.token_pos()
-    //   AdvancePC 0
-    //   ChangePosition x
-    //   AdvancePC y
-    //
-    // This entry is emitted to ensure correct symbolization of
-    // function listener frames produced by async unwinding.
-    // (See EmitFunctionEntrySourcePositionDescriptorIfNeeded).
-    // Directly interpreting this sequence would cause us to emit
-    // multiple with the same pc into line number table and different
-    // position information. To avoid this will make an adjustment for
-    // the second record we emit: if position x is a synthetic one we will
-    // simply drop the second record, if position x is real then we will
-    // emit row with a slightly adjusted PC (by 1 byte). This would not
-    // affect symbolization (you can't have a call that is 1 byte long)
-    // but will avoid line number table entries with the same PC.
-    bool function_entry_position_was_emitted = false;
-
-    int32_t current_pc_offset = 0;
-    function_stack.Add(&root_function);
-    token_positions.Add(kNoDwarfPositionInfo);
-
-    while (code_map_stream.PendingBytes() > 0) {
-      int32_t arg1;
-      int32_t arg2 = -1;
-      const uint8_t opcode =
-          CodeSourceMapOps::Read(&code_map_stream, &arg1, &arg2);
-      switch (opcode) {
-        case CodeSourceMapOps::kChangePosition: {
-          DwarfPosition& pos = token_positions[token_positions.length() - 1];
-          pos.ChangePosition(arg1, arg2);
-          break;
-        }
-        case CodeSourceMapOps::kAdvancePC: {
-          // Emit a row for the previous PC value if the source location
-          // changed since the last row was emitted.
-          const Function& function = *(function_stack.Last());
-          script = function.script();
-          const intptr_t file = LookupScript(script);
-          const intptr_t line = token_positions.Last().line();
-          const intptr_t column = token_positions.Last().column();
-          intptr_t pc_offset_adjustment = 0;
-          bool should_emit = true;
-
-          // If we are at the function entry and have already emitted a row
-          // then adjust current_pc_offset to avoid duplicated entries.
-          // See the comment below which explains why this code is here.
-          if (current_pc_offset == 0 && function_entry_position_was_emitted) {
-            pc_offset_adjustment = 1;
-            // Ignore synthetic positions. Function entry position gives
-            // more information anyway.
-            should_emit = !(line == 0 && column == 0);
-          }
-
-          if (should_emit) {
-            writer->EmitRow(file, line, column, label,
-                            current_pc_offset + pc_offset_adjustment);
-          }
-
-          current_pc_offset += arg1;
-          if (arg1 == 0) {  // Special case of AdvancePC 0.
-            ASSERT(current_pc_offset == 0);
-            ASSERT(!function_entry_position_was_emitted);
-            function_entry_position_was_emitted = true;
-          }
-          break;
-        }
-        case CodeSourceMapOps::kPushFunction: {
-          auto child_func =
-              &Function::Handle(zone_, Function::RawCast(functions.At(arg1)));
-          function_stack.Add(child_func);
-          token_positions.Add(kNoDwarfPositionInfo);
-          break;
-        }
-        case CodeSourceMapOps::kPopFunction: {
-          // We never pop the root function.
-          ASSERT(function_stack.length() > 1);
-          ASSERT(token_positions.length() > 1);
-          function_stack.RemoveLast();
-          token_positions.RemoveLast();
-          break;
-        }
-        case CodeSourceMapOps::kNullCheck: {
-          break;
-        }
-        default:
-          UNREACHABLE();
-      }
-    }
-  }
-}
-
-static constexpr char kResolvedFileRoot[] = "file:///";
-static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
-static constexpr char kResolvedFlutterRoot[] = "org-dartlang-sdk:///flutter/";
-static constexpr intptr_t kResolvedFlutterRootLen =
-    sizeof(kResolvedFlutterRoot) - 1;
-static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///";
-static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
-static constexpr char kResolvedGoogle3Root[] = "google3:///";
-static constexpr intptr_t kResolvedGoogle3RootLen =
-    sizeof(kResolvedGoogle3Root) - 1;
-
-static const char* ConvertResolvedURI(const char* str) {
-  const intptr_t len = strlen(str);
-  if (len > kResolvedFileRootLen &&
-      strncmp(str, kResolvedFileRoot, kResolvedFileRootLen) == 0) {
-#if defined(DART_HOST_OS_WINDOWS)
-    return str + kResolvedFileRootLen;  // Strip off the entire prefix.
-#else
-    return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.
-#endif
-  }
-  // Must do kResolvedFlutterRoot before kResolvedSdkRoot, since the latter is
-  // a prefix of the former.
-  if (len > kResolvedFlutterRootLen &&
-      strncmp(str, kResolvedFlutterRoot, kResolvedFlutterRootLen) == 0) {
-    return str + kResolvedFlutterRootLen;  // Strip off the entire prefix.
-  }
-  if (len > kResolvedSdkRootLen &&
-      strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
-    return str + kResolvedSdkRootLen;  // Strip off the entire prefix.
-  }
-  if (len > kResolvedGoogle3RootLen &&
-      strncmp(str, kResolvedGoogle3Root, kResolvedGoogle3RootLen) == 0) {
-    return str + kResolvedGoogle3RootLen;  // Strip off the entire prefix.
-  }
-  return nullptr;
 }
 
 void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
@@ -876,33 +733,10 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       stream->u1(0);
 
       // 11. file_names (sequence of file entries)
-      String& uri = String::Handle(zone_);
       for (intptr_t i = 0; i < scripts_.length(); i++) {
         const Script& script = *(scripts_[i]);
-        const char* uri_cstr = nullptr;
-        if (FLAG_resolve_dwarf_paths) {
-          uri = script.resolved_url();
-          // Strictly enforce this to catch unresolvable cases.
-          if (uri.IsNull()) {
-            FATAL("no resolved URI for Script %s available",
-                  script.ToCString());
-          }
-          // resolved_url is never obfuscated, so just convert the prefix.
-          auto const orig_cstr = uri.ToCString();
-          auto const converted_cstr = ConvertResolvedURI(orig_cstr);
-          // Strictly enforce this to catch inconvertible cases.
-          if (converted_cstr == nullptr) {
-            FATAL("cannot convert resolved URI %s", orig_cstr);
-          }
-          uri_cstr = converted_cstr;
-        } else {
-          uri = script.url();
-          ASSERT(!uri.IsNull());
-          uri_cstr = ImageWriter::Deobfuscate(zone_, deobfuscation_trie_,
-                                              uri.ToCString());
-        }
-        RELEASE_ASSERT(strlen(uri_cstr) != 0);
-
+        const char* uri_cstr =
+            DebugInfo::ResolveScriptUri(zone_, script, deobfuscation_trie_);
         stream->string(uri_cstr);  // NOLINT
         stream->uleb128(0);        // Include directory index.
         stream->uleb128(0);        // File modification time.
@@ -919,11 +753,12 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     });
 
     // 6.2.5 The Line Number Program
-    LineNumberProgramWriter lnp_writer(stream);
+    DwarfLineNumberProgramWriter lnp_writer(zone_, this, stream);
     if (FLAG_write_code_comments_as_synthetic_source_to != nullptr) {
       WriteSyntheticLineNumberProgram(&lnp_writer);
     } else {
-      WriteLineNumberProgramFromCodeSourceMaps(&lnp_writer);
+      DebugInfo::WriteLineNumberProgramFromCodeSourceMaps(zone_, codes_,
+                                                          &lnp_writer);
     }
 
     // Advance pc to end of the compilation unit if not already there.
@@ -942,7 +777,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
 
 #if !defined(TARGET_ARCH_IA32)
 void Dwarf::WriteCallFrameInformationRecords(
-    DwarfSharedObjectStream* stream,
+    DebugInfoStream* stream,
     const GrowableArray<FrameDescriptionEntry>& fdes) {
   ASSERT(!fdes.is_empty());
 

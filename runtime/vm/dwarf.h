@@ -6,6 +6,7 @@
 #define RUNTIME_VM_DWARF_H_
 
 #include "vm/allocation.h"
+#include "vm/debug_info.h"
 #include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
@@ -17,7 +18,9 @@ namespace dart {
 #ifdef DART_PRECOMPILER
 
 class InliningNode;
-class LineNumberProgramWriter;
+class DwarfLineNumberProgramWriter;
+class DebugInfoStream;
+using DwarfWriteStream = DebugInfoWriteStream;
 
 struct ScriptIndexPair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -125,47 +128,6 @@ struct DwarfCodeKeyValueTrait {
 template <typename T>
 using DwarfCodeMap = DirectChainedHashMap<DwarfCodeKeyValueTrait<T>>;
 
-class DwarfWriteStream : public ValueObject {
- public:
-  DwarfWriteStream() {}
-  virtual ~DwarfWriteStream() {}
-
-  virtual void sleb128(intptr_t value) = 0;
-  virtual void uleb128(uintptr_t value) = 0;
-  virtual void u1(uint8_t value) = 0;
-  virtual void u2(uint16_t value) = 0;
-  virtual void u4(uint32_t value) = 0;
-  virtual void u8(uint64_t value) = 0;
-  virtual void string(const char* cstr) = 0;  // NOLINT
-
-  // Prefixes the content added by body with its length.
-  //
-  // symbol_prefix is used when a local symbol is created for the length.
-  virtual void WritePrefixedLength(const char* symbol_prefix,
-                                   std::function<void()> body) = 0;
-
-  // Generates a relocated address from the given symbol label and offset.
-  //
-  // If no size is provided, the size of the relocated address in the stream
-  // is the native word size.
-  virtual void OffsetFromSymbol(intptr_t label,
-                                intptr_t offset,
-                                size_t size = kAddressSize) = 0;
-
-  virtual void InitializeAbstractOrigins(intptr_t size) = 0;
-  virtual void RegisterAbstractOrigin(intptr_t index) = 0;
-  virtual void AbstractOrigin(intptr_t index) = 0;
-
- protected:
-#if defined(TARGET_ARCH_IS_32_BIT)
-  static constexpr size_t kAddressSize = kInt32Size;
-#else
-  static constexpr size_t kAddressSize = kInt64Size;
-#endif
-
-  DISALLOW_COPY_AND_ASSIGN(DwarfWriteStream);
-};
-
 class Dwarf : public ZoneObject {
  public:
   // The compilation unit name is used as the DW_AT_name for the
@@ -176,6 +138,10 @@ class Dwarf : public ZoneObject {
         const char* compilation_unit_name = nullptr);
 
   const GrowableArray<const Code*>& codes() const { return codes_; }
+  const GrowableArray<const Script*>& scripts() const { return scripts_; }
+  const Trie<const char>* deobfuscation_trie() const {
+    return deobfuscation_trie_;
+  }
 
   // Stores the code object for later creating the line number program.
   void AddCode(const Code& code, intptr_t label);
@@ -184,6 +150,9 @@ class Dwarf : public ZoneObject {
   intptr_t AddScript(const Script& script);
   intptr_t LookupFunction(const Function& function);
   intptr_t LookupScript(const Script& script);
+  intptr_t LookupCodeLabel(const Code& code) const {
+    return code_to_label_.LookupValue(&code);
+  }
 
   void WriteAbbreviations(DwarfWriteStream* stream);
   void WriteDebugInfo(DwarfWriteStream* stream);
@@ -203,12 +172,12 @@ class Dwarf : public ZoneObject {
   // Only used for non-assembly outputs; the AssemblyImageWriter inserts
   // approrpiate CFI directives directly into the generated assembly.
   static void WriteCallFrameInformationRecords(
-      class DwarfSharedObjectStream* stream,
+      DebugInfoStream* stream,
       const GrowableArray<FrameDescriptionEntry>& fdes);
 #endif
 
  private:
-  friend class LineNumberProgramWriter;
+  friend class DwarfLineNumberProgramWriter;
 
   static constexpr intptr_t DW_TAG_compile_unit = 0x11;
   static constexpr intptr_t DW_TAG_inlined_subroutine = 0x1d;
@@ -276,9 +245,8 @@ class Dwarf : public ZoneObject {
                          intptr_t root_label,
                          const Script& parent_script);
 
-  void WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer);
-  void WriteLineNumberProgramFromCodeSourceMaps(
-      LineNumberProgramWriter* writer);
+  void WriteSyntheticLineNumberProgram(
+      DebugInfoLineNumberProgramWriter* writer);
 
   Zone* const zone_;
   const char* const compilation_unit_name_;

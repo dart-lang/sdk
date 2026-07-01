@@ -862,15 +862,15 @@ enum Architecture {
 }
 
 /// Specifies the output format used by gen_snapshot to create AOT snapshots.
-enum GenSnapshotFormat {
+enum GenSnapshotFormat(this.name, this.fileOption, {this._snapshotType}) {
   assembly('assembly', 'assembly'),
   elf('elf', 'elf'),
-  machODylib('macho-dylib', 'macho');
+  machODylib('macho-dylib', 'macho'),
+  coff('coff', 'coff', snapshotType: 'app-aot-pecoff-obj');
 
   final String name;
   final String fileOption;
-
-  new(this.name, this.fileOption);
+  final String? _snapshotType;
 
   static final _all = Map<String, GenSnapshotFormat>.fromIterable(
     values,
@@ -885,7 +885,7 @@ enum GenSnapshotFormat {
     throw ArgumentError('Unknown gen_snapshot format "$name".');
   }
 
-  String get snapshotType => 'app-aot-$name';
+  String get snapshotType => _snapshotType ?? 'app-aot-$name';
 
   @override
   String toString() => name;

@@ -355,7 +355,15 @@
         "enable-asserts": true
       }
     },
-    "vm-aot-(linux|fuchsia|win)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-win-(debug|product|release)-(x64|x64c)": {
+      "options": {
+        "gen-snapshot-format": "coff"
+      }
+    },
+    "vm-aot-win-(debug|product|release)-(arm64|arm64c)": {
+      "options": {}
+    },
+    "vm-aot-(linux|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
     },
     "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
