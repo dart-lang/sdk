@@ -14394,24 +14394,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     pushRewrite(expressionResult.expression);
 
-    // The shared analysis logic uses the convention that the expressions passed
-    // to flow analysis are the original (pre-lowered) expressions, whereas the
-    // expressions passed to flow analysis by the CFE are the lowered
-    // expressions. Since the caller of `dispatchExpression` is the shared
-    // analysis logic, we need to transfer the flow analysis information that's
-    // associated with `expressionResult.expression` (the post-lowered
-    // expression) so that it becomes associated with `node` (the pre-lowered
-    // expression).
-    //
-    // TODO(paulberry): eliminate the need for this--see
-    // https://github.com/dart-lang/sdk/issues/52189.
-    ExpressionInfo? flowAnalysisInfo = flow.getExpressionInfo(
-      expressionResult.expression,
-    );
-    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: new SharedTypeView(expressionResult.inferredType),
-      flowAnalysisInfo: flowAnalysisInfo,
+      flowAnalysisInfo: flow.getExpressionInfo(expressionResult.expression),
     );
   }
 
