@@ -42,6 +42,7 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
@@ -814,6 +815,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         throw new UnsupportedError("Unexpected call tear-off $target.");
     }
 
@@ -870,6 +872,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         case ObjectAccessTargetKind.extensionTypeRepresentation:
         // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+        // Coverage-ignore(suite): Not run.
+        case ObjectAccessTargetKind.expressionEvaluationParameter:
           shouldTearOff = false;
       }
       if (shouldTearOff) {
@@ -3497,6 +3501,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name? implicitInvocationPropertyName,
     List<SyntheticVariable>? hoistedExpressions,
     ObjectAccessTarget? target,
+    bool? isImplicitThis,
   }) {
     target ??= findInterfaceMember(
       receiverType,
@@ -3515,6 +3520,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name: name,
             receiverType: receiverType,
             setter: false,
+            isImplicitThis: isImplicitThis,
           );
       if (overWritten != null) {
         target = overWritten.target;
@@ -3789,6 +3795,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             context: context,
           );
         }
+        return inferMethodInvocation(
+          visitor,
+          arguments.fileOffset,
+          readResult.expression,
+          readResult.inferredType,
+          callName,
+          typeArguments,
+          arguments,
+          typeContext,
+          isExpressionInvocation: false,
+          isImplicitCall: true,
+          hoistedExpressions: hoistedExpressions,
+        );
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
+        DartType type = target.getGetterType(this);
+        VariableGet read = extern.createVariableGet(
+          target.expressionEvaluationParameterVariable,
+        );
+        ExpressionInferenceResult readResult = new ExpressionInferenceResult(
+          type,
+          read,
+        );
         return inferMethodInvocation(
           visitor,
           arguments.fileOffset,
@@ -4432,6 +4461,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required DartType writeContext,
     required ExpressionInferenceResult valueResult,
     required bool forEffect,
+    bool? isImplicitThis,
   }) {
     valueResult = ensureAssignableResult(
       writeContext,
@@ -4449,6 +4479,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name: propertyName,
             receiverType: receiverType,
             setter: true,
+            isImplicitThis: isImplicitThis,
           );
       if (overWritten != null) {
         writeTarget = overWritten.target;
@@ -4563,6 +4594,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           interfaceTarget: writeTarget.classMember!,
         )..fileOffset = fileOffset;
         break;
+
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
+        write = extern.createVariableSet(
+          writeTarget.expressionEvaluationParameterVariable,
+          value,
+          fileOffset: fileOffset,
+        );
+        break;
+
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
@@ -5135,6 +5176,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required DartType? promotedReadType,
     required bool isThisReceiver,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+    bool? isImplicitThis,
   }) {
     Expression read;
     ExpressionInferenceResult? readResult;
@@ -5156,10 +5198,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name: propertyName,
             receiverType: receiverType,
             setter: false,
+            isImplicitThis: isImplicitThis,
           );
       if (overWritten != null) {
         readTarget = overWritten.target;
         propertyName = overWritten.name;
+        readType = readTarget.getGetterType(this);
       }
     }
 
@@ -5325,6 +5369,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         read = new AsExpression(receiver, readType)
           ..isUnchecked = true
           ..fileOffset = fileOffset;
+        break;
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
+        read = extern.createVariableGet(
+          readTarget.expressionEvaluationParameterVariable,
+        );
         break;
     }
 
@@ -6274,6 +6324,8 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         return false;
     }
   }

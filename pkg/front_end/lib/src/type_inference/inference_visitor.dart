@@ -24,7 +24,6 @@ import 'package:kernel/src/non_null.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
@@ -61,6 +60,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/check_helper.dart';
 import '../source/source_library_builder.dart';
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
@@ -957,6 +957,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.extensionTypeRepresentation:
         // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+        // Coverage-ignore(suite): Not run.
+        case ObjectAccessTargetKind.expressionEvaluationParameter:
           break;
       }
     }
@@ -8568,6 +8570,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       isExpressionInvocation: false,
       isImplicitCall: false,
+      isImplicitThis: node.isImplicitThis,
     );
   }
 
@@ -8875,6 +8878,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.name,
       const UnknownType(),
       isThisReceiver: isThisExpression(node.receiver),
+      isImplicitThis: node.isImplicitThis,
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -8919,6 +8923,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // For prefix expressions like `a = ++o.b` we need the result of the
       // assignment as the result of the expression.
       forEffect: node.isPost || node.forEffect,
+      isImplicitThis: node.isImplicitThis,
     );
     Expression write = writeResult.expression;
 
@@ -10699,6 +10704,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         throw new UnsupportedError('Unexpected binary target ${binaryTarget}');
     }
 
@@ -10861,6 +10867,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         throw new UnsupportedError('Unexpected unary target ${unaryTarget}');
     }
 
@@ -11029,6 +11036,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         throw new UnsupportedError('Unexpected index get target ${readTarget}');
     }
 
@@ -11184,6 +11192,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+      case ObjectAccessTargetKind.expressionEvaluationParameter:
         throw new UnsupportedError(
           'Unexpected index set target ${writeTarget}',
         );
@@ -11220,7 +11229,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext, {
     required bool isThisReceiver,
     ObjectAccessTarget? readTarget,
-    Expression? propertyGetNode,
+    PropertyGet? propertyGetNode,
+    bool? isImplicitThis,
   }) {
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
         flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver));
@@ -11260,6 +11270,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       promotedReadType: promotedReadType,
       isThisReceiver: isThisReceiver,
       whyNotPromoted: whyNotPromoted,
+      isImplicitThis: isImplicitThis,
     );
   }
 
@@ -12302,6 +12313,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext: writeContext,
       valueResult: rhsResult,
       forEffect: node.forEffect,
+      isImplicitThis: node.isImplicitThis,
     );
     Expression replacement = replacementResult.expression;
     DartType replacementType = replacementResult.inferredType;
@@ -12384,6 +12396,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       isThisReceiver: isThisExpression(node.receiver),
       propertyGetNode: node,
+      isImplicitThis: node.isImplicitThis,
     );
     ExpressionInferenceResult readResult =
         propertyGetInferenceResult.expressionInferenceResult;
@@ -15747,6 +15760,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.missing:
         case ObjectAccessTargetKind.ambiguous:
         case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+        case ObjectAccessTargetKind.expressionEvaluationParameter:
           field.pattern =
               new InvalidPattern(
                   createMissingPropertyGet(
@@ -15975,6 +15989,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableRecordNamed:
           case ObjectAccessTargetKind.extensionTypeRepresentation:
           case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+          case ObjectAccessTargetKind.expressionEvaluationParameter:
             // Coverage-ignore(suite): Not run.
             problems.unsupported(
               'Relational pattern target $invokeTarget',
@@ -17703,39 +17718,6 @@ class MapEntryInferenceContext extends CollectionElementInferenceContext {
          inferredSpreadTypes: inferredSpreadTypes,
          inferredConditionTypes: inferredConditionTypes,
        );
-}
-
-abstract class ExpressionEvaluationHelper {
-  ExpressionInferenceResult? visitInternalVariableGet(
-    InternalVariableGet node,
-    DartType typeContext,
-    ProblemReporting problemReporting,
-    CompilerContext compilerContext,
-    Uri fileUri,
-  );
-
-  ExpressionInferenceResult? visitInternalVariableSet(
-    InternalVariableSet node,
-    DartType typeContext,
-    ProblemReporting problemReporting,
-    CompilerContext compilerContext,
-    Uri fileUri,
-  );
-
-  OverwrittenInterfaceMember? overwriteFindInterfaceMember({
-    required ObjectAccessTarget target,
-    required DartType receiverType,
-    required Name name,
-    required bool setter,
-  });
-}
-
-// Coverage-ignore(suite): Not run.
-class OverwrittenInterfaceMember {
-  final ObjectAccessTarget target;
-  final Name name;
-
-  new({required this.target, required this.name});
 }
 
 class _RedirectionTarget {

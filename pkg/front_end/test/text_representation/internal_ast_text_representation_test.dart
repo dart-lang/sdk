@@ -1388,6 +1388,7 @@ void _testInternalMethodInvocation() {
       null,
       new ActualArguments.empty(),
       isNullAware: false,
+      isImplicitThis: false,
     ),
     '''
 0.boz()''',
@@ -1418,6 +1419,7 @@ void _testInternalMethodInvocation() {
         positionalCount: 1,
       ),
       isNullAware: false,
+      isImplicitThis: false,
     ),
     '''
 0.boz<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -1429,6 +1431,7 @@ void _testInternalMethodInvocation() {
       null,
       new ActualArguments.empty(),
       isNullAware: true,
+      isImplicitThis: false,
     ),
     '''
 0?.boz()''',
@@ -1448,6 +1451,7 @@ void _testInternalMethodInvocation() {
         positionalCount: 1,
       ),
       isNullAware: true,
+      isImplicitThis: false,
     ),
     '''
 0?.boz<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -1456,13 +1460,23 @@ void _testInternalMethodInvocation() {
 
 void _testPropertyGet() {
   testExpression(
-    new PropertyGet(new IntLiteral(0), new Name('boz'), isNullAware: false),
+    new PropertyGet(
+      new IntLiteral(0),
+      new Name('boz'),
+      isNullAware: false,
+      isImplicitThis: false,
+    ),
     '''
 0.boz''',
   );
 
   testExpression(
-    new PropertyGet(new IntLiteral(0), new Name('boz'), isNullAware: true),
+    new PropertyGet(
+      new IntLiteral(0),
+      new Name('boz'),
+      isNullAware: true,
+      isImplicitThis: false,
+    ),
     '''
 0?.boz''',
   );
@@ -1477,6 +1491,7 @@ void _testPropertySet() {
       forEffect: false,
       readOnlyReceiver: false,
       isNullAware: false,
+      isImplicitThis: false,
     ),
     '''
 0.boz = 1''',
@@ -1490,6 +1505,7 @@ void _testPropertySet() {
       forEffect: false,
       readOnlyReceiver: false,
       isNullAware: true,
+      isImplicitThis: false,
     ),
     '''
 0?.boz = 1''',
@@ -1544,6 +1560,7 @@ void _testMethodInvocation() {
       null,
       new ActualArguments.empty(),
       isNullAware: false,
+      isImplicitThis: false,
     ),
     '''
 0.foo()''',
@@ -1556,6 +1573,7 @@ void _testMethodInvocation() {
       null,
       new ActualArguments.empty(),
       isNullAware: true,
+      isImplicitThis: false,
     ),
     '''
 0?.foo()''',
@@ -1960,6 +1978,7 @@ void _testPropertyIncDec() {
       isPost: true,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 0.foo++''',
@@ -1975,6 +1994,7 @@ void _testPropertyIncDec() {
       isPost: true,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 0.foo--''',
@@ -1990,6 +2010,7 @@ void _testPropertyIncDec() {
       isPost: true,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 0?.foo++''',
@@ -2005,6 +2026,7 @@ void _testPropertyIncDec() {
       isPost: true,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 0?.foo--''',
@@ -2020,6 +2042,7 @@ void _testPropertyIncDec() {
       isPost: false,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 ++0.foo''',
@@ -2035,6 +2058,7 @@ void _testPropertyIncDec() {
       isPost: false,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 --0.foo''',
@@ -2050,6 +2074,7 @@ void _testPropertyIncDec() {
       isPost: false,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 ++0?.foo''',
@@ -2065,6 +2090,7 @@ void _testPropertyIncDec() {
       isPost: false,
       nameOffset: -1,
       operatorOffset: -1,
+      isImplicitThis: false,
     ),
     '''
 --0?.foo''',

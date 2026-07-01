@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered dart.core::String #this, dynamic bar) → dynamic
+  return #lib1::_extension#0|get#bar(#this);

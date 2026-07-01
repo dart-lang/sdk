@@ -26,6 +26,7 @@ import '../source/source_type_alias_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart' show ConstructorContext;
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
 import 'expression_compilation_data.dart';
 import 'internal_ast.dart';
@@ -73,6 +74,10 @@ abstract class BodyBuilderContext {
   int get memberNameLength {
     throw new UnsupportedError('${runtimeType}.memberNameLength');
   }
+
+  /// Returns the [ExpressionEvaluationHelper] allowing for extra scope lookups
+  /// in case an error would otherwise be issued.
+  ExpressionEvaluationHelper? get expressionEvaluationHelper => null;
 
   /// Looks up the member by the given [name] in the superclass of the enclosing
   /// class.
@@ -806,11 +811,15 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final ExpressionCompilationData _expressionCompilationData;
 
+  @override
+  final ExpressionEvaluationHelper expressionEvaluationHelper;
+
   new(
     this._expressionCompilationData,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
     required bool isDeclarationInstanceMember,
+    required this.expressionEvaluationHelper,
   }) : super(
          libraryBuilder,
          declarationBuilder,

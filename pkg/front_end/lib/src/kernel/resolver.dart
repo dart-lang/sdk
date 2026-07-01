@@ -40,8 +40,6 @@ import '../source/source_library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart';
-import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper;
 import '../type_inference/inference_visitor_base.dart'
     show InferenceVisitorBase;
 import '../type_inference/type_inference_engine.dart';
@@ -52,6 +50,7 @@ import '../type_inference/type_inferrer.dart'
         InferredFieldInitializer,
         InferredFunctionBody;
 import '../type_inference/type_schema.dart';
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
 import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
@@ -872,7 +871,6 @@ class Resolver {
     required LookupScope scope,
     required Token token,
     required ExpressionCompilationData expressionCompilationData,
-    required List<InternalVariable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required Variable? extensionThis,
   }) {
@@ -891,43 +889,80 @@ class Resolver {
 
     int wildcardVariableIndex = 0;
     InternalVariable? internalExtensionThis;
-    List<FormalParameterBuilder>? formals =
-        expressionCompilationData.positionalParameters.length == 0
+    FormalParameterBuilder createFormalParameterBuilder(
+      PositionalParameter parameter,
+      String formalName,
+    ) {
+      InternalPositionalParameter formal = new InternalPositionalParameter(
+        astVariable: parameter,
+        isImplicitlyTyped: false,
+        fileOffset: parameter.fileOffset,
+      );
+      bool isWildcard =
+          libraryFeatures.wildcardVariables.isEnabled && formalName == '_';
+      int? wildcardIndex;
+      if (isWildcard) {
+        wildcardIndex = wildcardVariableIndex++;
+      }
+      if (parameter == extensionThis) {
+        internalExtensionThis = formal;
+      }
+      return new FormalParameterBuilder(
+        kind: FormalParameterKind.requiredPositional,
+        modifiers: Modifiers.empty,
+        type: const ImplicitTypeBuilder(),
+        name: formalName,
+        nameOffset: null,
+        fileOffset: formal.fileOffset,
+        fileUri: fileUri,
+        hasImmediatelyDeclaredDefaultValue: false,
+        wildcardIndex: wildcardIndex,
+        variable: formal,
+      );
+    }
+
+    List<PositionalParameter> positionalParameters =
+        expressionCompilationData.positionalParameters;
+    List<FormalParameterBuilder>? formals = positionalParameters.length == 0
         ? null
         : new List<FormalParameterBuilder>.generate(
-            expressionCompilationData.positionalParameters.length,
+            positionalParameters.length,
             (int i) {
-              PositionalParameter parameter =
-                  expressionCompilationData.positionalParameters[i];
-              InternalPositionalParameter formal =
-                  new InternalPositionalParameter(
-                    astVariable: parameter,
-                    isImplicitlyTyped: false,
-                    fileOffset: parameter.fileOffset,
-                  );
-              String formalName = formal.cosmeticName!;
-              bool isWildcard =
-                  libraryFeatures.wildcardVariables.isEnabled &&
-                  formalName == '_';
-              int? wildcardIndex;
-              if (isWildcard) {
-                wildcardIndex = wildcardVariableIndex++;
-              }
-              if (parameter == extensionThis) {
-                internalExtensionThis = formal;
-              }
-              return new FormalParameterBuilder(
-                kind: FormalParameterKind.requiredPositional,
-                modifiers: Modifiers.empty,
-                type: const ImplicitTypeBuilder(),
-                name: formalName,
-                nameOffset: null,
-                fileOffset: formal.fileOffset,
-                fileUri: fileUri,
-                hasImmediatelyDeclaredDefaultValue: false,
-                wildcardIndex: wildcardIndex,
-                variable: formal,
+              PositionalParameter parameter = positionalParameters[i];
+              return createFormalParameterBuilder(
+                parameter,
+                parameter.cosmeticName!,
               );
+            },
+            growable: false,
+          );
+
+    List<MapEntry<String, PositionalParameter>> extraParametersIfNotShadowing =
+        expressionCompilationData.extraParametersIfNotShadowing.entries
+            .toList();
+    List<FormalParameterBuilder>? extraFormalsIfNotShadowing =
+        extraParametersIfNotShadowing.length == 0
+        ? null
+        : new List<FormalParameterBuilder>.generate(
+            extraParametersIfNotShadowing.length,
+            (int i) {
+              MapEntry<String, PositionalParameter> entry =
+                  extraParametersIfNotShadowing[i];
+              FormalParameterBuilder result = createFormalParameterBuilder(
+                entry.value,
+                entry.key,
+              );
+              // We don't actually pass it to the body builder which would
+              // declares the normal parameters so do it here.
+              context.assignedVariables.declare(result.variable);
+
+              // Register it in the expression evaluation helper too so it can
+              // actually be used on otherwise failed lookups.
+              expressionEvaluationHelper.registerAdditionalScopeLookupResult(
+                entry.key,
+                result,
+              );
+              return result;
             },
             growable: false,
           );
@@ -959,7 +994,7 @@ class Resolver {
 
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
-      extraKnownVariables: extraKnownVariables,
+      extraKnownVariables: expressionCompilationData.extraKnownVariables,
       fileOffset: fileOffset,
       typeParameterBuilders: typeParameterBuilders,
       formals: formals,
@@ -975,7 +1010,18 @@ class Resolver {
         );
       }
     }
-    for (InternalVariable extraVariable in extraKnownVariables) {
+    if (extraFormalsIfNotShadowing != null) {
+      for (int i = 0; i < extraFormalsIfNotShadowing.length; i++) {
+        InternalVariable variable = extraFormalsIfNotShadowing[i].variable;
+        context.typeInferrer.flowAnalysis.declare(
+          variable,
+          new SharedTypeView(variable.type),
+          initialized: true,
+        );
+      }
+    }
+    for (InternalVariable extraVariable
+        in expressionCompilationData.extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
         extraVariable,
         new SharedTypeView(extraVariable.type),

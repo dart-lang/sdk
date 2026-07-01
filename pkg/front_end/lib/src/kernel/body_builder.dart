@@ -2635,13 +2635,21 @@ class BodyBuilderImpl extends StackListenerImpl
           isThisExplicit: false,
         );
       } else {
-        // [name] is unresolved.
-        return new UnresolvedNameGenerator(
-          this,
-          nameToken,
-          memberName,
-          unresolvedReadKind: UnresolvedKind.Unknown,
-        );
+        // We're in an error state. In expression compilation there might be an
+        // out though.
+        lookupResult = _context.expressionEvaluationHelper
+            // Coverage-ignore(suite): Not run.
+            ?.additionalScopeLookup(name);
+
+        if (lookupResult == null) {
+          // [name] is unresolved.
+          return new UnresolvedNameGenerator(
+            this,
+            nameToken,
+            memberName,
+            unresolvedReadKind: UnresolvedKind.Unknown,
+          );
+        }
       }
     }
     Builder? getable = lookupResult.getable;
@@ -6697,6 +6705,7 @@ class BodyBuilderImpl extends StackListenerImpl
         null,
         arguments,
         isNullAware: false,
+        isImplicitThis: false,
       );
     } else {
       if (typeArgumentBuilders != null) {
@@ -10602,6 +10611,7 @@ class BodyBuilderImpl extends StackListenerImpl
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
+    bool isImplicitThis = false,
   }) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
@@ -10622,6 +10632,7 @@ class BodyBuilderImpl extends StackListenerImpl
       typeArguments,
       arguments,
       isNullAware: isNullAware,
+      isImplicitThis: isImplicitThis,
     );
   }
 

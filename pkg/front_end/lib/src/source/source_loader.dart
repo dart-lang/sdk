@@ -61,15 +61,14 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
-import '../kernel/internal_ast.dart' show InternalVariable;
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/resolver.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
+import '../util/expression_evaluation_helpers.dart'
+    show ExpressionEvaluationHelper;
 import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser;
@@ -1492,7 +1491,6 @@ severity: $severity
     bool isClassInstanceMember,
     ExpressionCompilationData expressionCompilationData,
     Variable? extensionThis,
-    List<InternalVariable> extraKnownVariables,
     ExpressionEvaluationHelper expressionEvaluationHelper,
   ) async {
     // TODO(johnniwinther): Support expression compilation in a specific
@@ -1551,13 +1549,13 @@ severity: $severity
         libraryBuilder,
         declarationBuilder,
         isDeclarationInstanceMember: isClassInstanceMember,
+        expressionEvaluationHelper: expressionEvaluationHelper,
       ),
       fileUri: libraryBuilder.fileUri,
       extensionScope: extensionScope,
       scope: memberScope,
       token: token,
       expressionCompilationData: expressionCompilationData,
-      extraKnownVariables: extraKnownVariables,
       expressionEvaluationHelper: expressionEvaluationHelper,
       extensionThis: extensionThis,
     );

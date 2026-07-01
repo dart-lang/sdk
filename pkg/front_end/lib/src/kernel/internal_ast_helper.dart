@@ -850,6 +850,7 @@ Expression createMethodInvocation(
   TypeArguments? typeArguments,
   ActualArguments arguments, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
   return new MethodInvocation(
     expression,
@@ -857,6 +858,7 @@ Expression createMethodInvocation(
     typeArguments,
     arguments,
     isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
   )..fileOffset = fileOffset;
 }
 
@@ -1164,9 +1166,14 @@ Expression createPropertyGet(
   Expression receiver,
   Name name, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
-  return new PropertyGet(receiver, name, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new PropertyGet(
+    receiver,
+    name,
+    isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
+  )..fileOffset = fileOffset;
 }
 
 Expression createPropertySet(
@@ -1177,6 +1184,7 @@ Expression createPropertySet(
   required bool forEffect,
   bool readOnlyReceiver = false,
   required bool isNullAware,
+  required isImplicitThis,
 }) {
   return new PropertySet(
     receiver,
@@ -1185,6 +1193,7 @@ Expression createPropertySet(
     forEffect: forEffect,
     readOnlyReceiver: readOnlyReceiver,
     isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
   )..fileOffset = fileOffset;
 }
 

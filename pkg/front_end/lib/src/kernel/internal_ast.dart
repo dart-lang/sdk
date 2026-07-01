@@ -2445,6 +2445,9 @@ class PropertyIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
+  /// `true` if the access is an implicit `this` access.
+  final bool isImplicitThis;
+
   new(
     this.receiver,
     this.name, {
@@ -2454,6 +2457,7 @@ class PropertyIncDec extends InternalExpression {
     required this.isNullAware,
     required this.nameOffset,
     required this.operatorOffset,
+    required this.isImplicitThis,
   }) {
     receiver.parent = this;
   }
@@ -4784,12 +4788,16 @@ class MethodInvocation extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
 
+  /// `true` if the access is an implicit `this` access.
+  final bool isImplicitThis;
+
   new(
     this.receiver,
     this.name,
     this.typeArguments,
     this.arguments, {
     required this.isNullAware,
+    required this.isImplicitThis,
   }) {
     receiver.parent = this;
     arguments.parent = this;
@@ -4841,7 +4849,15 @@ class PropertyGet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a`.
   final bool isNullAware;
 
-  new(this.receiver, this.name, {required this.isNullAware}) {
+  /// `true` if the access is an implicit `this` access.
+  final bool isImplicitThis;
+
+  new(
+    this.receiver,
+    this.name, {
+    required this.isNullAware,
+    required this.isImplicitThis,
+  }) {
     receiver.parent = this;
   }
 
@@ -4899,6 +4915,9 @@ class PropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a = b`.
   final bool isNullAware;
 
+  /// `true` if the access is an implicit `this` access.
+  final bool isImplicitThis;
+
   new(
     this.receiver,
     this.name,
@@ -4906,6 +4925,7 @@ class PropertySet extends InternalExpression {
     required this.forEffect,
     required this.readOnlyReceiver,
     required this.isNullAware,
+    required this.isImplicitThis,
   }) {
     receiver.parent = this;
     value.parent = this;

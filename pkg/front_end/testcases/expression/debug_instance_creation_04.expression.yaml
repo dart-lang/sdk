@@ -28,5 +28,6 @@ position: "#C"
 static: false
 offset: 114 # On "_s2" in the parameters.
 scriptUri: main.dart
+# s1 and s2 doesn't actually exist - but they don't shadow anything.
 expression: |
   () { return "$s1 $s2 $_s1 $_s2"; }()

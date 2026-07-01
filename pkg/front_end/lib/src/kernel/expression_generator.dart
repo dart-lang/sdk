@@ -754,6 +754,7 @@ class PropertyAccessGenerator extends Generator {
       receiver,
       name,
       isNullAware: false,
+      isImplicitThis: false,
     );
   }
 
@@ -766,6 +767,7 @@ class PropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: false,
+      isImplicitThis: false,
     );
   }
 
@@ -838,6 +840,7 @@ class PropertyAccessGenerator extends Generator {
       isNullAware: false,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: false,
     )..fileOffset = _nameOffset;
   }
 
@@ -994,6 +997,7 @@ class ThisPropertyAccessGenerator extends Generator {
       _thisExpression,
       name,
       isNullAware: false,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1015,6 +1019,7 @@ class ThisPropertyAccessGenerator extends Generator {
       value,
       forEffect: forEffect,
       isNullAware: false,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1088,6 +1093,7 @@ class ThisPropertyAccessGenerator extends Generator {
       isNullAware: false,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: !isThisExplicit,
     )..fileOffset = fileOffset;
   }
 
@@ -1134,6 +1140,7 @@ class ThisPropertyAccessGenerator extends Generator {
       typeArguments,
       arguments,
       offset,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1190,6 +1197,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       receiver,
       name,
       isNullAware: true,
+      isImplicitThis: false,
     );
   }
 
@@ -1202,6 +1210,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: true,
+      isImplicitThis: false,
     );
   }
 
@@ -1274,6 +1283,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       isNullAware: true,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: false,
     )..fileOffset = fileOffset;
   }
 
