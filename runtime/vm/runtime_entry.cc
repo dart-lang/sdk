@@ -5256,7 +5256,8 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata) {
 }
 
 Thread* HandleIsolateGroupBoundSyncFfiCallback(
-    FfiCallbackMetadata::Metadata metadata) {
+    FfiCallbackMetadata::Metadata metadata,
+    CallbackMetadata* out) {
   Thread* current_thread = Thread::Current();
 
   if (current_thread != nullptr) {
@@ -5267,19 +5268,32 @@ Thread* HandleIsolateGroupBoundSyncFfiCallback(
   Isolate* current_isolate =
       current_thread != nullptr ? current_thread->isolate() : nullptr;
 
+  bool should_enter_group = true;
   if (current_thread != nullptr) {
-    Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    if (current_isolate != nullptr) {
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    } else {
+      IsolateGroup* current_isolategroup = current_thread->isolate_group();
+      if (current_isolategroup != nullptr) {
+        if (current_isolategroup == metadata.target_isolate_group()) {
+          should_enter_group = false;
+        } else {
+          Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+        }
+      }
+    }
   }
-  Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
-                                     /*bypass_safepoint=*/false);
+  if (should_enter_group) {
+    Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
+                                       /*bypass_safepoint=*/false);
+  }
+
   auto new_thread = Thread::Current();
   new_thread->set_execution_state(Thread::kThreadInVM);
-  // We need to go back to current thread after we come back from
-  // the callback.
-  new_thread->set_unboxed_int64_runtime_arg(
-      reinterpret_cast<intptr_t>(current_thread));
-  new_thread->set_unboxed_int64_runtime_second_arg(
-      reinterpret_cast<intptr_t>(current_isolate));
+  // We need to return to original isolate or isolate group if we were in them.
+  out->caller_isolate = reinterpret_cast<uword>(current_isolate);
+  out->caller_isolate_group = reinterpret_cast<uword>(
+      current_thread != nullptr ? current_thread->isolate_group() : nullptr);
   current_thread = new_thread;
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
@@ -5389,7 +5403,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     thread = HandleAsyncFfiCallback(metadata);
     out->epilogue = reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate);
   } else if (metadata.is_isolate_group_bound()) {
-    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata);
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata, out);
     out->epilogue = reinterpret_cast<uword>(&DLRT_ExitIsolateGroupBoundIsolate);
   } else {
     thread = HandleIsolateBoundSyncFfiCallback(metadata, out);
@@ -5413,17 +5427,27 @@ extern "C" LargestReturn dart_msan_unpoison_retval() {
 }
 #endif
 
-extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(
+    Thread* thread,
+    Isolate* caller_isolate,
+    IsolateGroup* caller_isolate_group) {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
-  Isolate* source_isolate =
-      reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
   // Need to accommodate ExitIsolateGroupAsHelper assumptions.
   thread->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
-  if (source_isolate != nullptr) {
-    Thread::EnterIsolate(source_isolate);
+  if (caller_isolate != nullptr || caller_isolate_group != nullptr) {
+    if (caller_isolate != nullptr) {
+      // if we were called from an isolate, return to that isolate
+      Thread::EnterIsolate(caller_isolate);
+    } else {
+      ASSERT(caller_isolate_group != nullptr);
+      // if we were called from an isolate group, return to that instead.
+      Thread::EnterIsolateGroupAsMutator(caller_isolate_group,
+                                         /*bypass_safepoint=*/false,
+                                         /*suspended_thread=*/thread);
+    }
     Thread::Current()->EnterSafepoint();
   }
 #if defined(USING_MEMORY_SANITIZER)
@@ -5433,7 +5457,10 @@ extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(
+    Thread* thread,
+    Isolate* caller_isolate,
+    IsolateGroup* caller_isolate_group) {
   TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
@@ -5446,7 +5473,9 @@ extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallback(Thread* thread) {
+extern "C" void* DLRT_ExitSyncCallback(Thread* thread,
+                                       Isolate* caller_isolate,
+                                       IsolateGroup* caller_isolate_group) {
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
 

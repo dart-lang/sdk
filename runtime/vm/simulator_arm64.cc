@@ -1836,10 +1836,10 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
 #elif defined(DART_TARGET_OS_MACOS)
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2015);
 #else
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8159);
 #endif
 
   CallbackMetadata out;
@@ -1877,9 +1877,11 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     *--sp = get_register(LR);
     *--sp = get_register(R20);
     *--sp = get_register(R21);
+    *--sp = get_register(R22);
+    *--sp = get_register(R23);
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   set_register(nullptr, R0, ctxt->integer_arguments[0]);
@@ -1916,6 +1918,8 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     // ldp lr, thr, [sp], 16!
     // <drop arguments>
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    set_register(nullptr, R23, *sp++);
+    set_register(nullptr, R22, *sp++);
     set_register(nullptr, R21, *sp++);
     set_register(nullptr, R20, *sp++);
     set_register(nullptr, LR, *sp++);
@@ -1923,7 +1927,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     sp += kStackSlotsCopied;
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
