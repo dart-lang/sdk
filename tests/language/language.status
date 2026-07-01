@@ -8,10 +8,6 @@ stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces
 stack_trace/full2_test: SkipByDesign # Relies on symbolic stack traces
 stack_trace/full3_test: SkipByDesign # Relies on symbolic stack traces
 stack_trace/stack_trace_test: SkipByDesign # Relies on symbolic stack traces
-vm/bool_check_stack_traces_test/01: SkipByDesign # Relies on symbolic stack traces
-vm/bool_check_stack_traces_test/02: SkipByDesign # Relies on symbolic stack traces
-vm/bool_check_stack_traces_test/none: SkipByDesign # Relies on symbolic stack traces
-vm/type_cast_vm_test: SkipByDesign # Relies on symbolic stack traces
 
 [ $builder_tag == obfuscated ]
 closure/tearoff_dynamic_test: SkipByDesign # Relies on symbol names
@@ -21,10 +17,6 @@ regress/regress45529_test: SkipByDesign # Relies on symbol names
 stack_trace/demangle_ctors_test: SkipByDesign # Relies on symbol names
 type_object/literal_type_literal_test: SkipByDesign # Relies on symbol names
 unsorted/invocation_mirror_test: SkipByDesign # Relies on symbol names
-vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
-
-[ $compiler == dart2bytecode ]
-vm/reflect_core_vm_test: SkipByDesign # dart:mirrors is not supported.
 
 [ $compiler != fasta ]
 value_class/*: Skip # Internship, jlcontreras
@@ -61,6 +53,10 @@ static_weak_reference_*: SkipByDesign # 'weak-tearoff-reference' pragma is suppo
 
 [ $compiler != dart2js && !$checked ]
 function_type/*: Skip # Needs checked mode.
+
+[ $compiler == dart2wasm && $runtime == safari ]
+stack_trace/rethrow_error_test: Skip # Unstable on Safari https://dartbug.com/63543
+stack_trace/rethrow_nonerror_test: Skip # Unstable on Safari https://dartbug.com/63543
 
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.

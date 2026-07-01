@@ -150,6 +150,10 @@ void DebugInfo::WriteLineNumberProgramForCode(
         intptr_t pc_offset_adjustment = 0;
         bool should_emit = true;
 
+        // If we are at the function entry and have already emitted a row
+        // corresponding to the function entry (marked by AdvancePC 0). Then
+        // adjust current_pc_offset to avoid duplicated entries. See the
+        // comment above which explains why this code is here.
         if (current_pc_offset == 0 && function_entry_position_was_emitted) {
           pc_offset_adjustment = 1;
           // Ignore synthetic positions. Function entry position gives more
@@ -157,17 +161,16 @@ void DebugInfo::WriteLineNumberProgramForCode(
           should_emit = !(line == 0 && column == 0);
         }
 
-        bool emitted = false;
         if (should_emit) {
-          emitted = writer->EmitRow(file, line, column, label,
-                                    current_pc_offset + pc_offset_adjustment);
+          writer->EmitRow(file, line, column, label,
+                          current_pc_offset + pc_offset_adjustment);
         }
 
         current_pc_offset += arg1;
         if (arg1 == 0) {  // Special case of AdvancePC 0.
           ASSERT(current_pc_offset == 0);
           ASSERT(!function_entry_position_was_emitted);
-          function_entry_position_was_emitted = emitted;
+          function_entry_position_was_emitted = true;
         }
         break;
       }
