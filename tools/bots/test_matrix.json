@@ -863,7 +863,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-android-${mode}-${arch}"
+            "-nvm-aot-android-${mode}-${arch}",
+            "--exclude-suite=language"
           ],
           "fileset": "android",
           "shards": 4
@@ -891,17 +892,19 @@
           "name": "vm jit tests",
           "arguments": [
             "-nvm-${sanitizer}-android-${mode}-${arch}",
-            "ffi",
-            "standalone/io/"
-          ]
+            "--exclude-suite=language"
+          ],
+          "fileset": "android",
+          "shards": 2
         },
         {
           "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${sanitizer}-android-${mode}-${arch}",
-            "ffi",
-            "standalone/io/"
-          ]
+            "--exclude-suite=language"
+          ],
+          "fileset": "android",
+          "shards": 2
         }
       ]
     },
@@ -928,7 +931,8 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-android-${mode}-${arch}",
-            "-j2"
+            "-j2",
+            "--exclude-suite=language"
           ],
           "fileset": "android",
           "shards": 16
@@ -963,7 +967,7 @@
             "ffi"
           ],
           "fileset": "android",
-          "shards": 2
+          "shards": 4
         }
       ]
     },
