@@ -3350,7 +3350,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       iterable: node.iterable,
       isAsync: node.isAsync,
       forOffset: node.fileOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     Variable variable = headerResult.loopVariable;
     Expression iterable = headerResult.iterable;
@@ -4563,7 +4562,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       iterable: node.iterable,
       isAsync: node.isAsync,
       forOffset: node.forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     Variable variable = node.variable = result.loopVariable;
@@ -7784,7 +7782,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       iterable: node.iterable,
       isAsync: node.isAsync,
       forOffset: node.forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     Variable variable = node.variable = result.loopVariable;
     node.iterable = result.iterable..parent = node;

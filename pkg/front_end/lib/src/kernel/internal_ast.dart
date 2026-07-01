@@ -5396,7 +5396,6 @@ sealed class InternalForInElement {
     required Expression iterable,
     required bool isAsync,
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   });
 
   void toTextInternal(AstPrinter printer);
@@ -5431,7 +5430,6 @@ sealed class _BaseForInElement extends InternalForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   });
 
   /// Computes the [ForInEncoding] for the additional nodes needed for the
@@ -5446,11 +5444,7 @@ sealed class _BaseForInElement extends InternalForInElement {
   Variable _createSyntheticVariableDeclaration(
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    if (isClosureContextLoweringEnabled) {
-      return new SyntheticVariable(type: type)..fileOffset = forOffset;
-    }
     return extern.createUninitializedVariable(
       type: type,
       fileOffset: forOffset,
@@ -5465,7 +5459,6 @@ sealed class _BaseForInElement extends InternalForInElement {
     required Expression iterable,
     required bool isAsync,
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
     DartType elementTypeContext = _computeElementTypeContext(visitor);
 
@@ -5479,7 +5472,6 @@ sealed class _BaseForInElement extends InternalForInElement {
       visitor,
       inferredType,
       forOffset: forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     return new ForInHeaderResult(
@@ -5516,7 +5508,6 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
     Variable loopVariable = variableDeclaration.variable._astVariable;
     DartType loopVariableType;
@@ -5531,7 +5522,6 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
       Variable tempVariable = _createSyntheticVariableDeclaration(
         type,
         forOffset: forOffset,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
       ExpressionInferenceResult canary = new ExpressionInferenceResult(
         type,
@@ -5662,13 +5652,8 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: forOffset);
   }
 }
 
@@ -5713,13 +5698,8 @@ class UnassignableForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: forOffset);
   }
 }
 
@@ -5740,7 +5720,6 @@ class PatternForInElement extends InternalForInElement {
     required Expression iterable,
     required bool isAsync,
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
     PatternForInData data = visitor.inferPatternForInHeader(
       node: node,
@@ -5804,13 +5783,8 @@ class InvalidForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: forOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: forOffset);
   }
 }
 
@@ -5876,13 +5850,8 @@ class ExistingVariableForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: inOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: inOffset);
   }
 }
 
@@ -5957,13 +5926,8 @@ class PropertyForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: inOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: inOffset);
   }
 }
 
@@ -6021,13 +5985,8 @@ class StaticForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: inOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: inOffset);
   }
 }
 
@@ -6122,13 +6081,8 @@ class ExtensionForInElement extends _BaseForInElement {
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
-    required bool isClosureContextLoweringEnabled,
   }) {
-    return _createSyntheticVariableDeclaration(
-      type,
-      forOffset: inOffset,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
+    return _createSyntheticVariableDeclaration(type, forOffset: inOffset);
   }
 }
 

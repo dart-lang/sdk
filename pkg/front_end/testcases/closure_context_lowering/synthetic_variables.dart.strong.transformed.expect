@@ -20,7 +20,7 @@ static method test(positional-parameter list) → dynamic/* scope=[
       ]),
     ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
       #ctx4: not-captured VariableContext([
-        synthetic-variable #t1;
+        synthetic-variable final #t1;
       ]),
     ] */ {
       #t1 := :sync-for-iterator.{core::Iterator::current}{core::String};
