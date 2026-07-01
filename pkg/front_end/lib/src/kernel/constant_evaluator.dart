@@ -1123,10 +1123,10 @@ class ConstantsTransformer extends RemovingTransformer {
 
         bool isContinueTarget = switchCaseIndex.containsKey(switchCase);
 
-        List<Variable> caseVariables = [];
+        List<DeclaredVariable> caseVariables = [];
 
         // TODO(johnniwinther): Is there a way to avoid these name clashes?
-        Map<String, List<Variable>> caseVariablesByName = {};
+        Map<String, List<DeclaredVariable>> caseVariablesByName = {};
 
         Expression? caseCondition;
         for (
@@ -1141,7 +1141,7 @@ class ConstantsTransformer extends RemovingTransformer {
           if (isContinueTarget) {
             // TODO(johnniwinther): In this case it should be an error to have
             // any variables. This is not currently reported.
-            for (Variable variable in pattern.declaredVariables) {
+            for (DeclaredVariable variable in pattern.declaredVariables) {
               replacementStatements.add(
                 extern.createVariableStatement(
                   extern.createVariableDeclaration(variable),
@@ -1149,13 +1149,13 @@ class ConstantsTransformer extends RemovingTransformer {
               );
             }
 
-            for (Variable variable in pattern.declaredVariables) {
+            for (DeclaredVariable variable in pattern.declaredVariables) {
               (declaredVariablesByName[variable.cosmeticName!] ??= []).add(
                 variable,
               );
             }
           } else {
-            for (Variable variable in pattern.declaredVariables) {
+            for (DeclaredVariable variable in pattern.declaredVariables) {
               (caseVariablesByName[variable.cosmeticName!] ??= []).add(
                 variable,
               );
@@ -1293,7 +1293,7 @@ class ConstantsTransformer extends RemovingTransformer {
             ],
             expressionOffsets: [node.fileOffset],
             body: extern.createBlock([
-              for (Variable jointVariable in switchCase.jointVariables)
+              for (DeclaredVariable jointVariable in switchCase.jointVariables)
                 extern.createVariableStatement(
                   extern.createVariableDeclaration(jointVariable),
                 ),
@@ -1318,7 +1318,7 @@ class ConstantsTransformer extends RemovingTransformer {
           replacementCases.add(replacementCase);
         } else {
           caseBlock = extern.createBlock([
-            for (Variable jointVariable in switchCase.jointVariables)
+            for (DeclaredVariable jointVariable in switchCase.jointVariables)
               extern.createVariableStatement(
                 extern.createVariableDeclaration(jointVariable),
               ),
@@ -1354,7 +1354,7 @@ class ConstantsTransformer extends RemovingTransformer {
         }
         cases.add(
           extern.createBlock([
-            for (Variable caseVariable in caseVariables)
+            for (DeclaredVariable caseVariable in caseVariables)
               extern.createVariableStatement(
                 extern.createVariableDeclaration(caseVariable),
               ),
@@ -1675,14 +1675,14 @@ class ConstantsTransformer extends RemovingTransformer {
       for (VariableDeclaration declaration in matchingCache.declarations)
         extern.createVariableStatement(declaration),
     ];
-    Iterable<Variable> declaredVariables =
+    Iterable<DeclaredVariable> declaredVariables =
         node.patternGuard.pattern.declaredVariables;
     Statement ifStatement;
     if (declaredVariables.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
       ifStatement = extern.createBlock([
-        for (Variable declaredVariable in declaredVariables)
+        for (DeclaredVariable declaredVariable in declaredVariables)
           extern.createVariableStatement(
             extern.createVariableDeclaration(declaredVariable),
           ),
@@ -1790,7 +1790,7 @@ class ConstantsTransformer extends RemovingTransformer {
       ];
     }
     replacementStatements = [
-      for (Variable variable in node.pattern.declaredVariables)
+      for (DeclaredVariable variable in node.pattern.declaredVariables)
         extern.createVariableStatement(
           extern.createVariableDeclaration(variable),
         ),
@@ -1845,7 +1845,8 @@ class ConstantsTransformer extends RemovingTransformer {
       replacementStatements = [
         for (VariableDeclaration declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
-        for (Variable declaredVariable in node.pattern.declaredVariables)
+        for (DeclaredVariable declaredVariable
+            in node.pattern.declaredVariables)
           extern // Coverage-ignore(suite): Not run.
               .createVariableStatement(
                 extern.createVariableDeclaration(declaredVariable),
@@ -1864,7 +1865,8 @@ class ConstantsTransformer extends RemovingTransformer {
       replacementStatements = [
         for (VariableDeclaration declaration in matchingCache.declarations)
           extern.createVariableStatement(declaration),
-        for (Variable declaredVariable in node.pattern.declaredVariables)
+        for (DeclaredVariable declaredVariable
+            in node.pattern.declaredVariables)
           extern // Coverage-ignore(suite): Not run.
               .createVariableStatement(
                 extern.createVariableDeclaration(declaredVariable),
@@ -2195,7 +2197,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
         cases.add(
           extern.createBlock([
-            for (Variable declaredVariable in pattern.declaredVariables)
+            for (DeclaredVariable declaredVariable in pattern.declaredVariables)
               extern.createVariableStatement(
                 extern.createVariableDeclaration(declaredVariable),
               ),

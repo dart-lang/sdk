@@ -2321,6 +2321,10 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readVariableReference() : null;
   }
 
+  DeclaredVariable readDeclaredVariableReference() {
+    return readVariableReference() as DeclaredVariable;
+  }
+
   Variable readVariableReference() {
     readUInt30(); // offset of the variable declaration in the binary.
     return _readVariableReferenceInternal();
@@ -3355,16 +3359,16 @@ class BinaryBuilder {
     );
   }
 
-  List<Variable> _readVariableReferenceList() {
+  List<DeclaredVariable> _readDeclaredVariableReferenceList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      return emptyListOfVariable;
+      return emptyListOfDeclaredVariable;
     }
-    return new List<Variable>.generate(
+    return new List<DeclaredVariable>.generate(
       length,
-      (_) => readVariableReference(),
+      (_) => readDeclaredVariableReference(),
       growable: useGrowableLists,
     );
   }
@@ -3424,7 +3428,8 @@ class BinaryBuilder {
   InvalidPattern _readInvalidPattern() {
     int fileOffset = readOffset();
     Expression invalidExpression = readExpression();
-    List<Variable> declaredVariables = readAndPushVariableList();
+    List<DeclaredVariable> declaredVariables =
+        readAndPushDeclaredVariableList();
     return InvalidPattern(
       invalidExpression,
       declaredVariables: declaredVariables,
@@ -3549,7 +3554,8 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     Pattern left = _readPattern();
     Pattern right = _readPattern();
-    List<Variable> orPatternJointVariables = _readVariableReferenceList();
+    List<DeclaredVariable> orPatternJointVariables =
+        _readDeclaredVariableReferenceList();
     return new OrPattern(
       left,
       right,
@@ -3606,7 +3612,7 @@ class BinaryBuilder {
   VariablePattern _readVariablePattern() {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
-    Variable variable = readVariable();
+    DeclaredVariable variable = readDeclaredVariable();
     DartType? matchedType = readDartTypeOption();
     return new VariablePattern(type, variable)
       ..matchedValueType = matchedType
@@ -3750,7 +3756,7 @@ class BinaryBuilder {
   void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
     int variableCount = readUInt30();
     for (int i = 0; i < variableCount; ++i) {
-      caseNode.jointVariables.add(readVariable()..parent = caseNode);
+      caseNode.jointVariables.add(readDeclaredVariable()..parent = caseNode);
     }
     int caseCount = readUInt30();
     for (int i = 0; i < caseCount; ++i) {
@@ -3925,7 +3931,7 @@ class BinaryBuilder {
     int offset = readOffset();
     int bodyOffset = readOffset();
     int scopeSize = readScopeSizeAndAllocateContexts();
-    Variable variable = readAndPushVariable();
+    DeclaredVariable variable = readAndPushDeclaredVariable();
     Expression iterable = readExpression();
     Statement body = readStatement();
     Scope? scope = readOptionalScope(scopeSize);
@@ -4029,7 +4035,7 @@ class BinaryBuilder {
     assert(tag == Tag.VariableDeclaration);
     int offset = readOffset();
     List<VariableContext>? capturedContexts = readOptionalCapturedContexts();
-    Variable variable = readVariable();
+    DeclaredVariable variable = readDeclaredVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     return new VariableDeclaration(variable)
       ..fileOffset = offset
@@ -4546,16 +4552,16 @@ class BinaryBuilder {
     );
   }
 
-  List<Variable> readAndPushVariableList() {
+  List<DeclaredVariable> readAndPushDeclaredVariableList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      return emptyListOfVariable;
+      return emptyListOfDeclaredVariable;
     }
-    return new List<Variable>.generate(
+    return new List<DeclaredVariable>.generate(
       length,
-      (_) => readAndPushVariable(),
+      (_) => readAndPushDeclaredVariable(),
       growable: useGrowableLists,
     );
   }
@@ -4598,6 +4604,12 @@ class BinaryBuilder {
     return variable;
   }
 
+  DeclaredVariable readAndPushDeclaredVariable() {
+    DeclaredVariable variable = readDeclaredVariable();
+    variableStack.add(variable);
+    return variable;
+  }
+
   PositionalParameter readAndPushPositionalParameter() {
     PositionalParameter variable = readPositionalParameter();
     variableStack.add(variable);
@@ -4608,6 +4620,10 @@ class BinaryBuilder {
     NamedParameter variable = readNamedParameter();
     variableStack.add(variable);
     return variable;
+  }
+
+  DeclaredVariable readDeclaredVariable() {
+    return readVariable() as DeclaredVariable;
   }
 
   PositionalParameter readPositionalParameter() {

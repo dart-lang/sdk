@@ -3313,7 +3313,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       errorTemplate: diag.forInLoopTypeNotIterable,
     );
 
-    Variable loopVariable = extern.createUninitializedVariable(
+    DeclaredVariable loopVariable = extern.createUninitializedVariable(
       type: elementType,
       fileOffset: node.fileOffset,
       isFinal: true,
@@ -3353,7 +3353,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isAsync: node.isAsync,
       forOffset: node.fileOffset,
     );
-    Variable variable = headerResult.loopVariable;
+    DeclaredVariable variable = headerResult.loopVariable;
     Expression iterable = headerResult.iterable;
 
     flowAnalysis.forEach_bodyBegin(node);
@@ -3440,7 +3440,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     for (int index = 0; index < node.variables.length; index++) {
       InternalVariableDeclaration variableDeclaration = node.variables[index];
-      InternalVariable variable = variableDeclaration.variable;
+      InternalDeclaredVariable variable = variableDeclaration.variable;
       if (variable.cosmeticName == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -4471,7 +4471,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int index = 0; index < element.internalVariables.length; index++) {
       InternalVariableDeclaration variableDeclaration =
           element.internalVariables[index];
-      InternalVariable variable = variableDeclaration.variable;
+      InternalDeclaredVariable variable = variableDeclaration.variable;
       if (variable.cosmeticName == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -5002,7 +5002,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InterfaceType receiverType = isSet
         ? typeSchemaEnvironment.setType(elementType, Nullability.nonNullable)
         : typeSchemaEnvironment.listType(elementType, Nullability.nonNullable);
-    Variable? result;
+    DeclaredVariable? result;
     if (index == 0 && elements[index] is SpreadElement) {
       SpreadElement initialSpread = elements[index] as SpreadElement;
       final bool typeMatches =
@@ -5472,7 +5472,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // a single 'addAll' call instead of a for-loop with calls to 'add'.
 
       // Null-aware spreads require testing the subexpression's value.
-      Variable? temp;
+      DeclaredVariable? temp;
       if (element.isNullAware) {
         temp = _createVariable(
           value,
@@ -5507,7 +5507,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body.add(statement);
     } else {
       // Null-aware spreads require testing the subexpression's value.
-      Variable? temp;
+      DeclaredVariable? temp;
       if (element.isNullAware) {
         temp = _createVariable(
           value,
@@ -5524,11 +5524,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         value = _createNullCheckedVariableGet(temp);
       }
 
-      Variable variable = _createForInVariable(
+      DeclaredVariable variable = _createForInVariable(
         element.fileOffset,
         const DynamicType(),
       );
-      Variable castedVar = _createVariable(
+      DeclaredVariable castedVar = _createVariable(
         _createImplicitAs(
           element.expression.fileOffset,
           _createVariableGet(variable),
@@ -5598,7 +5598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nullableElementType = elementType.withDeclaredNullability(
       Nullability.nullable,
     );
-    Variable temp = _createVariable(value, nullableElementType);
+    DeclaredVariable temp = _createVariable(value, nullableElementType);
     body.add(
       extern.createVariableStatement(extern.createVariableDeclaration(temp)),
     );
@@ -5680,7 +5680,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.valueType,
       Nullability.nonNullable,
     );
-    Variable? result;
+    DeclaredVariable? result;
 
     if (index == 0 && node.entries[index] is SpreadMapEntry) {
       SpreadMapEntry initialSpread = node.entries[index] as SpreadMapEntry;
@@ -6109,7 +6109,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // a single 'addAll' call instead of a for-loop with calls to '[]='.
 
       // Null-aware spreads require testing the subexpression's value.
-      Variable? temp;
+      DeclaredVariable? temp;
       if (entry.isNullAware) {
         temp = _createVariable(
           value,
@@ -6147,7 +6147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body.add(statement);
     } else {
       // Null-aware spreads require testing the subexpression's value.
-      Variable? temp;
+      DeclaredVariable? temp;
       if (entry.isNullAware) {
         temp = _createVariable(
           value,
@@ -6170,8 +6170,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Nullability.nonNullable,
         <DartType>[const DynamicType(), const DynamicType()],
       );
-      Variable variable = _createForInVariable(entry.fileOffset, variableType);
-      Variable keyVar = _createVariable(
+      DeclaredVariable variable = _createForInVariable(
+        entry.fileOffset,
+        variableType,
+      );
+      DeclaredVariable keyVar = _createVariable(
         _createImplicitAs(
           entry.expression.fileOffset,
           _createGetKey(
@@ -6183,7 +6186,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
         keyType,
       );
-      Variable valueVar = _createVariable(
+      DeclaredVariable valueVar = _createVariable(
         _createImplicitAs(
           entry.expression.fileOffset,
           _createGetValue(
@@ -6277,7 +6280,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType nullableValueType = valueType.withDeclaredNullability(
         Nullability.nullable,
       );
-      Variable valueTemp = _createVariable(valueExpression, nullableValueType);
+      DeclaredVariable valueTemp = _createVariable(
+        valueExpression,
+        nullableValueType,
+      );
       valueExpression = _createNullCheckedVariableGet(valueTemp);
 
       IfStatement ifValueNotNullStatement = _createIf(
@@ -6299,7 +6305,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType nullableKeyType = keyType.withDeclaredNullability(
         Nullability.nullable,
       );
-      Variable keyTemp = _createVariable(keyExpression, nullableKeyType);
+      DeclaredVariable keyTemp = _createVariable(
+        keyExpression,
+        nullableKeyType,
+      );
       keyExpression = _createNullCheckedVariableGet(keyTemp);
 
       IfStatement ifKeyNotNullStatement = _createIf(
@@ -6342,7 +6351,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //     #t[#keyTemp] = #valueTemp{int};
       //   }
 
-      Variable keyTemp = _createVariable(keyExpression, keyType);
+      DeclaredVariable keyTemp = _createVariable(keyExpression, keyType);
       keyExpression = _createVariableGet(keyTemp);
 
       desugaredStatement.statements.insert(
@@ -6736,7 +6745,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return extern.createVariableCache(expression, type);
   }
 
-  Variable _createForInVariable(int fileOffset, DartType type) {
+  DeclaredVariable _createForInVariable(int fileOffset, DartType type) {
     assert(fileOffset != TreeNode.noOffset);
     return extern.createUninitializedVariable(
       type: type,
@@ -7014,7 +7023,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForInStatement _createForInStatement(
     int fileOffset,
-    Variable variable,
+    DeclaredVariable variable,
     Expression iterable,
     Statement body, {
     bool isAsync = false,
@@ -7680,7 +7689,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int index = 0; index < entry.internalVariables.length; index++) {
       InternalVariableDeclaration variableDeclaration =
           entry.internalVariables[index];
-      InternalVariable variable = variableDeclaration.variable;
+      InternalDeclaredVariable variable = variableDeclaration.variable;
 
       if (variable.cosmeticName == null) {
         if (variable.initializer != null) {
@@ -12052,7 +12061,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           .target
           .backendTarget
           .supportsLetVariableCapture) {
-        Variable resultVar = extern.createUninitializedVariable(
+        DeclaredVariable resultVar = extern.createUninitializedVariable(
           type: inferredType,
           fileOffset: node.fileOffset,
         );
@@ -12127,7 +12136,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AnonymousMethodBlock node,
     DartType typeContext,
   ) {
-    Variable resultVar = extern.createUninitializedVariable(
+    DeclaredVariable resultVar = extern.createUninitializedVariable(
       type: const DynamicType(),
       fileOffset: node.fileOffset,
     );
@@ -12784,7 +12793,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // Create the set: Set<E> setVar = new Set<E>();
     InterfaceType receiverType;
-    Variable setVar = extern.createVariable(
+    DeclaredVariable setVar = extern.createVariable(
       new StaticInvocation(
         engine.setFactory,
         new Arguments([], types: [node.typeArgument]),
@@ -14708,7 +14717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           isDefault: case_.isDefault,
           hasLabel: case_.hasLabel,
           jointVariables: [
-            for (InternalVariable variable in case_.jointVariables)
+            for (InternalDeclaredVariable variable in case_.jointVariables)
               variable.astVariable,
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
@@ -15234,18 +15243,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Pattern right = popRewrite() as Pattern;
     Pattern left = popRewrite() as Pattern;
 
-    Map<String, Variable> leftDeclaredVariablesByName = {
-      for (InternalVariable variable in node.left.declaredVariables)
+    Map<String, DeclaredVariable> leftDeclaredVariablesByName = {
+      for (InternalDeclaredVariable variable in node.left.declaredVariables)
         variable.cosmeticName!: variable.astVariable,
     };
-    Map<String, Variable> jointVariableNames = {
-      for (InternalVariable variable in node.orPatternJointVariables)
+    Map<String, DeclaredVariable> jointVariableNames = {
+      for (InternalDeclaredVariable variable in node.orPatternJointVariables)
         variable.cosmeticName!: variable.astVariable,
     };
-    for (InternalVariable rightVariable in node.right.declaredVariables) {
+    for (InternalDeclaredVariable rightVariable
+        in node.right.declaredVariables) {
       String rightVariableName = rightVariable.cosmeticName!;
-      Variable? leftVariable = leftDeclaredVariablesByName[rightVariableName];
-      Variable? jointVariable = jointVariableNames[rightVariableName];
+      DeclaredVariable? leftVariable =
+          leftDeclaredVariablesByName[rightVariableName];
+      DeclaredVariable? jointVariable = jointVariableNames[rightVariableName];
       if (leftVariable != null && jointVariable != null) {
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
@@ -17311,7 +17322,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   VariableDeclarationInferenceResult
   _inferInternalExpressionVariableDeclaration(
     InternalVariableDeclaration variableDeclaration,
-    InternalVariable internalVariable,
+    InternalDeclaredVariable internalVariable,
   ) {
     DartType declaredType = internalVariable.isImplicitlyTyped
         ? const UnknownType()
@@ -17424,7 +17435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             internalVariable.type,
             late_lowering.computeIsSetStrategy(libraryBuilder),
           );
-      Variable? isSetVariable;
+      DeclaredVariable? isSetVariable;
       if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
         isSetVariable = extern.createVariable(
           new BoolLiteral(false)..fileOffset = fileOffset,

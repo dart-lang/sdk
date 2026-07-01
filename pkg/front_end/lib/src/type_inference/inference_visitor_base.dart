@@ -6365,7 +6365,7 @@ class ExtensionSetData {
 
 /// Data resulting from the inference of a pattern in a for-in element.
 class PatternForInData {
-  final Variable loopVariable;
+  final DeclaredVariable loopVariable;
   final Expression iterable;
   final PatternVariableDeclaration Function() computePatternVariableDeclaration;
 

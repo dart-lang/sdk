@@ -614,7 +614,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    Variable newVariable = clone(node.variable);
+    DeclaredVariable newVariable = clone(node.variable);
     return new ForInStatement(
       newVariable,
       clone(node.iterable),
@@ -1174,7 +1174,7 @@ class CloneVisitorNotMembers
     return new InvalidPattern(
       clone(node.invalidExpression),
       declaredVariables: node.declaredVariables
-          .map((e) => getVariableClone(e)!)
+          .map((e) => getVariableClone(e) as DeclaredVariable)
           .toList(),
     );
   }
@@ -1235,7 +1235,7 @@ class CloneVisitorNotMembers
       clone(node.left),
       clone(node.right),
       orPatternJointVariables: node.orPatternJointVariables
-          .map((e) => getVariableClone(e)!)
+          .map((e) => getVariableClone(e) as DeclaredVariable)
           .toList(),
     );
   }
@@ -1283,7 +1283,7 @@ class CloneVisitorNotMembers
       isDefault: node.isDefault,
       hasLabel: node.hasLabel,
       jointVariables: node.jointVariables
-          .map((e) => getVariableClone(e)!)
+          .map((e) => getVariableClone(e) as DeclaredVariable)
           .toList(),
       jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
           ? null

@@ -1190,7 +1190,7 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 }
 
-class InternalLocalVariable extends InternalVariable {
+class InternalLocalVariable extends InternalDeclaredVariable {
   @override
   LocalVariable _astVariable;
 
@@ -1249,7 +1249,7 @@ class InternalLocalVariable extends InternalVariable {
   }
 }
 
-class InternalLateVariable extends InternalVariable {
+class InternalLateVariable extends InternalDeclaredVariable {
   @override
   LateVariable _astVariable;
 
@@ -1542,7 +1542,7 @@ class InternalAnonymousMethodParameter extends InternalVariable {
   }
 }
 
-class InternalSyntheticVariable extends InternalVariable {
+class InternalSyntheticVariable extends InternalDeclaredVariable {
   @override
   SyntheticVariable _astVariable;
 
@@ -1750,6 +1750,14 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   R accept1<R, A>(VariableVisitor1<R, A> v, A arg) {
     unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
   }
+}
+
+sealed class InternalDeclaredVariable extends InternalVariable {
+  @override
+  DeclaredVariable get astVariable;
+
+  @override
+  DeclaredVariable get _astVariable;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -5446,7 +5454,7 @@ sealed class _BaseForInElement extends InternalForInElement {
   /// This can be the variable declared as the for-in element or a synthetic
   /// variable, when there is no declared variable or it doesn't suffice for
   /// the correct runtime behavior.
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5461,7 +5469,7 @@ sealed class _BaseForInElement extends InternalForInElement {
 
   /// Helper for creating a synthetic variable declaration for the emitted
   /// [ForInStatement].
-  Variable _createSyntheticVariableDeclaration(
+  SyntheticVariable _createSyntheticVariableDeclaration(
     DartType type, {
     required int forOffset,
   }) {
@@ -5488,7 +5496,7 @@ sealed class _BaseForInElement extends InternalForInElement {
       isAsync: isAsync,
     );
     DartType inferredType = iterableResult.inferredType;
-    Variable variable = _computeLoopVariable(
+    DeclaredVariable variable = _computeLoopVariable(
       visitor,
       inferredType,
       forOffset: forOffset,
@@ -5524,12 +5532,12 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   InternalVariable get _declaredVariable => variableDeclaration.variable;
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
   }) {
-    Variable loopVariable = variableDeclaration.variable._astVariable;
+    DeclaredVariable loopVariable = variableDeclaration.variable._astVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
     if (variableDeclaration.variable.isImplicitlyTyped) {
@@ -5539,7 +5547,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
       loopVariableType = variableDeclaration.variable.type;
     }
     if (checkAssignment) {
-      Variable tempVariable = _createSyntheticVariableDeclaration(
+      SyntheticVariable tempVariable = _createSyntheticVariableDeclaration(
         type,
         forOffset: forOffset,
       );
@@ -5668,7 +5676,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5714,7 +5722,7 @@ class UnassignableForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5799,7 +5807,7 @@ class InvalidForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5866,7 +5874,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -5942,7 +5950,7 @@ class PropertyForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6001,7 +6009,7 @@ class StaticForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6097,7 +6105,7 @@ class ExtensionForInElement extends _BaseForInElement {
   }
 
   @override
-  Variable _computeLoopVariable(
+  DeclaredVariable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
@@ -6131,7 +6139,7 @@ class ForInHeaderResult {
 
   /// The [Variable] that should be used as the variable in the
   /// emitted [ForInStatement].
-  final Variable loopVariable;
+  final DeclaredVariable loopVariable;
 
   /// The [Expression] that should be used as the iterable in the emitted
   /// [ForInStatement].
@@ -6454,7 +6462,7 @@ sealed class InternalPattern extends TreeNode with InternalTreeNode {
   ///
   /// These variables are initialized to the values captured by the variable
   /// patterns nested in the pattern.
-  List<InternalVariable> get declaredVariables;
+  List<InternalDeclaredVariable> get declaredVariables;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6499,10 +6507,11 @@ class InternalOrPattern extends InternalPattern {
   final InternalPattern left;
   final InternalPattern right;
 
-  final List<InternalVariable> orPatternJointVariables;
+  final List<InternalDeclaredVariable> orPatternJointVariables;
 
   @override
-  List<InternalVariable> get declaredVariables => orPatternJointVariables;
+  List<InternalDeclaredVariable> get declaredVariables =>
+      orPatternJointVariables;
 
   new(
     this.left,
@@ -6543,7 +6552,7 @@ class InternalAndPattern extends InternalPattern {
   final InternalPattern right;
 
   @override
-  List<InternalVariable> get declaredVariables => [
+  List<InternalDeclaredVariable> get declaredVariables => [
     ...left.declaredVariables,
     ...right.declaredVariables,
   ];
@@ -6586,7 +6595,7 @@ class InternalConstantPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get declaredVariables => const [];
+  List<InternalDeclaredVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -6616,7 +6625,7 @@ class InternalAssignedVariablePattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get declaredVariables => const [];
+  List<InternalDeclaredVariable> get declaredVariables => const [];
 
   @override
   String get variableName => variable.cosmeticName!;
@@ -6655,7 +6664,8 @@ class InternalCastPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
+  List<InternalDeclaredVariable> get declaredVariables =>
+      pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -6683,7 +6693,7 @@ class InternalInvalidPattern extends InternalPattern {
   final Expression invalidExpression;
 
   @override
-  final List<InternalVariable> declaredVariables;
+  final List<InternalDeclaredVariable> declaredVariables;
 
   new({
     required this.invalidExpression,
@@ -6722,7 +6732,7 @@ class InternalListPattern extends InternalPattern {
   List<InternalPattern> patterns;
 
   @override
-  List<InternalVariable> get declaredVariables => [
+  List<InternalDeclaredVariable> get declaredVariables => [
     for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
@@ -6777,7 +6787,7 @@ class InternalMapPattern extends InternalPattern {
   final List<InternalMapPatternEntry> entries;
 
   @override
-  List<InternalVariable> get declaredVariables => [
+  List<InternalDeclaredVariable> get declaredVariables => [
     for (InternalMapPatternEntry entry in entries)
       if (entry is! InternalMapPatternRestEntry)
         ...entry.value.declaredVariables,
@@ -6898,7 +6908,8 @@ class InternalNamedPattern extends InternalPattern {
   final InternalPattern pattern;
 
   @override
-  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
+  List<InternalDeclaredVariable> get declaredVariables =>
+      pattern.declaredVariables;
 
   new({required this.name, required this.pattern, required int fileOffset}) {
     pattern.parent = this;
@@ -6944,7 +6955,8 @@ class InternalNullAssertPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
+  List<InternalDeclaredVariable> get declaredVariables =>
+      pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -6980,7 +6992,8 @@ class InternalNullCheckPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
+  List<InternalDeclaredVariable> get declaredVariables =>
+      pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -7029,7 +7042,7 @@ class InternalObjectPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get declaredVariables {
+  List<InternalDeclaredVariable> get declaredVariables {
     return [
       for (InternalNamedPattern field in fields) ...field.declaredVariables,
     ];
@@ -7067,7 +7080,7 @@ class InternalRecordPattern extends InternalPattern {
   final List<InternalPattern> patterns;
 
   @override
-  List<InternalVariable> get declaredVariables => [
+  List<InternalDeclaredVariable> get declaredVariables => [
     for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
@@ -7115,7 +7128,7 @@ class InternalRelationalPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get declaredVariables => const [];
+  List<InternalDeclaredVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7166,7 +7179,7 @@ class InternalRestPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get declaredVariables =>
+  List<InternalDeclaredVariable> get declaredVariables =>
       subPattern?.declaredVariables ?? const [];
 
   @override
@@ -7199,10 +7212,10 @@ class InternalRestPattern extends InternalPattern {
 class InternalVariablePattern extends InternalPattern {
   // TODO(johnniwinther): Should this be accessed through [variable] instead?
   final DartType? type;
-  final InternalVariable variable;
+  final InternalDeclaredVariable variable;
 
   @override
-  List<InternalVariable> get declaredVariables => [variable];
+  List<InternalDeclaredVariable> get declaredVariables => [variable];
 
   new({required this.type, required this.variable, required int fileOffset}) {
     variable.parent = this;
@@ -7245,7 +7258,7 @@ class InternalWildcardPattern extends InternalPattern {
     this.fileOffset = fileOffset;
   }
   @override
-  List<InternalVariable> get declaredVariables => const [];
+  List<InternalDeclaredVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7320,7 +7333,7 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
   @override
   final List<Label>? labels;
 
-  final List<InternalVariable> jointVariables;
+  final List<InternalDeclaredVariable> jointVariables;
 
   final List<int>? jointVariableFirstUseOffsets;
 
@@ -7782,7 +7795,7 @@ class InternalCatch extends TreeNode with InternalTreeNode {
 /// Declaration of a variable with an initial value.
 class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
   /// The declared variable.
-  final InternalVariable variable;
+  final InternalDeclaredVariable variable;
 
   new(this.variable) {
     variable.parent = this;
@@ -8003,11 +8016,12 @@ final InternalCatchVariable dummyInternalCatchVariable =
       fileOffset: TreeNode.noOffset,
     );
 
-final InternalVariable dummyInternalVariable = new InternalSyntheticVariable(
-  astVariable: dummyVariable,
-  isImplicitlyTyped: false,
-  fileOffset: TreeNode.noOffset,
-);
+final InternalSyntheticVariable dummyInternalVariable =
+    new InternalSyntheticVariable(
+      astVariable: dummyVariable,
+      isImplicitlyTyped: false,
+      fileOffset: TreeNode.noOffset,
+    );
 
 final InternalVariableDeclaration dummyInternalVariableDeclaration =
     new InternalVariableDeclaration(dummyInternalVariable);

@@ -257,7 +257,7 @@ class FfiNativeTransformer extends FfiTransformer {
         !env.isSubtypeOf(dartParameterType, pointerVoidType));
   }
 
-  Variable _declareTemporary(
+  SyntheticVariable _declareTemporary(
     Expression initializer,
     DartType dartParameterType,
     DartType ffiParameterType,

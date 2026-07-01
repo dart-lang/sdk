@@ -310,7 +310,7 @@ class ForInElement extends ControlFlowElement
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  late Variable variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 
@@ -840,7 +840,7 @@ class ForInMapEntry extends TreeNode
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  late Variable variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 

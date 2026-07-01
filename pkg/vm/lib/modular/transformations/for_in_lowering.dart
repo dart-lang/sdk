@@ -329,7 +329,7 @@ class ForInLowering {
   }
 
   Statement _ensureSyncForLoopVariableInitialization({
-    required Variable variable,
+    required DeclaredVariable variable,
     required Expression initializer,
   }) {
     initializer.parent = variable;

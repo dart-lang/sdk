@@ -590,13 +590,13 @@ InvalidInitializer createInvalidInitializer(
 
 InvalidPattern createInvalidPattern({
   required Expression error,
-  required List<InternalVariable> declaredVariables,
+  required List<InternalDeclaredVariable> declaredVariables,
   int? fileOffset,
 }) {
   return new InvalidPattern(
     error,
     declaredVariables: declaredVariables
-        .map((InternalVariable variable) => variable.astVariable)
+        .map((InternalDeclaredVariable variable) => variable.astVariable)
         .toList(),
   )..fileOffset = fileOffset ?? error.fileOffset;
 }
@@ -931,7 +931,7 @@ LogicalExpression createOrExpression(
 OrPattern createOrPattern({
   required Pattern left,
   required Pattern right,
-  required List<Variable> orPatternJointVariables,
+  required List<DeclaredVariable> orPatternJointVariables,
   required int fileOffset,
 }) {
   return new OrPattern(
@@ -966,7 +966,7 @@ PatternSwitchCase createPatternSwitchCase({
   required Statement body,
   required bool isDefault,
   required bool hasLabel,
-  required List<Variable> jointVariables,
+  required List<DeclaredVariable> jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
   required int fileOffset,
 }) {
@@ -1279,7 +1279,7 @@ TypeParameter createTypeParameter(String? name, {required int fileOffset}) {
 }
 
 /// Creates an uninitialized [Variable] of the static [type].
-Variable createUninitializedVariable({
+SyntheticVariable createUninitializedVariable({
   required DartType type,
   String? name,
   required int fileOffset,
@@ -1355,7 +1355,7 @@ SyntheticVariable createVariableCache(
 }
 
 VariableDeclaration createVariableDeclaration(
-  Variable variable, {
+  DeclaredVariable variable, {
   List<VariableContext>? capturedContexts,
   int? fileOffset,
 }) {
@@ -1378,7 +1378,7 @@ VariableGet createVariableGet(
 
 VariablePattern createVariablePattern({
   required DartType? type,
-  required Variable variable,
+  required DeclaredVariable variable,
   required DartType matchedValueType,
   required int fileOffset,
 }) {
