@@ -565,8 +565,20 @@ class AdbDevicePool {
       ]);
       int disk;
       try {
+        // Sample input that is being parsed below:
+        //
+        // Filesystem       1K-blocks      Used Available Use% Mounted on
+        // /dev/block/dm-64 114786388 110709944   3945372  97% /data/user/0
         disk =
-            int.parse(result.stdout.split('\n')[1].split(' ')[3] as String) *
+            int.parse(
+              result.stdout
+                      .split('\n')[1]
+                      .split(' ')
+                      .where((String v) => v.isNotEmpty)
+                      .toList()[3]
+                      .trim()
+                  as String,
+            ) *
             512;
       } catch (_) {
         print(result.stdout);
