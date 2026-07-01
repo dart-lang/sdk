@@ -142,6 +142,30 @@ void main([List<String> args = const []]) async {
     }
   }
 
-  // TODO(https://dartbug.com/63372): Add tests with
-  // https://github.com/dart-lang/native/pull/3424 after it has rolled in.
+  test('package:treeshaking_dylib_record_use dart test', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('treeshaking_dylib_record_use',
+        usePubWorkspace: true, (packageUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'test',
+          '--compiler',
+          'cli',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(result.stdout, contains('Running build hooks'));
+      expect(
+        result.stdout,
+        anyOf(
+          contains('All tests passed!'),
+          // TODO(https://github.com/dart-lang/sdk/issues/63295): Use
+          // DynamicLibrary.openAsset when available.
+          contains('All tests skipped.'),
+        ),
+      );
+    });
+  });
 }

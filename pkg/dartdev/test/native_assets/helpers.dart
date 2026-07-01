@@ -271,6 +271,7 @@ Future<void> nativeAssetsTest(
     'native_dynamic_linking',
     'recursive_invocation',
     'system_library',
+    'treeshaking_dylib_record_use',
     'treeshaking_native_libs',
     'user_defines',
   ],
