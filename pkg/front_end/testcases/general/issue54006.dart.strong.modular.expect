@@ -105,9 +105,6 @@ class B extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:12:13: Error: A setter should have exactly one formal parameter.
   set field = 0;
             ^";
-    return invalid-expression "pkg/front_end/testcases/general/issue54006.dart:12:15: Error: This couldn't be parsed.
-  set field = 0;
-              ^";
   }
   get field() → core::int
     return 0;
@@ -120,7 +117,6 @@ class C extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:17:12: Error: A setter should have exactly one formal parameter.
   set field() {}
            ^";
-    {}
   }
   get field() → core::int
     return 0;
@@ -133,11 +129,6 @@ class D extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:22:12: Error: A setter should have exactly one formal parameter.
   set field(a, b) {}
            ^";
-    {
-      core::int a;
-      dynamic b;
-      {}
-    }
   }
   get field(dynamic a, dynamic b) → core::int
     return 0;
@@ -150,10 +141,6 @@ class E extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:27:12: Error: A setter should have exactly one formal parameter.
   set field([a]) {}
            ^";
-    {
-      dynamic a = null;
-      {}
-    }
   }
   get field([dynamic a = #C1]) → core::int
     return 0;
@@ -166,10 +153,6 @@ class F extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:32:12: Error: A setter should have exactly one formal parameter.
   set field({a}) {}
            ^";
-    {
-      dynamic a = null;
-      {}
-    }
   }
   get field({dynamic a = #C1}) → core::int
     return 0;
@@ -182,7 +165,6 @@ class G extends core::Object implements self::A {
     invalid-expression "pkg/front_end/testcases/general/issue54006.dart:37:13: Error: A setter should have exactly one formal parameter.
   set field {}
             ^";
-    {}
   }
   get field(dynamic a) → core::int
     return 0;
