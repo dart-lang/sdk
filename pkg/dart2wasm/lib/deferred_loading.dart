@@ -15,6 +15,7 @@ import 'package:kernel/core_types.dart';
 
 import 'await_transformer.dart' as await_transformer;
 import 'compiler_options.dart';
+import 'deferred_load/dominators.dart';
 import 'deferred_load/partition.dart';
 import 'io_util.dart';
 import 'modules.dart';
@@ -84,6 +85,11 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
     final constantToModuleMetadata = <Constant, ModuleMetadata>{};
     partition.constantToPart.forEach((constant, output) {
       constantToModuleMetadata[constant] = moduleMetadata[output]!;
+    });
+    loadingMap.computeDominatingLoadIds(partition.dominators);
+    partition.deferredImportPart.forEach((dep, part) {
+      final loadId = loadingMap.loadIds[(dep.enclosingLibrary, dep.name!)]!;
+      loadingMap.dedicatedModule[loadId] = moduleMetadata[part]!;
     });
     partition.deferredImportToParts.forEach((deferredImport, parts) {
       final wasmModules = [for (final o in parts) moduleMetadata[o]!];
@@ -212,25 +218,38 @@ class StressTestModuleStrategy extends ModuleStrategy {
     final moduleBuilder = ModuleMetadataBuilder(options);
     final mainModule = moduleBuilder.buildModuleMetadata();
     final initLibraries = _testModeMainLibraries;
-    final modules = <ModuleMetadata>[];
-    final importMap = <String, List<ModuleMetadata>>{};
 
     final internalLib = coreTypes.index.getLibrary('dart:_internal');
 
+    final domRoot = DominatorNode(loadingMap.rootImport, null);
+    final importToDom = <LibraryDependency, DominatorNode<LibraryDependency>>{
+      loadingMap.rootImport: domRoot,
+    };
+
     // Put each library in a separate module.
     final libraryMap = <Library, ModuleMetadata>{};
+    final modules = <ModuleMetadata>[];
     for (final library in component.libraries) {
       if (initLibraries.contains(library)) {
         libraryMap[library] = mainModule;
         continue;
       }
+      // The [prepareComponent] injects deferred imports to the `dart:_internal`
+      // library for all non-init libraries.
+      final deferredImport = internalLib.dependencies.singleWhere(
+        (lib) => lib.isDeferred && lib.targetLibrary == library,
+      );
+      final importName = deferredImport.name!;
+      importToDom[deferredImport] = DominatorNode(deferredImport, domRoot);
+
       final module = moduleBuilder.buildModuleMetadata();
       modules.add(module);
       libraryMap[library] = module;
-      final importName = '${library.importUri}';
-      importMap[importName] = [module];
       loadingMap.addModuleToLibraryImport(internalLib, importName, [module]);
     }
+
+    loadingMap.computeDominatingLoadIds(Dominators(domRoot, importToDom));
+    loadingMap.dedicatedModule[0] = mainModule;
 
     moduleOutputData = ModuleOutputData.librarySplit(
       [mainModule, ...modules],
@@ -267,6 +286,10 @@ String _generateDeferredMapJson(
 ) {
   final output = <String, dynamic>{};
   loadingMap.loadIds.forEach((tuple, loadId) {
+    if (loadId == 0) {
+      // 0 is the artificial root import.
+      return;
+    }
     final modules = loadingMap.moduleMap[loadId];
     final (library, prefix) = tuple;
     final libOutput =
@@ -275,14 +298,11 @@ String _generateDeferredMapJson(
           'imports': <String, List<String>>{},
           'importPrefixToLoadId': <String, String>{},
         };
-    // For consistency with dart2js we use 1-based indexing in the generated
-    // json file.
-    final dart2jsLoadId = loadId + 1;
-    final dart2jsLoadIdStr = dart2jsLoadId.toString();
-    libOutput['imports']![dart2jsLoadIdStr] = modules
+    final loadIdStr = loadId.toString();
+    libOutput['imports']![loadIdStr] = modules
         .map((m) => m.moduleName)
         .toList();
-    libOutput['importPrefixToLoadId'][prefix] = dart2jsLoadIdStr;
+    libOutput['importPrefixToLoadId'][prefix] = loadIdStr;
   });
 
   return const JsonEncoder.withIndent('  ').convert(output);

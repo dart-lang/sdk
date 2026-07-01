@@ -24,7 +24,7 @@
     (global.get $.h1-nonshared-const)
     (struct.new $JSExternWrapper)
     (struct.new $MyConstClass))
-  (global $MyConstClass_14 (ref $MyConstClass)
+  (global $MyConstClass_15 (ref $MyConstClass)
     (i32.const 109)
     (i32.const 0)
     (i32.const 62)
@@ -40,14 +40,14 @@
   (func $int.parse (result i64) <...>)
   (@binaryen.inline 0)
   (func $mainImpl (param $var0 i32)
-    i64.const 0
+    i64.const 1
     i32.const 2
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop
     local.get $var0
     i32.const 3
     call_indirect $M.cross-module-funcs-0 (param i32) (result (ref $MyConstClass))
-    i64.const 1
+    i64.const 2
     i32.const 2
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop
@@ -65,7 +65,7 @@
   (@binaryen.inline 0)
   (func $modH1Use (param $var0 i32) (result (ref $MyConstClass))
     global.get $MyConstClass
-    global.get $MyConstClass_14
+    global.get $MyConstClass_15
     local.get $var0
     select (ref $MyConstClass)
   )

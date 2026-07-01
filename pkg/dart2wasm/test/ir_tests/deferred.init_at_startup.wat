@@ -20,7 +20,7 @@
   (global $BoxedDouble._cacheKeys (mut (ref $Array<int>)) <...>)
   (global $BoxedDouble._cacheValues (mut (ref $Array<String>)) <...>)
   (global $_deletedDataMarker (mut (ref $#Top)) <...>)
-  (global $global0 (ref $Array<WasmArray<WasmI8>?>) <...>)
+  (global $deferredLoadLists (ref $Array<WasmArray<WasmI8>?>) <...>)
   (elem $cross-module-funcs-0
     (set 3 (ref.func $"wasm:js-string.length (import)"))
     (set 4 (ref.func $JSStringImpl._interpolate))
@@ -50,8 +50,8 @@
     i32.const 0
     struct.new $Object
     global.set $_deletedDataMarker
-    global.get $global0
-    i32.const 0
+    global.get $deferredLoadLists
+    i32.const 1
     i32.const 0
     i32.const 2
     array.new_data $Array<WasmI8>$data0

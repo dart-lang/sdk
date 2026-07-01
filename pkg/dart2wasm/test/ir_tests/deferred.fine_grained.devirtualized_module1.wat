@@ -103,7 +103,7 @@
     drop
     call $Foo1
     global.set $foo1Obj
-    i64.const 0
+    i64.const 1
     i32.const 3
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop

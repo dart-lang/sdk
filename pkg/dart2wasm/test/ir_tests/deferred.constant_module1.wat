@@ -156,7 +156,7 @@
   )
   (@binaryen.inline 0)
   (func $modMainUseH0
-    i64.const 0
+    i64.const 1
     i32.const 7
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop
@@ -169,7 +169,7 @@
     end $label0
     i32.const 5
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
-    i64.const 0
+    i64.const 1
     i32.const 7
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop

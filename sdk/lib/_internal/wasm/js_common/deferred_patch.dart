@@ -46,11 +46,6 @@ String _importUri(int loadId) =>
 String _prefixName(int loadId) =>
     JSStringImpl.fromRefUnchecked(_loadingMapNames[2 * loadId + 1]);
 
-int _loadIdInJson(int loadId) {
-  // The load-id.json will contain 1-based indexing.
-  return loadId + 1;
-}
-
 class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
   final int loadId;
 
@@ -58,7 +53,7 @@ class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
 
   String toString() {
     if (minify) {
-      return 'Deferred load id ${_loadIdInJson(loadId)} has not loaded.';
+      return 'Deferred load id $loadId has not loaded.';
     }
     return 'Deferred library ${_importUri(loadId)} has not '
         'loaded ${_prefixName(loadId)}.';
@@ -98,9 +93,7 @@ Future<void> loadLibraryFromLoadId(int loadId) {
     },
     onError: (e) {
       if (minify) {
-        throw DeferredLoadException(
-          'Error loading load ID: ${_loadIdInJson(loadId)}\n$e',
-        );
+        throw DeferredLoadException('Error loading load ID: $loadId\n$e');
       }
       throw DeferredLoadException(
         'Error loading ${_prefixName(loadId)} of library '
@@ -111,8 +104,7 @@ Future<void> loadLibraryFromLoadId(int loadId) {
 }
 
 Future<void> _loadLibraryViaEmbedderLoadId(int loadId) {
-  final promise =
-      (_loadDeferredId(_loadIdInJson(loadId).toWasmI32()).toJS as JSPromise);
+  final promise = (_loadDeferredId(loadId.toWasmI32()).toJS as JSPromise);
   return promise.toDart;
 }
 
