@@ -32,7 +32,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   late SourceChange change;
 
   /// The result of applying the [change] to the file content.
-  late String resultCode;
+  late String _resultCode;
 
   /// The workspace in which fixes contributor operates.
   Future<ChangeWorkspace> get workspace async {
@@ -268,8 +268,8 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expected = normalizeSource(expected);
 
     var fileContent = testCode;
-    resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
-    expect(resultCode, expected);
+    _resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
+    expect(_resultCode, expected);
   }
 
   Future<List<Fix>> getFixesForAllErrors(Set<String>? alreadyCalculated) async {
@@ -362,23 +362,10 @@ abstract class FixProcessorErrorCodeTest extends FixProcessorTest {
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// Return the lint code being tested.
+  /// The lint code being tested.
   String get lintCode;
 
-  /// Returns the [LintCode] for the [lintCode] (which is actually a name).
-  Future<LintCode> lintCodeByName(String name) async {
-    var diagnostics = testAnalysisResult.diagnostics;
-    var lintCodeSet = diagnostics
-        .map((d) => d.diagnosticCode)
-        .whereType<LintCode>()
-        .where((lintCode) => lintCode.lowerCaseName == name)
-        .toSet();
-    if (lintCodeSet.length != 1) {
-      fail('Expected exactly one LintCode, actually: $lintCodeSet');
-    }
-    return lintCodeSet.single;
-  }
-
+  /// A filter that filters by [name], for use in [assertHasFix].
   DiagnosticFilter lintNameFilter(String name) {
     return (e) {
       return e.diagnosticCode is LintCode &&
@@ -437,8 +424,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, parsedExpectedCode.code);
+    _resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    expect(_resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixAllFix(
@@ -461,8 +448,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       fileContent = getFile(target).readAsStringSync();
     }
 
-    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, expected);
+    _resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
+    expect(_resultCode, expected);
   }
 
   /// Computes an error from [filter], and verifies that
@@ -689,12 +676,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
-    var positions = <Position>[];
-    for (var search in searchStrings) {
-      var offset = resultCode.indexOf(search);
-      positions.add(Position(testFile.path, offset));
-    }
-    return positions;
+    return [
+      for (var search in searchStrings)
+        Position(testFile.path, _resultCode.indexOf(search)),
+    ];
   }
 }
 
