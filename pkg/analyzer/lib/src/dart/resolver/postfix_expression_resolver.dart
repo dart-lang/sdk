@@ -221,7 +221,7 @@ class PostfixExpressionResolver {
     node.recordStaticType(type, resolver: _resolver);
 
     _resolver.flowAnalysis.flow?.nonNullAssert_end(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(operand),
+      _resolver.flowAnalysis.getExpressionInfo(operand),
     );
   }
 }

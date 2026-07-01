@@ -240,7 +240,7 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.storeExpressionInfo(
+    _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
         SharedTypeView(thisType ?? _dynamicType),
@@ -265,7 +265,7 @@ class StaticTypeAnalyzer {
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var staticType = _resolver.effectiveThisType ?? _dynamicType;
-    _resolver.flowAnalysis.flow?.storeExpressionInfo(
+    _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
         SharedTypeView(staticType),
