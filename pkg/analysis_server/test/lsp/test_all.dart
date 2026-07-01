@@ -46,6 +46,7 @@ import 'inlay_hint_test.dart' as inlay_hint;
 import 'inline_value_test.dart' as inline_value;
 import 'mapping_test.dart' as mapping;
 import 'migrate_test.dart' as migrate;
+import 'migration_registry_test.dart' as migration_registry;
 import 'open_uri_test.dart' as open_uri;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
@@ -115,6 +116,7 @@ void main() {
     lsp_packet_transformer.main();
     mapping.main();
     migrate.main();
+    migration_registry.main();
     open_uri.main();
     outline.main();
     priority_files.main();

@@ -7,12 +7,18 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A registry mapping target SDK versions to post-migration lint rules
 /// that should be applied and fixes *after* the SDK constraint is bumped.
+///
+/// Each registered lint rule must have exactly one bulk-fix enabled
+/// correction producer associated with it.
 final Map<Version, List<String>> postMigrationLintsRegistry = {
   Version(3, 13, 0): [LintNames.unnecessary_type_name_in_constructor],
 };
 
 /// A registry mapping target SDK versions to pre-migration lint rules
 /// that should be applied and fixes *before* the SDK constraint is bumped.
+///
+/// Each registered lint rule must have exactly one bulk-fix enabled
+/// correction producer associated with it.
 final Map<Version, List<String>> preMigrationLintsRegistry = {
   Version(3, 13, 0): [
     LintNames.avoid_final_parameters,
