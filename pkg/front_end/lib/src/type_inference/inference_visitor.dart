@@ -313,7 +313,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    flow.storeExpressionInfo(wholeExpression, null);
+    storeExpressionInfo(wholeExpression, null);
     return analysisResult;
   }
 
@@ -339,10 +339,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       promotedType: nonNullReceiverType,
     );
 
-    flowAnalysis.storeExpressionInfo(
-      variableGet,
-      flowAnalysis.getExpressionInfo(receiver),
-    );
+    storeExpressionInfo(variableGet, getExpressionInfo(receiver));
     return variableGet;
   }
 
@@ -350,7 +347,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SyntheticVariable variable, {
     Expression? nullableExpression,
   }) {
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       variable.initializer!,
       startNullShorting(
         new NullAwareGuard(
@@ -359,7 +356,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           this,
           nullableExpression: nullableExpression,
         ),
-        flowAnalysis.getExpressionInfo(variable.initializer!),
+        getExpressionInfo(variable.initializer!),
         new SharedTypeView(variable.type),
       ),
     );
@@ -451,16 +448,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
       pushRewrite(result.expression);
-      ExpressionInfo? flowAnalysisInfo = flowAnalysis.getExpressionInfo(
-        result.expression,
-      );
+      ExpressionInfo? flowAnalysisInfo = getExpressionInfo(result.expression);
       assert(() {
         // When the AST is rewritten, the front end's convention is to associate
         // flow analysis expression info with the replacement expression, not
         // the original. (Note, however, that it's ok to associate the same info
         // with both expressions.)
-        ExpressionInfo? originalFlowAnalysisInfo = flowAnalysis
-            .getExpressionInfo(expression);
+        ExpressionInfo? originalFlowAnalysisInfo = getExpressionInfo(
+          expression,
+        );
         assert(
           originalFlowAnalysisInfo == null ||
               identical(flowAnalysisInfo, originalFlowAnalysisInfo),
@@ -1035,7 +1031,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.operand = operandResult.expression..parent = node;
     flowAnalysis.asExpression_end(
-      flowAnalysis.getExpressionInfo(node.operand),
+      getExpressionInfo(node.operand),
       subExpressionType: new SharedTypeView(operandResult.inferredType),
       castType: new SharedTypeView(node.type),
     );
@@ -1071,9 +1067,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.assert_afterCondition(
-      flowAnalysis.getExpressionInfo(node.condition),
-    );
+    flowAnalysis.assert_afterCondition(getExpressionInfo(node.condition));
     if (node.message != null) {
       ExpressionInferenceResult codeResult = inferExpression(
         node.message!,
@@ -1236,10 +1230,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     BoolLiteral node,
     DartType typeContext,
   ) {
-    flowAnalysis.storeExpressionInfo(
-      node,
-      flowAnalysis.booleanLiteral(node.value),
-    );
+    storeExpressionInfo(node, flowAnalysis.booleanLiteral(node.value));
     return new ExpressionInferenceResult(
       coreTypes.boolRawType(Nullability.nonNullable),
       node,
@@ -1289,7 +1280,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
     flowAnalysis.cascadeExpression_afterTarget(
-      flowAnalysis.getExpressionInfo(result.expression),
+      getExpressionInfo(result.expression),
       new SharedTypeView(result.inferredType),
       isNullAware: node.isNullAware,
       guardVariable: node.variable,
@@ -1340,10 +1331,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset: node.fileOffset,
       );
     }
-    flowAnalysis.storeExpressionInfo(
-      replacement,
-      flowAnalysis.cascadeExpression_end(),
-    );
+    storeExpressionInfo(replacement, flowAnalysis.cascadeExpression_end());
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
@@ -1357,7 +1345,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return CascadePropertyTarget.singleton;
     } else {
       // `target` is an ordinary expression.
-      return new ExpressionPropertyTarget(flow.getExpressionInfo(target));
+      return new ExpressionPropertyTarget(getExpressionInfo(target));
     }
   }
 
@@ -1397,10 +1385,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.conditional_thenBegin(
-      flowAnalysis.getExpressionInfo(node.condition),
-      node,
-    );
+    flowAnalysis.conditional_thenBegin(getExpressionInfo(node.condition), node);
     bool isThenReachable = flowAnalysis.isReachable;
 
     // A conditional expression `E` of the form `b ? e1 : e2` with context
@@ -1418,7 +1403,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // - Let `T2` be the type of `e2` inferred with context type `K`
     flowAnalysis.conditional_elseBegin(
-      flowAnalysis.getExpressionInfo(node.then),
+      getExpressionInfo(node.then),
       new SharedTypeView(thenResult.inferredType),
     );
     bool isOtherwiseReachable = flowAnalysis.isReachable;
@@ -1459,11 +1444,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = t;
     }
 
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flowAnalysis.conditional_end(
         new SharedTypeView(inferredType),
-        flowAnalysis.getExpressionInfo(node.otherwise),
+        getExpressionInfo(node.otherwise),
         new SharedTypeView(otherwiseResult.inferredType),
       ),
     );
@@ -2304,7 +2289,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -2592,7 +2577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.doStatement_end(flowAnalysis.getExpressionInfo(condition));
+    flowAnalysis.doStatement_end(getExpressionInfo(condition));
     return const StatementInferenceResult();
   }
 
@@ -3497,7 +3482,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     flowAnalysis.for_bodyBegin(node, switch (condition) {
       null => flowAnalysis.booleanLiteral(true),
-      var condition => flowAnalysis.getExpressionInfo(condition),
+      var condition => getExpressionInfo(condition),
     });
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.hasChanged ? bodyResult.statement : node.body;
@@ -3756,7 +3741,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression left = lhsResult.expression;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(left),
+      getExpressionInfo(left),
       new SharedTypeView(t1),
     );
 
@@ -3845,10 +3830,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.ifStatement_thenBegin(
-      flowAnalysis.getExpressionInfo(condition),
-      node,
-    );
+    flowAnalysis.ifStatement_thenBegin(getExpressionInfo(condition), node);
     StatementInferenceResult thenResult = inferStatement(node.then);
     if (thenResult.hasChanged) {
       node.then = thenResult.statement..parent = node;
@@ -4053,10 +4035,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flowAnalysis.isExpression_end(
-        flowAnalysis.getExpressionInfo(node.operand),
+        getExpressionInfo(node.operand),
         /*isNot:*/ false,
         subExpressionType: new SharedTypeView(operandResult.inferredType),
         checkedType: new SharedTypeView(node.type),
@@ -4154,9 +4136,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(
-                flowAnalysis.getExpressionInfo(receiver),
-              )(),
+              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
               element,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -4200,9 +4180,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             element,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -4255,10 +4233,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     element.condition = condition..parent = element;
-    flowAnalysis.ifStatement_thenBegin(
-      flowAnalysis.getExpressionInfo(condition),
-      element,
-    );
+    flowAnalysis.ifStatement_thenBegin(getExpressionInfo(condition), element);
     ExpressionInferenceResult thenResult = inferElement(
       element.then,
       inferredTypeArgument,
@@ -4532,7 +4507,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.for_bodyBegin(null, switch (element.condition) {
       null => flowAnalysis.booleanLiteral(true),
-      var condition => flowAnalysis.getExpressionInfo(condition),
+      var condition => getExpressionInfo(condition),
     });
     ExpressionInferenceResult bodyResult = inferElement(
       element.body,
@@ -4965,7 +4940,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression left = ensureAssignableResult(boolType, leftResult).expression;
     node.left = left..parent = node;
     flowAnalysis.logicalBinaryOp_rightBegin(
-      flowAnalysis.getExpressionInfo(node.left),
+      getExpressionInfo(node.left),
       node,
       isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
     );
@@ -4976,10 +4951,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression right = ensureAssignableResult(boolType, rightResult).expression;
     node.right = right..parent = node;
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flowAnalysis.logicalBinaryOp_end(
-        flowAnalysis.getExpressionInfo(node.right),
+        getExpressionInfo(node.right),
         isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
       ),
     );
@@ -7177,9 +7152,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: receiver.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(
-                flowAnalysis.getExpressionInfo(receiver),
-              )(),
+              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
               entry,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -7204,9 +7177,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7255,9 +7226,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: receiver.fileOffset,
           length: 1,
           context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             entry,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -7336,7 +7305,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     entry.key = key..parent = entry;
 
     flowAnalysis.nullAwareMapEntry_valueBegin(
-      flowAnalysis.getExpressionInfo(key),
+      getExpressionInfo(key),
       new SharedTypeView(keyInferenceResult.inferredType),
       isKeyNullAware: entry.isKeyNullAware,
     );
@@ -7398,10 +7367,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     entry.condition = condition..parent = entry;
-    flowAnalysis.ifStatement_thenBegin(
-      flowAnalysis.getExpressionInfo(condition),
-      entry,
-    );
+    flowAnalysis.ifStatement_thenBegin(getExpressionInfo(condition), entry);
     // Note that this recursive invocation of inferMapEntry will add two types
     // to actualTypes; they are the actual types of the current invocation if
     // the 'else' branch is empty.
@@ -7756,7 +7722,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     flowAnalysis.for_bodyBegin(null, switch (entry.condition) {
       null => flowAnalysis.booleanLiteral(true),
-      var condition => flowAnalysis.getExpressionInfo(condition),
+      var condition => getExpressionInfo(condition),
     });
     // Actual types are added by the recursive call.
     MapLiteralEntry body = inferMapEntry(
@@ -8641,9 +8607,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.operand = operand..parent = node;
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       node,
-      flowAnalysis.logicalNot_end(flowAnalysis.getExpressionInfo(node.operand)),
+      flowAnalysis.logicalNot_end(getExpressionInfo(node.operand)),
     );
     return new ExpressionInferenceResult(boolType, node);
   }
@@ -8663,9 +8629,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType operandType = operandResult.inferredType;
 
     node.operand = operand..parent = node;
-    flowAnalysis.nonNullAssert_end(
-      flowAnalysis.getExpressionInfo(node.operand),
-    );
+    flowAnalysis.nonNullAssert_end(getExpressionInfo(node.operand));
     DartType nonNullableResultType = operations
         .promoteToNonNull(new SharedTypeView(operandType))
         .unwrapTypeView();
@@ -9144,7 +9108,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -9282,7 +9246,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readResult.inferredType;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult writeResult = inferExpression(
@@ -9345,10 +9309,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Forward the expression in cases where flow analysis needs to use the
     // expression information. For example, for keeping the promotion in the
     // following if statement in `if ((x ??= 2) == null) { ... }`.
-    flowAnalysis.storeExpressionInfo(
-      replacement,
-      flowAnalysis.getExpressionInfo(writeResult.expression),
-    );
+    storeExpressionInfo(replacement, getExpressionInfo(writeResult.expression));
 
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -9912,7 +9873,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SyntheticVariable? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
+        flowAnalysis.whyNotPromoted(getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -9941,7 +9902,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -10130,7 +10091,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )..fileOffset = node.readOffset;
 
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
     ExpressionInferenceResult valueResult = inferExpression(
@@ -10355,7 +10316,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(
-      flowAnalysis.getExpressionInfo(read),
+      getExpressionInfo(read),
       new SharedTypeView(readType),
     );
 
@@ -10494,7 +10455,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression right, {
     required bool isNot,
   }) {
-    ExpressionInfo? equalityInfo = flowAnalysis.getExpressionInfo(left);
+    ExpressionInfo? equalityInfo = getExpressionInfo(left);
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
@@ -10517,12 +10478,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (isNot) {
         equals = new Not(equals)..fileOffset = fileOffset;
       }
-      flowAnalysis.storeExpressionInfo(
+      storeExpressionInfo(
         equals,
         flowAnalysis.equalityOperation_end(
           equalityInfo,
           new SharedTypeView(leftType),
-          flow.getExpressionInfo(rightResult.expression),
+          getExpressionInfo(rightResult.expression),
           new SharedTypeView(rightResult.inferredType),
           notEqual: isNot,
         ),
@@ -10574,12 +10535,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       equals = new Not(equals)..fileOffset = fileOffset;
     }
 
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       equals,
       flowAnalysis.equalityOperation_end(
         equalityInfo,
         new SharedTypeView(leftType),
-        flowAnalysis.getExpressionInfo(right),
+        getExpressionInfo(right),
         new SharedTypeView(rightResult.inferredType),
         notEqual: isNot,
       ),
@@ -11292,7 +11253,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool? isImplicitThis,
   }) {
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver));
+        flowAnalysis.whyNotPromoted(getExpressionInfo(receiver));
 
     readTarget ??= findInterfaceMember(
       receiverType,
@@ -11315,7 +11276,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new SharedTypeView(readType),
     );
     if (propertyGetNode != null) {
-      flowAnalysis.storeExpressionInfo(propertyGetNode, expressionInfo);
+      storeExpressionInfo(propertyGetNode, expressionInfo);
     }
     DartType? promotedReadType = wrappedPromotedReadType?.unwrapTypeView();
     return createPropertyGet(
@@ -11394,7 +11355,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SyntheticVariable? indexVariable;
     Expression readIndex = indexResult.expression;
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedIndex =
-        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(readIndex));
+        flowAnalysis.whyNotPromoted(getExpressionInfo(readIndex));
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -11972,7 +11933,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     const NullType nullType = const NullType();
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flowAnalysis.nullLiteral(new SharedTypeView(nullType)),
     );
@@ -12072,7 +12033,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.initialize(
       node.variable,
       new SharedTypeView(node.variable.type),
-      flowAnalysis.getExpressionInfo(receiver),
+      getExpressionInfo(receiver),
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
@@ -12080,14 +12041,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     if (node.isNullAware) {
       flow.nullAwareAccess_rightBegin(
-        flowAnalysis.getExpressionInfo(receiver),
+        getExpressionInfo(receiver),
         new SharedTypeView(receiverType),
         guardVariable: node.variable,
       );
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(flowAnalysis.getExpressionInfo(receiver));
+      flow.thisBinding_begin(getExpressionInfo(receiver));
     }
     ExpressionInferenceResult bodyResult = inferExpression(
       node.body,
@@ -12195,10 +12156,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isParameterless) {
-      flowAnalysis.storeExpressionInfo(
-        replacement,
-        flowAnalysis.getExpressionInfo(node.body),
-      );
+      storeExpressionInfo(replacement, getExpressionInfo(node.body));
     }
 
     return new ExpressionInferenceResult(inferredType, replacement);
@@ -12273,7 +12231,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.initialize(
       node.variable,
       new SharedTypeView(node.variable.type),
-      flowAnalysis.getExpressionInfo(receiver),
+      getExpressionInfo(receiver),
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
@@ -12299,14 +12257,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (isNullAwareAccess) {
         startNullShorting(
           new NullAwareGuard(tempVar!, node.variable.fileOffset, this),
-          flowAnalysis.getExpressionInfo(tempVar.initializer!),
+          getExpressionInfo(tempVar.initializer!),
           new SharedTypeView(tempVar.type),
         );
       }
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(flowAnalysis.getExpressionInfo(node.receiver));
+      flow.thisBinding_begin(getExpressionInfo(node.receiver));
     }
 
     flowAnalysis.labeledStatement_begin(label);
@@ -12483,9 +12441,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult.inferredType,
           readResult.expression,
         );
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       expressionInferenceResult.expression,
-      flowAnalysis.getExpressionInfo(node),
+      getExpressionInfo(node),
     );
     return expressionInferenceResult;
   }
@@ -12982,10 +12940,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ),
       fileOffset: node.fileOffset,
     );
-    flowAnalysis.storeExpressionInfo(
-      replacement,
-      flowAnalysis.getExpressionInfo(node),
-    );
+    storeExpressionInfo(replacement, getExpressionInfo(node));
     return new ExpressionInferenceResult(
       result.inferredType,
       result.applyResult(replacement),
@@ -13532,7 +13487,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       loweredExpression = node;
     }
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       loweredExpression,
       flowAnalysis.thisOrSuper(new SharedTypeView(thisType), isSuper: false),
     );
@@ -13873,7 +13828,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.condition = condition..parent = node;
     flowAnalysis.whileStatement_bodyBegin(
       node,
-      flowAnalysis.getExpressionInfo(node.condition),
+      getExpressionInfo(node.condition),
     );
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
@@ -13982,9 +13937,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
     );
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
-        flowAnalysis.whyNotPromoted(
-          flowAnalysis.getExpressionInfo(leftResult.expression),
-        );
+        flowAnalysis.whyNotPromoted(getExpressionInfo(leftResult.expression));
     return _computeBinaryExpression(
       node.fileOffset,
       typeContext,
@@ -14079,7 +14032,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
         flowAnalysis.whyNotPromoted(
-          flowAnalysis.getExpressionInfo(expressionResult.expression),
+          getExpressionInfo(expressionResult.expression),
         );
     return _computeUnaryExpression(
       node.fileOffset,
@@ -14422,7 +14375,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     return new ExpressionTypeAnalysisResult(
       type: new SharedTypeView(expressionResult.inferredType),
-      flowAnalysisInfo: flow.getExpressionInfo(expressionResult.expression),
+      flowAnalysisInfo: getExpressionInfo(expressionResult.expression),
     );
   }
 
@@ -17277,9 +17230,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
     }
 
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       expressionInferenceResult.expression,
-      flowAnalysis.getExpressionInfo(node),
+      getExpressionInfo(node),
     );
     return expressionInferenceResult;
   }
@@ -17405,7 +17358,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.initialize(
         internalVariable,
         new SharedTypeView(initializerType),
-        flowAnalysis.getExpressionInfo(initializerResult.expression),
+        getExpressionInfo(initializerResult.expression),
         isFinal: internalVariable.isFinal,
         isLate: internalVariable.isLate,
         isImplicitlyTyped: internalVariable.isImplicitlyTyped,
