@@ -323,6 +323,7 @@ if (is_fuchsia) {
     "tests/ffi/static_checks/vmspecific_static_checks_varargs_test.dart",
     "tests/ffi/static_checks/vmspecific_variance_function_checks_test.dart",
     "tests/ffi/threading_pinning_test.dart",
+    "tests/ffi/threading_reentrant_test.dart",
     "tests/ffi/threading_runeventloop_test.dart",
     "tests/ffi/threading_test.dart",
   ]

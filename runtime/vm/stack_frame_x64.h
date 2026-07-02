@@ -67,7 +67,7 @@ static constexpr int kExitLinkSlotFromEntryFp = -11;
 // If NativeCallbackTrampolines::Enabled(), then
 // kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
-    2 + CallingConventions::kShadowSpaceBytes / kWordSize;
+    4 + CallingConventions::kShadowSpaceBytes / kWordSize;
 
 // For FFI calls passing in TypedData, we save it on the stack before entering
 // a Dart frame. This denotes how to get to the backed up typed data.

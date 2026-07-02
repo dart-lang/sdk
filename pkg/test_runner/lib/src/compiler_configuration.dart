@@ -1522,9 +1522,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       executable = config.executable;
-      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
-        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
-      }
     }
     var command = CompilationCommand(
       'app_jit',

@@ -83,9 +83,12 @@ abstract class TestSuite {
               .toFilePath(),
         if (configuration.useQemu)
           'QEMU_LD_PREFIX':
+              Platform.environment['QEMU_LD_PREFIX'] ??
               QemuConfig.all[configuration.architecture]!.elfInterpreterPrefix,
         if (configuration.useQemu)
-          'QEMU_CPU': QemuConfig.all[configuration.architecture]!.cpu,
+          'QEMU_CPU':
+              Platform.environment['QEMU_CPU'] ??
+              QemuConfig.all[configuration.architecture]!.cpu,
       };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -254,9 +257,7 @@ abstract class TestSuite {
     ).append('generated_$name').append(dirname).append(testUniqueName);
 
     TestUtils.mkdirRecursive(Path('.'), generatedTestPath);
-    return File(
-      generatedTestPath.toNativePath(),
-    ).path.replaceAll('\\', '/');
+    return File(generatedTestPath.toNativePath()).path.replaceAll('\\', '/');
   }
 
   /// Create a directories for generated assets (tests, html files,

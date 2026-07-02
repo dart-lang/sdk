@@ -329,11 +329,7 @@ enum QemuConfig {
   x64._('qemu-x86_64', 'max', '/usr/lib/x86_64-linux-gnu/'),
   arm._('qemu-arm', 'max', '/usr/arm-linux-gnueabihf/'),
   arm64._('qemu-aarch64', 'max', '/usr/aarch64-linux-gnu/'),
-  riscv32._(
-    'qemu-riscv32',
-    'rva23u32,zbc=on,zacas=on,zabha=on',
-    '/usr/riscv32-linux-gnu/',
-  ),
+  riscv32._('qemu-riscv32', 'max', '/usr/riscv32-linux-gnu/'),
   riscv64._(
     'qemu-riscv64',
     'rva23u64,zbc=on,zacas=on,zabha=on',
@@ -467,12 +463,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       executable = config.executable;
-      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
-        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
-      }
-      if (environmentOverrides['QEMU_CPU'] == null) {
-        environmentOverrides['QEMU_CPU'] = config.cpu;
-      }
     }
     var command = VMCommand(executable, arguments, environmentOverrides);
     if (_configuration.rr && !isCrashExpected) {
@@ -508,12 +498,6 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       executable = config.executable;
-      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
-        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
-      }
-      if (environmentOverrides['QEMU_CPU'] == null) {
-        environmentOverrides['QEMU_CPU'] = config.cpu;
-      }
     }
 
     var command = VMCommand(executable, arguments, environmentOverrides);
