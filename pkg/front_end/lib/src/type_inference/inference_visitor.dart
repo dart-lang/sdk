@@ -347,11 +347,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return variableGet;
   }
 
-  void createNullAwareGuard(SyntheticVariable variable) {
+  void createNullAwareGuard(
+    SyntheticVariable variable, {
+    Expression? nullableExpression,
+  }) {
     flowAnalysis.storeExpressionInfo(
       variable.initializer!,
       startNullShorting(
-        new NullAwareGuard(variable, variable.fileOffset, this),
+        new NullAwareGuard(
+          variable,
+          variable.fileOffset,
+          this,
+          nullableExpression: nullableExpression,
+        ),
         flowAnalysis.getExpressionInfo(variable.initializer!),
         new SharedTypeView(variable.type),
       ),
@@ -429,8 +437,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               result.expression is InvalidExpression)) {
         // Coverage-ignore-block(suite): Not run.
         Expression replacement = createLet(
-          createVariable(result.expression, result.inferredType),
-          createReachabilityError(expression.fileOffset, diag.neverValueError),
+          variable: createVariable(result.expression, result.inferredType),
+          body: createReachabilityError(
+            expression.fileOffset,
+            diag.neverValueError,
+          ),
         );
         flowAnalysis.storeExpressionInfo(
           replacement,
@@ -1295,12 +1306,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitCascade(Cascade node, DartType typeContext) {
     ExpressionInferenceResult result = inferExpression(
-      node.variable.initializer!,
+      node.receiver,
       typeContext,
       isVoidAllowed: false,
     );
 
-    node.variable.updateInitializer(result.expression);
+    Expression receiver = result.expression;
     node.variable.type = result.inferredType;
     NullAwareGuard? nullAwareGuard;
     if (node.isNullAware) {
@@ -1308,6 +1319,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.variable.astVariable,
         node.variable.fileOffset,
         this,
+        nullableExpression: receiver,
       );
     }
     flowAnalysis.cascadeExpression_afterTarget(
@@ -1356,8 +1368,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = popRewrite() as Expression;
     } else {
       replacement = extern.createLet(
-        node.variable.astVariable,
-        replacement,
+        variable: node.variable.astVariable,
+        value: receiver,
+        body: replacement,
         fileOffset: node.fileOffset,
       );
     }
@@ -1869,11 +1882,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const VoidType(),
       );
       replacement = createLet(
-        valueVariable!,
-        createLet(assignmentVariable, createVariableGet(valueVariable)),
+        variable: valueVariable!,
+        body: createLet(
+          variable: assignmentVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
       if (receiverVariable != null) {
-        replacement = createLet(receiverVariable, replacement);
+        replacement = createLet(variable: receiverVariable, body: replacement);
       }
     }
     replacement.fileOffset = fileOffset;
@@ -2019,20 +2035,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(binaryVariable == null);
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     } else if (binaryVariable != null) {
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        binaryVariable,
-        createLet(writeVariable, createVariableGet(binaryVariable)),
+        variable: binaryVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(binaryVariable),
+        ),
       );
     } else {
       replacement = write;
     }
     if (receiverVariable != null) {
-      replacement = createLet(receiverVariable, replacement);
+      replacement = createLet(variable: receiverVariable, body: replacement);
     }
     replacement.fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(
@@ -2394,7 +2416,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variableGet,
         inferredType,
       );
-      replacement = createLet(readVariable, conditional);
+      replacement = createLet(variable: readVariable, body: conditional);
     }
     if (receiverVariable != null) {
       if (!node.isNullAware) {
@@ -2402,7 +2424,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // null-aware guard and is automatically inserted by the shorting
         // system. Otherwise, we have to manually insert the receiver variable
         // here.
-        replacement = createLet(receiverVariable, replacement);
+        replacement = createLet(variable: receiverVariable, body: replacement);
       }
     }
 
@@ -2543,12 +2565,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable != null);
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable!,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     if (receiverVariable != null) {
-      replacement = createLet(receiverVariable, replacement);
+      replacement = createLet(variable: receiverVariable, body: replacement);
     }
     replacement.fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(valueType, replacement);
@@ -2567,8 +2592,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     Expression replacement = extern.createLet(
-      node.variable.astVariable,
-      result.expression,
+      variable: extern.createUninitializedVariable(
+        type: const DynamicType(),
+        isFinal: true,
+        fileOffset: node.fileOffset,
+      ),
+      value: extern.createCheckLibraryIsLoaded(
+        dependency: node.dependency,
+        fileOffset: node.fileOffset,
+      ),
+      body: result.expression,
       fileOffset: node.fileOffset,
     );
     return new ExpressionInferenceResult(result.inferredType, replacement);
@@ -3442,17 +3475,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       InternalVariableDeclaration variableDeclaration = node.variables[index];
       InternalDeclaredVariable variable = variableDeclaration.variable;
       if (variable.cosmeticName == null) {
-        if (variable.initializer != null) {
+        Expression? initializer;
+        if (variableDeclaration.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
-            variable.initializer!,
+            variableDeclaration.initializer!,
             const UnknownType(),
             isVoidAllowed: true,
           );
-          variable.updateInitializer(result.expression);
+          initializer = result.expression;
           variable.type = result.inferredType;
         }
         variables[index] = extern.createVariableDeclaration(
           variable.astVariable,
+          initializer: initializer,
           fileOffset: variableDeclaration.fileOffset,
         );
       } else {
@@ -4421,11 +4456,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
+      InternalVariableDeclaration intermediateVariableDeclaration =
+          element.intermediateVariables[i];
       InternalVariable intermediateVariable =
-          element.intermediateVariables[i].variable;
-      intermediateVariable.updateInitializer(
+          intermediateVariableDeclaration.variable;
+      intermediateVariableDeclaration.updateInitializer(
         inferExpression(
-          intermediateVariable.initializer!,
+          intermediateVariableDeclaration.initializer!,
           type,
           isVoidAllowed: true,
         ).expression,
@@ -4473,17 +4510,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           element.internalVariables[index];
       InternalDeclaredVariable variable = variableDeclaration.variable;
       if (variable.cosmeticName == null) {
-        if (variable.initializer != null) {
+        Expression? initializer;
+        if (variableDeclaration.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
-            variable.initializer!,
+            variableDeclaration.initializer!,
             variable.type,
             isVoidAllowed: true,
           );
-          variable.updateInitializer(initializerResult.expression);
+          initializer = initializerResult.expression;
           variable.type = initializerResult.inferredType;
         }
         variables[index] = extern.createVariableDeclaration(
           variable.astVariable,
+          initializer: initializer,
           fileOffset: variableDeclaration.fileOffset,
         );
       } else {
@@ -5397,6 +5436,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         extern.createVariableStatement(
           extern.createVariableDeclaration(
             intermediateVariable.variable.astVariable,
+            initializer: intermediateVariable.initializer,
             fileOffset: intermediateVariable.fileOffset,
           ),
         ),
@@ -6027,6 +6067,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         extern.createVariableStatement(
           extern.createVariableDeclaration(
             intermediateVariable.variable.astVariable,
+            initializer: intermediateVariable.initializer,
             fileOffset: intermediateVariable.fileOffset,
           ),
         ),
@@ -7615,11 +7656,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
+      InternalVariableDeclaration intermediateVariableDeclaration =
+          entry.intermediateVariables[i];
       InternalVariable intermediateVariable =
-          entry.intermediateVariables[i].variable;
-      intermediateVariable.updateInitializer(
+          intermediateVariableDeclaration.variable;
+      intermediateVariableDeclaration.updateInitializer(
         inferExpression(
-          intermediateVariable.initializer!,
+          intermediateVariableDeclaration.initializer!,
           type,
           isVoidAllowed: true,
         ).expression,
@@ -7692,16 +7735,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       InternalDeclaredVariable variable = variableDeclaration.variable;
 
       if (variable.cosmeticName == null) {
-        if (variable.initializer != null) {
+        Expression? initializer;
+        if (variableDeclaration.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
-            variable.initializer!,
+            variableDeclaration.initializer!,
             variable.type,
             isVoidAllowed: true,
           );
-          variable.updateInitializer(result.expression);
+          initializer = result.expression;
           variable.type = result.inferredType;
         }
-        variables[index] = createVariableDeclaration(variable.astVariable);
+        variables[index] = createVariableDeclaration(
+          variable.astVariable,
+          initializer: initializer,
+        );
       } else {
         VariableDeclarationInferenceResult variableResult =
             inferVariableDeclaration(variableDeclaration);
@@ -8699,8 +8746,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     return new ExpressionInferenceResult(
@@ -8762,8 +8812,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     return new ExpressionInferenceResult(
@@ -8823,8 +8876,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     return new ExpressionInferenceResult(
@@ -8942,8 +8998,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
 
@@ -8953,7 +9012,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // null-aware guard and is automatically inserted by the shorting
         // system. Otherwise, we have to manually insert the receiver variable
         // here.
-        replacement = createLet(receiverVariable, replacement);
+        replacement = createLet(variable: receiverVariable, body: replacement);
       }
     }
     return new ExpressionInferenceResult(
@@ -9060,7 +9119,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // null-aware guard and is automatically inserted by the shorting
         // system. Otherwise, we have to manually insert the receiver variable
         // here.
-        replacement = createLet(receiverVariable, replacement);
+        replacement = createLet(variable: receiverVariable, body: replacement);
       }
     }
     replacement.fileOffset = node.fileOffset;
@@ -9190,13 +9249,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variableGet,
         inferredType,
       );
-      replacement = createLet(readVariable, conditional);
+      replacement = createLet(variable: readVariable, body: conditional);
     }
     if (!node.isNullAware) {
       // When the node is null-aware, the receiver variable is used as a
       // null-aware guard and is automatically inserted by the shorting system.
       // Otherwise, we have to manually insert the receiver variable here.
-      replacement = createLet(receiverVariable, replacement);
+      replacement = createLet(variable: receiverVariable, body: replacement);
     }
 
     return new ExpressionInferenceResult(inferredType, replacement);
@@ -9482,15 +9541,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         assignment,
         const VoidType(),
       );
-      replacement = createLet(assignmentVariable, returnedValue!);
+      replacement = createLet(
+        variable: assignmentVariable,
+        body: returnedValue!,
+      );
       if (valueVariable != null) {
-        replacement = createLet(valueVariable, replacement);
+        replacement = createLet(variable: valueVariable, body: replacement);
       }
       if (indexVariable != null) {
-        replacement = createLet(indexVariable, replacement);
+        replacement = createLet(variable: indexVariable, body: replacement);
       }
       if (receiverVariable != null) {
-        replacement = createLet(receiverVariable, replacement);
+        replacement = createLet(variable: receiverVariable, body: replacement);
       }
     }
     replacement.fileOffset = node.fileOffset;
@@ -9568,12 +9630,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assignment,
       const VoidType(),
     );
-    Expression replacement = createLet(assignmentVariable, returnedValue);
+    Expression replacement = createLet(
+      variable: assignmentVariable,
+      body: returnedValue,
+    );
     if (valueVariable != null) {
-      replacement = createLet(valueVariable, replacement);
+      replacement = createLet(variable: valueVariable, body: replacement);
     }
     if (indexVariable != null) {
-      replacement = createLet(indexVariable, replacement);
+      replacement = createLet(variable: indexVariable, body: replacement);
     }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -9787,13 +9852,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         assignment,
         const VoidType(),
       );
-      replacement = createLet(assignmentVariable, returnedValue);
+      replacement = createLet(
+        variable: assignmentVariable,
+        body: returnedValue,
+      );
     }
     if (valueVariable != null) {
-      replacement = createLet(valueVariable, replacement);
+      replacement = createLet(variable: valueVariable, body: replacement);
     }
     if (receiverVariable != null) {
-      replacement = createLet(receiverVariable, replacement);
+      replacement = createLet(variable: receiverVariable, body: replacement);
     }
     replacement.fileOffset = node.fileOffset;
 
@@ -9991,9 +10059,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullableReadType, readType)) {
         variableGet.promotedType = nonNullableReadType;
       }
-      Expression result = createLet(writeVariable, returnedValue!);
+      Expression result = createLet(
+        variable: writeVariable,
+        body: returnedValue!,
+      );
       if (valueVariable != null) {
-        result = createLet(valueVariable, result);
+        result = createLet(variable: valueVariable, body: result);
       }
       ConditionalExpression conditional = _createConditionalExpression(
         node.testOffset,
@@ -10002,10 +10073,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variableGet,
         inferredType,
       );
-      inner = createLet(readVariable, conditional);
+      inner = createLet(variable: readVariable, body: conditional);
     }
     if (indexVariable != null) {
-      inner = createLet(indexVariable, inner);
+      inner = createLet(variable: indexVariable, body: inner);
     }
 
     Expression replacement;
@@ -10167,9 +10238,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
       }
-      Expression result = createLet(writeVariable, returnedValue!);
+      Expression result = createLet(
+        variable: writeVariable,
+        body: returnedValue!,
+      );
       if (valueVariable != null) {
-        result = createLet(valueVariable, result);
+        result = createLet(variable: valueVariable, body: result);
       }
       ConditionalExpression conditional = _createConditionalExpression(
         node.fileOffset,
@@ -10178,10 +10252,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         readVariableGet,
         inferredType,
       );
-      replacement = createLet(readVariable, conditional);
+      replacement = createLet(variable: readVariable, body: conditional);
     }
     if (indexVariable != null) {
-      replacement = createLet(indexVariable, replacement);
+      replacement = createLet(variable: indexVariable, body: replacement);
     }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -10401,9 +10475,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!identical(nonNullableReadType, readType)) {
         readVariableGet.promotedType = nonNullableReadType;
       }
-      Expression result = createLet(writeVariable, returnedValue!);
+      Expression result = createLet(
+        variable: writeVariable,
+        body: returnedValue!,
+      );
       if (valueVariable != null) {
-        result = createLet(valueVariable, result);
+        result = createLet(variable: valueVariable, body: result);
       }
       ConditionalExpression conditional = _createConditionalExpression(
         node.fileOffset,
@@ -10412,10 +10489,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         readVariableGet,
         inferredType,
       );
-      replacement = createLet(readVariable, conditional);
+      replacement = createLet(variable: readVariable, body: conditional);
     }
     if (indexVariable != null) {
-      replacement = createLet(indexVariable, replacement);
+      replacement = createLet(variable: indexVariable, body: replacement);
     }
     if (receiverVariable != null) {
       replacement = new Let(receiverVariable, replacement);
@@ -11463,8 +11540,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       inner = createLet(
-        leftVariable!,
-        createLet(writeVariable, createVariableGet(leftVariable)),
+        variable: leftVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(leftVariable),
+        ),
       );
     } else {
       // Encode `o[a] += b` as:
@@ -11479,12 +11559,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       inner = createLet(
-        valueVariable!,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     if (indexVariable != null) {
-      inner = createLet(indexVariable, inner);
+      inner = createLet(variable: indexVariable, body: inner);
     }
 
     Expression replacement;
@@ -11631,8 +11714,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        leftVariable!,
-        createLet(writeVariable, createVariableGet(leftVariable)),
+        variable: leftVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(leftVariable),
+        ),
       );
     } else {
       // Encode `super[a] += b` as:
@@ -11647,12 +11733,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable!,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     if (indexVariable != null) {
-      replacement = createLet(indexVariable, replacement);
+      replacement = createLet(variable: indexVariable, body: replacement);
     }
     return new ExpressionInferenceResult(
       node.forPostIncDec ? readType : binaryType,
@@ -11863,8 +11952,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        leftVariable!,
-        createLet(writeVariable, createVariableGet(leftVariable)),
+        variable: leftVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(leftVariable),
+        ),
       );
     } else {
       // Encode `Extension(o)[a] += b` as:
@@ -11881,15 +11973,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       SyntheticVariable writeVariable = createVariable(write, const VoidType());
       replacement = createLet(
-        valueVariable!,
-        createLet(writeVariable, createVariableGet(valueVariable)),
+        variable: valueVariable!,
+        body: createLet(
+          variable: writeVariable,
+          body: createVariableGet(valueVariable),
+        ),
       );
     }
     if (indexVariable != null) {
-      replacement = createLet(indexVariable, replacement);
+      replacement = createLet(variable: indexVariable, body: replacement);
     }
     if (receiverVariable != null) {
-      replacement = new Let(receiverVariable, replacement);
+      replacement = createLet(variable: receiverVariable, body: replacement);
     }
     replacement.fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(
@@ -11921,13 +12016,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalLet node,
     DartType typeContext,
   ) {
-    DartType variableType = node.variable.type;
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.variable.initializer!,
-      variableType,
+    ExpressionInferenceResult valueResult = inferExpression(
+      node.value,
+      node.valueType,
       isVoidAllowed: true,
     );
-    node.variable.updateInitializer(initializerResult.expression);
+    Expression value = valueResult.expression;
     ExpressionInferenceResult bodyResult = inferExpression(
       node.body,
       typeContext,
@@ -11938,8 +12032,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(
       inferredType,
       extern.createLet(
-        node.variable.astVariable,
-        body,
+        variable: extern.createUninitializedVariable(
+          type: node.valueType,
+          fileOffset: value.fileOffset,
+          isFinal: true,
+        ),
+        value: value,
+        body: body,
         fileOffset: node.fileOffset,
       ),
     );
@@ -11950,37 +12049,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     DartType variableType = node.variable.type;
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.variable.initializer!,
+    ExpressionInferenceResult receiverResult = inferExpression(
+      node.receiver,
       const UnknownType(),
       continueNullShorting: true,
     );
 
-    Expression initializer = initializerResult.expression;
-    DartType initializerType = initializerResult.inferredType;
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
 
-    if (initializerType is VoidType) {
-      initializer = problemReporting.wrapInProblem(
+    if (receiverType is VoidType) {
+      receiver = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
-        expression: initializer,
+        expression: receiver,
         message: diag.voidExpression,
         fileUri: fileUri,
-        fileOffset: initializer.fileOffset,
+        fileOffset: receiver.fileOffset,
         length: noLength,
       );
     }
 
     if (node.isImplicitlyTyped) {
       node.variable.type = node.isNullAware
-          ? initializerType.toNonNull()
-          : initializerType;
+          ? receiverType.toNonNull()
+          : receiverType;
     } else {
       DartType checkedType = node.isNullAware
-          ? initializerType.toNonNull()
-          : initializerType;
+          ? receiverType.toNonNull()
+          : receiverType;
       if (!isAssignable(variableType, checkedType)) {
-        initializer = wrapUnassignableExpression(
-          initializer,
+        receiver = wrapUnassignableExpression(
+          receiver,
           checkedType,
           variableType,
           diag.anonymousMethodWrongParameterTypeCfe.withArguments(
@@ -11991,7 +12090,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       }
     }
-    node.variable.updateInitializer(initializer);
 
     flowAnalysis.declare(
       node.variable,
@@ -12001,7 +12099,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.initialize(
       node.variable,
       new SharedTypeView(node.variable.type),
-      flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      flowAnalysis.getExpressionInfo(receiver),
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
@@ -12009,16 +12107,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     if (node.isNullAware) {
       flow.nullAwareAccess_rightBegin(
-        flowAnalysis.getExpressionInfo(node.variable.initializer!),
-        new SharedTypeView(initializerType),
+        flowAnalysis.getExpressionInfo(receiver),
+        new SharedTypeView(receiverType),
         guardVariable: node.variable,
       );
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(
-        flowAnalysis.getExpressionInfo(node.variable.initializer!),
-      );
+      flow.thisBinding_begin(flowAnalysis.getExpressionInfo(receiver));
     }
     ExpressionInferenceResult bodyResult = inferExpression(
       node.body,
@@ -12037,7 +12133,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression body;
 
     if (node.isCascade) {
-      inferredType = initializerType;
+      inferredType = receiverType;
 
       SyntheticVariable tempVar = extern.createVariable(
         bodyResult.expression,
@@ -12046,8 +12142,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       )..fileOffset = node.fileOffset;
 
       body = extern.createLet(
-        tempVar,
-        new VariableGet(node.variable.astVariable),
+        variable: tempVar,
+        body: new VariableGet(node.variable.astVariable),
         fileOffset: node.fileOffset,
       );
     } else {
@@ -12068,7 +12164,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new BlockExpression(
           new Block([
             extern.createVariableStatement(
-              extern.createVariableDeclaration(node.variable.astVariable),
+              extern.createVariableDeclaration(
+                node.variable.astVariable,
+                initializer: receiver,
+              ),
             ),
             extern.createVariableStatement(
               extern.createVariableDeclaration(resultVar),
@@ -12080,8 +12179,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         )..fileOffset = node.fileOffset;
       } else {
         return extern.createLet(
-          node.variable.astVariable,
-          body,
+          variable: node.variable.astVariable,
+          value: receiver,
+          body: body,
           fileOffset: node.fileOffset,
         );
       }
@@ -12090,8 +12190,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement;
     if (node.isNullAware) {
       SyntheticVariable tempVar = extern.createVariable(
-        node.variable.initializer!,
-        initializerType,
+        receiver,
+        receiverType,
         cosmeticName: "anonymous#receiver",
         isFinal: false,
         fileOffset: node.fileOffset,
@@ -12100,22 +12200,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression condition = new EqualsNull(new VariableGet(tempVar));
       Expression thenExpression = new NullLiteral();
 
-      node.variable.updateInitializer(
-        new AsExpression(new VariableGet(tempVar), node.variable.type)
-          ..fileOffset = node.fileOffset,
-      );
+      receiver = new AsExpression(new VariableGet(tempVar), node.variable.type)
+        ..fileOffset = node.fileOffset;
 
       Expression elseExpression = createLetOrBlock();
 
-      replacement = new Let(
-        tempVar,
-        new ConditionalExpression(
+      replacement = extern.createLet(
+        variable: tempVar,
+        body: new ConditionalExpression(
           condition,
           thenExpression,
           elseExpression,
           inferredType.withDeclaredNullability(Nullability.nullable),
         ),
-      )..fileOffset = node.fileOffset;
+        fileOffset: node.fileOffset,
+      );
 
       inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
     } else {
@@ -12151,37 +12250,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _returnContexts.push(context);
 
     DartType variableType = node.variable.type;
-    ExpressionInferenceResult initializerResult = inferExpression(
-      node.variable.initializer!,
+    ExpressionInferenceResult receiverResult = inferExpression(
+      node.receiver,
       const UnknownType(),
       continueNullShorting: true,
     );
 
-    Expression initializer = initializerResult.expression;
-    DartType initializerType = initializerResult.inferredType;
+    Expression receiver = receiverResult.expression;
+    DartType receiverType = receiverResult.inferredType;
 
-    if (initializerType is VoidType) {
-      initializer = problemReporting.wrapInProblem(
+    if (receiverType is VoidType) {
+      receiver = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
-        expression: initializer,
+        expression: receiver,
         message: diag.voidExpression,
         fileUri: fileUri,
-        fileOffset: initializer.fileOffset,
+        fileOffset: receiver.fileOffset,
         length: noLength,
       );
     }
 
     if (node.isImplicitlyTyped) {
       node.variable.type = node.isNullAware
-          ? initializerType.toNonNull()
-          : initializerType;
+          ? receiverType.toNonNull()
+          : receiverType;
     } else {
       DartType checkedType = node.isNullAware
-          ? initializerType.toNonNull()
-          : initializerType;
+          ? receiverType.toNonNull()
+          : receiverType;
       if (!isAssignable(variableType, checkedType)) {
-        initializer = wrapUnassignableExpression(
-          initializer,
+        receiver = wrapUnassignableExpression(
+          receiver,
           checkedType,
           variableType,
           diag.anonymousMethodWrongParameterTypeCfe.withArguments(
@@ -12192,7 +12291,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       }
     }
-    node.variable.updateInitializer(initializer);
 
     flowAnalysis.declare(
       node.variable,
@@ -12202,7 +12300,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.initialize(
       node.variable,
       new SharedTypeView(node.variable.type),
-      flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      flowAnalysis.getExpressionInfo(receiver),
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
@@ -12210,23 +12308,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     bool isNullAwareAccess = node.isNullAware && _enclosingCascade == null;
     if (node.isNullAware) {
-      Expression receiverExpr = node.variable.initializer!;
       SyntheticVariable? tempVar;
 
       if (isNullAwareAccess) {
         tempVar = extern.createVariable(
-          receiverExpr,
-          initializerType,
+          receiver,
+          receiverType,
           isFinal: false,
           fileOffset: node.fileOffset,
         );
-        receiverExpr = new VariableGet(tempVar);
+        receiver = new VariableGet(tempVar);
       }
 
-      node.variable.updateInitializer(
-        new AsExpression(receiverExpr, node.variable.type)
-          ..fileOffset = node.fileOffset,
-      );
+      receiver = new AsExpression(receiver, node.variable.type)
+        ..fileOffset = node.fileOffset;
 
       if (isNullAwareAccess) {
         startNullShorting(
@@ -12238,9 +12333,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(
-        flowAnalysis.getExpressionInfo(node.variable.astVariable.initializer!),
-      );
+      flow.thisBinding_begin(flowAnalysis.getExpressionInfo(node.receiver));
     }
 
     flowAnalysis.labeledStatement_begin(label);
@@ -12269,12 +12362,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     resultVar.type = inferredType;
 
     if (node.isCascade) {
-      inferredType = initializerType;
+      inferredType = receiverType;
     }
 
     Block block = new Block([
       extern.createVariableStatement(
-        extern.createVariableDeclaration(node.variable.astVariable),
+        extern.createVariableDeclaration(
+          node.variable.astVariable,
+          initializer: receiver,
+        ),
       ),
       extern.createVariableStatement(
         extern.createVariableDeclaration(resultVar),
@@ -13724,7 +13820,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalVariableDeclaration node,
   ) {
     VariableDeclarationInferenceResult variableDeclarationInferenceResult =
-        _inferInternalExpressionVariableDeclaration(node, node.variable);
+        _inferInternalVariableDeclaration(node);
     if (isClosureContextLoweringEnabled) {
       _contextAllocationStrategy.handleDeclarationOfVariable(
         node.variable.astVariable,
@@ -14312,7 +14408,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (hoistedExpressions != null) {
       for (SyntheticVariable variable in hoistedExpressions) {
-        result = createLet(variable, result);
+        result = createLet(variable: variable, body: result);
       }
     }
     return new ExpressionInferenceResult(type, result);
@@ -17319,11 +17415,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return capturedVariables;
   }
 
-  VariableDeclarationInferenceResult
-  _inferInternalExpressionVariableDeclaration(
+  VariableDeclarationInferenceResult _inferInternalVariableDeclaration(
     InternalVariableDeclaration variableDeclaration,
-    InternalDeclaredVariable internalVariable,
   ) {
+    InternalDeclaredVariable internalVariable = variableDeclaration.variable;
     DartType declaredType = internalVariable.isImplicitlyTyped
         ? const UnknownType()
         : internalVariable.type;
@@ -17337,7 +17432,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (internalVariable.isWildcard &&
         !internalVariable.isConst &&
         internalVariable.parent?.parent is! InternalForStatement) {
-      if (internalVariable.initializer case var initializer?
+      if (variableDeclaration.initializer case var initializer?
           when !internalVariable.isLate) {
         return new VariableDeclarationInferenceResult.effect(
           inferExpression(
@@ -17351,7 +17446,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     List<VariableContext>? capturedContexts;
-    if (internalVariable.initializer != null) {
+    if (variableDeclaration.initializer != null) {
       if (internalVariable.isLate && internalVariable.hasDeclaredInitializer) {
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
@@ -17364,7 +17459,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.lateInitializer_begin(internalVariable.astVariable);
       }
       initializerResult = inferExpression(
-        internalVariable.initializer!,
+        variableDeclaration.initializer!,
         declaredType,
         isVoidAllowed: true,
       );
@@ -17394,6 +17489,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       new SharedTypeView(internalVariable.type),
       initialized: internalVariable.hasDeclaredInitializer,
     );
+    Expression? initializer;
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
       flowAnalysis.initialize(
@@ -17410,8 +17506,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset: internalVariable.fileOffset,
         isVoidAllowed: internalVariable.type is VoidType,
       );
-      Expression initializer = initializerResult.expression;
-      internalVariable.updateInitializer(initializer);
+      initializer = initializerResult.expression;
     }
     if (internalVariable.isLate &&
         libraryBuilder.loader.target.backendTarget.isLateLocalLoweringEnabled(
@@ -17419,143 +17514,128 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           isFinal: internalVariable.isFinal,
           isPotentiallyNullable: internalVariable.type.isPotentiallyNullable,
         )) {
-      int fileOffset = internalVariable.fileOffset;
-
-      List<VariableDeclaration> variableDeclarations = [];
-      List<FunctionDeclaration> functionDeclarations = [];
-      variableDeclarations.add(
+      return _computeLateLocalLowering(
+        internalVariable: internalVariable,
+        initializer: initializer,
+        capturedContexts: capturedContexts,
+        variableDeclarationFileOffset: variableDeclaration.fileOffset,
+      );
+    } else {
+      libraryBuilder.loader.dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.registerAlias(internalVariable, internalVariable.astVariable);
+      return new VariableDeclarationInferenceResult.direct(
         extern.createVariableDeclaration(
           internalVariable.astVariable,
+          initializer: initializer,
+          capturedContexts: capturedContexts,
           fileOffset: variableDeclaration.fileOffset,
         ),
       );
+    }
+  }
 
-      late_lowering.IsSetEncoding isSetEncoding = late_lowering
-          .computeIsSetEncoding(
-            internalVariable.type,
-            late_lowering.computeIsSetStrategy(libraryBuilder),
-          );
-      DeclaredVariable? isSetVariable;
-      if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
-        isSetVariable = extern.createVariable(
-          new BoolLiteral(false)..fileOffset = fileOffset,
-          coreTypes.boolRawType(Nullability.nonNullable),
-          cosmeticName: late_lowering.computeLateLocalIsSetName(
-            internalVariable.cosmeticName!,
-          ),
-          isLowered: true,
-          isFinal: false,
-          isSynthesized: false,
+  VariableDeclarationInferenceResult _computeLateLocalLowering({
+    required InternalDeclaredVariable internalVariable,
+    required Expression? initializer,
+    required List<VariableContext>? capturedContexts,
+    required int variableDeclarationFileOffset,
+  }) {
+    int fileOffset = internalVariable.fileOffset;
+
+    List<VariableDeclaration> variableDeclarations = [];
+    List<FunctionDeclaration> functionDeclarations = [];
+
+    late_lowering.IsSetEncoding isSetEncoding = late_lowering
+        .computeIsSetEncoding(
+          internalVariable.type,
+          late_lowering.computeIsSetStrategy(libraryBuilder),
         );
-        variableDeclarations.add(
-          extern.createVariableDeclaration(isSetVariable),
-        );
-      }
 
-      Expression createVariableRead({bool needsPromotion = false}) {
-        if (needsPromotion) {
-          return new VariableGet(
-            internalVariable.astVariable,
-            internalVariable.type,
-          )..fileOffset = fileOffset;
-        } else {
-          return new VariableGet(internalVariable.astVariable)
-            ..fileOffset = fileOffset;
-        }
-      }
-
-      Expression createIsSetRead() =>
-          new VariableGet(isSetVariable!)..fileOffset = fileOffset;
-      Expression createVariableWrite(Expression value) =>
-          new VariableSet(internalVariable.astVariable, value);
-      Expression createIsSetWrite(Expression value) =>
-          new VariableSet(isSetVariable!, value);
-
-      Variable getVariable = extern.createUninitializedVariable(
-        name: late_lowering.computeLateLocalGetterName(
-          internalVariable.cosmeticName!,
+    Expression? initialValue;
+    if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
+      initialValue = extern.createStaticInvocation(
+        coreTypes.createSentinelMethod,
+        extern.createArguments(
+          [],
+          types: [internalVariable.type],
+          fileOffset: fileOffset,
         ),
-        type: const DynamicType(),
-        isLowered: true,
         fileOffset: fileOffset,
       );
-      FunctionDeclaration getter = new FunctionDeclaration(
-        getVariable,
-        new FunctionNode(
-          internalVariable.initializer == null
-              ? late_lowering.createGetterBodyWithoutInitializer(
-                  coreTypes,
-                  fileOffset,
-                  internalVariable.cosmeticName!,
-                  internalVariable.type,
-                  createVariableRead: createVariableRead,
-                  createIsSetRead: createIsSetRead,
-                  isSetEncoding: isSetEncoding,
-                  forField: false,
-                )
-              : (internalVariable.isFinal
-                    ? late_lowering.createGetterWithInitializerWithRecheck(
-                        coreTypes,
-                        fileOffset,
-                        internalVariable.cosmeticName!,
-                        internalVariable.type,
-                        internalVariable.initializer!,
-                        createVariableRead: createVariableRead,
-                        createVariableWrite: createVariableWrite,
-                        createIsSetRead: createIsSetRead,
-                        createIsSetWrite: createIsSetWrite,
-                        isSetEncoding: isSetEncoding,
-                        forField: false,
-                      )
-                    : late_lowering.createGetterWithInitializer(
-                        coreTypes,
-                        fileOffset,
-                        internalVariable.cosmeticName!,
-                        internalVariable.type,
-                        internalVariable.initializer!,
-                        createVariableRead: createVariableRead,
-                        createVariableWrite: createVariableWrite,
-                        createIsSetRead: createIsSetRead,
-                        createIsSetWrite: createIsSetWrite,
-                        isSetEncoding: isSetEncoding,
-                      )),
-          returnType: internalVariable.type,
-        )..capturedContexts = capturedContexts,
-      )..fileOffset = fileOffset;
-      getVariable.type = getter.function.computeFunctionType(
-        Nullability.nonNullable,
-      );
-      internalVariable.lateGetter = getVariable;
-      functionDeclarations.add(getter);
+    }
 
-      if (!internalVariable.isFinal || internalVariable.initializer == null) {
-        internalVariable.isLateFinalWithoutInitializer =
-            internalVariable.isFinal && internalVariable.initializer == null;
-        Variable setVariable = extern.createUninitializedVariable(
-          name: late_lowering.computeLateLocalSetterName(
-            internalVariable.cosmeticName!,
-          ),
-          type: const DynamicType(),
-          isLowered: true,
-          fileOffset: fileOffset,
-        );
-        PositionalParameter setterParameter = extern.createPositionalParameter(
-          cosmeticName: "${internalVariable.cosmeticName}#param",
-          type: internalVariable.type,
-          isSynthesized: false,
-          fileOffset: fileOffset,
-        );
-        FunctionDeclaration setter = new FunctionDeclaration(
-          setVariable,
-          new FunctionNode(
-            internalVariable.isFinal
-                  ? late_lowering.createSetterBodyFinal(
+    variableDeclarations.add(
+      extern.createVariableDeclaration(
+        internalVariable.astVariable,
+        initializer: initialValue,
+        fileOffset: variableDeclarationFileOffset,
+      ),
+    );
+
+    DeclaredVariable? isSetVariable;
+    if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
+      isSetVariable = extern.createVariable(
+        new BoolLiteral(false)..fileOffset = fileOffset,
+        coreTypes.boolRawType(Nullability.nonNullable),
+        cosmeticName: late_lowering.computeLateLocalIsSetName(
+          internalVariable.cosmeticName!,
+        ),
+        isLowered: true,
+        isFinal: false,
+        isSynthesized: false,
+      );
+      variableDeclarations.add(extern.createVariableDeclaration(isSetVariable));
+    }
+
+    Expression createVariableRead({bool needsPromotion = false}) {
+      if (needsPromotion) {
+        return new VariableGet(
+          internalVariable.astVariable,
+          internalVariable.type,
+        )..fileOffset = fileOffset;
+      } else {
+        return new VariableGet(internalVariable.astVariable)
+          ..fileOffset = fileOffset;
+      }
+    }
+
+    Expression createIsSetRead() =>
+        new VariableGet(isSetVariable!)..fileOffset = fileOffset;
+    Expression createVariableWrite(Expression value) =>
+        new VariableSet(internalVariable.astVariable, value);
+    Expression createIsSetWrite(Expression value) =>
+        new VariableSet(isSetVariable!, value);
+
+    Variable getVariable = extern.createUninitializedVariable(
+      name: late_lowering.computeLateLocalGetterName(
+        internalVariable.cosmeticName!,
+      ),
+      type: const DynamicType(),
+      isLowered: true,
+      fileOffset: fileOffset,
+    );
+    FunctionDeclaration getter = new FunctionDeclaration(
+      getVariable,
+      new FunctionNode(
+        initializer == null
+            ? late_lowering.createGetterBodyWithoutInitializer(
+                coreTypes,
+                fileOffset,
+                internalVariable.cosmeticName!,
+                internalVariable.type,
+                createVariableRead: createVariableRead,
+                createIsSetRead: createIsSetRead,
+                isSetEncoding: isSetEncoding,
+                forField: false,
+              )
+            : (internalVariable.isFinal
+                  ? late_lowering.createGetterWithInitializerWithRecheck(
                       coreTypes,
                       fileOffset,
                       internalVariable.cosmeticName!,
-                      setterParameter,
                       internalVariable.type,
-                      shouldReturnValue: true,
+                      initializer,
                       createVariableRead: createVariableRead,
                       createVariableWrite: createVariableWrite,
                       createIsSetRead: createIsSetRead,
@@ -17563,69 +17643,100 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                       isSetEncoding: isSetEncoding,
                       forField: false,
                     )
-                  : late_lowering.createSetterBody(
+                  : late_lowering.createGetterWithInitializer(
                       coreTypes,
                       fileOffset,
                       internalVariable.cosmeticName!,
-                      setterParameter,
                       internalVariable.type,
-                      shouldReturnValue: true,
+                      initializer,
+                      createVariableRead: createVariableRead,
                       createVariableWrite: createVariableWrite,
+                      createIsSetRead: createIsSetRead,
                       createIsSetWrite: createIsSetWrite,
                       isSetEncoding: isSetEncoding,
-                    )
-              ..fileOffset = fileOffset,
-            positionalParameters: [setterParameter],
-          ),
-        )
-        // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
-        //  use it for function declaration identity.
-        /*..fileOffset = fileOffset*/;
-        setVariable.type = setter.function.computeFunctionType(
-          Nullability.nonNullable,
-        );
-        internalVariable.lateSetter = setVariable;
-        functionDeclarations.add(setter);
-      }
-      internalVariable.isLate = false;
-      internalVariable.lateType = internalVariable.type;
-      if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
-        internalVariable.updateInitializer(
-          extern.createStaticInvocation(
-            coreTypes.createSentinelMethod,
-            extern.createArguments(
-              [],
-              types: [internalVariable.type],
-              fileOffset: fileOffset,
-            ),
-            fileOffset: fileOffset,
-          ),
-        );
-      } else {
-        internalVariable.updateInitializer(null);
-      }
-      internalVariable.type = computeNullable(internalVariable.type);
-      internalVariable.lateName = internalVariable.cosmeticName;
-      internalVariable.isLowered = true;
-      internalVariable.cosmeticName = late_lowering.computeLateLocalName(
-        internalVariable.cosmeticName!,
-      );
+                    )),
+        returnType: internalVariable.type,
+      )..capturedContexts = capturedContexts,
+    )..fileOffset = fileOffset;
+    getVariable.type = getter.function.computeFunctionType(
+      Nullability.nonNullable,
+    );
+    internalVariable.lateGetter = getVariable;
+    functionDeclarations.add(getter);
 
-      return new VariableDeclarationInferenceResult.late(
-        variableDeclarations,
-        functionDeclarations,
-        fileOffset: internalVariable.fileOffset,
+    bool needsSetter = !internalVariable.isFinal || initializer == null;
+    if (needsSetter) {
+      internalVariable.isLateFinalWithoutInitializer =
+          internalVariable.isFinal && initializer == null;
+      Variable setVariable = extern.createUninitializedVariable(
+        name: late_lowering.computeLateLocalSetterName(
+          internalVariable.cosmeticName!,
+        ),
+        type: const DynamicType(),
+        isLowered: true,
+        fileOffset: fileOffset,
       );
+      PositionalParameter setterParameter = extern.createPositionalParameter(
+        cosmeticName: "${internalVariable.cosmeticName}#param",
+        type: internalVariable.type,
+        isSynthesized: false,
+        fileOffset: fileOffset,
+      );
+      FunctionDeclaration setter = new FunctionDeclaration(
+        setVariable,
+        new FunctionNode(
+          internalVariable.isFinal
+                ? late_lowering.createSetterBodyFinal(
+                    coreTypes,
+                    fileOffset,
+                    internalVariable.cosmeticName!,
+                    setterParameter,
+                    internalVariable.type,
+                    shouldReturnValue: true,
+                    createVariableRead: createVariableRead,
+                    createVariableWrite: createVariableWrite,
+                    createIsSetRead: createIsSetRead,
+                    createIsSetWrite: createIsSetWrite,
+                    isSetEncoding: isSetEncoding,
+                    forField: false,
+                  )
+                : late_lowering.createSetterBody(
+                    coreTypes,
+                    fileOffset,
+                    internalVariable.cosmeticName!,
+                    setterParameter,
+                    internalVariable.type,
+                    shouldReturnValue: true,
+                    createVariableWrite: createVariableWrite,
+                    createIsSetWrite: createIsSetWrite,
+                    isSetEncoding: isSetEncoding,
+                  )
+            ..fileOffset = fileOffset,
+          positionalParameters: [setterParameter],
+        ),
+      )
+      // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
+      //  use it for function declaration identity.
+      /*..fileOffset = fileOffset*/;
+      setVariable.type = setter.function.computeFunctionType(
+        Nullability.nonNullable,
+      );
+      internalVariable.lateSetter = setVariable;
+      functionDeclarations.add(setter);
     }
-    libraryBuilder.loader.dataForTesting
-    // Coverage-ignore(suite): Not run.
-    ?.registerAlias(internalVariable, internalVariable.astVariable);
-    return new VariableDeclarationInferenceResult.direct(
-      extern.createVariableDeclaration(
-        internalVariable.astVariable,
-        capturedContexts: capturedContexts,
-        fileOffset: variableDeclaration.fileOffset,
-      ),
+    internalVariable.isLate = false;
+    internalVariable.lateType = internalVariable.type;
+    internalVariable.type = computeNullable(internalVariable.type);
+    internalVariable.lateName = internalVariable.cosmeticName;
+    internalVariable.isLowered = true;
+    internalVariable.cosmeticName = late_lowering.computeLateLocalName(
+      internalVariable.cosmeticName!,
+    );
+
+    return new VariableDeclarationInferenceResult.late(
+      variableDeclarations,
+      functionDeclarations,
+      fileOffset: internalVariable.fileOffset,
     );
   }
 

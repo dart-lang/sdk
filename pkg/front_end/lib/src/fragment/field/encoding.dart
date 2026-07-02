@@ -581,8 +581,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         _type!.withDeclaredNullability(Nullability.nullable),
       );
       return extern.createLet(
-        variable,
-        extern.createVariableGet(variable, promotedType: _type),
+        variable: variable,
+        body: extern.createVariableGet(variable, promotedType: _type),
       );
     } else {
       return _createFieldGet(_field!);

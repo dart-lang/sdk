@@ -101,7 +101,11 @@ import '../kernel/expression_compilation_data.dart';
 import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart'
-    show InternalVariableGet, InternalVariableSet, InternalVariable;
+    show
+        InternalVariableGet,
+        InternalVariableSet,
+        InternalVariable,
+        InternalVariableDeclaration;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
@@ -1898,7 +1902,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return null;
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
-      List<InternalVariable> extraKnownVariables = [];
+      List<InternalVariableDeclaration> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
       Set<String> removedDefinitionNames = {};
@@ -1979,11 +1983,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   def.value.isConst &&
                   def.value.initializer is ConstantExpression) {
                 extraKnownVariables.add(
-                  intern.createLocalVariable(
-                    name: def.key,
-                    type: substitution.substituteType(def.value.type),
-                    isConst: true,
-                    hasDeclaredInitializer: true,
+                  intern.createVariableDeclaration(
+                    intern.createLocalVariable(
+                      name: def.key,
+                      type: substitution.substituteType(def.value.type),
+                      isConst: true,
+                      hasDeclaredInitializer: true,
+                      fileOffset: def.value.fileOffset,
+                    ),
                     initializer: def.value.initializer,
                     fileOffset: def.value.fileOffset,
                   ),
@@ -1999,10 +2006,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // captured? Either way there's something shadowing any fields
                 // etc.
                 extraKnownVariables.add(
-                  intern.createLocalVariable(
-                    name: def.key,
-                    type: substitution.substituteType(def.value.type),
-                    isConst: false,
+                  intern.createVariableDeclaration(
+                    intern.createLocalVariable(
+                      name: def.key,
+                      type: substitution.substituteType(def.value.type),
+                      isConst: false,
+                      fileOffset: def.value.fileOffset,
+                    ),
+                    initializer: null,
                     fileOffset: def.value.fileOffset,
                   ),
                 );
@@ -2624,14 +2635,14 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final ClassHierarchy hierarchy;
   final Map<String, FormalParameterBuilder> extraParametersIfNotShadowing = {};
 
-  new(List<InternalVariable> extraKnown, this.hierarchy) {
-    for (InternalVariable variable in extraKnown) {
-      if (variable.isConst) {
+  new(List<InternalVariableDeclaration> extraKnown, this.hierarchy) {
+    for (InternalVariableDeclaration declaration in extraKnown) {
+      if (declaration.variable.isConst) {
         // We allow const variables - these are inlined (we check
         // `alwaysInlineConstants` in `compileExpression`).
         continue;
       }
-      knownButUnavailable.add(variable);
+      knownButUnavailable.add(declaration.variable);
     }
   }
 

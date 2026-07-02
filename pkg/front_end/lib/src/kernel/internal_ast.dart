@@ -659,7 +659,9 @@ class ActualArguments extends TreeNode with InternalTreeNode {
 class Cascade extends InternalExpression {
   /// The temporary variable holding the cascade receiver expression in its
   /// initializer;
-  InternalSyntheticVariable variable;
+  final InternalSyntheticVariable variable;
+
+  final Expression receiver;
 
   /// `true` if the access is null-aware, i.e. of the form `a?..b()`.
   final bool isNullAware;
@@ -671,8 +673,13 @@ class Cascade extends InternalExpression {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  new(this.variable, {required this.isNullAware}) {
+  new({
+    required this.variable,
+    required this.receiver,
+    required this.isNullAware,
+  }) {
     variable.parent = this;
+    receiver.parent = this;
   }
 
   @override
@@ -698,7 +705,7 @@ class Cascade extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable._astVariable);
+    variable.toTextInternal(printer, initializer: receiver);
     printer.write(' in cascade {');
     printer.incIndentation();
     for (Expression expression in expressions) {
@@ -718,6 +725,7 @@ class Cascade extends InternalExpression {
 /// Internal expression representing an anonymous method invocation.
 class AnonymousMethodExpression extends InternalExpression {
   final InternalAnonymousMethodParameter variable;
+  final Expression receiver;
   final Expression body;
   final bool isCascade;
   final bool isImplicitlyTyped;
@@ -727,6 +735,7 @@ class AnonymousMethodExpression extends InternalExpression {
 
   new(
     this.variable,
+    this.receiver,
     this.body, {
     required this.isImplicitlyTyped,
     required this.isNullAware,
@@ -734,6 +743,7 @@ class AnonymousMethodExpression extends InternalExpression {
     required this.typeOffset,
   }) : isParameterless = variable.isSynthesized {
     variable.parent = this;
+    receiver.parent = this;
     body.parent = this;
   }
 
@@ -754,7 +764,7 @@ class AnonymousMethodExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable._astVariable);
+    variable.toTextInternal(printer, initializer: receiver);
     printer.write(' in ');
     printer.writeExpression(body);
   }
@@ -764,6 +774,7 @@ class AnonymousMethodExpression extends InternalExpression {
 class AnonymousMethodBlock extends InternalExpression {
   final InternalAnonymousMethodParameter variable;
   final Statement body;
+  final Expression receiver;
   final bool isCascade;
   final bool isImplicitlyTyped;
   final bool isNullAware;
@@ -772,6 +783,7 @@ class AnonymousMethodBlock extends InternalExpression {
 
   new(
     this.variable,
+    this.receiver,
     this.body, {
     required this.isImplicitlyTyped,
     required this.isNullAware,
@@ -779,6 +791,7 @@ class AnonymousMethodBlock extends InternalExpression {
     required this.typeOffset,
   }) : isParameterless = variable.isSynthesized {
     variable.parent = this;
+    receiver.parent = this;
     body.parent = this;
   }
 
@@ -799,7 +812,7 @@ class AnonymousMethodBlock extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable._astVariable);
+    variable.toTextInternal(printer, initializer: receiver);
     printer.write(' in ');
     printer.writeStatement(body);
   }
@@ -809,11 +822,14 @@ class AnonymousMethodBlock extends InternalExpression {
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.
 class DeferredCheck extends InternalExpression {
-  InternalSyntheticVariable variable;
-  Expression expression;
+  final LibraryDependency dependency;
+  final Expression expression;
 
-  new(this.variable, this.expression, {required int fileOffset}) {
-    variable.parent = this;
+  new({
+    required this.dependency,
+    required this.expression,
+    required int fileOffset,
+  }) {
     expression.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -834,9 +850,9 @@ class DeferredCheck extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.write('let ');
-    printer.writeVariableInitialization(variable._astVariable);
-    printer.write(' in ');
+    printer.write('let final dynamic # = ');
+    printer.write(dependency.name!);
+    printer.write('.checkLibraryIsLoaded() in ');
     printer.writeExpression(expression);
   }
 }
@@ -1204,14 +1220,28 @@ class InternalLocalVariable extends InternalDeclaredVariable {
   final bool isLocalFunction;
 
   new({
-    required this._astVariable,
+    required String name,
+    required DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isWildcard = false,
+    bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
     bool isStaticLate = false,
     required int fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
-  }) {
+  }) : _astVariable = extern.createLocalVariable(
+         name: name,
+         type: type,
+         isFinal: isFinal,
+         isConst: isConst,
+         isWildcard: isWildcard,
+         hasDeclaredInitializer: hasDeclaredInitializer,
+         fileOffset: fileOffset,
+         fileEqualsOffset: fileEqualsOffset,
+       ) {
     this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
   }
@@ -1229,24 +1259,6 @@ class InternalLocalVariable extends InternalDeclaredVariable {
   String toString() {
     return "InternalLocalVariable(${toStringInternal()})";
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
-    if (modifiers.isNotEmpty) {
-      printer.write("[${modifiers.join(",")}]");
-    }
-    if (_astVariable.initializer != null) {
-      printer.write(' = ');
-      printer.writeExpression(_astVariable.initializer!);
-    }
-  }
 }
 
 class InternalLateVariable extends InternalDeclaredVariable {
@@ -1263,13 +1275,28 @@ class InternalLateVariable extends InternalDeclaredVariable {
   final bool isLocalFunction;
 
   new({
-    required this._astVariable,
+    required String name,
+    required DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isWildcard = false,
+    bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
     bool isStaticLate = false,
     required int fileOffset,
-  }) {
+    int fileEqualsOffset = TreeNode.noOffset,
+  }) : _astVariable = extern.createLateVariable(
+         name: name,
+         type: type,
+         isFinal: isFinal,
+         isConst: isConst,
+         isWildcard: isWildcard,
+         hasDeclaredInitializer: hasDeclaredInitializer,
+         fileOffset: fileOffset,
+         fileEqualsOffset: fileEqualsOffset,
+       ) {
     this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
   }
@@ -1286,24 +1313,6 @@ class InternalLateVariable extends InternalDeclaredVariable {
   @override
   String toString() {
     return "$runtimeType(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
-    if (modifiers.isNotEmpty) {
-      printer.write("[${modifiers.join(",")}]");
-    }
-    if (_astVariable.initializer != null) {
-      printer.write(' = ');
-      printer.writeExpression(_astVariable.initializer!);
-    }
   }
 }
 
@@ -1339,10 +1348,12 @@ sealed class InternalFunctionParameter extends InternalVariable {
 
   @Deprecated('Use InternalFunctionParameter.defaultValue instead.')
   @override
+  // Coverage-ignore(suite): Not run.
   Expression? get initializer => _astVariable.initializer;
 
   @Deprecated('Use InternalFunctionParameter.updateDefaultValue instead.')
   @override
+  // Coverage-ignore(suite): Not run.
   void updateInitializer(Expression? value) {
     _astVariable.initializer = value?..parent = _astVariable;
   }
@@ -1457,12 +1468,21 @@ class InternalCatchVariable extends InternalVariable {
   final bool isLocalFunction;
 
   new({
-    required this._astVariable,
+    required String name,
+    DartType? type,
+    bool isWildcard = false,
+    bool isFinal = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
     required int fileOffset,
-  }) {
+  }) : _astVariable = extern.createCatchVariable(
+         name: name,
+         type: type,
+         isWildcard: isWildcard,
+         isFinal: isFinal,
+         fileOffset: fileOffset,
+       ) {
     this.fileOffset = fileOffset;
   }
 
@@ -1492,7 +1512,7 @@ class InternalCatchVariable extends InternalVariable {
   }
 }
 
-class InternalAnonymousMethodParameter extends InternalVariable {
+class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
   @override
   SyntheticVariable _astVariable;
 
@@ -1509,13 +1529,21 @@ class InternalAnonymousMethodParameter extends InternalVariable {
   final bool isWildcard;
 
   new({
-    required this._astVariable,
+    required String name,
+    required DartType type,
     required this.isImplicitlyTyped,
+    required bool isFinal,
+    required bool isSynthesized,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
     required this.isWildcard,
     required int fileOffset,
-  }) {
+  }) : _astVariable = new SyntheticVariable(
+         cosmeticName: name,
+         isFinal: isFinal,
+         isSynthesized: isSynthesized,
+         type: type,
+       )..fileOffset = fileOffset {
     this.fileOffset = fileOffset;
   }
 
@@ -1526,20 +1554,6 @@ class InternalAnonymousMethodParameter extends InternalVariable {
 
   @override
   SyntheticVariable get astVariable => _astVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
-    if (modifiers.isNotEmpty) {
-      printer.write("[${modifiers.join(",")}]");
-    }
-  }
 }
 
 class InternalSyntheticVariable extends InternalDeclaredVariable {
@@ -1556,12 +1570,22 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   final bool isLocalFunction;
 
   new({
-    required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
+    String? name,
+    DartType? type,
+    bool isFinal = false,
+    bool isLowered = false,
+    bool isSynthesized = true,
     required int fileOffset,
-  }) {
+  }) : _astVariable = new SyntheticVariable(
+         cosmeticName: name,
+         type: type ?? const DynamicType(),
+         isFinal: isFinal,
+         isLowered: isLowered,
+         isSynthesized: isSynthesized,
+       )..fileOffset = fileOffset {
     this.fileOffset = fileOffset;
   }
 
@@ -1572,20 +1596,6 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
 
   @override
   SyntheticVariable get astVariable => _astVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExpressionVariable(_astVariable);
-    List<String> modifiers = [
-      if (forSyntheticToken) "forSyntheticToken",
-      if (isImplicitlyTyped) "isImplicitlyTyped",
-      if (isLocalFunction) "isLocalFunction",
-    ];
-    if (modifiers.isNotEmpty) {
-      printer.write("[${modifiers.join(",")}]");
-    }
-  }
 }
 
 sealed class InternalVariable extends TreeNode with InternalTreeNode {
@@ -1723,13 +1733,26 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
     _astVariable.type = value;
   }
 
-  bool get isAssignable => _astVariable.isAssignable;
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return !hasDeclaredInitializer;
+      return false;
+    }
+    return true;
+  }
 
+  @deprecated
+  // Coverage-ignore(suite): Not run.
   Expression? get initializer => _astVariable.initializer;
 
+  @deprecated
+  // Coverage-ignore(suite): Not run.
   void updateInitializer(Expression? value) {
     _astVariable.initializer = value?..parent = _astVariable;
   }
+
+  bool get hasInitializer => _astVariable.initializer != null;
 
   void addAnnotation(Expression annotation) {
     _astVariable.addAnnotation(annotation);
@@ -1752,12 +1775,51 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 sealed class InternalDeclaredVariable extends InternalVariable {
   @override
   DeclaredVariable get astVariable;
 
   @override
   DeclaredVariable get _astVariable;
+
+  /// Writes this [InternalVariable] to the [printer].
+  ///
+  /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
+  /// the modifiers and declared type of the variable. Otherwise only the
+  /// name and the [initializer], if present, are included.
+  @override
+  void toTextInternal(
+    AstPrinter printer, {
+    bool includeModifiersAndType = true,
+    Expression? initializer,
+  }) {
+    if (includeModifiersAndType) {
+      if (isRequired) {
+        printer.write('required ');
+      }
+      if (isLate) {
+        printer.write('late ');
+      }
+      if (isFinal) {
+        printer.write('final ');
+      }
+      if (isConst) {
+        printer.write('const ');
+      }
+      if (isImplicitlyTyped) {
+        printer.write('var ');
+      } else {
+        printer.writeType(type);
+        printer.write(' ');
+      }
+    }
+    printer.write(cosmeticName ?? '<unnamed-variable>');
+    if (initializer != null) {
+      printer.write(' = ');
+      printer.writeExpression(initializer);
+    }
+  }
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -5569,14 +5631,16 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
         // Something happened during assignment, like an error or a type
         // coercion, so we need to use the temp variable as the loop variable
         // and assign to the declared variable in the loop.
-        loopVariable.initializer = assignmentResult.expression
-          ..parent = loopVariable;
+        Expression initializer = assignmentResult.expression;
         // visitor.flowAnalysis.declare(
         //   internalLoopVariable,
         //   new SharedTypeView(loopVariableType),
         //   initialized: true,
         // );
-        _variableForSideEffect = extern.createVariableDeclaration(loopVariable);
+        _variableForSideEffect = extern.createVariableDeclaration(
+          loopVariable,
+          initializer: initializer,
+        );
         loopVariable = tempVariable;
       }
     }
@@ -5601,7 +5665,6 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableInitialization(
       variableDeclaration.variable._astVariable,
-      includeInitializer: false,
       isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
     );
   }
@@ -5637,7 +5700,6 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
         printer.writeVariableInitialization(
           variableDeclaration.variable._astVariable,
           includeModifiersAndType: true,
-          includeInitializer: false,
           isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
         );
       } else {
@@ -5645,7 +5707,6 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
         printer.writeVariableInitialization(
           variableDeclaration.variable._astVariable,
           includeModifiersAndType: false,
-          includeInitializer: false,
         );
       }
     }
@@ -5668,6 +5729,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
           extern.createVariableStatement(
             extern.createVariableDeclaration(
               variableDeclaration.variable._astVariable,
+              initializer: variableDeclaration.initializer,
               fileOffset: variableDeclaration.fileOffset,
             ),
           ),
@@ -7768,7 +7830,6 @@ class InternalCatch extends TreeNode with InternalTreeNode {
       printer.writeVariableInitialization(
         exception!._astVariable,
         includeModifiersAndType: false,
-        includeInitializer: false,
       );
       if (stackTrace != null) {
         printer.write(', ');
@@ -7796,9 +7857,15 @@ class InternalCatch extends TreeNode with InternalTreeNode {
 class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
   /// The declared variable.
   final InternalDeclaredVariable variable;
+  Expression? initializer;
 
-  new(this.variable) {
+  new(this.variable, {this.initializer}) {
     variable.parent = this;
+    initializer?.parent = this;
+  }
+
+  void updateInitializer(Expression? value) {
+    initializer = value?..parent = this;
   }
 
   @override
@@ -7816,7 +7883,7 @@ class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    variable.toTextInternal(printer);
+    variable.toTextInternal(printer, initializer: initializer);
   }
 
   @override
@@ -7879,9 +7946,10 @@ class InternalForStatement extends InternalStatement implements LoopStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        variables[index].variable._astVariable,
+      variables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: variables[index].initializer,
       );
     }
     printer.write('; ');
@@ -7903,12 +7971,19 @@ class InternalForStatement extends InternalStatement implements LoopStatement {
 /// Synthetic expression of form `let v = x in y`
 // TODO(johnniwinther): Can we avoid this?
 class InternalLet extends InternalExpression {
-  final InternalSyntheticVariable variable; // Must have an initializer.
+  final Expression value;
+  final DartType valueType;
   final Expression body;
 
-  new(this.variable, this.body) {
-    variable.parent = this;
+  new({
+    required this.value,
+    required this.valueType,
+    required this.body,
+    required int fileOffset,
+  }) {
+    value.parent = this;
     body.parent = this;
+    this.fileOffset = fileOffset;
   }
 
   @override
@@ -7923,7 +7998,9 @@ class InternalLet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable._astVariable);
+    printer.writeType(valueType);
+    printer.write(' # = ');
+    printer.writeExpression(value);
     printer.write(' in ');
     printer.writeExpression(body);
   }
@@ -7938,7 +8015,8 @@ class InternalThisVariable extends InternalVariable {
   @override
   final ThisVariable _astVariable;
 
-  new({required this._astVariable, required int fileOffset}) {
+  new({required DartType type, required int fileOffset})
+    : _astVariable = new ThisVariable(type: type)..fileOffset = fileOffset {
     this.fileOffset = fileOffset;
   }
 
@@ -8011,14 +8089,13 @@ final InternalCatch dummyInternalCatch = new InternalCatch(
 
 final InternalCatchVariable dummyInternalCatchVariable =
     new InternalCatchVariable(
-      astVariable: dummyCatchVariable,
+      name: '',
       isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     );
 
 final InternalSyntheticVariable dummyInternalVariable =
     new InternalSyntheticVariable(
-      astVariable: dummyVariable,
       isImplicitlyTyped: false,
       fileOffset: TreeNode.noOffset,
     );

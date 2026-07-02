@@ -625,7 +625,6 @@ LateVariable createLateVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -635,7 +634,6 @@ LateVariable createLateVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
@@ -644,7 +642,15 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(SyntheticVariable variable, Expression body, {int? fileOffset}) {
+Let createLet({
+  required SyntheticVariable variable,
+  Expression? value,
+  required Expression body,
+  int? fileOffset,
+}) {
+  if (value != null) {
+    variable.initializer = value..parent = variable;
+  }
   return new Let(variable, body)
     ..fileOffset = fileOffset ?? variable.fileOffset;
 }
@@ -719,7 +725,6 @@ LocalVariable createLocalVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -729,7 +734,6 @@ LocalVariable createLocalVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
@@ -1354,11 +1358,23 @@ SyntheticVariable createVariableCache(
   )..fileOffset = fileOffset ?? expression.fileOffset;
 }
 
+Expression createCheckLibraryIsLoaded({
+  required LibraryDependency dependency,
+  required int fileOffset,
+}) {
+  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
+}
+
 VariableDeclaration createVariableDeclaration(
   DeclaredVariable variable, {
+  // TODO(johnniwinther): Make this required.
+  Expression? initializer,
   List<VariableContext>? capturedContexts,
   int? fileOffset,
 }) {
+  if (initializer != null) {
+    variable.initializer = initializer..parent = variable;
+  }
   return new VariableDeclaration(variable)
     ..capturedContexts = capturedContexts
     ..fileOffset = fileOffset ?? variable.fileOffset;

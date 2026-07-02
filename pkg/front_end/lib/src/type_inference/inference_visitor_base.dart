@@ -3438,7 +3438,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
       Expression expression = result.expression;
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
+        expression = createLet(
+          variable: hoistedExpressions[index],
+          body: expression,
+        );
       }
       return new ExpressionInferenceResult(result.inferredType, expression);
     }
@@ -4534,8 +4537,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             const VoidType(),
           );
           write = createLet(
-            valueVariable,
-            createLet(assignmentVariable, createVariableGet(valueVariable)),
+            variable: valueVariable,
+            body: createLet(
+              variable: assignmentVariable,
+              body: createVariableGet(valueVariable),
+            ),
           )..fileOffset = fileOffset;
         }
         break;

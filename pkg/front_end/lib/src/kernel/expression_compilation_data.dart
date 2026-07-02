@@ -4,13 +4,13 @@
 
 import 'package:kernel/ast.dart';
 
-import 'internal_ast.dart' show InternalVariable;
+import 'internal_ast.dart' show InternalVariableDeclaration;
 
 // Coverage-ignore(suite): Not run.
 class ExpressionCompilationData {
   final List<TypeParameter> typeParameters;
   final List<PositionalParameter> positionalParameters;
-  final List<InternalVariable> extraKnownVariables;
+  final List<InternalVariableDeclaration> extraKnownVariables;
   final Map<String, PositionalParameter> extraParametersIfNotShadowing;
   final int fileOffset;
   bool containsSuperCalls = false;

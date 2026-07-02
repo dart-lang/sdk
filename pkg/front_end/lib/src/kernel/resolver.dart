@@ -994,7 +994,8 @@ class Resolver {
 
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
-      extraKnownVariables: expressionCompilationData.extraKnownVariables,
+      extraKnownVariableDeclarations:
+          expressionCompilationData.extraKnownVariables,
       fileOffset: fileOffset,
       typeParameterBuilders: typeParameterBuilders,
       formals: formals,
@@ -1020,13 +1021,17 @@ class Resolver {
         );
       }
     }
-    for (InternalVariable extraVariable
+    for (InternalVariableDeclaration extraVariableDeclaration
         in expressionCompilationData.extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
-        extraVariable,
-        new SharedTypeView(extraVariable.type),
+        extraVariableDeclaration.variable,
+        new SharedTypeView(extraVariableDeclaration.variable.type),
         initialized: true,
       );
+      // Ensure that initializers are attached to the variable.
+      extraVariableDeclaration.variable.astVariable.initializer =
+          extraVariableDeclaration.initializer
+            ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);

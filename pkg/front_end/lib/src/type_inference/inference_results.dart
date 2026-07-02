@@ -210,7 +210,10 @@ abstract class InvocationInferenceResult {
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
+        expression = createLet(
+          variable: hoistedExpressions[index],
+          body: expression,
+        );
       }
     }
     return expression;
@@ -295,8 +298,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
           expression.receiver = createVariableGet(receiver)
             ..parent = expression;
           return createLet(
-            receiver,
-            InvocationInferenceResult._insertHoistedExpressions(
+            variable: receiver,
+            body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
               hoistedArguments,
             ),
@@ -324,8 +327,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
               receiverVariable,
             )..parent = expression;
             return createLet(
-              receiverVariable,
-              InvocationInferenceResult._insertHoistedExpressions(
+              variable: receiverVariable,
+              body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
                 hoistedArguments,
               ),
@@ -559,12 +562,19 @@ class NullAwareGuard {
   /// The variable used to guard the null-aware action.
   final SyntheticVariable _nullAwareVariable;
 
+  final Expression? _nullableExpression;
+
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
   final InferenceVisitorBase _inferrer;
 
-  new(this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
+  new(
+    this._nullAwareVariable,
+    this._nullAwareFileOffset,
+    this._inferrer, {
+    this._nullableExpression,
+  });
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -630,8 +640,9 @@ class NullAwareGuard {
       fileOffset: _nullAwareFileOffset,
     );
     return extern.createLet(
-      _nullAwareVariable,
-      condition,
+      variable: _nullAwareVariable,
+      value: _nullableExpression,
+      body: condition,
       fileOffset: _nullAwareFileOffset,
     );
   }
