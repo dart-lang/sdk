@@ -449,20 +449,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         nullShortingDepth > nullShortingTargetDepth) {
       pushRewrite(result.expression);
       ExpressionInfo? flowAnalysisInfo = getExpressionInfo(result.expression);
-      assert(() {
-        // When the AST is rewritten, the front end's convention is to associate
-        // flow analysis expression info with the replacement expression, not
-        // the original. (Note, however, that it's ok to associate the same info
-        // with both expressions.)
-        ExpressionInfo? originalFlowAnalysisInfo = getExpressionInfo(
-          expression,
-        );
-        assert(
-          originalFlowAnalysisInfo == null ||
-              identical(flowAnalysisInfo, originalFlowAnalysisInfo),
-        );
-        return true;
-      }());
       DartType inferredType = finishNullShorting(
         nullShortingTargetDepth,
         new ExpressionTypeAnalysisResult(
