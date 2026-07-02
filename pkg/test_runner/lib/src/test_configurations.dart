@@ -168,9 +168,13 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
         } else if ((configuration.compiler == Compiler.dartk ||
                 configuration.compiler == Compiler.dart2bytecode) &&
             configuration.runtime == Runtime.vm &&
+            configuration.system != System.android &&
+            configuration.system != System.fuchsia &&
             key == 'vm') {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
+          // TODO(https://github.com/dart-lang/sdk/issues/63723): Support
+          // Android and Fuchsia.
           testSuites.add(VMTestSuite(configuration));
         } else if (key == 'ffi_unit') {
           // 'ffi_unit' contains cc non-DartVM unit tests.
