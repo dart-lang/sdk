@@ -12906,6 +12906,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Nullability.nonNullable,
     );
     ActualArguments arguments = node.arguments;
+    bool isIdenticalCall =
+        node.target == typeSchemaEnvironment.coreTypes.identicalProcedure &&
+        arguments.positionalCount == 2;
     InvocationInferenceResult result = inferInvocation(
       this,
       typeContext,
@@ -12914,6 +12917,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.typeArguments,
       arguments,
       staticTarget: node.target,
+      isIdenticalCall: isIdenticalCall,
     );
     String targetName = node.name.text;
     if (node.target.enclosingClass != null) {
@@ -12940,7 +12944,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ),
       fileOffset: node.fileOffset,
     );
-    storeExpressionInfo(replacement, getExpressionInfo(node));
+    storeExpressionInfo(replacement, result.expressionInfo);
     return new ExpressionInferenceResult(
       result.inferredType,
       result.applyResult(replacement),

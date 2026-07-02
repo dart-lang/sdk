@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
@@ -187,6 +188,9 @@ abstract class InvocationInferenceResult {
   /// The named arguments.
   List<NamedExpression> get named;
 
+  /// The flow analysis expression info for the invocation expression.
+  ExpressionInfo? get expressionInfo;
+
   /// Applies the result of the inference to the expression being inferred.
   ///
   /// A successful result leaves [expression] intact, and an error detected
@@ -242,6 +246,9 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<NamedExpression> named;
 
+  @override
+  final ExpressionInfo? expressionInfo;
+
   final DartType? inferredReceiverType;
 
   new({
@@ -250,6 +257,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     required this.typeArguments,
     required this.positional,
     required this.named,
+    required this.expressionInfo,
     required this.hoistedArguments,
     this.inferredReceiverType,
   });
@@ -395,6 +403,10 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     required this.positional,
     required this.named,
   });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionInfo? get expressionInfo => null;
 
   @override
   DartType get inferredType => const InvalidType();

@@ -1678,6 +1678,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     bool isImplicitCall = false,
     Member? staticTarget,
+    bool isIdenticalCall = false,
   }) {
     FunctionType calleeType = invocationTargetType
         .computeFunctionTypeForInference(typeArguments?.types, arguments);
@@ -1696,6 +1697,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isConst: isConst,
       isImplicitCall: isImplicitCall,
       staticTarget: staticTarget,
+      isIdenticalCall: isIdenticalCall,
     );
   }
 
@@ -1716,6 +1718,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     required bool isImplicitCall,
     Member? staticTarget,
+    bool isIdenticalCall = false,
   }) {
     // [receiverType] must be provided for special-cased operators.
     assert(
@@ -1823,9 +1826,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ),
       );
     }
-    bool isIdenticalCall =
-        staticTarget == typeSchemaEnvironment.coreTypes.identicalProcedure &&
-        actualArguments.positionalCount == 2;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     List<Argument> arguments = actualArguments.argumentList;
@@ -1956,15 +1956,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
+    ExpressionInfo? expressionInfo;
     if (isIdenticalCall) {
-      storeExpressionInfo(
-        actualArguments.parent as Expression,
-        flowAnalysis.equalityOperation_end(
-          argumentsInfo[0].identicalInfo,
-          new SharedTypeView(argumentsInfo[0].actualType),
-          argumentsInfo[1].identicalInfo,
-          new SharedTypeView(argumentsInfo[1].actualType),
-        ),
+      expressionInfo = flowAnalysis.equalityOperation_end(
+        argumentsInfo[0].identicalInfo,
+        new SharedTypeView(argumentsInfo[0].actualType),
+        argumentsInfo[1].identicalInfo,
+        new SharedTypeView(argumentsInfo[1].actualType),
       );
     }
 
@@ -2185,6 +2183,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       named: named,
       hoistedArguments: localHoistedExpressions,
       inferredReceiverType: receiverType,
+      expressionInfo: expressionInfo,
     );
   }
 
