@@ -458,7 +458,7 @@ class SingleTargetAnnotations(
 class MultiTargetAnnotations(final List<Annotatable> targets);
 
 class BuildInitializersResult(
-  final List<Initializer> initializers,
+  final List<InternalInitializer> initializers,
   final PendingAnnotations? annotations,
 );
 
@@ -477,21 +477,21 @@ class BuildFieldsResult(
 );
 
 class BuildPrimaryConstructorResult(
-  final List<Initializer> initializers,
+  final List<InternalInitializer> initializers,
   final PendingAnnotations? annotations,
 );
 
 class BuildFunctionBodyResult({
   required final AsyncModifier asyncModifier,
   required final Statement? body,
-  required final List<Initializer> initializers,
+  required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 
 class BuildPrimaryConstructorBodyResult({
   required final AsyncModifier asyncModifier,
   required final Statement? body,
-  required final List<Initializer> initializers,
+  required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 

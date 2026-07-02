@@ -424,7 +424,27 @@ abstract class InternalExpression extends AuxiliaryExpression {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
-sealed class InternalInitializer extends AuxiliaryInitializer {
+sealed class InternalInitializer {
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
+
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  int get fileOffset;
+
+  void toTextInternal(AstPrinter printer);
+
+  String toStringInternal() => toText(defaultAstTextStrategy);
+}
+
+// Coverage-ignore(suite): Not run.
+/// Common base class for internal initializers that can be used as external
+/// initializers.
+// TODO(johnniwinther): Avoid the need for this
+sealed class ExternalInitializer extends AuxiliaryInitializer {
   @override
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
@@ -436,8 +456,6 @@ sealed class InternalInitializer extends AuxiliaryInitializer {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) =>
       unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
-
-  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 // TODO(johnniwinther): Add offsets. Maybe add `isExplicit` property, since this
@@ -5082,7 +5100,8 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-class ExtensionTypeRedirectingInitializer extends InternalInitializer {
+class ExtensionTypeRedirectingInitializer extends ExternalInitializer
+    implements InternalInitializer {
   Reference targetReference;
   ActualArguments arguments;
 
@@ -5093,15 +5112,21 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   List<Expression> positional = [];
   List<NamedExpression> named = [];
 
-  new(Procedure target, ActualArguments arguments)
+  new(Procedure target, ActualArguments arguments, {required int fileOffset})
     : this.byReference(
         // Getter vs setter doesn't matter for procedures.
         getNonNullableMemberReferenceGetter(target),
         arguments,
+        fileOffset: fileOffset,
       );
 
-  new byReference(this.targetReference, this.arguments) {
+  new byReference(
+    this.targetReference,
+    this.arguments, {
+    required int fileOffset,
+  }) {
     arguments.parent = this;
+    this.fileOffset = fileOffset;
   }
 
   @override
@@ -5138,7 +5163,8 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
 
 /// Internal expression for an explicit initialization of an extension type
 /// declaration representation field.
-class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
+class ExtensionTypeRepresentationFieldInitializer extends ExternalInitializer
+    implements InternalInitializer {
   Reference fieldReference;
   Expression value;
 
@@ -5404,15 +5430,12 @@ class InternalSuperMethodInvocation extends InternalExpression {
 
 class InternalRedirectingInitializer extends InternalInitializer {
   final Constructor target;
-  ActualArguments arguments;
-
-  new(this.target, this.arguments) {
-    arguments.parent = this;
-  }
+  final ActualArguments arguments;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRedirectingInitializer => true;
+  final int fileOffset;
+
+  new(this.target, this.arguments, {required this.fileOffset});
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5438,18 +5461,19 @@ class InternalRedirectingInitializer extends InternalInitializer {
 
 class InternalSuperInitializer extends InternalInitializer {
   final Constructor target;
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
-  @override
   final bool isSynthetic;
 
-  new(this.target, this.arguments, {required this.isSynthetic}) {
-    arguments.parent = this;
-  }
-
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSuperInitializer => true;
+  final int fileOffset;
+
+  new(
+    this.target,
+    this.arguments, {
+    required this.isSynthetic,
+    required this.fileOffset,
+  });
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5469,7 +5493,7 @@ class InternalSuperInitializer extends InternalInitializer {
 
   @override
   String toString() {
-    return "InternalSuperInitializer(${toStringInternal()})";
+    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -8102,3 +8126,101 @@ final InternalSyntheticVariable dummyInternalVariable =
 
 final InternalVariableDeclaration dummyInternalVariableDeclaration =
     new InternalVariableDeclaration(dummyInternalVariable);
+
+class InternalFieldInitializer extends InternalInitializer {
+  /// Reference to the field being initialized.  Not null.
+  final Field field;
+  final Expression value;
+
+  final bool isSynthetic;
+
+  @override
+  final int fileOffset;
+
+  new(
+    this.field,
+    this.value, {
+    required this.isSynthetic,
+    required this.fileOffset,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeName(field.name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalFieldInitializer(this);
+  }
+}
+
+class InternalAssertInitializer extends InternalInitializer {
+  final AssertStatement statement;
+
+  @override
+  final int fileOffset;
+
+  new(this.statement, {required this.fileOffset});
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalAssertInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    statement.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+/// An initializer with a compile-time error.
+///
+/// Should throw an exception at runtime.
+class InternalInvalidInitializer extends InternalInitializer {
+  final String message;
+  final bool isSuperInitializer;
+  final bool isRedirectingInitializer;
+
+  @override
+  final int fileOffset;
+
+  new(
+    this.message, {
+    required this.fileOffset,
+    required this.isSuperInitializer,
+    required this.isRedirectingInitializer,
+  });
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalInvalidInitializer(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<invalid:');
+    printer.write(message);
+    printer.write('>');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}

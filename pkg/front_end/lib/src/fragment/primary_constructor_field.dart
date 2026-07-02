@@ -199,7 +199,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,

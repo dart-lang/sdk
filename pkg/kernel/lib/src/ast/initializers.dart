@@ -163,7 +163,9 @@ class FieldInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.writeName(field.name);
+    printer.write(' = ');
+    printer.writeExpression(value);
   }
 }
 

@@ -122,7 +122,7 @@ abstract class BodyBuilder {
     required Token? beginInitializers,
   });
 
-  List<Initializer> buildInitializersUnfinished({
+  List<InternalInitializer> buildInitializersUnfinished({
     required Token? beginInitializers,
   });
 
@@ -294,7 +294,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
-  List<Initializer> _initializers = [];
+  List<InternalInitializer> _initializers = [];
 
   bool inCatchClause = false;
 
@@ -1097,10 +1097,10 @@ class BodyBuilderImpl extends StackListenerImpl
       if (_context.formals != null) {
         for (FormalParameterBuilder formal in _context.formals!) {
           if (formal.isInitializingFormal) {
-            List<Initializer> initializers;
+            List<InternalInitializer> initializers;
             if (_context.isExternalConstructor) {
-              initializers = <Initializer>[
-                extern.createInvalidInitializer(
+              initializers = [
+                intern.createInvalidInitializer(
                   buildProblem(
                     message: diag.externalConstructorWithFieldInitializers,
                     fileUri: uri,
@@ -1183,18 +1183,18 @@ class BodyBuilderImpl extends StackListenerImpl
     inFieldInitializer = false;
     assert(!inInitializerLeftHandSide);
     Object? node = pop();
-    List<Initializer> initializers;
+    List<InternalInitializer> initializers;
 
     if (!_context.isConstructor || _context.isExternalConstructor) {
       // An error has been reported by the parser.
-      initializers = <Initializer>[];
-    } else if (node is Initializer) {
-      initializers = <Initializer>[node];
+      initializers = <InternalInitializer>[];
+    } else if (node is InternalInitializer) {
+      initializers = <InternalInitializer>[node];
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
     } else if (node is InternalConstructorInvocation) {
       // Coverage-ignore-block(suite): Not run.
-      initializers = <Initializer>[
+      initializers = [
         // TODO(jensj): Does this offset make sense?
         buildSuperInitializer(
           false,
@@ -1219,15 +1219,15 @@ class BodyBuilderImpl extends StackListenerImpl
           length: noLength,
         );
       }
-      initializers = <Initializer>[
-        extern.createInvalidInitializer(value as InvalidExpression),
+      initializers = [
+        intern.createInvalidInitializer(value as InvalidExpression),
       ];
     }
 
     _initializers.addAll(initializers);
   }
 
-  List<Initializer> parseInitializers(Token? token) {
+  List<InternalInitializer> parseInitializers(Token? token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -4776,7 +4776,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = boolFromToken(token);
-    push(intern.createBoolLiteral(offsetForToken(token), value));
+    push(intern.createBoolLiteral(value, fileOffset: offsetForToken(token)));
   }
 
   @override
@@ -6107,7 +6107,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      assert(receiver is Initializer);
+      assert(receiver is InternalInitializer);
       push(
         IndexedAccessGenerator.make(
           this,
@@ -8926,7 +8926,10 @@ class BodyBuilderImpl extends StackListenerImpl
 
       case Assert.Initializer:
         push(
-          intern.createAssertInitializer(fileOffset, createAssertStatement()),
+          intern.createAssertInitializer(
+            createAssertStatement(),
+            fileOffset: fileOffset,
+          ),
         );
         break;
     }
@@ -10107,14 +10110,14 @@ class BodyBuilderImpl extends StackListenerImpl
     return buildProblemStatement(message, statement.fileOffset);
   }
 
-  Initializer buildDuplicatedInitializer(
+  InternalInitializer buildDuplicatedInitializer(
     SourcePropertyBuilder fieldBuilder,
     Expression value,
     String name,
     int offset,
     int previousInitializerOffset,
   ) {
-    return extern.createInvalidInitializer(
+    return intern.createInvalidInitializer(
       buildProblem(
         message: diag.constructorInitializeSameInstanceVariableSeveralTimes
             .withArguments(fieldName: name),
@@ -10135,7 +10138,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  List<Initializer> createFieldInitializer(
+  List<InternalInitializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     Expression expression, {
@@ -10159,8 +10162,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         );
       }
-      return <Initializer>[
-        extern.createInvalidInitializer(
+      return [
+        intern.createInvalidInitializer(
           LookupResult.createDuplicateExpression(
             result,
             context: libraryBuilder.loader.target.context,
@@ -10177,8 +10180,8 @@ class BodyBuilderImpl extends StackListenerImpl
       if (builder.isInvalidField) {
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             extern.createInvalidExpression(
               compilerContext
                   .format(
@@ -10198,7 +10201,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
-        return <Initializer>[
+        return [
           buildDuplicatedInitializer(
             builder,
             expression,
@@ -10210,8 +10213,8 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       initializedFields![name] = fieldNameOffset;
       if (builder.hasAbstractField) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.abstractFieldConstructorInitializer,
               fileUri: uri,
@@ -10221,8 +10224,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else if (builder.hasExternalField) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.externalFieldConstructorInitializer,
               fileUri: uri,
@@ -10232,8 +10235,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.fieldAlreadyInitializedAtDeclaration.withArguments(
                 fieldName: name,
@@ -10262,7 +10265,7 @@ class BodyBuilderImpl extends StackListenerImpl
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             return [
-              extern.createInvalidInitializer(
+              intern.createInvalidInitializer(
                 buildProblem(
                   message: diag.initializingFormalTypeMismatch.withArguments(
                     parameterName: name,
@@ -10291,8 +10294,8 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
     } else {
-      return <Initializer>[
-        extern.createInvalidInitializer(
+      return [
+        intern.createInvalidInitializer(
           buildProblem(
             message: diag.initializerForStaticField.withArguments(
               fieldName: name,
@@ -10307,7 +10310,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Initializer buildSuperInitializer(
+  InternalInitializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
     ActualArguments arguments, [
@@ -10320,15 +10323,16 @@ class BodyBuilderImpl extends StackListenerImpl
         constructor.name.text.length,
       );
     }
-    return new InternalSuperInitializer(
-      constructor,
-      arguments,
+    return intern.createSuperInitializer(
+      target: constructor,
+      arguments: arguments,
       isSynthetic: isSynthetic,
-    )..fileOffset = charOffset;
+      fileOffset: charOffset,
+    );
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     Name name,
     ActualArguments arguments, {
     required int fileOffset,
@@ -10341,7 +10345,7 @@ class BodyBuilderImpl extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      return extern.createInvalidInitializer(
+      return intern.createInvalidInitializer(
         buildProblem(
           message: diag.constructorNotFound.withArguments(name: fullName),
           fileUri: uri,
@@ -10351,7 +10355,7 @@ class BodyBuilderImpl extends StackListenerImpl
         isRedirectingInitializer: true,
       );
     } else if (result.isInvalidLookup) {
-      return extern.createInvalidInitializer(
+      return intern.createInvalidInitializer(
         LookupResult.createDuplicateExpression(
           result,
           context: compilerContext,
@@ -10365,7 +10369,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       MemberBuilder builder = result.getable!;
       if (builder is SourceFactoryBuilder) {
-        return extern.createInvalidInitializer(
+        return intern.createInvalidInitializer(
           buildProblem(
             message: diag.redirectGenerativeToNonGenerativeConstructor,
             fileUri: uri,
@@ -10382,7 +10386,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_context.isConstructorCyclic(name.text)) {
           int length = name.text.length;
           if (length == 0) length = "this".length;
-          return extern.createInvalidInitializer(
+          return intern.createInvalidInitializer(
             buildProblem(
               message: diag.constructorCyclic,
               fileUri: uri,
@@ -11441,7 +11445,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  List<Initializer> buildInitializersUnfinished({
+  List<InternalInitializer> buildInitializersUnfinished({
     required Token? beginInitializers,
   }) {
     return parseInitializers(beginInitializers);

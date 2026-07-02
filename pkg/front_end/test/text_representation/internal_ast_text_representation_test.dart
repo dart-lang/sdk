@@ -4168,6 +4168,7 @@ void _testExtensionTypeRedirectingInitializer() {
     new ExtensionTypeRedirectingInitializer(
       unnamedTarget,
       new ActualArguments.empty(),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 this()''',
@@ -4183,6 +4184,7 @@ this()''',
         hasNamedBeforePositional: false,
         positionalCount: 1,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 this.named(0)''',

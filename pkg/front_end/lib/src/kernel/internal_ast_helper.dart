@@ -35,6 +35,26 @@ InternalPattern createAndPattern(
   return new InternalAndPattern(left, right, fileOffset: fileOffset);
 }
 
+InternalAnonymousMethodParameter createAnonymousMethodParameter({
+  required String name,
+  required DartType type,
+  required int fileOffset,
+  required bool isImplicitlyTyped,
+  required bool isWildcard,
+  required bool isFinal,
+  required bool isSynthesized,
+}) {
+  return new InternalAnonymousMethodParameter(
+    name: name,
+    type: type,
+    isSynthesized: isSynthesized,
+    isFinal: isFinal,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isWildcard: isWildcard,
+    fileOffset: fileOffset,
+  );
+}
+
 ActualArguments createArguments(
   int fileOffset, {
   required List<Argument> arguments,
@@ -70,11 +90,11 @@ Expression createAsExpression(
 
 /// Return a representation of an assert that appears in a constructor's
 /// initializer list.
-AssertInitializer createAssertInitializer(
-  int fileOffset,
-  AssertStatement assertStatement,
-) {
-  return new AssertInitializer(assertStatement)..fileOffset = fileOffset;
+InternalAssertInitializer createAssertInitializer(
+  AssertStatement assertStatement, {
+  required int fileOffset,
+}) {
+  return new InternalAssertInitializer(assertStatement, fileOffset: fileOffset);
 }
 
 /// Return a representation of an assert that appears as a statement.
@@ -147,7 +167,7 @@ BlockExpression createBlockExpression(
 
 /// Return a representation of a boolean literal at the given [fileOffset].
 /// The literal has the given [value].
-BoolLiteral createBoolLiteral(int fileOffset, bool value) {
+BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
   return new BoolLiteral(value)..fileOffset = fileOffset;
 }
 
@@ -324,6 +344,32 @@ Statement createExpressionStatement(
   return new ExpressionStatement(expression)..fileOffset = fileOffset;
 }
 
+ExtensionTypeRedirectingInitializer createExtensionTypeRedirectingInitializer({
+  required Procedure target,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
+  return new ExtensionTypeRedirectingInitializer(
+    target,
+    arguments,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalFieldInitializer createFieldInitializer(
+  Field field,
+  Expression value, {
+  required int fileOffset,
+  required bool isSynthetic,
+}) {
+  return new InternalFieldInitializer(
+    field,
+    value,
+    isSynthetic: isSynthetic,
+    fileOffset: fileOffset,
+  );
+}
+
 ForElement createForElement(
   int fileOffset,
   List<InternalVariableDeclaration> variables,
@@ -413,6 +459,26 @@ Statement createForStatement(
   )..fileOffset = fileOffset;
 }
 
+Statement createFunctionDeclaration({
+  required InternalVariable variable,
+  required int fileOffset,
+}) {
+  return new InternalFunctionDeclaration(
+    variable: variable,
+    fileOffset: fileOffset,
+  );
+}
+
+Expression createFunctionExpression({
+  required InternalFunctionNode function,
+  required int fileOffset,
+}) {
+  return new InternalFunctionExpression(
+    function: function,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalFunctionNode createFunctionNode({
   required Statement? body,
   required List<TypeParameter>? typeParameters,
@@ -434,26 +500,6 @@ InternalFunctionNode createFunctionNode({
     body: body,
     fileOffset: fileOffset,
     fileEndOffset: fileEndOffset ?? TreeNode.noOffset,
-  );
-}
-
-Statement createFunctionDeclaration({
-  required InternalVariable variable,
-  required int fileOffset,
-}) {
-  return new InternalFunctionDeclaration(
-    variable: variable,
-    fileOffset: fileOffset,
-  );
-}
-
-Expression createFunctionExpression({
-  required InternalFunctionNode function,
-  required int fileOffset,
-}) {
-  return new InternalFunctionExpression(
-    function: function,
-    fileOffset: fileOffset,
   );
 }
 
@@ -583,6 +629,19 @@ Expression createIntLiteralLarge(
   String literal,
 ) {
   return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
+}
+
+InternalInvalidInitializer createInvalidInitializer(
+  InvalidExpression expression, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InternalInvalidInitializer(
+    expression.message,
+    fileOffset: expression.fileOffset,
+    isSuperInitializer: isSuperInitializer,
+    isRedirectingInitializer: isRedirectingInitializer,
+  );
 }
 
 InternalPattern createInvalidPattern(
@@ -960,20 +1019,6 @@ NullLiteral createNullLiteral(int fileOffset) {
   return new NullLiteral()..fileOffset = fileOffset;
 }
 
-InternalPattern createOrPattern(
-  int fileOffset,
-  InternalPattern left,
-  InternalPattern right, {
-  required List<InternalDeclaredVariable> orPatternJointVariables,
-}) {
-  return new InternalOrPattern(
-    left,
-    right,
-    orPatternJointVariables: orPatternJointVariables,
-    fileOffset: fileOffset,
-  );
-}
-
 InternalPattern createObjectPattern({
   required DartType requiredType,
   required List<InternalNamedPattern> fields,
@@ -986,6 +1031,20 @@ InternalPattern createObjectPattern({
     fields: fields,
     typedef: typedef,
     hasExplicitTypeArguments: hasExplicitTypeArguments,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalPattern createOrPattern(
+  int fileOffset,
+  InternalPattern left,
+  InternalPattern right, {
+  required List<InternalDeclaredVariable> orPatternJointVariables,
+}) {
+  return new InternalOrPattern(
+    left,
+    right,
+    orPatternJointVariables: orPatternJointVariables,
     fileOffset: fileOffset,
   );
 }
@@ -1196,6 +1255,18 @@ RedirectingFactoryTearOff createRedirectingFactoryTearOff(
   return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
 }
 
+InternalRedirectingInitializer createRedirectingInitializer({
+  required Constructor target,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
+  return new InternalRedirectingInitializer(
+    target,
+    arguments,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalPattern createRelationalPattern(
   int fileOffset,
   RelationalPatternKind kind,
@@ -1304,6 +1375,20 @@ StringLiteral createStringLiteral(int fileOffset, String value) {
   return new StringLiteral(value)..fileOffset = fileOffset;
 }
 
+InternalSuperInitializer createSuperInitializer({
+  required Constructor target,
+  required ActualArguments arguments,
+  required bool isSynthetic,
+  required int fileOffset,
+}) {
+  return new InternalSuperInitializer(
+    target,
+    arguments,
+    isSynthetic: isSynthetic,
+    fileOffset: fileOffset,
+  );
+}
+
 Expression createSuperMethodInvocation(
   int fileOffset,
   Name name,
@@ -1399,26 +1484,6 @@ InternalSwitchStatementCase createSwitchStatementCase({
 /// given [fileOffset].
 SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
   return new SymbolLiteral(value)..fileOffset = fileOffset;
-}
-
-InternalAnonymousMethodParameter createAnonymousMethodParameter({
-  required String name,
-  required DartType type,
-  required int fileOffset,
-  required bool isImplicitlyTyped,
-  required bool isWildcard,
-  required bool isFinal,
-  required bool isSynthesized,
-}) {
-  return new InternalAnonymousMethodParameter(
-    name: name,
-    type: type,
-    isSynthesized: isSynthesized,
-    isFinal: isFinal,
-    isImplicitlyTyped: isImplicitlyTyped,
-    isWildcard: isWildcard,
-    fileOffset: fileOffset,
-  );
 }
 
 InternalSyntheticVariable createSyntheticVariable({

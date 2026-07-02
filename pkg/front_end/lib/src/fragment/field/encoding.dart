@@ -44,7 +44,7 @@ sealed class FieldEncoding {
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -211,13 +211,13 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
-      extern.createFieldInitializer(
+    return [
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -530,24 +530,24 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
   }) {
-    List<Initializer> initializers = <Initializer>[];
+    List<InternalInitializer> initializers = [];
     if (_lateIsSetField != null) {
       initializers.add(
-        extern.createFieldInitializer(
+        intern.createFieldInitializer(
           _lateIsSetField!,
-          extern.createBoolLiteral(true, fileOffset: fileOffset),
+          intern.createBoolLiteral(true, fileOffset: fileOffset),
           fileOffset: fileOffset,
           isSynthetic: isSynthetic,
         ),
       );
     }
     initializers.add(
-      extern.createFieldInitializer(
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -1234,7 +1234,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -1555,12 +1555,12 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
+    return [
       new ExtensionTypeRepresentationFieldInitializer(
         _getter,
         value,
@@ -1801,7 +1801,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,

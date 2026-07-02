@@ -104,7 +104,7 @@ abstract class BodyBuilderContext {
   /// Creates an [Initializer] for a redirecting initializer call to
   /// [constructorBuilder] with the given [arguments] from within a constructor
   /// in the same class.
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
@@ -467,7 +467,7 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupConstructor');
   }
 
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
@@ -575,15 +575,16 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
-    return new InternalRedirectingInitializer(
-      constructorBuilder.invokeTarget as Constructor,
-      arguments,
-    )..fileOffset = fileOffset;
+    return intern.createRedirectingInitializer(
+      target: constructorBuilder.invokeTarget as Constructor,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -678,15 +679,16 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
-    return new ExtensionTypeRedirectingInitializer(
-      constructorBuilder.invokeTarget as Procedure,
-      arguments,
-    )..fileOffset = fileOffset;
+    return intern.createExtensionTypeRedirectingInitializer(
+      target: constructorBuilder.invokeTarget as Procedure,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
   }
 
   @override

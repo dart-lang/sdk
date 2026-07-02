@@ -92,6 +92,13 @@ AsExpression createAsExpression(
     ..isForDynamic = isForDynamic;
 }
 
+AssertInitializer createAssertInitializer(
+  AssertStatement statement, {
+  required int fileOffset,
+}) {
+  return new AssertInitializer(statement)..fileOffset = fileOffset;
+}
+
 AssertStatement createAssertStatement(
   Expression condition, {
   Expression? message,
@@ -191,6 +198,13 @@ CatchVariable createCatchVariable({
     isWildcard: isWildcard,
     isFinal: isFinal,
   )..fileOffset = fileOffset;
+}
+
+Expression createCheckLibraryIsLoaded({
+  required LibraryDependency dependency,
+  required int fileOffset,
+}) {
+  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -584,6 +598,18 @@ InvalidInitializer createInvalidInitializer(
 }) {
   return new InvalidInitializer(expression.message)
     ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+InvalidInitializer createInvalidInitializerFromMessage(
+  String message, {
+  required int fileOffset,
+  required bool isSuperInitializer,
+  required bool isRedirectingInitializer,
+}) {
+  return new InvalidInitializer(message)
+    ..fileOffset = fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
@@ -1356,13 +1382,6 @@ SyntheticVariable createVariableCache(
     isFinal: true,
     hasDeclaredInitializer: true,
   )..fileOffset = fileOffset ?? expression.fileOffset;
-}
-
-Expression createCheckLibraryIsLoaded({
-  required LibraryDependency dependency,
-  required int fileOffset,
-}) {
-  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
 }
 
 VariableDeclaration createVariableDeclaration(

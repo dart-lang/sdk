@@ -102,7 +102,7 @@ abstract class InferenceVisitor {
   ]);
 
   /// Performs type inference on the given [initializer].
-  InitializerInferenceResult inferInitializer(Initializer initializer);
+  InitializerInferenceResult inferInitializer(InternalInitializer initializer);
 }
 
 abstract class ReturnContext {}
@@ -145,7 +145,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
-        InitializerVisitor<InitializerInferenceResult>,
         InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
@@ -509,14 +508,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  InitializerInferenceResult inferInitializer(Initializer initializer) {
-    InitializerInferenceResult inferenceResult;
-    if (initializer is InternalInitializer) {
-      inferenceResult = initializer.acceptInference(this);
-    } else {
-      inferenceResult = initializer.accept(this);
-    }
-    return inferenceResult;
+  InitializerInferenceResult inferInitializer(InternalInitializer initializer) {
+    return initializer.acceptInference(this);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -863,25 +856,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return _unhandledStatement(node);
   }
 
-  // Coverage-ignore(suite): Not run.
-  Never _unhandledInitializer(Initializer node) {
-    problems.unhandled(
-      "${node.runtimeType}",
-      "InferenceVisitor",
-      node.fileOffset,
-      fileUri,
+  InitializerInferenceResult visitInternalInvalidInitializer(
+    InternalInvalidInitializer node,
+  ) {
+    return new SuccessfulInitializerInferenceResult(
+      extern.createInvalidInitializerFromMessage(
+        node.message,
+        fileOffset: node.fileOffset,
+        isRedirectingInitializer: node.isRedirectingInitializer,
+        isSuperInitializer: node.isSuperInitializer,
+      ),
     );
-  }
-
-  @override
-  InitializerInferenceResult visitInvalidInitializer(InvalidInitializer node) {
-    return new SuccessfulInitializerInferenceResult(node);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InitializerInferenceResult visitLocalInitializer(LocalInitializer node) {
-    _unhandledInitializer(node);
   }
 
   @override
@@ -1080,14 +1065,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(node.type, node);
   }
 
-  @override
-  InitializerInferenceResult visitAssertInitializer(AssertInitializer node) {
-    StatementInferenceResult result = inferStatement(node.statement);
+  InitializerInferenceResult visitInternalAssertInitializer(
+    InternalAssertInitializer node,
+  ) {
+    AssertStatement statement = node.statement;
+    StatementInferenceResult result = inferStatement(statement);
     if (result.hasChanged) {
       // Coverage-ignore-block(suite): Not run.
-      node.statement = (result.statement as AssertStatement)..parent = node;
+      statement = result.statement as AssertStatement;
     }
-    return new SuccessfulInitializerInferenceResult(node);
+    return new SuccessfulInitializerInferenceResult(
+      extern.createAssertInitializer(statement, fileOffset: node.fileOffset),
+    );
   }
 
   @override
@@ -3225,8 +3214,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  InitializerInferenceResult visitFieldInitializer(FieldInitializer node) {
+  InitializerInferenceResult visitInternalFieldInitializer(
+    InternalFieldInitializer node,
+  ) {
     DartType fieldType = node.field.type;
     fieldType = _constructorContext!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult = inferExpression(
@@ -3240,8 +3230,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
       isVoidAllowed: true,
     ).expression;
-    node.value = initializer..parent = node;
-    return new SuccessfulInitializerInferenceResult(node);
+    return new SuccessfulInitializerInferenceResult(
+      extern.createFieldInitializer(
+        node.field,
+        initializer,
+        fileOffset: node.fileOffset,
+        isSynthetic: node.isSynthetic,
+      ),
+    );
   }
 
   @override
@@ -12535,14 +12531,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return _unhandledExpression(node, typeContext);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  InitializerInferenceResult visitRedirectingInitializer(
-    RedirectingInitializer node,
-  ) {
-    _unhandledInitializer(node);
-  }
-
   InitializerInferenceResult visitInternalRedirectingInitializer(
     InternalRedirectingInitializer node,
   ) {
@@ -13055,12 +13043,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       coreTypes.stringRawType(Nullability.nonNullable),
       node,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
-    _unhandledInitializer(node);
   }
 
   InitializerInferenceResult visitInternalSuperInitializer(
@@ -16909,17 +16891,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  InitializerInferenceResult visitAuxiliaryInitializer(
-    AuxiliaryInitializer node,
-  ) {
-    if (node is InternalInitializer) {
-      return node.acceptInference(this);
-    }
-    return _unhandledInitializer(node);
   }
 
   @override

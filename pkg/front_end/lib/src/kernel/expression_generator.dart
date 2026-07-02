@@ -51,7 +51,6 @@ import '../source/check_helper.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
-import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 import 'load_library_builder.dart';
@@ -204,9 +203,11 @@ abstract class Generator {
 
   Expression buildForEffect() => buildSimpleRead();
 
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [
+      intern.createInvalidInitializer(
         _helper.buildProblem(
           message: diag.invalidInitializer,
           fileUri: _helper.uri,
@@ -5368,9 +5369,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   String get _plainNameForRead => name.text;
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [
+      intern.createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
     ];
   }
 
@@ -5575,10 +5578,10 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(_createInvalidExpression()),
-    ];
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [intern.createInvalidInitializer(_createInvalidExpression())];
   }
 
   @override
@@ -6038,7 +6041,9 @@ class DelayedAssignment extends ContextAwareGenerator {
   }
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
     if (!identical("=", assignmentOperator) ||
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
@@ -6583,8 +6588,10 @@ class ParserErrorGenerator extends Generator {
       buildProblem();
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[extern.createInvalidInitializer(buildProblem())];
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [intern.createInvalidInitializer(buildProblem())];
   }
 
   @override
@@ -6788,9 +6795,11 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
     InvalidExpression error = buildFieldInitializerError(initializedFields);
-    return <Initializer>[extern.createInvalidInitializer(error)];
+    return [intern.createInvalidInitializer(error)];
   }
 
   @override
@@ -6980,7 +6989,7 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return extern.createInvalidInitializer(
+          return intern.createInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
               context: _helper.compilerContext,
@@ -7007,7 +7016,7 @@ class ThisAccessGenerator extends Generator {
       }
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
-        return extern.createInvalidInitializer(
+        return intern.createInvalidInitializer(
           _helper.buildProblem(
             message: diag.superclassHasNoConstructor.withArguments(
               constructorName: fullName,

@@ -105,21 +105,21 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  List<Initializer> createFieldInitializer(
+  List<InternalInitializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     Expression expression, {
     FormalParameterBuilder? formal,
   });
 
-  Initializer buildSuperInitializer(
+  InternalInitializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
     ActualArguments arguments, [
     int offset = TreeNode.noOffset,
   ]);
 
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     Name name,
     ActualArguments arguments, {
     required int fileOffset,
