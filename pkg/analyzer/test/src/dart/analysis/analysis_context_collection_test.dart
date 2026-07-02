@@ -458,6 +458,7 @@ analysisOptions
       patterns
       primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals
@@ -542,6 +543,7 @@ analysisOptions
       patterns
       primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals

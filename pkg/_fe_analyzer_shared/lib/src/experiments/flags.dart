@@ -252,10 +252,10 @@ enum ExperimentalFlag {
 
   recordUse(
     name: 'record-use',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 13),
+    experimentReleasedVersion: const Version(3, 13),
   ),
 
   records(

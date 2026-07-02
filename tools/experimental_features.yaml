@@ -140,8 +140,8 @@ features:
     help: "Static meta-programming"
 
   record-use:
+    enabledIn: '3.13.0'
     help: "Output arguments used by static functions."
-    channels: [ "main", "dev" ]
 
   data-assets:
     help: "Enable data assets in hooks."

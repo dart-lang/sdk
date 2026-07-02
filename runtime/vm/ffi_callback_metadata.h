@@ -329,7 +329,7 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 283;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 288;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 6;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
