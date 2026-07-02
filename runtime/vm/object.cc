@@ -26356,13 +26356,15 @@ const char* Pointer::ToCString() const {
 }
 
 DynamicLibraryPtr DynamicLibrary::New(void* handle,
-                                      bool canBeClosed,
+                                      Dart_NativeAssetsDlsymCallback dlsym,
+                                      Dart_NativeAssetsDlcloseCallback dlclose,
                                       Heap::Space space) {
   const auto& result =
       DynamicLibrary::Handle(Object::Allocate<DynamicLibrary>(space));
   ASSERT_EQUAL(result.IsClosed(), false);
   result.SetHandle(handle);
-  result.SetCanBeClosed(canBeClosed);
+  result.SetDlsym(dlsym);
+  result.SetDlclose(dlclose);
   return result.ptr();
 }
 
