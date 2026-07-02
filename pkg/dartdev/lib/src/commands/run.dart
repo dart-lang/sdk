@@ -483,8 +483,15 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     String? nativeAssets;
+    Uri baseUri = Directory.current.uri;
+    if (mainCommand.isNotEmpty) {
+      final file = File(mainCommand);
+      if (file.existsSync()) {
+        baseUri = file.absolute.uri.resolve('.');
+      }
+    }
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      Directory.current.uri,
+      baseUri,
     );
     if (packageConfigUri != null) {
       final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
@@ -495,9 +502,8 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       }
       final runPackageName =
           getPackageForCommand(mainCommand) ??
-          await DartNativeAssetsBuilder.findRootPackageName(
-            Directory.current.uri,
-          );
+          // TODO(https://dartbug.com/63713): Don't use cwd for test.
+          packageConfig.packageOf(baseUri)?.name;
       if (runPackageName != null) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
