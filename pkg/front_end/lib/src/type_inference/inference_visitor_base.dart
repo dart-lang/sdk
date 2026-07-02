@@ -289,11 +289,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return context;
   }
 
-  /// Returns `true` if exceptions should be thrown in paths reachable only due
-  /// to unsoundness in flow analysis in mixed mode.
-  // TODO(johnniwinther): Remove this.
-  bool get shouldThrowUnsoundnessException => false;
-
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;
     // Coverage-ignore-block(suite): Not run.

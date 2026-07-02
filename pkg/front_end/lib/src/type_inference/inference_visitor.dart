@@ -428,29 +428,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (coreTypes.isBottom(result.inferredType)) {
       flowAnalysis.handleExit();
-      if (shouldThrowUnsoundnessException &&
-          // Coverage-ignore(suite): Not run.
-          // Don't throw on expressions that inherently return the bottom type.
-          !(result.expression is Throw ||
-              result.expression is Rethrow ||
-              result.expression is InvalidExpression)) {
-        // Coverage-ignore-block(suite): Not run.
-        Expression replacement = createLet(
-          variable: createVariable(result.expression, result.inferredType),
-          body: createReachabilityError(
-            expression.fileOffset,
-            diag.neverValueError,
-          ),
-        );
-        flowAnalysis.storeExpressionInfo(
-          replacement,
-          flowAnalysis.getExpressionInfo(result.expression),
-        );
-        result = new ExpressionInferenceResult(
-          result.inferredType,
-          replacement,
-        );
-      }
     }
     return result;
   }
@@ -13379,44 +13356,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       expressionType: expressionType,
       fileOffset: node.fileOffset,
     );
-    if (analysisResult.isExhaustive &&
-        !analysisResult.hasDefault &&
-        shouldThrowUnsoundnessException) {
-      // Coverage-ignore-block(suite): Not run.
-      if (!analysisResult.lastCaseTerminates) {
-        LabeledStatement breakTarget;
-        if (node.parent is LabeledStatement) {
-          breakTarget = node.parent as LabeledStatement;
-        } else {
-          replacement = breakTarget = new LabeledStatement(node);
-        }
-
-        InternalSwitchStatementCase lastCase = node.cases.last;
-        Statement body = lastCase.body;
-        if (body is Block) {
-          body.addStatement(
-            extern.createBreakStatement(
-              breakTarget,
-              fileOffset: node.fileOffset,
-            ),
-          );
-        }
-      }
-      cases.add(
-        extern.createSwitchCase(
-          expressions: [],
-          expressionOffsets: [],
-          body: _createExpressionStatement(
-            createReachabilityError(
-              node.fileOffset,
-              diag.neverReachableSwitchDefaultError,
-            ),
-          ),
-          isDefault: true,
-          fileOffset: node.fileOffset,
-        )..parent = replacement,
-      );
-    }
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
