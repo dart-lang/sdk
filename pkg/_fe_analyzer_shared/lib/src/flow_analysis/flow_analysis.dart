@@ -526,10 +526,9 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
-  /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [getExpressionInfo] for the left and right operands. [leftOperandType]
-  /// and [rightOperandType] should be the static types of the left and right
-  /// operands.
+  /// [leftOperandInfo] and [rightOperandInfo] should be the expression info for
+  /// the left and right operands. [leftOperandType] and [rightOperandType]
+  /// should be the static types of the left and right operands.
   ///
   /// Returns the expression info for the `==` or `!=` expression.
   ExpressionInfo? equalityOperation_end(
@@ -554,14 +553,6 @@ abstract class FlowAnalysis<
     bool notEqual = false,
     required SharedTypeView matchedValueType,
   });
-
-  /// The [ExpressionInfo] associated with [target], if known.
-  ///
-  /// **For testing only!**
-  ///
-  /// Returns `null` if (a) no info is associated with [target], or (b) another
-  /// expression with info has been visited more recently than [target].
-  ExpressionInfo? expressionInfoForTesting(Expression target);
 
   /// Performs assertion checks at the conclusion of flow analysis.
   ///
@@ -1831,15 +1822,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _wrap(
-      'expressionInfoForTesting($target)',
-      () => _wrapped.expressionInfoForTesting(target),
-      isQuery: true,
-    );
-  }
-
-  @override
   void finish() {
     if (_exceptionOccurred) {
       _wrap('finish() (skipped)', () {}, isPure: true);
@@ -1895,15 +1877,6 @@ class FlowAnalysisDebug<
   @override
   void functionExpression_end() {
     _wrap('functionExpression_end()', () => _wrapped.functionExpression_end());
-  }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) {
-    return _wrap(
-      'getExpressionInfo($expression)',
-      () => _wrapped.getExpressionInfo(expression),
-      isQuery: true,
-    );
   }
 
   @override
@@ -2478,17 +2451,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _wrap(
-      'storeExpressionInfo($expression, $expressionInfo)',
-      () => _wrapped.storeExpressionInfo(expression, expressionInfo),
-    );
-  }
-
-  @override
   void suspension(Node node) {
     _wrap('suspension($node)', () => _wrapped.suspension(node));
   }
@@ -2809,12 +2771,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
   Variable extends Object
 > {
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
-
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end();
 
@@ -2851,13 +2807,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
-
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [FlowAnalysis.getExpressionInfo].
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  );
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -5265,9 +5214,6 @@ class _FlowAnalysisImpl<
   /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
   _Reference? _scrutineeReference;
 
-  /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   @override
@@ -5721,11 +5667,6 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _expressionInfoMap[target];
-  }
-
-  @override
   void finish() {
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
@@ -5808,10 +5749,6 @@ class _FlowAnalysisImpl<
   void functionExpression_end() {
     _functionExpression_end();
   }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) =>
-      _expressionInfoMap[expression];
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -6625,14 +6562,6 @@ class _FlowAnalysisImpl<
       ?.ssaNode;
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _expressionInfoMap[expression] = expressionInfo;
-  }
-
-  @override
   void suspension(Node node) {
     // During an async suspension or yield, other code may execute. If the
     // current point in flow control is inside a local function, this means that
@@ -7281,19 +7210,6 @@ class _FlowAnalysisImpl<
     }
     if (_scrutineeReference != null) {
       print('  scrutineeReference: $_scrutineeReference');
-    }
-    int expressionInfoEntryIndex = 0;
-    for (MapEntry<Expression, ExpressionInfo?> expressionInfoEntry
-        in _expressionInfoMap.entries) {
-      print(
-        '  expressionWithInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.key}',
-      );
-      print(
-        '  expressionInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.value}',
-      );
-      expressionInfoEntryIndex++;
     }
     if (_stack.isNotEmpty) {
       print('  stack:');
