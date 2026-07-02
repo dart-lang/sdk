@@ -96,7 +96,14 @@ To learn more about the feature, check out the
   and overrides `addresses` will need to update the return type. See [#63216][]
   for more details.
 
+- `HttpResponse.reasonPhrase` now rejects values that contain invalid
+  characters, such as carriage return (`\r`) or line feed (`\n`), by throwing a
+  `FormatException`. This is the same validation already applied to header
+  values and prevents HTTP response splitting via an unvalidated reason phrase.
+  See [#63500][].
+
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
+[#63500]: https://github.com/dart-lang/sdk/pull/63500
 
 #### `dart:js_interop`
 
