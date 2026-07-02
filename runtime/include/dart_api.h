@@ -3359,9 +3359,9 @@ typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
  * If the embedder provides this callback, it must also provide
  * `Dart_NativeAssetsAvailableAssets`.
  *
- * If provided, takes prescedence over `Dart_NativeAssetsDlopenCallback`.
+ * If provided, takes precedence over `Dart_NativeAssetsDlopenCallback`.
  *
- * \param asset_id The asset id requested in the `@Native` external function.
+ * \param asset_id The asset id requested by an `@Native` external function.
  *
  * \param error Returns NULL if successful, an error message otherwise. The
  *   caller is responsible for calling free() on the error message.
@@ -3387,9 +3387,8 @@ typedef char* (*Dart_NativeAssetsAvailableAssets)(void);
  * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
  * fail.
  *
- * \param handle The library handle returned from a
- *               `Dart_NativeAssetsDlopenCallback` or
- *               `Dart_NativeAssetsDlopenCallbackNoPath`.
+ * \param handle The library handle returned from one of the native assets
+ *               dlopen callbacks.
  *
  * \param symbol The symbol to look up. Is a string.
  *
@@ -3404,6 +3403,19 @@ typedef void* (*Dart_NativeAssetsDlsymCallback)(void* handle,
                                                 const char* symbol,
                                                 char** error);
 
+/**
+ * Callback provided by the embedder that is used by the VM to close native
+ * code asset library handles.
+ *
+ * \param handle The library handle returned from one of the native assets
+ *               dlopen callbacks.
+ *
+ * \param error Returns NULL if successful, an error message otherwise. If the
+ *   handle cannot be closed, the embedder should return an error message. The
+ *   caller is responsible for calling free() on the error message.
+ */
+typedef void (*Dart_NativeAssetsDlcloseCallback)(void* handle, char** error);
+
 typedef struct {
   Dart_NativeAssetsDlopenCallback dlopen_absolute;
   Dart_NativeAssetsDlopenCallback dlopen_relative;
@@ -3411,8 +3423,18 @@ typedef struct {
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
   Dart_NativeAssetsDlsymCallback dlsym;
+  Dart_NativeAssetsDlcloseCallback dlclose;
   Dart_NativeAssetsDlopenAssetId dlopen;
   Dart_NativeAssetsAvailableAssets available_assets;
+
+  /*
+   * If provided, takes precedence over `dlopen`.
+   *
+   * For this callback, `error == NULL` means the asset was found, even if
+   * the returned handle is `NULL`. Missing assets must be reported through
+   * `error`.
+   */
+  Dart_NativeAssetsDlopenAssetId dlopen_v2;
 } NativeAssetsApi;
 
 /**

@@ -706,7 +706,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -1498,7 +1499,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -2276,7 +2277,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -3070,7 +3072,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -3858,7 +3860,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x10;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -4648,7 +4650,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x10;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -5428,7 +5430,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -6221,7 +6224,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -6992,7 +6995,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -7776,7 +7780,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -8546,7 +8550,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -9332,7 +9337,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -10112,7 +10117,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x10;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -10894,7 +10899,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x10;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -11666,7 +11671,8 @@ static constexpr dart::compiler::target::word
     CompressedStackMaps_PayloadHeaderSize = 0x4;
 static constexpr dart::compiler::target::word Context_header_size = 0xc;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
-static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize = 0xc;
+static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
+    0x14;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0xc;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -12451,7 +12457,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Context_header_size = 0x18;
 static constexpr dart::compiler::target::word Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word ExternalTypedData_InstanceSize =
     0x18;
 static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
@@ -13298,7 +13304,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0xc;
+    0x14;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
@@ -14167,7 +14173,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -15045,7 +15051,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -15917,7 +15923,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -16791,7 +16797,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -17658,7 +17664,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0xc;
+    0x14;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
@@ -18528,7 +18534,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -19385,7 +19391,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0xc;
+    0x14;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
@@ -20245,7 +20251,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -21114,7 +21120,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -21977,7 +21983,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -22842,7 +22848,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x10;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word
@@ -23700,7 +23706,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0xc;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0xc;
+    0x14;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
@@ -24561,7 +24567,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_Context_header_size = 0x18;
 static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_DynamicLibrary_InstanceSize =
-    0x18;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_ExternalTypedData_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word

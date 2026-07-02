@@ -231,4 +231,22 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       });
     },
   );
+
+  test('dart run from different directory', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final tempUri = dartAppUri.parent;
+      final otherDirUri = tempUri.resolve('other_dir/');
+      await Directory.fromUri(otherDirUri).create();
+
+      final result = await runDart(
+        arguments: [
+          'run',
+          dartAppUri.resolve('bin/dart_app.dart').toFilePath(),
+        ],
+        workingDirectory: otherDirUri,
+        logger: logger,
+      );
+      expectDartAppStdout(result.stdout);
+    });
+  });
 }

@@ -8,6 +8,8 @@ import 'package:args/args.dart';
 import 'package:dartdev/src/commands/run.dart';
 
 import '../core.dart';
+import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 /// This command is now just an alias for `dart run dart_mcp_server@`.
 class DartMCPServerCommand extends DartdevCommand {
@@ -44,6 +46,28 @@ Run "$executable help" to see global options.''');
 
   @override
   Future<int> run() async {
+    // Internally we ship the MCP server as a snapshot, check for that
+    // and launch it if present.
+    if (checkArtifactExists(sdk.mcpServerSnapshot, logError: false)) {
+      final args = argResults!.arguments;
+      try {
+        VmInteropHandler.run(
+          sdk.mcpServerSnapshot,
+          args,
+          packageConfigOverride: null,
+          useExecProcess: false,
+        );
+        return 0;
+      } catch (e, st) {
+        log.stderr('Error: launching mcp server failed');
+        log.stderr(e.toString());
+        if (verbose) {
+          log.stderr(st.toString());
+        }
+        return 255;
+      }
+    }
+
     // We want the global arguments as we will be delegating back to the
     // command runner to run the new command.
     final forwardedArgs = globalResults!.arguments.toList();

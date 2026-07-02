@@ -1404,7 +1404,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Double_InstanceSize => 0x10;
   @override
-  int get DynamicLibrary_InstanceSize => 0x18;
+  int get DynamicLibrary_InstanceSize => 0x28;
   @override
   int get ExternalTypedData_InstanceSize => 0x18;
   @override
@@ -2377,7 +2377,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Double_InstanceSize => 0x10;
   @override
-  int get DynamicLibrary_InstanceSize => 0x18;
+  int get DynamicLibrary_InstanceSize => 0x28;
   @override
   int get ExternalTypedData_InstanceSize => 0x18;
   @override

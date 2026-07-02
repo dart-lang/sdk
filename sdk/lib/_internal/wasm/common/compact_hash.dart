@@ -133,9 +133,11 @@ abstract class _HashFieldBase {
   //
   // Index of this field is used by the code generator:
   // `FieldInfo.hashBaseIndex`.
+  @pragma('wasm:entry-point')
   WasmArray<WasmI32> _index = _uninitializedHashBaseIndex;
 
   // Cached in-place mask for the hash pattern component.
+  @pragma('wasm:entry-point')
   int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
@@ -144,12 +146,15 @@ abstract class _HashFieldBase {
   //
   // Index of this field is used by the code generator:
   // `FieldInfo.hashBaseData`.
+  @pragma('wasm:entry-point')
   WasmArray<Object?> _data = _uninitializedHashBaseData;
 
   // Length of `_data` that is used (i.e., keys + values for a map).
+  @pragma('wasm:entry-point')
   int _usedData = 0;
 
   // Number of deleted keys.
+  @pragma('wasm:entry-point')
   int _deletedKeys = 0;
 
   _HashFieldBase();

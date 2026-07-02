@@ -866,7 +866,7 @@ extension CheckHelper on ProblemReporting {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  Expression wrapInLocatedProblem({
+  InvalidExpression wrapInLocatedProblem({
     required CompilerContext compilerContext,
     required Expression expression,
     required LocatedMessage message,

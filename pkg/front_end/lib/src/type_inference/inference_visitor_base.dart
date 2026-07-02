@@ -198,6 +198,25 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   // Coverage-ignore(suite): Not run.
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
+  /// The mapping from expressions to their [ExpressionInfo]s.
+  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _expressionInfoMap[expression] = expressionInfo;
+  }
+
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+      _expressionInfoMap[expression];
+
   DartType computeGreatestClosure(DartType type) {
     return cfeOperations.greatestClosureOfSchema(
       new SharedTypeSchemaView(type),
@@ -288,11 +307,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     return context;
   }
-
-  /// Returns `true` if exceptions should be thrown in paths reachable only due
-  /// to unsoundness in flow analysis in mixed mode.
-  // TODO(johnniwinther): Remove this.
-  bool get shouldThrowUnsoundnessException => false;
 
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;
@@ -459,10 +473,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ..isTypeError = true
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
-        flowAnalysis.storeExpressionInfo(
-          asExpression,
-          flowAnalysis.getExpressionInfo(expression),
-        );
+        storeExpressionInfo(asExpression, getExpressionInfo(expression));
         return new ExpressionInferenceResult(
           expressionType,
           asExpression,
@@ -582,7 +593,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expression is! NullLiteral &&
             expressionType is! NullType) {
           whyNotPromoted ??= flowAnalysis.whyNotPromoted(
-            flowAnalysis.getExpressionInfo(expression),
+            getExpressionInfo(expression),
           );
           result = wrapUnassignableExpression(
             expression,
@@ -614,10 +625,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (result != null) {
-      flowAnalysis.storeExpressionInfo(
-        result,
-        flowAnalysis.getExpressionInfo(expression),
-      );
+      storeExpressionInfo(result, getExpressionInfo(expression));
       return new ExpressionInferenceResult(
         expressionType,
         result,
@@ -1670,6 +1678,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     bool isImplicitCall = false,
     Member? staticTarget,
+    bool isIdenticalCall = false,
   }) {
     FunctionType calleeType = invocationTargetType
         .computeFunctionTypeForInference(typeArguments?.types, arguments);
@@ -1688,6 +1697,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isConst: isConst,
       isImplicitCall: isImplicitCall,
       staticTarget: staticTarget,
+      isIdenticalCall: isIdenticalCall,
     );
   }
 
@@ -1708,6 +1718,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool isConst = false,
     required bool isImplicitCall,
     Member? staticTarget,
+    bool isIdenticalCall = false,
   }) {
     // [receiverType] must be provided for special-cased operators.
     assert(
@@ -1815,9 +1826,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ),
       );
     }
-    bool isIdenticalCall =
-        staticTarget == typeSchemaEnvironment.coreTypes.identicalProcedure &&
-        actualArguments.positionalCount == 2;
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
     List<Argument> arguments = actualArguments.argumentList;
@@ -1889,9 +1897,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ExpressionInferenceResult result = inferArgument(argumentInfo);
         DartType inferredType = result.inferredType;
         if (isIdenticalCall) {
-          argumentInfo.identicalInfo = flowAnalysis.getExpressionInfo(
-            result.expression,
-          );
+          argumentInfo.identicalInfo = getExpressionInfo(result.expression);
         }
         argument.expression = result.expression;
         gatherer?.tryConstrainLower(
@@ -1935,9 +1941,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = result.inferredType;
           Expression expression = result.expression;
           if (isIdenticalCall) {
-            deferredArgument.identicalInfo = flowAnalysis.getExpressionInfo(
-              expression,
-            );
+            deferredArgument.identicalInfo = getExpressionInfo(expression);
           }
           deferredArgument.argument.expression = expression;
           gatherer?.tryConstrainLower(
@@ -1952,15 +1956,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
+    ExpressionInfo? expressionInfo;
     if (isIdenticalCall) {
-      flowAnalysis.storeExpressionInfo(
-        actualArguments.parent as Expression,
-        flowAnalysis.equalityOperation_end(
-          argumentsInfo[0].identicalInfo,
-          new SharedTypeView(argumentsInfo[0].actualType),
-          argumentsInfo[1].identicalInfo,
-          new SharedTypeView(argumentsInfo[1].actualType),
-        ),
+      expressionInfo = flowAnalysis.equalityOperation_end(
+        argumentsInfo[0].identicalInfo,
+        new SharedTypeView(argumentsInfo[0].actualType),
+        argumentsInfo[1].identicalInfo,
+        new SharedTypeView(argumentsInfo[1].actualType),
       );
     }
 
@@ -2181,6 +2183,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       named: named,
       hoistedArguments: localHoistedExpressions,
       inferredReceiverType: receiverType,
+      expressionInfo: expressionInfo,
     );
   }
 
@@ -2685,9 +2688,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(
-            flowAnalysis.getExpressionInfo(receiver),
-          )(),
+          flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
@@ -2742,9 +2743,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       if (target.isNullable) {
         List<LocatedMessage>? context = getWhyNotPromotedContext(
-          flowAnalysis.whyNotPromoted(
-            flowAnalysis.getExpressionInfo(receiver),
-          )(),
+          flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
           staticInvocation,
           // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable,
@@ -2890,7 +2889,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression replacement = result.applyResult(expression);
     if (target.isNullableCallFunction) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
+        flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -3137,7 +3136,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     replacement = result.applyResult(replacement);
     if (target.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-        flowAnalysis.whyNotPromoted(flowAnalysis.getExpressionInfo(receiver))(),
+        flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
         expression,
         // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
@@ -3214,7 +3213,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // invocationResult), but we need to gather "why not promoted" info now,
       // before we tell flow analysis about the property get.
       whyNotPromoted = flowAnalysis.whyNotPromoted(
-        flowAnalysis.getExpressionInfo(originalReceiver),
+        getExpressionInfo(originalReceiver),
       );
     }
 
@@ -3253,7 +3252,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       originalTarget,
       new SharedTypeView(calleeType),
     );
-    flowAnalysis.storeExpressionInfo(originalPropertyGet, expressionInfo);
+    storeExpressionInfo(originalPropertyGet, expressionInfo);
     DartType? promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
@@ -3438,7 +3437,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (hoistedExpressions != null && hoistedExpressions.isNotEmpty) {
       Expression expression = result.expression;
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
+        expression = createLet(
+          variable: hoistedExpressions[index],
+          body: expression,
+        );
       }
       return new ExpressionInferenceResult(result.inferredType, expression);
     }
@@ -3672,9 +3674,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   (void Function())? r;
           //   r.$1();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -3725,9 +3725,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   ({void Function() foo})? r;
           //   r.foo();
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             receiver,
             // Coverage-ignore(suite): Not run.
             (type) => !type.isPotentiallyNullable,
@@ -3781,9 +3779,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   method(Foo? r) => r.bar();
           //
           List<LocatedMessage>? context = getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(
-              flowAnalysis.getExpressionInfo(receiver),
-            )(),
+            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
             receiver,
             (type) => !type.isPotentiallyNullable,
           );
@@ -4065,7 +4061,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       member,
       new SharedTypeView(inferredType),
     );
-    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    storeExpressionInfo(node, expressionInfo);
     DartType? promotedType = wrappedPromotedType?.unwrapTypeView();
     if (promotedType != null) {
       node = new AsExpression(node, promotedType)
@@ -4224,7 +4220,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       promotedType = wrappedPromotedType?.unwrapTypeView();
     }
-    flowAnalysis.storeExpressionInfo(result, expressionInfo);
+    storeExpressionInfo(result, expressionInfo);
     result.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;
@@ -4239,10 +4235,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable get, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.storeExpressionInfo(
-        resultExpression,
-        flowAnalysis.getExpressionInfo(result),
-      );
+      storeExpressionInfo(resultExpression, getExpressionInfo(result));
     } else {
       resultExpression = result;
     }
@@ -4357,13 +4350,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression rhs = rhsResult.expression;
     VariableSet result = new VariableSet(variable.astVariable, rhs)
       ..fileOffset = nameOffset;
-    flowAnalysis.storeExpressionInfo(
+    storeExpressionInfo(
       result,
       flowAnalysis.write(
         result,
         variable,
         new SharedTypeView(rhsResult.inferredType),
-        flowAnalysis.getExpressionInfo(rhsResult.expression),
+        getExpressionInfo(rhsResult.expression),
       ),
     );
     DartType resultType = rhsResult.inferredType;
@@ -4377,10 +4370,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable set, so instruct flow analysis to forward the
       // expression information.
-      flowAnalysis.storeExpressionInfo(
-        resultExpression,
-        flowAnalysis.getExpressionInfo(result),
-      );
+      storeExpressionInfo(resultExpression, getExpressionInfo(result));
     } else {
       result.value = rhs..parent = result;
       resultExpression = result..variable = variable.astVariable;
@@ -4534,8 +4524,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             const VoidType(),
           );
           write = createLet(
-            valueVariable,
-            createLet(assignmentVariable, createVariableGet(valueVariable)),
+            variable: valueVariable,
+            body: createLet(
+              variable: assignmentVariable,
+              body: createVariableGet(valueVariable),
+            ),
           )..fileOffset = fileOffset;
         }
         break;

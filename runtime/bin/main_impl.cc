@@ -412,6 +412,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
   native_assets.dlopen_process = &NativeAssets::DlopenProcess;
   native_assets.dlsym = &NativeAssets::Dlsym;
+  native_assets.dlclose = &NativeAssets::Dlclose;
   Dart_InitializeNativeAssetsResolver(&native_assets);
 #endif  // !defined(DART_PRECOMPILER)
 

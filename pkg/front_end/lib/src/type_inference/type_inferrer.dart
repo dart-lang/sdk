@@ -79,7 +79,7 @@ abstract class TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -427,7 +427,7 @@ class TypeInferrerImpl implements TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -452,7 +452,7 @@ class TypeInferrerImpl implements TypeInferrer {
       );
     }
     List<InitializerInferenceResult> results = [];
-    for (Initializer initializer in initializers) {
+    for (InternalInitializer initializer in initializers) {
       results.add(visitor.inferInitializer(initializer));
     }
     if (scopeProviderInfo != null && isConstructorWithoutBody) {
@@ -594,7 +594,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy<ScopeProviderInfo>

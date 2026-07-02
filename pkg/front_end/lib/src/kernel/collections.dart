@@ -277,9 +277,10 @@ class ForElement extends ControlFlowElement
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -522,9 +523,10 @@ class PatternForElement extends ControlFlowElementImpl
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -742,9 +744,10 @@ class ForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -801,9 +804,10 @@ class PatternForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');

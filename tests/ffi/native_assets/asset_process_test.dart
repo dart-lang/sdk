@@ -28,13 +28,13 @@ main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
-      await runTests();
-      await testIsolateSpawn(runTests);
+      await runTests(args[1]);
+      await testIsolateSpawn(() => runTests(args[1]));
       await testIsolateSpawnUri(spawnUri: Platform.script, arguments: args);
     },
     doOnSpawnUriInvocation: () async {
-      await runTests();
-      await testIsolateSpawn(runTests);
+      await runTests(args[1]);
+      await testIsolateSpawn(() => runTests(args[1]));
     },
   )(args, message);
 }
@@ -52,28 +52,31 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
-    arguments: [runTestsArg],
+    arguments: [runTestsArg, selfSourceUri.toString()],
     nativeAssetsYaml: nativeAssetsYaml,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.appjit,
-    arguments: [runTestsArg],
+    arguments: [runTestsArg, selfSourceUri.toString()],
     nativeAssetsYaml: nativeAssetsYaml,
     protobufAwareTreeshaking: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
-    arguments: [runTestsArg],
+    arguments: [runTestsArg, selfSourceUri.toString()],
     nativeAssetsYaml: nativeAssetsYaml,
   );
 }
 
-Future<void> runTests() async {
+Future<void> runTests(String assetId) async {
   testProcessOrSystem();
+  testOpenProcessOrSystemAsset(assetId);
   testProcessOrSystemViaAddressOf();
   testNonExistingFunction();
+  testCodeAssetNotFound(assetId);
+  testCodeAssetUnclosable(assetId);
 }
 
 @Native<Pointer Function(IntPtr)>(symbol: 'malloc')

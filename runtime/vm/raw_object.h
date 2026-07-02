@@ -3704,8 +3704,9 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
-  bool isClosed_;
-  bool canBeClosed_;
+  Dart_NativeAssetsDlsymCallback dlsym_;
+  Dart_NativeAssetsDlcloseCallback dlclose_;
+  bool is_closed_;
 
   friend class DynamicLibrary;
 };

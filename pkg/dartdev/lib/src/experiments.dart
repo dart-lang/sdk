@@ -108,7 +108,11 @@ bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
         ExperimentalFeatures.native_assets.isEnabledByDefault);
 
 bool recordUseEnabled(List<String> vmEnabledExperiments) =>
-    vmEnabledExperiments.contains(ExperimentalFeatures.record_use.enableString);
+    vmEnabledExperiments.contains(
+      ExperimentalFeatures.record_use.enableString,
+    ) ||
+    (_availableOnCurrentChannel(ExperimentalFeatures.record_use.channels) &&
+        ExperimentalFeatures.record_use.isEnabledByDefault);
 
 bool dataAssetsEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments.contains(

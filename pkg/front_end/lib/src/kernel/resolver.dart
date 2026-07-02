@@ -491,7 +491,7 @@ class Resolver {
     BuildInitializersResult result = bodyBuilder.buildInitializers(
       beginInitializers: beginInitializers,
     );
-    List<Initializer> initializers = result.initializers;
+    List<InternalInitializer> initializers = result.initializers;
     if (isConst) {
       List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
       _SuperParameterArguments? superParameterArguments =
@@ -532,7 +532,7 @@ class Resolver {
     context.performBacklog(result.annotations);
   }
 
-  List<Initializer> buildInitializersUnfinished({
+  List<InternalInitializer> buildInitializersUnfinished({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ExtensionScope extensionScope,
@@ -994,7 +994,8 @@ class Resolver {
 
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
-      extraKnownVariables: expressionCompilationData.extraKnownVariables,
+      extraKnownVariableDeclarations:
+          expressionCompilationData.extraKnownVariables,
       fileOffset: fileOffset,
       typeParameterBuilders: typeParameterBuilders,
       formals: formals,
@@ -1020,13 +1021,17 @@ class Resolver {
         );
       }
     }
-    for (InternalVariable extraVariable
+    for (InternalVariableDeclaration extraVariableDeclaration
         in expressionCompilationData.extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
-        extraVariable,
-        new SharedTypeView(extraVariable.type),
+        extraVariableDeclaration.variable,
+        new SharedTypeView(extraVariableDeclaration.variable.type),
         initialized: true,
       );
+      // Ensure that initializers are attached to the variable.
+      extraVariableDeclaration.variable.astVariable.initializer =
+          extraVariableDeclaration.initializer
+            ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
@@ -1339,7 +1344,7 @@ class Resolver {
     required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
     required ConstantContext constantContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required bool forPrimaryConstructor,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
@@ -1409,7 +1414,7 @@ class Resolver {
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
     required InternalVariable? thisVariable,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required ConstantContext constantContext,
     required InternalThisVariable? internalThisVariable,
     required bool forPrimaryConstructor,

@@ -136,7 +136,7 @@ class ValueKinds {
   static const ValueKind IdentifierOrOperatorOrParserRecovery =
       const UnionValueKind([Identifier, Operator, ParserRecovery]);
   static const ValueKind Initializer =
-      const SingleValueKind<type.Initializer>();
+      const SingleValueKind<type.InternalInitializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind Label = const SingleValueKind<type.Label>();
   static const ValueKind LabelListOrNull =

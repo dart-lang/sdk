@@ -92,6 +92,13 @@ AsExpression createAsExpression(
     ..isForDynamic = isForDynamic;
 }
 
+AssertInitializer createAssertInitializer(
+  AssertStatement statement, {
+  required int fileOffset,
+}) {
+  return new AssertInitializer(statement)..fileOffset = fileOffset;
+}
+
 AssertStatement createAssertStatement(
   Expression condition, {
   Expression? message,
@@ -191,6 +198,13 @@ CatchVariable createCatchVariable({
     isWildcard: isWildcard,
     isFinal: isFinal,
   )..fileOffset = fileOffset;
+}
+
+Expression createCheckLibraryIsLoaded({
+  required LibraryDependency dependency,
+  required int fileOffset,
+}) {
+  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -588,6 +602,18 @@ InvalidInitializer createInvalidInitializer(
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
 
+InvalidInitializer createInvalidInitializerFromMessage(
+  String message, {
+  required int fileOffset,
+  required bool isSuperInitializer,
+  required bool isRedirectingInitializer,
+}) {
+  return new InvalidInitializer(message)
+    ..fileOffset = fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
 InvalidPattern createInvalidPattern({
   required Expression error,
   required List<InternalDeclaredVariable> declaredVariables,
@@ -625,7 +651,6 @@ LateVariable createLateVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -635,7 +660,6 @@ LateVariable createLateVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
@@ -644,7 +668,15 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(SyntheticVariable variable, Expression body, {int? fileOffset}) {
+Let createLet({
+  required SyntheticVariable variable,
+  Expression? value,
+  required Expression body,
+  int? fileOffset,
+}) {
+  if (value != null) {
+    variable.initializer = value..parent = variable;
+  }
   return new Let(variable, body)
     ..fileOffset = fileOffset ?? variable.fileOffset;
 }
@@ -719,7 +751,6 @@ LocalVariable createLocalVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -729,7 +760,6 @@ LocalVariable createLocalVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
@@ -1356,9 +1386,14 @@ SyntheticVariable createVariableCache(
 
 VariableDeclaration createVariableDeclaration(
   DeclaredVariable variable, {
+  // TODO(johnniwinther): Make this required.
+  Expression? initializer,
   List<VariableContext>? capturedContexts,
   int? fileOffset,
 }) {
+  if (initializer != null) {
+    variable.initializer = initializer..parent = variable;
+  }
   return new VariableDeclaration(variable)
     ..capturedContexts = capturedContexts
     ..fileOffset = fileOffset ?? variable.fileOffset;

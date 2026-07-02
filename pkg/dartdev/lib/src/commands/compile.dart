@@ -729,8 +729,10 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
+    final sourceUri = File(sourcePath).absolute.uri;
+    final baseUri = sourceUri.resolve('.');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      Directory.current.uri,
+      baseUri,
     );
     if (packageConfigUri != null) {
       final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
@@ -739,10 +741,9 @@ Remove debugging information from the output and save it separately to the speci
       if (packageConfig == null) {
         return compileErrorExitCode;
       }
-      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
-        Directory.current.uri,
-      );
-      if (runPackageName != null) {
+      final package = packageConfig.packageOf(sourceUri);
+      if (package != null) {
+        final runPackageName = package.name;
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
@@ -757,8 +758,9 @@ Remove debugging information from the output and save it separately to the speci
           target: target,
         );
 
+        final packageRoot = package.root.toFilePath();
         final isBinScript = path.isWithin(
-          path.canonicalize(path.join(Directory.current.path, 'bin')),
+          path.canonicalize(path.join(packageRoot, 'bin')),
           path.canonicalize(sourcePath),
         );
         if (isBinScript) {

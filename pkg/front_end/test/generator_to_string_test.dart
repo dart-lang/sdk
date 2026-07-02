@@ -52,7 +52,6 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableGet,
         defaultLanguageVersion,
-        SyntheticVariable,
         LocalVariable;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -183,7 +182,6 @@ Future<void> main() async {
       loader: null,
     );
     InternalVariable variable = new InternalSyntheticVariable(
-      astVariable: new SyntheticVariable(),
       isImplicitlyTyped: false,
       fileOffset: -1,
     );
@@ -251,7 +249,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #0)",
+      "VariableUseGenerator(offset: 4, variable: dynamic <unnamed-variable>)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(

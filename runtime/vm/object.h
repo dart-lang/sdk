@@ -12208,7 +12208,8 @@ class Pointer : public Instance {
 class DynamicLibrary : public Instance {
  public:
   static DynamicLibraryPtr New(void* handle,
-                               bool canBeClosed,
+                               Dart_NativeAssetsDlsymCallback dlsym,
+                               Dart_NativeAssetsDlcloseCallback dlclose,
                                Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -12230,23 +12231,39 @@ class DynamicLibrary : public Instance {
     StoreNonPointer(&untag()->handle_, value);
   }
 
-  bool CanBeClosed() const {
+  Dart_NativeAssetsDlsymCallback Dlsym() const {
     ASSERT(!IsNull());
-    return untag()->canBeClosed_;
+    return LoadNonPointer<Dart_NativeAssetsDlsymCallback,
+                          std::memory_order_relaxed>(&untag()->dlsym_);
   }
 
-  void SetCanBeClosed(bool value) const {
+  void SetDlsym(Dart_NativeAssetsDlsymCallback value) const {
     ASSERT(!IsNull());
-    StoreNonPointer(&untag()->canBeClosed_, value);
+    StoreNonPointer<Dart_NativeAssetsDlsymCallback,
+                    Dart_NativeAssetsDlsymCallback, std::memory_order_relaxed>(
+        &untag()->dlsym_, value);
+  }
+
+  Dart_NativeAssetsDlcloseCallback Dlclose() const {
+    ASSERT(!IsNull());
+    return LoadNonPointer<Dart_NativeAssetsDlcloseCallback,
+                          std::memory_order_relaxed>(&untag()->dlclose_);
+  }
+
+  void SetDlclose(Dart_NativeAssetsDlcloseCallback value) const {
+    ASSERT(!IsNull());
+    StoreNonPointer<Dart_NativeAssetsDlcloseCallback,
+                    Dart_NativeAssetsDlcloseCallback,
+                    std::memory_order_relaxed>(&untag()->dlclose_, value);
   }
 
   bool IsClosed() const {
     ASSERT(!IsNull());
-    return untag()->isClosed_;
+    return untag()->is_closed_;
   }
 
   void SetClosed(bool value) const {
-    StoreNonPointer(&untag()->isClosed_, value);
+    StoreNonPointer(&untag()->is_closed_, value);
   }
 
  private:

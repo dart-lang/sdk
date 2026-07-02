@@ -632,8 +632,8 @@ class ExperimentalFeatures {
     isExpired: IsExpired.record_use,
     documentation: 'Output arguments used by static functions.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
-    channels: ["main", "dev"],
+    releaseVersion: Version.parse('3.13.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final records = ExperimentalFeature(
@@ -888,7 +888,7 @@ class IsEnabledByDefault {
   static const bool private_named_parameters = true;
 
   /// Default state of the experiment "record-use"
-  static const bool record_use = false;
+  static const bool record_use = true;
 
   /// Default state of the experiment "records"
   static const bool records = true;

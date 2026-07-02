@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
@@ -187,6 +188,9 @@ abstract class InvocationInferenceResult {
   /// The named arguments.
   List<NamedExpression> get named;
 
+  /// The flow analysis expression info for the invocation expression.
+  ExpressionInfo? get expressionInfo;
+
   /// Applies the result of the inference to the expression being inferred.
   ///
   /// A successful result leaves [expression] intact, and an error detected
@@ -210,7 +214,10 @@ abstract class InvocationInferenceResult {
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
+        expression = createLet(
+          variable: hoistedExpressions[index],
+          body: expression,
+        );
       }
     }
     return expression;
@@ -239,6 +246,9 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<NamedExpression> named;
 
+  @override
+  final ExpressionInfo? expressionInfo;
+
   final DartType? inferredReceiverType;
 
   new({
@@ -247,6 +257,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     required this.typeArguments,
     required this.positional,
     required this.named,
+    required this.expressionInfo,
     required this.hoistedArguments,
     this.inferredReceiverType,
   });
@@ -295,8 +306,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
           expression.receiver = createVariableGet(receiver)
             ..parent = expression;
           return createLet(
-            receiver,
-            InvocationInferenceResult._insertHoistedExpressions(
+            variable: receiver,
+            body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
               hoistedArguments,
             ),
@@ -324,8 +335,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
               receiverVariable,
             )..parent = expression;
             return createLet(
-              receiverVariable,
-              InvocationInferenceResult._insertHoistedExpressions(
+              variable: receiverVariable,
+              body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
                 hoistedArguments,
               ),
@@ -392,6 +403,10 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     required this.positional,
     required this.named,
   });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionInfo? get expressionInfo => null;
 
   @override
   DartType get inferredType => const InvalidType();
@@ -559,12 +574,19 @@ class NullAwareGuard {
   /// The variable used to guard the null-aware action.
   final SyntheticVariable _nullAwareVariable;
 
+  final Expression? _nullableExpression;
+
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
   final InferenceVisitorBase _inferrer;
 
-  new(this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
+  new(
+    this._nullAwareVariable,
+    this._nullAwareFileOffset,
+    this._inferrer, {
+    this._nullableExpression,
+  });
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -630,8 +652,9 @@ class NullAwareGuard {
       fileOffset: _nullAwareFileOffset,
     );
     return extern.createLet(
-      _nullAwareVariable,
-      condition,
+      variable: _nullAwareVariable,
+      value: _nullableExpression,
+      body: condition,
       fileOffset: _nullAwareFileOffset,
     );
   }

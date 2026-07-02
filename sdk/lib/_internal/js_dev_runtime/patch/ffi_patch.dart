@@ -790,6 +790,10 @@ class DynamicLibrary {
   factory DynamicLibrary.open(String path) =>
       throw UnsupportedError('DynamicLibrary.open');
   @patch
+  factory DynamicLibrary.codeAsset(String assetId) =>
+      throw UnsupportedError('DynamicLibrary.codeAsset');
+
+  @patch
   Pointer<T> lookup<T extends NativeType>(String symbolName) =>
       throw UnsupportedError('DynamicLibrary.lookup');
   @patch
