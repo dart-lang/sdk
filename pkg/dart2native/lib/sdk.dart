@@ -106,6 +106,10 @@ class Sdk {
     'dart_tooling_daemon_aot.dart.snapshot',
   );
 
+  String get mcpServerSnapshot => _snapshotPathFor(
+    'mcp_server.dart.snapshot',
+  );
+
   String get devToolsBinaries => path.absolute(
     runFromBuildRoot
         ? sdkPath
