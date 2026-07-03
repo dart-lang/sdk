@@ -10682,7 +10682,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableInstanceMember:
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
-        binary = new InstanceInvocation(
+        InstanceInvocation instanceInvocation = binary = new InstanceInvocation(
           InstanceAccessKind.Instance,
           left,
           binaryName,
@@ -10697,6 +10697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         if (binaryCheckKind ==
             MethodContravarianceCheckKind.checkMethodReturn) {
+          instanceInvocation.resultType = coreTypes.objectNullableRawType;
           binary = new AsExpression(binary, binaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
@@ -10845,7 +10846,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableInstanceMember:
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
-        unary = new InstanceInvocation(
+        InstanceInvocation instanceInvocation = unary = new InstanceInvocation(
           InstanceAccessKind.Instance,
           expression,
           unaryName,
@@ -10860,6 +10861,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
           // Coverage-ignore-block(suite): Not run.
+          instanceInvocation.resultType = coreTypes.objectNullableRawType;
           unary = new AsExpression(unary, unaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
@@ -11016,7 +11018,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           default:
             throw new UnsupportedError('Unexpected target kind $readTarget');
         }
-        read = new InstanceInvocation(
+        InstanceInvocation instanceInvocation = read = new InstanceInvocation(
           kind,
           readReceiver,
           indexGetName,
@@ -11029,6 +11031,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           interfaceTarget: readTarget.classMember as Procedure,
         )..fileOffset = fileOffset;
         if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+          instanceInvocation.resultType = coreTypes.objectNullableRawType;
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true

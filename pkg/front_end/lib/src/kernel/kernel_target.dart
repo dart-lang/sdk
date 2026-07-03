@@ -1961,10 +1961,16 @@ class KernelTarget {
         // An error has already been reported.
       },
     );
-    verifyGetStaticType(
+    errors = verifyGetStaticType(
       new TypeEnvironment(loader.coreTypes, hierarchy),
       component!,
       skipPlatform: context.options.skipPlatformVerification,
+    );
+    assert(
+      allowVerificationErrorForTesting ||
+          // Coverage-ignore(suite): Not run.
+          errors.isEmpty,
+      "Verification errors found: $errors",
     );
     ticker.logMs("Verified component");
   }

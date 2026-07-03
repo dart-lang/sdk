@@ -238,9 +238,10 @@ B14 = TargetBlock() idom:B0
   Goto(B25)
 B15 = TargetBlock() idom:B0 dominates:(B21, B20)
   ParallelMove output(stack[0] -> R1)
-  v80 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R1)
-  v18 = TypeCast(v9, v80, v12, _AsBroadcastStreamController<AsBroadcastStream.T%>, unchecked)   # RA: R0 <- (R0, R2, -)
-  ParallelMove output(R0 -> stack[5])
+  v81 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R1)
+  ParallelMove output(R2 -> stack[5])
+  v18 = TypeCast(v9, v81, v12, _AsBroadcastStreamController<AsBroadcastStream.T%>, unchecked)   # RA: R0 <- (R0, R2, -)
+  ParallelMove output(R0 -> stack[6])
   v19 = InterfaceCall getter _AsBroadcastStreamController.isClosed(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v19, true: B20, false: B21)   # RA: (R0)
@@ -248,16 +249,16 @@ B20 = TargetBlock() idom:B15
   Goto(B25)
 B25 = JoinBlock(B20, B14) idom:B0
   ParallelMove output(stack[0] -> R0)
-  v79 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
+  v80 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
   ParallelMove input(vloc:R2 -> R2, NullConstant(null) -> R1)
-  v28 = TypeArguments(v79, v12, <AsBroadcastStream.T%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  v28 = TypeArguments(v80, v12, <AsBroadcastStream.T%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
   ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v29 = AllocateObject StreamSubscription<AsBroadcastStream.T%>(v28)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, stack[3] -> R1)
-  ParallelMove spill(R0 -> stack[6])
+  ParallelMove spill(R0 -> stack[7])
   DirectCall StreamSubscription.(v29, v4)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[6] -> R1)
+  ParallelMove output(stack[7] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v29)   # RA: (R0)
 B21 = TargetBlock() idom:B15 dominates:(B37, B49, B36)
@@ -268,15 +269,18 @@ B21 = TargetBlock() idom:B15 dominates:(B37, B49, B36)
 B36 = TargetBlock() idom:B21
   ParallelMove output(stack[0] -> R0)
   v41 = InterfaceCall getter AsBroadcastStream._source(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[5] -> R1)
-  ParallelMove spill(R0 -> stack[7])
-  v44 = InterfaceCall method-extractor _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[7] -> R1)
-  v46 = InterfaceCall Stream.listen(v41, v44)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  ParallelMove output(R0 -> vloc:R0, stack[6] -> R1)
   ParallelMove spill(R0 -> stack[8])
+  v44 = InterfaceCall method-extractor _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[5] -> R2)
+  ParallelMove input(vloc:R0 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v45 = TypeCast(v44, v81, v12, void Function(AsBroadcastStream.T%))   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[8] -> R1)
+  v46 = InterfaceCall Stream.listen(v41, v45)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  ParallelMove spill(R0 -> stack[9])
   InterfaceCall setter AsBroadcastStream._subscription(v1, v46)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[8] -> R1)
+  ParallelMove output(stack[9] -> R1)
   Goto(B49)
 B37 = TargetBlock() idom:B21
   ParallelMove input(NullConstant(null) -> R1)
@@ -293,7 +297,7 @@ B64 = TargetBlock() idom:B49
   Goto(B68)
 B68 = JoinBlock(B64, B63) idom:B49
   v78 = Phi(v71, v66)   # RA: R0 <- (R0, -)
-  ParallelMove output(stack[1] -> R1, stack[2] -> R2, stack[3] -> R3, stack[5] -> R4)
+  ParallelMove output(stack[1] -> R1, stack[2] -> R2, stack[3] -> R3, stack[6] -> R4)
   v75 = InterfaceCall _AsBroadcastStreamController._subscribe(v18, v2, v3, v4, v78)   # RA: R0 <- (R4, R1, R2, R3, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)

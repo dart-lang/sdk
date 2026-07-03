@@ -2969,6 +2969,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   if (!is_dynamic) {
     SkipDartType();  // read function_type.
+    SkipDartType();  // read result_type.
   }
 
   const Function* interface_target = &Function::null_function();
