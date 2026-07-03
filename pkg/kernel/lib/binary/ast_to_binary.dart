@@ -1896,6 +1896,7 @@ class BinaryPrinter
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
+    writeDartType(node.resultType);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 

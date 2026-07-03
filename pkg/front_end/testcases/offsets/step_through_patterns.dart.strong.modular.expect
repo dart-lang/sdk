@@ -33,28 +33,28 @@ import "dart:core" as core;
 [470]    {
 [523]      {
 [508]        [508, -1] hoisted core::double l;
-[523]        if([-1] [-1] [489] [489] [489] [489] [-1] [-1] #0#0 is self::Square && [508]([508] let [508, -1] final dynamic #t2 = [508] [508] l = [502] [502] [-1] [-1] #0#2#isSet ?{core::double} [-1] [-1] #0#2 : [502] [502] let [502, -1] final dynamic #t3 = [502] [502] #0#2#isSet = [502] [502] true in [502] [502] #0#2 = [502] [502] [-1] [-1] #0#0{self::Square}.{self::Square::length}{core::double} in [-1] [-1] true) && [518] [518] [516] [516] l.{core::num::>=}[518]([521] 0){(core::num) → core::bool}) {
+[523]        if([-1] [-1] [489] [489] [489] [489] [-1] [-1] #0#0 is self::Square && [508]([508] let [508, -1] final dynamic #t2 = [508] [508] l = [502] [502] [-1] [-1] #0#2#isSet ?{core::double} [502] [502] #0#2 : [502] [502] let [502, -1] final dynamic #t3 = [502] [502] #0#2#isSet = [502] [502] true in [502] [502] #0#2 = [502] [502] [-1] [-1] #0#0{self::Square}.{self::Square::length}{core::double} in [-1] [-1] true) && [518] [518] [516] [516] l.{core::num::>=}[518]([521] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [528] [528] [526] [526] l.{core::double::*}[528]([530] l){(core::num) → core::double};
 [523]          break #L1;
         }
       }
 [569]      {
 [554]        [554, -1] hoisted core::double r;
-[569]        if([-1] [-1] [535] [535] [535] [535] [-1] [-1] #0#0 is self::Circle && [554]([554] let [554, -1] final dynamic #t4 = [554] [554] r = [548] [548] [-1] [-1] #0#4#isSet ?{core::double} [-1] [-1] #0#4 : [548] [548] let [548, -1] final dynamic #t5 = [548] [548] #0#4#isSet = [548] [548] true in [548] [548] #0#4 = [548] [548] [-1] [-1] #0#0{self::Circle}.{self::Circle::radius}{core::double} in [-1] [-1] true) && [564] [564] [562] [562] r.{core::num::>=}[564]([567] 0){(core::num) → core::bool}) {
+[569]        if([-1] [-1] [535] [535] [535] [535] [-1] [-1] #0#0 is self::Circle && [554]([554] let [554, -1] final dynamic #t4 = [554] [554] r = [548] [548] [-1] [-1] #0#4#isSet ?{core::double} [548] [548] #0#4 : [548] [548] let [548, -1] final dynamic #t5 = [548] [548] #0#4#isSet = [548] [548] true in [548] [548] #0#4 = [548] [548] [-1] [-1] #0#0{self::Circle}.{self::Circle::radius}{core::double} in [-1] [-1] true) && [564] [564] [562] [562] r.{core::num::>=}[564]([567] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [579] [579] [575] [575] [572] [572] #C1.{core::double::*}[575]([577] r){(core::num) → core::double}.{core::double::*}[579]([581] r){(core::num) → core::double};
 [569]          break #L1;
         }
       }
 [619]      {
 [605]        [605, -1] hoisted core::double l;
-[619]        if([-1] [-1] [586] [586] [586] [586] [-1] [-1] #0#0 is self::Square && [605]([605] let [605, -1] final dynamic #t6 = [605] [605] l = [502] [502] [-1] [-1] #0#2#isSet ?{core::double} [-1] [-1] #0#2 : [502] [502] let [502, -1] final dynamic #t7 = [502] [502] #0#2#isSet = [502] [502] true in [502] [502] #0#2 = [502] [502] [-1] [-1] #0#0{self::Square}.{self::Square::length}{core::double} in [-1] [-1] true) && [615] [615] [613] [613] l.{core::num::<}[615]([617] 0){(core::num) → core::bool}) {
+[619]        if([-1] [-1] [586] [586] [586] [586] [-1] [-1] #0#0 is self::Square && [605]([605] let [605, -1] final dynamic #t6 = [605] [605] l = [502] [502] [-1] [-1] #0#2#isSet ?{core::double} [502] [502] #0#2 : [502] [502] let [502, -1] final dynamic #t7 = [502] [502] #0#2#isSet = [502] [502] true in [502] [502] #0#2 = [502] [502] [-1] [-1] #0#0{self::Square}.{self::Square::length}{core::double} in [-1] [-1] true) && [615] [615] [613] [613] l.{core::num::<}[615]([617] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [622] [622] -1.0;
 [619]          break #L1;
         }
       }
 [661]      {
 [647]        [647, -1] hoisted core::double r;
-[661]        if([-1] [-1] [628] [628] [628] [628] [-1] [-1] #0#0 is self::Circle && [647]([647] let [647, -1] final dynamic #t8 = [647] [647] r = [548] [548] [-1] [-1] #0#4#isSet ?{core::double} [-1] [-1] #0#4 : [548] [548] let [548, -1] final dynamic #t9 = [548] [548] #0#4#isSet = [548] [548] true in [548] [548] #0#4 = [548] [548] [-1] [-1] #0#0{self::Circle}.{self::Circle::radius}{core::double} in [-1] [-1] true) && [657] [657] [655] [655] r.{core::num::<}[657]([659] 0){(core::num) → core::bool}) {
+[661]        if([-1] [-1] [628] [628] [628] [628] [-1] [-1] #0#0 is self::Circle && [647]([647] let [647, -1] final dynamic #t8 = [647] [647] r = [548] [548] [-1] [-1] #0#4#isSet ?{core::double} [548] [548] #0#4 : [548] [548] let [548, -1] final dynamic #t9 = [548] [548] #0#4#isSet = [548] [548] true in [548] [548] #0#4 = [548] [548] [-1] [-1] #0#0{self::Circle}.{self::Circle::radius}{core::double} in [-1] [-1] true) && [657] [657] [655] [655] r.{core::num::<}[657]([659] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [664] [664] -1.0;
 [661]          break #L1;
         }

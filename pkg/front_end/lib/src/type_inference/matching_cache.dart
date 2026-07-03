@@ -1105,69 +1105,6 @@ class PromotedCacheableExpression
   }
 }
 
-/// A cacheable expression that performs a covariant check on the resulting
-/// value.
-class CovariantCheckCacheableExpression
-    with AbstractDelayedExpression
-    implements CacheableExpression {
-  final CacheableExpression _expression;
-
-  final DartType _checkedType;
-
-  final int fileOffset;
-
-  new(this._expression, this._checkedType, {required this.fileOffset});
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  CacheKey get cacheKey => _expression.cacheKey;
-
-  @override
-  AccessKey get accessKey => _expression.accessKey;
-
-  @override
-  Expression createExpression(
-    TypeEnvironment typeEnvironment, {
-    List<Expression>? effects,
-    required bool inCacheInitializer,
-  }) {
-    Expression result = _expression.createExpression(
-      typeEnvironment,
-      effects: effects,
-      inCacheInitializer: inCacheInitializer,
-    );
-    return createAsExpression(
-      result,
-      _checkedType,
-      fileOffset: fileOffset,
-      isCovarianceCheck: true,
-    );
-  }
-
-  @override
-  DartType getType(TypeEnvironment typeEnvironment) {
-    return _checkedType;
-  }
-
-  @override
-  void registerUse() {
-    _expression.registerUse();
-  }
-
-  @override
-  bool uses(DelayedExpression expression) {
-    // Coverage-ignore-block(suite): Not run.
-    return identical(this, expression) || _expression.uses(expression);
-  }
-
-  @override
-  CacheableExpression promote(DartType type) {
-    if (type == _checkedType) return this;
-    // Coverage-ignore(suite): Not run.
-    return new PromotedCacheableExpression(_expression, type);
-  }
-}
-
 /// A [CacheableExpression] created using a potentially shared [Cache].
 class CacheExpression
     with AbstractDelayedExpression
@@ -1344,12 +1281,11 @@ class Cache {
         // unless it is not a late variable.
         DeclaredVariable? variable = _variable;
         if (variable == null) {
+          Expression cachedExpression = cacheableExpression.expression
+              .createExpression(typeEnvironment, inCacheInitializer: true);
           variable = _variable =
               createVariableCache(
-                  cacheableExpression.expression.createExpression(
-                    typeEnvironment,
-                    inCacheInitializer: true,
-                  ),
+                  cachedExpression,
                   cacheableExpression.getType(typeEnvironment),
                 )
                 ..isConst = _isConst
@@ -1408,11 +1344,14 @@ class Cache {
           isSetVariable = _isSetVariable = isSetVariableDeclaration.variable;
           _matchingCache.registerDeclaration(isSetVariableDeclaration);
         }
+        Expression cachedExpression = cacheableExpression.expression
+            .createExpression(typeEnvironment, inCacheInitializer: false);
         result = createConditionalExpression(
           createVariableGet(isSetVariable!),
-          createVariableGet(
+          cacheExpression.expression.createVariableCacheReadExpression(
             variable,
             promotedType: cacheableExpression.getType(typeEnvironment),
+            fileOffset: _fileOffset,
           ),
           createLetEffect(
             effect: createVariableSet(
@@ -1422,10 +1361,7 @@ class Cache {
             ),
             result: createVariableSet(
               variable,
-              cacheableExpression.expression.createExpression(
-                typeEnvironment,
-                inCacheInitializer: false,
-              ),
+              cachedExpression,
               fileOffset: _fileOffset,
             ),
           ),

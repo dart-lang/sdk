@@ -2764,14 +2764,21 @@ class BinaryBuilder {
     InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
     int flags = readByte();
     int offset = readOffset();
+    Expression receiver = readExpression();
+    Name name = readName();
+    Arguments arguments = readArguments();
+    FunctionType functionType = readDartType() as FunctionType;
+    DartType resultType = readDartType();
+    Reference interfaceTargetReference = readNonNullInstanceMemberReference();
     return new InstanceInvocation.byReference(
         kind,
-        readExpression(),
-        readName(),
-        readArguments(),
-        functionType: readDartType() as FunctionType,
-        interfaceTargetReference: readNonNullInstanceMemberReference(),
+        receiver,
+        name,
+        arguments,
+        functionType: functionType,
+        interfaceTargetReference: interfaceTargetReference,
       )
+      ..resultType = resultType
       ..fileOffset = offset
       ..flags = flags;
   }

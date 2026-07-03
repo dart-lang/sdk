@@ -3059,22 +3059,46 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else if (result.isInapplicable) {
       // This was a method invocation whose arguments didn't match
       // the parameters.
-      expression = new InstanceInvocation(
-        InstanceAccessKind.Inapplicable,
-        receiver,
-        methodName,
-        createArgumentsFromInternalNode(
-          result.typeArguments,
-          result.positional,
-          result.named,
-          arguments,
-        ),
-        functionType: _computeFunctionTypeForArguments(
-          arguments,
-          const InvalidType(),
-        ),
-        interfaceTarget: method!,
-      )..fileOffset = fileOffset;
+      if (contravariantCheck) {
+        // Coverage-ignore-block(suite): Not run.
+        expression = extern.createCovarianceCheckedInstanceInvocation(
+          InstanceAccessKind.Inapplicable,
+          receiver,
+          methodName,
+          createArgumentsFromInternalNode(
+            result.typeArguments,
+            result.positional,
+            result.named,
+            arguments,
+          ),
+          functionType: _computeFunctionTypeForArguments(
+            arguments,
+            const InvalidType(),
+          ),
+          interfaceTarget: method!,
+          checkType: result.inferredType,
+          objectNullableType: coreTypes.objectNullableRawType,
+          fileOffset: fileOffset,
+        );
+      } else {
+        expression = extern.createInstanceInvocation(
+          InstanceAccessKind.Inapplicable,
+          receiver,
+          methodName,
+          createArgumentsFromInternalNode(
+            result.typeArguments,
+            result.positional,
+            result.named,
+            arguments,
+          ),
+          functionType: _computeFunctionTypeForArguments(
+            arguments,
+            const InvalidType(),
+          ),
+          interfaceTarget: method!,
+          fileOffset: fileOffset,
+        );
+      }
     } else {
       assert(
         inferredFunctionType is FunctionType &&
@@ -3097,29 +3121,39 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         default:
           throw new UnsupportedError('Unexpected target kind $target');
       }
-      expression = new InstanceInvocation(
-        kind,
-        receiver,
-        methodName,
-        createArgumentsFromInternalNode(
-          result.typeArguments,
-          result.positional,
-          result.named,
-          arguments,
-        ),
-        functionType: inferredFunctionType as FunctionType,
-        interfaceTarget: method!,
-      )..fileOffset = fileOffset;
-    }
-    Expression replacement;
-    if (contravariantCheck) {
-      // TODO(johnniwinther): Merge with the replacement computation below.
-      replacement = new AsExpression(expression, result.inferredType)
-        ..isTypeError = true
-        ..isCovarianceCheck = true
-        ..fileOffset = fileOffset;
-    } else {
-      replacement = expression;
+      if (contravariantCheck) {
+        expression = extern.createCovarianceCheckedInstanceInvocation(
+          kind,
+          receiver,
+          methodName,
+          createArgumentsFromInternalNode(
+            result.typeArguments,
+            result.positional,
+            result.named,
+            arguments,
+          ),
+          functionType: inferredFunctionType as FunctionType,
+          checkType: result.inferredType,
+          objectNullableType: coreTypes.objectNullableRawType,
+          interfaceTarget: method!,
+          fileOffset: fileOffset,
+        );
+      } else {
+        expression = extern.createInstanceInvocation(
+          kind,
+          receiver,
+          methodName,
+          createArgumentsFromInternalNode(
+            result.typeArguments,
+            result.positional,
+            result.named,
+            arguments,
+          ),
+          functionType: inferredFunctionType as FunctionType,
+          interfaceTarget: method!,
+          fileOffset: fileOffset,
+        );
+      }
     }
 
     _checkBoundsInMethodInvocation(
@@ -3133,7 +3167,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       hasInferredTypeArguments: typeArguments == null,
     );
 
-    replacement = result.applyResult(replacement);
+    Expression replacement = result.applyResult(expression);
     if (target.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
         flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
@@ -3236,36 +3270,58 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // can be triggered, if call with inapplicable arguments.
         throw new UnsupportedError('Unexpected target kind $target');
     }
-    InstanceGet originalPropertyGet = new InstanceGet(
-      kind,
-      receiver,
-      originalName,
-      resultType: calleeType,
-      interfaceTarget: originalTarget,
-    )..fileOffset = fileOffset;
-    var (
-      SharedTypeView? wrappedPromotedType,
-      ExpressionInfo? expressionInfo,
-    ) = flowAnalysis.propertyGet(
-      computePropertyTarget(originalReceiver),
-      originalName.text,
-      originalTarget,
-      new SharedTypeView(calleeType),
-    );
-    storeExpressionInfo(originalPropertyGet, expressionInfo);
-    DartType? promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
-    originalPropertyGet.resultType = calleeType;
-    Expression propertyGet = originalPropertyGet;
+    DartType? promotedCalleeType;
+    Expression propertyGet;
+    InstanceGet originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
         returnedTypeParametersOccurNonCovariantly(
           member.enclosingTypeDeclaration!,
           declaredMemberType,
         )) {
-      propertyGet = new AsExpression(propertyGet, calleeType)
-        ..isTypeError = true
-        ..isCovarianceCheck = true
-        ..fileOffset = fileOffset;
+      AsExpression checkedPropertyGet = propertyGet = extern
+          .createCovarianceCheckedInstanceGet(
+            kind,
+            receiver,
+            originalName,
+            checkType: calleeType,
+            objectNullableType: coreTypes.objectNullableRawType,
+            interfaceTarget: originalTarget,
+            fileOffset: fileOffset,
+          );
+      originalPropertyGet = checkedPropertyGet.operand as InstanceGet;
+      var (
+        SharedTypeView? wrappedPromotedType,
+        ExpressionInfo? expressionInfo,
+      ) = flowAnalysis.propertyGet(
+        computePropertyTarget(originalReceiver),
+        originalName.text,
+        originalTarget,
+        new SharedTypeView(calleeType),
+      );
+      storeExpressionInfo(originalPropertyGet, expressionInfo);
+      // Coverage-ignore-block(suite): Not run.
+      promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
+    } else {
+      propertyGet = originalPropertyGet = extern.createInstanceGet(
+        kind,
+        receiver,
+        originalName,
+        resultType: calleeType,
+        interfaceTarget: originalTarget,
+        fileOffset: fileOffset,
+      );
+      var (
+        SharedTypeView? wrappedPromotedType,
+        ExpressionInfo? expressionInfo,
+      ) = flowAnalysis.propertyGet(
+        computePropertyTarget(originalReceiver),
+        originalName.text,
+        originalTarget,
+        new SharedTypeView(calleeType),
+      );
+      storeExpressionInfo(originalPropertyGet, expressionInfo);
+      promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
     }
 
     if (promotedCalleeType != null) {
@@ -5286,23 +5342,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           default:
             throw new UnsupportedError('Unexpected target kind $readTarget');
         }
-        if (member is Procedure && member.kind == ProcedureKind.Method) {
-          read = new InstanceTearOff(
-            kind,
-            receiver,
-            propertyName,
-            interfaceTarget: member,
-            resultType: readType,
-          )..fileOffset = fileOffset;
-        } else {
-          read = new InstanceGet(
-            kind,
-            receiver,
-            propertyName,
-            interfaceTarget: member,
-            resultType: readType,
-          )..fileOffset = fileOffset;
-        }
         bool checkReturn = false;
         if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
             !isThisReceiver) {
@@ -5330,11 +5369,48 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 );
           }
         }
-        if (checkReturn) {
-          read = new AsExpression(read, readType)
-            ..isTypeError = true
-            ..isCovarianceCheck = true
-            ..fileOffset = fileOffset;
+        if (member is Procedure && member.kind == ProcedureKind.Method) {
+          if (checkReturn) {
+            read = extern.createCovarianceCheckedInstanceTearOff(
+              kind,
+              receiver,
+              propertyName,
+              interfaceTarget: member,
+              checkType: readType,
+              objectNullableType: coreTypes.objectNullableRawType,
+              fileOffset: fileOffset,
+            );
+          } else {
+            read = extern.createInstanceTearOff(
+              kind,
+              receiver,
+              propertyName,
+              interfaceTarget: member,
+              resultType: readType,
+              fileOffset: fileOffset,
+            );
+          }
+        } else {
+          if (checkReturn) {
+            read = extern.createCovarianceCheckedInstanceGet(
+              kind,
+              receiver,
+              propertyName,
+              interfaceTarget: member,
+              checkType: readType,
+              objectNullableType: coreTypes.objectNullableRawType,
+              fileOffset: fileOffset,
+            );
+          } else {
+            read = extern.createInstanceGet(
+              kind,
+              receiver,
+              propertyName,
+              interfaceTarget: member,
+              resultType: readType,
+              fileOffset: fileOffset,
+            );
+          }
         }
         if (member is Procedure && member.kind == ProcedureKind.Method) {
           readResult = instantiateTearOff(readType, typeContext, read);

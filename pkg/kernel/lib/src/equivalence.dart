@@ -3087,6 +3087,9 @@ class EquivalenceStrategy {
     if (!checkInstanceInvocation_functionType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkInstanceInvocation_resultType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkInstanceInvocation_interfaceTargetReference(
       visitor,
       node,
@@ -9214,6 +9217,14 @@ class EquivalenceStrategy {
       other.functionType,
       'functionType',
     );
+  }
+
+  bool checkInstanceInvocation_resultType(
+    EquivalenceVisitor visitor,
+    InstanceInvocation node,
+    InstanceInvocation other,
+  ) {
+    return visitor.checkNodes(node.resultType, other.resultType, 'resultType');
   }
 
   bool checkInstanceInvocation_interfaceTargetReference(

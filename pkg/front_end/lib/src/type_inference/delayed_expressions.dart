@@ -49,6 +49,20 @@ abstract class DelayedExpression {
     List<Statement>? statementEffects,
   });
 
+  /// Reads the result of the evaluated expression from [variableCache].
+  ///
+  /// The expression created by a [DelayedExpression] can be cached in a
+  /// variable. When that happens, some type checks might not be performed
+  /// before the value was stored and, therefore, should be done when the value
+  /// is retrieved from the cache. [createVariableCacheReadExpression] creates
+  /// an expression that reads the value from [variableCache] and applies the
+  /// necessary checks, if any.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  });
+
   /// Returns the type of the resulting expression.
   DartType getType(TypeEnvironment typeEnvironment);
 
@@ -138,6 +152,16 @@ abstract mixin class AbstractDelayedExpression implements DelayedExpression {
   }
 
   @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
   bool get isEffectOnly => false;
 
   @override
@@ -168,6 +192,19 @@ class FixedExpression extends AbstractDelayedExpression {
   void registerUse() {
     assert(!used, "FixedExpression can only be used once.");
     used = true;
+  }
+
+  @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(
+      variableCache,
+      promotedType: promotedType,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -415,6 +452,17 @@ class DelayedAndExpression implements DelayedExpression {
       }
     }
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
 }
 
 /// A lazy-or expression of the [_left] and [_right] expressions.
@@ -602,6 +650,17 @@ class EffectExpression implements DelayedExpression {
       );
     }
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
 }
 
 /// A expression that assigns [_value] to [_target].
@@ -731,6 +790,17 @@ class DelayedAssignment extends DelayedExpression {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    return createVariableGet(variableCache, promotedType: promotedType)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -799,7 +869,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
   final DartType _type;
   final bool isUnchecked;
   final bool isImplicit;
-  final bool isCovarianceCheck;
   final int fileOffset;
 
   new(
@@ -807,7 +876,6 @@ class DelayedAsExpression extends AbstractDelayedExpression {
     this._type, {
     this.isUnchecked = false,
     this.isImplicit = false,
-    this.isCovarianceCheck = false,
     required this.fileOffset,
   });
 
@@ -822,15 +890,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
       effects: effects,
       inCacheInitializer: inCacheInitializer,
     );
-    if (isCovarianceCheck) {
-      // Coverage-ignore-block(suite): Not run.
-      return createAsExpression(
-        operand,
-        _type,
-        isCovarianceCheck: true,
-        fileOffset: fileOffset,
-      );
-    } else if (isImplicit) {
+    if (isImplicit) {
       DartType operandType = _operand.getType(typeEnvironment);
       if (typeEnvironment.isSubtypeOf(operandType, _type)) {
         return operand;
@@ -953,13 +1013,87 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
   final bool isObjectAccess;
   final int fileOffset;
 
+  /// Static type of the covariance check operand for the created expression,
+  /// if any.
+  ///
+  /// If the created expression needs to be checked due to covariantly occurring
+  /// type parameters, [covarianceCheckedExpressionStaticType] returns the
+  /// static type of the expression being checked. Note that that type is
+  /// different from the target type of the check. Consider the following
+  /// example:
+  ///
+  ///   e as{CovarianceChecks} T
+  ///
+  /// In the example, `e` is the created expression, `T` is the target type of
+  /// the check, and [covarianceCheckedExpressionStaticType], if not null, is
+  /// the static type of `e`, such that runtime type of all possible values `e`
+  /// evaluates to is a subtype of that static type. Not that the type is
+  /// different from the notion of static type as defined by the Dart language
+  /// specification.
+  ///
+  /// If the covariance check isn't needed for the created expression,
+  /// [covarianceCheckedExpressionStaticType] returns null.
+  ///
+  /// See also the documentation of [typeForCovariantCheck]
+  final DartType? covarianceCheckedExpressionStaticType;
+
+  /// The target type of the covariance check for the created expression, if
+  /// any.
+  ///
+  /// Some [InstanceGet] expressions might require a type check due to the class
+  /// type parameters appearing contravariantly in the return type of the
+  /// getter. In that case [typeForCovariantCheck] represents the target type of
+  /// the check. Consider the following example:
+  ///
+  ///   e as {CovarianceCheck} T
+  ///
+  /// In the example, `e` is the created expression, and `T` is the target type
+  /// of the check.
+  ///
+  /// See also the documentation of [covarianceCheckedExpressionStaticType].
+  final DartType? typeForCovariantCheck;
+
   new(
     this._receiver,
     this._target,
     this._resultType, {
     required this.fileOffset,
     this.isObjectAccess = false,
-  });
+    this.typeForCovariantCheck,
+    this.covarianceCheckedExpressionStaticType,
+  }) : assert(
+         // [typeForCovariantCheck] and [covarianceCheckedExpressionStaticType]
+         // should be provided together or absent together.
+         typeForCovariantCheck == null &&
+                 covarianceCheckedExpressionStaticType == null ||
+             typeForCovariantCheck != null &&
+                 covarianceCheckedExpressionStaticType != null,
+       );
+
+  @override
+  Expression createVariableCacheReadExpression(
+    Variable variableCache, {
+    required DartType promotedType,
+    required int fileOffset,
+  }) {
+    Expression cacheVariableReadExpression;
+    if (covarianceCheckedExpressionStaticType
+        case DartType covarianceCheckedExpressionStaticType?) {
+      cacheVariableReadExpression = createCovarianceCheckedVariableGet(
+        variableCache,
+        operandStaticType: covarianceCheckedExpressionStaticType,
+        checkedType: typeForCovariantCheck!,
+        fileOffset: fileOffset,
+      );
+    } else {
+      cacheVariableReadExpression = createVariableGet(
+        variableCache,
+        promotedType: promotedType,
+        fileOffset: fileOffset,
+      );
+    }
+    return cacheVariableReadExpression;
+  }
 
   @override
   Expression createExpression(
@@ -968,35 +1102,75 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
     required bool inCacheInitializer,
   }) {
     Member target = _target;
+    Expression result;
     if (target is Procedure && !target.isGetter) {
-      return new InstanceTearOff(
-        isObjectAccess
-            ? InstanceAccessKind.Object
-            : InstanceAccessKind.Instance,
-        _receiver.createExpression(
-          typeEnvironment,
-          effects: effects,
-          inCacheInitializer: inCacheInitializer,
-        ),
-        _target.name,
-        interfaceTarget: target,
-        resultType: _resultType,
-      )..fileOffset = fileOffset;
+      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+        // Coverage-ignore-block(suite): Not run.
+        result = createCovarianceCheckedInstanceTearOff(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          checkType: typeForCovariantCheck,
+          objectNullableType: typeEnvironment.objectNullableRawType,
+          fileOffset: fileOffset,
+        );
+      } else {
+        result = createInstanceTearOff(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          resultType: _resultType,
+          fileOffset: fileOffset,
+        );
+      }
     } else {
-      return new InstanceGet(
-        isObjectAccess
-            ? InstanceAccessKind.Object
-            : InstanceAccessKind.Instance,
-        _receiver.createExpression(
-          typeEnvironment,
-          effects: effects,
-          inCacheInitializer: inCacheInitializer,
-        ),
-        _target.name,
-        interfaceTarget: target,
-        resultType: _resultType,
-      )..fileOffset = fileOffset;
+      if (typeForCovariantCheck case var typeForCovariantCheck?) {
+        result = createCovarianceCheckedInstanceGet(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          checkType: typeForCovariantCheck,
+          objectNullableType: typeEnvironment.objectNullableRawType,
+          fileOffset: fileOffset,
+        );
+      } else {
+        result = new InstanceGet(
+          isObjectAccess
+              ? InstanceAccessKind.Object
+              : InstanceAccessKind.Instance,
+          _receiver.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+          _target.name,
+          interfaceTarget: target,
+          resultType: _resultType,
+        )..fileOffset = fileOffset;
+      }
     }
+    return result;
   }
 
   @override

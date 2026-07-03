@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 136;
+  UInt32 formatVersion = 137;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -798,6 +798,7 @@ type InstanceInvocation extends Expression {
   Name name;
   Arguments arguments;
   DartType functionType;
+  DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
