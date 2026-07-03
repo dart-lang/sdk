@@ -100,8 +100,9 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
   Dart_EnterScope();
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup(
-          config.ip, config.port, config.dev_mode, config.disable_auth_codes,
-          config.write_service_info_filename,
+          config.ip, config.port,
+          config.dev_mode || config.disable_origin_check,
+          config.disable_auth_codes, config.write_service_info_filename,
           /*trace_loading=*/false, config.deterministic,
           /*enable_service_port_fallback=*/false,
           /*wait_for_dds_to_advertise_service=*/false,
@@ -139,7 +140,8 @@ Dart_Isolate CreateVmServiceIsolateFromKernel(
 
   Dart_EnterScope();
   // Load embedder specific bits and return.
-  if (!bin::VmService::Setup(config.ip, config.port, config.dev_mode,
+  if (!bin::VmService::Setup(config.ip, config.port,
+                             config.dev_mode || config.disable_origin_check,
                              config.disable_auth_codes,
                              config.write_service_info_filename,
                              /*trace_loading=*/false, config.deterministic,
