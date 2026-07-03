@@ -71,10 +71,15 @@ struct VmServiceConfiguration {
   // file in JSON format at the location specified.
   const char* write_service_info_filename;
 
-  // TODO(vegorov) document these ones.
+  // If true, origin and host checks are disabled for VM service communication.
+  // Deprecated: poorly named, use disable_origin_check instead.
   bool dev_mode;
+  // If true, the service will run in deterministic mode.
   bool deterministic;
+  // If true, authentication codes will be disabled for service connections.
   bool disable_auth_codes;
+  // If true, origin and host checks are disabled for VM service communication.
+  bool disable_origin_check;
 };
 
 // Create and initialize vm-service isolate from the given AOT snapshot, which
