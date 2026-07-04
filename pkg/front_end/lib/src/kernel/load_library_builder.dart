@@ -21,8 +21,7 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import 'internal_ast.dart';
-import 'internal_ast_helper.dart' as intern;
+import 'external_ast_helper.dart' as extern;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends NamedBuilderImpl {
@@ -68,16 +67,15 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => parent.fileUri;
 
-  LoadLibrary createLoadLibrary(int charOffset, ActualArguments? arguments) {
-    return intern.createLoadLibrary(charOffset, importDependency, arguments);
-  }
-
   Procedure createTearoffMethod() {
     if (tearoff != null) {
       // Coverage-ignore-block(suite): Not run.
       return tearoff!;
     }
-    LoadLibrary expression = createLoadLibrary(fileOffset, null);
+    LoadLibrary expression = extern.createLoadLibrary(
+      importDependency,
+      fileOffset: fileOffset,
+    );
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Reference? reference = parent.indexedLibrary?.lookupGetterReference(name);

@@ -119,10 +119,11 @@ class Resolver {
         atToken: annotation.atToken,
       );
       if (annotation.createFileUriExpression) {
-        expression = new FileUriExpression(
-          expression,
-          annotation.metadataBuilder.fileUri,
-        )..fileOffset = annotation.metadataBuilder.atOffset;
+        expression = intern.createFileUriExpression(
+          expression: expression,
+          fileUri: annotation.metadataBuilder.fileUri,
+          fileOffset: annotation.metadataBuilder.atOffset,
+        );
       }
       // Record the index of [annotation] in `annotatable.annotations` in order
       // to perform inference only on the new annotations, and to be able to

@@ -130,6 +130,16 @@ AssignedVariablePattern createAssignedVariablePattern({
     ..fileOffset = fileOffset;
 }
 
+Expression createAwaitExpression(
+  Expression operand, {
+  required DartType? runtimeCheckType,
+  required int fileOffset,
+}) {
+  return new AwaitExpression(operand)
+    ..runtimeCheckType = runtimeCheckType
+    ..fileOffset = fileOffset;
+}
+
 /// Creates a block containing the [statements].
 Block createBlock(
   List<Statement> statements, {
@@ -281,7 +291,6 @@ ConstructorInvocation createConstructorInvocation(
     ..fileOffset = fileOffset;
 }
 
-// Coverage-ignore(suite): Not run.
 ConstructorTearOff createConstructorTearOff(
   Member target, {
   required int fileOffset,
@@ -394,6 +403,10 @@ Statement createDoStatement(
   required int fileOffset,
 }) {
   return new DoStatement(body, condition)..fileOffset = fileOffset;
+}
+
+DoubleLiteral createDoubleLiteral(double value, {required int fileOffset}) {
+  return new DoubleLiteral(value)..fileOffset = fileOffset;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -678,6 +691,14 @@ InstanceTearOff createInstanceTearOff(
   )..fileOffset = fileOffset;
 }
 
+Instantiation createInstantiation(
+  Expression expression,
+  List<DartType> typeArguments, {
+  required int fileOffset,
+}) {
+  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+}
+
 /// Creates an integer literal of [value].
 ///
 /// If [encodeForWeb] is `true`, negative values are encoded using unary-. This
@@ -850,6 +871,13 @@ ListPattern createListPattern({
     ..fileOffset = fileOffset;
 }
 
+LoadLibrary createLoadLibrary(
+  LibraryDependency dependency, {
+  required int fileOffset,
+}) {
+  return new LoadLibrary(dependency)..fileOffset = fileOffset;
+}
+
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
@@ -886,6 +914,15 @@ LocalVariable createLocalVariable({
     )
     ..fileOffset = fileOffset
     ..fileEqualsOffset = fileEqualsOffset;
+}
+
+Expression createLogicalExpression({
+  required Expression left,
+  required LogicalExpressionOperator operator,
+  required Expression right,
+  required int fileOffset,
+}) {
+  return new LogicalExpression(left, operator, right)..fileOffset = fileOffset;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -1027,8 +1064,8 @@ NamedPattern createNamedPattern({
 }
 
 /// Creates a [Not] of [operand].
-Not createNot(Expression operand) {
-  return new Not(operand)..fileOffset = operand.fileOffset;
+Not createNot(Expression operand, {int? fileOffset}) {
+  return new Not(operand)..fileOffset = fileOffset ?? operand.fileOffset;
 }
 
 NullAssertPattern createNullAssertPattern({
@@ -1276,6 +1313,10 @@ RestPattern createRestPattern({
   required int fileOffset,
 }) {
   return new RestPattern(subPattern)..fileOffset;
+}
+
+Expression createRethrow({required int fileOffset}) {
+  return new Rethrow()..fileOffset = fileOffset;
 }
 
 ReturnStatement createReturnStatement(

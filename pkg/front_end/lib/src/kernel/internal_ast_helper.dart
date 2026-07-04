@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
 
-import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 import 'collections.dart'
     show
@@ -78,12 +77,9 @@ ActualArguments createArgumentsEmpty(int fileOffset) {
 Expression createAsExpression(
   int fileOffset,
   Expression expression,
-  DartType type, {
-  bool forDynamic = false,
-}) {
-  return new AsExpression(expression, type)
-    ..fileOffset = fileOffset
-    ..isForDynamic = forDynamic;
+  DartType type,
+) {
+  return new InternalAsExpression(expression, type, fileOffset: fileOffset);
 }
 
 /// Return a representation of an assert that appears in a constructor's
@@ -119,8 +115,8 @@ InternalPattern createAssignedVariablePattern(
   return new InternalAssignedVariablePattern(variable, fileOffset: fileOffset);
 }
 
-Expression createAwaitExpression(int fileOffset, Expression operand) {
-  return new AwaitExpression(operand)..fileOffset = fileOffset;
+InternalExpression createAwaitExpression(int fileOffset, Expression operand) {
+  return new InternalAwaitExpression(operand, fileOffset: fileOffset);
 }
 
 BinaryExpression createBinary(
@@ -168,8 +164,8 @@ InternalBlockExpression createBlockExpression(
 
 /// Return a representation of a boolean literal at the given [fileOffset].
 /// The literal has the given [value].
-BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
-  return new BoolLiteral(value)..fileOffset = fileOffset;
+InternalExpression createBoolLiteral(bool value, {required int fileOffset}) {
+  return new InternalBoolLiteral(value, fileOffset: fileOffset);
 }
 
 /// Return a representation of a break statement.
@@ -225,18 +221,18 @@ InternalCatchVariable createCatchVariable({
 /// [fileOffset]. The [condition] is the expression preceding the question
 /// mark. The [thenExpression] is the expression following the question mark.
 /// The [elseExpression] is the expression following the colon.
-ConditionalExpression createConditionalExpression(
+InternalExpression createConditionalExpression(
   int fileOffset,
   Expression condition,
   Expression thenExpression,
   Expression elseExpression,
 ) {
-  return new ConditionalExpression(
+  return new InternalConditionalExpression(
     condition,
     thenExpression,
     elseExpression,
-    const UnknownType(),
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createConstantPattern(Expression expression) {
@@ -246,12 +242,12 @@ InternalPattern createConstantPattern(Expression expression) {
   );
 }
 
-ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
+InternalExpression createConstructorTearOff(int fileOffset, Member target) {
   assert(
     target is Constructor || (target is Procedure && target.isFactory),
     "Unexpected constructor tear off target: $target",
   );
-  return new ConstructorTearOff(target)..fileOffset = fileOffset;
+  return new InternalConstructorTearOff(target, fileOffset: fileOffset);
 }
 
 /// Return a representation of a continue statement.
@@ -312,8 +308,8 @@ DotShorthandPropertyGet createDotShorthandPropertyGet(
 
 /// Return a representation of a double literal at the given [fileOffset]. The
 /// literal has the given [value].
-DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
-  return new DoubleLiteral(value)..fileOffset = fileOffset;
+InternalExpression createDoubleLiteral(int fileOffset, double value) {
+  return new InternalDoubleLiteral(value, fileOffset: fileOffset);
 }
 
 /// Return a representation of an empty statement  at the given [fileOffset].
@@ -372,6 +368,18 @@ InternalFieldInitializer createFieldInitializer(
     field,
     value,
     isSynthetic: isSynthetic,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createFileUriExpression({
+  required Expression expression,
+  required Uri fileUri,
+  required int fileOffset,
+}) {
+  return new InternalFileUriExpression(
+    expression: expression,
+    fileUri: fileUri,
     fileOffset: fileOffset,
   );
 }
@@ -619,26 +627,47 @@ IndexSet createIndexSet(
   )..fileOffset = fileOffset;
 }
 
-Instantiation createInstantiation(
+InternalExpression createInstantiation(
   Expression expression,
   List<DartType> typeArguments, {
   required int fileOffset,
 }) {
-  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+  return new InternalInstantiation(
+    expression,
+    typeArguments,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of an integer literal at the given [fileOffset].
 /// The literal has the given [value].
-Expression createIntLiteral(int fileOffset, int value, [String? literal]) {
+InternalExpression createIntLiteral({
+  required int fileOffset,
+  required int value,
+  String? literal,
+}) {
   return new InternalIntLiteral(value, literal, fileOffset: fileOffset);
 }
 
-Expression createIntLiteralLarge(
+InternalExpression createIntLiteralLarge(
   int fileOffset,
   String strippedLiteral,
   String literal,
 ) {
   return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
+}
+
+// Coverage-ignore(suite): Not run.
+InternalInvalidExpression createInvalidExpression(
+  String message, {
+  Expression? expression,
+  required int fileOffset,
+}) {
+  return new InternalInvalidExpression(
+    message,
+    expression: expression,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalInvalidInitializer createInvalidInitializer(
@@ -669,17 +698,18 @@ InternalPattern createInvalidPattern(
 /// The [operand] is the representation of the left operand. The [type] is a
 /// representation of the type that is the right operand. If [notFileOffset]
 /// is non-null the test is negated the that file offset.
-Expression createIsExpression(
+InternalExpression createIsExpression(
   int fileOffset,
   Expression operand,
   DartType type, {
   int? notFileOffset,
 }) {
-  Expression result = new IsExpression(operand, type)..fileOffset = fileOffset;
-  if (notFileOffset != null) {
-    result = createNot(notFileOffset, result);
-  }
-  return result;
+  return new InternalIsExpression(
+    operand,
+    type,
+    notFileOffset: notFileOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// The given [statement] is being used as the target of either a break or
@@ -765,12 +795,12 @@ InternalPattern createListPattern(
   );
 }
 
-LoadLibrary createLoadLibrary(
-  int fileOffset,
-  LibraryDependency dependency,
-  ActualArguments? arguments,
-) {
-  return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
+InternalLoadLibrary createLoadLibrary({
+  required LibraryDependency import,
+  required ActualArguments? arguments,
+  required int fileOffset,
+}) {
+  return new InternalLoadLibrary(import, arguments, fileOffset: fileOffset);
 }
 
 InternalLocalVariable createLocalVariable({
@@ -806,7 +836,7 @@ InternalLocalVariable createLocalVariable({
 /// Return a representation of a logical expression at the given [fileOffset]
 /// having the [leftOperand], [rightOperand] and the [operatorString]
 /// (either `&&` or `||`).
-Expression createLogicalExpression(
+InternalExpression createLogicalExpression(
   int fileOffset,
   Expression leftOperand,
   String operatorString,
@@ -821,8 +851,12 @@ Expression createLogicalExpression(
     throw new UnsupportedError("Unhandled logical operator '$operatorString'");
   }
 
-  return new LogicalExpression(leftOperand, operator, rightOperand)
-    ..fileOffset = fileOffset;
+  return new InternalLogicalExpression(
+    leftOperand,
+    operator,
+    rightOperand,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a key/value pair in a literal map at the given
@@ -978,8 +1012,8 @@ InternalPattern createNamedPattern(
   );
 }
 
-Expression createNot(int fileOffset, Expression operand) {
-  return new Not(operand)..fileOffset = fileOffset;
+InternalExpression createNot(int fileOffset, Expression operand) {
+  return new InternalNot(operand, fileOffset: fileOffset);
 }
 
 InternalPattern createNullAssertPattern(
@@ -1016,8 +1050,8 @@ NullAwareMapEntry createNullAwareMapEntry(
   )..fileOffset = fileOffset;
 }
 
-NullCheck createNullCheck(int fileOffset, Expression expression) {
-  return new NullCheck(expression)..fileOffset = fileOffset;
+InternalExpression createNullCheck(int fileOffset, Expression expression) {
+  return new InternalNullCheck(expression, fileOffset: fileOffset);
 }
 
 InternalPattern createNullCheckPattern(
@@ -1028,7 +1062,7 @@ InternalPattern createNullCheckPattern(
 }
 
 /// Return a representation of a null literal at the given [fileOffset].
-NullLiteral createNullLiteral(int fileOffset) {
+Expression createNullLiteral(int fileOffset) {
   return new NullLiteral()..fileOffset = fileOffset;
 }
 
@@ -1299,6 +1333,10 @@ InternalPattern createRestPattern(int fileOffset, InternalPattern? subPattern) {
   );
 }
 
+InternalExpression createRethrow({required int fileOffset}) {
+  return new InternalRethrow(fileOffset: fileOffset);
+}
+
 /// Return a representation of a rethrow statement consisting of the
 /// rethrow at [rethrowFileOffset] and the statement at [statementFileOffset].
 InternalStatement createRethrowStatement(
@@ -1306,7 +1344,7 @@ InternalStatement createRethrowStatement(
   int statementFileOffset,
 ) {
   return new InternalExpressionStatement(
-    new Rethrow()..fileOffset = rethrowFileOffset,
+    createRethrow(fileOffset: rethrowFileOffset),
     fileOffset: statementFileOffset,
   );
 }

@@ -1919,7 +1919,11 @@ void _testLoadLibraryImpl() {
     'pre',
   );
   testExpression(
-    new LoadLibraryImpl(dependency, new ActualArguments.empty()),
+    new InternalLoadLibrary(
+      dependency,
+      new ActualArguments.empty(),
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 pre.loadLibrary()''',
   );
@@ -1927,13 +1931,14 @@ pre.loadLibrary()''',
   Expression positionalArgument = new IntLiteral(0);
 
   testExpression(
-    new LoadLibraryImpl(
+    new InternalLoadLibrary(
       dependency,
       new ActualArguments(
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 pre.loadLibrary(0)''',

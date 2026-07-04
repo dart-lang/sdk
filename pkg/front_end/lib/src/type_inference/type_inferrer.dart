@@ -506,6 +506,8 @@ class TypeInferrerImpl implements TypeInferrer {
       defaultValue = visitor
           .ensureAssignableResult(declaredType, result)
           .expression;
+    } else {
+      defaultValue = result.expression;
     }
     visitor.checkCleanState();
     return defaultValue;

@@ -3142,7 +3142,13 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      push(intern.createIntLiteral(offsetForToken(token), value, token.lexeme));
+      push(
+        intern.createIntLiteral(
+          fileOffset: offsetForToken(token),
+          value: value,
+          literal: token.lexeme,
+        ),
+      );
     }
   }
 
@@ -3173,7 +3179,13 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      push(intern.createIntLiteral(offsetForToken(token), value, token.lexeme));
+      push(
+        intern.createIntLiteral(
+          fileOffset: offsetForToken(token),
+          value: value,
+          literal: token.lexeme,
+        ),
+      );
     }
   }
 
@@ -6712,7 +6724,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (receiver is StaticTearOff &&
                 (receiver.target.isFactory ||
                     isTearOffLowering(receiver.target)) ||
-            receiver is ConstructorTearOff ||
+            receiver is InternalConstructorTearOff ||
             receiver is RedirectingFactoryTearOff) {
           return buildProblem(
             message: diag.constructorTearOffWithTypeArguments,
@@ -10491,7 +10503,7 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       } else if (operand is StaticTearOff &&
               (operand.target.isFactory || isTearOffLowering(operand.target)) ||
-          operand is ConstructorTearOff ||
+          operand is InternalConstructorTearOff ||
           operand is RedirectingFactoryTearOff) {
         push(
           buildProblem(
