@@ -97,7 +97,7 @@ abstract class InferenceVisitor {
   /// If [bodyContext] is not null, the [statement] is inferred using
   /// [bodyContext] as the current context.
   StatementInferenceResult inferStatement(
-    Statement statement, [
+    InternalStatement statement, [
     BodyInferenceContext? bodyContext,
   ]);
 
@@ -113,12 +113,14 @@ class StandardReturnContext implements ReturnContext {
 
 class AnonymousMethodReturnContext extends ReturnContext {
   final Variable resultVariable;
+  final InternalLabeledStatement internalLabel;
   final LabeledStatement label;
   final List<DartType> returnTypes = [];
   final DartType typeContext;
 
   new({
     required this.resultVariable,
+    required this.internalLabel,
     required this.label,
     required this.typeContext,
   });
@@ -128,7 +130,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<
           TreeNode,
-          Statement,
+          InternalStatement,
           Expression,
           InternalVariable,
           InternalPattern,
@@ -144,7 +146,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         >
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
-        StatementVisitor<StatementInferenceResult>,
         InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
@@ -379,7 +380,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult inferStatement(
-    Statement statement, [
+    InternalStatement statement, [
     BodyInferenceContext? bodyContext,
   ]) {
     BodyInferenceContext? oldBodyContext = _bodyContext;
@@ -390,13 +391,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
-    StatementInferenceResult result;
-    if (statement is InternalStatement) {
-      result = statement.acceptInference(this);
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      result = statement.accept(this);
-    }
+    StatementInferenceResult result = statement.acceptInference(this);
     _bodyContext = oldBodyContext;
     return result;
   }
@@ -803,35 +798,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return _unhandledExpression(node, typeContext);
   }
 
-  // Coverage-ignore(suite): Not run.
-  Never _unhandledStatement(Statement node) {
-    UriOffset uriOffset = _computeUriOffset(node);
-    problems.unhandled(
-      "${node.runtimeType}",
-      "InferenceVisitor",
-      uriOffset.fileOffset,
-      uriOffset.fileUri,
-    );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitAssertBlock(AssertBlock node) {
-    return _unhandledStatement(node);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitTryCatch(TryCatch node) {
-    return _unhandledStatement(node);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitTryFinally(TryFinally node) {
-    return _unhandledStatement(node);
-  }
-
   InitializerInferenceResult visitInternalInvalidInitializer(
     InternalInvalidInitializer node,
   ) {
@@ -1054,12 +1020,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitAssertStatement(AssertStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalAssertStatement(
     InternalAssertStatement node,
   ) {
@@ -1188,34 +1148,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(flattenType, node);
   }
 
-  List<Statement>? _visitStatements<T extends Statement>(List<T> statements) {
-    List<Statement>? result;
+  List<Statement> _visitStatements(List<InternalStatement> statements) {
+    List<Statement> result = [];
     for (int index = 0; index < statements.length; index++) {
-      T statement = statements[index];
+      InternalStatement statement = statements[index];
       StatementInferenceResult statementResult = inferStatement(statement);
-      if (statementResult.hasChanged) {
-        if (result == null) {
-          result = <T>[];
-          result.addAll(statements.sublist(0, index));
-        }
-        if (statementResult.statementCount == 1) {
-          result.add(statementResult.statement);
-        } else {
-          result.addAll(statementResult.statements);
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (result != null) {
-        result.add(statement);
+      if (statementResult.statementCount == 1) {
+        result.add(statementResult.statement);
+      } else {
+        result.addAll(statementResult.statements);
       }
     }
     return result;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitBlock(Block node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalBlock(InternalBlock node) {
@@ -1226,29 +1170,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
     registerIfUnreachableForTesting(node);
-    List<Statement>? result = _visitStatements<Statement>(node.statements);
-    Block replacement;
-    if (result != null) {
-      replacement = extern.createBlock(
-        result,
-        fileOffset: node.fileOffset,
-        fileEndOffset: node.fileEndOffset,
-      );
-    } else {
-      replacement = extern.createBlock(
-        node.statements,
-        fileOffset: node.fileOffset,
-        fileEndOffset: node.fileEndOffset,
-      );
-    }
+    List<Statement> result = _visitStatements(node.statements);
+    Block replacement = extern.createBlock(
+      result,
+      fileOffset: node.fileOffset,
+      fileEndOffset: node.fileEndOffset,
+    );
+
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
+
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       replacement.scope = scopeProviderInfo.scope;
     }
-
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -1262,12 +1198,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       coreTypes.boolRawType(Nullability.nonNullable),
       node,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitBreakStatement(BreakStatement node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalBreakStatement(
@@ -1558,14 +1488,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result.inferredType,
       result.applyResult(replacement),
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitContinueSwitchStatement(
-    ContinueSwitchStatement node,
-  ) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalContinueSwitchStatement(
@@ -2609,20 +2531,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitDoStatement(DoStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalDoStatement(InternalDoStatement node) {
     flowAnalysis.doStatement_bodyBegin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
 
     flowAnalysis.doStatement_conditionBegin();
     InterfaceType boolType = coreTypes.boolRawType(Nullability.nonNullable);
@@ -2658,12 +2570,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitEmptyStatement(EmptyStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalEmptyStatement(
     InternalEmptyStatement node,
   ) {
@@ -2674,12 +2580,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitExpressionStatement(ExpressionStatement node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalExpressionStatement(
@@ -3335,12 +3235,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitForInStatement(ForInStatement node) {
-    return _unhandledStatement(node);
-  }
-
-  @override
   PatternForInData inferPatternForInHeader({
     required TreeNode node,
     required InternalPattern pattern,
@@ -3473,11 +3367,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
 
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
     Statement? bodyPrologue = encoding.bodyPrologue;
     if (bodyPrologue != null) {
       body = combineStatements(bodyPrologue, body);
@@ -3502,12 +3392,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, forInStatement);
     return new StatementInferenceResult.single(result);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitForStatement(ForStatement node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalForStatement(
@@ -3583,11 +3467,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       var condition => getExpressionInfo(condition),
     });
     StatementInferenceResult bodyResult = inferStatement(node.body);
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
     flowAnalysis.for_updaterBegin();
 
     List<Expression> updates = new List.filled(
@@ -3636,12 +3516,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       implicitReturnOffset: implicitReturnOffset,
       returnType: returnType,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitFunctionDeclaration(FunctionDeclaration node) {
-    return _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalFunctionDeclaration(
@@ -3918,12 +3792,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitIfStatement(IfStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalIfStatement(InternalIfStatement node) {
     flowAnalysis.ifStatement_conditionBegin();
     InterfaceType expectedType = coreTypes.boolRawType(Nullability.nonNullable);
@@ -3938,22 +3806,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ).expression;
     flowAnalysis.ifStatement_thenBegin(getExpressionInfo(condition), node);
     StatementInferenceResult thenResult = inferStatement(node.then);
-    Statement then = thenResult.hasChanged
-        ? thenResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.then;
+    Statement then = thenResult.statement;
     Statement? otherwise;
     if (node.otherwise != null) {
       flowAnalysis.ifStatement_elseBegin();
       StatementInferenceResult otherwiseResult = inferStatement(
         node.otherwise!,
       );
-      otherwise = otherwiseResult.hasChanged
-          ? otherwiseResult.statement
-          :
-            // Coverage-ignore(suite): Not run.
-            node.otherwise;
+      otherwise = otherwiseResult.statement;
     }
     flowAnalysis.ifStatement_end(node.otherwise != null);
     Statement replacement = extern.createIfStatement(
@@ -3966,12 +3826,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalIfCaseStatement(
@@ -4008,18 +3862,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Statement? otherwise = node.otherwise;
-    Object? rewrite = popRewrite(NullValues.Statement);
-    if (!identical(node.otherwise, rewrite)) {
-      otherwise = rewrite as Statement;
-    }
-    Statement then = node.then;
-    rewrite = popRewrite();
-    if (!identical(node.then, rewrite)) {
-      then = rewrite as Statement;
-    }
-    Expression? guard = rewrite =
-        popRewrite(NullValues.Expression) as Expression?;
+    Statement? otherwise = popRewrite(NullValues.Statement) as Statement?;
+
+    Statement then = popRewrite() as Statement;
+    Expression? guard = popRewrite(NullValues.Expression) as Expression?;
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
       guard = guardError;
@@ -4170,23 +4016,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitLabeledStatement(LabeledStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalLabeledStatement(
     InternalLabeledStatement node,
   ) {
     flowAnalysis.labeledStatement_begin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     flowAnalysis.labeledStatement_end();
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
     LabeledStatement replacement = extern.createLabeledStatement(
       body,
       fileOffset: node.fileOffset,
@@ -12318,11 +12154,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       type: const DynamicType(),
       fileOffset: node.fileOffset,
     );
-    LabeledStatement label = new LabeledStatement(null)
-      ..fileOffset = node.fileOffset;
+    InternalLabeledStatement internalLabel = new InternalLabeledStatement(
+      null,
+      fileOffset: node.fileOffset,
+    );
+    LabeledStatement label = extern.createLabeledStatement(
+      dummyStatement,
+      fileOffset: node.fileOffset,
+    );
 
     AnonymousMethodReturnContext context = new AnonymousMethodReturnContext(
       resultVariable: resultVar,
+      internalLabel: internalLabel,
       label: label,
       typeContext: typeContext,
     );
@@ -12415,7 +12258,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flow.thisBinding_begin(getExpressionInfo(node.receiver));
     }
 
-    flowAnalysis.labeledStatement_begin(label);
+    flowAnalysis.labeledStatement_begin(internalLabel);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     bool isReachable = flowAnalysis.isReachable;
     flowAnalysis.labeledStatement_end();
@@ -12426,12 +12269,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     _returnContexts.pop();
 
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
     label.body = body..parent = label;
+    internalLabel.registerReplacement(label);
 
     DartType inferredType = isReachable
         ? const NullType()
@@ -12773,12 +12613,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(const NeverType.nonNullable(), node);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitReturnStatement(ReturnStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalReturnStatement(
     InternalReturnStatement node,
   ) {
@@ -12800,7 +12634,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       BreakStatement breakStmt = new BreakStatement(context.label)
         ..fileOffset = node.fileOffset;
 
-      flowAnalysis.handleBreak(context.label);
+      flowAnalysis.handleBreak(context.internalLabel);
 
       Statement replacement = new Block([
         new ExpressionStatement(assignment)..fileOffset = node.fileOffset,
@@ -13411,12 +13245,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(valueType, result);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitSwitchStatement(SwitchStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalRegularSwitchStatement(
     InternalRegularSwitchStatement node,
   ) {
@@ -13486,14 +13314,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitPatternSwitchStatement(
-    PatternSwitchStatement node,
-  ) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalPatternSwitchStatement(
@@ -13725,11 +13545,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
     Scope? scope;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
@@ -13751,7 +13567,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.finallyBlock != null) {
       flowAnalysis.tryFinallyStatement_bodyBegin();
     }
-    Statement tryBodyWithAssignedInfo = node.tryBlock;
+    InternalStatement tryBodyWithAssignedInfo = node.tryBlock;
     if (node.catchBlocks.isNotEmpty) {
       flowAnalysis.tryCatchStatement_bodyBegin();
     }
@@ -13786,23 +13602,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       finalizerResult = inferStatement(node.finallyBlock!);
       flowAnalysis.tryFinallyStatement_end();
     }
-    Statement result = tryBlockResult.hasChanged
-        ? tryBlockResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.tryBlock;
+    Statement result = tryBlockResult.statement;
     if (catchBlocks != null) {
       result = new TryCatch(result, catchBlocks)..fileOffset = node.fileOffset;
     }
     if (node.finallyBlock != null) {
-      result = new TryFinally(
-        result,
-        finalizerResult!.hasChanged
-            ? finalizerResult.statement
-            :
-              // Coverage-ignore(suite): Not run.
-              node.finallyBlock!,
-      )..fileOffset = node.fileOffset;
+      result = new TryFinally(result, finalizerResult!.statement)
+        ..fileOffset = node.fileOffset;
     }
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
@@ -13886,12 +13692,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return variableDeclarationInferenceResult;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitVariableStatement(VariableStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalVariableStatement(
     InternalVariableStatement node,
   ) {
@@ -13899,14 +13699,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.declaration,
       forLoopVariable: false,
     ).toStatementInferenceResult(fileOffset: node.fileOffset);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitPatternVariableDeclaration(
-    PatternVariableDeclaration node,
-  ) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalPatternVariableDeclaration(
@@ -13988,12 +13780,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitWhileStatement(WhileStatement node) {
-    _unhandledStatement(node);
-  }
-
   StatementInferenceResult visitInternalWhileStatement(
     InternalWhileStatement node,
   ) {
@@ -14016,11 +13802,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ).expression;
     flowAnalysis.whileStatement_bodyBegin(node, getExpressionInfo(condition));
     StatementInferenceResult bodyResult = inferStatement(node.body);
-    Statement body = bodyResult.hasChanged
-        ? bodyResult.statement
-        :
-          // Coverage-ignore(suite): Not run.
-          node.body;
+    Statement body = bodyResult.statement;
 
     flowAnalysis.whileStatement_end();
     Scope? scope;
@@ -14038,12 +13820,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitYieldStatement(YieldStatement node) {
-    _unhandledStatement(node);
   }
 
   StatementInferenceResult visitInternalYieldStatement(
@@ -14676,9 +14452,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchStatement(Statement statement) {
+  void dispatchStatement(InternalStatement statement) {
     StatementInferenceResult result = inferStatement(statement);
-    pushRewrite(result.hasChanged ? result.statement : statement);
+    pushRewrite(result.statement);
   }
 
   @override
@@ -14897,8 +14673,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable> get flow =>
-      flowAnalysis;
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  get flow => flowAnalysis;
 
   @override
   SwitchExpressionMemberInfo<TreeNode, Expression, InternalVariable>
@@ -14925,7 +14701,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  SwitchStatementMemberInfo<TreeNode, Statement, Expression, InternalVariable>
+  SwitchStatementMemberInfo<
+    TreeNode,
+    InternalStatement,
+    Expression,
+    InternalVariable
+  >
   getSwitchStatementMemberInfo(
     covariant InternalSwitchStatement node,
     int caseIndex,
@@ -15084,7 +14865,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleCase_afterCaseHeads(
-    Statement node,
+    InternalStatement node,
     int caseIndex,
     Iterable<InternalVariable> variables,
   ) {}
@@ -15097,7 +14878,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) {}
 
   @override
-  void handleNoStatement(Statement node) {
+  void handleNoStatement(InternalStatement node) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -16975,12 +16756,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StatementInferenceResult visitAuxiliaryStatement(AuxiliaryStatement node) {
-    return _unhandledStatement(node);
   }
 
   bool _isPrivateFromAnotherLibrary(TypeDeclaration typeDeclaration) {

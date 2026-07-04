@@ -21,7 +21,7 @@ class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<
           TreeNode,
-          Statement,
+          InternalStatement,
           Expression,
           InternalVariable,
           InternalPattern,

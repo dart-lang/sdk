@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 
 import '../codes/cfe_codes.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
 import '../source/check_helper.dart';
 import 'inference_results.dart';
@@ -150,7 +151,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
   /// in [inferReturnType].
   StatementInferenceResult handleImplicitReturn(
     InferenceVisitorBase inferrer,
-    Statement body,
+    InternalStatement body,
     StatementInferenceResult inferenceResult,
     int fileOffset,
   );
@@ -397,7 +398,7 @@ class _SyncContext extends BodyInferenceContext {
   @override
   StatementInferenceResult handleImplicitReturn(
     InferenceVisitorBase inferrer,
-    Statement body,
+    InternalStatement body,
     StatementInferenceResult inferenceResult,
     int fileOffset,
   ) {
@@ -414,9 +415,7 @@ class _SyncContext extends BodyInferenceContext {
     if (!containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
-      Statement resultStatement = inferenceResult.hasChanged
-          ? inferenceResult.statement
-          : body;
+      Statement resultStatement = inferenceResult.statement;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
         inferrer.problemReporting.wrapInProblem(
@@ -704,7 +703,7 @@ class _AsyncContext extends BodyInferenceContext {
   @override
   StatementInferenceResult handleImplicitReturn(
     InferenceVisitorBase inferrer,
-    Statement body,
+    InternalStatement body,
     StatementInferenceResult inferenceResult,
     int fileOffset,
   ) {
@@ -722,9 +721,7 @@ class _AsyncContext extends BodyInferenceContext {
     if (!containsInvalidType(returnType) &&
         returnType.isPotentiallyNonNullable &&
         inferrer.flowAnalysis.isReachable) {
-      Statement resultStatement = inferenceResult.hasChanged
-          ? inferenceResult.statement
-          : body;
+      Statement resultStatement = inferenceResult.statement;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
         inferrer.problemReporting.wrapInProblem(
@@ -905,7 +902,7 @@ class _SyncStarContext extends BodyInferenceContext {
   @override
   StatementInferenceResult handleImplicitReturn(
     InferenceVisitorBase inferrer,
-    Statement body,
+    InternalStatement body,
     StatementInferenceResult inferenceResult,
     int fileOffset,
   ) {
@@ -1065,7 +1062,7 @@ class _AsyncStarContext extends BodyInferenceContext {
   @override
   StatementInferenceResult handleImplicitReturn(
     InferenceVisitorBase inferrer,
-    Statement body,
+    InternalStatement body,
     StatementInferenceResult inferenceResult,
     int fileOffset,
   ) {

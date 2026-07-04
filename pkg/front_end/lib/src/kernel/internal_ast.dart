@@ -82,7 +82,15 @@ mixin InternalTreeNode implements TreeNode {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal statements.
-abstract class InternalStatement extends AuxiliaryStatement {
+abstract class InternalStatement extends TreeNode with InternalTreeNode {
+  @override
+  R accept<R>(TreeVisitor<R> v) =>
+      unsupported("${runtimeType}.accept", -1, null);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
   @override
   void replaceChild(TreeNode child, TreeNode replacement) =>
       unsupported("${runtimeType}.replaceChild", -1, null);
@@ -109,9 +117,9 @@ abstract class InternalStatement extends AuxiliaryStatement {
 }
 
 class TryStatement extends InternalStatement {
-  Statement tryBlock;
+  InternalStatement tryBlock;
   List<InternalCatch> catchBlocks;
-  Statement? finallyBlock;
+  InternalStatement? finallyBlock;
 
   new(this.tryBlock, this.catchBlocks, this.finallyBlock) {
     tryBlock.parent = this;
@@ -133,21 +141,21 @@ class TryStatement extends InternalStatement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('try ');
-    printer.writeStatement(tryBlock);
+    tryBlock.toTextInternal(printer);
     for (InternalCatch catchBlock in catchBlocks) {
       printer.write(' ');
       catchBlock.toTextInternal(printer);
     }
     if (finallyBlock != null) {
       printer.write(' finally ');
-      printer.writeStatement(finallyBlock!);
+      finallyBlock!.toTextInternal(printer);
     }
   }
 }
 
 sealed class InternalSwitchCase extends TreeNode with InternalTreeNode {
   List<Label>? get labels;
-  Statement get body;
+  InternalStatement get body;
 
   bool get hasLabel => labels != null;
 
@@ -197,7 +205,7 @@ class InternalSwitchStatementCase extends InternalSwitchCase {
   final List<Expression> expressions;
   final List<int> expressionOffsets;
   @override
-  final Statement body;
+  final InternalStatement body;
   final bool isDefault;
   final List<int> caseOffsets;
   @override
@@ -261,15 +269,15 @@ class InternalSwitchStatementCase extends InternalSwitchCase {
       printer.write('default:');
     }
     printer.incIndentation();
-    Statement? block = body;
-    if (block is Block) {
-      for (Statement statement in block.statements) {
+    InternalStatement? block = body;
+    if (block is InternalBlock) {
+      for (InternalStatement statement in block.statements) {
         printer.newLine();
-        printer.writeStatement(statement);
+        statement.toTextInternal(printer);
       }
     } else {
       printer.write(' ');
-      printer.writeStatement(body);
+      body.toTextInternal(printer);
     }
     printer.decIndentation();
   }
@@ -333,7 +341,7 @@ sealed class InternalGotoStatement implements InternalStatement {
 class InternalBreakStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late Statement targetStatement;
+  late InternalStatement targetStatement;
   late InternalLabeledStatement target;
 
   @override
@@ -368,7 +376,7 @@ class InternalBreakStatement extends InternalStatement
 class InternalContinueStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late Statement targetStatement;
+  late InternalStatement targetStatement;
   late InternalLabeledStatement target;
 
   @override
@@ -803,7 +811,7 @@ class AnonymousMethodExpression extends InternalExpression {
 /// Internal expression representing an anonymous block method invocation.
 class AnonymousMethodBlock extends InternalExpression {
   final InternalAnonymousMethodParameter variable;
-  final Statement body;
+  final InternalStatement body;
   final Expression receiver;
   final bool isCascade;
   final bool isImplicitlyTyped;
@@ -844,7 +852,7 @@ class AnonymousMethodBlock extends InternalExpression {
     printer.write('let ');
     variable.toTextInternal(printer, initializer: receiver);
     printer.write(' in ');
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 }
 
@@ -6272,7 +6280,7 @@ class ForInHeaderResult {
 
 /// Internal node for a for-in loop statement.
 class InternalForInStatement extends InternalStatement
-    implements LoopStatement {
+    implements InternalLoopStatement {
   /// The element of the for-in loop.
   ///
   /// For instance 'x' and 'var x' in
@@ -6293,7 +6301,7 @@ class InternalForInStatement extends InternalStatement
 
   /// The for-in loop body.
   @override
-  Statement body;
+  InternalStatement body;
 
   /// Whether the for-in loop is asynchronous.
   final bool isAsync;
@@ -6328,7 +6336,7 @@ class InternalForInStatement extends InternalStatement
     printer.write(' in ');
     printer.writeExpression(iterable);
     printer.write(') ');
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -6402,7 +6410,7 @@ class InternalFunctionNode {
   final List<InternalNamedParameter> namedParameters;
   final int requiredParameterCount;
   final AsyncMarker asyncMarker;
-  final Statement? body;
+  final InternalStatement? body;
   final int fileOffset;
   final int fileEndOffset;
 
@@ -6482,14 +6490,14 @@ class InternalFunctionNode {
       printer.write('}');
     }
     printer.write(')');
-    Statement? body = this.body;
+    InternalStatement? body = this.body;
     if (body != null) {
-      if (body is ReturnStatement) {
+      if (body is InternalReturnStatement) {
         printer.write(' => ');
         printer.writeExpression(body.expression!);
       } else {
         printer.write(' ');
-        printer.writeStatement(body);
+        body.toTextInternal(printer);
       }
     } else {
       printer.write(';');
@@ -7431,7 +7439,7 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
   final List<InternalPatternGuard> patternGuards;
 
   @override
-  final Statement body;
+  final InternalStatement body;
 
   final bool isDefault;
 
@@ -7502,15 +7510,15 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
       printer.write('default:');
     }
     printer.incIndentation();
-    Statement? block = body;
-    if (block is Block) {
-      for (Statement statement in block.statements) {
+    InternalStatement? block = body;
+    if (block is InternalBlock) {
+      for (InternalStatement statement in block.statements) {
         printer.newLine();
-        printer.writeStatement(statement);
+        statement.toTextInternal(printer);
       }
     } else {
       printer.write(' ');
-      printer.writeStatement(body);
+      body.toTextInternal(printer);
     }
     printer.decIndentation();
   }
@@ -7742,8 +7750,8 @@ class InternalPatternAssignment extends InternalExpression {
 class InternalIfCaseStatement extends InternalStatement {
   final Expression expression;
   final InternalPatternGuard patternGuard;
-  final Statement then;
-  final Statement? otherwise;
+  final InternalStatement then;
+  final InternalStatement? otherwise;
 
   new({
     required this.expression,
@@ -7772,10 +7780,10 @@ class InternalIfCaseStatement extends InternalStatement {
     printer.write(' case ');
     patternGuard.toTextInternal(printer);
     printer.write(') ');
-    printer.writeStatement(then);
+    then.toTextInternal(printer);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeStatement(otherwise!);
+      otherwise!.toTextInternal(printer);
     }
   }
 
@@ -7822,7 +7830,7 @@ class InternalCatch extends TreeNode with InternalTreeNode {
   final DartType guard; // Not null, defaults to dynamic.
   final InternalCatchVariable? exception;
   final InternalCatchVariable? stackTrace;
-  final Statement body;
+  final InternalStatement body;
 
   new({
     required this.exception,
@@ -7891,7 +7899,7 @@ class InternalCatch extends TreeNode with InternalTreeNode {
       printer.writeType(guard);
       printer.write(' ');
     }
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -7964,14 +7972,19 @@ class InternalVariableStatement extends InternalStatement {
   }
 }
 
-class InternalForStatement extends InternalStatement implements LoopStatement {
+abstract interface class InternalLoopStatement implements InternalStatement {
+  abstract InternalStatement body;
+}
+
+class InternalForStatement extends InternalStatement
+    implements InternalLoopStatement {
   // May be empty, but not null.
   final List<InternalVariableDeclaration> variables;
   final Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
 
   @override
-  Statement body;
+  InternalStatement body;
 
   new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -8006,7 +8019,7 @@ class InternalForStatement extends InternalStatement implements LoopStatement {
     printer.write('; ');
     printer.writeExpressions(updates);
     printer.write(') ');
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -8121,7 +8134,7 @@ final InternalSwitchCase dummyInternalSwitchCase =
       caseOffsets: [],
       expressions: [],
       expressionOffsets: [],
-      body: dummyStatement,
+      body: dummyInternalStatement,
       isDefault: false,
       labels: null,
       fileOffset: TreeNode.noOffset,
@@ -8129,7 +8142,7 @@ final InternalSwitchCase dummyInternalSwitchCase =
 
 final InternalCatch dummyInternalCatch = new InternalCatch(
   exception: dummyInternalCatchVariable,
-  body: dummyStatement,
+  body: dummyInternalStatement,
   stackTrace: dummyInternalCatchVariable,
   fileOffset: TreeNode.noOffset,
 );
@@ -8347,8 +8360,8 @@ class InternalExpressionStatement extends InternalStatement {
 
 class InternalIfStatement extends InternalStatement {
   final Expression condition;
-  final Statement then;
-  final Statement? otherwise;
+  final InternalStatement then;
+  final InternalStatement? otherwise;
 
   new(this.condition, this.then, this.otherwise, {required int fileOffset}) {
     condition.parent = this;
@@ -8368,10 +8381,10 @@ class InternalIfStatement extends InternalStatement {
     printer.write('if (');
     printer.writeExpression(condition);
     printer.write(') ');
-    printer.writeStatement(then);
+    then.toTextInternal(printer);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeStatement(otherwise!);
+      otherwise!.toTextInternal(printer);
     }
   }
 
@@ -8413,9 +8426,10 @@ class InternalYieldStatement extends InternalStatement {
   }
 }
 
-class InternalDoStatement extends InternalStatement implements LoopStatement {
+class InternalDoStatement extends InternalStatement
+    implements InternalLoopStatement {
   @override
-  Statement body;
+  InternalStatement body;
 
   final Expression condition;
 
@@ -8434,7 +8448,7 @@ class InternalDoStatement extends InternalStatement implements LoopStatement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('do ');
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
     printer.write(' while (');
     printer.writeExpression(condition);
     printer.write(');');
@@ -8447,11 +8461,11 @@ class InternalDoStatement extends InternalStatement implements LoopStatement {
 }
 
 class InternalWhileStatement extends InternalStatement
-    implements LoopStatement {
+    implements InternalLoopStatement {
   Expression condition;
 
   @override
-  Statement body;
+  InternalStatement body;
 
   new(this.condition, this.body, {required int fileOffset}) {
     condition.parent = this;
@@ -8470,7 +8484,7 @@ class InternalWhileStatement extends InternalStatement
     printer.write('while (');
     printer.writeExpression(condition);
     printer.write(') ');
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -8480,13 +8494,13 @@ class InternalWhileStatement extends InternalStatement
 }
 
 class InternalLabeledStatement extends InternalStatement {
-  late Statement body;
+  late InternalStatement body;
 
   /// List of [BreakStatement]s that must use the [LabeledStatement] created
   /// for this [InternalLabeledStatement] as their target.
   List<BreakStatement>? _users = [];
 
-  new(Statement? body, {required int fileOffset}) {
+  new(InternalStatement? body, {required int fileOffset}) {
     if (body != null) {
       this.body = body..parent = this;
     }
@@ -8521,7 +8535,7 @@ class InternalLabeledStatement extends InternalStatement {
   void toTextInternal(AstPrinter printer) {
     printer.write('<label>:');
     printer.newLine();
-    printer.writeStatement(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -8531,7 +8545,7 @@ class InternalLabeledStatement extends InternalStatement {
 }
 
 class InternalBlock extends InternalStatement {
-  final List<Statement> statements;
+  final List<InternalStatement> statements;
 
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
@@ -8540,7 +8554,7 @@ class InternalBlock extends InternalStatement {
 
   new(this.statements, {required this.fileEndOffset, required int fileOffset}) {
     // Ensure statements is mutable.
-    assert(checkListIsMutable(statements, dummyStatement));
+    assert(checkListIsMutable(statements, dummyInternalStatement));
     setParents(statements, this);
     this.fileOffset = fileOffset;
   }
@@ -8553,7 +8567,19 @@ class InternalBlock extends InternalStatement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeBlock(statements);
+    if (statements.isEmpty) {
+      printer.write('{}');
+    } else {
+      printer.write('{');
+      printer.incIndentation();
+      for (InternalStatement statement in statements) {
+        printer.newLine();
+        statement.toTextInternal(printer);
+      }
+      printer.decIndentation();
+      printer.newLine();
+      printer.write('}');
+    }
   }
 
   @override
@@ -8584,7 +8610,7 @@ class InternalBlockExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('block ');
-    printer.writeBlock(body.statements);
+    body.toTextInternal(printer);
     printer.write(' => ');
     printer.writeExpression(value);
   }
@@ -8594,3 +8620,43 @@ class InternalBlockExpression extends InternalExpression {
     return "$runtimeType(${toStringInternal()})";
   }
 }
+
+class MultiVariableDeclaration extends InternalStatement {
+  final List<InternalVariableDeclaration> declarations;
+  final Uri uri;
+
+  new(this.declarations, this.uri) {
+    setParents(declarations, this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    unsupported("acceptInference", fileOffset, uri);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    for (int index = 0; index < declarations.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      declarations[index].variable.toTextInternal(
+        printer,
+        includeModifiersAndType: index == 0,
+        initializer: declarations[index].initializer,
+      );
+    }
+    printer.write(';');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+final InternalStatement dummyInternalStatement = new InternalEmptyStatement(
+  fileOffset: TreeNode.noOffset,
+);

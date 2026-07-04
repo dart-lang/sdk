@@ -58,10 +58,10 @@ class JumpTarget {
 
   void resolveBreaks(
     InternalLabeledStatement target,
-    Statement targetStatement,
+    InternalStatement targetStatement,
   ) {
     assert(isBreakTarget);
-    for (Statement user in users) {
+    for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
       breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
@@ -74,7 +74,7 @@ class JumpTarget {
   ) {
     assert(isContinueTarget);
     List<InternalContinueStatement> statements = [];
-    for (Statement user in users) {
+    for (InternalGotoStatement user in users) {
       InternalContinueStatement breakStatement =
           user as InternalContinueStatement;
       breakStatement.target = target;
@@ -86,7 +86,7 @@ class JumpTarget {
 
   void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
-    for (Statement user in users) {
+    for (InternalGotoStatement user in users) {
       InternalContinueSwitchStatement continueSwitchStatement =
           user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
@@ -165,7 +165,7 @@ class LabelTarget implements JumpTarget {
   // Coverage-ignore(suite): Not run.
   void resolveBreaks(
     InternalLabeledStatement target,
-    Statement targetStatement,
+    InternalStatement targetStatement,
   ) {
     breakTarget.resolveBreaks(target, targetStatement);
   }
@@ -274,7 +274,7 @@ class FormalParameters(
     required TypeBuilder? returnTypeBuilder,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required int fileOffset,
     required int fileEndOffset,
   }) {
@@ -494,14 +494,14 @@ class BuildPrimaryConstructorResult(
 
 class BuildFunctionBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
+  required final InternalStatement? body,
   required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 
 class BuildPrimaryConstructorBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
+  required final InternalStatement? body,
   required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });

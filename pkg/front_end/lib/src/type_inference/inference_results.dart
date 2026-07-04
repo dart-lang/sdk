@@ -15,15 +15,11 @@ import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
 /// The result of a statement inference.
-class StatementInferenceResult {
-  const new();
-
+abstract class StatementInferenceResult {
   factory single(Statement statement) = SingleStatementInferenceResult;
 
   factory multiple(int fileOffset, List<Statement> statements) {
-    if (statements.length == 0) {
-      return const StatementInferenceResult();
-    } else if (statements.length == 1) {
+    if (statements.length == 1) {
       // Coverage-ignore-block(suite): Not run.
       return new SingleStatementInferenceResult(statements.single);
     } else {
@@ -31,20 +27,11 @@ class StatementInferenceResult {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  bool get hasChanged => false;
+  Statement get statement;
 
-  // Coverage-ignore(suite): Not run.
-  Statement get statement =>
-      throw new UnsupportedError('StatementInferenceResult.statement');
+  int get statementCount;
 
-  // Coverage-ignore(suite): Not run.
-  int get statementCount =>
-      throw new UnsupportedError('StatementInferenceResult.statementCount');
-
-  // Coverage-ignore(suite): Not run.
-  List<Statement> get statements =>
-      throw new UnsupportedError('StatementInferenceResult.statements');
+  List<Statement> get statements;
 }
 
 class SingleStatementInferenceResult implements StatementInferenceResult {
@@ -52,9 +39,6 @@ class SingleStatementInferenceResult implements StatementInferenceResult {
   final Statement statement;
 
   new(this.statement);
-
-  @override
-  bool get hasChanged => true;
 
   @override
   int get statementCount => 1;
@@ -80,9 +64,6 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
         "For the results containing a single statement,"
         "use SingleStatementInferenceResult.",
       );
-
-  @override
-  bool get hasChanged => true;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -4,9 +4,7 @@
 
 import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/printer.dart';
 
-import '../base/problems.dart' show unsupported;
 import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 import 'collections.dart'
@@ -137,15 +135,15 @@ BinaryExpression createBinary(
 /// Return a representation of a block of [statements] at the given
 /// [fileOffset].
 InternalBlock createBlock(
-  List<Statement> statements, {
+  List<InternalStatement> statements, {
   required int fileOffset,
   required int fileEndOffset,
 }) {
-  List<Statement>? copy;
+  List<InternalStatement>? copy;
   for (int i = 0; i < statements.length; i++) {
-    Statement statement = statements[i];
-    if (statement is _VariablesDeclaration) {
-      copy ??= new List<Statement>.of(statements.getRange(0, i));
+    InternalStatement statement = statements[i];
+    if (statement is MultiVariableDeclaration) {
+      copy ??= new List<InternalStatement>.of(statements.getRange(0, i));
       for (InternalVariableDeclaration declaration in statement.declarations) {
         copy.add(createVariableStatement(declaration));
       }
@@ -194,7 +192,7 @@ InternalCatch createCatch(
   InternalCatchVariable? exceptionParameter,
   InternalCatchVariable? stackTraceParameter,
   DartType stackTraceType,
-  Statement body,
+  InternalStatement body,
 ) {
   return new InternalCatch(
     exception: exceptionParameter,
@@ -271,9 +269,9 @@ InternalContinueSwitchStatement createContinueSwitchStatement({
 }
 
 /// Return a representation of a do statement.
-Statement createDoStatement(
+InternalStatement createDoStatement(
   int fileOffset,
-  Statement body,
+  InternalStatement body,
   Expression condition,
 ) {
   return new InternalDoStatement(body, condition, fileOffset: fileOffset);
@@ -319,7 +317,7 @@ DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
 }
 
 /// Return a representation of an empty statement  at the given [fileOffset].
-Statement createEmptyStatement(int fileOffset) {
+InternalStatement createEmptyStatement(int fileOffset) {
   return new InternalEmptyStatement(fileOffset: fileOffset);
 }
 
@@ -345,7 +343,7 @@ Expression createExpressionInvocation(
 
 /// Return a representation of an expression statement at the given
 /// [fileOffset] containing the [expression].
-Statement createExpressionStatement(
+InternalStatement createExpressionStatement(
   Expression expression, {
   required int fileOffset,
 }) {
@@ -451,12 +449,12 @@ ForMapEntry createForMapEntry(
 }
 
 /// Return a representation of a for statement.
-Statement createForStatement(
+InternalStatement createForStatement(
   int fileOffset,
   List<InternalVariableDeclaration>? variables,
   Expression? condition,
   List<Expression> updaters,
-  Statement body,
+  InternalStatement body,
 ) {
   return new InternalForStatement(
     variables ?? // Coverage-ignore(suite): Not run.
@@ -467,7 +465,7 @@ Statement createForStatement(
   )..fileOffset = fileOffset;
 }
 
-Statement createFunctionDeclaration({
+InternalStatement createFunctionDeclaration({
   required InternalVariable variable,
   required int fileOffset,
 }) {
@@ -488,7 +486,7 @@ Expression createFunctionExpression({
 }
 
 InternalFunctionNode createFunctionNode({
-  required Statement? body,
+  required InternalStatement? body,
   required List<TypeParameter>? typeParameters,
   required List<InternalPositionalParameter> positionalParameters,
   required List<InternalNamedParameter> namedParameters,
@@ -545,12 +543,12 @@ MapLiteralEntry createIfCaseMapEntry(
   )..fileOffset = fileOffset;
 }
 
-Statement createIfCaseStatement(
+InternalStatement createIfCaseStatement(
   int fileOffset,
   Expression expression,
   InternalPatternGuard patternGuard,
-  Statement then,
-  Statement? otherwise,
+  InternalStatement then,
+  InternalStatement? otherwise,
 ) {
   return new InternalIfCaseStatement(
     expression: expression,
@@ -580,11 +578,11 @@ MapLiteralEntry createIfMapEntry(
 }
 
 /// Return a representation of an `if` statement.
-Statement createIfStatement(
+InternalStatement createIfStatement(
   int fileOffset,
   Expression condition,
-  Statement thenStatement,
-  Statement? elseStatement,
+  InternalStatement thenStatement,
+  InternalStatement? elseStatement,
 ) {
   return new InternalIfStatement(
     condition,
@@ -687,7 +685,7 @@ Expression createIsExpression(
 /// The given [statement] is being used as the target of either a break or
 /// continue statement. Return the statement that should be used as the actual
 /// target.
-InternalLabeledStatement createLabeledStatement(Statement statement) {
+InternalLabeledStatement createLabeledStatement(InternalStatement statement) {
   return new InternalLabeledStatement(
     statement,
     fileOffset: statement.fileOffset,
@@ -1137,7 +1135,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   int fileOffset,
   List<int> caseOffsets,
   List<InternalPatternGuard> patternGuards,
-  Statement body, {
+  InternalStatement body, {
   required bool isDefault,
   required List<Label>? labels,
   required List<InternalDeclaredVariable>? jointVariables,
@@ -1155,7 +1153,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   );
 }
 
-Statement createPatternSwitchStatement(
+InternalStatement createPatternSwitchStatement(
   int fileOffset,
   Expression expression,
   List<InternalPatternSwitchCase> cases,
@@ -1303,7 +1301,7 @@ InternalPattern createRestPattern(int fileOffset, InternalPattern? subPattern) {
 
 /// Return a representation of a rethrow statement consisting of the
 /// rethrow at [rethrowFileOffset] and the statement at [statementFileOffset].
-Statement createRethrowStatement(
+InternalStatement createRethrowStatement(
   int rethrowFileOffset,
   int statementFileOffset,
 ) {
@@ -1469,7 +1467,7 @@ InternalSwitchExpressionCase createSwitchExpressionCase(
   );
 }
 
-Statement createSwitchStatement(
+InternalStatement createSwitchStatement(
   Expression expression,
   List<InternalSwitchStatementCase> cases, {
   required int fileOffset,
@@ -1484,7 +1482,7 @@ Statement createSwitchStatement(
 InternalSwitchStatementCase createSwitchStatementCase({
   required List<Expression> expressions,
   required List<int> expressionOffsets,
-  required Statement body,
+  required InternalStatement body,
   required bool isDefault,
   required List<int> caseOffsets,
   required List<Label>? labels,
@@ -1542,11 +1540,11 @@ Expression createThrow(int fileOffset, Expression expression) {
   return new Throw(expression)..fileOffset = fileOffset;
 }
 
-Statement createTryStatement(
+InternalStatement createTryStatement(
   int fileOffset,
-  Statement tryBlock,
+  InternalStatement tryBlock,
   List<InternalCatch>? catchBlocks,
-  Statement? finallyBlock,
+  InternalStatement? finallyBlock,
 ) {
   return new TryStatement(tryBlock, catchBlocks ?? [], finallyBlock)
     ..fileOffset = fileOffset;
@@ -1627,10 +1625,10 @@ InternalVariableStatement createVariableStatement(
 
 /// Return a representation of a while statement at the given [fileOffset]
 /// consisting of the given [condition] and [body].
-Statement createWhileStatement(
+InternalStatement createWhileStatement(
   int fileOffset,
   Expression condition,
-  Statement body,
+  InternalStatement body,
 ) {
   return new InternalWhileStatement(condition, body, fileOffset: fileOffset);
 }
@@ -1642,7 +1640,7 @@ InternalPattern createWildcardPattern(int fileOffset, DartType? type) {
 /// Return a representation of a yield statement at the given [fileOffset]
 /// of the given [expression]. If [isYieldStar] is `true` the created
 /// statement is a yield* statement.
-Statement createYieldStatement(
+InternalStatement createYieldStatement(
   int fileOffset,
   Expression expression, {
   required bool isYieldStar,
@@ -1674,25 +1672,25 @@ bool isErroneousNode(Object? node) {
 bool isThisExpression(Object node) =>
     node is Expression && ast_helper.isThisExpression(node);
 
-bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
+bool isVariablesDeclaration(Object? node) => node is MultiVariableDeclaration;
 
-_VariablesDeclaration variablesDeclaration(
+MultiVariableDeclaration variablesDeclaration(
   List<InternalVariableDeclaration> declarations,
   Uri uri,
 ) {
-  return new _VariablesDeclaration(declarations, uri);
+  return new MultiVariableDeclaration(declarations, uri);
 }
 
 List<InternalVariableDeclaration> variablesDeclarationExtractDeclarations(
   Object? variablesDeclaration,
 ) {
-  return (variablesDeclaration as _VariablesDeclaration).declarations;
+  return (variablesDeclaration as MultiVariableDeclaration).declarations;
 }
 
-Statement wrapVariables(Statement statement) {
-  if (statement is _VariablesDeclaration) {
+InternalStatement wrapVariables(InternalStatement statement) {
+  if (statement is MultiVariableDeclaration) {
     return createBlock(
-      new List<Statement>.generate(
+      new List<InternalStatement>.generate(
         statement.declarations.length,
         (int index) => createVariableStatement(statement.declarations[index]),
         growable: true,
@@ -1702,71 +1700,11 @@ Statement wrapVariables(Statement statement) {
     );
   } else if (statement is InternalVariableStatement) {
     return createBlock(
-      <Statement>[statement],
+      <InternalStatement>[statement],
       fileOffset: statement.fileOffset,
       fileEndOffset: TreeNode.noOffset,
     );
   } else {
     return statement;
-  }
-}
-
-class _VariablesDeclaration extends AuxiliaryStatement {
-  final List<InternalVariableDeclaration> declarations;
-  final Uri uri;
-
-  new(this.declarations, this.uri) {
-    setParents(declarations, this);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(v) {
-    throw unsupported("accept", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(v, arg) {
-    throw unsupported("accept1", fileOffset, uri);
-  }
-
-  @override
-  String toString() {
-    return "_VariablesDeclaration(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    for (int index = 0; index < declarations.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      declarations[index].variable.toTextInternal(
-        printer,
-        includeModifiersAndType: index == 0,
-        initializer: declarations[index].initializer,
-      );
-    }
-    printer.write(';');
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never transformChildren(v) {
-    throw unsupported("transformChildren", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never transformOrRemoveChildren(v) {
-    throw unsupported("transformOrRemoveChildren", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never visitChildren(v) {
-    throw unsupported("visitChildren", fileOffset, uri);
   }
 }

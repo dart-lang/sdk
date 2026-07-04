@@ -302,7 +302,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   int functionNestingLevel = 0;
 
-  Statement? problemInLoopOrSwitch;
+  InternalStatement? problemInLoopOrSwitch;
 
   final LocalStack<LabelScope> _labelScopes;
 
@@ -702,33 +702,36 @@ class BodyBuilderImpl extends StackListenerImpl
     return list;
   }
 
-  Statement popBlock(int count, Token openBrace, Token? closeBrace) {
+  InternalStatement popBlock(int count, Token openBrace, Token? closeBrace) {
     return intern.createBlock(
-      const GrowableList<Statement>().popNonNullable(
+      const GrowableList<InternalStatement>().popNonNullable(
             stack,
             count,
-            dummyStatement,
+            dummyInternalStatement,
           ) ??
-          <Statement>[],
+          <InternalStatement>[],
       fileOffset: offsetForToken(openBrace),
       fileEndOffset: offsetForToken(closeBrace),
     );
   }
 
-  Statement? popStatementIfNotNull(Token? token) {
+  InternalStatement? popStatementIfNotNull(Token? token) {
     return token == null ? null : popStatement(token);
   }
 
-  Statement popStatement(Token token) {
+  InternalStatement popStatement(Token token) {
     Object? element = pop();
-    if (element is Statement) {
+    if (element is InternalStatement) {
       return intern.wrapVariables(element);
     } else {
       return _handleStatementNotStatement(element, token);
     }
   }
 
-  Statement _handleStatementNotStatement(Object? element, Token? token) {
+  InternalStatement _handleStatementNotStatement(
+    Object? element,
+    Token? token,
+  ) {
     if (element is ParserRecovery) {
       return intern.createBlock(
         [
@@ -754,17 +757,17 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  Statement popStatementNoWrap([Token? token]) {
+  InternalStatement popStatementNoWrap([Token? token]) {
     Object? element = pop();
-    if (element is Statement) {
+    if (element is InternalStatement) {
       return element;
     } else {
       return _handleStatementNotStatement(element, token);
     }
   }
 
-  Statement? popNullableStatement() {
-    Statement? statement = pop(NullValues.Block) as Statement?;
+  InternalStatement? popNullableStatement() {
+    InternalStatement? statement = pop(NullValues.Block) as InternalStatement?;
     if (statement != null) {
       statement = intern.wrapVariables(statement);
     }
@@ -1080,7 +1083,7 @@ class BodyBuilderImpl extends StackListenerImpl
       assert(count == 0);
       push(NullValues.Block);
     } else {
-      Statement block = popBlock(count, openBrace, closeBrace);
+      InternalStatement block = popBlock(count, openBrace, closeBrace);
       exitLocalScope();
       push(block);
     }
@@ -3300,14 +3303,14 @@ class BodyBuilderImpl extends StackListenerImpl
         /* condition = */ ValueKinds.Condition,
       ]),
     );
-    Statement? elsePart = popStatementIfNotNull(elseToken);
+    InternalStatement? elsePart = popStatementIfNotNull(elseToken);
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
-    Statement thenPart = popStatement(ifToken);
+    InternalStatement thenPart = popStatement(ifToken);
     Condition condition = pop() as Condition;
     InternalPatternGuard? patternGuard = condition.patternGuard;
     Expression expression = condition.expression;
-    Statement node;
+    InternalStatement node;
     if (patternGuard != null) {
       node = intern.createIfCaseStatement(
         ifToken.charOffset,
@@ -3671,7 +3674,7 @@ class BodyBuilderImpl extends StackListenerImpl
     BlockKind blockKind,
   ) {
     debugEvent("Block");
-    Statement block = popBlock(count, openBrace, closeBrace);
+    InternalStatement block = popBlock(count, openBrace, closeBrace);
     exitLocalScope();
     push(block);
     if (blockKind == BlockKind.tryStatement) {
@@ -3727,7 +3730,7 @@ class BodyBuilderImpl extends StackListenerImpl
     enterContinueTarget(charOffset);
   }
 
-  void exitLoopOrSwitch(Statement statement) {
+  void exitLoopOrSwitch(InternalStatement statement) {
     if (problemInLoopOrSwitch != null) {
       push(problemInLoopOrSwitch);
       problemInLoopOrSwitch = null;
@@ -3989,7 +3992,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement(forToken); // condition
+    InternalStatement conditionStatement = popStatement(forToken); // condition
 
     if (constantContext != ConstantContext.none) {
       pop(); // Pop variable or expression.
@@ -4100,7 +4103,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     debugEvent("ForStatement");
-    Statement body = popStatement(endToken);
+    InternalStatement body = popStatement(endToken);
 
     int updateExpressionCount = pop() as int;
     pop(); // Left separator.
@@ -4128,7 +4131,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement(forKeyword);
+    InternalStatement conditionStatement = popStatement(forKeyword);
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerPatternVariableAssignment],
@@ -4165,7 +4168,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       assert(conditionStatement is InternalEmptyStatement);
     }
-    Statement forStatement = intern.createForStatement(
+    InternalStatement forStatement = intern.createForStatement(
       offsetForToken(forKeyword),
       variables,
       condition,
@@ -4178,7 +4181,7 @@ class BodyBuilderImpl extends StackListenerImpl
         continueStatement.targetStatement = forStatement;
       }
     }
-    Statement result = forStatement;
+    InternalStatement result = forStatement;
     if (breakTarget.hasUsers) {
       InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
         result,
@@ -5931,7 +5934,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     debugEvent("CatchBlock");
-    Statement body = pop() as Statement;
+    InternalStatement body = pop() as InternalStatement;
     inCatchBlock = pop() as bool;
     if (catchKeyword != null) {
       exitLocalScope();
@@ -5952,7 +5955,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     CatchParameterBuilder? exception;
     CatchParameterBuilder? stackTrace;
-    List<Statement>? compileTimeErrors;
+    List<InternalStatement>? compileTimeErrors;
     if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters!.parameters!.length;
       if (parameterCount > 0) {
@@ -5970,7 +5973,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (parameterCount != 0) {
           for (int i = 2; i < parameterCount; i++) {
             CatchParameterBuilder parameter = catchParameters.parameters![i];
-            compileTimeErrors ??= <Statement>[];
+            compileTimeErrors ??= <InternalStatement>[];
             compileTimeErrors.add(
               buildProblemStatement(
                 diag.catchSyntaxExtraParameters,
@@ -6018,9 +6021,9 @@ class BodyBuilderImpl extends StackListenerImpl
     Token? finallyKeyword,
     Token endToken,
   ) {
-    Statement? finallyBlock;
+    InternalStatement? finallyBlock;
     if (finallyKeyword != null) {
-      finallyBlock = pop() as Statement;
+      finallyBlock = pop() as InternalStatement;
     } else {
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack.prepend(
@@ -6028,7 +6031,7 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     }
     List<InternalCatch>? catchBlocks;
-    List<Statement>? compileTimeErrors;
+    List<InternalStatement>? compileTimeErrors;
     if (catchCount != 0) {
       List<Object?> catchBlocksAndErrors = const FixedNullableList<Object?>()
           .pop(stack, catchCount * 2)!;
@@ -6039,16 +6042,17 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       for (int i = 0; i < catchCount; i++) {
         catchBlocks[i] = catchBlocksAndErrors[i * 2] as InternalCatch;
-        Statement? error = catchBlocksAndErrors[i * 2 + 1] as Statement?;
+        InternalStatement? error =
+            catchBlocksAndErrors[i * 2 + 1] as InternalStatement?;
         if (error != null) {
-          compileTimeErrors ??= <Statement>[];
+          compileTimeErrors ??= <InternalStatement>[];
           compileTimeErrors.add(error);
         }
       }
     }
-    Statement tryBlock = popStatement(tryKeyword);
+    InternalStatement tryBlock = popStatement(tryKeyword);
     int fileOffset = offsetForToken(tryKeyword);
-    Statement result = intern.createTryStatement(
+    InternalStatement result = intern.createTryStatement(
       fileOffset,
       tryBlock,
       catchBlocks,
@@ -7960,7 +7964,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
-    Statement body = popStatement(token);
+    InternalStatement body = popStatement(token);
     AsyncModifier asyncModifier = pop() as AsyncModifier;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
@@ -8080,7 +8084,7 @@ class BodyBuilderImpl extends StackListenerImpl
         /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
       ]),
     );
-    Statement body =
+    InternalStatement body =
         popNullableStatement() ??
         // In erroneous cases, there might not be function body. In such cases
         // we use an empty statement instead.
@@ -8261,7 +8265,7 @@ class BodyBuilderImpl extends StackListenerImpl
         typeOffset: typeOffset,
       )..fileOffset = variableOffset;
     } else {
-      Statement bodyStatement = body as Statement;
+      InternalStatement bodyStatement = body as InternalStatement;
       result = new AnonymousMethodBlock(
         variable,
         receiver,
@@ -8309,7 +8313,7 @@ class BodyBuilderImpl extends StackListenerImpl
       "Unexpected pattern in do statement: ${condition.patternGuard}.",
     );
     Expression expression = condition.expression;
-    Statement body = popStatement(doKeyword);
+    InternalStatement body = popStatement(doKeyword);
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
     List<InternalContinueStatement>? continueStatements;
@@ -8320,7 +8324,7 @@ class BodyBuilderImpl extends StackListenerImpl
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement doStatement = intern.createDoStatement(
+    InternalStatement doStatement = intern.createDoStatement(
       offsetForToken(doKeyword),
       body,
       expression,
@@ -8332,7 +8336,7 @@ class BodyBuilderImpl extends StackListenerImpl
         continueStatement.targetStatement = doStatement;
       }
     }
-    Statement result = doStatement;
+    InternalStatement result = doStatement;
     if (breakTarget.hasUsers) {
       InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
         result,
@@ -8619,7 +8623,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ]),
       ]),
     );
-    Statement body = popStatement(endToken);
+    InternalStatement body = popStatement(endToken);
 
     Token inKeyword = pop() as Token;
     Token forToken = pop() as Token;
@@ -8642,7 +8646,7 @@ class BodyBuilderImpl extends StackListenerImpl
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement forInStatement = new InternalForInStatement(
+    InternalStatement forInStatement = new InternalForInStatement(
       _computeForInElement(
         forToken: forToken,
         inToken: inKeyword,
@@ -8661,7 +8665,7 @@ class BodyBuilderImpl extends StackListenerImpl
         continueStatement.targetStatement = forInStatement;
       }
     }
-    Statement result = forInStatement;
+    InternalStatement result = forInStatement;
     if (breakTarget.hasUsers) {
       InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
         result,
@@ -8704,7 +8708,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = popStatementNoWrap();
+    InternalStatement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
@@ -8727,9 +8731,9 @@ class BodyBuilderImpl extends StackListenerImpl
         for (InternalContinueStatement continueStatement
             in continueStatements) {
           continueStatement.targetStatement = statement;
-          Statement labelStatementBody = statement.body;
-          if (labelStatementBody is LoopStatement) {
-            Statement loopBody = labelStatementBody.body;
+          InternalStatement labelStatementBody = statement.body;
+          if (labelStatementBody is InternalLoopStatement) {
+            InternalStatement loopBody = labelStatementBody.body;
             if (loopBody is InternalLabeledStatement) {
               continueStatement.target = loopBody;
             } else {
@@ -8806,7 +8810,7 @@ class BodyBuilderImpl extends StackListenerImpl
         /* break target = */ ValueKinds.BreakTarget,
       ]),
     );
-    Statement body = popStatement(whileKeyword);
+    InternalStatement body = popStatement(whileKeyword);
     Condition condition = pop() as Condition;
     assert(
       condition.patternGuard == null,
@@ -8823,7 +8827,7 @@ class BodyBuilderImpl extends StackListenerImpl
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement whileStatement = intern.createWhileStatement(
+    InternalStatement whileStatement = intern.createWhileStatement(
       offsetForToken(whileKeyword),
       expression,
       body,
@@ -8833,7 +8837,7 @@ class BodyBuilderImpl extends StackListenerImpl
         continueStatement.targetStatement = whileStatement;
       }
     }
-    Statement result = whileStatement;
+    InternalStatement result = whileStatement;
     if (breakTarget.hasUsers) {
       InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
         result,
@@ -9271,7 +9275,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
-    Statement block = popBlock(statementCount, beginToken, null);
+    InternalStatement block = popBlock(statementCount, beginToken, null);
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.switchCaseBody]);
     List<InternalDeclaredVariable>? jointPatternVariables =
         pop() as List<InternalDeclaredVariable>?;
@@ -9474,7 +9478,7 @@ class BodyBuilderImpl extends StackListenerImpl
       "Unexpected pattern in switch statement: ${condition.patternGuard}.",
     );
     Expression expression = condition.expression;
-    Statement switchStatement;
+    InternalStatement switchStatement;
     if (containsPatterns || libraryFeatures.patterns.isEnabled) {
       // If patterns are enabled, we always use the pattern switch encoding.
       // Otherwise, we use pattern switch encoding to handle the erroneous case
@@ -9526,7 +9530,7 @@ class BodyBuilderImpl extends StackListenerImpl
           case_ as InternalSwitchStatementCase,
       ], fileOffset: switchKeyword.charOffset);
     }
-    Statement result = switchStatement;
+    InternalStatement result = switchStatement;
     // We create a labeled statement enclosing the switch statement if it has
     // explicit break statements targeting it, or if the patterns feature is
     // enabled, in which case synthetic break statements might be inserted.
@@ -9767,11 +9771,11 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  Statement buildProblemTargetOutsideLocalFunction(
+  InternalStatement buildProblemTargetOutsideLocalFunction(
     String? name,
     Token keyword,
   ) {
-    Statement problem;
+    InternalStatement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
       Template<Message Function({required String label})> template = isBreak
@@ -10043,7 +10047,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void handleInvalidStatement(Token token, Message message) {
-    Statement statement = pop() as Statement;
+    InternalStatement statement = pop() as InternalStatement;
     push(
       intern.createExpressionStatement(
         buildProblem(
@@ -10101,7 +10105,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  Statement buildProblemStatement(
+  InternalStatement buildProblemStatement(
     Message message,
     int charOffset, {
     List<LocatedMessage>? context,
@@ -10451,7 +10455,7 @@ class BodyBuilderImpl extends StackListenerImpl
         intern.createBlock(
           fileOffset: offsetForToken(token),
           fileEndOffset: noLocation,
-          <Statement>[
+          <InternalStatement>[
             buildProblemStatement(
               diag.expectedFunctionBody.withArguments(lexeme: token),
               token.charOffset,
@@ -11577,7 +11581,7 @@ class BodyBuilderImpl extends StackListenerImpl
       BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
     );
     parser.parseFunctionBody(token, isExpression, allowAbstract);
-    Statement? body = pop() as Statement?;
+    InternalStatement? body = pop() as InternalStatement?;
     benchmarker
         // Coverage-ignore(suite): Not run.
         ?.endSubdivide();
@@ -11628,7 +11632,7 @@ class BodyBuilderImpl extends StackListenerImpl
       BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
     );
     parser.parseFunctionBody(token, isExpression, allowAbstract);
-    Statement? body = pop() as Statement?;
+    InternalStatement? body = pop() as InternalStatement?;
     benchmarker
         // Coverage-ignore(suite): Not run.
         ?.endSubdivide();
