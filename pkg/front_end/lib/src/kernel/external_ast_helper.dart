@@ -146,9 +146,13 @@ Block createBlock(
 BlockExpression createBlockExpression(
   Block body,
   Expression value, {
+  // TODO(johnniwinther,cstefantsova): This should be required.
+  Scope? scope,
   required int fileOffset,
 }) {
-  return new BlockExpression(body, value)..fileOffset = fileOffset;
+  return new BlockExpression(body, value)
+    ..scope = scope
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a boolean literal of [value].
@@ -289,6 +293,107 @@ ContinueSwitchStatement createContinueSwitchStatement({
   required int fileOffset,
 }) {
   return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceGet(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Member interfaceTarget,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceGet(
+        kind,
+        receiver,
+        name,
+        interfaceTarget: interfaceTarget,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceInvocation(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name,
+  Arguments arguments, {
+  required Procedure interfaceTarget,
+  required FunctionType functionType,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceInvocation(
+        kind,
+        receiver,
+        name,
+        arguments,
+        interfaceTarget: interfaceTarget,
+        functionType: functionType,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceTearOff(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Procedure interfaceTarget,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceTearOff(
+        kind,
+        receiver,
+        name,
+        interfaceTarget: interfaceTarget,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedVariableGet(
+  Variable variable, {
+  required DartType operandStaticType,
+  required DartType checkedType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new VariableGet(variable)
+        ..fileOffset = fileOffset
+        ..promotedType = operandStaticType,
+      checkedType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+Statement createDoStatement(
+  Statement body,
+  Expression condition, {
+  required int fileOffset,
+}) {
+  return new DoStatement(body, condition)..fileOffset = fileOffset;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -520,30 +625,6 @@ InstanceGet createInstanceGet(
   )..fileOffset = fileOffset;
 }
 
-AsExpression createCovarianceCheckedInstanceGet(
-  InstanceAccessKind kind,
-  Expression receiver,
-  Name name, {
-  required Member interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
-  required int fileOffset,
-}) {
-  return new AsExpression(
-      new InstanceGet(
-        kind,
-        receiver,
-        name,
-        interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
-      )..fileOffset = fileOffset,
-      checkType,
-    )
-    ..isTypeError = true
-    ..isCovarianceCheck = true
-    ..fileOffset = fileOffset;
-}
-
 InstanceInvocation createInstanceInvocation(
   InstanceAccessKind kind,
   Expression receiver,
@@ -563,34 +644,6 @@ InstanceInvocation createInstanceInvocation(
   )..fileOffset = fileOffset;
 }
 
-AsExpression createCovarianceCheckedInstanceInvocation(
-  InstanceAccessKind kind,
-  Expression receiver,
-  Name name,
-  Arguments arguments, {
-  required Procedure interfaceTarget,
-  required FunctionType functionType,
-  required DartType checkType,
-  required DartType objectNullableType,
-  required int fileOffset,
-}) {
-  return new AsExpression(
-      new InstanceInvocation(
-        kind,
-        receiver,
-        name,
-        arguments,
-        interfaceTarget: interfaceTarget,
-        functionType: functionType,
-        resultType: objectNullableType,
-      )..fileOffset = fileOffset,
-      checkType,
-    )
-    ..isTypeError = true
-    ..isCovarianceCheck = true
-    ..fileOffset = fileOffset;
-}
-
 InstanceSet createInstanceSet(
   InstanceAccessKind kind,
   Expression receiver,
@@ -605,6 +658,23 @@ InstanceSet createInstanceSet(
     name,
     value,
     interfaceTarget: interfaceTarget,
+  )..fileOffset = fileOffset;
+}
+
+InstanceTearOff createInstanceTearOff(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Procedure interfaceTarget,
+  required DartType resultType,
+  required int fileOffset,
+}) {
+  return new InstanceTearOff(
+    kind,
+    receiver,
+    name,
+    interfaceTarget: interfaceTarget,
+    resultType: resultType,
   )..fileOffset = fileOffset;
 }
 
@@ -1209,11 +1279,11 @@ RestPattern createRestPattern({
 }
 
 ReturnStatement createReturnStatement(
-  Expression expression, {
+  Expression? expression, {
   int? fileOffset,
 }) {
   return new ReturnStatement(expression)
-    ..fileOffset = fileOffset ?? expression.fileOffset;
+    ..fileOffset = fileOffset ?? expression!.fileOffset;
 }
 
 StaticGet createStaticGet(Member member, {required int fileOffset}) {
@@ -1463,23 +1533,6 @@ VariableGet createVariableGet(
     ..promotedType = promotedType != variable.type ? promotedType : null;
 }
 
-AsExpression createCovarianceCheckedVariableGet(
-  Variable variable, {
-  required DartType operandStaticType,
-  required DartType checkedType,
-  required int fileOffset,
-}) {
-  return new AsExpression(
-      new VariableGet(variable)
-        ..fileOffset = fileOffset
-        ..promotedType = operandStaticType,
-      checkedType,
-    )
-    ..isTypeError = true
-    ..isCovarianceCheck = true
-    ..fileOffset = fileOffset;
-}
-
 VariablePattern createVariablePattern({
   required DartType? type,
   required DeclaredVariable variable,
@@ -1522,6 +1575,17 @@ VariableStatement createVariableStatement(
     ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
+Statement createWhileStatement(
+  Expression condition,
+  Statement body, {
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new WhileStatement(condition, body)
+    ..scope = scope
+    ..fileOffset = fileOffset;
+}
+
 WildcardPattern createWildcardPattern({
   required DartType? type,
   required int fileOffset,
@@ -1529,43 +1593,11 @@ WildcardPattern createWildcardPattern({
   return new WildcardPattern(type)..fileOffset = fileOffset;
 }
 
-InstanceTearOff createInstanceTearOff(
-  InstanceAccessKind kind,
-  Expression receiver,
-  Name name, {
-  required Procedure interfaceTarget,
-  required DartType resultType,
+YieldStatement createYieldStatement(
+  Expression expression, {
+  required bool isYieldStar,
   required int fileOffset,
 }) {
-  return new InstanceTearOff(
-    kind,
-    receiver,
-    name,
-    interfaceTarget: interfaceTarget,
-    resultType: resultType,
-  )..fileOffset = fileOffset;
-}
-
-AsExpression createCovarianceCheckedInstanceTearOff(
-  InstanceAccessKind kind,
-  Expression receiver,
-  Name name, {
-  required Procedure interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
-  required int fileOffset,
-}) {
-  return new AsExpression(
-      new InstanceTearOff(
-        kind,
-        receiver,
-        name,
-        interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
-      )..fileOffset = fileOffset,
-      checkType,
-    )
-    ..isTypeError = true
-    ..isCovarianceCheck = true
+  return new YieldStatement(expression, isYieldStar: isYieldStar)
     ..fileOffset = fileOffset;
 }

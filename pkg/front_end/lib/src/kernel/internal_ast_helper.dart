@@ -91,26 +91,27 @@ Expression createAsExpression(
 /// Return a representation of an assert that appears in a constructor's
 /// initializer list.
 InternalAssertInitializer createAssertInitializer(
-  AssertStatement assertStatement, {
+  InternalAssertStatement assertStatement, {
   required int fileOffset,
 }) {
   return new InternalAssertInitializer(assertStatement, fileOffset: fileOffset);
 }
 
 /// Return a representation of an assert that appears as a statement.
-AssertStatement createAssertStatement(
+InternalAssertStatement createAssertStatement(
   int fileOffset,
   Expression condition,
   Expression? message,
   int conditionStartOffset,
   int conditionEndOffset,
 ) {
-  return new AssertStatement(
+  return new InternalAssertStatement(
     condition,
     conditionStartOffset: conditionStartOffset,
     conditionEndOffset: conditionEndOffset,
     message: message,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createAssignedVariablePattern(
@@ -135,7 +136,7 @@ BinaryExpression createBinary(
 
 /// Return a representation of a block of [statements] at the given
 /// [fileOffset].
-Block createBlock(
+InternalBlock createBlock(
   List<Statement> statements, {
   required int fileOffset,
   required int fileEndOffset,
@@ -152,17 +153,19 @@ Block createBlock(
       copy.add(statement);
     }
   }
-  return new Block(copy ?? statements)
-    ..fileOffset = fileOffset
-    ..fileEndOffset = fileEndOffset;
+  return new InternalBlock(
+    copy ?? statements,
+    fileOffset: fileOffset,
+    fileEndOffset: fileEndOffset,
+  );
 }
 
-BlockExpression createBlockExpression(
-  Block body,
+InternalBlockExpression createBlockExpression(
+  InternalBlock body,
   Expression value, {
   required int fileOffset,
 }) {
-  return new BlockExpression(body, value)..fileOffset = fileOffset;
+  return new InternalBlockExpression(body, value, fileOffset: fileOffset);
 }
 
 /// Return a representation of a boolean literal at the given [fileOffset].
@@ -172,7 +175,7 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 }
 
 /// Return a representation of a break statement.
-Statement createBreakStatement(int fileOffset, String? label) {
+InternalBreakStatement createBreakStatement(int fileOffset, String? label) {
   return new InternalBreakStatement(label: label, fileOffset: fileOffset);
 }
 
@@ -254,11 +257,16 @@ ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
 }
 
 /// Return a representation of a continue statement.
-Statement createContinueStatement(int fileOffset, String? label) {
+InternalContinueStatement createContinueStatement(
+  int fileOffset,
+  String? label,
+) {
   return new InternalContinueStatement(label: label, fileOffset: fileOffset);
 }
 
-Statement createContinueSwitchStatement({required int fileOffset}) {
+InternalContinueSwitchStatement createContinueSwitchStatement({
+  required int fileOffset,
+}) {
   return new InternalContinueSwitchStatement(fileOffset: fileOffset);
 }
 
@@ -268,7 +276,7 @@ Statement createDoStatement(
   Statement body,
   Expression condition,
 ) {
-  return new DoStatement(body, condition)..fileOffset = fileOffset;
+  return new InternalDoStatement(body, condition, fileOffset: fileOffset);
 }
 
 DotShorthand createDotShorthandContext(
@@ -312,7 +320,7 @@ DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
 
 /// Return a representation of an empty statement  at the given [fileOffset].
 Statement createEmptyStatement(int fileOffset) {
-  return new EmptyStatement()..fileOffset = fileOffset;
+  return new InternalEmptyStatement(fileOffset: fileOffset);
 }
 
 EqualsExpression createEquals(
@@ -341,7 +349,7 @@ Statement createExpressionStatement(
   Expression expression, {
   required int fileOffset,
 }) {
-  return new ExpressionStatement(expression)..fileOffset = fileOffset;
+  return new InternalExpressionStatement(expression, fileOffset: fileOffset);
 }
 
 ExtensionTypeRedirectingInitializer createExtensionTypeRedirectingInitializer({
@@ -578,8 +586,12 @@ Statement createIfStatement(
   Statement thenStatement,
   Statement? elseStatement,
 ) {
-  return new IfStatement(condition, thenStatement, elseStatement)
-    ..fileOffset = fileOffset;
+  return new InternalIfStatement(
+    condition,
+    thenStatement,
+    elseStatement,
+    fileOffset: fileOffset,
+  );
 }
 
 IndexGet createIndexGet(
@@ -675,8 +687,11 @@ Expression createIsExpression(
 /// The given [statement] is being used as the target of either a break or
 /// continue statement. Return the statement that should be used as the actual
 /// target.
-LabeledStatement createLabeledStatement(Statement statement) {
-  return new LabeledStatement(statement)..fileOffset = statement.fileOffset;
+InternalLabeledStatement createLabeledStatement(Statement statement) {
+  return new InternalLabeledStatement(
+    statement,
+    fileOffset: statement.fileOffset,
+  );
 }
 
 InternalLateVariable createLateVariable({
@@ -1292,17 +1307,23 @@ Statement createRethrowStatement(
   int rethrowFileOffset,
   int statementFileOffset,
 ) {
-  return new ExpressionStatement(new Rethrow()..fileOffset = rethrowFileOffset)
-    ..fileOffset = statementFileOffset;
+  return new InternalExpressionStatement(
+    new Rethrow()..fileOffset = rethrowFileOffset,
+    fileOffset: statementFileOffset,
+  );
 }
 
 /// Return a representation of a return statement.
-Statement createReturnStatement(
-  int fileOffset,
-  Expression? expression, {
+InternalReturnStatement createReturnStatement({
+  Expression? expression,
   bool isArrow = true,
+  required int fileOffset,
 }) {
-  return new ReturnStatementImpl(isArrow, expression)..fileOffset = fileOffset;
+  return new InternalReturnStatement(
+    expression: expression,
+    isArrow: isArrow,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a set literal at the given [fileOffset]. The
@@ -1611,7 +1632,7 @@ Statement createWhileStatement(
   Expression condition,
   Statement body,
 ) {
-  return new WhileStatement(condition, body)..fileOffset = fileOffset;
+  return new InternalWhileStatement(condition, body, fileOffset: fileOffset);
 }
 
 InternalPattern createWildcardPattern(int fileOffset, DartType? type) {
@@ -1626,8 +1647,11 @@ Statement createYieldStatement(
   Expression expression, {
   required bool isYieldStar,
 }) {
-  return new YieldStatement(expression, isYieldStar: isYieldStar)
-    ..fileOffset = fileOffset;
+  return new InternalYieldStatement(
+    expression,
+    isYieldStar: isYieldStar,
+    fileOffset: fileOffset,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -1667,15 +1691,21 @@ List<InternalVariableDeclaration> variablesDeclarationExtractDeclarations(
 
 Statement wrapVariables(Statement statement) {
   if (statement is _VariablesDeclaration) {
-    return new Block(
+    return createBlock(
       new List<Statement>.generate(
         statement.declarations.length,
         (int index) => createVariableStatement(statement.declarations[index]),
         growable: true,
       ),
-    )..fileOffset = statement.fileOffset;
+      fileOffset: statement.fileOffset,
+      fileEndOffset: TreeNode.noOffset,
+    );
   } else if (statement is InternalVariableStatement) {
-    return new Block(<Statement>[statement])..fileOffset = statement.fileOffset;
+    return createBlock(
+      <Statement>[statement],
+      fileOffset: statement.fileOffset,
+      fileEndOffset: TreeNode.noOffset,
+    );
   } else {
     return statement;
   }

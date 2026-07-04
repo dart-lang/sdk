@@ -31,6 +31,7 @@ class StatementInferenceResult {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get hasChanged => false;
 
   // Coverage-ignore(suite): Not run.
@@ -89,7 +90,7 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
     if (statements.length == 1) {
       return statements.single;
     } else {
-      return new Block(statements)..fileOffset = fileOffset;
+      return extern.createBlock(statements, fileOffset: fileOffset);
     }
   }
 

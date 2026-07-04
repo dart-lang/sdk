@@ -21,7 +21,7 @@ class Operator(final Token token, final int charOffset) {
 }
 
 class JumpTarget {
-  final List<Statement> users = <Statement>[];
+  final List<InternalGotoStatement> users = [];
 
   final JumpTargetKind kind;
 
@@ -41,22 +41,25 @@ class JumpTarget {
 
   bool get hasUsers => users.isNotEmpty;
 
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     assert(isBreakTarget);
     users.add(statement);
   }
 
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     assert(isContinueTarget);
     users.add(statement);
   }
 
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     assert(isGotoTarget);
     users.add(statement);
   }
 
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    Statement targetStatement,
+  ) {
     assert(isBreakTarget);
     for (Statement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
@@ -66,9 +69,11 @@ class JumpTarget {
     users.clear();
   }
 
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     assert(isContinueTarget);
-    List<InternalContinueStatement> statements = <InternalContinueStatement>[];
+    List<InternalContinueStatement> statements = [];
     for (Statement user in users) {
       InternalContinueStatement breakStatement =
           user as InternalContinueStatement;
@@ -124,7 +129,8 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Statement> get users => unsupported("users", charOffset, fileUri);
+  List<InternalGotoStatement> get users =>
+      unsupported("users", charOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -140,30 +146,35 @@ class LabelTarget implements JumpTarget {
   bool get isGotoTarget => false;
 
   @override
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     breakTarget.addBreak(statement);
   }
 
   @override
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     continueTarget.addContinue(statement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    Statement targetStatement,
+  ) {
     breakTarget.resolveBreaks(target, targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     return continueTarget.resolveContinues(target);
   }
 

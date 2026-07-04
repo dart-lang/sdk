@@ -1611,14 +1611,34 @@ void _testMethodInvocation() {
 }
 
 void _testReturnStatementImpl() {
-  testStatement(new ReturnStatementImpl(false), '''
-return;''');
-  testStatement(new ReturnStatementImpl(true), '''
-=>;''');
-  testStatement(new ReturnStatementImpl(false, new IntLiteral(0)), '''
-return 0;''');
-  testStatement(new ReturnStatementImpl(true, new IntLiteral(0)), '''
-=> 0;''');
+  testStatement(
+    new InternalReturnStatement(isArrow: false, fileOffset: TreeNode.noOffset),
+    '''
+return;''',
+  );
+  testStatement(
+    new InternalReturnStatement(isArrow: true, fileOffset: TreeNode.noOffset),
+    '''
+=>;''',
+  );
+  testStatement(
+    new InternalReturnStatement(
+      isArrow: false,
+      expression: new IntLiteral(0),
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+return 0;''',
+  );
+  testStatement(
+    new InternalReturnStatement(
+      isArrow: true,
+      expression: new IntLiteral(0),
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+=> 0;''',
+  );
 }
 
 void _testVariableDeclarationImpl() {

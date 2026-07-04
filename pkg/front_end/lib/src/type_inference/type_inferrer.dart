@@ -313,8 +313,12 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType? emittedValueType = bodyContext.emittedValueType;
     assert(asyncModifier.kind == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
+    Statement inferredBody = result.hasChanged ? result.statement : body;
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(body, inferredBody);
     return new InferredFunctionBody(
-      result.hasChanged ? result.statement : body,
+      inferredBody,
       emittedValueType,
       scopeProviderInfo,
     );

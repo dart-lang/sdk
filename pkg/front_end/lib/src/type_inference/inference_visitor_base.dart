@@ -2429,7 +2429,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
-      body: bodyResult.hasChanged ? bodyResult.statement : function.body,
+      body: bodyResult.hasChanged
+          ? bodyResult.statement
+          :
+            // Coverage-ignore(suite): Not run.
+            function.body,
       emittedValueType: bodyContext.emittedValueType,
     );
   }

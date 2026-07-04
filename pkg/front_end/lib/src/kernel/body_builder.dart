@@ -786,13 +786,12 @@ class BodyBuilderImpl extends StackListenerImpl
         JumpTarget declaration,
       ) {
         if (outerSwitchScope == null) {
-          for (Statement statement in declaration.users) {
-            statement.parent!.replaceChild(
-              statement,
-              wrapInProblemStatement(
-                statement,
-                diag.labelNotFound.withArguments(label: name),
-              ),
+          for (InternalGotoStatement statement in declaration.users) {
+            statement.error = buildProblem(
+              message: diag.labelNotFound.withArguments(label: name),
+              fileUri: uri,
+              fileOffset: statement.fileOffset,
+              length: name.length,
             );
           }
         } else {
@@ -3207,8 +3206,8 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       push(
         intern.createReturnStatement(
-          offsetForToken(beginToken),
-          expression,
+          fileOffset: offsetForToken(beginToken),
+          expression: expression,
           isArrow: !identical(beginToken.lexeme, "return"),
         ),
       );
@@ -3771,7 +3770,7 @@ class BodyBuilderImpl extends StackListenerImpl
           initializer: variableOrExpression,
         ),
       ];
-    } else if (variableOrExpression is ExpressionStatement) {
+    } else if (variableOrExpression is InternalExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
       Expression expression = variableOrExpression.expression;
       InternalSyntheticVariable variable = intern.createSyntheticVariable(
@@ -4032,10 +4031,10 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assignedVariables.pushNode(assignedVariablesNodeInfo);
     Expression? condition;
-    if (conditionStatement is ExpressionStatement) {
+    if (conditionStatement is InternalExpressionStatement) {
       condition = conditionStatement.expression;
     } else {
-      assert(conditionStatement is EmptyStatement);
+      assert(conditionStatement is InternalEmptyStatement);
     }
     if (entry is MapLiteralEntry) {
       TreeNode result;
@@ -4154,15 +4153,17 @@ class BodyBuilderImpl extends StackListenerImpl
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
     List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     Expression? condition;
-    if (conditionStatement is ExpressionStatement) {
+    if (conditionStatement is InternalExpressionStatement) {
       condition = conditionStatement.expression;
     } else {
-      assert(conditionStatement is EmptyStatement);
+      assert(conditionStatement is InternalEmptyStatement);
     }
     Statement forStatement = intern.createForStatement(
       offsetForToken(forKeyword),
@@ -4179,7 +4180,9 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Statement result = forStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, forStatement);
       result = labeledStatement;
     }
@@ -8035,7 +8038,7 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         push(declaration);
       }
-    } else if (declaration is ExpressionStatement) {
+    } else if (declaration is InternalExpressionStatement) {
       // For duplicate local functions generate an [ExpressionStatement] holding
       // the [InvalidExpression] for the error.
       push(declaration);
@@ -8311,7 +8314,9 @@ class BodyBuilderImpl extends StackListenerImpl
     JumpTarget breakTarget = exitBreakTarget()!;
     List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
@@ -8329,7 +8334,9 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Statement result = doStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, doStatement);
       result = labeledStatement;
     }
@@ -8629,7 +8636,9 @@ class BodyBuilderImpl extends StackListenerImpl
     JumpTarget breakTarget = exitBreakTarget()!;
     List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
@@ -8654,7 +8663,9 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Statement result = forInStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, forInStatement);
       result = labeledStatement;
     }
@@ -8705,7 +8716,7 @@ class BodyBuilderImpl extends StackListenerImpl
           uri,
         );
       }
-      if (statement is! LabeledStatement) {
+      if (statement is! InternalLabeledStatement) {
         statement = intern.createLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement, statement);
@@ -8719,7 +8730,7 @@ class BodyBuilderImpl extends StackListenerImpl
           Statement labelStatementBody = statement.body;
           if (labelStatementBody is LoopStatement) {
             Statement loopBody = labelStatementBody.body;
-            if (loopBody is LabeledStatement) {
+            if (loopBody is InternalLabeledStatement) {
               continueStatement.target = loopBody;
             } else {
               labelStatementBody.body = continueStatement.target =
@@ -8806,7 +8817,9 @@ class BodyBuilderImpl extends StackListenerImpl
     JumpTarget breakTarget = exitBreakTarget()!;
     List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
@@ -8822,7 +8835,9 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Statement result = whileStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, whileStatement);
       result = labeledStatement;
     }
@@ -8862,7 +8877,7 @@ class BodyBuilderImpl extends StackListenerImpl
     int fileOffset = offsetForToken(assertKeyword);
 
     /// Return a representation of an assert that appears as a statement.
-    AssertStatement createAssertStatement() {
+    InternalAssertStatement createAssertStatement() {
       // Compute start and end offsets for the condition expression.
       // This code is a temporary workaround because expressions don't carry
       // their start and end offsets currently.
@@ -9518,7 +9533,9 @@ class BodyBuilderImpl extends StackListenerImpl
     // TODO(johnniwinther): Remove [LabeledStatement]s in inference visitor
     // when they have no target.
     if (target.hasUsers || libraryFeatures.patterns.isEnabled) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       target.resolveBreaks(labeledStatement, switchStatement);
       result = labeledStatement;
     }
@@ -9683,19 +9700,19 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     for (int i = 0; i < caseCount - 1; i++) {
       InternalSwitchCase current = cases[i];
-      Block block = current.body as Block;
+      InternalBlock block = current.body as InternalBlock;
       // [block] is a synthetic block that is added to handle variable
       // declarations in the switch case.
       TreeNode? lastNode = block.statements.isEmpty
           ? null
           : block.statements.last;
-      if (lastNode is Block) {
+      if (lastNode is InternalBlock) {
         // This is a non-synthetic block.
-        Block block = lastNode;
+        InternalBlock block = lastNode;
         lastNode = block.statements.isEmpty ? null : block.statements.last;
       }
-      if (lastNode is ExpressionStatement) {
-        ExpressionStatement statement = lastNode;
+      if (lastNode is InternalExpressionStatement) {
+        InternalExpressionStatement statement = lastNode;
         lastNode = statement.expression;
       }
     }
@@ -9741,7 +9758,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (target.functionNestingLevel != functionNestingLevel) {
       push(buildProblemTargetOutsideLocalFunction(name, breakKeyword));
     } else {
-      Statement statement = intern.createBreakStatement(
+      InternalBreakStatement statement = intern.createBreakStatement(
         offsetForToken(breakKeyword),
         identifier?.name,
       );
@@ -9810,9 +9827,10 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        Statement statement = intern.createContinueSwitchStatement(
-          fileOffset: continueKeyword.charOffset,
-        );
+        InternalContinueSwitchStatement statement = intern
+            .createContinueSwitchStatement(
+              fileOffset: continueKeyword.charOffset,
+            );
         target.addGoto(statement);
         push(statement);
         return;
@@ -9840,7 +9858,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (target.functionNestingLevel != functionNestingLevel) {
       push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
-      Statement statement = intern.createContinueStatement(
+      InternalContinueStatement statement = intern.createContinueStatement(
         offsetForToken(continueKeyword),
         identifier?.name,
       );
@@ -10102,12 +10120,6 @@ class BodyBuilderImpl extends StackListenerImpl
       ),
       fileOffset: charOffset,
     );
-  }
-
-  Statement wrapInProblemStatement(Statement statement, Message message) {
-    // TODO(askesc): Produce explicit error statement wrapping the original.
-    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return buildProblemStatement(message, statement.fileOffset);
   }
 
   InternalInitializer buildDuplicatedInitializer(

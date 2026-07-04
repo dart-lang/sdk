@@ -1034,7 +1034,11 @@ class Resolver {
             ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
-    ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
+    InternalReturnStatement fakeReturn = intern.createReturnStatement(
+      expression: expression,
+      isArrow: true,
+      fileOffset: TreeNode.noOffset,
+    );
 
     // TODO(cstefantsova): Remove special-casing over
     // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
@@ -1062,13 +1066,10 @@ class Resolver {
               InferenceVisitorBase.createContextAllocationStrategy(),
           constructorContext: null,
         );
-    assert(
-      fakeReturn == inferredFunctionBody.body,
-      "Previously implicit assumption about inferFunctionBody "
-      "not returning anything different.",
-    );
+    ReturnStatement returnStatement =
+        inferredFunctionBody.body as ReturnStatement;
     context.performBacklog(result.annotations);
-    return fakeReturn.expression!;
+    return returnStatement.expression!;
   }
 
   Expression _buildConstructorInvocation({

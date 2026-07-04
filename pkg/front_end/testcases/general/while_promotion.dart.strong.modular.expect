@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method(core::int? i) → void {
+  while (!(i == null)) {
+    i = i{core::int}.{core::int::isEven}{core::bool} ?{core::int?} 0 : null;
+  }
+}

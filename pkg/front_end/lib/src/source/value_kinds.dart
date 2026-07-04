@@ -69,7 +69,7 @@ class ValueKinds {
   static const ValueKind AwaitTokenOrNull = const SingleValueKind<type.Token>(
     NullValues.AwaitToken,
   );
-  static const ValueKind Block = const SingleValueKind<type.Block>();
+  static const ValueKind Block = const SingleValueKind<type.InternalBlock>();
   static const ValueKind BreakTarget = const SingleValueKind<type.JumpTarget>(
     NullValues.BreakTarget,
   );
