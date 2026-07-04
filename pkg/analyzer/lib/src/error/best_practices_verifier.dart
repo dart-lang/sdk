@@ -98,6 +98,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _workspacePackage != null &&
       _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
 
+  /// Whether we are currently in a primary constructor declaration.
+  bool _inPrimaryConstructorDeclaration = false;
+
   BestPracticesVerifier(
     this._diagnosticReporter,
     TypeProviderImpl typeProvider,
@@ -770,9 +773,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _inPrimaryConstructorDeclaration = true;
     _checkStrictInferenceInParameters(node.formalParameters);
     _deprecatedFunctionalityVerifier.primaryConstructorDeclaration(node);
     super.visitPrimaryConstructorDeclaration(node);
+    _inPrimaryConstructorDeclaration = false;
   }
 
   @override
@@ -926,7 +931,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFinalParameter(FormalParameter node) {
     if (node.finalKeyword case var finalKeyword?) {
-      _diagnosticReporter.report(diag.unnecessaryFinal.at(finalKeyword));
+      if (!_inPrimaryConstructorDeclaration) {
+        // If we have the erroneous case of `class C(final this.x);` we model
+        // the as an initializing formal instead of a declaring parameter, but
+        // don't want to report the warning here.
+        _diagnosticReporter.report(diag.unnecessaryFinal.at(finalKeyword));
+      }
     }
   }
 

@@ -2930,6 +2930,8 @@ ClassDeclaration
   test_primaryConstructor_fieldFormalParameter_final() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A(final int this.a) {}
+//                ^^^^
+// [diag.initializingDeclaringParameter] Declaring parameters can't be initializing.
 ''');
 
     var node = parseResult.findNode.singleClassDeclaration;
@@ -2957,6 +2959,8 @@ ClassDeclaration
   test_primaryConstructor_fieldFormalParameter_var() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A(var int this.a) {}
+//              ^^^^
+// [diag.initializingDeclaringParameter] Declaring parameters can't be initializing.
 ''');
 
     var node = parseResult.findNode.singleClassDeclaration;
@@ -3369,6 +3373,8 @@ ClassDeclaration
   test_primaryConstructor_superFormalParameter_final_namedType() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A(final int super.a) {}
+//                ^^^^^
+// [diag.superInitializingDeclaringParameter] Declaring parameters can't be super parameters.
 ''');
     // TODO(scheglov): this is wrong.
 
@@ -3397,8 +3403,8 @@ ClassDeclaration
   test_primaryConstructor_superFormalParameter_var_namedType() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A(var int super.a) {}
-//      ^^^
-// [diag.extraneousModifier] Can't have modifier 'var' here.
+//              ^^^^^
+// [diag.superInitializingDeclaringParameter] Declaring parameters can't be super parameters.
 ''');
 
     var node = parseResult.findNode.singleClassDeclaration;

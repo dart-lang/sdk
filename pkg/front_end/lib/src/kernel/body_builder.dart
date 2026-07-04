@@ -5475,14 +5475,18 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? nameNode = pop();
     TypeBuilder? type = pop() as TypeBuilder?;
     Token? varOrFinalOrConst = pop(NullValues.Token) as Token?;
-    if (superKeyword != null &&
-        varOrFinalOrConst != null &&
-        varOrFinalOrConst.isA(Keyword.VAR)) {
-      handleRecoverableError(
-        diag.extraneousModifier.withArguments(lexeme: varOrFinalOrConst),
-        varOrFinalOrConst,
-        varOrFinalOrConst,
-      );
+    if (memberKind != MemberKind.PrimaryConstructor) {
+      // The parser reports a special error for declaring parameters, so we
+      // avoid emitting this error here for primary constructors.
+      if (superKeyword != null &&
+          varOrFinalOrConst != null &&
+          varOrFinalOrConst.isA(Keyword.VAR)) {
+        handleRecoverableError(
+          diag.extraneousModifier.withArguments(lexeme: varOrFinalOrConst),
+          varOrFinalOrConst,
+          varOrFinalOrConst,
+        );
+      }
     }
     Modifiers modifiers = pop() as Modifiers;
     if (inCatchClause) {

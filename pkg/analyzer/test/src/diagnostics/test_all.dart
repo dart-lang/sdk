@@ -417,6 +417,7 @@ import 'inference_failure_on_untyped_parameter_test.dart'
 import 'initializer_for_non_existent_field_test.dart'
     as initializer_for_non_existent_field;
 import 'initializer_for_static_field_test.dart' as initializer_for_static_field;
+import 'initializing_declaring_test.dart' as initializing_declaring;
 import 'initializing_formal_for_non_existent_field_test.dart'
     as initializing_formal_for_non_existent_field;
 import 'instance_access_to_static_member_test.dart'
@@ -1227,6 +1228,7 @@ main() {
     inference_failure_on_untyped_parameter.main();
     initializer_for_non_existent_field.main();
     initializer_for_static_field.main();
+    initializing_declaring.main();
     initializing_formal_for_non_existent_field.main();
     instance_access_to_static_member.main();
     instance_member_access_from_factory.main();
