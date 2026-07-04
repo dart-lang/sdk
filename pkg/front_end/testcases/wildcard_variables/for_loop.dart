@@ -17,4 +17,7 @@ test() async {
   await for (var _ in stream) {
     print(_);
   }
+
+  var list2 = [for (int _ = 0, _ = 2; ;) _];
+  var map = {for (int _ = 0, _ = 2; ;) _: _};
 }

@@ -3545,7 +3545,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       } else {
         VariableDeclarationInferenceResult variableResult =
-            inferVariableDeclaration(variableDeclaration);
+            inferVariableDeclaration(
+              variableDeclaration,
+              forLoopVariable: true,
+            );
         switch (variableResult) {
           case DirectVariableDeclarationInferenceResult():
             variables[index] = variableResult.declaration;
@@ -4606,7 +4609,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       } else {
         VariableDeclarationInferenceResult variableResult =
-            inferVariableDeclaration(variableDeclaration);
+            inferVariableDeclaration(
+              variableDeclaration,
+              forLoopVariable: true,
+            );
         switch (variableResult) {
           case DirectVariableDeclarationInferenceResult():
             variables[index] = variableResult.declaration;
@@ -7826,7 +7832,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       } else {
         VariableDeclarationInferenceResult variableResult =
-            inferVariableDeclaration(variableDeclaration);
+            inferVariableDeclaration(
+              variableDeclaration,
+              forLoopVariable: true,
+            );
         switch (variableResult) {
           case DirectVariableDeclarationInferenceResult():
             variables[index] = variableResult.declaration;
@@ -13860,10 +13869,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   VariableDeclarationInferenceResult inferVariableDeclaration(
-    InternalVariableDeclaration node,
-  ) {
+    InternalVariableDeclaration node, {
+    required bool forLoopVariable,
+  }) {
     VariableDeclarationInferenceResult variableDeclarationInferenceResult =
-        _inferInternalVariableDeclaration(node);
+        _inferInternalVariableDeclaration(
+          node,
+          forLoopVariable: forLoopVariable,
+        );
     if (isClosureContextLoweringEnabled) {
       _contextAllocationStrategy.handleDeclarationOfVariable(
         node.variable.astVariable,
@@ -13884,6 +13897,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     return inferVariableDeclaration(
       node.declaration,
+      forLoopVariable: false,
     ).toStatementInferenceResult(fileOffset: node.fileOffset);
   }
 
@@ -14527,33 +14541,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression node,
     SharedTypeSchemaView context, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
-    // Normally the CFE performs expression coercion in the process of type
-    // inference of the nodes where an assignment is executed. The inference on
-    // the pattern-related nodes is driven by the shared analysis, and some of
-    // such nodes perform assignments. Here we determine if we're inferring the
-    // expressions of one of such nodes, and perform the coercion if needed.
-    TreeNode? parent = node.parent;
-
-    // The case of pattern variable declaration. The initializer expression is
-    // assigned to the pattern, and so the coercion needs to be performed.
-    bool needsCoercion =
-        parent is InternalPatternVariableDeclaration &&
-        parent.initializer == node;
-
-    // The case of pattern assignment. The expression is assigned to the
-    // pattern, and so the coercion needs to be performed.
-    needsCoercion =
-        needsCoercion ||
-        parent is InternalPatternAssignment && parent.expression == node;
-
-    // The constant expressions in relational patterns are considered to be
-    // passed into the corresponding operator, and so the coercion needs to be
-    // performed.
-    needsCoercion =
-        needsCoercion ||
-        parent is InternalRelationalPattern && parent.expression == node;
-
     ExpressionInferenceResult expressionResult = inferExpression(
       node,
       context.unwrapTypeSchemaView(),
@@ -17482,8 +17471,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   VariableDeclarationInferenceResult _inferInternalVariableDeclaration(
-    InternalVariableDeclaration variableDeclaration,
-  ) {
+    InternalVariableDeclaration variableDeclaration, {
+    required bool forLoopVariable,
+  }) {
     InternalDeclaredVariable internalVariable = variableDeclaration.variable;
     DartType declaredType = internalVariable.isImplicitlyTyped
         ? const UnknownType()
@@ -17497,7 +17487,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // need to allocate space for them.
     if (internalVariable.isWildcard &&
         !internalVariable.isConst &&
-        internalVariable.parent?.parent is! InternalForStatement) {
+        !forLoopVariable) {
       if (variableDeclaration.initializer case var initializer?
           when !internalVariable.isLate) {
         return new VariableDeclarationInferenceResult.effect(

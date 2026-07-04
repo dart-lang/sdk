@@ -674,12 +674,17 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
@@ -691,6 +696,7 @@ mixin TypeAnalyzer<
       node,
       schema,
       isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
     );
     // Stack: (Expression)
     if (operations.isBottomType(result.type)) {
@@ -1590,6 +1596,9 @@ mixin TypeAnalyzer<
       rhs,
       patternSchema,
       isVoidAllowed: true,
+      // The expression is assigned to the pattern, and so the coercion needs to
+      // be performed.
+      needsCoercion: true,
     );
     SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
@@ -1725,6 +1734,9 @@ mixin TypeAnalyzer<
       initializer,
       patternSchema,
       isVoidAllowed: true,
+      // The initializer expression is assigned to the pattern, and so the
+      // coercion needs to be performed.
+      needsCoercion: true,
     );
     SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
@@ -1953,6 +1965,10 @@ mixin TypeAnalyzer<
       operand,
       operandSchema,
       isVoidAllowed: true,
+      // The constant expressions in relational patterns are considered to be
+      // passed into the corresponding operator, and so the coercion needs to be
+      // performed.
+      needsCoercion: true,
     );
     SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
@@ -2480,11 +2496,16 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   });
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].

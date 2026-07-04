@@ -7384,6 +7384,7 @@ class _MiniAstTypeAnalyzer
     Expression expression,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
