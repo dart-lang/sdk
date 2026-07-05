@@ -69,7 +69,7 @@ class ValueKinds {
   static const ValueKind AwaitTokenOrNull = const SingleValueKind<type.Token>(
     NullValues.AwaitToken,
   );
-  static const ValueKind Block = const SingleValueKind<type.Block>();
+  static const ValueKind Block = const SingleValueKind<type.InternalBlock>();
   static const ValueKind BreakTarget = const SingleValueKind<type.JumpTarget>(
     NullValues.BreakTarget,
   );
@@ -218,11 +218,12 @@ class ValueKinds {
       const SingleValueKind<type.InternalSwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.InternalSwitchExpressionCase>>();
-  static const ValueKind Statement = const SingleValueKind<type.Statement>();
+  static const ValueKind Statement =
+      const SingleValueKind<type.InternalStatement>();
   static const ValueKind StatementOrNull =
-      const SingleValueKind<type.Statement>(NullValues.Block);
+      const SingleValueKind<type.InternalStatement>(NullValues.Block);
   static const ValueKind StatementListOrNullList =
-      const SingleValueKind<List<List<type.Statement>?>>();
+      const SingleValueKind<List<List<type.InternalStatement>?>>();
   static const ValueKind String = const SingleValueKind<type.String>();
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull = const SingleValueKind<type.Token>(

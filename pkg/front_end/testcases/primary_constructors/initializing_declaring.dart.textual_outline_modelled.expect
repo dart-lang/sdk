@@ -1,0 +1,23 @@
+class C0(var this.str) {
+  var str;
+}
+
+class C1(final this.str) {
+  final str;
+}
+
+class C2(const this.str) {
+  final str;
+}
+
+class C3(var super.str) extends S3;
+
+class C4(final super.str) extends S4;
+
+class C5(const super.str) extends S5;
+
+class S3(var str);
+
+class S4(final str);
+
+class S5(final str);

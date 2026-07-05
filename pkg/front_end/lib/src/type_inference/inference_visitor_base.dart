@@ -160,7 +160,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
   get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
@@ -2429,7 +2429,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
-      body: bodyResult.hasChanged ? bodyResult.statement : function.body,
+      body: bodyResult.statement,
       emittedValueType: bodyContext.emittedValueType,
     );
   }

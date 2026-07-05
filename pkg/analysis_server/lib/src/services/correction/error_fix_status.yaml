@@ -971,6 +971,8 @@ initializer_for_static_field:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
+initializing_declaring_parameter:
+  status: needsEvaluation
 initializing_formal_for_non_existent_field:
   status: hasFix
 instance_access_to_static_member:
@@ -1606,6 +1608,8 @@ super_initializer_in_object:
   status: noFix
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
+super_initializing_declaring_parameter:
+  status: needsEvaluation
 super_invocation_not_last:
   status: hasFix
 switch_case_completes_normally:

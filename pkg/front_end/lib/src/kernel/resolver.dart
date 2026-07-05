@@ -119,10 +119,11 @@ class Resolver {
         atToken: annotation.atToken,
       );
       if (annotation.createFileUriExpression) {
-        expression = new FileUriExpression(
-          expression,
-          annotation.metadataBuilder.fileUri,
-        )..fileOffset = annotation.metadataBuilder.atOffset;
+        expression = intern.createFileUriExpression(
+          expression: expression,
+          fileUri: annotation.metadataBuilder.fileUri,
+          fileOffset: annotation.metadataBuilder.atOffset,
+        );
       }
       // Record the index of [annotation] in `annotatable.annotations` in order
       // to perform inference only on the new annotations, and to be able to
@@ -1034,7 +1035,11 @@ class Resolver {
             ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
-    ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
+    InternalReturnStatement internalReturn = intern.createReturnStatement(
+      expression: expression,
+      isArrow: true,
+      fileOffset: TreeNode.noOffset,
+    );
 
     // TODO(cstefantsova): Remove special-casing over
     // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
@@ -1053,7 +1058,7 @@ class Resolver {
           fileOffset: fileOffset,
           returnType: const DynamicType(),
           asyncModifier: AsyncModifier.implicitSync,
-          body: fakeReturn,
+          body: internalReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
           internalThisVariable: internalThisVariable,
@@ -1062,13 +1067,10 @@ class Resolver {
               InferenceVisitorBase.createContextAllocationStrategy(),
           constructorContext: null,
         );
-    assert(
-      fakeReturn == inferredFunctionBody.body,
-      "Previously implicit assumption about inferFunctionBody "
-      "not returning anything different.",
-    );
+    ReturnStatement returnStatement =
+        inferredFunctionBody.body as ReturnStatement;
     context.performBacklog(result.annotations);
-    return fakeReturn.expression!;
+    return returnStatement.expression!;
   }
 
   Expression _buildConstructorInvocation({
@@ -1340,7 +1342,7 @@ class Resolver {
     required LibraryFeatures libraryFeatures,
     required BodyBuilderContext bodyBuilderContext,
     required AsyncModifier asyncModifier,
-    required Statement? body,
+    required InternalStatement? body,
     required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
     required ConstantContext constantContext,
@@ -1410,7 +1412,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required AsyncModifier asyncModifier,
-    required Statement? body,
+    required InternalStatement? body,
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
     required InternalVariable? thisVariable,
@@ -1531,6 +1533,7 @@ class Resolver {
     }
 
     InferredFunctionBody? inferredFunctionBody;
+    Statement? inferredBody;
     if (body != null) {
       inferredFunctionBody = context.typeInferrer.inferFunctionBody(
         fileUri: fileUri,
@@ -1544,7 +1547,7 @@ class Resolver {
         contextAllocationStrategy: contextAllocationStrategy,
         constructorContext: bodyBuilderContext.constructorContext,
       );
-      body = inferredFunctionBody.body;
+      inferredBody = inferredFunctionBody.body;
       scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;
     } else {
       // Normalize abstract members markers to sync.
@@ -1554,20 +1557,20 @@ class Resolver {
     // No-such-method forwarders get their bodies injected during outline
     // building, so we should skip them here.
     bool isNoSuchMethodForwarder = bodyBuilderContext.isNoSuchMethodForwarder;
-    if (body != null) {
+    if (inferredBody != null) {
       if (bodyBuilderContext.isExternalFunction || isNoSuchMethodForwarder) {
-        body = new Block(<Statement>[
+        inferredBody = new Block(<Statement>[
           new ExpressionStatement(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
               message: diag.externalMethodWithBody,
               fileUri: fileUri,
-              fileOffset: body.fileOffset,
+              fileOffset: inferredBody.fileOffset,
               length: noLength,
             ),
-          )..fileOffset = body.fileOffset,
-          body,
-        ])..fileOffset = body.fileOffset;
+          )..fileOffset = inferredBody.fileOffset,
+          inferredBody,
+        ])..fileOffset = inferredBody.fileOffset;
       }
     }
     DartType? emittedValueType = inferredFunctionBody?.emittedValueType;
@@ -1580,7 +1583,7 @@ class Resolver {
       "Missing emitted value type for non-sync function.",
     );
     bodyBuilderContext.registerFunctionBody(
-      body: body,
+      body: inferredBody,
       scopeProviderInfo: scopeProviderInfo,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,

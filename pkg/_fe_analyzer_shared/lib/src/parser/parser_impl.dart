@@ -2189,6 +2189,21 @@ class Parser {
         nameContext = IdentifierContext.fieldInitializer;
       }
     }
+    if (memberKind == MemberKind.PrimaryConstructor) {
+      if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
+        if (thisKeyword != null) {
+          reportRecoverableError(
+            thisKeyword,
+            diag.initializingDeclaringParameter,
+          );
+        } else if (superKeyword != null) {
+          reportRecoverableError(
+            superKeyword,
+            diag.superInitializingDeclaringParameter,
+          );
+        }
+      }
+    }
 
     if (next.isIdentifier) {
       token = next;

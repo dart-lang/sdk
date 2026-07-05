@@ -42,7 +42,7 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
   get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
@@ -66,7 +66,7 @@ abstract class TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -126,7 +126,12 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  late final FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    Expression,
+    InternalVariable
+  >
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -263,7 +268,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -313,8 +318,12 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType? emittedValueType = bodyContext.emittedValueType;
     assert(asyncModifier.kind == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
+    Statement inferredBody = result.statement;
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(body, inferredBody);
     return new InferredFunctionBody(
-      result.hasChanged ? result.statement : body,
+      inferredBody,
       emittedValueType,
       scopeProviderInfo,
     );
@@ -497,6 +506,8 @@ class TypeInferrerImpl implements TypeInferrer {
       defaultValue = visitor
           .ensureAssignableResult(declaredType, result)
           .expression;
+    } else {
+      defaultValue = result.expression;
     }
     visitor.checkCleanState();
     return defaultValue;
@@ -532,7 +543,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
   get flowAnalysis => impl.flowAnalysis;
 
   @override
@@ -564,7 +575,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,

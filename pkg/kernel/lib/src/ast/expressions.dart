@@ -4862,7 +4862,7 @@ class RecordLiteral extends Expression {
 
   @override
   String toString() {
-    return "RecordType(${toStringInternal()})";
+    return "RecordLiteral(${toStringInternal()})";
   }
 
   @override

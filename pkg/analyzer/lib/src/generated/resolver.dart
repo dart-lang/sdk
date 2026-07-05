@@ -468,6 +468,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     inferenceLogWriter?.setExpressionVisitCodePath(
       node,
@@ -478,6 +479,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       schema,
       continueNullShorting: continueNullShorting,
       isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
     );
   }
 
@@ -764,6 +766,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant ExpressionImpl expression,
     SharedTypeSchemaView context, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     // Note: the analyzer doesn't use the `isVoidAllowed` boolean; it detects
     // invalid use of void through more ad hoc mechanisms. See

@@ -146,7 +146,7 @@ abstract class Generator {
   }) {
     return buildCompoundAssignment(
       binaryOperator,
-      intern.createIntLiteral(operatorOffset, 1),
+      intern.createIntLiteral(fileOffset: operatorOffset, value: 1),
       operatorOffset: operatorOffset,
       // TODO(johnniwinther): We are missing some void contexts here. For
       // instance `++a?.b;` is not providing a void context making it default
@@ -1718,7 +1718,10 @@ class IndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -1915,7 +1918,10 @@ class ThisIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -2125,7 +2131,10 @@ class SuperIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -3635,7 +3644,10 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -4077,7 +4089,10 @@ class LoadLibraryGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -4102,7 +4117,11 @@ class LoadLibraryGenerator extends Generator {
         'loadLibrary'.length,
       );
     }
-    return builder.createLoadLibrary(offset, arguments);
+    return intern.createLoadLibrary(
+      import: builder.importDependency,
+      arguments: arguments,
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -5290,7 +5309,10 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,

@@ -355,7 +355,7 @@ class EnumElementDeclaration
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       List<Expression> enumSyntheticArguments = <Expression>[
-        intern.createIntLiteral(fileOffset, elementIndex),
+        intern.createIntLiteral(fileOffset: fileOffset, value: elementIndex),
         intern.createStringLiteral(fileOffset, constant),
       ];
       var (Expression initializer, DartType? fieldType) = libraryBuilder.loader

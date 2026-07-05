@@ -7996,6 +7996,19 @@ initializerForStaticField = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments initializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be initializing.",
+      correctionMessage:
+          "Try removing the `this.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'initializing_declaring_parameter',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String formalName: the name of the initializing formal that is not an
 ///                    instance variable in the immediately enclosing class
@@ -15791,6 +15804,19 @@ const DiagnosticWithoutArguments superInitializerInObject =
           "The class 'Object' can't invoke a constructor from a superclass.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'super_initializer_in_object',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments superInitializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'super_initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be super parameters.",
+      correctionMessage:
+          "Try removing the `super.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'super_initializing_declaring_parameter',
       expectedTypes: [],
     );
 

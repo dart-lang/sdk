@@ -21,7 +21,7 @@ class Operator(final Token token, final int charOffset) {
 }
 
 class JumpTarget {
-  final List<Statement> users = <Statement>[];
+  final List<InternalGotoStatement> users = [];
 
   final JumpTargetKind kind;
 
@@ -41,24 +41,27 @@ class JumpTarget {
 
   bool get hasUsers => users.isNotEmpty;
 
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     assert(isBreakTarget);
     users.add(statement);
   }
 
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     assert(isContinueTarget);
     users.add(statement);
   }
 
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     assert(isGotoTarget);
     users.add(statement);
   }
 
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    InternalStatement targetStatement,
+  ) {
     assert(isBreakTarget);
-    for (Statement user in users) {
+    for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
       breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
@@ -66,10 +69,12 @@ class JumpTarget {
     users.clear();
   }
 
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     assert(isContinueTarget);
-    List<InternalContinueStatement> statements = <InternalContinueStatement>[];
-    for (Statement user in users) {
+    List<InternalContinueStatement> statements = [];
+    for (InternalGotoStatement user in users) {
       InternalContinueStatement breakStatement =
           user as InternalContinueStatement;
       breakStatement.target = target;
@@ -81,7 +86,7 @@ class JumpTarget {
 
   void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
-    for (Statement user in users) {
+    for (InternalGotoStatement user in users) {
       InternalContinueSwitchStatement continueSwitchStatement =
           user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
@@ -124,7 +129,8 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Statement> get users => unsupported("users", charOffset, fileUri);
+  List<InternalGotoStatement> get users =>
+      unsupported("users", charOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -140,30 +146,35 @@ class LabelTarget implements JumpTarget {
   bool get isGotoTarget => false;
 
   @override
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     breakTarget.addBreak(statement);
   }
 
   @override
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     continueTarget.addContinue(statement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    InternalStatement targetStatement,
+  ) {
     breakTarget.resolveBreaks(target, targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     return continueTarget.resolveContinues(target);
   }
 
@@ -263,7 +274,7 @@ class FormalParameters(
     required TypeBuilder? returnTypeBuilder,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required int fileOffset,
     required int fileEndOffset,
   }) {
@@ -483,14 +494,14 @@ class BuildPrimaryConstructorResult(
 
 class BuildFunctionBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
+  required final InternalStatement? body,
   required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 
 class BuildPrimaryConstructorBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
+  required final InternalStatement? body,
   required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
