@@ -1041,17 +1041,6 @@ class Resolver {
       fileOffset: TreeNode.noOffset,
     );
 
-    // TODO(cstefantsova): Remove special-casing over
-    // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
-    // it.
-    List<InternalVariable> formalParameters =
-        bodyBuilderContext is ExpressionCompilerProcedureBodyBuildContext
-        ? []
-        : [
-            for (FormalParameterBuilder formal
-                in bodyBuilderContext.formals ?? [])
-              formal.variable,
-          ];
     InferredFunctionBody inferredFunctionBody = context.typeInferrer
         .inferFunctionBody(
           fileUri: fileUri,
@@ -1060,9 +1049,6 @@ class Resolver {
           asyncModifier: AsyncModifier.implicitSync,
           body: internalReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
-          parameters: formalParameters,
-          internalThisVariable: internalThisVariable,
-          scopeProviderInfo: null,
           contextAllocationStrategy:
               InferenceVisitorBase.createContextAllocationStrategy(),
           constructorContext: null,
@@ -1334,7 +1320,7 @@ class Resolver {
     }
   }
 
-  ScopeProviderInfo? _finishConstructor({
+  void _finishConstructor({
     required _ResolverContext context,
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
@@ -1360,26 +1346,25 @@ class Resolver {
       coreTypes: _coreTypes,
       fileUri: fileUri,
     );
-    ScopeProviderInfo? scopeProviderInfo = initializerBuilder
-        .processInitializers(
-          libraryBuilder: libraryBuilder,
-          libraryFeatures: libraryFeatures,
-          superParameterArguments: superParameterArguments,
-          initializers: initializers,
-          asyncModifier: asyncModifier,
-          forPrimaryConstructor: forPrimaryConstructor,
-          parameters: parameters,
-          internalThisVariable: internalThisVariable,
-          contextAllocationStrategy: contextAllocationStrategy,
-          isConstructorWithoutBody: body == null,
-        );
+    initializerBuilder.processInitializers(
+      libraryBuilder: libraryBuilder,
+      libraryFeatures: libraryFeatures,
+      superParameterArguments: superParameterArguments,
+      initializers: initializers,
+      asyncModifier: asyncModifier,
+      forPrimaryConstructor: forPrimaryConstructor,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      contextAllocationStrategy: contextAllocationStrategy,
+      isConstructorWithoutBody: body == null,
+    );
 
     if (body == null && !bodyBuilderContext.isExternalConstructor) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
       bodyBuilderContext.registerNoBodyConstructor(
-        thisVariable: scopeProviderInfo?.thisVariable,
+        thisVariable: internalThisVariable?.astVariable,
       );
     } else if (body != null &&
         bodyBuilderContext.isMixinClass &&
@@ -1401,8 +1386,6 @@ class Resolver {
         length: noLength,
       );
     }
-
-    return scopeProviderInfo;
   }
 
   void _finishFunction({
@@ -1499,8 +1482,28 @@ class Resolver {
     ScopeProviderInfo? scopeProviderInfo;
     ContextAllocationStrategy contextAllocationStrategy =
         InferenceVisitorBase.createContextAllocationStrategy();
+    if (libraryBuilder.loader.isClosureContextLoweringEnabled) {
+      scopeProviderInfo = contextAllocationStrategy
+          .beginClosureContextAllocation(
+            [
+              for (InternalVariable parameter in parameters)
+                new VariableWithCaptureKind(
+                  parameter.astVariable,
+                  context.typeInferrer.captureKindForVariable(parameter),
+                ),
+            ],
+            thisVariable: internalThisVariable == null
+                ? null
+                : new VariableWithCaptureKind(
+                    internalThisVariable.astVariable,
+                    context.typeInferrer.captureKindForVariable(
+                      internalThisVariable,
+                    ),
+                  ),
+          );
+    }
     if (bodyBuilderContext.isConstructor) {
-      scopeProviderInfo = _finishConstructor(
+      _finishConstructor(
         context: context,
         compilerContext: compilerContext,
         problemReporting: problemReporting,
@@ -1541,14 +1544,10 @@ class Resolver {
         returnType: returnType,
         asyncModifier: asyncModifier,
         body: body,
-        parameters: parameters,
-        internalThisVariable: internalThisVariable,
-        scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
         constructorContext: bodyBuilderContext.constructorContext,
       );
       inferredBody = inferredFunctionBody.body;
-      scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;
     } else {
       // Normalize abstract members markers to sync.
       asyncModifier = AsyncModifier.implicitSync;
@@ -1582,6 +1581,9 @@ class Resolver {
       !(asyncModifier.kind != AsyncMarker.Sync && emittedValueType == null),
       "Missing emitted value type for non-sync function.",
     );
+    if (scopeProviderInfo != null) {
+      contextAllocationStrategy.endClosureContextAllocation(scopeProviderInfo);
+    }
     bodyBuilderContext.registerFunctionBody(
       body: inferredBody,
       scopeProviderInfo: scopeProviderInfo,

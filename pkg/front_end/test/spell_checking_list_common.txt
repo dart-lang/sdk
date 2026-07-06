@@ -2260,6 +2260,7 @@ padding
 page
 pain
 pair
+paired
 pairs
 pairwise
 paragraph

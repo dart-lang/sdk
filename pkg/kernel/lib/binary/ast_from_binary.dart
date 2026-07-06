@@ -2251,6 +2251,7 @@ class BinaryBuilder {
           ..thisVariable = thisVariable
           ..scope = scope
           ..capturedContexts = capturedContexts;
+    thisVariable?.parent = result;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(

@@ -377,7 +377,6 @@ class PrimaryConstructorFieldDeclaration
   ) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
@@ -386,7 +385,6 @@ class PrimaryConstructorFieldDeclaration
   }) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureSetterTypes({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
@@ -395,7 +393,6 @@ class PrimaryConstructorFieldDeclaration
   }) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
     Set<ClassMember>? getterOverrideDependencies,
@@ -416,6 +413,7 @@ class PrimaryConstructorFieldDeclaration
         isAssignable: hasSetter,
       );
     } else {
+      // Coverage-ignore-block(suite): Not run.
       type.build(
         builder.libraryBuilder,
         TypeUse.fieldType,
