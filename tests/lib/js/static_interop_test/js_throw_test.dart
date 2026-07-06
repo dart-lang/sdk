@@ -14,6 +14,14 @@ external void eval(String code);
 @JS()
 external JSAny? catchAndReturn(JSFunction f);
 
+@JS('Error')
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  external JSError(String message);
+  external String message;
+}
+
+
 void main() {
   eval('''
     globalThis.catchAndReturn = function(f) {
@@ -29,8 +37,7 @@ void main() {
     'foo'.toJS,
     catchAndReturn((() => jsThrow('foo'.toJS)).toJS),
   );
-  final caughtError = JSError.asError(
-    catchAndReturn((() => jsThrow(JSError('foo'))).toJS),
-  );
-  Expect.equals('foo', caughtError?.message);
+  final caughtError = catchAndReturn((() => jsThrow(JSError('foo'))).toJS);
+  Expect.isTrue(caughtError.isA<JSError>());
+  Expect.equals('foo', (caughtError as JSError).message);
 }
