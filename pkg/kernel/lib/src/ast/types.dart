@@ -251,7 +251,7 @@ class NominalParameter extends TreeNode implements TypeParameter {
   /// with the names used across all [toString] calls.
   @override
   String toString() {
-    return "NominalTypeParameter(${toStringInternal()})";
+    return "NominalParameter(${toStringInternal()})";
   }
 
   @override
