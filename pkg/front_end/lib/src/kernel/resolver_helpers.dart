@@ -211,21 +211,15 @@ class _InitializerBuilder {
        this._needsImplicitSuperInitializer = bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
-  ScopeProviderInfo? _inferInitializers(
+  void _inferInitializers(
     List<InternalInitializer> initializers, {
-    required List<InternalVariable> parameters,
-    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isConstructorWithoutBody,
   }) {
     InferredConstructorInitializers result = _typeInferrer.inferInitializers(
       fileUri: _fileUri,
       constructorContext: _bodyBuilderContext.constructorContext!,
       initializers: initializers,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
       contextAllocationStrategy: contextAllocationStrategy,
-      isConstructorWithoutBody: isConstructorWithoutBody,
     );
     if (!_bodyBuilderContext.isExternalConstructor) {
       for (InitializerInferenceResult initializerInferenceResult
@@ -233,10 +227,9 @@ class _InitializerBuilder {
         _addInferredInitializer(initializerInferenceResult);
       }
     }
-    return result.scopeProviderInfo;
   }
 
-  ScopeProviderInfo? processInitializers({
+  void processInitializers({
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required _SuperParameterArguments? superParameterArguments,
@@ -269,7 +262,6 @@ class _InitializerBuilder {
       }
     }
 
-    ScopeProviderInfo? scopeProviderInfo;
     List<InternalInitializer> initializersToBeInferred = [];
     for (InternalInitializer initializer in initializers) {
       switch (initializer) {
@@ -379,29 +371,18 @@ class _InitializerBuilder {
         libraryBuilder: libraryBuilder,
         typeInferrer: _typeInferrer,
         superParameterArguments: superParameterArguments,
-        parameters: parameters,
-        internalThisVariable: internalThisVariable,
-        scopeProviderInfo: scopeProviderInfo,
-        contextAllocationStrategy: contextAllocationStrategy,
-        isFirstInitializer: initializers.isEmpty,
-        isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
       initializersToBeInferred.add(initializer);
     }
-    scopeProviderInfo = _inferInitializers(
+    _inferInitializers(
       initializersToBeInferred,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
       contextAllocationStrategy: contextAllocationStrategy,
-      isConstructorWithoutBody: isConstructorWithoutBody,
     );
     _bodyBuilderContext.registerInitializers([
       ..._regularInitializers,
       ?_redirectingInitializer,
       ?_superInitializer,
     ], isErroneous: _isErroneous);
-
-    return scopeProviderInfo;
   }
 
   void _addSuperInitializer(
@@ -578,12 +559,6 @@ class _InitializerBuilder {
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
-    required List<InternalVariable> parameters,
-    required InternalThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
-    required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
   }) {
     /// >If no superinitializer is provided, an implicit superinitializer
     /// >of the form super() is added at the end of the constructor's

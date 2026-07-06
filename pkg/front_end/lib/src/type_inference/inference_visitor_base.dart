@@ -217,6 +217,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ExpressionInfo? getExpressionInfo(Expression? expression) =>
       _expressionInfoMap[expression];
 
+  /// Returns [CaptureKind] for the given [variable].
+  CaptureKind captureKindForVariable(InternalVariable variable) =>
+      _inferrer.captureKindForVariable(variable);
+
   DartType computeGreatestClosure(DartType type) {
     return cfeOperations.greatestClosureOfSchema(
       new SharedTypeSchemaView(type),
@@ -5714,18 +5718,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// inference to visit a node.  This performs assertions to make sure that
   /// temporary type inference state has been properly cleaned up.
   void checkCleanState();
-
-  /// Initiates closure context allocation as a part of type inference.
-  ///
-  /// [parameters] are those of the function being inferred.
-  ScopeProviderInfo beginClosureContextAllocation(
-    List<InternalVariable> parameters, {
-    required InternalThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
-  });
-
-  /// Finishes closure context allocation after inferring the function body.
-  void endClosureContextAllocation(ScopeProviderInfo scopeProviderInfo);
 
   /// Performs preliminary computations before inferring the field initializer.
   ScopeProviderInfo beginFieldInference({

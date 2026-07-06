@@ -1348,8 +1348,9 @@ class BinaryPrinter
 
   @override
   void visitConstructor(Constructor node) {
-    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(node)
-        .canonicalName;
+    CanonicalName? canonicalName = getNonNullableMemberReferenceGetter(
+      node,
+    ).canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
@@ -1369,9 +1370,13 @@ class BinaryPrinter
     writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= _newVariableIndexer();
+
+    // Account for `ThisVariable`.
+    int thisVariableCount = node.function.thisVariable == null ? 0 : 1;
     _variableIndexer!.restoreScope(
       node.function.positionalParameters.length +
-          node.function.namedParameters.length,
+          node.function.namedParameters.length +
+          thisVariableCount,
     );
     _variableContextIndexer.restoreScope(node.function.scope);
     writeNodeList(node.initializers);

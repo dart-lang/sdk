@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart';
 import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
-  List<Info> _list,
+  List<Info> _list
 ) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
@@ -33,12 +33,10 @@ enum ScopeProviderInfoKind {
   StaticField,
 }
 
-class ScopeProviderInfo {
+class ScopeProviderInfo({required this.kind}) {
   final ScopeProviderInfoKind kind;
   Scope? scope;
   ThisVariable? thisVariable;
-
-  new({required this.kind});
 }
 
 abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
@@ -178,6 +176,45 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   Info createScopeProviderInfo({
     required ScopeProviderInfoKind scopeProviderInfoKind,
   });
+
+  /// Initiates closure context allocation as a part of type inference.
+  ///
+  /// [parameters] are those of the function being inferred.
+  ScopeProviderInfo beginClosureContextAllocation(
+    List<VariableWithCaptureKind<Variable>> parameters, {
+    required VariableWithCaptureKind<ThisVariable>? thisVariable,
+  }) {
+    ScopeProviderInfo scopeProviderInfo = enterScopeProvider(
+      scopeProviderInfoKind: thisVariable == null
+          ? ScopeProviderInfoKind.FunctionNode
+          : ScopeProviderInfoKind.FunctionNodeWithThis,
+    );
+    if (thisVariable != null) {
+      scopeProviderInfo.thisVariable = thisVariable.variable;
+      handleDeclarationOfVariable(
+        thisVariable.variable,
+        captureKind: thisVariable.captureKind,
+      );
+    }
+    handleDeclarationsOfParameters(parameters);
+    return scopeProviderInfo;
+  }
+
+  /// Finishes closure context allocation after inferring the function body.
+  void endClosureContextAllocation(ScopeProviderInfo scopeProviderInfo) {
+    exitScopeProvider(scopeProviderInfo);
+  }
+
+  void handleDeclarationsOfParameters(
+    List<VariableWithCaptureKind<Variable>> parameters,
+  ) {
+    for (VariableWithCaptureKind<Variable> parameter in parameters) {
+      handleDeclarationOfVariable(
+        parameter.variable,
+        captureKind: parameter.captureKind,
+      );
+    }
+  }
 }
 
 class TrivialContextAllocationStrategy
@@ -188,8 +225,9 @@ class TrivialContextAllocationStrategy
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
-    _ensureVariableContextInCurrentScope(captureKind: captureKind)
-        .addVariable(variable);
+    _ensureVariableContextInCurrentScope(
+      captureKind: captureKind,
+    ).addVariable(variable);
   }
 
   @override
@@ -282,8 +320,9 @@ class LoopDepthAllocationStrategy
         captureKind: captureKind,
       )!.addVariable(variable);
     } else {
-      _ensureVariableContextInCurrentScope(captureKind: captureKind)
-          .addVariable(variable);
+      _ensureVariableContextInCurrentScope(
+        captureKind: captureKind,
+      ).addVariable(variable);
 
       // In case it was the first not uncaptured variable (that is, either
       // captured or assert-captured) for the current scope, and it didn't have
@@ -298,3 +337,9 @@ class LoopDepthAllocationStrategy
     }
   }
 }
+
+/// A variable paired together with its [CaptureKind].
+class VariableWithCaptureKind<Variable extends VariableBase>(
+  var Variable variable,
+  var CaptureKind captureKind,
+);

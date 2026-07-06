@@ -15,3 +15,14 @@ class A extends core::Object {
   ] */
     ;
 }
+class B extends self::A {
+  constructor •(positional-parameter z) → self::B
+    : super self::A::•(z)/* scope=[
+    #ctx3: not-captured VariableContext([
+      this-variable final;
+      positional-parameter z;
+    ]),
+  ] */ {
+    z = 0;
+  }
+}
