@@ -11,9 +11,58 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateGetterEnumTest);
     defineReflectiveTests(CreateGetterMixinTest);
     defineReflectiveTests(CreateGetterTest);
   });
+}
+
+@reflectiveTest
+class CreateGetterEnumTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.createGetter;
+
+  Future<void> test_multiLine_noTrailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two
+}
+
+int f(E e) => e.a;
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  int get a => null;
+}
+
+int f(E e) => e.a;
+''');
+  }
+
+  Future<void> test_multiLine_trailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two,
+}
+
+int f(E e) => e.a;
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  int get a => null;
+}
+
+int f(E e) => e.a;
+''');
+  }
 }
 
 @reflectiveTest

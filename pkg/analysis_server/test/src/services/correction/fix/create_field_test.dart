@@ -127,6 +127,56 @@ enum E {
 ''');
   }
 
+  Future<void> test_multiLine_noTrailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  final int a;
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+  }
+
+  Future<void> test_multiLine_trailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two,
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  final int a;
+}
+
+int f(E e) {
+  return e.a;
+}
+''');
+  }
+
   Future<void> test_setter_static() async {
     await resolveTestCode('''
 enum E { a }
