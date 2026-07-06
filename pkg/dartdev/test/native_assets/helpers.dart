@@ -10,6 +10,7 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
 import 'package:hooks_runner/src/utils/run_process.dart' as run_process;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
@@ -77,6 +78,18 @@ Future<run_process.RunProcessResult> runProcess({
   throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
   filesystem: const LocalFileSystem(),
 );
+
+Future<void> copyDirectory(Directory source, Directory target) async {
+  await target.create(recursive: true);
+  await for (final entity in source.list(recursive: false)) {
+    final newPath = path.join(target.path, path.basename(entity.path));
+    if (entity is Directory) {
+      await copyDirectory(entity, Directory(newPath));
+    } else if (entity is File) {
+      await entity.copy(newPath);
+    }
+  }
+}
 
 Future<void> copyTestProjects(
   Uri copyTargetUri,
