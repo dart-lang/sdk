@@ -37,6 +37,8 @@ void testRunSyncOnCurrentIsolate() {
   );
 }
 
+noop() {}
+
 Future<void> testFailRunSyncOnAnotherIsolate() async {
   final rpChild = ReceivePort();
   final rpChildExit = ReceivePort();
@@ -52,7 +54,7 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   );
   SendPort rpChildRequestExit = await rpChild.first;
   Expect.throws(
-    () => child.runSync(() {}),
+    () => child.runSync(noop),
     (e) => e is StateError && e.message.contains("Isolate has a message loop"),
   );
   rpChildRequestExit.send(true);
@@ -61,19 +63,23 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   rpChild.close();
 }
 
+newRawReceivePort() {
+  return RawReceivePort()..keepIsolateAlive = false;
+}
+
+newRawReceivePortSendPort() {
+  final rp = RawReceivePort()..keepIsolateAlive = false;
+  return rp.sendPort;
+}
+
 void testRunSyncChecks() {
   final isolate = Isolate.current;
   // Only deeply immutable values can be returned from runSync closure.
   Expect.throwsArgumentError(() {
-    isolate.runSync(() => RawReceivePort()..keepIsolateAlive = false);
+    isolate.runSync(newRawReceivePort);
   });
   // SendPort can be returned from runSync closure.
-  Expect.isNotNull(
-    isolate.runSync(() {
-      final rrp = RawReceivePort()..keepIsolateAlive = false;
-      return rrp.sendPort;
-    }),
-  );
+  Expect.isNotNull(isolate.runSync(newRawReceivePortSendPort));
 
   // Only deeply immutable values can be captured by runSync closure.
   {
@@ -100,9 +106,7 @@ Future<void> testFailToRunOnExitedIsolate() async {
   );
   final spChildListening = await rp.first;
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
+    () => child.runSync(noop),
     (e) =>
         e is StateError &&
         e.message.contains("Isolate has a message loop running"),
@@ -111,9 +115,7 @@ Future<void> testFailToRunOnExitedIsolate() async {
   await rpChildExit.first;
   rpChildExit.close();
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
+    () => child.runSync(noop),
     (e) =>
         e is StateError &&
         (e.message.contains("Unable to enter the isolate") ||
