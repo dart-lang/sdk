@@ -31,7 +31,7 @@ DECLARE_FLAG(bool, pointer_cage);
 // |-----------------------|
 // | Upper guard, 32 GB    |
 // |-----------------------|
-class Cage {
+class Cage : public MallocAllocated {
  public:
   Cage();
   ~Cage();
