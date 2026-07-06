@@ -4081,11 +4081,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [SuperPropertyGet] is created.
   ExpressionInferenceResult inferSuperPropertyGet({
+    required Expression receiver,
     required Name name,
     required DartType typeContext,
     required Member member,
     required int nameOffset,
-    Expression? node,
   }) {
     TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
 
@@ -4098,19 +4098,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           )
         : new ObjectAccessTarget.superMember(thisType!, member);
     DartType inferredType = readTarget.getGetterType(this);
-    node ??=
+    Expression replacement =
         // TODO(johnniwinther): Create an [AbstractSuperPropertyGet] if
         //  [isAbstract] is `true`, once [AbstractSuperPropertyGet] is
         //  supported by backends.
-        new SuperPropertyGet(
-          isClosureContextLoweringEnabled
-              ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
-              : (new ThisExpression()..fileOffset = nameOffset),
+        extern.createSuperPropertyGet(
+          receiver,
           name,
           member,
-        )..fileOffset = nameOffset;
+          fileOffset: nameOffset,
+        );
     if (member is Procedure && member.kind == ProcedureKind.Method) {
-      return instantiateTearOff(inferredType, typeContext, node);
+      return instantiateTearOff(inferredType, typeContext, replacement);
     }
     var (
       SharedTypeView? wrappedPromotedType,
@@ -4121,15 +4120,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       member,
       new SharedTypeView(inferredType),
     );
-    storeExpressionInfo(node, expressionInfo);
+    storeExpressionInfo(replacement, expressionInfo);
     DartType? promotedType = wrappedPromotedType?.unwrapTypeView();
     if (promotedType != null) {
-      node = new AsExpression(node, promotedType)
+      replacement = new AsExpression(replacement, promotedType)
         ..isUnchecked = true
         ..fileOffset = nameOffset;
       inferredType = promotedType;
     }
-    return new ExpressionInferenceResult(inferredType, node);
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   /// Computes the type context for the value expression in a super property set
@@ -4152,13 +4151,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [SuperPropertySet] is created.
   ExpressionInferenceResult inferSuperPropertySet({
+    required Expression receiver,
     required Name name,
     required Member member,
     required ExpressionInferenceResult rhsResult,
     required DartType writeContext,
     required int assignOffset,
     required int nameOffset,
-    Expression? node,
   }) {
     rhsResult = ensureAssignableResult(
       writeContext,
@@ -4166,24 +4165,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       fileOffset: assignOffset,
       isVoidAllowed: writeContext is VoidType,
     );
-    Expression rhs = rhsResult.expression;
-    if (node is SuperPropertySet) {
-      node.value = rhs..parent = node;
-    } else if (node is AbstractSuperPropertySet) {
-      // Coverage-ignore-block(suite): Not run.
-      node.value = rhs..parent = node;
-    } else {
-      assert(node == null, "Unexpected node for super property set $node.");
-      node = new SuperPropertySet(
-        isClosureContextLoweringEnabled
-            ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
-            : (new ThisExpression()..fileOffset = nameOffset),
-        name,
-        rhs,
-        member,
-      )..fileOffset = nameOffset;
-    }
-    return new ExpressionInferenceResult(rhsResult.inferredType, node!);
+    Expression replacement = extern.createSuperPropertySet(
+      receiver,
+      name,
+      member,
+      rhsResult.expression,
+      fileOffset: nameOffset,
+    );
+    return new ExpressionInferenceResult(rhsResult.inferredType, replacement);
   }
 
   /// Performs the inference for a static get of [member].
@@ -4194,19 +4183,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required Member member,
     required DartType typeContext,
     required int nameOffset,
-    Expression? node,
   }) {
     TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
     DartType type = member.getterType;
 
-    node ??= new StaticGet(member)..fileOffset = nameOffset;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       // Coverage-ignore-block(suite): Not run.
-      Expression tearOff = new StaticTearOff(member)
-        ..fileOffset = node.fileOffset;
+      Expression tearOff = new StaticTearOff(member)..fileOffset = nameOffset;
       return instantiateTearOff(type, typeContext, tearOff);
     } else {
-      return new ExpressionInferenceResult(type, node);
+      Expression replacement = extern.createStaticGet(
+        member,
+        fileOffset: nameOffset,
+      );
+      return new ExpressionInferenceResult(type, replacement);
     }
   }
 
@@ -4228,7 +4218,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required DartType writeContext,
     required int assignOffset,
     required int nameOffset,
-    StaticSet? node,
   }) {
     rhsResult = ensureAssignableResult(
       writeContext,
@@ -4237,13 +4226,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isVoidAllowed: writeContext is VoidType,
     );
     Expression rhs = rhsResult.expression;
-    if (node != null) {
-      node.value = rhs..parent = node;
-    } else {
-      node = new StaticSet(member, rhs)..fileOffset = nameOffset;
-    }
+    Expression replacement = extern.createStaticSet(
+      member,
+      rhs,
+      fileOffset: nameOffset,
+    );
     DartType rhsType = rhsResult.inferredType;
-    return new ExpressionInferenceResult(rhsType, node);
+    return new ExpressionInferenceResult(rhsType, replacement);
   }
 
   /// Performs the inference for a local get of [variable].

@@ -24,6 +24,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
+import 'package:kernel/src/text_util.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import 'package:kernel/type_environment.dart';
 
@@ -2963,6 +2964,9 @@ class StaticIncDec extends InternalExpression {
 ///     super.a = super.a + 1
 ///
 class SuperIncDec extends InternalExpression {
+  /// The implicit this expression on which the getter/setter is accessed.
+  final InternalThisExpression receiver;
+
   /// The getter used to read the original value.
   final Member getter;
 
@@ -2990,6 +2994,7 @@ class SuperIncDec extends InternalExpression {
   final int operatorOffset;
 
   new({
+    required this.receiver,
     required this.getter,
     required this.setter,
     required this.name,
@@ -9234,6 +9239,445 @@ class InternalRethrow extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('rethrow');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+class InternalSetLiteral extends InternalExpression {
+  final bool isConst;
+  final DartType? typeArgument;
+  final List<Expression> expressions;
+
+  new(
+    this.expressions, {
+    this.typeArgument,
+    this.isConst = false,
+    required int fileOffset,
+  }) {
+    setParents(expressions, this);
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSetLiteral(this, typeContext);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    }
+    if (typeArgument != null) {
+      printer.write('<');
+      printer.writeType(typeArgument!);
+      printer.write('>');
+    }
+    printer.write('{');
+    printer.writeExpressions(expressions);
+    printer.write('}');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalStaticGet extends InternalExpression {
+  final Member target;
+
+  new(this.target, {required int fileOffset})
+    : assert(
+        target is Field || (target is Procedure && target.isGetter),
+        "Unexpected static get target $target",
+      ) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStaticGet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(target.reference);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalStaticSet extends InternalExpression {
+  final Member target;
+  final Expression value;
+
+  new(this.target, this.value, {required int fileOffset})
+    : assert(
+        target is Field || (target is Procedure && target.isSetter),
+        "Unexpected static set target $target",
+      ) {
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStaticSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(target.reference);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalStaticTearOff extends InternalExpression {
+  final Procedure target;
+
+  new(this.target, {required int fileOffset})
+    : assert(target.isStatic, "Unexpected static tear off target: $target"),
+      assert(
+        target.kind == ProcedureKind.Method,
+        "Unexpected static tear off target: $target",
+      ) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStaticTearOff(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(target.reference);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalStringConcatenation extends InternalExpression {
+  final List<Expression> expressions;
+
+  new(this.expressions, {required int fileOffset}) {
+    setParents(expressions, this);
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStringConcatenation(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('"');
+    for (Expression part in expressions) {
+      if (part is StringLiteral) {
+        printer.write(escapeString(part.value));
+      } else {
+        printer.write(r'${');
+        printer.writeExpression(part);
+        printer.write('}');
+      }
+    }
+    printer.write('"');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalStringLiteral extends InternalExpression {
+  final String value;
+
+  new(this.value, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStringLiteral(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('"');
+    printer.write(escapeString(value));
+    printer.write('"');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalSuperPropertyGet extends InternalExpression {
+  /// The implicit this expression on which the getter is accessed.
+  final InternalThisExpression receiver;
+
+  final Name name;
+
+  final Member interfaceTarget;
+
+  new({
+    required this.receiver,
+    required this.name,
+    required this.interfaceTarget,
+    required int fileOffset,
+  }) {
+    receiver.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSuperPropertyGet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.');
+    printer.writeInterfaceMemberName(interfaceTarget.reference, name);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalSuperPropertySet extends InternalExpression {
+  final Expression receiver;
+  final Name name;
+  final Expression value;
+
+  final Member interfaceTarget;
+
+  new({
+    required this.receiver,
+    required this.name,
+    required this.value,
+    required this.interfaceTarget,
+    required int fileOffset,
+  }) {
+    receiver.parent = this;
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSuperPropertySet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.');
+    printer.writeInterfaceMemberName(interfaceTarget.reference, name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalSymbolLiteral extends InternalExpression {
+  final String value; // Everything strictly after the '#'.
+
+  new(this.value, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSymbolLiteral(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('#');
+    printer.write(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalThisExpression extends InternalExpression {
+  new({required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalThisExpression(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalThrow extends InternalExpression {
+  final Expression expression;
+
+  new(this.expression, {required int fileOffset}) {
+    expression.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalThrow(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('throw ');
+    printer.writeExpression(expression);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalTypedefTearOff extends InternalExpression {
+  final List<StructuralParameter> structuralParameters;
+  final Expression expression;
+  final List<DartType> typeArguments;
+
+  new({
+    required this.structuralParameters,
+    required this.expression,
+    required this.typeArguments,
+    required int fileOffset,
+  }) {
+    expression.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalTypedefTearOff(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeStructuralParameters(structuralParameters);
+    printer.write(".(");
+    printer.writeExpression(expression);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(")");
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalTypeLiteral extends InternalExpression {
+  final DartType type;
+
+  new(this.type, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalTypeLiteral(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeType(type);
   }
 
   @override

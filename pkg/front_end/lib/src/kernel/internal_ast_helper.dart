@@ -1391,21 +1391,24 @@ Expression createSpreadElement(
     ..fileOffset = fileOffset;
 }
 
-StaticGet createStaticGet(int fileOffset, Member target) {
+InternalExpression createStaticGet(int fileOffset, Member target) {
   assert(target is Field || (target is Procedure && target.isGetter));
-  return new StaticGet(target)..fileOffset = fileOffset;
+  return new InternalStaticGet(target, fileOffset: fileOffset);
 }
 
-StaticSet createStaticSet(
+InternalExpression createStaticSet(
   Member target,
   Expression value, {
   required int fileOffset,
 }) {
-  assert(target is Field || (target is Procedure && target.isSetter));
-  return new StaticSet(target, value)..fileOffset = fileOffset;
+  assert(
+    target is Field || (target is Procedure && target.isSetter),
+    "Unexpected static set target $target",
+  );
+  return new InternalStaticSet(target, value, fileOffset: fileOffset);
 }
 
-StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
+InternalExpression createStaticTearOff(int fileOffset, Procedure procedure) {
   assert(
     procedure.kind == ProcedureKind.Method,
     "Unexpected static tear off target: $procedure",
@@ -1414,22 +1417,22 @@ StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
     !procedure.isRedirectingFactory,
     "Unexpected static tear off target: $procedure",
   );
-  return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  return new InternalStaticTearOff(procedure, fileOffset: fileOffset);
 }
 
-Expression createStringConcatenation(
+InternalExpression createStringConcatenation(
   int fileOffset,
   List<Expression> expressions,
 ) {
   assert(fileOffset != TreeNode.noOffset);
-  return new StringConcatenation(expressions)..fileOffset = fileOffset;
+  return new InternalStringConcatenation(expressions, fileOffset: fileOffset);
 }
 
 /// Return a representation of a simple string literal at the given
 /// [fileOffset]. The literal has the given [value]. This does not include
 /// either adjacent strings or interpolated strings.
-StringLiteral createStringLiteral(int fileOffset, String value) {
-  return new StringLiteral(value)..fileOffset = fileOffset;
+InternalExpression createStringLiteral(int fileOffset, String value) {
+  return new InternalStringLiteral(value, fileOffset: fileOffset);
 }
 
 InternalSuperInitializer createSuperInitializer({
@@ -1461,24 +1464,34 @@ Expression createSuperMethodInvocation(
   )..fileOffset = fileOffset;
 }
 
-SuperPropertyGet createSuperPropertyGet(
-  Expression receiver,
+InternalExpression createSuperPropertyGet(
+  InternalThisExpression receiver,
   Name name,
   Member target, {
   required int fileOffset,
 }) {
-  return new SuperPropertyGet(receiver, name, target)..fileOffset = fileOffset;
+  return new InternalSuperPropertyGet(
+    receiver: receiver,
+    name: name,
+    interfaceTarget: target,
+    fileOffset: fileOffset,
+  );
 }
 
-SuperPropertySet createSuperPropertySet(
-  Expression receiver,
+InternalExpression createSuperPropertySet(
+  InternalThisExpression receiver,
   Name name,
   Member target,
   Expression value, {
   required int fileOffset,
 }) {
-  return new SuperPropertySet(receiver, name, value, target)
-    ..fileOffset = fileOffset;
+  return new InternalSuperPropertySet(
+    receiver: receiver,
+    name: name,
+    value: value,
+    interfaceTarget: target,
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createSwitchExpression(
@@ -1539,8 +1552,8 @@ InternalSwitchStatementCase createSwitchStatementCase({
 
 /// Return a representation of a symbol literal defined by [value] at the
 /// given [fileOffset].
-SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
-  return new SymbolLiteral(value)..fileOffset = fileOffset;
+InternalExpression createSymbolLiteral(int fileOffset, String value) {
+  return new InternalSymbolLiteral(value, fileOffset: fileOffset);
 }
 
 InternalSyntheticVariable createSyntheticVariable({
@@ -1562,8 +1575,8 @@ InternalSyntheticVariable createSyntheticVariable({
   );
 }
 
-Expression createThisExpression({required int fileOffset}) {
-  return new ThisExpression()..fileOffset = fileOffset;
+InternalThisExpression createThisExpression({required int fileOffset}) {
+  return new InternalThisExpression(fileOffset: fileOffset);
 }
 
 InternalThisVariable createThisVariable({
@@ -1574,8 +1587,8 @@ InternalThisVariable createThisVariable({
 }
 
 /// Return a representation of a throw expression at the given [fileOffset].
-Expression createThrow(int fileOffset, Expression expression) {
-  return new Throw(expression)..fileOffset = fileOffset;
+InternalExpression createThrow(int fileOffset, Expression expression) {
+  return new InternalThrow(expression, fileOffset: fileOffset);
 }
 
 InternalStatement createTryStatement(
@@ -1588,18 +1601,22 @@ InternalStatement createTryStatement(
     ..fileOffset = fileOffset;
 }
 
-TypedefTearOff createTypedefTearOff(
+InternalExpression createTypedefTearOff(
   int fileOffset,
-  List<StructuralParameter> typeParameters,
+  List<StructuralParameter> structuralParameters,
   Expression expression,
   List<DartType> typeArguments,
 ) {
-  return new TypedefTearOff(typeParameters, expression, typeArguments)
-    ..fileOffset = fileOffset;
+  return new InternalTypedefTearOff(
+    structuralParameters: structuralParameters,
+    expression: expression,
+    typeArguments: typeArguments,
+    fileOffset: fileOffset,
+  );
 }
 
-TypeLiteral createTypeLiteral(int fileOffset, DartType type) {
-  return new TypeLiteral(type)..fileOffset = fileOffset;
+InternalExpression createTypeLiteral(int fileOffset, DartType type) {
+  return new InternalTypeLiteral(type, fileOffset: fileOffset);
 }
 
 TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(

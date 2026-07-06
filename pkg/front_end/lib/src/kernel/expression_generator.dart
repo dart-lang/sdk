@@ -1486,6 +1486,7 @@ class SuperPropertyAccessGenerator extends Generator {
     }
     _helper.readInternalThisVariable();
     return new SuperIncDec(
+      receiver: intern.createThisExpression(fileOffset: _nameOffset),
       getter: getter,
       setter: setter,
       name: name,
