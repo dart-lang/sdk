@@ -3088,7 +3088,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {
-      pop() as StringLiteral;
+      pop() as InternalStringLiteral;
     }
   }
 
@@ -3106,7 +3106,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // Flatten string juxtapositions of string interpolation.
     for (int i = 0; i < parts.length; i++) {
       Expression part = parts[i];
-      if (part is StringConcatenation) {
+      if (part is InternalStringConcatenation) {
         if (expressions == null) {
           expressions = parts.sublist(0, i);
         }
@@ -6725,7 +6725,7 @@ class BodyBuilderImpl extends StackListenerImpl
         inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArgumentBuilders != null) {
-        if (receiver is StaticTearOff &&
+        if (receiver is InternalStaticTearOff &&
                 (receiver.target.isFactory ||
                     isTearOffLowering(receiver.target)) ||
             receiver is InternalConstructorTearOff ||
@@ -10505,7 +10505,7 @@ class BodyBuilderImpl extends StackListenerImpl
             typeArguments,
           ),
         );
-      } else if (operand is StaticTearOff &&
+      } else if (operand is InternalStaticTearOff &&
               (operand.target.isFactory || isTearOffLowering(operand.target)) ||
           operand is InternalConstructorTearOff ||
           operand is RedirectingFactoryTearOff) {

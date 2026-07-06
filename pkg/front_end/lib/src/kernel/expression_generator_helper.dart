@@ -268,6 +268,7 @@ abstract class ExpressionGeneratorHelper {
   });
 
   /// Registers a read of the internal variable representing `this`.
+  // TODO(johnniwinther): This should return the [InternalThisExpression].
   void readInternalThisVariable();
 }
 

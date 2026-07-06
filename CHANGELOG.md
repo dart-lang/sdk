@@ -106,6 +106,8 @@ To learn more about the feature, check out the
   instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
   and overrides `addresses` will need to update the return type.
   For more details, see SDK issue [#63216][].
+- The `InternetAddress.lookup` function no longer accepts invalid
+  IPv4 addresses that are traditionally accepted by `inet_aton`.
 
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
 

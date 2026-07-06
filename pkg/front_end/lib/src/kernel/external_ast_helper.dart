@@ -1354,6 +1354,13 @@ StaticTearOff createStaticTearOff(Procedure target, {required int fileOffset}) {
   return new StaticTearOff(target)..fileOffset = fileOffset;
 }
 
+Expression createStringConcatenation(
+  List<Expression> expressions, {
+  required int fileOffset,
+}) {
+  return new StringConcatenation(expressions)..fileOffset = fileOffset;
+}
+
 /// Creates a string literal of [value].
 StringLiteral createStringLiteral(String value, {required int fileOffset}) {
   return new StringLiteral(value)..fileOffset = fileOffset;
@@ -1451,6 +1458,13 @@ SwitchStatement createSwitchStatement({
     ..fileOffset = fileOffset;
 }
 
+SymbolLiteral createSymbolLiteral({
+  required String value,
+  required int fileOffset,
+}) {
+  return new SymbolLiteral(value)..fileOffset = fileOffset;
+}
+
 ThisExpression createThisExpression({required int fileOffset}) {
   return new ThisExpression()..fileOffset = fileOffset;
 }
@@ -1465,6 +1479,20 @@ Throw createThrow(
   return new Throw(expression)
     ..fileOffset = fileOffset ?? expression.fileOffset
     ..forErrorHandling = forErrorHandling;
+}
+
+TypedefTearOff createTypedefTearOff({
+  required List<StructuralParameter> structuralParameters,
+  required Expression expression,
+  required List<DartType> typeArguments,
+  required int fileOffset,
+}) {
+  return new TypedefTearOff(structuralParameters, expression, typeArguments)
+    ..fileOffset = fileOffset;
+}
+
+TypeLiteral createTypeLiteral(DartType type, {required int fileOffset}) {
+  return new TypeLiteral(type)..fileOffset = fileOffset;
 }
 
 TypeParameter createTypeParameter(String? name, {required int fileOffset}) {

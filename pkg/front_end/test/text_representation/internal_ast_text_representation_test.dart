@@ -2472,6 +2472,7 @@ void _testSuperPostIncDec() {
 
   testExpression(
     new SuperIncDec(
+      receiver: new InternalThisExpression(fileOffset: -1),
       getter: field,
       setter: field,
       name: name,
@@ -2487,6 +2488,7 @@ super.foo++''',
 
   testExpression(
     new SuperIncDec(
+      receiver: new InternalThisExpression(fileOffset: -1),
       getter: field,
       setter: field,
       name: name,
@@ -2502,6 +2504,7 @@ super.foo--''',
 
   testExpression(
     new SuperIncDec(
+      receiver: new InternalThisExpression(fileOffset: -1),
       getter: field,
       setter: field,
       name: name,
@@ -2517,6 +2520,7 @@ super.foo--''',
 
   testExpression(
     new SuperIncDec(
+      receiver: new InternalThisExpression(fileOffset: -1),
       getter: field,
       name: name,
       setter: field,

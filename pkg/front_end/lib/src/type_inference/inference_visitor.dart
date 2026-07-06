@@ -330,7 +330,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType,
     DartType nonNullReceiverType,
   ) {
-    if (isThisExpression(receiver)) {
+    if (_isThisExpression(receiver)) {
       // Null-aware access is not needed on `this`.
       return receiver;
     }
@@ -654,15 +654,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStaticTearOff(
     StaticTearOff node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStaticTearOff(
+    InternalStaticTearOff node,
     DartType typeContext,
   ) {
     ensureMemberType(node.target);
     DartType type = node.target.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    return instantiateTearOff(type, typeContext, node);
+    return instantiateTearOff(
+      type,
+      typeContext,
+      extern.createStaticTearOff(node.target, fileOffset: node.fileOffset),
+    );
   }
 
   @override
@@ -751,8 +763,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitTypedefTearOff(
     TypedefTearOff node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalTypedefTearOff(
+    InternalTypedefTearOff node,
     DartType typeContext,
   ) {
     ExpressionInferenceResult expressionResult = inferExpression(
@@ -760,7 +780,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       isVoidAllowed: true,
     );
-    node.expression = expressionResult.expression..parent = node;
+    Expression expression = expressionResult.expression;
     assert(
       expressionResult.inferredType is FunctionType,
       "Expected a FunctionType from tearing off a constructor from "
@@ -785,10 +805,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeParameters: freshStructuralParameters.freshTypeParameters,
       requiredParameterCount: resultType.requiredParameterCount,
     );
+    Expression replacement = extern.createTypedefTearOff(
+      structuralParameters: node.structuralParameters,
+      expression: expression,
+      typeArguments: node.typeArguments,
+      fileOffset: node.fileOffset,
+    );
     ExpressionInferenceResult inferredResult = instantiateTearOff(
       resultType,
       typeContext,
-      node,
+      replacement,
     );
     return ensureAssignableResult(typeContext, inferredResult);
   }
@@ -2371,7 +2397,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -3884,7 +3910,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     Expression replacement;
-    if (isThisExpression(left)) {
+    if (_isThisExpression(left)) {
       replacement = left;
     } else {
       SyntheticVariable variable = createVariable(left, t1);
@@ -8883,11 +8909,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
+  Expression _createThisExpression(InternalThisExpression node) {
+    if (isClosureContextLoweringEnabled) {
+      return extern.createVariableGet(
+        _contextAllocationStrategy.thisVariable,
+        fileOffset: node.fileOffset,
+      );
+    } else {
+      return extern.createThisExpression(fileOffset: node.fileOffset);
+    }
+  }
+
   ExpressionInferenceResult visitSuperIncDec(
     SuperIncDec node,
     DartType typeContext,
   ) {
     ExpressionInferenceResult readResult = inferSuperPropertyGet(
+      receiver: _createThisExpression(node.receiver),
       name: node.name,
       typeContext: const UnknownType(),
       member: node.getter,
@@ -8918,6 +8956,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType binaryType = binaryResult.inferredType;
 
     ExpressionInferenceResult writeResult = inferSuperPropertySet(
+      receiver: _createThisExpression(node.receiver),
       name: node.name,
       member: node.setter,
       rhsResult: binaryResult,
@@ -9063,7 +9102,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       const UnknownType(),
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
       isImplicitThis: node.isImplicitThis,
     ).expressionInferenceResult;
 
@@ -9195,7 +9234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9285,7 +9324,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9498,6 +9537,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
+  bool _isThisExpression(Expression expression) {
+    return expression is ThisExpression ||
+        expression is InternalThisExpression ||
+        expression is VariableGet && expression.variable is ThisVariable;
+  }
+
   ExpressionInferenceResult visitIndexGet(IndexGet node, DartType typeContext) {
     ExpressionInferenceResult receiverResult = inferExpression(
       node.receiver,
@@ -9533,7 +9578,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           indexGetTarget,
-          isThisReceiver: isThisExpression(node.receiver),
+          isThisReceiver: _isThisExpression(node.receiver),
         );
 
     ExpressionInferenceResult indexResult = inferExpression(
@@ -10032,7 +10077,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
       receiverType,
       readTarget,
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
     );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -11529,7 +11574,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           readTarget,
-          isThisReceiver: isThisExpression(node.receiver),
+          isThisReceiver: _isThisExpression(node.receiver),
         );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -12637,7 +12682,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       typeContext,
-      isThisReceiver: isThisExpression(node.receiver),
+      isThisReceiver: _isThisExpression(node.receiver),
       propertyGetNode: node,
       isImplicitThis: node.isImplicitThis,
     );
@@ -12909,6 +12954,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
+  // Coverage-ignore(suite): Not run.
+  ExpressionInferenceResult visitInternalSetLiteral(
+    InternalSetLiteral node,
+    DartType typeContext,
+  ) {
+    // TODO(johnniwinther): Use this.
+    _unhandledExpression(node, typeContext);
+  }
+
   @override
   ExpressionInferenceResult visitSetLiteral(
     SetLiteral node,
@@ -13085,8 +13139,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStaticSet(
     StaticSet node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStaticSet(
+    InternalStaticSet node,
     DartType typeContext,
   ) {
     DartType writeContext = computeStaticSetWriteContext(node.target);
@@ -13095,27 +13157,41 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext,
       isVoidAllowed: true,
     );
-    return inferStaticSet(
+    ExpressionInferenceResult result = inferStaticSet(
       member: node.target,
       rhsResult: rhsResult,
       writeContext: writeContext,
       assignOffset: node.fileOffset,
       nameOffset: node.fileOffset,
-      node: node,
     );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result.expression);
+    return result;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStaticGet(
     StaticGet node,
     DartType typeContext,
   ) {
-    return inferStaticGet(
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStaticGet(
+    InternalStaticGet node,
+    DartType typeContext,
+  ) {
+    ExpressionInferenceResult result = inferStaticGet(
       member: node.target,
       typeContext: typeContext,
       nameOffset: node.fileOffset,
-      node: node,
     );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result.expression);
+    return result;
   }
 
   @override
@@ -13181,32 +13257,60 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStringConcatenation(
     StringConcatenation node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStringConcatenation(
+    InternalStringConcatenation node,
+    DartType typeContext,
+  ) {
+    List<Expression> expressions = new List.filled(
+      node.expressions.length,
+      dummyExpression,
+    );
     for (int index = 0; index < node.expressions.length; index++) {
       ExpressionInferenceResult result = inferExpression(
         node.expressions[index],
         const UnknownType(),
         isVoidAllowed: false,
       );
-      node.expressions[index] = result.expression..parent = node;
+      expressions[index] = result.expression;
     }
+    Expression replacement = extern.createStringConcatenation(
+      expressions,
+      fileOffset: node.fileOffset,
+    );
     return new ExpressionInferenceResult(
       coreTypes.stringRawType(Nullability.nonNullable),
-      node,
+      replacement,
     );
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStringLiteral(
     StringLiteral node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStringLiteral(
+    InternalStringLiteral node,
+    DartType typeContext,
+  ) {
+    Expression replacement = extern.createStringLiteral(
+      node.value,
+      fileOffset: node.fileOffset,
+    );
     return new ExpressionInferenceResult(
       coreTypes.stringRawType(Nullability.nonNullable),
-      node,
+      replacement,
     );
   }
 
@@ -13322,19 +13426,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSuperPropertyGet(
     SuperPropertyGet node,
     DartType typeContext,
   ) {
-    if (isClosureContextLoweringEnabled) {
-      node.receiver = new VariableGet(internalThisVariable)
-        ..fileOffset = node.fileOffset;
-    }
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalSuperPropertyGet(
+    InternalSuperPropertyGet node,
+    DartType typeContext,
+  ) {
     return inferSuperPropertyGet(
+      receiver: _createThisExpression(node.receiver),
       name: node.name,
       typeContext: typeContext,
       member: node.interfaceTarget,
-      node: node,
       nameOffset: node.fileOffset,
     );
   }
@@ -13349,8 +13457,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSuperPropertySet(
     SuperPropertySet node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalSuperPropertySet(
+    InternalSuperPropertySet node,
     DartType typeContext,
   ) {
     DartType writeContext = computeSuperPropertySetWriteContext(
@@ -13361,18 +13477,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext,
       isVoidAllowed: true,
     );
+
+    Expression receiver;
     if (isClosureContextLoweringEnabled) {
-      node.receiver = new VariableGet(internalThisVariable)
-        ..fileOffset = node.fileOffset;
+      receiver = extern.createVariableGet(
+        internalThisVariable,
+        fileOffset: node.receiver.fileOffset,
+      );
+    } else {
+      receiver = extern.createThisExpression(
+        fileOffset: node.receiver.fileOffset,
+      );
     }
     return inferSuperPropertySet(
+      receiver: receiver,
       name: node.name,
       member: node.interfaceTarget,
       rhsResult: rhsResult,
       writeContext: writeContext,
       assignOffset: node.fileOffset,
       nameOffset: node.fileOffset,
-      node: node,
     );
   }
 
@@ -13672,17 +13796,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSymbolLiteral(
     SymbolLiteral node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalSymbolLiteral(
+    InternalSymbolLiteral node,
+    DartType typeContext,
+  ) {
     DartType inferredType = coreTypes.symbolRawType(Nullability.nonNullable);
-    return new ExpressionInferenceResult(inferredType, node);
+    Expression replacement = extern.createSymbolLiteral(
+      value: node.value,
+      fileOffset: node.fileOffset,
+    );
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitThisExpression(
     ThisExpression node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalThisExpression(
+    InternalThisExpression node,
     DartType typeContext,
   ) {
     DartType? promotedTypeOfThis =
@@ -13697,14 +13841,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new VariableGet(_contextAllocationStrategy.thisVariable)
             ..fileOffset = node.fileOffset
             ..promotedType = promotedTypeOfThis;
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (promotedTypeOfThis != null) {
-      loweredExpression = new AsExpression(node, promotedTypeOfThis)
-        ..fileOffset = node.fileOffset
-        ..isUnchecked = true;
+    } else if (promotedTypeOfThis != null) {
+      // Coverage-ignore-block(suite): Not run.
+      loweredExpression =
+          new AsExpression(
+              extern.createThisExpression(fileOffset: node.fileOffset),
+              promotedTypeOfThis,
+            )
+            ..fileOffset = node.fileOffset
+            ..isUnchecked = true;
     } else {
-      loweredExpression = node;
+      loweredExpression = extern.createThisExpression(
+        fileOffset: node.fileOffset,
+      );
     }
     storeExpressionInfo(
       loweredExpression,
@@ -13714,13 +13863,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitThrow(Throw node, DartType typeContext) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalThrow(
+    InternalThrow node,
+    DartType typeContext,
+  ) {
     ExpressionInferenceResult expressionResult = inferExpression(
       node.expression,
       coreTypes.objectNonNullableRawType,
       isVoidAllowed: false,
     );
-    node.expression = expressionResult.expression..parent = node;
+    Expression expression = expressionResult.expression;
     flowAnalysis.handleExit();
     if (!isAssignable(
       typeSchemaEnvironment.objectNonNullableRawType,
@@ -13734,20 +13891,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             thrownType: expressionResult.inferredType,
           ),
           fileUri: fileUri,
-          fileOffset: node.expression.fileOffset,
+          fileOffset: expression.fileOffset,
           length: noLength,
         ),
       );
     }
     if (expressionResult.inferredType.isPotentiallyNullable) {
-      node.expression =
-          new AsExpression(node.expression, coreTypes.objectNonNullableRawType)
+      expression =
+          new AsExpression(expression, coreTypes.objectNonNullableRawType)
             ..isTypeError = true
-            ..fileOffset = node.expression.fileOffset
-            ..parent = node;
+            ..fileOffset = expression.fileOffset;
     }
     // Return BottomType in legacy mode for compatibility.
-    return new ExpressionInferenceResult(const NeverType.nonNullable(), node);
+    Expression replacement = extern.createThrow(
+      expression,
+      fileOffset: node.fileOffset,
+    );
+    return new ExpressionInferenceResult(
+      const NeverType.nonNullable(),
+      replacement,
+    );
   }
 
   Catch visitCatch(InternalCatch node) {
@@ -13849,12 +14012,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitTypeLiteral(
     TypeLiteral node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalTypeLiteral(
+    InternalTypeLiteral node,
+    DartType typeContext,
+  ) {
     DartType inferredType = coreTypes.typeRawType(Nullability.nonNullable);
-    return new ExpressionInferenceResult(inferredType, node);
+    Expression replacement = extern.createTypeLiteral(
+      node.type,
+      fileOffset: node.fileOffset,
+    );
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   @override
@@ -17244,7 +17419,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (member is Field || (member is Procedure && member.isGetter))) {
       // Try to find a `.call()`.
       DartType receiverType = member.getterType;
-      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
+      Expression receiver = extern.createStaticGet(
+        member,
+        fileOffset: node.fileOffset,
+      );
       return inferMethodInvocation(
         this,
         node.fileOffset,
@@ -17334,21 +17512,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult expressionInferenceResult;
     switch (member) {
       case Field():
-        Expression staticGet = new StaticGet(member)
-          ..fileOffset = node.fileOffset;
-        expressionInferenceResult = inferExpression(staticGet, cachedContext);
+        expressionInferenceResult = inferStaticGet(
+          member: member,
+          typeContext: cachedContext,
+          nameOffset: node.fileOffset,
+        );
       case Procedure():
         if (member.isGetter) {
-          Expression staticGet = new StaticGet(member)
-            ..fileOffset = node.fileOffset;
-          expressionInferenceResult = inferExpression(staticGet, cachedContext);
+          expressionInferenceResult = inferStaticGet(
+            member: member,
+            typeContext: cachedContext,
+            nameOffset: node.fileOffset,
+          );
         } else {
           // Method tearoffs.
           DartType type = member.function.computeFunctionType(
             Nullability.nonNullable,
           );
-          Expression tearOff = new StaticTearOff(member)
-            ..fileOffset = node.fileOffset;
+          Expression tearOff = extern.createStaticTearOff(
+            member,
+            fileOffset: node.fileOffset,
+          );
           return instantiateTearOff(type, typeContext, tearOff);
         }
       case Constructor():

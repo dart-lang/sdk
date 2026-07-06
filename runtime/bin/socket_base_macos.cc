@@ -60,6 +60,28 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = 0;
   hints.ai_protocol = IPPROTO_TCP;
+
+  // Check if host is valid dotted-quad IPv4 address or valid IPv6 address.
+  struct in_addr ipv4_bin;
+  struct in6_addr ipv6_bin;
+  if (inet_pton(AF_INET, host, &ipv4_bin) == 1) {
+    // If it is a valid strict IPv4, parse it safely as a numeric host.
+    hints.ai_family = AF_INET;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_pton(AF_INET6, host, &ipv6_bin) == 1) {
+    // 2. If it is a valid strict IPv6, parse it safely as a numeric host.
+    hints.ai_family = AF_INET6;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_aton(host, &ipv4_bin) != 0) {
+    // Reject legacy inet_aton strings (like "127.1", "0x7f.1")
+    // If inet_aton accepts and inet_pton does not, it's a malformed IP.
+    ASSERT(*os_error == nullptr);
+    int status = EAI_NONAME;
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
+    return nullptr;
+  }
+
   struct addrinfo* info = nullptr;
   int status = getaddrinfo(host, nullptr, &hints, &info);
   if (status != 0) {
