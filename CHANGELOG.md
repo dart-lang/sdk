@@ -198,6 +198,15 @@ or higher:
 [dart_style #1803]: https://github.com/dart-lang/dart_style/issues/1803
 [dart_style #1837]: https://github.com/dart-lang/dart_style/issues/1837
 
+#### Dart CLI
+
+- Added support for cross-compilation to the `dart build cli` command via the
+  `--target-os` and `--target-arch` flags.
+- Both `dart build` and `dart compile` now support using locally-built target
+  binaries from a local SDK build directory (identifiable by the presence of a
+  `build.ninja` file), avoiding the need to download them from Google Cloud
+  Storage.
+
 ### Dart Runtime
 
 - Built-in fallback root certificates used if the system certificates cannot be

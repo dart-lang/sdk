@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:test/test.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../utils.dart';
 import 'helpers.dart';
@@ -16,10 +17,6 @@ String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
     usingTargetOSMessageForPlatform(Platform.operatingSystem);
-String crossOSNotAllowedError(String format) =>
-    "'dart build -f $format' does not support cross-OS compilation.";
-final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
-String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
 void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
@@ -618,6 +615,85 @@ void main() {
       });
     });
   });
+
+  test(
+    'dart build cli cross compilation to linux (no build)',
+    timeout: longTimeout,
+    () async {
+      await _runDownloadHookAppTest((dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--target-os',
+            'linux',
+            '--target-arch',
+            'x64',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+
+        expect(result.stdout, contains('Running build hooks'));
+        final bundleDirectory = Directory.fromUri(
+          dartAppUri.resolve('build/cli/linux_x64/bundle/'),
+        );
+        expect(bundleDirectory.existsSync(), isTrue);
+
+        final libDirectory = Directory.fromUri(
+          bundleDirectory.uri.resolve('lib/'),
+        );
+        expect(libDirectory.existsSync(), isTrue);
+
+        final dylib = File.fromUri(
+          libDirectory.uri.resolve('libdart_app_download_hook.so'),
+        );
+        expect(dylib.existsSync(), isTrue);
+        expect(
+          await dylib.readAsString(),
+          'simulated downloaded asset for dart_app_download_hook',
+        );
+      });
+    },
+  );
+}
+
+Future<void> _runDownloadHookAppTest(
+  Future<void> Function(Uri appUri) fun,
+) async {
+  await inTempDir((tempUri) async {
+    final sourceAppUri = sdkRootUri.resolve(
+      'pkg/dartdev/test/data/dart_app_download_hook/',
+    );
+    final targetAppUri = tempUri.resolve('dart_app_download_hook/');
+    final targetAppDir = Directory.fromUri(targetAppUri);
+    await copyDirectory(Directory.fromUri(sourceAppUri), targetAppDir);
+
+    final pubspecFile = File.fromUri(targetAppUri.resolve('pubspec.yaml'));
+    final pubspecString = await pubspecFile.readAsString();
+    final pubspec = YamlEditor(pubspecString);
+    pubspec.update([
+      'dependency_overrides'
+    ], {
+      'code_assets': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/code_assets/')
+            .toFilePath(),
+      },
+      'hooks': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/hooks/')
+            .toFilePath(),
+      },
+    });
+    await pubspecFile.writeAsString(pubspec.toString());
+
+    await fun(targetAppUri);
+  });
+
+  // TODO(https://github.com/dart-lang/native/pull/3427): Add a test for C cross
+  // compilation. You may want to create a new test application and
+  // generalize `_runDownloadHookAppTest` to work with it.
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
