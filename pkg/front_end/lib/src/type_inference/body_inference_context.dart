@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 
 import '../codes/cfe_codes.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
 import '../source/check_helper.dart';
@@ -238,7 +239,9 @@ class _SyncContext extends BodyInferenceContext {
       } else {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          expression: extern.createNullLiteral(
+            fileOffset: statement.fileOffset,
+          ),
           message: diag.returnWithoutExpressionSync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
@@ -420,7 +423,7 @@ class _SyncContext extends BodyInferenceContext {
       Statement returnStatement = new ReturnStatement(
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = fileOffset,
+          expression: extern.createNullLiteral(fileOffset: fileOffset),
           message: diag.implicitReturnNull.withArguments(
             returnType: returnType,
           ),
@@ -523,7 +526,9 @@ class _AsyncContext extends BodyInferenceContext {
       } else {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          expression: extern.createNullLiteral(
+            fileOffset: statement.fileOffset,
+          ),
           message: diag.returnWithoutExpressionAsync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
@@ -554,7 +559,9 @@ class _AsyncContext extends BodyInferenceContext {
         // flatten(S) is neither void, dynamic, Null.
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          expression: extern.createNullLiteral(
+            fileOffset: statement.fileOffset,
+          ),
           message: diag.invalidReturnAsync.withArguments(
             actualType: expressionType,
             expectedType: returnType,
@@ -571,7 +578,9 @@ class _AsyncContext extends BodyInferenceContext {
         // nor dynamic, and flatten(S) is void.
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          expression: extern.createNullLiteral(
+            fileOffset: statement.fileOffset,
+          ),
           message: diag.invalidReturnAsync.withArguments(
             actualType: expressionType,
             expectedType: returnType,
@@ -726,7 +735,7 @@ class _AsyncContext extends BodyInferenceContext {
       Statement returnStatement = new ReturnStatement(
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
-          expression: new NullLiteral()..fileOffset = fileOffset,
+          expression: extern.createNullLiteral(fileOffset: fileOffset),
           message: diag.implicitReturnNull.withArguments(
             returnType: returnType,
           ),

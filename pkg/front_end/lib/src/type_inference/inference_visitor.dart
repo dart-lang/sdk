@@ -12160,26 +12160,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInternalNullLiteral(
-    InternalNullLiteral node,
-    DartType typeContext,
-  ) {
-    // TODO(johnniwinther): Use this.
-    _unhandledExpression(node, typeContext);
-  }
-
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitNullLiteral(
     NullLiteral node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalNullLiteral(
+    InternalNullLiteral node,
+    DartType typeContext,
+  ) {
     const NullType nullType = const NullType();
+    Expression replacement = extern.createNullLiteral(
+      fileOffset: node.fileOffset,
+    );
     storeExpressionInfo(
-      node,
+      replacement,
       flowAnalysis.nullLiteral(new SharedTypeView(nullType)),
     );
-    return new ExpressionInferenceResult(nullType, node);
+    return new ExpressionInferenceResult(nullType, replacement);
   }
 
   @override
@@ -12893,19 +12895,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ReturnContext? context = returnContext;
     if (context is AnonymousMethodReturnContext) {
-      Expression expression =
-          node.expression ??
-          (extern.createNullLiteral(fileOffset: node.fileOffset));
-      ExpressionInferenceResult expressionResult = inferExpression(
-        expression,
-        context.typeContext,
-        isVoidAllowed: true,
-      );
-      context.returnTypes.add(expressionResult.inferredType);
+      Expression expression;
+      if (node.expression != null) {
+        ExpressionInferenceResult expressionResult = inferExpression(
+          node.expression!,
+          context.typeContext,
+          isVoidAllowed: true,
+        );
+        context.returnTypes.add(expressionResult.inferredType);
+        expression = expressionResult.expression;
+      } else {
+        expression = extern.createNullLiteral(fileOffset: node.fileOffset);
+        context.returnTypes.add(const NullType());
+      }
 
       VariableSet assignment = new VariableSet(
         context.resultVariable,
-        expressionResult.expression,
+        expression,
       )..fileOffset = node.fileOffset;
       BreakStatement breakStmt = new BreakStatement(context.label)
         ..fileOffset = node.fileOffset;

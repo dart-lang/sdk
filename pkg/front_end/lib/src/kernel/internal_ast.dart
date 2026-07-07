@@ -9286,7 +9286,6 @@ class InternalNullCheck extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalNullLiteral extends InternalExpression {
   new({required int fileOffset}) {
     this.fileOffset = fileOffset;
@@ -9301,6 +9300,7 @@ class InternalNullLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('null');
   }

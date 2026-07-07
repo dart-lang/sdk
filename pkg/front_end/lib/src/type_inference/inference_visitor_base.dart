@@ -790,7 +790,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           new ConditionalExpression(
             new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
-            new NullLiteral()..fileOffset = fileOffset,
+            extern.createNullLiteral(fileOffset: fileOffset),
             new InstanceTearOff(
               InstanceAccessKind.Instance,
               new VariableGet(t),
@@ -4804,7 +4804,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         ConditionalExpression conditional = new ConditionalExpression(
           nullCheck,
-          new NullLiteral()..fileOffset = expression.fileOffset,
+          extern.createNullLiteral(fileOffset: expression.fileOffset),
           new Instantiation(
             new VariableGet(t, uninstantiatedType.toNonNull()),
             typeArguments,

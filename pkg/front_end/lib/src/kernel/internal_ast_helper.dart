@@ -1102,7 +1102,7 @@ InternalPattern createNullCheckPattern(
 
 /// Return a representation of a null literal at the given [fileOffset].
 Expression createNullLiteral(int fileOffset) {
-  return new NullLiteral()..fileOffset = fileOffset;
+  return new InternalNullLiteral(fileOffset: fileOffset);
 }
 
 InternalPattern createObjectPattern({
