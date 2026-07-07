@@ -58,7 +58,7 @@ static method test4(positional-parameter directCaptured) → dynamic/* scope=[
   }
   else/* scope=[
     #ctx9: not-captured VariableContext([
-      local-variable final assertIsZero;
+      local-function-variable final assertIsZero;
     ]),
   ] */ {
     function assertIsZero() /* #ctx7 */ → Null {

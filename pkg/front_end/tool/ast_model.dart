@@ -171,6 +171,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableDeclaration': {'variable': FieldRule(isDeclaration: true)},
   'LocalVariable': {'variableDeclaration': null, 'context': null},
   'LateVariable': {'variableDeclaration': null, 'context': null},
+  'LocalFunctionVariable': {'variableDeclaration': null, 'context': null},
+  'ConstVariable': {'variableDeclaration': null, 'context': null},
   'SyntheticVariable': {'variableDeclaration': null, 'context': null},
   'CatchVariable': {'context': null},
   'ThisVariable': {'context': null},

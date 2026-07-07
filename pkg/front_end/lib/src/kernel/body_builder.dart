@@ -3428,14 +3428,26 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalVariableDeclaration variableDeclaration;
     InternalDeclaredVariable internalVariable;
     if (isLate) {
+      assert(!isConst);
       internalVariable = intern.createLateVariable(
         name: name,
         type: currentLocalVariableType,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
+        forSyntheticToken: identifier.token.isSynthetic,
+        isImplicitlyTyped: currentLocalVariableType == null,
+        fileOffset: identifier.nameOffset,
+        fileEqualsOffset: offsetForToken(equalsToken),
+      );
+    } else if (isConst) {
+      internalVariable = intern.createConstVariable(
+        name: name,
+        type: currentLocalVariableType,
+        isFinal: isFinal,
+        isWildcard: isWildcard,
+        hasDeclaredInitializer: initializer != null,
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
         fileOffset: identifier.nameOffset,
@@ -3447,7 +3459,6 @@ class BodyBuilderImpl extends StackListenerImpl
         type: currentLocalVariableType,
         fileOffset: identifier.nameOffset,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         isStaticLate: isFinal && initializer == null,
         hasDeclaredInitializer: initializer != null,
@@ -7881,12 +7892,10 @@ class BodyBuilderImpl extends StackListenerImpl
       identifierName = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    InternalVariable variable = intern.createLocalVariable(
+    InternalLocalFunctionVariable variable = intern.createLocalFunctionVariable(
       name: identifierName,
       type: null,
       forSyntheticToken: nameToken.isSynthetic,
-      isFinal: true,
-      isLocalFunction: true,
       isWildcard: isWildcard,
       fileOffset: name.nameOffset,
     );

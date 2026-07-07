@@ -250,6 +250,30 @@ InternalExpression createConstructorTearOff(int fileOffset, Member target) {
   return new InternalConstructorTearOff(target, fileOffset: fileOffset);
 }
 
+InternalConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  bool forSyntheticToken = false,
+  bool isImplicitlyTyped = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalConstVariable(
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    isWildcard: isWildcard,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+  );
+}
+
 /// Return a representation of a continue statement.
 InternalContinueStatement createContinueStatement(
   int fileOffset,
@@ -474,7 +498,7 @@ InternalStatement createForStatement(
 }
 
 InternalStatement createFunctionDeclaration({
-  required InternalVariable variable,
+  required InternalLocalFunctionVariable variable,
   required int fileOffset,
 }) {
   return new InternalFunctionDeclaration(
@@ -726,7 +750,6 @@ InternalLateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -739,7 +762,6 @@ InternalLateVariable createLateVariable({
     name: name,
     type: type,
     isFinal: isFinal,
-    isConst: isConst,
     isWildcard: isWildcard,
     hasDeclaredInitializer: hasDeclaredInitializer,
     fileOffset: fileOffset,
@@ -807,28 +829,45 @@ InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
   bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
-  bool isLocalFunction = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new InternalLocalVariable(
     name: name,
     type: type,
     isFinal: isFinal,
-    isConst: isConst,
     isWildcard: isWildcard,
     hasDeclaredInitializer: hasDeclaredInitializer,
     forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     isStaticLate: isStaticLate,
-    isLocalFunction: isLocalFunction,
+    fileEqualsOffset: fileEqualsOffset,
+  );
+}
+
+InternalLocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool forSyntheticToken = false,
+  bool isImplicitlyTyped = false,
+  bool isStaticLate = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalLocalFunctionVariable(
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
   );
 }

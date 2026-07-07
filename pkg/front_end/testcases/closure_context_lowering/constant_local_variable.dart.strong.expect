@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method test() → dynamic /* scope=[
   #ctx1: not-captured VariableContext([
-    local-variable const x;
+    const-variable const x;
   ]),
 ] */ {
   x := #C1;

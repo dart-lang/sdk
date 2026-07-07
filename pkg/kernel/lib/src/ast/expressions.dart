@@ -2351,7 +2351,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  Variable variable;
+  LocalFunctionVariable variable;
 
   @override
   Arguments arguments;

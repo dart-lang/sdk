@@ -1984,10 +1984,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   def.value.initializer is ConstantExpression) {
                 extraKnownVariables.add(
                   intern.createVariableDeclaration(
-                    intern.createLocalVariable(
+                    intern.createConstVariable(
                       name: def.key,
                       type: substitution.substituteType(def.value.type),
-                      isConst: true,
                       hasDeclaredInitializer: true,
                       fileOffset: def.value.fileOffset,
                     ),
@@ -2010,7 +2009,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     intern.createLocalVariable(
                       name: def.key,
                       type: substitution.substituteType(def.value.type),
-                      isConst: false,
                       fileOffset: def.value.fileOffset,
                     ),
                     initializer: null,

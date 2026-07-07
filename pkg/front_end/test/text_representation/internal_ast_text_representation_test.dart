@@ -1541,7 +1541,7 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 void _testFunctionDeclarationImpl() {
   testStatement(
     new InternalFunctionDeclaration(
-        variable: new InternalLocalVariable(
+        variable: new InternalLocalFunctionVariable(
           name: 'foo',
           type: null,
           isImplicitlyTyped: true,
@@ -1882,8 +1882,8 @@ late void foo = 0''',
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         )
-        ..lateGetter = new SyntheticVariable(
-          cosmeticName: 'foo#getter',
+        ..lateGetter = new LocalFunctionVariable(
+          name: 'foo#getter',
           type: const VoidType(),
         ),
       initializer: new IntLiteral(0),
@@ -1900,8 +1900,8 @@ late void foo = 0''',
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         )
-        ..lateGetter = new SyntheticVariable(
-          cosmeticName: 'foo#getter',
+        ..lateGetter = new LocalFunctionVariable(
+          name: 'foo#getter',
           type: const DynamicType(),
         )
         ..lateType = const DynamicType(),

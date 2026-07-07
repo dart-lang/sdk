@@ -2842,8 +2842,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
       Variable variable = receiver.variable;
-      TreeNode? parent = variable.parent;
-      if (parent is FunctionDeclaration) {
+      if (variable is LocalFunctionVariable) {
         assert(
           invocationTargetType is InvocationTargetFunctionType,
           "Unknown function type for local function invocation.",

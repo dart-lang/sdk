@@ -3711,7 +3711,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
-    InternalVariable variable = node.variable;
+    InternalLocalFunctionVariable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     _returnContexts.push(const StandardReturnContext());
     inferMetadata(this, variable.astVariable);
@@ -17852,7 +17852,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression createIsSetWrite(Expression value) =>
         new VariableSet(isSetVariable!, value);
 
-    Variable getVariable = extern.createUninitializedVariable(
+    LocalFunctionVariable getVariable = extern.createLocalFunctionVariable(
       name: late_lowering.computeLateLocalGetterName(
         internalVariable.cosmeticName!,
       ),
@@ -17913,7 +17913,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (needsSetter) {
       internalVariable.isLateFinalWithoutInitializer =
           internalVariable.isFinal && initializer == null;
-      Variable setVariable = extern.createUninitializedVariable(
+      LocalFunctionVariable setVariable = extern.createLocalFunctionVariable(
         name: late_lowering.computeLateLocalSetterName(
           internalVariable.cosmeticName!,
         ),
