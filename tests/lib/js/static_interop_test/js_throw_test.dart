@@ -15,12 +15,10 @@ external void eval(String code);
 external JSAny? catchAndReturn(JSFunction f);
 
 @JS('Error')
-@JS('Error')
 extension type JSError._(JSObject _) implements JSObject {
   external JSError(String message);
   external String message;
 }
-
 
 void main() {
   eval('''
