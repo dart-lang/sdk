@@ -6,10 +6,6 @@
 
 library dart._wasm;
 
-// TODO(63166): Remove this export after migrating Flutter to import that
-// library directly.
-export 'dart:_js_interop_wasm';
-
 part 'memory.dart';
 
 // A collection a special Dart types that are mapped directly to Wasm types

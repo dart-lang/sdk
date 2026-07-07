@@ -303,15 +303,6 @@ wasm_standalone:
       patches:
         - _internal/wasm/common/math_patch.dart
         - _internal/wasm/standalone/math_externs_patch.dart
-    js_interop:
-      # TODO(63166): Remove js_interop from wasm_standalone. It's fundamentally unsupported, but
-      # currently added as a stub because APIs in dart:_wasm reference it.
-      uri: _internal/wasm/standalone/js_interop.dart
-      support_conditional_import: false
-    _js_interop_wasm:
-      uri: _js_interop_wasm/js_interop_wasm.dart
-      patches:
-        - _internal/wasm/standalone/js_interop_wasm_patch.dart
 
 wasm_js_common:
   include:

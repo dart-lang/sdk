@@ -8153,7 +8153,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// `package:ui`.
   bool _isWasm(LibraryImport importElement) {
     var importedUri = importElement.importedLibrary?.uri.toString();
-    if (importedUri != 'dart:_wasm') {
+    if (importedUri != 'dart:_wasm' && importedUri != 'dart:_js_interop_wasm') {
       return false;
     }
     var importingUri = _currentLibrary.uri.toString();
