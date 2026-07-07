@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 
 /// A computer for [CompilationUnit] closing labels.
@@ -63,13 +64,9 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     // creation expression starts at the start of the expression.
     var label = _addLabel(node, labelText, checkLinesUsing: node.argumentList);
 
-    if (label != null) _pushLabel(label);
-
-    try {
-      super.visitInstanceCreationExpression(node);
-    } finally {
-      if (label != null) _popLabel();
-    }
+    _pushLabel(label);
+    super.visitInstanceCreationExpression(node);
+    _popLabel(label);
   }
 
   @override
@@ -83,13 +80,29 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
       label = _addLabel(node, '<$typeName>[]');
     }
 
-    if (label != null) _pushLabel(label);
+    _pushLabel(label);
+    super.visitListLiteral(node);
+    _popLabel(label);
+  }
 
-    try {
-      super.visitListLiteral(node);
-    } finally {
-      if (label != null) _popLabel();
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    ClosingLabel? label;
+
+    if (node.function.getElement() case ExecutableElement element?) {
+      if (element.metadata.hasIsTestGroup || element.metadata.hasIsTest) {
+        var functionName = node.methodName.token.lexeme;
+        var nameArgument = node.argumentList.arguments.firstOrNull;
+        if (nameArgument != null) {
+          var labelText = '$functionName(${nameArgument.argumentExpression})';
+          label = _addLabel(node, labelText);
+        }
+      }
     }
+
+    _pushLabel(label);
+    super.visitMethodInvocation(node);
+    _popLabel(label);
   }
 
   @override
@@ -135,11 +148,18 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     return closingLabel;
   }
 
-  void _popLabel() {
-    labelStack.removeLast();
+  /// If [label] is not `null`, pops the last label off the stack.
+  void _popLabel(ClosingLabel? label) {
+    if (label != null) {
+      var removed = labelStack.removeLast();
+      assert(removed == label);
+    }
   }
 
-  void _pushLabel(ClosingLabel label) {
-    labelStack.add(label);
+  /// If [label] is not `null`, pushes it onto the stack.
+  void _pushLabel(ClosingLabel? label) {
+    if (label != null) {
+      labelStack.add(label);
+    }
   }
 }
