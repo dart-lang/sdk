@@ -866,6 +866,7 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       _findExtensionTypeMember(node);
     }
     classTypeParametersAreInScope = !node.isStatic;
+    node.thisVariable?.accept(this);
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;

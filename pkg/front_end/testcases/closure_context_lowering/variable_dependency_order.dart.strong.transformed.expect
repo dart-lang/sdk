@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method foo() → dynamic/* scope=[
+    #ctx1: not-captured VariableContext([
+      this-variable final;
+    ]),
+  ] */ /* scope=[
+    #ctx2: direct-captured VariableContext([
+      local-variable x;
+      local-variable z;
+    ]),
+    #ctx3: not-captured VariableContext([
+      local-variable y;
+    ]),
+  ] */ {
+    x := 0;
+    y := 0;
+    z := y;
+    return () /* #ctx2 */ → core::int => x.{core::num::+}(z){(core::num) → core::int};
+  }
+}
+class A extends self::_A&Object&M {
+  synthetic constructor •() → self::A
+    : super self::_A&Object&M::•()
+    ;
+}
+abstract class _A&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&M
+    : super core::Object::•()
+    ;
+  method foo() → dynamic/* scope=[
+    #ctx4: not-captured VariableContext([
+      this-variable final;
+    ]),
+  ] */ /* scope=[
+    #ctx5: direct-captured VariableContext([
+      local-variable x;
+      local-variable z;
+    ]),
+    #ctx6: not-captured VariableContext([
+      local-variable y;
+    ]),
+  ] */ {
+    x := 0;
+    y := 0;
+    z := y;
+    return () /* #ctx5 */ → core::int => x.{core::num::+}(z){(core::num) → core::int};
+  }
+}

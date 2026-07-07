@@ -208,6 +208,7 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
     }
     _field!.scope = scopeProviderInfo?.scope;
     _field!.thisVariable = scopeProviderInfo?.thisVariable;
+    _field!.thisVariable?.parent = _field;
   }
 
   @override

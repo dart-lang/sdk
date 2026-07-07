@@ -18053,13 +18053,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ScopeProviderInfo beginFieldInference({
     required InternalThisVariable? internalThisVariable,
   }) {
-    ScopeProviderInfo scopeProviderInfo =
-        _contextAllocationStrategy.enterScopeProvider(
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
           scopeProviderInfoKind: internalThisVariable == null
               ? ScopeProviderInfoKind.StaticField
               : ScopeProviderInfoKind.InstanceField,
-        )..thisVariable = internalThisVariable?.astVariable;
+        );
     if (internalThisVariable != null) {
+      scopeProviderInfo.thisVariable = internalThisVariable.astVariable;
       _contextAllocationStrategy.handleDeclarationOfVariable(
         internalThisVariable.astVariable,
         captureKind: captureKindForVariable(internalThisVariable),
