@@ -109,7 +109,14 @@ To learn more about the feature, check out the
 - The `InternetAddress.lookup` function no longer accepts invalid
   IPv4 addresses that are traditionally accepted by `inet_aton`.
 
+- `HttpResponse.reasonPhrase` now rejects values that contain invalid
+  characters, such as carriage return (`\r`) or line feed (`\n`), by throwing a
+  `FormatException`. This is the same validation already applied to header
+  values and prevents HTTP response splitting via an unvalidated reason phrase.
+  See [#63500][].
+
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
+[#63500]: https://github.com/dart-lang/sdk/pull/63500
 
 #### `dart:js_interop`
 
