@@ -65,14 +65,14 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
   }
 
   /// Get a JS `DataView` of this `ArrayBuffer` or `SharedArrayBuffer`.
-  WasmExternRef? view(int offsetInBytes, int? length) =>
+  WasmExternRef? _jsDataView(int offsetInBytes, int? length) =>
       _newDataViewFromArrayBufferOrSharedArrayBuffer(
         wrappedExternRef,
         offsetInBytes,
         length,
       );
 
-  WasmExternRef? cloneAsDataView(int offsetInBytes, int? lengthInBytes) {
+  WasmExternRef? _cloneAsDataView(int offsetInBytes, int? lengthInBytes) {
     lengthInBytes ??= this.lengthInBytes;
     return js.JS<WasmExternRef?>(
       '''(o, offsetInBytes, lengthInBytes) => {
@@ -869,7 +869,7 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
     JSArrayBufferImpl buffer,
     int offsetInBytes,
     int? length,
-  ) => JSUint8ArrayImpl._(buffer.view(offsetInBytes, length));
+  ) => JSUint8ArrayImpl._(buffer._jsDataView(offsetInBytes, length));
 
   @override
   @pragma("wasm:prefer-inline")
@@ -920,7 +920,7 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + start;
     final newLengthInBytes = newEnd - start;
     return JSUint8ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -986,7 +986,7 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
     JSArrayBufferImpl buffer,
     int offsetInBytes,
     int? length,
-  ) => JSInt8ArrayImpl._(buffer.view(offsetInBytes, length));
+  ) => JSInt8ArrayImpl._(buffer._jsDataView(offsetInBytes, length));
 
   @override
   @pragma("wasm:prefer-inline")
@@ -1037,7 +1037,7 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + start;
     final newLengthInBytes = newEnd - start;
     return JSInt8ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1105,7 +1105,7 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
     JSArrayBufferImpl buffer,
     int offsetInBytes,
     int? length,
-  ) => JSUint8ClampedArrayImpl._(buffer.view(offsetInBytes, length));
+  ) => JSUint8ClampedArrayImpl._(buffer._jsDataView(offsetInBytes, length));
 
   @override
   @pragma("wasm:prefer-inline")
@@ -1156,7 +1156,7 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + start;
     final newLengthInBytes = newEnd - start;
     return JSUint8ClampedArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1213,7 +1213,9 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -2)
         : length * 2);
-    return JSUint16ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSUint16ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -1265,7 +1267,7 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 2 * start;
     final newLengthInBytes = 2 * (newEnd - start);
     return JSUint16ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1336,7 +1338,7 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -2)
         : length * 2);
-    return JSInt16ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSInt16ArrayImpl._(buffer._jsDataView(offsetInBytes, lengthInBytes));
   }
 
   @override
@@ -1388,7 +1390,7 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 2 * start;
     final newLengthInBytes = 2 * (newEnd - start);
     return JSInt16ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1459,7 +1461,9 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -4)
         : length * 4);
-    return JSUint32ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSUint32ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -1511,7 +1515,7 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 4 * start;
     final newLengthInBytes = 4 * (newEnd - start);
     return JSUint32ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1582,7 +1586,7 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -4)
         : length * 4);
-    return JSInt32ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSInt32ArrayImpl._(buffer._jsDataView(offsetInBytes, lengthInBytes));
   }
 
   @override
@@ -1634,7 +1638,7 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 4 * start;
     final newLengthInBytes = 4 * (newEnd - start);
     return JSInt32ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1776,7 +1780,9 @@ final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -8)
         : length * 8);
-    return JSBigUint64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSBigUint64ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -1829,7 +1835,7 @@ final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 8 * start;
     final newLengthInBytes = 8 * (newEnd - start);
     return JSBigUint64ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -1878,7 +1884,9 @@ final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -8)
         : length * 8);
-    return JSBigInt64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSBigInt64ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -1931,7 +1939,7 @@ final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
     final newOffsetInBytes = offsetInBytes + 8 * start;
     final newLengthInBytes = 8 * (newEnd - start);
     return JSBigInt64ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -2347,7 +2355,9 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -4)
         : length * 4);
-    return JSFloat32ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSFloat32ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -2401,7 +2411,7 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
     final newOffsetInBytes = offsetInBytes + 4 * start;
     final newLengthInBytes = 4 * (newEnd - start);
     return JSFloat32ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
@@ -2472,7 +2482,9 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
     final lengthInBytes = (length == null
         ? ((buffer.lengthInBytes - offsetInBytes) & -8)
         : length * 8);
-    return JSFloat64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
+    return JSFloat64ArrayImpl._(
+      buffer._jsDataView(offsetInBytes, lengthInBytes),
+    );
   }
 
   @override
@@ -2526,7 +2538,7 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
     final newOffsetInBytes = offsetInBytes + 8 * start;
     final newLengthInBytes = 8 * (newEnd - start);
     return JSFloat64ArrayImpl._(
-      buffer.cloneAsDataView(newOffsetInBytes, newLengthInBytes),
+      buffer._cloneAsDataView(newOffsetInBytes, newLengthInBytes),
     );
   }
 
