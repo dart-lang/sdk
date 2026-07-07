@@ -51,10 +51,48 @@ _VM_PATHS = _CFE_PATHS + [
 
 _FUCHSIA_PATHS = [
     ".*fuchsia.*",
+    ".*elf.*",
 ]
 
 _ANDROID_PATHS = [
     ".*android.*",
+    ".*linux.*",
+    ".*posix.*",
+    ".*elf.*",
+]
+
+_MAC_PATHS = [
+    ".*macos.*",
+    ".*macho.*",
+]
+
+_WINDOWS_PATHS = [
+    ".*win.*",
+    ".*coff.*",
+    ".*codeview.*",
+]
+
+_IA32_PATHS = [
+    ".*ia32.*",
+]
+
+_ARM_PATHS = [
+    ".*arm[^6].*",
+]
+
+_ARM64_PATHS = [
+    ".*arm64.*",
+]
+
+_RISCV_PATHS = [
+    ".*riscv.*",
+]
+
+_IO_PATHS = [
+    "sdk/lib/_http/.+",
+    "sdk/lib/_internal/vm/bin/.+",
+    "sdk/lib/io/.+",
+    "tests/standalone/io/.+",
 ]
 
 _DART2BYTECODE_PATHS = [
@@ -137,20 +175,27 @@ paths = struct(
     analyzer = _ANALYZER_PATHS,
     analyzer_end_user = _ANALYZER_END_USER_PATHS,
     android = _ANDROID_PATHS,
+    arm = _ARM_PATHS,
+    arm64 = _ARM64_PATHS,
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
     dart2bytecode = _DART2BYTECODE_PATHS,
-    modular_aot = _MODULAR_AOT_PATHS,
     dart2js = _DART2JS_PATHS,
     dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,
     devtools = _DEVTOOLS_PATHS,
     fuchsia = _FUCHSIA_PATHS,
+    ia32 = _IA32_PATHS,
+    io = _IO_PATHS,
+    mac = _MAC_PATHS,
+    modular_aot = _MODULAR_AOT_PATHS,
     pkg = _PKG_PATHS,
     release = _RELEASE_PATHS,
+    riscv = _RISCV_PATHS,
     standard = _STANDARD_PATHS,
     test_py = _TEST_PY_PATHS,
     vm = _VM_PATHS,
+    windows = _WINDOWS_PATHS,
 
     # Utility functions
     to_location_filters = _to_location_filters,

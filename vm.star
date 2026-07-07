@@ -104,6 +104,7 @@ _vm_builder(
 _nightly_builder(
     "vm-linux-debug-ia32",
     category = "vm|jit|linux|d3",
+    location_filters = paths.to_location_filters(paths.ia32),
 )
 _vm_builder(
     "vm-linux-release-ia32",
@@ -130,6 +131,7 @@ _vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|linux|ra",
     dimensions = [arm64],
+    location_filters = paths.to_location_filters(paths.arm64),
 )
 _vm_builder(
     "vm-mac-debug-x64",
@@ -145,6 +147,7 @@ _nightly_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|mac|da",
     dimensions = [mac, arm64],
+    location_filters = paths.to_location_filters(paths.mac + paths.io),
 )
 _vm_builder(
     "vm-mac-release-arm64",
@@ -160,7 +163,7 @@ _vm_builder(
     "vm-win-release-x64",
     category = "vm|jit|windows|r",
     dimensions = windows,
-    on_cq = True,
+    location_filters = paths.to_location_filters(paths.windows + paths.io),
 )
 _nightly_builder(
     "vm-win-debug-arm64",
@@ -202,6 +205,7 @@ _vm_builder(
 _vm_builder(
     "vm-aot-linux-debug-simarm_x64",
     category = "vm|aot|linux|da",
+    location_filters = paths.to_location_filters(paths.arm),
 )
 _vm_builder(
     "vm-aot-linux-release-simarm_x64",
@@ -278,7 +282,7 @@ _vm_builder(
     "vm-aot-android-release-arm_x64",
     category = "vm|aot|android|r3",
     properties = [android_deps, slow_shards],
-    location_filters = paths.to_location_filters(paths.android),
+    location_filters = paths.to_location_filters(paths.android + paths.io),
 )
 _nightly_builder(
     "vm-aot-android-debug-arm64c",
@@ -289,7 +293,7 @@ _vm_builder(
     "vm-aot-android-release-arm64c",
     category = "vm|aot|android|r6",
     properties = [android_deps, slow_shards],
-    location_filters = paths.to_location_filters(paths.android),
+    location_filters = paths.to_location_filters(paths.android + paths.io),
 )
 _nightly_builder(
     "vm-aot-android-debug-x64c",
@@ -370,7 +374,7 @@ _vm_builder(
     channels = ["try"],
     dimensions = [linux, kvm],
     properties = [fuchsia_deps],
-    location_filters = paths.to_location_filters(paths.fuchsia),
+    location_filters = paths.to_location_filters(paths.fuchsia + paths.io),
 )
 _vm_builder(
     "vm-ffi-android-debug-arm",
@@ -406,11 +410,13 @@ _vm_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
     dimensions = resolute,
+    location_filters = paths.to_location_filters(paths.arm),
 )
 _vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
     dimensions = resolute,
+    location_filters = paths.to_location_filters(paths.riscv),
 )
 _nightly_builder(
     "vm-ffi-mac-debug-simarm64_arm64",
