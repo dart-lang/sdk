@@ -14,6 +14,7 @@ import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/internal_ast.dart'
     show
         InternalVariable,
@@ -515,11 +516,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
         if (defaultValue is InvalidExpression) {
           variable.hasErroneousDefaultValue = true;
         }
-        defaultValueWasInferred = true;
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
-        variable.updateDefaultValue(intern.createNullLiteral(fileOffset));
+        variable.updateDefaultValue(
+          extern.createNullLiteral(fileOffset: fileOffset),
+        );
       }
+      defaultValueWasInferred = true;
     }
   }
 

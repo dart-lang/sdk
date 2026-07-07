@@ -427,7 +427,9 @@ abstract class VariableVisitor<R> {
   R visitPositionalParameter(PositionalParameter node);
   R visitNamedParameter(NamedParameter node);
   R visitLocalVariable(LocalVariable node);
+  R visitLocalFunctionVariable(LocalFunctionVariable node);
   R visitLateVariable(LateVariable node);
+  R visitConstVariable(ConstVariable node);
   R visitCatchVariable(CatchVariable node);
   R visitThisVariable(ThisVariable node);
   R visitSyntheticVariable(SyntheticVariable node);
@@ -445,7 +447,12 @@ mixin VariableVisitorDefaultMixin<R> implements VariableVisitor<R> {
   @override
   R visitLocalVariable(LocalVariable node) => defaultVariable(node);
   @override
+  R visitLocalFunctionVariable(LocalFunctionVariable node) =>
+      defaultVariable(node);
+  @override
   R visitLateVariable(LateVariable node) => defaultVariable(node);
+  @override
+  R visitConstVariable(ConstVariable node) => defaultVariable(node);
   @override
   R visitCatchVariable(CatchVariable node) => defaultVariable(node);
   @override
@@ -2781,7 +2788,9 @@ abstract class VariableVisitor1<R, A> {
   R visitPositionalParameter(PositionalParameter node, A arg);
   R visitNamedParameter(NamedParameter node, A arg);
   R visitLocalVariable(LocalVariable node, A arg);
+  R visitLocalFunctionVariable(LocalFunctionVariable node, A arg);
   R visitLateVariable(LateVariable node, A arg);
+  R visitConstVariable(ConstVariable node, A arg);
   R visitCatchVariable(CatchVariable node, A arg);
   R visitThisVariable(ThisVariable node, A arg);
   R visitSyntheticVariable(SyntheticVariable node, A arg);
@@ -2801,7 +2810,12 @@ mixin VariableVisitor1DefaultMixin<R, A> implements VariableVisitor1<R, A> {
   @override
   R visitLocalVariable(LocalVariable node, A arg) => defaultVariable(node, arg);
   @override
+  R visitLocalFunctionVariable(LocalFunctionVariable node, A arg) =>
+      defaultVariable(node, arg);
+  @override
   R visitLateVariable(LateVariable node, A arg) => defaultVariable(node, arg);
+  @override
+  R visitConstVariable(ConstVariable node, A arg) => defaultVariable(node, arg);
   @override
   R visitCatchVariable(CatchVariable node, A arg) => defaultVariable(node, arg);
   @override

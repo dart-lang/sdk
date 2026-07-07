@@ -829,6 +829,37 @@ class CloneVisitorNotMembers
   }
 
   @override
+  TreeNode visitLocalFunctionVariable(LocalFunctionVariable node) {
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new LocalFunctionVariable(
+              name: node.cosmeticName!,
+              type: visitOptionalType(node.type),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
+  }
+
+  @override
+  TreeNode visitConstVariable(ConstVariable node) {
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new ConstVariable(
+              name: node.cosmeticName!,
+              type: visitOptionalType(node.type),
+              value: cloneOptional(node.value),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
+  }
+
+  @override
   TreeNode visitLateVariable(LateVariable node) {
     return _variables[node] ??
         setVariableClone(
@@ -836,7 +867,7 @@ class CloneVisitorNotMembers
           new LateVariable(
               name: node.cosmeticName!,
               type: visitOptionalType(node.type),
-              initializer: cloneOptional(node.initializer),
+              initialValue: cloneOptional(node.initialValue),
             )
             ..flags = node.flags
             ..annotations = _cloneAnnotations(node)
@@ -893,7 +924,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitFunctionDeclaration(FunctionDeclaration node) {
-    Variable newVariable = clone(node.variable);
+    LocalFunctionVariable newVariable = clone(node.variable);
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
     FunctionDeclaration declaration = new FunctionDeclaration(
@@ -1187,7 +1218,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     return new LocalFunctionInvocation(
-      getVariableClone(node.variable)!,
+      getVariableClone(node.variable) as LocalFunctionVariable,
       clone(node.arguments),
       functionType: visitType(node.functionType) as FunctionType,
     );

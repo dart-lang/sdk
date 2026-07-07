@@ -558,6 +558,55 @@ class A {
     expect(res, isEmpty);
   }
 
+  Future<void> test_operator_binary_minus() async {
+    var content = '''
+class A {
+  void operator ^-(A _) {}
+  void operator -() {} // Not checked, here to ensure it's excluded
+}
+
+void f(A a) {
+  a /*[0*/-/*0]*/ a;
+  a /*[1*/-/*1]*/ a;
+  -a;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_operator_binary_plus() async {
+    var content = '''
+class A {
+  void operator ^+(A _) {}
+}
+
+void f(A a) {
+  a /*[0*/+/*0]*/ a;
+  a /*[1*/+/*1]*/ a;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_operator_unary_minus() async {
+    var content = '''
+class A {
+  void operator ^-() {}
+  void operator -(A _) {} // Not checked, here to ensure it's excluded
+}
+
+void f(A a) {
+  /*[0*/-/*0]*/a;
+  /*[1*/-/*1]*/a;
+  a - a;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_pattern_object_withDeclaration() async {
     var content = '''
 class A {

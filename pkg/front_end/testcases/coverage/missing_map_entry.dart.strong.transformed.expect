@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/missing_map_entry.dart:8:39: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   <String, int>{"key1": 1, "key2" : 2,,"key3": 3};
+//                                       ^
+//
+// pkg/front_end/testcases/coverage/missing_map_entry.dart:8:39: Error: Expected ':' after this.
+//   <String, int>{"key1": 1, "key2" : 2,,"key3": 3};
+//                                       ^
+//
+// pkg/front_end/testcases/coverage/missing_map_entry.dart:8:39: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
+//   <String, int>{"key1": 1, "key2" : 2,,"key3": 3};
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  <core::String, core::int>{"key1": 1, "key2": 2, invalid-expression "pkg/front_end/testcases/coverage/missing_map_entry.dart:8:39: Error: Expected ':' after this.
+  <String, int>{\"key1\": 1, \"key2\" : 2,,\"key3\": 3};
+                                      ^": invalid-expression "pkg/front_end/testcases/coverage/missing_map_entry.dart:8:39: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
+  <String, int>{\"key1\": 1, \"key2\" : 2,,\"key3\": 3};
+                                      ^" in let Null #t1 = null in #t1 == null ?{core::int} #t1 as{TypeError} core::int : #t1{core::int}, "key3": 3};
+}

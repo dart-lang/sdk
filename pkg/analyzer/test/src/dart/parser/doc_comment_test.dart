@@ -845,6 +845,59 @@ Comment
 ''');
   }
 
+  test_exampleDirective() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int x = 0;
+
+/// Text.
+/// {@example /path/to/file.dart#region}
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('example');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@example /path/to/file.dart#region}
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 63]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          /path/to/file.dart#region
+''');
+  }
+
+  test_exampleDirective_args() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int x = 0;
+
+/// Text.
+/// {@example /path/to/file.dart#region lang=dart indent=keep}
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('example');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@example /path/to/file.dart#region lang=dart indent=keep}
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 85]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          /path/to/file.dart#region
+        namedArguments
+          lang=dart
+          indent=keep
+''');
+  }
+
   test_fencedCodeBlock_blockComment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /**

@@ -250,6 +250,30 @@ InternalExpression createConstructorTearOff(int fileOffset, Member target) {
   return new InternalConstructorTearOff(target, fileOffset: fileOffset);
 }
 
+InternalConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  bool forSyntheticToken = false,
+  bool isImplicitlyTyped = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalConstVariable(
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    isWildcard: isWildcard,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+  );
+}
+
 /// Return a representation of a continue statement.
 InternalContinueStatement createContinueStatement(
   int fileOffset,
@@ -474,7 +498,7 @@ InternalStatement createForStatement(
 }
 
 InternalStatement createFunctionDeclaration({
-  required InternalVariable variable,
+  required InternalLocalFunctionVariable variable,
   required int fileOffset,
 }) {
   return new InternalFunctionDeclaration(
@@ -726,7 +750,6 @@ InternalLateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -739,7 +762,6 @@ InternalLateVariable createLateVariable({
     name: name,
     type: type,
     isFinal: isFinal,
-    isConst: isConst,
     isWildcard: isWildcard,
     hasDeclaredInitializer: hasDeclaredInitializer,
     fileOffset: fileOffset,
@@ -770,17 +792,18 @@ InternalLet createLetForEffect({
 /// argument, there is more than one type argument, or if the type argument
 /// cannot be resolved. The list of [expressions] is a list of the
 /// representations of the list elements.
-ListLiteral createListLiteral(
+InternalExpression createListLiteral(
   int fileOffset,
-  DartType typeArgument,
+  DartType? typeArgument,
   List<Expression> expressions, {
   required bool isConst,
 }) {
-  return new ListLiteral(
+  return new InternalListLiteral(
     expressions,
     typeArgument: typeArgument,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createListPattern(
@@ -807,28 +830,45 @@ InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
   bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
-  bool isLocalFunction = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new InternalLocalVariable(
     name: name,
     type: type,
     isFinal: isFinal,
-    isConst: isConst,
     isWildcard: isWildcard,
     hasDeclaredInitializer: hasDeclaredInitializer,
     forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     isStaticLate: isStaticLate,
-    isLocalFunction: isLocalFunction,
+    fileEqualsOffset: fileEqualsOffset,
+  );
+}
+
+InternalLocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool forSyntheticToken = false,
+  bool isImplicitlyTyped = false,
+  bool isStaticLate = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalLocalFunctionVariable(
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
   );
 }
@@ -880,19 +920,20 @@ MapLiteralEntry createMapEntry(
 /// the map literal, or `null` if there are not exactly two type arguments or
 /// if the second type argument cannot be resolved. The list of [entries] is a
 /// list of the representations of the map entries.
-MapLiteral createMapLiteral(
+InternalExpression createMapLiteral(
   int fileOffset,
-  DartType keyType,
-  DartType valueType,
+  DartType? keyType,
+  DartType? valueType,
   List<MapLiteralEntry> entries, {
   required bool isConst,
 }) {
-  return new MapLiteral(
+  return new InternalMapLiteral(
     entries,
     keyType: keyType,
     valueType: valueType,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 MapLiteralEntry createMapLiteralEntry(
@@ -1063,7 +1104,7 @@ InternalPattern createNullCheckPattern(
 
 /// Return a representation of a null literal at the given [fileOffset].
 Expression createNullLiteral(int fileOffset) {
-  return new NullLiteral()..fileOffset = fileOffset;
+  return new InternalNullLiteral(fileOffset: fileOffset);
 }
 
 InternalPattern createObjectPattern({
@@ -1369,17 +1410,18 @@ InternalReturnStatement createReturnStatement({
 /// argument, there is more than one type argument, or if the type argument
 /// cannot be resolved. The list of [expressions] is a list of the
 /// representations of the set elements.
-SetLiteral createSetLiteral(
+InternalExpression createSetLiteral(
   int fileOffset,
-  DartType typeArgument,
+  DartType? typeArgument,
   List<Expression> expressions, {
   required bool isConst,
 }) {
-  return new SetLiteral(
+  return new InternalSetLiteral(
     expressions,
     typeArgument: typeArgument,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createSpreadElement(

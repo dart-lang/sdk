@@ -107,7 +107,6 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'expression_generator_helper.dart';
 import 'external_ast_helper.dart' as extern;
-import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 import 'kernel_variable_builder.dart';
@@ -604,8 +603,6 @@ class BodyBuilderImpl extends StackListenerImpl
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     return _context.instanceTypeParameterAccessState;
   }
-
-  DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
   void _enterLocalState({bool inLateLocalInitializer = false}) {
     _localInitializerState = _localInitializerState.prepend(
@@ -3428,14 +3425,26 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalVariableDeclaration variableDeclaration;
     InternalDeclaredVariable internalVariable;
     if (isLate) {
+      assert(!isConst);
       internalVariable = intern.createLateVariable(
         name: name,
         type: currentLocalVariableType,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
+        forSyntheticToken: identifier.token.isSynthetic,
+        isImplicitlyTyped: currentLocalVariableType == null,
+        fileOffset: identifier.nameOffset,
+        fileEqualsOffset: offsetForToken(equalsToken),
+      );
+    } else if (isConst) {
+      internalVariable = intern.createConstVariable(
+        name: name,
+        type: currentLocalVariableType,
+        isFinal: isFinal,
+        isWildcard: isWildcard,
+        hasDeclaredInitializer: initializer != null,
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
         fileOffset: identifier.nameOffset,
@@ -3447,7 +3456,6 @@ class BodyBuilderImpl extends StackListenerImpl
         type: currentLocalVariableType,
         fileOffset: identifier.nameOffset,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         isStaticLate: isFinal && initializer == null,
         hasDeclaredInitializer: initializer != null,
@@ -4309,7 +4317,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    DartType typeArgument;
+    DartType? typeArgument;
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
@@ -4326,11 +4334,9 @@ class BodyBuilderImpl extends StackListenerImpl
         );
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
-    } else {
-      typeArgument = implicitTypeArgument;
     }
 
-    ListLiteral node = intern.createListLiteral(
+    InternalExpression node = intern.createListLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBracket),
@@ -4558,7 +4564,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token leftBrace,
     List<dynamic>? setOrMapEntries,
   ) {
-    DartType typeArgument;
+    DartType? typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(
         typeArguments.single,
@@ -4566,8 +4572,6 @@ class BodyBuilderImpl extends StackListenerImpl
         allowPotentiallyConstantType: false,
       );
       typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
-    } else {
-      typeArgument = implicitTypeArgument;
     }
 
     List<Expression> expressions = <Expression>[];
@@ -4588,7 +4592,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     }
 
-    SetLiteral node = intern.createSetLiteral(
+    InternalExpression node = intern.createSetLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBrace),
@@ -4838,8 +4842,8 @@ class BodyBuilderImpl extends StackListenerImpl
     Token leftBrace,
     List<MapLiteralEntry> entries,
   ) {
-    DartType keyType;
-    DartType valueType;
+    DartType? keyType;
+    DartType? valueType;
     if (typeArguments != null) {
       if (typeArguments.length != 2) {
         keyType = const InvalidType();
@@ -4858,12 +4862,9 @@ class BodyBuilderImpl extends StackListenerImpl
         keyType = instantiateToBounds(keyType, coreTypes.objectClass);
         valueType = instantiateToBounds(valueType, coreTypes.objectClass);
       }
-    } else {
-      keyType = implicitTypeArgument;
-      valueType = implicitTypeArgument;
     }
 
-    MapLiteral node = intern.createMapLiteral(
+    InternalExpression node = intern.createMapLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBrace),
@@ -7881,12 +7882,10 @@ class BodyBuilderImpl extends StackListenerImpl
       identifierName = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    InternalVariable variable = intern.createLocalVariable(
+    InternalLocalFunctionVariable variable = intern.createLocalFunctionVariable(
       name: identifierName,
       type: null,
       forSyntheticToken: nameToken.isSynthetic,
-      isFinal: true,
-      isLocalFunction: true,
       isWildcard: isWildcard,
       fileOffset: name.nameOffset,
     );

@@ -503,7 +503,7 @@ ForStatement createForStatement({
 }
 
 FunctionDeclaration createFunctionDeclaration({
-  required Variable variable,
+  required LocalFunctionVariable variable,
   required FunctionNode function,
   required int fileOffset,
 }) {
@@ -787,11 +787,30 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
+ConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new ConstVariable(
+      name: name,
+      type: type,
+      isFinal: isFinal,
+      isWildcard: isWildcard,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
+}
+
 LateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -801,7 +820,6 @@ LateVariable createLateVariable({
       name: name,
       type: type,
       isFinal: isFinal,
-      isConst: isConst,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
@@ -881,7 +899,7 @@ LoadLibrary createLoadLibrary(
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
-  Variable variable, {
+  LocalFunctionVariable variable, {
   Arguments? arguments,
   required int fileOffset,
 }) {
@@ -894,11 +912,28 @@ LocalFunctionInvocation createLocalFunctionInvocation(
   )..fileOffset = fileOffset;
 }
 
+LocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  required bool isLowered,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new LocalFunctionVariable(
+      name: name,
+      type: type,
+      isWildcard: isWildcard,
+      isLowered: isLowered,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
+}
+
 LocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
   bool hasDeclaredInitializer = false,
@@ -908,7 +943,6 @@ LocalVariable createLocalVariable({
       name: name,
       type: type,
       isFinal: isFinal,
-      isConst: isConst,
       isWildcard: isWildcard,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
@@ -1620,8 +1654,7 @@ Expression createVariableSet(
   bool allowFinalAssignment = false,
   required int fileOffset,
 }) {
-  // TODO(johnniwinther): Add a [LocalFunctionVariable] for this.
-  if (variable.parent is FunctionDeclaration) {
+  if (variable is LocalFunctionVariable) {
     return createLocalFunctionInvocation(
       variable,
       arguments: createArguments([value], fileOffset: fileOffset),

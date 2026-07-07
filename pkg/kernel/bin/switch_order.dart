@@ -328,7 +328,9 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.VariableDeclaration) return "VariableDeclaration";
 
   if (tag == Tag.LocalVariable) return "LocalVariable";
+  if (tag == Tag.LocalFunctionVariable) return "LocalFunctionVariable";
   if (tag == Tag.LateVariable) return "LateVariable";
+  if (tag == Tag.ConstVariable) return "ConstVariable";
   if (tag == Tag.SyntheticVariable) return "SyntheticVariable";
   if (tag == Tag.CatchVariable) return "CatchVariable";
   if (tag == Tag.PositionalParameter) return "PositionalParameter";

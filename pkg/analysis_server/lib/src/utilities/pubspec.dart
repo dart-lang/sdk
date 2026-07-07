@@ -3,8 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:pub_semver/pub_semver.dart';
+
+/// Checks if [targetVersion] is compatible with the SDK constraints of all
+/// resolved [packages].
+///
+/// Returns a list of package names that are incompatible.
+List<String> checkDependencyCompatibility({
+  required Iterable<Package> packages,
+  required Version targetVersion,
+}) {
+  var incompatible = <String>[];
+  for (var package in packages) {
+    var pubspecFile = package.rootFolder.getFile(file_paths.pubspecYaml);
+    if (!pubspecFile.exists) continue;
+
+    var extractor = SdkConstraintExtractor(pubspecFile);
+    var constraint = extractor.constraint();
+    if (constraint == null) continue;
+
+    // Check if the dependency's SDK constraint allows the target version.
+    if (!constraint.allows(targetVersion)) {
+      incompatible.add(package.name);
+    }
+  }
+  return incompatible;
+}
 
 /// Calculates the edit to update the SDK constraint in [pubspecFile] to the
 /// given [minimumVersion].

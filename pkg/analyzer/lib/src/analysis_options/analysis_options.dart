@@ -526,6 +526,18 @@ final class GitPluginSource implements PluginSource {
   GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
+  int get hashCode => Object.hash(url, path, ref, tagPattern);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GitPluginSource &&
+          url == other.url &&
+          path == other.path &&
+          ref == other.ref &&
+          tagPattern == other.tagPattern;
+
+  @override
   String toYaml({required String name}) {
     var buffer = StringBuffer()
       ..writeln('  $name:')
@@ -548,6 +560,13 @@ final class PathPluginSource implements PluginSource {
   final String path;
 
   PathPluginSource({required this.path});
+
+  @override
+  int get hashCode => path.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is PathPluginSource && path == other.path;
 
   @override
   String toYaml({required String name}) =>
@@ -623,6 +642,16 @@ final class VersionedPluginSource implements PluginSource {
   final String? hostedUrl;
 
   VersionedPluginSource({required this.constraint, this.hostedUrl});
+
+  @override
+  int get hashCode => Object.hash(constraint, hostedUrl);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VersionedPluginSource &&
+          constraint == other.constraint &&
+          hostedUrl == other.hostedUrl;
 
   @override
   String toYaml({required String name}) {

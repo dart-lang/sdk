@@ -6490,6 +6490,15 @@ class StatementConstantEvaluator
 
   @override
   // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitLocalFunctionVariable(LocalFunctionVariable node) =>
+      visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExecutionStatus visitConstVariable(ConstVariable node) => visitVariable(node);
+
+  @override
+  // Coverage-ignore(suite): Not run.
   ExecutionStatus visitLateVariable(LateVariable node) => visitVariable(node);
 
   @override

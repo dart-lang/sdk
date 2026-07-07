@@ -106,7 +106,7 @@ static method closure(positional-parameter a) → dynamic/* scope=[
     local-variable x;
   ]),
   #ctx14: not-captured VariableContext([
-    local-variable final nested;
+    local-function-variable final nested;
   ]),
 ] */ {
   x := 3;

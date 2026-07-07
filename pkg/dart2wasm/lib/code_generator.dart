@@ -507,7 +507,6 @@ abstract class AstCodeGenerator
     return local;
   }
 
-
   /// Initialize locals containing `this` in constructors and instance members.
   /// Returns the number of parameter locals taken up by the receiver parameter,
   /// i.e. the parameter offset for the first type parameter (or the first
@@ -3184,7 +3183,6 @@ abstract class AstCodeGenerator
     translateExpression(node.operand, boxedOperandType);
     return types.emitAsCheck(
       this,
-      node.isCovarianceCheck,
       node.type,
       operandType,
       boxedOperandType,
@@ -3315,7 +3313,6 @@ abstract class AstCodeGenerator
       // the optimized `as` checks.
       types.emitAsCheck(
         this,
-        false,
         testedAgainstType,
         translator.coreTypes.objectNullableRawType,
         argumentType,

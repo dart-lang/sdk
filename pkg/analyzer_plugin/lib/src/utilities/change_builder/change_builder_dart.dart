@@ -1657,6 +1657,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           seenTypes: seenTypes,
         );
       }
+      if (type.positionalFields.length == 1 && type.namedFields.isEmpty) {
+        write(',');
+      }
       var namedFields = type.namedFields;
       if (namedFields.isNotEmpty) {
         if (isFirst) {

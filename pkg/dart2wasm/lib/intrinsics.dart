@@ -1814,42 +1814,48 @@ class Intrinsifier {
       case StaticIntrinsic.wasmI32x4ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i32x4_splat();
         for (int i = 1; i < 4; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i32x4_replace_lane(i);
         }
         return w.NumType.v128;
       case StaticIntrinsic.wasmI16x8ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i16x8_splat();
         for (int i = 1; i < 8; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i16x8_replace_lane(i);
         }
         return w.NumType.v128;
       case StaticIntrinsic.wasmI8x16ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i8x16_splat();
         for (int i = 1; i < 16; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i8x16_replace_lane(i);
         }
         return w.NumType.v128;

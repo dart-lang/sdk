@@ -304,6 +304,18 @@ enum DocDirectiveType {
     restParametersAllowed: true,
   ),
 
+  /// A [DocDirective] declaring an example.
+  ///
+  /// See documentation at
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example>.
+  example(
+    'example',
+    positionalParameters: [
+      DocDirectiveParameter('file', DocDirectiveParameterFormat.any),
+    ],
+    restParametersAllowed: true,
+  ),
+
   /// A [DocDirective] declaring an embedded YouTube video.
   ///
   /// This directive has three required arguments: the width, the height, and

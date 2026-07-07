@@ -286,7 +286,7 @@ dynamic a, b;''',
           isImplicitlyTyped: true,
           fileOffset: TreeNode.noOffset,
         ),
-        initializer: new NullLiteral(),
+        initializer: new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       ),
     ], dummyUri),
     '''
@@ -507,7 +507,7 @@ void _testInternalForInStatement() {
         ),
         error: null,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -534,7 +534,7 @@ for (var e in null) {}''',
         ),
         error: null,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -578,7 +578,7 @@ for (void e in null) {}''',
         ),
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -604,7 +604,7 @@ for (var (void a, var b) in null) {}''',
         nameOffset: -1,
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -627,7 +627,7 @@ for (a in null) {}''',
         error: new InvalidExpression('error'),
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -648,7 +648,7 @@ for (<invalid:error> in null) {}''',
         nameOffset: -1,
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -670,7 +670,7 @@ for (a in null) {}''',
         nameOffset: -1,
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -687,10 +687,10 @@ for (a in null) {}''',
   testStatement(
     new InternalForInStatement(
       new UnassignableForInElement(
-        expression: new NullLiteral(),
+        expression: new InternalNullLiteral(fileOffset: TreeNode.noOffset),
         error: new InvalidExpression('error'),
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -727,7 +727,7 @@ for (null in null) {}''',
         ],
         error: new InvalidExpression('error'),
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -764,7 +764,7 @@ for (var a, b in null) {}''',
         ],
         error: new InvalidExpression('error'),
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -794,7 +794,7 @@ for (void a, b in null) {}''',
         nameOffset: -1,
         inOffset: -1,
       ),
-      new NullLiteral(),
+      new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
         [],
         fileOffset: TreeNode.noOffset,
@@ -810,7 +810,9 @@ for (a in null) {}''',
 }
 
 void _testSwitchCaseImpl() {
-  Expression expression = new NullLiteral();
+  Expression expression = new InternalNullLiteral(
+    fileOffset: TreeNode.noOffset,
+  );
   Expression case0 = new IntLiteral(0);
   Expression case1 = new IntLiteral(1);
   Expression case2 = new IntLiteral(2);
@@ -929,7 +931,9 @@ switch (null) { case 0: case 1: return; foo: case 2: default: return; }''',
 }
 
 void _testPatternSwitchStatement() {
-  Expression expression = new NullLiteral();
+  Expression expression = new InternalNullLiteral(
+    fileOffset: TreeNode.noOffset,
+  );
   InternalPatternGuard case0 = new InternalPatternGuard(
     pattern: new InternalConstantPattern(
       expression: new IntLiteral(0),
@@ -1073,7 +1077,9 @@ switch (null) { case 0: case 1: return; label: case 2 when 3: default: return; }
 }
 
 void _testSwitchExpression() {
-  Expression expression = new NullLiteral();
+  Expression expression = new InternalNullLiteral(
+    fileOffset: TreeNode.noOffset,
+  );
   PatternGuard case0 = new PatternGuard(new ConstantPattern(new IntLiteral(0)));
   PatternGuard case1 = new PatternGuard(new ConstantPattern(new IntLiteral(1)));
   PatternGuard case2 = new PatternGuard(
@@ -1541,7 +1547,7 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 void _testFunctionDeclarationImpl() {
   testStatement(
     new InternalFunctionDeclaration(
-        variable: new InternalLocalVariable(
+        variable: new InternalLocalFunctionVariable(
           name: 'foo',
           type: null,
           isImplicitlyTyped: true,
@@ -1882,8 +1888,8 @@ late void foo = 0''',
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         )
-        ..lateGetter = new SyntheticVariable(
-          cosmeticName: 'foo#getter',
+        ..lateGetter = new LocalFunctionVariable(
+          name: 'foo#getter',
           type: const VoidType(),
         ),
       initializer: new IntLiteral(0),
@@ -1900,8 +1906,8 @@ late void foo = 0''',
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         )
-        ..lateGetter = new SyntheticVariable(
-          cosmeticName: 'foo#getter',
+        ..lateGetter = new LocalFunctionVariable(
+          name: 'foo#getter',
           type: const DynamicType(),
         )
         ..lateType = const DynamicType(),

@@ -2560,6 +2560,16 @@ class BinaryPrinter
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    writeVariable(node);
+  }
+
+  @override
   void visitNamedParameter(NamedParameter node) {
     writeVariable(node);
   }
@@ -2606,8 +2616,12 @@ class BinaryPrinter
     switch (node) {
       case LocalVariable():
         writeByte(Tag.LocalVariable);
+      case LocalFunctionVariable():
+        writeByte(Tag.LocalFunctionVariable);
       case LateVariable():
         writeByte(Tag.LateVariable);
+      case ConstVariable():
+        writeByte(Tag.ConstVariable);
       case CatchVariable():
         writeByte(Tag.CatchVariable);
       case ThisVariable():

@@ -15,7 +15,7 @@
   (func $"wasm:js-string.equals (import)" (import "wasm:js-string" "equals") (param externref externref) (result i32))
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.length (import)" (import "wasm:js-string" "length") (param externref) (result i32))
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 18 funcref)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 17 funcref)
   (global $"\"1.0\"" (ref $JSExternWrapper) <...>)
   (global $BoxedDouble._cacheKeys (mut (ref $Array<int>)) <...>)
   (global $BoxedDouble._cacheValues (mut (ref $Array<String>)) <...>)
@@ -31,12 +31,11 @@
     (set 9 (ref.func $JSStringImpl.fromRefUnchecked))
     (set 10 (ref.func $ArgumentError))
     (set 11 (ref.func $Error._throwWithCurrentStackTrace))
-    (set 12 (ref.func $_throwRangeError))
-    (set 13 (ref.func $_jsBigIntToString))
-    (set 14 (ref.func $"wasm:js-string.equals (import)"))
-    (set 15 (ref.func $JSStringImpl._interpolate4))
-    (set 16 (ref.func $IntegerDivisionByZeroException))
-    (set 17 (ref.func $_TypeError._throwNullCheckErrorWithCurrentStack)))
+    (set 12 (ref.func $BoxedInt.toRadixString))
+    (set 13 (ref.func $"wasm:js-string.equals (import)"))
+    (set 14 (ref.func $JSStringImpl._interpolate4))
+    (set 15 (ref.func $IntegerDivisionByZeroException))
+    (set 16 (ref.func $_TypeError._throwNullCheckErrorWithCurrentStack)))
   (func $#init
     global.get $"\"1.0\""
     i32.const 16
@@ -58,6 +57,7 @@
     array.set $Array<WasmArray<WasmI8>?>
   )
   (func $ArgumentError (param $var0 (ref null $#Top)) (param $var1 (ref null $JSExternWrapper)) (result (ref $ArgumentError)) <...>)
+  (func $BoxedInt.toRadixString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
   (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
@@ -65,8 +65,6 @@
   (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_TypeError._throwNullCheckErrorWithCurrentStack  <...>)
-  (func $_jsBigIntToString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_throwIndexError (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) <...>)
-  (func $_throwRangeError (param $var0 i64) (param $var1 i64) (param $var2 i64) (param $var3 (ref null $JSExternWrapper)) (param $var4 (ref null $JSExternWrapper)) <...>)
   (data $data0 <... 2 bytes ...>)
 )

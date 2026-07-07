@@ -259,6 +259,10 @@ abstract final class CustomSemanticTokenModifiers {
   /// declarations to distinguish them from top-levels.
   static const instance = SemanticTokenModifiers('instance');
 
+  /// A modifier applied to plain source code, such as that surrounded by
+  /// triple backticks in comments.
+  static const source = SemanticTokenModifiers('source');
+
   /// A modifier applied to the void keyword to allow users to color it
   /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
@@ -277,6 +281,7 @@ abstract final class CustomSemanticTokenModifiers {
     constructor,
     escape,
     interpolation,
+    source,
     void_,
     wildcard,
   ];

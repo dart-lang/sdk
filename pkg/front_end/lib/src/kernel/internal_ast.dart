@@ -1263,19 +1263,14 @@ class InternalLocalVariable extends InternalDeclaredVariable {
   @override
   final bool isImplicitlyTyped;
 
-  @override
-  final bool isLocalFunction;
-
   new({
     required String name,
     required DartType? type,
     bool isFinal = false,
-    bool isConst = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     bool isStaticLate = false,
     required int fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
@@ -1283,7 +1278,6 @@ class InternalLocalVariable extends InternalDeclaredVariable {
          name: name,
          type: type,
          isFinal: isFinal,
-         isConst: isConst,
          isWildcard: isWildcard,
          hasDeclaredInitializer: hasDeclaredInitializer,
          fileOffset: fileOffset,
@@ -1292,6 +1286,9 @@ class InternalLocalVariable extends InternalDeclaredVariable {
     this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
   }
+
+  @override
+  bool get isLocalFunction => false;
 
   @override
   LocalVariable get astVariable => _astVariable;
@@ -1304,7 +1301,54 @@ class InternalLocalVariable extends InternalDeclaredVariable {
 
   @override
   String toString() {
-    return "InternalLocalVariable(${toStringInternal()})";
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalLocalFunctionVariable extends InternalDeclaredVariable {
+  @override
+  LocalFunctionVariable _astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  new({
+    required String name,
+    required DartType? type,
+    bool isWildcard = false,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    required int fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
+  }) : _astVariable = extern.createLocalFunctionVariable(
+         name: name,
+         type: type,
+         isWildcard: isWildcard,
+         isLowered: false,
+         fileOffset: fileOffset,
+         fileEqualsOffset: fileEqualsOffset,
+       ) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  bool get isLocalFunction => true;
+
+  @override
+  LocalFunctionVariable get astVariable => _astVariable;
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1318,19 +1362,14 @@ class InternalLateVariable extends InternalDeclaredVariable {
   @override
   final bool isImplicitlyTyped;
 
-  @override
-  final bool isLocalFunction;
-
   new({
     required String name,
     required DartType? type,
     bool isFinal = false,
-    bool isConst = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     bool isStaticLate = false,
     required int fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
@@ -1338,7 +1377,6 @@ class InternalLateVariable extends InternalDeclaredVariable {
          name: name,
          type: type,
          isFinal: isFinal,
-         isConst: isConst,
          isWildcard: isWildcard,
          hasDeclaredInitializer: hasDeclaredInitializer,
          fileOffset: fileOffset,
@@ -1349,7 +1387,60 @@ class InternalLateVariable extends InternalDeclaredVariable {
   }
 
   @override
+  bool get isLocalFunction => false;
+
+  @override
   LateVariable get astVariable => _astVariable;
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalConstVariable extends InternalDeclaredVariable {
+  @override
+  ConstVariable _astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  new({
+    required String name,
+    required DartType? type,
+    bool isFinal = false,
+    bool isWildcard = false,
+    bool hasDeclaredInitializer = false,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    required int fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
+  }) : _astVariable = extern.createConstVariable(
+         name: name,
+         type: type,
+         isFinal: isFinal,
+         isWildcard: isWildcard,
+         hasDeclaredInitializer: hasDeclaredInitializer,
+         fileOffset: fileOffset,
+         fileEqualsOffset: fileEqualsOffset,
+       ) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  bool get isLocalFunction => false;
+
+  @override
+  ConstVariable get astVariable => _astVariable;
 
   @override
   bool get isAssignable {
@@ -1570,9 +1661,6 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
   final bool isImplicitlyTyped;
 
   @override
-  final bool isLocalFunction;
-
-  @override
   final bool isWildcard;
 
   new({
@@ -1582,7 +1670,6 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
     required bool isFinal,
     required bool isSynthesized,
     this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     required this.isWildcard,
     required int fileOffset,
   }) : _astVariable = new SyntheticVariable(
@@ -1593,6 +1680,9 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
        )..fileOffset = fileOffset {
     this.fileOffset = fileOffset;
   }
+
+  @override
+  bool get isLocalFunction => false;
 
   @override
   String toString() {
@@ -1613,13 +1703,9 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   @override
   final bool isImplicitlyTyped;
 
-  @override
-  final bool isLocalFunction;
-
   new({
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
-    this.isLocalFunction = false,
     String? name,
     DartType? type,
     bool isFinal = false,
@@ -1635,6 +1721,9 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
        )..fileOffset = fileOffset {
     this.fileOffset = fileOffset;
   }
+
+  @override
+  bool get isLocalFunction => false;
 
   @override
   String toString() {
@@ -1682,14 +1771,14 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   ///
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
-  Variable? lateGetter;
+  LocalFunctionVariable? lateGetter;
 
   /// The synthesized local setter function for an assignable lowered late
   /// variable.
   ///
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
-  Variable? lateSetter;
+  LocalFunctionVariable? lateSetter;
 
   /// Is `true` if this a lowered late final variable without an initializer.
   ///
@@ -6550,7 +6639,7 @@ class InternalFunctionExpression extends InternalExpression {
 }
 
 class InternalFunctionDeclaration extends InternalStatement {
-  final InternalVariable variable;
+  final InternalLocalFunctionVariable variable;
   late final InternalFunctionNode function;
   late final bool hasImplicitReturnType;
 
@@ -9006,7 +9095,6 @@ class InternalIsExpression extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalListLiteral extends InternalExpression {
   final bool isConst;
   final DartType? typeArgument;
@@ -9031,6 +9119,7 @@ class InternalListLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -9085,7 +9174,6 @@ class InternalLogicalExpression extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalMapLiteral extends InternalExpression {
   final bool isConst;
   final DartType? keyType;
@@ -9112,6 +9200,7 @@ class InternalMapLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -9197,7 +9286,6 @@ class InternalNullCheck extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalNullLiteral extends InternalExpression {
   new({required int fileOffset}) {
     this.fileOffset = fileOffset;
@@ -9212,6 +9300,7 @@ class InternalNullLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('null');
   }
@@ -9247,7 +9336,6 @@ class InternalRethrow extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalSetLiteral extends InternalExpression {
   final bool isConst;
   final DartType? typeArgument;
@@ -9272,6 +9360,7 @@ class InternalSetLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');

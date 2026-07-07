@@ -1287,7 +1287,17 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
     _verifyVariable(node);
   }
 

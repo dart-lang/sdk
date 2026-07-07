@@ -13,8 +13,8 @@ import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
-import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart' as intern;
 
 /// Base class for all control-flow elements.
 sealed class ControlFlowElement extends AuxiliaryExpression {
@@ -1089,7 +1089,6 @@ MapLiteralEntry convertToMapEntry(
         return result;
     }
   } else {
-    // Coverage-ignore-block(suite): Not run.
     return _convertToErroneousMapEntry(
       element,
       problemReporting,
@@ -1099,14 +1098,13 @@ MapLiteralEntry convertToMapEntry(
   }
 }
 
-// Coverage-ignore(suite): Not run.
 MapLiteralEntry _convertToErroneousMapEntry(
   Expression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
   Uri fileUri,
 ) {
-  return extern.createMapLiteralEntry(
+  return intern.createMapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.expectedAfterButGot.withArguments(expected: ':'),
@@ -1115,7 +1113,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
       // TODO(danrubel): what is the length of the expression?
       length: noLength,
     ),
-    extern.createNullLiteral(fileOffset: element.fileOffset),
+    intern.createNullLiteral(element.fileOffset),
     fileOffset: element.fileOffset,
   );
 }
