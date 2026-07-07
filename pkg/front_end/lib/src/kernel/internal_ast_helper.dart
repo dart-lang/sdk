@@ -792,17 +792,18 @@ InternalLet createLetForEffect({
 /// argument, there is more than one type argument, or if the type argument
 /// cannot be resolved. The list of [expressions] is a list of the
 /// representations of the list elements.
-ListLiteral createListLiteral(
+InternalExpression createListLiteral(
   int fileOffset,
-  DartType typeArgument,
+  DartType? typeArgument,
   List<Expression> expressions, {
   required bool isConst,
 }) {
-  return new ListLiteral(
+  return new InternalListLiteral(
     expressions,
     typeArgument: typeArgument,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createListPattern(
@@ -919,19 +920,20 @@ MapLiteralEntry createMapEntry(
 /// the map literal, or `null` if there are not exactly two type arguments or
 /// if the second type argument cannot be resolved. The list of [entries] is a
 /// list of the representations of the map entries.
-MapLiteral createMapLiteral(
+InternalExpression createMapLiteral(
   int fileOffset,
-  DartType keyType,
-  DartType valueType,
+  DartType? keyType,
+  DartType? valueType,
   List<MapLiteralEntry> entries, {
   required bool isConst,
 }) {
-  return new MapLiteral(
+  return new InternalMapLiteral(
     entries,
     keyType: keyType,
     valueType: valueType,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 MapLiteralEntry createMapLiteralEntry(
@@ -1408,17 +1410,18 @@ InternalReturnStatement createReturnStatement({
 /// argument, there is more than one type argument, or if the type argument
 /// cannot be resolved. The list of [expressions] is a list of the
 /// representations of the set elements.
-SetLiteral createSetLiteral(
+InternalExpression createSetLiteral(
   int fileOffset,
-  DartType typeArgument,
+  DartType? typeArgument,
   List<Expression> expressions, {
   required bool isConst,
 }) {
-  return new SetLiteral(
+  return new InternalSetLiteral(
     expressions,
     typeArgument: typeArgument,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createSpreadElement(

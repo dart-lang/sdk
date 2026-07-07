@@ -1089,7 +1089,6 @@ MapLiteralEntry convertToMapEntry(
         return result;
     }
   } else {
-    // Coverage-ignore-block(suite): Not run.
     return _convertToErroneousMapEntry(
       element,
       problemReporting,

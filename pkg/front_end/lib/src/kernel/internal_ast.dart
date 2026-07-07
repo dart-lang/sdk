@@ -9095,7 +9095,6 @@ class InternalIsExpression extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalListLiteral extends InternalExpression {
   final bool isConst;
   final DartType? typeArgument;
@@ -9120,6 +9119,7 @@ class InternalListLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -9174,7 +9174,6 @@ class InternalLogicalExpression extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalMapLiteral extends InternalExpression {
   final bool isConst;
   final DartType? keyType;
@@ -9201,6 +9200,7 @@ class InternalMapLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -9336,7 +9336,6 @@ class InternalRethrow extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalSetLiteral extends InternalExpression {
   final bool isConst;
   final DartType? typeArgument;
@@ -9361,6 +9360,7 @@ class InternalSetLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
