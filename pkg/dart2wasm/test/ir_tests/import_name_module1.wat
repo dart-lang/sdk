@@ -11,7 +11,7 @@
   (global $".hello world" (import "" "hello world") (ref extern))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 2 funcref)
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 62)
+    (i32.const 59)
     (i32.const 0)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))

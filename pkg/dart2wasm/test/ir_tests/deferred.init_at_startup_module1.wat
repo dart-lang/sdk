@@ -3,7 +3,7 @@
   (type $Array<WasmI16> <...>)
   (type $JSExternWrapper <...>)
   (type $Array<String?> <...>)
-  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 18 funcref)
+  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 17 funcref)
   (global $"\"hello\"" (ref $JSExternWrapper) <...>)
   (global $JSStringImpl._stringFromCodePointBuffer (mut (ref $Array<WasmI16>)) <...>)
   (global $array (mut (ref $Array<String?>))
@@ -27,7 +27,7 @@
       i32.const 0
       array.get $Array<String?>
       br_on_non_null $label0
-      i32.const 17
+      i32.const 16
       call_indirect $M.cross-module-funcs-0 
       unreachable
     end $label0
