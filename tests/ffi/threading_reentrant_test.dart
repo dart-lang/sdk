@@ -105,7 +105,7 @@ Future<void> testRun() async {
     ),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 main(List<String> args, List<SendPort>? message) async {

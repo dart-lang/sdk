@@ -508,6 +508,8 @@ DEFINE_NATIVE_ENTRY(Isolate_create_, 0, 1) {
     UNREACHABLE();
   }
 
+  auto initialize_callback = Isolate::InitializeCallback();
+
   char* error = nullptr;
   auto group = IsolateGroup::Current();
 
@@ -520,6 +522,16 @@ DEFINE_NATIVE_ENTRY(Isolate_create_, 0, 1) {
   Isolate* created_isolate =
       CreateWithinExistingIsolateGroup(group, debug_name_cstr, &error);
   RELEASE_ASSERT(created_isolate != nullptr);
+
+  void* child_isolate_data = nullptr;
+  const bool success = initialize_callback(&child_isolate_data, &error);
+  if (!success) {
+    const auto& error_str = String::Handle(String::New(error));
+    Exceptions::ThrowStateError(error_str);
+    UNREACHABLE();
+  }
+
+  created_isolate->set_init_callback_data(child_isolate_data);
 
   Dart_ExitIsolate();
   Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);

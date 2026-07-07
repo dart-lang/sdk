@@ -169,7 +169,7 @@ Future<void> testRunSyncOnPinnedToSelfIsolate() async {
     ),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 @pragma('vm:shared')
@@ -261,7 +261,7 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 @pragma('vm:shared')
@@ -331,7 +331,7 @@ Future<void> testFailRunSyncWithTimeout() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 Future<void> testFailRunSyncDifferentIsolateGroup() async {
@@ -358,6 +358,41 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
   final spChildControl = (await rpFromChild.first) as SendPort;
   spChildControl.send('please, exit');
   await rpChildIsDone.first;
+}
+
+int threadMainCreatesTimer(Pointer<Void> data) {
+  final new_isolate = Isolate.create(debugName: "helperMainCreatesTimer");
+  new_isolate.runSync(() {
+    print(Future.delayed(Duration(seconds: 1)));
+  });
+  new_isolate.shutdownSync();
+  return 0;
+}
+
+Future<void> testCreateTimer() async {
+  if (Platform.isWindows) {
+    return; // pthread is not available on Windows.
+  }
+
+  final callback =
+      NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
+        threadMainCreatesTimer,
+        exceptionalReturn: -1,
+      );
+
+  final threadInfo = ThreadInfo();
+  Expect.equals(0, pthreadAttrInit(threadInfo.ptr_attr));
+  Expect.equals(
+    0,
+    pthreadCreate(
+      threadInfo.ptr_tid,
+      threadInfo.ptr_attr,
+      callback.nativeFunction,
+      threadInfo.ptr_data.cast<Void>(),
+    ),
+  );
+
+  threadInfo.joinAndDestroy();
 }
 
 main(List<String> args, SendPort? toParent) async {
@@ -391,6 +426,8 @@ main(List<String> args, SendPort? toParent) async {
   await testFailRunSyncOnPinnedIsolate();
   await testFailRunSyncWithTimeout();
   await testFailRunSyncDifferentIsolateGroup();
+
+  await testCreateTimer();
 
   asyncEnd();
 }

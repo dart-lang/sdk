@@ -128,7 +128,8 @@ static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
 }
 
 class ScavengerVisitor : public ObjectPointerVisitor,
-                         public PredicateObjectPointerVisitor {
+                         public PredicateObjectPointerVisitor,
+                         public MallocAllocated {
  public:
   explicit ScavengerVisitor(IsolateGroup* isolate_group,
                             Scavenger* scavenger,

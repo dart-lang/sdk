@@ -5,9 +5,9 @@
 #ifndef RUNTIME_VM_HEAP_SCAVENGER_H_
 #define RUNTIME_VM_HEAP_SCAVENGER_H_
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
-
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -33,7 +33,7 @@ template <typename Type, typename PtrType>
 class GCLinkedList;
 struct GCLinkedLists;
 
-class SemiSpace {
+class SemiSpace : public MallocAllocated {
  public:
   SemiSpace(intptr_t gc_threshold_in_words, Cage* cage);
   ~SemiSpace();

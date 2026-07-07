@@ -135,7 +135,7 @@ Future<void> testRunEventLoopManyThreads({int numThreads = 63}) async {
   print('main is happy received ${greetingsReceived[0].toRadixString(16)}');
 
   for (ThreadInfo threadInfo in threadInfos) {
-    threadInfo.join();
+    threadInfo.joinAndDestroy();
   }
 }
 
