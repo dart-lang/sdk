@@ -255,6 +255,10 @@ class _MigrationRunner({
       var versionBumpEdit = computeVersionBumpEdit(pubspecFile);
       if (versionBumpEdit == null) continue;
 
+      if (_shouldSkipDueToDependencies(context, pubspec, versionBumpEdit)) {
+        continue;
+      }
+
       var targetVersion = versionBumpEdit.targetVersion;
       var originalVersionChangeBuilder = await _createBuilder();
 
@@ -435,6 +439,32 @@ class _MigrationRunner({
       builder: builder,
       phaseName: 'pre-migration',
     );
+  }
+
+  /// Returns `true` if the migration should be skipped due to incompatible dependencies.
+  bool _shouldSkipDueToDependencies(
+    DriverBasedAnalysisContext context,
+    _PubspecTarget pubspec,
+    PubspecEdit versionBumpEdit,
+  ) {
+    var packageDependencies = context.contextRoot.workspace.packages.packages
+        .where(
+          (package) => package.rootFolder.path != pubspec.file.parent.path,
+        );
+    var incompatibleDeps = checkDependencyCompatibility(
+      packages: packageDependencies,
+      targetVersion: versionBumpEdit.targetVersion,
+    );
+    if (incompatibleDeps.isNotEmpty) {
+      incompatibleDeps.sort();
+      summaryBuffer.writeln('- ${pubspec.displayName}: Skipped');
+      summaryBuffer.writeln('  Incompatible dependencies:');
+      for (var dep in incompatibleDeps) {
+        summaryBuffer.writeln('    - $dep');
+      }
+      return true;
+    }
+    return false;
   }
 
   /// Writes a summary of the fixes in [fixesMap] preceded by [phaseLabel] to

@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -139,6 +140,165 @@ environment:
       uris: [Uri.file(otherDirPath)],
       apply: true,
       expectedSummary: contains('- other_project: Skipped (not analyzed)'),
+    );
+  }
+
+  Future<void> test_dependencyConflict() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+
+    var depPath = convertPath('/dep_package');
+    newFile(join(depPath, 'pubspec.yaml'), '''
+name: dep_package
+environment:
+  sdk: '>=3.0.0 <3.13.0'
+''');
+    newFile(join(depPath, 'lib', 'dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package',
+      rootFolder: resourceProvider.getFolder(depPath),
+    );
+    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped
+  Incompatible dependencies:
+    - dep_package
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void> test_dependencyConflict_multiple() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+
+    // dep_package1: Incompatible
+    var dep1Path = convertPath('/dep_package1');
+    newFile(join(dep1Path, 'pubspec.yaml'), '''
+name: dep_package1
+environment:
+  sdk: '>=3.0.0 <3.13.0'
+''');
+    newFile(join(dep1Path, 'lib', 'dep1.dart'), '');
+
+    // dep_package2: Incompatible
+    var dep2Path = convertPath('/dep_package2');
+    newFile(join(dep2Path, 'pubspec.yaml'), '''
+name: dep_package2
+environment:
+  sdk: '>=3.0.0 <3.13.0'
+''');
+    newFile(join(dep2Path, 'lib', 'dep2.dart'), '');
+
+    // dep_package3: Compatible
+    var dep3Path = convertPath('/dep_package3');
+    newFile(join(dep3Path, 'pubspec.yaml'), '''
+name: dep_package3
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+''');
+    newFile(join(dep3Path, 'lib', 'dep3.dart'), '');
+
+    // dep_package4: No pubspec.yaml (ignored)
+    var dep4Path = convertPath('/dep_package4');
+    newFile(join(dep4Path, 'lib', 'dep4.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package1',
+      rootFolder: resourceProvider.getFolder(dep1Path),
+    );
+    builder.add(
+      name: 'dep_package2',
+      rootFolder: resourceProvider.getFolder(dep2Path),
+    );
+    builder.add(
+      name: 'dep_package3',
+      rootFolder: resourceProvider.getFolder(dep3Path),
+    );
+    builder.add(
+      name: 'dep_package4',
+      rootFolder: resourceProvider.getFolder(dep4Path),
+    );
+
+    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped
+  Incompatible dependencies:
+    - dep_package1
+    - dep_package2
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void> test_dependencyConflict_transitive() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+
+    // direct_dep: Compatible
+    var directDepPath = convertPath('/direct_dep');
+    newFile(join(directDepPath, 'pubspec.yaml'), '''
+name: direct_dep
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+''');
+    newFile(join(directDepPath, 'lib', 'direct_dep.dart'), '');
+
+    // transitive_dep: Incompatible
+    var transitiveDepPath = convertPath('/transitive_dep');
+    newFile(join(transitiveDepPath, 'pubspec.yaml'), '''
+name: transitive_dep
+environment:
+  sdk: '>=3.0.0 <3.13.0'
+''');
+    newFile(join(transitiveDepPath, 'lib', 'transitive_dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'direct_dep',
+      rootFolder: resourceProvider.getFolder(directDepPath),
+    );
+    builder.add(
+      name: 'transitive_dep',
+      rootFolder: resourceProvider.getFolder(transitiveDepPath),
+    );
+    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped
+  Incompatible dependencies:
+    - transitive_dep
+No SDK constraints were bumped.''',
     );
   }
 
