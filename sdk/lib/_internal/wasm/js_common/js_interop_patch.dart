@@ -732,14 +732,16 @@ extension StringToJSString on String {
 // -----------------------------------------------------------------------------
 // JSArray<JSNumber> <-> List<num>
 @patch
-extension JSArrayOfNumberToList on JSArray<JSNumber> {
+extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   @patch
   List<double> get toDartOfDouble => [
-    for (var value in toDart) value.toDartDouble,
+    for (var i = 0; i < this.length; i++) this[i].toDartDouble,
   ];
 
   @patch
-  List<int> get toDartOfInt => [for (var value in toDart) value.toDartInt];
+  List<int> get toDartOfInt => [
+    for (var i = 0; i < this.length; i++) this[i].toDartInt,
+  ];
 }
 
 @patch
@@ -749,13 +751,33 @@ extension ListOfNumberToJSArray on List<num> {
 }
 
 // -----------------------------------------------------------------------------
+// JSArray<JSNumber?> <-> List<num?>
+@patch
+extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
+  @patch
+  List<double?> get toDartOfDouble => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDartDouble,
+  ];
+
+  @patch
+  List<int?> get toDartOfInt => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDartInt,
+  ];
+}
+
+@patch
+extension ListOfNullableNumberToJSArray on List<num?> {
+  @patch
+  JSArray<JSNumber?> get toJS => [for (var value in this) value?.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
 // JSArray<JSString> <-> List<String>
 @patch
-extension JSArrayOfStringToList on JSArray<JSString> {
+extension JSArrayOfJSStringToList on JSArray<JSString> {
   @patch
   List<String> get toDart => [
-    for (var value in (this as JSArray<JSAny>).toDart)
-      (value as JSString).toDart,
+    for (var i = 0; i < this.length; i++) this[i].toDart,
   ];
 }
 
@@ -766,49 +788,12 @@ extension ListOfStringToJSArray on List<String> {
 }
 
 // -----------------------------------------------------------------------------
-// JSArray<JSBoolean> <-> List<bool>
-@patch
-extension JSArrayOfBooleanToList on JSArray<JSBoolean> {
-  @patch
-  List<bool> get toDart => [
-    for (var value in (this as JSArray<JSAny>).toDart)
-      (value as JSBoolean).toDart,
-  ];
-}
-
-@patch
-extension ListOfBoolToJSArray on List<bool> {
-  @patch
-  JSArray<JSBoolean> get toJS => [for (var value in this) value.toJS].toJS;
-}
-
-// -----------------------------------------------------------------------------
-// JSArray<JSNumber?> <-> List<num?>
-@patch
-extension JSArrayOfNullableNumberToList on JSArray<JSNumber?> {
-  @patch
-  List<double?> get toDartOfDouble => [
-    for (var value in toDart) value?.toDartDouble,
-  ];
-
-  @patch
-  List<int?> get toDartOfInt => [for (var value in toDart) value?.toDartInt];
-}
-
-@patch
-extension ListOfNullableNumberToJSArray on List<num?> {
-  @patch
-  JSArray<JSNumber?> get toJS => [for (var value in this) value?.toJS].toJS;
-}
-
-// -----------------------------------------------------------------------------
 // JSArray<JSString?> <-> List<String?>
 @patch
-extension JSArrayOfNullableStringToList on JSArray<JSString?> {
+extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
   @patch
   List<String?> get toDart => [
-    for (var value in (this as JSArray<JSAny?>).toDart)
-      (value as JSString?)?.toDart,
+    for (var i = 0; i < this.length; i++) this[i]?.toDart,
   ];
 }
 
@@ -819,13 +804,28 @@ extension ListOfNullableStringToJSArray on List<String?> {
 }
 
 // -----------------------------------------------------------------------------
+// JSArray<JSBoolean> <-> List<bool>
+@patch
+extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
+  @patch
+  List<bool> get toDart => [
+    for (var i = 0; i < this.length; i++) this[i].toDart,
+  ];
+}
+
+@patch
+extension ListOfBoolToJSArray on List<bool> {
+  @patch
+  JSArray<JSBoolean> get toJS => [for (var value in this) value.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
 // JSArray<JSBoolean?> <-> List<bool?>
 @patch
-extension JSArrayOfNullableBooleanToList on JSArray<JSBoolean?> {
+extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
   @patch
   List<bool?> get toDart => [
-    for (var value in (this as JSArray<JSAny?>).toDart)
-      (value as JSBoolean?)?.toDart,
+    for (var i = 0; i < this.length; i++) this[i]?.toDart,
   ];
 }
 

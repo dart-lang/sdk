@@ -1,3 +1,24 @@
+## 3.14.0
+
+**Released on:** Unreleased
+
+#### `dart:js_interop`
+
+- **Breaking change**:
+  Added `JSArrayOfJSStringToList`, `JSArrayOfJSBooleanToList`,
+  `JSArrayOfNullableJSStringToList`, and `JSArrayOfNullableJSBooleanToList`.
+  These eagerly and efficiently convert the contents of the array to Dart
+  values, but they will shadow previous calls to `JSArray<T extends
+  JSAny?>.toDart` which may cause build errors in code that expected the
+  resulting array to contain `T extends JSAny?` rather than Dart values.
+
+- Added `JSArrayOfJSNumberToList`, `ListOfNumberToJSArray`,
+  `ListOfStringToJSArray`, `ListOfBoolToJSArray`,
+  `JSArrayOfNullableJSNumberToList`, `ListOfNullableNumberToJSArray`,
+  `ListOfNullableStringToJSArray`, and `ListOfNullableBoolToJSArray`. These make
+  it easier and more efficient to convert between JS and Dart arrays of
+  primitives.
+
 ## 3.13.0
 
 **Released on:** Unreleased
@@ -111,21 +132,6 @@ To learn more about the feature, check out the
   purely descriptive and intended for increased static type safety. Importantly,
   the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
   For more details, see SDK issue [#54557][].
-
-- **Breaking change**:
-  Added `JSArrayOfStringToList`, `JSArrayOfBooleanToList`,
-  `JSArrayOfNullableStringToList`, and `JSArrayOfNullableBooleanToList`. These
-  eagerly and efficiently convert the contents of the array to Dart values, but
-  they will shadow previous calls to `JSArray<T extends JSAny?>.toDart` which
-  may cause build errors in code that expected the resulting array to contain `T
-  extends JSAny?` rather than Dart values.
-
-- Added `JSArrayOfNumberToList`, `ListOfNumberToJSArray`,
-  `ListOfStringToJSArray`, `ListOfBoolToJSArray`,
-  `JSArrayOfNullableNumberToList`, `ListOfNullableNumberToJSArray`,
-  `ListOfNullableStringToJSArray`, and `ListOfNullableBoolToJSArray`. These make
-  it easier and more efficient to convert between JS and Dart arrays of
-  primitives.
 
 [#54557]: https://github.com/dart-lang/sdk/issues/54557
 
