@@ -31,10 +31,7 @@ void main() {
     }
   ''');
 
-  Expect.equals(
-    'foo'.toJS,
-    catchAndReturn((() => jsThrow('foo'.toJS)).toJS),
-  );
+  Expect.equals('foo'.toJS, catchAndReturn((() => jsThrow('foo'.toJS)).toJS));
   final caughtError = catchAndReturn((() => jsThrow(JSError('foo'))).toJS);
   Expect.isTrue(caughtError.isA<JSError>());
   Expect.equals('foo', (caughtError as JSError).message);
