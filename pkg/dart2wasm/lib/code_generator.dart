@@ -360,20 +360,11 @@ abstract class AstCodeGenerator
           );
         }
       }
-      if (!isForwarder && !variable.isFinal) {
-        // We now have a precise local that can contain the values passed by
-        // callers, but the body may assign less precise types to this variable,
-        // so we may introduce another local variable that is less precise.
-        // => Binaryen will simplify the above downcast and this upcast.
-        final variableType = translator.translateTypeOfLocalVariable(variable);
-        if (!variableType.isSubtypeOf(local.type)) {
-          w.Local newLocal = addLocal(variableType);
-          b.local_get(local);
-          translator.convertType(b, local.type, newLocal.type);
-          b.local_set(newLocal);
-          local = newLocal;
-        }
-      }
+      local = _upcastParameterLocalIfNeeded(
+        variable,
+        local,
+        isForwarder: isForwarder,
+      );
 
       locals[variable] = local;
     }
@@ -490,6 +481,32 @@ abstract class AstCodeGenerator
     allocateContext(functionNode);
     captureParameters(functionNode);
   }
+
+  w.Local _upcastParameterLocalIfNeeded(
+    Variable variable,
+    w.Local local, {
+    required bool isForwarder,
+  }) {
+    if (isForwarder || variable.isFinal) {
+      // The [variable]s [local] will never be written to.
+      return local;
+    }
+
+    // We now have a precise local that can contain the values passed by
+    // callers, but the body may assign less precise types to this variable,
+    // so we may introduce another local variable that is less precise.
+    // => Binaryen will simplify the above downcast and this upcast.
+    final variableType = translator.translateTypeOfLocalVariable(variable);
+    if (!variableType.isSubtypeOf(local.type)) {
+      w.Local newLocal = addLocal(variableType);
+      b.local_get(local);
+      translator.convertType(b, local.type, newLocal.type);
+      b.local_set(newLocal);
+      return newLocal;
+    }
+    return local;
+  }
+
 
   /// Initialize locals containing `this` in constructors and instance members.
   /// Returns the number of parameter locals taken up by the receiver parameter,
@@ -3692,17 +3709,12 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
       typeLocals[typeParameter] = paramLocals[param++];
     }
     void setupParameter(Variable parameter) {
-      // The body may assign less precise types to the parameter variable than
-      // what the caller provides.
       w.Local local = paramLocals[param++];
-      if (translator.typeOfCheckedParameterVariable(parameter) !=
-          parameter.type) {
-        final newLocal = addLocal(translator.translateType(parameter.type));
-        b.local_get(local);
-        translator.convertType(b, local.type, newLocal.type);
-        b.local_set(newLocal);
-        local = newLocal;
-      }
+      local = _upcastParameterLocalIfNeeded(
+        parameter,
+        local,
+        isForwarder: false,
+      );
       locals[parameter] = local;
     }
 
@@ -4210,19 +4222,25 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
   int _setupConstructorParameters(
     List<TypeParameter> typeParameters,
     List<Variable> parameters,
-    int parameterOffset,
-  ) {
+    int parameterOffset, {
+    bool isForwarder = false,
+  }) {
     for (int i = 0; i < typeParameters.length; i++) {
       typeLocals[typeParameters[i]] = paramLocals[parameterOffset++];
     }
 
     for (int i = 0; i < parameters.length; i++) {
       final variable = parameters[i];
-      final local = paramLocals[parameterOffset++];
+      w.Local local = paramLocals[parameterOffset++];
       final variableName = variable.cosmeticName;
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
+      local = _upcastParameterLocalIfNeeded(
+        variable,
+        local,
+        isForwarder: isForwarder,
+      );
       locals[variable] = local;
     }
     return parameterOffset;
@@ -4626,6 +4644,7 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
       member.enclosingClass.typeParameters,
       constructorInfo.allParameters,
       parameterOffset,
+      isForwarder: true,
     );
 
     w.FunctionType initializerMethodType = translator.signatureForDirectCall(
@@ -4812,10 +4831,15 @@ class ConstructorBodyCodeGenerator extends ConstructorCodeGeneratorBase {
       if (!locals.containsKey(variable)) {
         final fieldIndex = translator.fieldIndex[field]!;
         final wasmType = translator.translateTypeOfField(field);
-        final local = addLocal(wasmType);
+        w.Local local = addLocal(wasmType);
         b.local_get(preciseThisLocal!);
         b.struct_get(classInfo.struct, fieldIndex);
         b.local_set(local);
+        local = _upcastParameterLocalIfNeeded(
+          variable,
+          local,
+          isForwarder: false,
+        );
         locals[variable] = local;
       }
     });
