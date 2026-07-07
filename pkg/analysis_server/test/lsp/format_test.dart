@@ -1056,6 +1056,20 @@ enum A { a, b }
     expect(formatted.trim(), expectedContent.trim());
   }
 
+  Future<void> test_trailingComment_trailingWhitespace_issue63746() async {
+    var code = TestCode.parseNormalized('''
+const    x   =    42;      //    Watermelon  /**/
+const    y   =    42;      //    Cantaloupe  /**/
+    ''');
+    var expected = '''
+const x = 42; //    Watermelon
+const y = 42; //    Cantaloupe
+''';
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expected);
+  }
+
   Future<void> test_unopenFile() async {
     var code = TestCode.parseNormalized('''
     void f  ()
