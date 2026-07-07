@@ -612,6 +612,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
     for (final initializer in node.initializers) {
@@ -668,6 +669,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
 
@@ -696,8 +698,9 @@ List<w.ValueType> _getConstructorInputTypes(
   Constructor member,
   List<TypeParameter> typeParameters,
   List<FunctionParameter> parameters,
-  w.ValueType Function(DartType) translateType,
-) {
+  w.ValueType Function(DartType) translateType, {
+  bool isBodyParameter = false,
+}) {
   final List<w.ValueType> inputs = [];
 
   final List<w.ValueType> wasmTypeParameters = List.filled(
@@ -706,7 +709,10 @@ List<w.ValueType> _getConstructorInputTypes(
   );
   inputs.addAll(wasmTypeParameters);
 
-  final List<DartType> params = parameters.map((p) {
+  final List<w.ValueType> params = parameters.map((p) {
+    if (isBodyParameter && !p.isFinal) {
+      return translator.translateTypeOfLocalVariable(p);
+    }
     final function = p.parent as FunctionNode;
     final positionalIndex = p is PositionalParameter
         ? function.positionalParameters.indexOf(p)
@@ -714,9 +720,9 @@ List<w.ValueType> _getConstructorInputTypes(
     final isRequired = positionalIndex != -1
         ? positionalIndex < function.requiredParameterCount
         : p.isRequired;
-    return translator.typeOfParameterVariable(p, isRequired);
+    return translateType(translator.typeOfParameterVariable(p, isRequired));
   }).toList();
-  inputs.addAll(params.map(translateType));
+  inputs.addAll(params);
 
   return inputs;
 }
