@@ -1846,6 +1846,7 @@ package:analyzer/dart/ast/doc_comment.dart:
     endInjectHtml (static getter: DocDirectiveType)
     endTemplate (static getter: DocDirectiveType)
     endTool (static getter: DocDirectiveType)
+    example (static getter: DocDirectiveType)
     injectHtml (static getter: DocDirectiveType)
     macro (static getter: DocDirectiveType)
     subCategory (static getter: DocDirectiveType)
