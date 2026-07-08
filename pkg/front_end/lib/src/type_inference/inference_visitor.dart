@@ -3693,16 +3693,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.handleDeclarationsOfParameters([
         for (InternalPositionalParameter positionalParameter
             in node.function.positionalParameters)
+          // Coverage-ignore(suite): Not run.
           new VariableWithCaptureKind(
-            positionalParameter // Coverage-ignore(suite): Not run.
-                .astVariable,
+            positionalParameter.astVariable,
             captureKindForVariable(positionalParameter),
           ),
         for (InternalNamedParameter namedParameter
             in node.function.namedParameters)
+          // Coverage-ignore(suite): Not run.
           new VariableWithCaptureKind(
-            namedParameter // Coverage-ignore(suite): Not run.
-                .astVariable,
+            namedParameter.astVariable,
             captureKindForVariable(namedParameter),
           ),
       ]);
