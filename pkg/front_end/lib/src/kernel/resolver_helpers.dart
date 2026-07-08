@@ -682,8 +682,8 @@ class _InitializerBuilder {
           Set<String> superTargetNamedParameterNames = {
             for (NamedParameter namedParameter
                 in superTarget.function.namedParameters)
-              namedParameter // Coverage-ignore(suite): Not run.
-                  .parameterName,
+              // Coverage-ignore(suite): Not run.
+              namedParameter.parameterName,
           };
           int positionalIndex = 0;
           for (Argument argument in superParameterArguments.arguments) {
