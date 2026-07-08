@@ -21230,17 +21230,20 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
 
 ObjectPtr Instance::GetField(const Field& field) const {
   if (field.is_unboxed()) {
+    // TODO(63699): Align unboxed fields.
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
+        return Double::New(
+            LoadUnaligned(reinterpret_cast<double_t*>(FieldAddr(field))));
       case kFloat32x4Cid:
-        return Float32x4::New(
-            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+        return Float32x4::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       case kFloat64x2Cid:
-        return Float64x2::New(
-            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+        return Float64x2::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       default:
-        return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
+        return Integer::New(
+            LoadUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field))));
     }
   } else {
     return FieldAddr(field)->Decompress(untag()->heap_base());
@@ -21249,22 +21252,25 @@ ObjectPtr Instance::GetField(const Field& field) const {
 
 void Instance::SetField(const Field& field, const Object& value) const {
   if (field.is_unboxed()) {
+    // TODO(63699): Align unboxed fields.
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
-                        Double::Cast(value).value());
+        StoreNonPointerUnaligned(reinterpret_cast<double_t*>(FieldAddr(field)),
+                                 Double::Cast(value).value());
         break;
       case kFloat32x4Cid:
-        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
-                        Float32x4::Cast(value).value());
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Float32x4::Cast(value).value());
         break;
       case kFloat64x2Cid:
-        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
-                        Float64x2::Cast(value).value());
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Float64x2::Cast(value).value());
         break;
       default:
-        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                        Integer::Cast(value).Value());
+        StoreNonPointerUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                                 Integer::Cast(value).Value());
         break;
     }
   } else {
