@@ -3752,7 +3752,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalLocalFunctionVariable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     _returnContexts.push(const StandardReturnContext());
-    inferMetadata(this, variable.astVariable);
     LocalFunctionResult localFunctionResult = _visitInternalFunctionNode(
       function,
       typeContext: null,

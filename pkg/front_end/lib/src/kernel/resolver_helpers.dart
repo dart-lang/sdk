@@ -107,28 +107,27 @@ class _ResolverContext {
     );
   }
 
-  /// Infers the annotations of [annotatable].
+  /// Infers the [annotations] and adds them to [annotatable].
   ///
-  /// If [indices] is provided, only the annotations at the given indices are
-  /// inferred. Otherwise all annotations are inferred.
-  void _inferAnnotations({
+  /// Returns a list of the inferred annotations.
+  List<Expression> _inferAnnotations({
     required Annotatable annotatable,
-    List<int>? indices,
+    required List<Expression> annotations,
   }) {
-    typeInferrer.inferMetadata(
+    return typeInferrer.inferMetadata(
       fileUri: fileUri,
       annotatable: annotatable,
-      indices: indices,
+      annotations: annotations,
     );
   }
 
-  void inferSingleTargetAnnotation({
+  List<Expression> inferSingleTargetAnnotation({
     required SingleTargetAnnotations singleTarget,
   }) {
     Annotatable target = singleTarget.target;
-    _inferAnnotations(
+    return _inferAnnotations(
       annotatable: target,
-      indices: singleTarget.indicesOfAnnotationsToBeInferred,
+      annotations: singleTarget.annotations,
     );
   }
 
@@ -149,8 +148,10 @@ class _ResolverContext {
         MultiTargetAnnotations multiTarget = multiTargetAnnotations[i];
         List<Annotatable> targets = multiTarget.targets;
         Annotatable firstTarget = targets.first;
-        List<Expression> annotations = firstTarget.annotations;
-        _inferAnnotations(annotatable: firstTarget);
+        List<Expression> annotations = _inferAnnotations(
+          annotatable: firstTarget,
+          annotations: multiTarget.annotations,
+        );
         for (int i = 1; i < targets.length; i++) {
           Annotatable target = targets[i];
           for (int i = 0; i < annotations.length; i++) {

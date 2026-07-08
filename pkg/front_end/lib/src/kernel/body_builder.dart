@@ -1300,11 +1300,7 @@ class BodyBuilderImpl extends StackListenerImpl
           }
           break;
         case NominalParameterBuilder():
-          //inferAnnotations(variable.parameter, annotations);
-          for (Expression annotation in annotations) {
-            variable.parameter.addAnnotation(annotation);
-          }
-          _registerSingleTargetAnnotations(variable.parameter);
+          _registerSingleTargetAnnotations(variable.parameter, annotations);
           break;
       }
     }
@@ -4077,15 +4073,10 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     }
     if (annotations != null) {
-      functionParameter.clearAnnotations();
-      for (Expression annotation in annotations) {
-        functionParameter.addAnnotation(annotation);
-      }
-      // TODO(johnniwinther): This seems wrong. If we add the annotations, we
-      //  should infer them.
-      if (functionNestingLevel == 0) {
-        _registerSingleTargetAnnotations(functionParameter.astVariable);
-      }
+      _registerSingleTargetAnnotations(
+        functionParameter.astVariable,
+        annotations,
+      );
     }
 
     push(parameterBuilder);
@@ -6364,10 +6355,10 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalVariableDeclaration declaration =
           node as InternalVariableDeclaration;
       if (annotations != null) {
-        for (int i = 0; i < annotations.length; i++) {
-          declaration.variable.addAnnotation(annotations[i]);
-        }
-        _registerSingleTargetAnnotations(declaration.variable.astVariable);
+        _registerSingleTargetAnnotations(
+          declaration.variable.astVariable,
+          annotations,
+        );
       }
       // TODO(johnniwinther): Should [VariableStatement] use offset from
       //  [endToken]?
@@ -6388,12 +6379,9 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       if (annotations != null) {
-        InternalVariableDeclaration first = variables.first;
-        for (int i = 0; i < annotations.length; i++) {
-          first.variable.addAnnotation(annotations[i]);
-        }
         _registerMultiTargetAnnotations(
           variables.map((v) => v.variable.astVariable).toList(),
+          annotations,
         );
       }
       push(intern.variablesDeclaration(variables, uri));
@@ -10001,9 +9989,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (declaration is InternalFunctionDeclaration) {
       InternalVariable variable = declaration.variable;
       if (annotations != null) {
-        for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
-        }
+        _registerSingleTargetAnnotations(variable.astVariable, annotations);
       }
       declaration.hasImplicitReturnType = hasImplicitReturnType;
       if (!hasImplicitReturnType) {
@@ -11732,16 +11718,21 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  void _registerMultiTargetAnnotations(List<Annotatable> targets) {
-    (_multiTargetAnnotations ??= []).add(new MultiTargetAnnotations(targets));
+  void _registerMultiTargetAnnotations(
+    List<Annotatable> targets,
+    List<Expression> annotations,
+  ) {
+    (_multiTargetAnnotations ??= []).add(
+      new MultiTargetAnnotations(targets, annotations),
+    );
   }
 
-  void _registerSingleTargetAnnotations(Annotatable target) {
+  void _registerSingleTargetAnnotations(
+    Annotatable target,
+    List<Expression> annotations,
+  ) {
     (_singleTargetAnnotations ??= []).add(
-      new SingleTargetAnnotations(
-        target,
-        null /*indicesOfAnnotationsToBeInferred*/,
-      ),
+      new SingleTargetAnnotations(target, annotations),
     );
   }
 

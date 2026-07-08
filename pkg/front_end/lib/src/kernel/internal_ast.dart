@@ -1890,14 +1890,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
 
   bool get hasInitializer => _astVariable.initializer != null;
 
-  void addAnnotation(Expression annotation) {
-    _astVariable.addAnnotation(annotation);
-  }
-
-  void clearAnnotations() {
-    _astVariable.clearAnnotations();
-  }
-
   @override
   // Coverage-ignore(suite): Not run.
   R accept<R>(VariableVisitor<R> v) {

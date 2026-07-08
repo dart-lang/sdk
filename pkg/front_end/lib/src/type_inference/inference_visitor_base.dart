@@ -2333,7 +2333,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter.astVariable);
       if (parameter.defaultValue != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.defaultValue!,
@@ -2348,7 +2347,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter.astVariable);
       if (parameter.defaultValue != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.defaultValue!,
@@ -2453,24 +2451,26 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.
-  void inferMetadata(
+  List<Expression> inferMetadata(
     InferenceVisitor visitor,
-    Annotatable annotatable, {
-    List<int>? indices,
-  }) {
-    List<Expression> annotations = annotatable.annotations;
-    if (indices != null) {
-      for (int index in indices) {
-        _inferMetadataAt(visitor, annotatable, annotations, index);
-      }
-    } else {
-      for (int index = 0; index < annotations.length; index++) {
-        _inferMetadataAt(visitor, annotatable, annotations, index);
-      }
+    Annotatable annotatable,
+    List<Expression> annotations,
+  ) {
+    List<Expression> result = [];
+    for (int index = 0; index < annotations.length; index++) {
+      Expression inferredAnnotation = _inferMetadataAt(
+        visitor,
+        annotatable,
+        annotations,
+        index,
+      );
+      annotatable.addAnnotation(inferredAnnotation);
+      result.add(inferredAnnotation);
     }
+    return result;
   }
 
-  void _inferMetadataAt(
+  Expression _inferMetadataAt(
     InferenceVisitor visitor,
     Annotatable annotatable,
     List<Expression> annotations,
@@ -2480,7 +2480,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       annotations[index],
       const UnknownType(),
     );
-    annotations[index] = result.expression..parent = annotatable;
+    return result.expression;
   }
 
   StaticInvocation createExtensionInvocation({
