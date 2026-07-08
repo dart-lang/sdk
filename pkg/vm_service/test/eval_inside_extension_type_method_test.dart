@@ -2,30 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
-
-void testFunction() {
-  final x = Foo(42);
-  x.printFoo();
-}
-
-extension type Foo(int value) {
-  void printFoo() {
-    debugger();
-    print("This foos value is '$value'");
-  }
-
-  int otherCall() {
-    return value * 2;
-  }
-}
+import 'eval_inside_extension_type_method_lib.dart' as testee_lib;
 
 Future triggerEvaluation(VmService service, IsolateRef isolateRef) async {
   final Stack stack = await service.getStack(isolateRef.id!);
@@ -56,15 +37,9 @@ Future triggerEvaluation(VmService service, IsolateRef isolateRef) async {
   expect(result3.valueAsString, '168');
 }
 
-final testSteps = <IsolateTest>[
-  hasStoppedAtBreakpoint,
-  triggerEvaluation,
-  resumeIsolate,
-];
-
-Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      testSteps,
-      'eval_inside_extension_type_method_test.dart',
-      testeeConcurrent: testFunction,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('eval_inside_extension_type_method_lib.dart', args)
+        .hasStoppedAtBreakpoint()
+        .addCustomTest(triggerEvaluation)
+        .resumeIsolate()
+        .run(testeeMain: testee_lib.main);

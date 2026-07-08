@@ -86,7 +86,8 @@ TestSpecification parseTestSpecification(String contents) {
       }
     } else {
       _invalidSpecification(
-          "entry: '$value' is not a string or a list of strings");
+        "entry: '$value' is not a string or a list of strings",
+      );
     }
   });
 
@@ -98,7 +99,8 @@ TestSpecification parseTestSpecification(String contents) {
     normalizedFlags.addAll(flags.cast<String>());
   } else if (flags != null) {
     _invalidSpecification(
-        "flags: '$flags' expected to be string or list of strings");
+      "flags: '$flags' expected to be string or list of strings",
+    );
   }
 
   Map<String, String> normalizedPackages = {};

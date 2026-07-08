@@ -31,8 +31,9 @@ void main(List<String> args) {
         type = 'core';
       } else if (optionsContent.contains('package:lints/recommended.yaml')) {
         type = 'recommended';
-      } else if (optionsContent
-          .contains('package:dart_flutter_team_lints/analysis_options.yaml')) {
+      } else if (optionsContent.contains(
+        'package:dart_flutter_team_lints/analysis_options.yaml',
+      )) {
         type = 'dart_flutter_team_lints';
       }
     }

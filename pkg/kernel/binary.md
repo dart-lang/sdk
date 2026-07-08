@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 131;
+  UInt32 formatVersion = 138;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -401,11 +401,14 @@ type Field extends Member {
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
                 isInternalImplementation, isEnumElement, isExtensionTypeMember,
-                isErroneous);
+                isErroneous, HasSuperCalls);
   Name name;
+  UInt scopeSize;
   List<Expression> annotations;
   DartType type;
+  Option<Variable> thisVariable;
   Option<Expression> initializer;
+  Option<Scope> scope;
 }
 
 type Constructor extends Member {
@@ -415,7 +418,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -456,8 +459,8 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isSynthetic, isInternalImplementation,
-              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
-              isErroneous, isExternalEffect);
+              isExtensionTypeMember, hasWeakTearoffReferencePragma,
+              isErroneous, isExternalEffect, HasSuperCalls);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -524,15 +527,19 @@ type FunctionNode {
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
   Byte dartAsyncMarker; // Index into AsyncMarker above.
+  UInt scopeSize;
   List<TypeParameter> typeParameters;
+  Option<Variable> thisVariable;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<Variable> positionalParameters;
-  List<Variable> namedParameters;
+  List<PositionalParameter> positionalParameters;
+  List<NamedParameter> namedParameters;
   DartType returnType;
   Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;
   Option<Statement> body;
+  Option<Scope> scope;
+  Option<List<VariableContextReference>> capturedContexts;
 }
 
 type RedirectingFactoryTarget {
@@ -791,6 +798,7 @@ type InstanceInvocation extends Expression {
   Name name;
   Arguments arguments;
   DartType functionType;
+  DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
@@ -1188,8 +1196,10 @@ type Let extends Expression {
 type BlockExpression extends Expression {
   Byte tag = 82;
   FileOffset fileOffset;
+  UInt scopeSize;
   List<Statement> body;
   Expression value;
+  Option<Scope> scope;
 }
 
 type Instantiation extends Expression {
@@ -1342,7 +1352,20 @@ type Block extends Statement {
   Byte tag = 62;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
+  UInt scopeSize;
   List<Statement> statements;
+  Option<Scope> scope;
+}
+
+type Scope {
+  List<VariableContext> contexts;
+}
+
+enum CaptureKind { notCaptured = 0, directCaptured = 1, assertCaptured = 2, }
+
+type VariableContext {
+  CaptureKind captureKind;
+  List<VariableReference> variables;
 }
 
 type AssertBlock extends Statement {
@@ -1382,8 +1405,10 @@ type BreakStatement extends Statement {
 type WhileStatement extends Statement {
   Byte tag = 67;
   FileOffset fileOffset;
+  UInt scopeSize;
   Expression condition;
   Statement body;
+  Option<Scope> scope;
 }
 
 type DoStatement extends Statement {
@@ -1396,19 +1421,23 @@ type DoStatement extends Statement {
 type ForStatement extends Statement {
   Byte tag = 69;
   FileOffset fileOffset;
+  UInt scopeSize;
   List<VariableDeclaration> variables;
   Option<Expression> condition;
   List<Expression> updates;
   Statement body;
+  Option<Scope> scope;
 }
 
 type ForInStatement extends Statement {
   Byte tag = 70;
   FileOffset fileOffset;
   FileOffset bodyOffset;
+  UInt scopeSize;
   Variable variable;
   Expression iterable;
   Statement body;
+  Option<Scope> scope;
 }
 
 type AsyncForInStatement extends Statement {
@@ -1480,10 +1509,12 @@ type TryCatch extends Statement {
 
 type Catch {
   FileOffset fileOffset;
+  UInt scopeSize;
   DartType guard;
   Option<Variable> exception;
   Option<Variable> stackTrace;
   Statement body;
+  Option<Scope> scope;
 }
 
 type TryFinally extends Statement {
@@ -1509,15 +1540,12 @@ type VariableStatement extends Statement {
 type VariableDeclaration extends Node {
   Byte tag = 154;
   FileOffset fileOffset;
+  // Variables captured by the initializer of the late variable.
+  Option<List<VariableContextReference>> capturedContexts;
   Variable variable;
 }
 
 abstract type Variable extends Node {}
-
-type LegacyVariable extends Variable {
-  Byte tag = 162;
-  VariableInternal variable;
-}
 
 type LocalVariable extends Variable {
   Byte tag = 155;
@@ -1526,6 +1554,16 @@ type LocalVariable extends Variable {
 
 type LateVariable extends Variable {
   Byte tag = 156;
+  VariableInternal variable;
+}
+
+type LocalFunctionVariable extends Variable {
+  Byte tag = 162;
+  VariableInternal variable;
+}
+
+type ConstVariable extends Variable {
+  Byte tag = 163;
   VariableInternal variable;
 }
 
@@ -1568,8 +1606,9 @@ type VariableInternal {
   UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
               isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
               isLowered, isSynthesized, isHoisted, isWildcard, isSuperInitializingFormal,
-              isErroneouslyInitialized);
-  // For named parameters, this is the parameter name.
+              isErroneouslyInitialized, isRenamedPrivateNamedParameter);
+  // For named parameters, this is the parameter name (which has been renamed if
+  // isRenamedPrivateNamedParameter is set).
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
   StringReference name;
@@ -1579,6 +1618,14 @@ type VariableInternal {
   // For optional parameters, this is the default value (if given).
   // In all other contexts, it must be Nothing.
   Option<Expression> initializer;
+}
+
+type VariableContextReference {
+  // Reference to the Nth variable context in the enclosing scopes, with 0 being
+  // the first variable context declared in the outermost enclosing scope, and
+  // larger numbers being the variable contexts declared later in a given scope,
+  // or in a more deeply nested scope.
+  UInt stackIndex;
 }
 
 type FunctionDeclaration extends Statement {
@@ -1743,6 +1790,7 @@ type AssignedVariablePattern extends Pattern {
   Byte tag = 129;
   FileOffset fileOffset;
   VariableReference variable;
+  Option<VariableReference> setter;
   Option<DartType> matchedType;
   Byte needsCast;
 }

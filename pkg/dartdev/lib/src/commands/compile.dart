@@ -285,7 +285,8 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addMultiOption(
         'extra-gen-kernel-options',
@@ -406,6 +407,12 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
         defaultsTo: soundNullSafetyOption.flagDefaultsTo,
         hide: true,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -452,6 +459,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     final enabledExperiments = args.enabledExperiments;
     final defines = args.multiOption(defineOption.flag);
     final enableAsserts = args.flag(enableAssertsOption.flag);
+    final String? depfile = args.option('depfile');
 
     // Build arguments.
     final buildArgs = <String>[];
@@ -488,6 +496,15 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
       buildArgs.add('--${enableAssertsOption.flag}');
     }
 
+    if (depfile != null) {
+      buildArgs.add('--depfile=$depfile');
+      final canonicalizedOutput = path.canonicalize(outputFile);
+      final escapedOutputFile = canonicalizedOutput
+          .replaceAll('\\', '\\\\')
+          .replaceAll(' ', '\\ ');
+      buildArgs.add('--depfile-output-filename=$escapedOutputFile');
+    }
+
     buildArgs.add(path.canonicalize(sourcePath));
 
     // Add the training arguments.
@@ -504,12 +521,6 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 class CompileNativeCommand extends CompileSubcommandCommand {
   static const String exeCmdName = 'exe';
   static const String aotSnapshotCmdName = 'aot-snapshot';
-  static final supportedTargetPlatforms = <Target>{
-    Target.linuxArm,
-    Target.linuxArm64,
-    Target.linuxRiscv64,
-    Target.linuxX64,
-  };
 
   final String commandName;
   final Kind format;
@@ -571,7 +582,8 @@ Remove debugging information from the output and save it separately to the speci
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addOption(
         recordedUsesOption.flag,
@@ -665,54 +677,26 @@ Remove debugging information from the output and save it separately to the speci
     var dartAotRuntimeBinary = sdk.dartAotRuntime;
 
     final target = crossCompilationTarget(args);
-
+    final supportedTargets = CompileSubcommandCommand.supportedTargetPlatforms;
     if (target != null) {
-      if (!supportedTargetPlatforms.contains(target)) {
+      if (!supportedTargets.contains(target)) {
         stderr.writeln('Unsupported target platform $target.');
         stderr.writeln(
           'Supported target platforms: '
-          '${supportedTargetPlatforms.join(', ')}',
+          '${supportedTargets.join(', ')}',
         );
         return crossCompileErrorExitCode;
       }
 
-      var cacheDir = getDartStorageDirectory();
-      if (cacheDir != null) {
-        cacheDir = Directory(path.join(cacheDir.path, 'dartdev', 'sdk_cache'));
-      } else {
-        cacheDir = Directory.systemTemp.createTempSync();
-        log.stdout(
-          'Cannot get dart storage directory. '
-          'Using temp dir ${cacheDir.path}',
-        );
-      }
-      final httpClient = http.Client();
-      try {
-        final cache = SdkCache(
-          directory: cacheDir.path,
-          verbose: verbose,
-          httpClient: httpClient,
-        );
-        final archiveFolder = await cache.resolveVersion(
-          version: Runtime.runtime.version,
-          revision: sdk.revision ?? '',
-          channelName: Runtime.runtime.channel ?? 'unknown',
-        );
-        genSnapshotBinary = await cache.ensureGenSnapshot(
-          archiveFolder: archiveFolder,
-          target: target,
-        );
-        dartAotRuntimeBinary = await cache.ensureDartAotRuntime(
-          archiveFolder: archiveFolder,
-          target: target,
-        );
-      } finally {
-        httpClient.close();
-      }
+      final targetBinaries = await resolveTargetBinaries(target);
+      genSnapshotBinary = targetBinaries.genSnapshot;
+      dartAotRuntimeBinary = targetBinaries.dartAotRuntime;
     }
 
+    final sourceUri = File(sourcePath).absolute.uri;
+    final baseUri = sourceUri.resolve('.');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      Directory.current.uri,
+      baseUri,
     );
     if (packageConfigUri != null) {
       final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
@@ -721,10 +705,9 @@ Remove debugging information from the output and save it separately to the speci
       if (packageConfig == null) {
         return compileErrorExitCode;
       }
-      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
-        Directory.current.uri,
-      );
-      if (runPackageName != null) {
+      final package = packageConfig.packageOf(sourceUri);
+      if (package != null) {
+        final runPackageName = package.name;
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
@@ -739,8 +722,9 @@ Remove debugging information from the output and save it separately to the speci
           target: target,
         );
 
+        final packageRoot = package.root.toFilePath();
         final isBinScript = path.isWithin(
-          path.canonicalize(path.join(Directory.current.path, 'bin')),
+          path.canonicalize(path.join(packageRoot, 'bin')),
           path.canonicalize(sourcePath),
         );
         if (isBinScript) {
@@ -808,35 +792,6 @@ Remove debugging information from the output and save it separately to the speci
 
   @override
   bool get isAot => true;
-
-  /// Returns target platform for cross compilation.
-  ///
-  /// If cross compilation is not needed, returns null.
-  Target? crossCompilationTarget(ArgResults args) {
-    final String? targetOS = args.option('target-os');
-    final String? targetArch = args.option('target-arch');
-
-    if (targetOS == null && targetArch == null) {
-      return null;
-    }
-
-    // If one of the target options is explicitly specified,
-    // resolving full host and target platforms to check for
-    // cross compilation.
-    final host = Target.current;
-    final target = Target.fromArchitectureAndOS(
-      targetArch == null
-          ? host.architecture
-          : Architecture.fromString(targetArch),
-      targetOS == null ? host.os : OS.fromString(targetOS),
-    );
-
-    // Platforms match, no need to cross compile.
-    if (host == target) {
-      return null;
-    }
-    return target;
-  }
 }
 
 class CompileWasmCommand extends CompileSubcommandCommand {
@@ -972,6 +927,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: recordedUsesOption.valueHelp,
         hide: !verbose,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -1023,6 +984,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
+    final depfile = args.option('depfile');
 
     int? maxPages;
     if (args.option('shared-memory') != null) {
@@ -1075,6 +1037,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (standalone) '--standalone',
       if (args.option(recordedUsesOption.flag) != null)
         '--recorded-uses=${args.option(recordedUsesOption.flag)}',
+      if (depfile != null) '--depfile=$depfile',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -1204,6 +1167,136 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
     super.verbose, {
     super.hidden,
   });
+
+  static final supportedTargetPlatforms = <Target>{
+    Target.linuxArm,
+    Target.linuxArm64,
+    Target.linuxRiscv64,
+    Target.linuxX64,
+  };
+
+  /// Returns target platform for cross compilation.
+  ///
+  /// If cross compilation is not needed, returns null.
+  Target? crossCompilationTarget(ArgResults args) {
+    final String? targetOS = args.option('target-os');
+    final String? targetArch = args.option('target-arch');
+
+    if (targetOS == null && targetArch == null) {
+      return null;
+    }
+
+    // If one of the target options is explicitly specified,
+    // resolving full host and target platforms to check for
+    // cross compilation.
+    final host = Target.current;
+    final target = Target.fromArchitectureAndOS(
+      targetArch == null
+          ? host.architecture
+          : Architecture.fromString(targetArch),
+      targetOS == null ? host.os : OS.fromString(targetOS),
+    );
+
+    // Platforms match, no need to cross compile.
+    if (host == target) {
+      return null;
+    }
+    return target;
+  }
+
+  /// Resolves the target-specific gen_snapshot and dartaotruntime binaries.
+  ///
+  /// Returns a record with `(genSnapshot: String, dartAotRuntime: String)`.
+  Future<({String genSnapshot, String dartAotRuntime})> resolveTargetBinaries(
+    Target target,
+  ) async {
+    String? localGenSnapshot;
+    String? localDartAotRuntime;
+
+    final buildRoots = [
+      sdk.sdkPath,
+      path.dirname(sdk.sdkPath),
+    ].where((dir) => File(path.join(dir, 'build.ninja')).existsSync());
+
+    for (final buildRoot in buildRoots) {
+      var genSnapshotName =
+          'gen_snapshot_product_${target.os.name}_${target.architecture.name}';
+      if (Platform.isWindows) {
+        genSnapshotName = '$genSnapshotName.exe';
+      }
+      final genSnapshotPath = path.join(buildRoot, genSnapshotName);
+      if (File(genSnapshotPath).existsSync()) {
+        localGenSnapshot = genSnapshotPath;
+      }
+
+      var dartAotRuntimeName =
+          'dartaotruntime_product_${target.os.name}_${target.architecture.name}';
+      if (target.os == OS.windows) {
+        dartAotRuntimeName = '$dartAotRuntimeName.exe';
+      }
+      final dartAotRuntimePath = path.join(buildRoot, dartAotRuntimeName);
+      if (File(dartAotRuntimePath).existsSync()) {
+        localDartAotRuntime = dartAotRuntimePath;
+      }
+
+      if (localGenSnapshot != null) {
+        break;
+      }
+    }
+
+    if (localGenSnapshot != null && localDartAotRuntime != null) {
+      return (
+        genSnapshot: localGenSnapshot,
+        dartAotRuntime: localDartAotRuntime,
+      );
+    }
+
+    var cacheDir = getDartStorageDirectory();
+    if (cacheDir != null) {
+      cacheDir = Directory(path.join(cacheDir.path, 'dartdev', 'sdk_cache'));
+    } else {
+      cacheDir = Directory.systemTemp.createTempSync();
+      log.stdout(
+        'Cannot get dart storage directory. '
+        'Using temp dir ${cacheDir.path}',
+      );
+    }
+    final httpClient = http.Client();
+    try {
+      final cache = SdkCache(
+        directory: cacheDir.path,
+        verbose: verbose,
+        httpClient: httpClient,
+      );
+      ArchiveFolder? archiveFolder;
+      Future<ArchiveFolder> getArchiveFolder() async {
+        return archiveFolder ??= await cache.resolveVersion(
+          version: Runtime.runtime.version,
+          revision: sdk.revision ?? '',
+          channelName: Runtime.runtime.channel ?? 'unknown',
+        );
+      }
+
+      final genSnapshotBinary =
+          localGenSnapshot ??
+          await cache.ensureGenSnapshot(
+            archiveFolder: await getArchiveFolder(),
+            target: target,
+          );
+      final dartAotRuntimeBinary =
+          localDartAotRuntime ??
+          await cache.ensureDartAotRuntime(
+            archiveFolder: await getArchiveFolder(),
+            target: target,
+          );
+      return (
+        genSnapshot: genSnapshotBinary,
+        dartAotRuntime: dartAotRuntimeBinary,
+      );
+    } finally {
+      httpClient.close();
+    }
+  }
 }
 
 class CompileCommand extends DartdevCommand {

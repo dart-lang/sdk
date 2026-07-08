@@ -5,7 +5,7 @@
 /// The user-definable operators in Dart.
 ///
 /// The names have been chosen to represent their normal semantic meaning.
-enum Operator {
+enum Operator(final String text, final int requiredArgumentCount) {
   add("+", 1),
   bitwiseAnd("&", 1),
   bitwiseNot("~", 0),
@@ -27,11 +27,6 @@ enum Operator {
   subtract("-", 1),
   truncatingDivide("~/", 1),
   unaryMinus("unary-", 0);
-
-  final String text;
-  final int requiredArgumentCount;
-
-  new(this.text, this.requiredArgumentCount);
 
   static Operator? fromText(String text) {
     // TODO(johnniwinther): Should we have a map instead?

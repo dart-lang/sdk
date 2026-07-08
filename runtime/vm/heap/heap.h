@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include <memory>
+
 #include "include/dart_tools_api.h"
 
 #include "platform/assert.h"
@@ -24,6 +26,7 @@
 namespace dart {
 
 // Forward declarations.
+class Cage;
 class Isolate;
 class IsolateGroup;
 class ObjectPointerVisitor;
@@ -284,6 +287,11 @@ class Heap {
   intptr_t ReachabilityBarrier() { return old_space_.collections(); }
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
+#if defined(DART_COMPRESSED_POINTERS)
+  Cage* cage() const { return cage_.get(); }
+#else
+  Cage* cage() const { return nullptr; }
+#endif
 
   void SetupImagePage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupImagePage(pointer, size, is_executable);
@@ -358,6 +366,9 @@ class Heap {
   void CollectForDebugging(Thread* thread);
 
   IsolateGroup* const isolate_group_;
+#if defined(DART_COMPRESSED_POINTERS)
+  std::unique_ptr<Cage> cage_;
+#endif
 
   // The different spaces used for allocation.
   Scavenger new_space_;

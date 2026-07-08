@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PlatformValueDisallowedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class PlatformValueDisallowedTest extends PubspecDiagnosticTest {
   test_subset_of_supported_platforms_is_allowed() {
-    assertNoErrors('''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
@@ -27,92 +28,85 @@ platforms:
   }
 
   test_value_for_platform_key_disallowed() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: "chrome" # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^^^^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_empty_list() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: []  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_empty_map() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: {}  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_false() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: False  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_int() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: 42  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_list_int() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: [1,2,3]  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^^^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_list_string() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
@@ -120,15 +114,13 @@ platforms:
   ios:
   web:
    - foo
+// [diag.platformValueDisallowed][column 4][length 41] Keys in the `platforms` field can't have values.
    - bar  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+''');
   }
 
   test_value_for_platform_key_disallowed_map() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
@@ -136,22 +128,21 @@ platforms:
   ios:
   web:
     foo: bar  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 
   test_value_for_platform_key_disallowed_true() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: foo
 version: 1.0.0
 platforms:
   android:
   ios:
   web: True  # <-- this is not allowed
-''',
-      [diag.platformValueDisallowed],
-    );
+//     ^^^^
+// [diag.platformValueDisallowed] Keys in the `platforms` field can't have values.
+''');
   }
 }

@@ -124,7 +124,7 @@ static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
-                      bool dev_mode_server,
+                      bool origin_check_disabled,
                       bool auth_codes_disabled,
                       const char* write_service_info_filename,
                       bool trace_loading,
@@ -202,7 +202,7 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
   result = Dart_SetField(library, DartUtils::NewString("_originCheckDisabled"),
-                         Dart_NewBoolean(dev_mode_server));
+                         Dart_NewBoolean(origin_check_disabled));
   SHUTDOWN_ON_ERROR(result);
 
   result = Dart_SetField(library, DartUtils::NewString("_authCodesDisabled"),

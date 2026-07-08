@@ -799,9 +799,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       );
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult =
-          await context.currentSession.getResolvedUnit(filePath)
-              as ResolvedUnitResult;
+      resolvedUnitResult = await context.currentSession.getResolvedUnit(
+        filePath,
+      ) as ResolvedUnitResult;
     }
   }
 
@@ -1469,9 +1469,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       provider.removeOverlay(filePath);
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult =
-          await context.currentSession.getResolvedUnit(filePath)
-              as ResolvedUnitResult;
+      resolvedUnitResult = await context.currentSession.getResolvedUnit(
+        filePath,
+      ) as ResolvedUnitResult;
     }
   }
 

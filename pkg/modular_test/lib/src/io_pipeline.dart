@@ -24,8 +24,12 @@ abstract class IOModularStep extends ModularStep {
   /// Assets created on previous steps of the pipeline should be available under
   /// `root.resolveUri(toUri(module, dataId))` and the output of this step
   /// should be stored under `root.resolveUri(toUri(module, resultKind))`.
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags);
+  Future<void> execute(
+    Module module,
+    Uri root,
+    ModuleDataToRelativeUri toUri,
+    List<String> flags,
+  );
 }
 
 class IOPipeline extends Pipeline<IOModularStep> {
@@ -59,11 +63,12 @@ class IOPipeline extends Pipeline<IOModularStep> {
   /// results in order to inspect it later in test.
   final bool saveIntermediateResultsForTesting;
 
-  IOPipeline(List<IOModularStep> steps,
-      {this.saveIntermediateResultsForTesting = false,
-      bool cacheSharedModules = false})
-      : _registry = cacheSharedModules ? ConfigurationRegistry() : null,
-        super(steps, cacheSharedModules);
+  IOPipeline(
+    List<IOModularStep> steps, {
+    this.saveIntermediateResultsForTesting = false,
+    bool cacheSharedModules = false,
+  }) : _registry = cacheSharedModules ? ConfigurationRegistry() : null,
+       super(steps, cacheSharedModules);
 
   @override
   Future<void> run(ModularTest test) async {
@@ -98,15 +103,22 @@ class IOPipeline extends Pipeline<IOModularStep> {
   }
 
   @override
-  Future<void> runStep(IOModularStep step, Module module,
-      Map<Module, Set<DataId>> visibleData, List<String> flags) async {
+  Future<void> runStep(
+    IOModularStep step,
+    Module module,
+    Map<Module, Set<DataId>> visibleData,
+    List<String> flags,
+  ) async {
     final resultsFolderUri = _resultsFolderUri!;
     if (cacheSharedModules && module.isShared) {
       // If all expected outputs are already available, skip the step.
       bool allCachedResultsFound = true;
       for (var dataId in step.resultData) {
-        var cachedFile = File.fromUri(resultsFolderUri
-            .resolve(_toFileName(module, dataId, configSpecific: true)));
+        var cachedFile = File.fromUri(
+          resultsFolderUri.resolve(
+            _toFileName(module, dataId, configSpecific: true),
+          ),
+        );
         if (!await cachedFile.exists()) {
           allCachedResultsFound = false;
           break;
@@ -121,14 +133,17 @@ class IOPipeline extends Pipeline<IOModularStep> {
     // Each step is executed in a separate folder.  To make it easier to debug
     // issues, we include one of the step data ids in the name of the folder.
     var stepId = step.resultData.first;
-    var stepFolder =
-        await Directory.systemTemp.createTemp('modular_test_$stepId-');
+    var stepFolder = await Directory.systemTemp.createTemp(
+      'modular_test_$stepId-',
+    );
     for (var module in visibleData.keys) {
       for (var dataId in visibleData[module]!) {
-        var assetUri = resultsFolderUri
-            .resolve(_toFileName(module, dataId, configSpecific: true));
+        var assetUri = resultsFolderUri.resolve(
+          _toFileName(module, dataId, configSpecific: true),
+        );
         await File.fromUri(assetUri).copy(
-            stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath());
+          stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath(),
+        );
       }
     }
     if (step.needsSources) {
@@ -140,30 +155,41 @@ class IOPipeline extends Pipeline<IOModularStep> {
       }
     }
 
-    await step.execute(module, stepFolder.uri,
-        (Module m, DataId id) => Uri.parse(_toFileName(m, id)), flags);
+    await step.execute(
+      module,
+      stepFolder.uri,
+      (Module m, DataId id) => Uri.parse(_toFileName(m, id)),
+      flags,
+    );
 
     for (var dataId in step.resultData) {
-      var outputFile =
-          File.fromUri(stepFolder.uri.resolve(_toFileName(module, dataId)));
+      var outputFile = File.fromUri(
+        stepFolder.uri.resolve(_toFileName(module, dataId)),
+      );
       if (!await outputFile.exists()) {
         throw StateError(
-            "Step '${step.runtimeType}' on module '${module.name}' didn't "
-            "produce an output file");
+          "Step '${step.runtimeType}' on module '${module.name}' didn't "
+          "produce an output file",
+        );
       }
-      await outputFile.copy(resultsFolderUri
-          .resolve(_toFileName(module, dataId, configSpecific: true))
-          .toFilePath());
+      await outputFile.copy(
+        resultsFolderUri
+            .resolve(_toFileName(module, dataId, configSpecific: true))
+            .toFilePath(),
+      );
     }
     await stepFolder.delete(recursive: true);
   }
 
-  String _toFileName(Module module, DataId dataId,
-      {bool configSpecific = false}) {
+  String _toFileName(
+    Module module,
+    DataId dataId, {
+    bool configSpecific = false,
+  }) {
     var prefix =
         cacheSharedModules && configSpecific && _currentConfiguration != null
-            ? _currentConfiguration
-            : '';
+        ? _currentConfiguration
+        : '';
     return "$prefix${module.name}.${dataId.name}";
   }
 

@@ -17,7 +17,6 @@ import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
-import 'analysis_options/test_all.dart' as analysis_options;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
 import 'argument_must_be_a_constant_test.dart' as argument_must_be_a_constant;
@@ -42,6 +41,8 @@ import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
 import 'augmentation_extends_clause_already_present_test.dart'
     as augmentation_extends_clause_already_present;
+import 'augmentation_formal_parameter_test.dart'
+    as augmentation_formal_parameter;
 import 'augmentation_modifier_extra_test.dart' as augmentation_modifier_extra;
 import 'augmentation_modifier_missing_test.dart'
     as augmentation_modifier_missing;
@@ -416,6 +417,7 @@ import 'inference_failure_on_untyped_parameter_test.dart'
 import 'initializer_for_non_existent_field_test.dart'
     as initializer_for_non_existent_field;
 import 'initializer_for_static_field_test.dart' as initializer_for_static_field;
+import 'initializing_declaring_test.dart' as initializing_declaring;
 import 'initializing_formal_for_non_existent_field_test.dart'
     as initializing_formal_for_non_existent_field;
 import 'instance_access_to_static_member_test.dart'
@@ -702,8 +704,6 @@ import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
 import 'number_literals_with_separators_test.dart'
     as number_literals_with_separators;
-import 'object_cannot_extend_another_class_test.dart'
-    as object_cannot_extend_another_class;
 import 'obsolete_colon_for_default_value_test.dart'
     as obsolete_colon_for_default_value;
 import 'on_repeated_test.dart' as on_repeated;
@@ -838,7 +838,6 @@ import 'super_in_extension_type_test.dart' as super_in_extension_type;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
-import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
 import 'super_invocation_not_last_test.dart' as super_invocation_not_last;
 import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
@@ -972,7 +971,6 @@ main() {
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
-    analysis_options.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
     argument_must_be_a_constant.main();
@@ -991,6 +989,7 @@ main() {
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
     augmentation_extends_clause_already_present.main();
+    augmentation_formal_parameter.main();
     augmentation_modifier_extra.main();
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();
@@ -1229,6 +1228,7 @@ main() {
     inference_failure_on_untyped_parameter.main();
     initializer_for_non_existent_field.main();
     initializer_for_static_field.main();
+    initializing_declaring.main();
     initializing_formal_for_non_existent_field.main();
     instance_access_to_static_member.main();
     instance_member_access_from_factory.main();
@@ -1415,7 +1415,6 @@ main() {
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
     number_literals_with_separators.main();
-    object_cannot_extend_another_class.main();
     obsolete_colon_for_default_value.main();
     on_repeated.main();
     optional_parameter_in_operator.main();
@@ -1497,7 +1496,6 @@ main() {
     super_in_extension_type.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
-    super_initializer_in_object.main();
     super_invocation_not_last.main();
     switch_case_completes_normally.main();
     tearoff_of_generative_constructor_of_abstract_class.main();

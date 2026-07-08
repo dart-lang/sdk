@@ -1,0 +1,39 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D2_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::@methods::d2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo2::@constructors::
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo2::@methods::toString
+  Constants
+     - StringConstant("Foo2.toString")
+
+Part 1
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D1_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::@methods::d1_1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo1::@constructors::
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::Foo1::@methods::toString
+  Constants
+     - StringConstant("Foo1.toString")
+     - StringConstant("d1_1")
+
+Part 2
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D1_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::@methods::d1
+  Constants
+
+Part 3
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart prefix: D2_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/unawaited_load_library.dart::@methods::d2_1
+  Constants
+     - StringConstant("d2_1")

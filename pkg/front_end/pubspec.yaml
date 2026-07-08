@@ -32,6 +32,7 @@ dev_dependencies:
   dart2wasm: any
   dev_compiler: any
   expect: any
+  heap_snapshot: any
   json_rpc_2: any
   path: any
   pub_semver: any

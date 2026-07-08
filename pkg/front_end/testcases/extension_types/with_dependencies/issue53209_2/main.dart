@@ -5,5 +5,6 @@
 import './main_lib.dart';
 
 class A(String foo) {
-  factory A.redirectingFactoryToSubtype() = E.redirectingFactoryWithMismatchingParameters;
+  factory A.redirectingFactoryToSubtype() =
+      E.redirectingFactoryWithMismatchingParameters;
 }

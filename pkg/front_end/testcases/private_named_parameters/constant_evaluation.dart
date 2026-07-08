@@ -7,6 +7,7 @@ class C {
   final int _y;
   const C({required this._x, required this._y});
 }
+
 const c = C(x: 123, y: 456);
 
 main() {}

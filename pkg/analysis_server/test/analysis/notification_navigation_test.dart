@@ -1106,6 +1106,26 @@ void f(A a) {
     assertHasRegionTarget('bar();', 'bar() {}');
   }
 
+  Future<void> test_extensionType_inBodyConstructor_named() async {
+    addTestFile('''
+extension type A(int it) {
+  A.named() : this(0);
+  A.other() : this.named(1);
+}
+
+void f() {
+  A.named(2);
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.named() :', 'A(int');
+    assertHasRegionTarget('named() :', 'named() :');
+    assertHasRegionTarget('this.named(1)', 'named() :');
+    assertHasRegionTarget('named(1)', 'named() :');
+    assertHasRegionTarget('A.named(2)', 'A(int');
+    assertHasRegionTarget('named(2)', 'named() :');
+  }
+
   Future<void> test_extensionType_primaryConstructor_named() async {
     addTestFile('''
 extension type A.named(int it) {
@@ -1145,26 +1165,6 @@ void f() {
     assertHasRegionTarget('this(0)', 'A(int');
     assertHasRegionTarget('A(1)', 'A(int');
     assertHasRegionTarget('new(2)', 'A(int');
-  }
-
-  Future<void> test_extensionType_secondaryConstructor_named() async {
-    addTestFile('''
-extension type A(int it) {
-  A.named() : this(0);
-  A.other() : this.named(1);
-}
-
-void f() {
-  A.named(2);
-}
-''');
-    await prepareNavigation();
-    assertHasRegionTarget('A.named() :', 'A(int');
-    assertHasRegionTarget('named() :', 'named() :');
-    assertHasRegionTarget('this.named(1)', 'named() :');
-    assertHasRegionTarget('named(1)', 'named() :');
-    assertHasRegionTarget('A.named(2)', 'A(int');
-    assertHasRegionTarget('named(2)', 'named() :');
   }
 
   Future<void> test_functionReference_className_staticMethod() async {

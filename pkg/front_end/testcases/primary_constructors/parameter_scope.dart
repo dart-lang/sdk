@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 class C1([@m int x = m]) {
   static const int m = 42;
 }
@@ -12,11 +15,13 @@ class C2(int x) { // Error
 
 enum E1([@a int x = m]) {
   a(0);
+
   static const int m = 42;
 }
 
 enum E2(int x) { // Error
   a(0);
+
   static const String int = 'not a type';
 }
 

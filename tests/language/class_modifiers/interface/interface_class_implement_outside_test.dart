@@ -6,6 +6,7 @@
 // library.
 
 import 'package:expect/expect.dart';
+
 import 'interface_class_implement_lib.dart';
 
 abstract class AOutside implements InterfaceClass {}

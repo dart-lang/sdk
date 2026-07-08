@@ -5,6 +5,7 @@
 library test.constructor_test;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class A {

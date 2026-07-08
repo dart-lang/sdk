@@ -7,7 +7,7 @@ class A {
 }
 
 test(dynamic x) {
-  switch(x) {
+  switch (x) {
     case A(_foo: 42):
       return x;
     default:

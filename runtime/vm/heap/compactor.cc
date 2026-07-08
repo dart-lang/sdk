@@ -359,7 +359,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
         Page* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
-        page->Deallocate();
+        page->Deallocate(heap_->cage());
         page = next;
       }
     }

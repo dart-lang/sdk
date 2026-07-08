@@ -58,7 +58,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///enum_from_environment.dart:
-- B. (from org-dartlang-testcase:///enum_from_environment.dart:18:9)
+- B. (from org-dartlang-testcase:///enum_from_environment.dart:17:9)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- A. (from org-dartlang-testcase:///enum_from_environment.dart:12:9)
+- A. (from org-dartlang-testcase:///enum_from_environment.dart:11:9)
 - _Enum. (from org-dartlang-sdk:///lib/core/enum.dart)

@@ -10,6 +10,7 @@ import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'request_helpers_mixin.dart';
 
 /// Applies LSP [WorkspaceEdit]s to produce a flattened string describing the
@@ -167,27 +168,37 @@ class LspChangeVerifier {
     }
     change.content = _applyTextDocumentEditEdit(change.content!, documentEdit);
 
+    /// Helper to record annotations.
+    void recordAnnotation(
+      ChangeAnnotationIdentifier annotationId,
+      Range range,
+    ) {
+      var annotation = edit.changeAnnotations![annotationId]!;
+      change.annotations
+          .putIfAbsent(annotation, () => [])
+          .add(range.toDisplayString());
+    }
+
     // Record annotations with their ranges.
     for (var editEither in documentEdit.edits) {
       editEither.map(
         (annotated) {
-          var annotation = edit.changeAnnotations![annotated.annotationId]!;
-          change.annotations
-              .putIfAbsent(annotation, () => [])
-              .add(annotated.range.toDisplayString());
+          recordAnnotation(annotated.annotationId, annotated.range);
         },
-        // No annotations on these other kinds.
-        (snippet) {},
-        (textEdit) {},
+        (legacysnippet) {}, // No annotations on these.
+        (snippet) {
+          if (snippet.annotationId case var annotationId?) {
+            recordAnnotation(annotationId, snippet.range);
+          }
+        },
+        (textEdit) {}, // No annotations on these.
       );
     }
   }
 
   String _applyTextDocumentEditEdit(String content, TextDocumentEdit edit) {
-    // Extract the edits from the union (they all have the same superclass).
-    var edits = edit.edits
-        .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
-        .toList();
+    // Extract the edits from the union.
+    var edits = edit.edits.map((edit) => edit.extractTextEdit()).toList();
     return _applyTextEdits(content, edits);
   }
 
@@ -306,7 +317,7 @@ class TextEditWithIndex {
 
   new fromUnion(
     this.index,
-    Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit,
+    Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit> edit,
   ) : edit = edit.map((e) => e, (e) => e, (e) => e);
 
   /// Compares two [TextEditWithIndex] to sort them stably in source-order.

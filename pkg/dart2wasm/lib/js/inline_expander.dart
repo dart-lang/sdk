@@ -21,14 +21,14 @@ class InlineExpander {
   Expression expand(StaticInvocation node) {
     Arguments arguments = node.arguments;
     List<Expression> originalArguments = arguments.positional.sublist(1);
-    List<Variable> dartPositionalParameters = [];
+    List<PositionalParameter> dartPositionalParameters = [];
     for (int j = 0; j < originalArguments.length; j++) {
       Expression originalArgument = originalArguments[j];
       String parameterString = 'x$j';
       DartType type = originalArgument.getStaticType(_staticTypeContext);
       dartPositionalParameters.add(
-        Variable(
-          parameterString,
+        PositionalParameter(
+          cosmeticName: parameterString,
           type: _toExternalType(type),
           isSynthesized: true,
         ),

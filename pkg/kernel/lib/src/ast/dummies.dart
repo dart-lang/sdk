@@ -28,6 +28,30 @@ final List<Variable> emptyListOfVariable = List.filled(
   growable: false,
 );
 
+/// Almost const <DeclaredVariable>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<DeclaredVariable> emptyListOfDeclaredVariable = List.filled(
+  0,
+  dummyVariable,
+  growable: false,
+);
+
+/// Almost const <PositionalParameter>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<PositionalParameter> emptyListOfPositionalParameter = List.filled(
+  0,
+  dummyPositionalParameter,
+  growable: false,
+);
+
+/// Almost const <NamedParameter>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<NamedParameter> emptyListOfNamedParameter = List.filled(
+  0,
+  dummyNamedParameter,
+  growable: false,
+);
+
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Combinator> emptyListOfCombinator = List.filled(
@@ -503,7 +527,16 @@ final VariableDeclaration dummyVariableDeclaration = new VariableDeclaration(
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Variable dummyVariable = new Variable(null, isSynthesized: true);
+final SyntheticVariable dummyVariable = new SyntheticVariable();
+
+/// Non-nullable [ThisVariable] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ThisVariable dummyThisVariable = new ThisVariable(
+  type: const DynamicType(),
+);
 
 /// Non-nullable [CatchVariable] dummy value.
 ///
@@ -522,6 +555,17 @@ final CatchVariable dummyCatchVariable = new CatchVariable(
 /// constructor.
 final PositionalParameter dummyPositionalParameter = new PositionalParameter(
   cosmeticName: null,
+  type: const DynamicType(),
+  defaultValue: null,
+);
+
+/// Non-nullable [NamedParameter] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final NamedParameter dummyNamedParameter = new NamedParameter(
+  parameterName: '',
   type: const DynamicType(),
   defaultValue: null,
 );

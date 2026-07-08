@@ -7,6 +7,7 @@
 // can occur. They should be extremely rare, though.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 main() {

@@ -147,8 +147,10 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    var result = await assertInvalidTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f({a = b?[0]}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
@@ -172,8 +174,12 @@ IndexExpression
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    var result = await assertInvalidTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef void F({a = b?[0]});
+//                ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.index('[0]');
@@ -287,12 +293,12 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
       substitution: {T: double}
     staticType: int
   rightBracket: ]
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   staticType: double
@@ -347,13 +353,13 @@ IndexExpression
   leftBracket: [
   index: SimpleIdentifier
     token: b
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
       substitution: {E: int}
     element: <null>
     staticType: InvalidType
   rightBracket: ]
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   staticType: int
@@ -621,7 +627,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
@@ -633,11 +639,11 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
-  readElement: MethodMember
+  readElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   readType: double
-  writeElement: MethodMember
+  writeElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
@@ -860,7 +866,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
@@ -870,13 +876,13 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
       substitution: {T: double}
     staticType: double
   readElement: <null>
   readType: null
-  writeElement: MethodMember
+  writeElement: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double

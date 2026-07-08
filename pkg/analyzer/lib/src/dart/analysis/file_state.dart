@@ -18,8 +18,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/analyzer_diagnostic_expectations.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -853,7 +854,11 @@ class FileState {
         );
       });
       var definedNames = computeDefinedNames(unit);
-      var referencedNames = computeReferencedNames(unit);
+      var referencedNames = computeReferencedNames(
+        unit,
+        includeAnalyzerDiagnosticExpectations:
+            canContainAnalyzerDiagnosticExpectations(uriStr),
+      );
       var subtypedNames = computeSubtypedNames(unit);
       var driverUnlinkedUnit = AnalysisDriverUnlinkedUnit(
         definedTopLevelNames: definedNames.topLevelNames,

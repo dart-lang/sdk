@@ -14,7 +14,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Return with no await.';
 
 class AsyncReturnWithNoAwait extends AnalysisRule {
-  new() : super(name: LintNames.async_return_with_no_await, description: _desc);
+  new()
+    : super(
+        name: LintNames.async_return_with_no_await,
+        description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.asyncReturnWithNoAwait;

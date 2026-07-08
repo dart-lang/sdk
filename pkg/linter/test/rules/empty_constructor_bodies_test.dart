@@ -18,15 +18,7 @@ class EmptyConstructorBodiesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.empty_constructor_bodies;
 
-  test_empty_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class A() {
-  this : assert(1 < 2) [!{}!]
-}
-''');
-  }
-
-  test_empty_secondary_factory() async {
+  test_empty_inBody_factory() async {
     // No diagnostic is produced because there's already an error indicating
     // that the constructor doesn't return a value.
     await assertDiagnostics(
@@ -39,18 +31,26 @@ class A {
     );
   }
 
-  test_empty_secondary_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+  test_empty_inBody_new() async {
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   new() [!{}!]
 }
 ''');
   }
 
-  test_empty_secondary_normal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+  test_empty_inBody_normal() async {
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A() [!{}!]
+}
+''');
+  }
+
+  test_empty_primary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A() {
+  this : assert(1 < 2) [!{}!]
 }
 ''');
   }

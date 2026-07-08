@@ -127,9 +127,9 @@ class LspTypingInBigFileAskForCompletion extends DartLanguageServerBenchmark {
     if (response.statusCode != 200) {
       throw 'Got status ${response.statusCode}';
     }
-    var requestData =
-        json.decode(await utf8.decodeStream(response.cast<List<int>>()))
-            as List;
+    var requestData = json.decode(
+      await utf8.decodeStream(response.cast<List<int>>()),
+    ) as List;
     List<int> didChangeElapsed = [];
     int sum = 0;
     for (var entry in requestData) {

@@ -15,7 +15,14 @@ external _DartDevEmbedder get _dartDevEmbedder;
 
 extension type _DartDevEmbedder._(JSObject _) implements JSObject {
   external _Debugger get debugger;
-  external JSPromise<JSAny?> hotRestart();
+  external JSPromise<JSArray<JSObject>?> hotRestart([
+    JSArray<JSObject>? reloadedSources,
+  ]);
+  external JSPromise<JSArray<JSObject>> hotRestartBegin([
+    JSArray<JSObject>? reloadedSources,
+  ]);
+  external void hotRestartEnd();
+
   external JSPromise<JSAny?> hotReload(
     JSArray<JSString> filesToLoad,
     JSArray<JSString> librariesToReload,
@@ -64,7 +71,7 @@ extension on JSArray<JSString> {
   external void push(JSString value);
 }
 
-class DdcLibraryBundleRestarter implements Restarter {
+class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
   JSFunction? _capturedHotReloadEndCallback;
 
   Future<void> _runMainWhenReady(
@@ -124,6 +131,22 @@ class DdcLibraryBundleRestarter implements Restarter {
     await _dartDevEmbedder.hotRestart().toDart;
     return (true, srcModuleLibraries.jsify() as JSArray<JSObject>);
   }
+
+  @override
+  Future<JSArray<JSObject>> hotRestartBegin(String reloadedSourcesPath) async {
+    await _dartDevEmbedder.debugger.maybeInvokeFlutterDisassemble();
+    final srcModuleLibraries = await _getSrcModuleLibraries(
+      reloadedSourcesPath,
+    );
+    final jsFilesToRequest = srcModuleLibraries.jsify() as JSArray<JSObject>;
+    final requestedJsFiles = await _dartDevEmbedder
+        .hotRestartBegin(jsFilesToRequest)
+        .toDart;
+    return requestedJsFiles;
+  }
+
+  @override
+  void hotRestartEnd() => _dartDevEmbedder.hotRestartEnd();
 
   @override
   Future<JSArray<JSObject>> hotReloadStart(String reloadedSourcesPath) async {

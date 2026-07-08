@@ -250,8 +250,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       throwsA(
         isResponseError(
           ServerErrorCodes.invalidFilePath,
-          message:
-              'URI does not contain an absolute file path (missing drive letter)',
+          message: 'URI does not contain an absolute file path (missing drive letter)',
         ),
       ),
     );

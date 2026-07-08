@@ -16,9 +16,8 @@ import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestListener(repoDir);
-  new File.fromUri(
-    computeTestListenerUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeTestListenerUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeTestListenerUri(Uri repoDir) {
@@ -37,21 +36,10 @@ String generateTestListener(Uri repoDir) {
   );
   Token firstToken = scanner.tokenize();
 
-  out.write("""
+  out.write(r"""
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-""");
-  // This code generator generates Dart 3.12-style constructor declarations, so
-  // ignore the `unnecessary_type_name_in_constructor` lint.
-  // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
-  // declarations, and remove this ignore comment.
-  out.write("""
-
-// ignore_for_file: unnecessary_type_name_in_constructor
-""");
-
-  out.write(r"""
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
@@ -75,7 +63,7 @@ class ParserTestListener implements Listener {
   final StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  ParserTestListener(this.trace);
+  new(this.trace);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
@@ -130,9 +118,8 @@ class ParserTestListener implements Listener {
 
   out.writeln("}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {

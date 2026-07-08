@@ -420,6 +420,10 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
     __ movsd(reg, Address(args, (2 + kNumberOfCpuRegisters + reg) *
                                     target::kWordSize));
   }
+  // The pointer to the return struct (if any) is passed to the call
+  // as the first argument register, so already handled above.
+  static_assert(CallingConventions::kPointerToReturnStructRegisterCall ==
+                CallingConventions::kArg1Reg);
 
   __ call(Address(args, (2 + kNumberOfCpuRegisters + kNumberOfFpuRegisters) *
                             target::kWordSize));
@@ -449,6 +453,10 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
         reg);
   }
 #endif
+  // The pointer to the return struct (if any) is returned from the call
+  // as the first argument register, so already handled above.
+  static_assert(CallingConventions::kPointerToReturnStructRegisterReturn ==
+                CallingConventions::kReturnReg);
 
 #if defined(DART_TARGET_OS_WINDOWS)
   __ leaq(RSP, Address(RBP, -24));
@@ -509,12 +517,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR which is callee-saved.
+  // Save THR, R12, R13 which are callee-saved. Push R10 to keep stack aligned.
   __ EnterFrame(0);
   __ pushq(THR);
   __ pushq(R12);
-  // 4 = return address, FP, THR, R12
-  COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
+  __ pushq(R13);
+  __ pushq(R10);
+  // 6 = return address, FP, THR, R12, R13, R10
+  COMPILE_ASSERT(6 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -522,7 +532,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // code size of this shared stub.
   {
     // Save all registers which might hold arguments.
-    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
+    __ PushRegistersAligned(kArgumentRegisterSet, 5 * target::kWordSize);
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
     __ movq(CallingConventions::kArg2Reg, RSP);
@@ -535,9 +545,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
     __ movq(TMP, Address(RSP, 1 * target::kWordSize));  // is_tail
     __ movq(R12, Address(RSP, 2 * target::kWordSize));  // epilogue
+    __ movq(R13, Address(RSP, 3 * target::kWordSize));  // isolate
+    __ movq(R10, Address(RSP, 4 * target::kWordSize));  // isolate_group
 
     // Restore the arguments.
-    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
+    __ PopRegistersAligned(kArgumentRegisterSet, 5 * target::kWordSize);
+
+    __ pushq(R10);  // save isolate_group
+    __ pushq(R13);  // save isolate
   }
 
   Label tail;
@@ -552,13 +567,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ call(RAX);  // entry_point
+    __ popq(R13);  // restore isolate
+    __ popq(R10);  // restore isolate_group
     __ PushRegistersAligned(return_registers, 0);
     __ movq(CallingConventions::kArg1Reg, THR);
+    __ movq(CallingConventions::kArg2Reg, R13);
+    __ movq(CallingConventions::kArg3Reg, R10);
     __ CallCFunction(R12, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
     __ PopRegistersAligned(return_registers, 0);
+    __ popq(R10);
+    __ popq(R13);
     __ popq(R12);
     __ popq(THR);
     __ LeaveFrame();
@@ -567,9 +588,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ Bind(&tail);
-    __ call(RAX);  // entry_point
+    __ call(RAX);                           // entry_point
+    __ popq(CallingConventions::kArg2Reg);  // restore isolate
+    __ popq(CallingConventions::kArg3Reg);  // restore isolate_group
     __ movq(CallingConventions::kArg1Reg, THR);
     __ movq(RAX, R12);
+    __ popq(R10);
+    __ popq(R13);
     __ popq(R12);
     __ popq(THR);
     __ LeaveFrame();
@@ -3690,10 +3715,10 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(RAX, RDX);
-  __ movzxw(R9,
-            FieldAddress(RBX, target::SingleTargetCache::lower_limit_offset()));
-  __ movzxw(R10,
-            FieldAddress(RBX, target::SingleTargetCache::upper_limit_offset()));
+  __ movl(R9,
+          FieldAddress(RBX, target::SingleTargetCache::lower_limit_offset()));
+  __ movl(R10,
+          FieldAddress(RBX, target::SingleTargetCache::upper_limit_offset()));
   __ cmpq(RAX, R9);
   __ j(LESS, &miss, Assembler::kNearJump);
   __ cmpq(RAX, R10);

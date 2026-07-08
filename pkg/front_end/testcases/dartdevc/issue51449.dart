@@ -8,6 +8,9 @@ main() {
   print(i);
 
   late final int j;
-  (j, _) = (2, "Hello"); // Destructuring assignment sets the backing store directly
+  (j, _) = (
+    2,
+    "Hello",
+  ); // Destructuring assignment sets the backing store directly
   print(j);
 }

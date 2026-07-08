@@ -18,7 +18,7 @@ class PreferFinalInForEachTestLanguage300 extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_in_for_each;
 
   test_int() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var [!i!] in [1, 2, 3]) { }
 }
@@ -44,7 +44,7 @@ f() {
   }
 
   test_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var [![i, j]!] in [[1, 2]]) { }
 }
@@ -71,7 +71,7 @@ f() {
 
   /// https://github.com/dart-lang/linter/issues/4353
   test_listLiteral_forEach() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int> f() => [
       for (var [!i!] in [1, 2]) i + 3
     ];
@@ -87,7 +87,7 @@ List<int> f() => [
   }
 
   test_map() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var [!{'i' : j}!] in [{'i' : 1}]) { }
 }
@@ -113,7 +113,7 @@ f() {
   }
 
   test_object() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -163,7 +163,7 @@ f() {
   }
 
   test_record() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for (var [!(i, j)!] in [(1, 2)]) { }
 }

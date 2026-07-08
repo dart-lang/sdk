@@ -528,7 +528,7 @@ class C extends B {
   }
 
   void _checkExplicitlyTyped(String input, bool expected) {
-    var parseResult = parseStringWithErrors(input);
+    var parseResult = parseTestCodeWithDiagnostics(input);
     var class_ = parseResult.unit.declarations[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
     var constructor = body.members[0] as ConstructorDeclaration;
@@ -540,8 +540,10 @@ class C extends B {
 @reflectiveTest
 class HideClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 import 'dart:core' hide int Function();
+//                      ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
     var node = parseResult.findNode.import('import');
     expect(node.combinators[0].endToken, isNotNull);
@@ -551,8 +553,10 @@ import 'dart:core' hide int Function();
 @reflectiveTest
 class ImplementsClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class A implements C Function() {}
+//                 ^^^^^^^^^^^^
+// [diag.expectedNamedTypeImplements] Expected the name of a class or mixin.
 class C {}
 ''');
     var node = parseResult.findNode.classDeclaration('A');
@@ -689,7 +693,7 @@ void f() {
   }
 
   void test_isNullAware_cascade_false() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a..[0];
 }
@@ -699,7 +703,7 @@ void f() {
   }
 
   void test_isNullAware_cascade_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?..[0];
 }
@@ -709,7 +713,7 @@ void f() {
   }
 
   void test_isNullAware_false() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a[0];
 }
@@ -719,7 +723,7 @@ void f() {
   }
 
   void test_isNullAware_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?[0];
 }
@@ -731,154 +735,198 @@ void f() {
 
 @reflectiveTest
 class InterpolationStringTest extends ParserDiagnosticsTest {
-  /// This field is updated in [_parseStringInterpolation].
-  /// It is used in [_assertContentsOffsetEnd].
-  var _baseOffset = 0;
-
   void test_contentsOffset_doubleQuote_first() {
-    var interpolation = _parseStringInterpolation('"foo\$x last"');
-    var node = interpolation.firstString;
-    _assertContentsOffsetEnd(node, 1, 4);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "foo$x last";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.firstString;
+    _assertContentsOffsetEnd(node, 9, 12);
   }
 
   void test_contentsOffset_doubleQuote_last() {
-    var interpolation = _parseStringInterpolation('"first \$x foo"');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 13);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x foo";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 21);
   }
 
   void test_contentsOffset_doubleQuote_last_empty() {
-    var interpolation = _parseStringInterpolation('"first \$x"');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 9);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 17);
   }
 
   void test_contentsOffset_doubleQuote_last_unterminated() {
-    var interpolation = _parseStringInterpolation('"first \$x foo');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 13);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x foo
+//               ^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 21);
   }
 
   void test_contentsOffset_doubleQuote_multiline_first() {
-    var interpolation = _parseStringInterpolation('"""foo\n\$x last"""');
-    var node = interpolation.firstString;
-    _assertContentsOffsetEnd(node, 3, 7);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = """foo
+$x last""";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.firstString;
+    _assertContentsOffsetEnd(node, 11, 15);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last() {
-    var interpolation = _parseStringInterpolation('"""first\$x foo\n"""');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 15);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = """first$x foo
+""";
+    ''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 23);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last_empty() {
-    var interpolation = _parseStringInterpolation('"""first\$x"""');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 10);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = """first$x""";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 18);
   }
 
   void test_contentsOffset_doubleQuote_multiline_last_unterminated() {
-    var interpolation = _parseStringInterpolation('"""first\$x foo\n');
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 15);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = """first$x foo
+//                ^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 22);
   }
 
   void test_contentsOffset_escapeCharacters() {
     // Contents offset cannot use 'value' string, because of escape sequences.
-    var interpolation = _parseStringInterpolation(r'"foo\nbar$x last"');
-    var node = interpolation.firstString;
-    _assertContentsOffsetEnd(node, 1, 9);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "foo\nbar$x last";
+''');
+    var node = parseResult.findNode.singleStringInterpolation.firstString;
+    _assertContentsOffsetEnd(node, 9, 17);
   }
 
   void test_contentsOffset_middle() {
-    var interpolation = _parseStringInterpolation(
-      r'"first $x foo\nbar $y last"',
-    );
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x foo\nbar $y last";
+''');
+    var interpolation = parseResult.findNode.singleStringInterpolation;
     var node = interpolation.elements[2] as InterpolationString;
-    _assertContentsOffsetEnd(node, 9, 19);
+    _assertContentsOffsetEnd(node, 17, 27);
   }
 
   void test_contentsOffset_middle_quoteBegin() {
-    var interpolation = _parseStringInterpolation('"first \$x \'foo\$y last"');
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x 'foo$y last";
+''');
+    var interpolation = parseResult.findNode.singleStringInterpolation;
     var node = interpolation.elements[2] as InterpolationString;
-    _assertContentsOffsetEnd(node, 9, 14);
+    _assertContentsOffsetEnd(node, 17, 22);
   }
 
   void test_contentsOffset_middle_quoteBeginEnd() {
-    var interpolation = _parseStringInterpolation(
-      '"first \$x \'foo\'\$y last"',
-    );
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x 'foo'$y last";
+''');
+    var interpolation = parseResult.findNode.singleStringInterpolation;
     var node = interpolation.elements[2] as InterpolationString;
-    _assertContentsOffsetEnd(node, 9, 15);
+    _assertContentsOffsetEnd(node, 17, 23);
   }
 
   void test_contentsOffset_middle_quoteEnd() {
-    var interpolation = _parseStringInterpolation('"first \$x foo\'\$y last"');
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = "first $x foo'$y last";
+''');
+    var interpolation = parseResult.findNode.singleStringInterpolation;
     var node = interpolation.elements[2] as InterpolationString;
-    _assertContentsOffsetEnd(node, 9, 14);
+    _assertContentsOffsetEnd(node, 17, 22);
   }
 
   void test_contentsOffset_singleQuote_first() {
-    var interpolation = _parseStringInterpolation("'foo\$x last'");
-    var node = interpolation.firstString;
-    _assertContentsOffsetEnd(node, 1, 4);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = 'foo$x last';
+''');
+    var node = parseResult.findNode.singleStringInterpolation.firstString;
+    _assertContentsOffsetEnd(node, 9, 12);
   }
 
   void test_contentsOffset_singleQuote_last() {
-    var interpolation = _parseStringInterpolation("'first \$x foo'");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 13);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = 'first $x foo';
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 21);
   }
 
   void test_contentsOffset_singleQuote_last_empty() {
-    var interpolation = _parseStringInterpolation("'first \$x'");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 9);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = 'first $x';
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 17);
   }
 
   void test_contentsOffset_singleQuote_last_unterminated() {
-    var interpolation = _parseStringInterpolation("'first \$x");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 9, 9);
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = 'first $x
+//              ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+//               ^
+// [diag.expectedToken][column 18][length 0] Expected to find ';'.
+''');
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 17, 17);
   }
 
   void test_contentsOffset_singleQuote_multiline_first() {
-    var interpolation = _parseStringInterpolation("'''foo\n\$x last'''");
-    var node = interpolation.firstString;
-    _assertContentsOffsetEnd(node, 3, 7);
+    var parseResult = parseTestCodeWithDiagnostics(r"""
+var x = '''foo
+$x last''';
+""");
+    var node = parseResult.findNode.singleStringInterpolation.firstString;
+    _assertContentsOffsetEnd(node, 11, 15);
   }
 
   void test_contentsOffset_singleQuote_multiline_last() {
-    var interpolation = _parseStringInterpolation("'''first\$x foo\n'''");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 15);
+    var parseResult = parseTestCodeWithDiagnostics(r"""
+var x = '''first$x foo
+''';
+""");
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 23);
   }
 
   void test_contentsOffset_singleQuote_multiline_last_empty() {
-    var interpolation = _parseStringInterpolation("'''first\$x'''");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 10);
+    var parseResult = parseTestCodeWithDiagnostics(r"""
+var x = '''first$x''';
+""");
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 18);
   }
 
   void test_contentsOffset_singleQuote_multiline_last_unterminated() {
-    var interpolation = _parseStringInterpolation("'''first\$x'''");
-    var node = interpolation.lastString;
-    _assertContentsOffsetEnd(node, 10, 10);
+    var parseResult = parseTestCodeWithDiagnostics(r"""
+var x = '''first$x''';
+""");
+    var node = parseResult.findNode.singleStringInterpolation.lastString;
+    _assertContentsOffsetEnd(node, 18, 18);
   }
 
   void _assertContentsOffsetEnd(InterpolationString node, int offset, int end) {
-    expect(node.contentsOffset, _baseOffset + offset);
-    expect(node.contentsEnd, _baseOffset + end);
-  }
-
-  StringInterpolation _parseStringInterpolation(String code) {
-    var unitCode = 'var x = ';
-    _baseOffset = unitCode.length;
-    unitCode += code;
-    var unit = parseStringWithErrors(unitCode).unit;
-    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
-    return declaration.variables.variables[0].initializer
-        as StringInterpolation;
+    expect(node.contentsOffset, offset);
+    expect(node.contentsEnd, end);
   }
 }
 
@@ -943,7 +991,7 @@ class A {
 @reflectiveTest
 class MethodInvocationTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a..foo();
 }
@@ -953,7 +1001,7 @@ void f() {
   }
 
   void test_isNullAware_cascade_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?..foo();
 }
@@ -963,7 +1011,7 @@ void f() {
   }
 
   void test_isNullAware_regularInvocation() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a.foo();
 }
@@ -973,7 +1021,7 @@ void f() {
   }
 
   void test_isNullAware_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?.foo();
 }
@@ -1086,7 +1134,7 @@ final y = 42;
 @reflectiveTest
 class NormalFormalParameterTest extends ParserDiagnosticsTest {
   test_sortedCommentAndAnnotations_noComment() {
-    var result = parseStringWithErrors('''
+    var result = parseTestCodeWithDiagnostics('''
 void f(int i) {}
 ''');
     var function = result.unit.declarations[0] as FunctionDeclaration;
@@ -1099,8 +1147,10 @@ void f(int i) {}
 @reflectiveTest
 class OnClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 mixin M on C Function() {}
+//         ^^^^^^^^^^^^
+// [diag.expectedNamedTypeOn] Expected the name of a class or mixin.
 class C {}
 ''');
     var node = parseResult.findNode.mixinDeclaration('M');
@@ -1123,7 +1173,7 @@ E f() => g;
   CompilationUnit? _unit;
 
   CompilationUnit get unit {
-    return _unit ??= parseStringWithErrors(contents).unit;
+    return _unit ??= parseTestCodeWithDiagnostics(contents).unit;
   }
 
   Token findToken(String lexeme) {
@@ -1166,7 +1216,11 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    var missing = parseStringWithErrors('missing').unit.beginToken;
+    var missing = parseTestCodeWithDiagnostics(r'''
+missing
+// [diag.missingConstFinalVarOrType][column 1][length 7] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 7] Expected to find ';'.
+''').unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 
@@ -1202,7 +1256,7 @@ E f() => g;
 @reflectiveTest
 class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a..foo;
 }
@@ -1212,7 +1266,7 @@ void f() {
   }
 
   void test_isNullAware_cascade_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?..foo;
 }
@@ -1222,7 +1276,7 @@ void f() {
   }
 
   void test_isNullAware_regularPropertyAccess() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   (a).foo;
 }
@@ -1232,7 +1286,7 @@ void f() {
   }
 
   void test_isNullAware_true() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a?.foo;
 }
@@ -1245,8 +1299,10 @@ void f() {
 @reflectiveTest
 class ShowClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 import 'dart:core' show int Function();
+//                      ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
     var node = parseResult.findNode.import('import');
     expect(node.combinators[0].endToken, isNotNull);
@@ -1286,7 +1342,7 @@ class A {
   }
 
   void test_inGetterContext_forEachLoop() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   for (v in [0]) {}
 }
@@ -1319,7 +1375,7 @@ void f() {
   }
 
   void test_inSetterContext_forEachLoop() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   for (v in [0]) {}
 }
@@ -1338,7 +1394,7 @@ final x = List<String>.foo();
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   foo(0);
 }
@@ -1349,7 +1405,7 @@ void f() {
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   a.foo();
 }
@@ -1360,7 +1416,7 @@ void f() {
   }
 
   void test_isQualified_inPrefixedIdentifier_name() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   prefix.foo;
 }
@@ -1370,7 +1426,7 @@ void f() {
   }
 
   void test_isQualified_inPrefixedIdentifier_prefix() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   prefix.foo;
 }
@@ -1380,7 +1436,7 @@ void f() {
   }
 
   void test_isQualified_inPropertyAccess_name() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   prefix?.foo;
 }
@@ -1390,7 +1446,7 @@ void f() {
   }
 
   void test_isQualified_inPropertyAccess_target() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   prefix?.foo;
 }
@@ -1400,7 +1456,7 @@ void f() {
   }
 
   void test_isQualified_inReturnStatement() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   return test;
 }
@@ -1450,7 +1506,7 @@ void f() {
       throw UnimplementedError();
     }
 
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $code;
 }
@@ -1602,7 +1658,7 @@ final v = $code;
 @reflectiveTest
 class SpreadElementTest extends ParserDiagnosticsTest {
   void test_notNullAwareSpread() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 final x = [...foo];
 ''');
     var spread = parseResult.findNode.spreadElement('...foo');
@@ -1610,7 +1666,7 @@ final x = [...foo];
   }
 
   void test_nullAwareSpread() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 final x = [...?foo];
 ''');
     var spread = parseResult.findNode.spreadElement('...?foo');
@@ -1818,7 +1874,7 @@ var a = 0;
   }
 
   test_sortedCommentAndAnnotations_noComment() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 var a = 0;
 ''');
     var variable = parseResult.findNode.variableDeclaration('a =');
@@ -1829,8 +1885,10 @@ var a = 0;
 @reflectiveTest
 class WithClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class A with C Function() {}
+//           ^^^^^^^^^^^^
+// [diag.expectedNamedTypeWith] Expected a mixin name.
 class C {}
 ''');
     var node = parseResult.findNode.classDeclaration('A');

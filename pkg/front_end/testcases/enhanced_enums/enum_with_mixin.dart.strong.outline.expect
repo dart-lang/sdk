@@ -38,6 +38,6 @@ Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///enum_with_mixin.dart:12:4 -> InstanceConstant(const _Override{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_with_mixin.dart:10:3 -> InstanceConstant(const SomeEnum{_Enum.index: 0, _Enum._name: "value"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_with_mixin.dart:9:6 -> ListConstant(const <SomeEnum>[const SomeEnum{_Enum.index: 0, _Enum._name: "value"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_with_mixin.dart:17:3 -> InstanceConstant(const NormalEnum{_Enum.index: 0, _Enum._name: "value"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_with_mixin.dart:16:19 -> InstanceConstant(const NormalEnum{_Enum.index: 0, _Enum._name: "value"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_with_mixin.dart:16:6 -> ListConstant(const <NormalEnum>[const NormalEnum{_Enum.index: 0, _Enum._name: "value"}])
 Extra constant evaluation: evaluated: 17, effectively constant: 5

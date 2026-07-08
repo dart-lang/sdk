@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
@@ -33,7 +34,7 @@ void main() async {
  bool calledBeforeRestart = false;
  bool calledAfterRestart = false;
  void callback(_) {
-@@ -18,9 +18,7 @@ void callback(_) {
+@@ -19,9 +19,7 @@ void callback(_) {
  }
  
  void main() async {

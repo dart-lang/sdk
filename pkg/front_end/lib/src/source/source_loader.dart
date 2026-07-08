@@ -55,20 +55,20 @@ import '../dill/dill_library_builder.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder_context.dart';
 import '../kernel/exhaustiveness.dart';
+import '../kernel/expression_compilation_data.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
-import '../kernel/internal_ast.dart' show InternalVariable;
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/resolver.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
+import '../util/expression_evaluation_helpers.dart'
+    show ExpressionEvaluationHelper;
 import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser;
@@ -1489,9 +1489,8 @@ severity: $severity
     SourceLibraryBuilder libraryBuilder,
     String? enclosingClassOrExtension,
     bool isClassInstanceMember,
-    Procedure procedure,
-    InternalVariable? extensionThis,
-    List<InternalVariable> extraKnownVariables,
+    ExpressionCompilationData expressionCompilationData,
+    Variable? extensionThis,
     ExpressionEvaluationHelper expressionEvaluationHelper,
   ) async {
     // TODO(johnniwinther): Support expression compilation in a specific
@@ -1546,17 +1545,17 @@ severity: $severity
     return createResolver().buildSingleExpression(
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: new ExpressionCompilerProcedureBodyBuildContext(
-        procedure,
+        expressionCompilationData,
         libraryBuilder,
         declarationBuilder,
         isDeclarationInstanceMember: isClassInstanceMember,
+        expressionEvaluationHelper: expressionEvaluationHelper,
       ),
       fileUri: libraryBuilder.fileUri,
       extensionScope: extensionScope,
       scope: memberScope,
       token: token,
-      procedure: procedure,
-      extraKnownVariables: extraKnownVariables,
+      expressionCompilationData: expressionCompilationData,
       expressionEvaluationHelper: expressionEvaluationHelper,
       extensionThis: extensionThis,
     );
@@ -2974,7 +2973,6 @@ severity: $severity
           hierarchyBuilder,
           sourceClasses,
           sourceExtensionTypes,
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");

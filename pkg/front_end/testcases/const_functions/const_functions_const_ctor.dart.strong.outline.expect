@@ -27,5 +27,5 @@ static method main() → void
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor.dart:10:14 -> InstanceConstant(const Simple{Simple.name: "print"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor.dart:19:14 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor.dart:20:14 -> InstanceConstant(const A{})
 Extra constant evaluation: evaluated: 4, effectively constant: 2

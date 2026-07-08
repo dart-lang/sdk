@@ -33,7 +33,7 @@ class BSS : public AllStatic {
     return static_cast<intptr_t>(reloc);
   }
 
-  static void Initialize(Thread* current, uword* bss, bool vm);
+  static void Initialize(Thread* current, uword* bss);
 
   // Currently only used externally by LoadedElf::ResolveSymbols() to set the
   // relocated address without changing the embedder interface.

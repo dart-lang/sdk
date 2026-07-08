@@ -3,8 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:pub_semver/pub_semver.dart';
+
+/// Checks if [targetVersion] is compatible with the SDK constraints of all
+/// resolved [packages].
+///
+/// Returns a list of package names that are incompatible.
+List<String> checkDependencyCompatibility({
+  required Iterable<Package> packages,
+  required Version targetVersion,
+}) {
+  var incompatible = <String>[];
+  for (var package in packages) {
+    var pubspecFile = package.rootFolder.getFile(file_paths.pubspecYaml);
+    if (!pubspecFile.exists) continue;
+
+    var extractor = SdkConstraintExtractor(pubspecFile);
+    var constraint = extractor.constraint();
+    if (constraint == null) continue;
+
+    // Check if the dependency's SDK constraint allows the target version.
+    if (!constraint.allows(targetVersion)) {
+      incompatible.add(package.name);
+    }
+  }
+  return incompatible;
+}
 
 /// Calculates the edit to update the SDK constraint in [pubspecFile] to the
 /// given [minimumVersion].
@@ -82,7 +109,7 @@ PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
     length: length,
     replacement: newText,
     originalConstraint: text,
-    newConstraint: newText,
+    targetVersion: minimumVersion,
   );
 }
 
@@ -94,20 +121,21 @@ class PubspecEdit {
   /// The length of the text to be replaced.
   final int length;
 
-  /// The text to be inserted at [offset], replacing [length] characters.
+  /// The full new SDK constraint text after the edit is applied and the text to
+  /// be inserted at [offset], replacing [length] characters.
   final String replacement;
 
   /// The full original SDK constraint text before the edit is applied.
   final String originalConstraint;
 
-  /// The full new SDK constraint text after the edit is applied.
-  final String newConstraint;
+  /// The target version to migrate to.
+  final Version targetVersion;
 
   new({
     required this.offset,
     required this.length,
     required this.replacement,
     required this.originalConstraint,
-    required this.newConstraint,
+    required this.targetVersion,
   });
 }

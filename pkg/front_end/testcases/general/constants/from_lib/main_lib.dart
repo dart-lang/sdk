@@ -2,14 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const map = <int, String>{
-  1: 'a',
-};
+const map = <int, String>{1: 'a'};
 
-const set = <int>{
-  2,
-};
+const set = <int>{2};
 
-const list = <int>[
-  3,
-];
+const list = <int>[3];

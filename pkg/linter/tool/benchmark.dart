@@ -163,9 +163,9 @@ Future<void> runLinter(List<String> args) async {
 
   var filesToLint = [
     for (var path in paths)
-      ...collectFiles(
-        path,
-      ).map((file) => file.path.toAbsoluteNormalizedPath()).map(File.new),
+      ...collectFiles(path)
+          .map((file) => file.path.toAbsoluteNormalizedPath())
+          .map(File.new),
   ];
 
   await writeBenchmarks(

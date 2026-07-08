@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,7 +34,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).elementRelations(element);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -46,7 +49,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).libraryFragmentReferences(fragment);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -55,7 +60,9 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _IndexTextBuilder(result).nameRelations(name);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -64,37 +71,44 @@ class IndexTest extends PubPackageResolutionTest {
     var actual = _toPosixPaths(_IndexTextBuilder(result).subtypes());
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
 
   test_analyzer_diagnosticCode() async {
-    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+    var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
+    writePackageConfig(
+      analyzerPackageRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
+    );
+
+    var analyzerPackageLibPath = '$analyzerPackageRootPath/lib';
+    var analyzerPackageTestPath = '$analyzerPackageRootPath/test';
+    var diagnosticFile = newFile(
+      '$analyzerPackageLibPath/src/diagnostic/diagnostic.dart',
+      r'''
 const myDiagnosticCode = 0;
-''');
+''',
+    );
 
     var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
     var element = diagnosticLibrary.topLevelVariables.firstWhere(
       (v) => v.name == 'myDiagnosticCode',
     );
 
-    newFile('$testPackageLibPath/helper.dart', r'''
-import 'diagnostic.dart';
-''');
-
-    var result = await _indexTestCode(r'''
-import 'helper.dart';
-//     ^^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'helper.dart'.
-
+    var testFile = getFile('$analyzerPackageTestPath/test.dart');
+    var result = await _indexFileWithDiagnostics(testFile, r'''
 void f() {
   '// [diag.myDiagnosticCode] message';
 }
 ''');
 
     assertElementIndexText(result, element, r'''
-46 4:13 |myDiagnosticCode| IS_REFERENCED_BY qualified
+23 2:13 |myDiagnosticCode| IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -317,7 +331,28 @@ Prefixes: (unprefixed),p
 ''');
   }
 
-  test_ClassElement_reference_annotation_typeArgument() async {
+  test_ClassElement_reference_annotation_typeArgument_namedConstructor() async {
+    var result = await _indexTestCode(r'''
+import 'test.dart' as p;
+
+class A<T> {
+  const A.named();
+}
+
+class B {}
+
+@A<B>.named()
+@p.A<B>.named()
+void f() {}
+''');
+    var element = result.findElement.class_('B');
+    assertElementIndexText(result, element, r'''
+76 9:4 |B| IS_REFERENCED_BY
+92 10:6 |B| IS_REFERENCED_BY
+''');
+  }
+
+  test_ClassElement_reference_annotation_typeArgument_unnamedConstructor() async {
     var result = await _indexTestCode(r'''
 class A<T> {
   const A();
@@ -519,6 +554,35 @@ var v_p = p.A;
 46 5:9 |A| IS_REFERENCED_BY
 61 6:13 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
+''');
+  }
+
+  test_ConstructorElement_class_annotation() async {
+    var result = await _indexTestCode(r'''
+import 'test.dart' as p;
+
+class A {
+  const A();
+  const A.named();
+}
+
+@A()
+@p.A()
+@A.named()
+@p.A.named()
+void f() {}
+''');
+
+    var unnamed = result.findElement.unnamedConstructor('A');
+    assertElementIndexText(result, unnamed, r'''
+73 8:3 || IS_INVOKED_BY qualified
+80 9:5 || IS_INVOKED_BY qualified
+''');
+
+    var named = result.findElement.constructor('named', of: 'A');
+    assertElementIndexText(result, named, r'''
+85 10:3 |.named| IS_INVOKED_BY qualified
+98 11:5 |.named| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -977,6 +1041,37 @@ void useConstructor() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  test_ConstructorElement_enum_annotation() async {
+    var result = await _indexTestCode(r'''
+import 'test.dart' as p;
+
+enum E {
+  v;
+  const E();
+  const E.named();
+}
+
+@E()
+@p.E()
+@E.named()
+@p.E.named()
+void f() {}
+''');
+
+    var unnamed = result.findElement.unnamedConstructor('E');
+    assertElementIndexText(result, unnamed, r'''
+38 4:4 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+77 9:3 || IS_INVOKED_BY qualified
+84 10:5 || IS_INVOKED_BY qualified
+''');
+
+    var named = result.findElement.constructor('named');
+    assertElementIndexText(result, named, r'''
+89 11:3 |.named| IS_INVOKED_BY qualified
+102 12:5 |.named| IS_INVOKED_BY qualified
+''');
+  }
+
   test_ConstructorElement_enum_named_newHead() async {
     var result = await _indexTestCode('''
 /// [new E.foo] and [E.foo]
@@ -1307,6 +1402,35 @@ void useConstructor() {
 140 10:4 || IS_INVOKED_BY qualified
 147 11:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 162 12:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_extensionType_annotation() async {
+    var result = await _indexTestCode(r'''
+import 'test.dart' as p;
+
+extension type const A(int it) {
+  const A.named(int it) : this(it);
+}
+
+@A(0)
+@p.A(0)
+@A.named(0)
+@p.A.named(0)
+void f() {}
+''');
+
+    var unnamed = result.findElement.unnamedConstructor('A');
+    assertElementIndexText(result, unnamed, r'''
+89 4:31 || IS_INVOKED_BY qualified
+100 7:3 || IS_INVOKED_BY qualified
+108 8:5 || IS_INVOKED_BY qualified
+''');
+
+    var named = result.findElement.constructor('named');
+    assertElementIndexText(result, named, r'''
+114 9:3 |.named| IS_INVOKED_BY qualified
+128 10:5 |.named| IS_INVOKED_BY qualified
 ''');
   }
 
@@ -2458,6 +2582,45 @@ void f() {
 290 19:26 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 321 23:5 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 344 24:14 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_typeName_optionalNamed_const() async {
+    var result = await _indexTestCode(r'''
+import 'test.dart' as p;
+
+class A {
+  /// [test]
+  const A({int? test}) : assert(test != null);
+  const A.redirect({int? test}) : this(test: test);
+}
+
+class B extends A {
+  const B({super.test});
+}
+
+class C extends A {
+  const C({int? test}) : super(test: test);
+}
+
+@A(test: 0)
+@p.A(test: 1)
+void f() {
+  const A(test: 2);
+  A _ = .new(test: 3);
+}
+''');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
+    assertElementIndexText(result, element, r'''
+43 4:8 |test| IS_REFERENCED_BY
+81 5:33 |test| IS_READ_BY
+135 6:40 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+188 10:18 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+250 14:32 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+269 17:4 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+283 18:6 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+313 20:11 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+336 21:14 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 

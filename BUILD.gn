@@ -125,10 +125,6 @@ group("create_sdk") {
   public_deps = [ "sdk:create_sdk" ]
 }
 
-group("create_platform_sdk") {
-  public_deps = [ "sdk:create_platform_sdk" ]
-}
-
 group("dart2js") {
   import("runtime/runtime_args.gni")
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
@@ -144,10 +140,10 @@ group("dart2js") {
 group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
-    "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:compile_dart2wasm_standalone_platform",
+    "utils/dart2wasm:dart2wasm_js_compatibility_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
+    "utils/dart2wasm:dart2wasm_standalone_platform",
   ]
   if (defined(is_product)) {
     if (is_product) {
@@ -202,8 +198,8 @@ group("analysis_server") {
 
 group("tools") {
   deps = [
-    "utils:compile_platform.exe",
-    "utils:gen_kernel.exe",
+    "utils:bootstrap_compile_platform.exe",
+    "utils:bootstrap_gen_kernel.exe",
   ]
 }
 
@@ -211,9 +207,42 @@ group("tools") {
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("dart2wasm_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dart2wasm:test_wasm_modules",
+  ]
+}
+
+group("front-end_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("analyzer_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dartanalyzer",
+  ]
+}
+
+group("benchmark_bot") {
+  deps = [
+    ":dart2wasm_benchmark",
+    "runtime/bin:run_vm_tests",
+    "sdk:create_most_sdk",
+    "utils/ddc:ddc_canary_test",
+    "utils/ddc:ddc_stable_test",
+    "utils/kernel-service",
+  ]
+}
+
+group("pkg_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform",
+    ":dartpad",
   ]
 }
 
@@ -236,9 +265,19 @@ group("dartfuzz") {
   deps = [
     "runtime/bin:dartaotruntime",
     "runtime/bin:dartvm",
-    "utils/compiler:compile_dart2js_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/compiler:dart2js_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/kernel-service",
+  ]
+}
+
+group("iso_stress") {
+  deps = [
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
+    "runtime/bin:process_test",
   ]
 }
 
@@ -252,196 +291,86 @@ if (is_fuchsia) {
   # build-time.
 
   # tests/ffi/**_test.dart except those with compile-time errors
-  test_sources = [
-    "tests/ffi/abi_specific_int_test.dart",
-    "tests/ffi/abi_test.dart",
-    "tests/ffi/address_of_array_generated_test.dart",
-    "tests/ffi/address_of_cast_test.dart",
-    "tests/ffi/address_of_struct_generated_test.dart",
-    "tests/ffi/address_of_test.dart",
-    "tests/ffi/address_of_typeddata_generated_test.dart",
-    "tests/ffi/aliasing_test.dart",
-    "tests/ffi/allocator_test.dart",
-    "tests/ffi/array_compound_elements_test.dart",
-    "tests/ffi/array_primitive_elements_generated_test.dart",
-    "tests/ffi/async_void_function_callbacks_test.dart",
-    "tests/ffi/bool_test.dart",
-    "tests/ffi/c_types_test.dart",
-    "tests/ffi/callback_unwind_error_test.dart",
-    "tests/ffi/calloc_test.dart",
-    "tests/ffi/data_not_asan_test.dart",
-    "tests/ffi/data_test.dart",
-    "tests/ffi/deeply_immutable_c_api_finalizer_test.dart",
-    "tests/ffi/dl_api_exit_enter_isolate_test.dart",
-    "tests/ffi/dylib_close_test.dart",
-    "tests/ffi/dylib_isolates_test.dart",
-    "tests/ffi/dylib_open_test.dart",
-    "tests/ffi/exceptional_return_const_test.dart",
-    "tests/ffi/expando_test.dart",
-    "tests/ffi/extension_methods_test.dart",
-    "tests/ffi/external_typed_data_finalizer_test.dart",
-    "tests/ffi/external_typed_data_test.dart",
-    "tests/ffi/ffi_callback_unique_test.dart",
-    "tests/ffi/ffi_induce_a_crash_test.dart",
-    "tests/ffi/ffi_native_test.dart",
-    "tests/ffi/finalizer_external_size_accounting_test.dart",
-    "tests/ffi/function_callbacks_isolate_ownership_test.dart",
-    "tests/ffi/function_callbacks_many_test.dart",
-    "tests/ffi/function_callbacks_structs_by_value_generated_test.dart",
-    "tests/ffi/function_callbacks_structs_by_value_native_callable_generated_test.dart",
-    "tests/ffi/function_callbacks_structs_by_value_test.dart",
-    "tests/ffi/function_callbacks_subtype_test.dart",
-    "tests/ffi/function_callbacks_test.dart",
-    "tests/ffi/function_callbacks_varargs_generated_test.dart",
-    "tests/ffi/function_callbacks_varargs_native_callable_generated_test.dart",
-    "tests/ffi/function_callbacks_very_many_test.dart",
-    "tests/ffi/function_struct_by_value_out_of_bounds_test.dart",
-    "tests/ffi/function_structs_by_value_generated_args_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_args_native_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_args_native_test.dart",
-    "tests/ffi/function_structs_by_value_generated_args_test.dart",
-    "tests/ffi/function_structs_by_value_generated_compounds_sizeof_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_arg_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_arg_native_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_arg_native_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_arg_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_native_leaf_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_native_test.dart",
-    "tests/ffi/function_structs_by_value_generated_ret_test.dart",
-    "tests/ffi/function_structs_test.dart",
-    "tests/ffi/function_test.dart",
-    "tests/ffi/function_varargs_generated_leaf_test.dart",
-    "tests/ffi/function_varargs_generated_native_leaf_test.dart",
-    "tests/ffi/function_varargs_generated_native_test.dart",
-    "tests/ffi/function_varargs_generated_test.dart",
-    "tests/ffi/function_varargs_name_test.dart",
-    "tests/ffi/function_varargs_test.dart",
-    "tests/ffi/function_very_many_test.dart",
-    "tests/ffi/hardfp_test.dart",
-    "tests/ffi/has_symbol_test.dart",
-    "tests/ffi/inline_array_multi_dimensional_test.dart",
-    "tests/ffi/inline_array_test.dart",
-    "tests/ffi/inline_array_variable_length_test.dart",
-    "tests/ffi/invoke_callback_after_suspension_test.dart",
-    "tests/ffi/isolate_group_bound_lazy_deopt_test.dart",
-    "tests/ffi/isolate_local_function_callbacks_test.dart",
-    "tests/ffi/many_listener_callbacks_test.dart",
-    "tests/ffi/msan_test.dart",
-    "tests/ffi/native_assets/asset_absolute_test.dart",
-    "tests/ffi/native_assets/asset_executable_test.dart",
-    "tests/ffi/native_assets/asset_library_annotation_test.dart",
-    "tests/ffi/native_assets/asset_process_test.dart",
-    "tests/ffi/native_assets/asset_relative_test.dart",
-    "tests/ffi/native_assets/asset_system_test.dart",
-    "tests/ffi/native_assets/infer_native_assets_yaml_dart_kernel_snapshot_test.dart",
-    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_2_test.dart",
-    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_3_test.dart",
-    "tests/ffi/native_assets/infer_native_assets_yaml_isolate_spawnuri_test.dart",
-    "tests/ffi/native_assets/infer_native_assets_yaml_process_run_test.dart",
-    "tests/ffi/native_assets/process_test.dart",
-    "tests/ffi/native_callables_async_structs_by_value_generated_test.dart",
-    "tests/ffi/native_callables_sync_structs_by_value_generated_test.dart",
-    "tests/ffi/native_effect_test.dart",
-    "tests/ffi/negative_function_test.dart",
-    "tests/ffi/pointer_arithmetic_operators_test.dart",
-    "tests/ffi/regress_37254_test.dart",
-    "tests/ffi/regress_39044_test.dart",
-    "tests/ffi/regress_39063_test.dart",
-    "tests/ffi/regress_39885_test.dart",
-    "tests/ffi/regress_40537_test.dart",
-    "tests/ffi/regress_43016_test.dart",
-    "tests/ffi/regress_43693_test.dart",
-    "tests/ffi/regress_45189_test.dart",
-    "tests/ffi/regress_45198_test.dart",
-    "tests/ffi/regress_45507_test.dart",
-    "tests/ffi/regress_45988_test.dart",
-    "tests/ffi/regress_46004_test.dart",
-    "tests/ffi/regress_46127_test.dart",
-    "tests/ffi/regress_47594_test.dart",
-    "tests/ffi/regress_47673_test.dart",
-    "tests/ffi/regress_49402_test.dart",
-    "tests/ffi/regress_49684_test.dart",
-    "tests/ffi/regress_51315_test.dart",
-    "tests/ffi/regress_51321_test.dart",
-    "tests/ffi/regress_51504_test.dart",
-    "tests/ffi/regress_51538_2_test.dart",
-    "tests/ffi/regress_51538_3_test.dart",
-    "tests/ffi/regress_51538_test.dart",
-    "tests/ffi/regress_52298_test.dart",
-    "tests/ffi/regress_52399_test.dart",
-    "tests/ffi/regress_56412_2_test.dart",
-    "tests/ffi/regress_56412_test.dart",
-    "tests/ffi/regress_b_261224444_test.dart",
-    "tests/ffi/regress_flutter79441_test.dart",
-    "tests/ffi/regress_flutter97301_test.dart",
-    "tests/ffi/regress_jump_to_frame_test.dart",
-    "tests/ffi/sizeof_test.dart",
-    "tests/ffi/snapshot_test.dart",
-    "tests/ffi/stacktrace_regress_37910_test.dart",
-    "tests/ffi/structs_nested_test.dart",
-    "tests/ffi/structs_nnbd_workaround_test.dart",
-    "tests/ffi/structs_packed_test.dart",
-    "tests/ffi/structs_test.dart",
-    "tests/ffi/structs_typed_data_test.dart",
-    "tests/ffi/unaligned_test.dart",
-    "tests/ffi/variance_function_test.dart",
-    "tests/ffi/vmspecific_callback_unwind_error_through_handle_test.dart",
-    "tests/ffi/vmspecific_deprecated_funcs_test.dart",
-    "tests/ffi/vmspecific_dynamic_library_test.dart",
-    "tests/ffi/vmspecific_enable_ffi_test.dart",
-    "tests/ffi/vmspecific_ffi_native_handles_test.dart",
-    "tests/ffi/vmspecific_ffi_native_test.dart",
-    "tests/ffi/vmspecific_function_callbacks_exit_test.dart",
-    "tests/ffi/vmspecific_function_callbacks_test.dart",
-    "tests/ffi/vmspecific_function_gc_test.dart",
-    "tests/ffi/vmspecific_function_test.dart",
-    "tests/ffi/vmspecific_handle_dynamically_linked_test.dart",
-    "tests/ffi/vmspecific_handle_test.dart",
-    "tests/ffi/vmspecific_highmem_32bit_test.dart",
-    "tests/ffi/vmspecific_leaf_call_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_2_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_api_calls_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_deeply_immutable_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_isolate_groups_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_isolates_test.dart",
-    "tests/ffi/vmspecific_native_finalizer_test.dart",
-    "tests/ffi/vmspecific_object_gc_test.dart",
-    "tests/ffi/vmspecific_pointer_load_il_test.dart",
-    "tests/ffi/vmspecific_regress_37100_test.dart",
-    "tests/ffi/vmspecific_regress_37511_callbacks_test.dart",
-    "tests/ffi/vmspecific_regress_37511_test.dart",
-    "tests/ffi/vmspecific_regress_37780_test.dart",
-    "tests/ffi/vmspecific_regress_51794_test.dart",
-    "tests/ffi/vmspecific_send_port_id_test.dart",
+  ffi_test_sources = rebase_path(exec_script("tools/list_dart_tests.py",
+                                             [ rebase_path("tests/ffi/") ],
+                                             "list lines"),
+                                 ".",
+                                 root_build_dir)
+  ffi_test_sources -= [
+    "tests/ffi/abi_specific_int_incomplete_aot_test.dart",
+    "tests/ffi/abi_specific_int_incomplete_jit_test.dart",
+    "tests/ffi/isolate_group_bound_callback_test.dart",
+    "tests/ffi/isolate_group_bound_init_test.dart",
+    "tests/ffi/run_isolate_group_run_test.dart",
+    "tests/ffi/static_checks/address_of_cast_test.dart",
+    "tests/ffi/static_checks/address_position_cascade_test.dart",
+    "tests/ffi/static_checks/regress_44985_test.dart",
+    "tests/ffi/static_checks/regress_44986_test.dart",
+    "tests/ffi/static_checks/regress_46085_test.dart",
+    "tests/ffi/static_checks/regress_47673_2_test.dart",
+    "tests/ffi/static_checks/regress_51041_test.dart",
+    "tests/ffi/static_checks/regress_60250_test.dart",
+    "tests/ffi/static_checks/regress_62693_test.dart",
+    "tests/ffi/static_checks/regress_62716_test.dart",
+    "tests/ffi/static_checks/regress_flutter_188175_test.dart",
+    "tests/ffi/static_checks/vmspecific_function_callbacks_negative_test.dart",
+    "tests/ffi/static_checks/vmspecific_regress_38993_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_address_of_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_array_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_ffinative_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_native_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_test.dart",
+    "tests/ffi/static_checks/vmspecific_static_checks_varargs_test.dart",
+    "tests/ffi/static_checks/vmspecific_variance_function_checks_test.dart",
+    "tests/ffi/threading_pinning_test.dart",
+    "tests/ffi/threading_reentrant_test.dart",
+    "tests/ffi/threading_runeventloop_test.dart",
+    "tests/ffi/threading_test.dart",
   ]
+
+  # tests/standalone/io/**_test.dart except those with compile-time errors
+  io_test_sources = rebase_path(
+          exec_script("tools/list_dart_tests.py",
+                      [ rebase_path("tests/standalone/io/", root_build_dir) ],
+                      "list lines"),
+          ".",
+          root_build_dir)
+  io_test_sources -= []
+
+  jit_test_sources = ffi_test_sources
+  aot_test_sources = ffi_test_sources
+  if (current_cpu == "x64") {
+    jit_test_sources += io_test_sources
+  } else {
+    not_needed(io_test_sources)
+  }
 
   test_deps = []
   test_resources = []
-  foreach(test_source, test_sources) {
+  foreach(test_source, jit_test_sources) {
     label = string_replace(test_source, "/", "_")
-    aot_label = label + "_aot"
-
     application_snapshot(label) {
       dart_snapshot_kind = "kernel"
       main_dart = test_source
       training_args = []  # Not used
       output = "$target_out_dir/$test_source.dill"
     }
-    aot_snapshot(aot_label) {
-      main_dart = test_source
-      output = "$target_out_dir/$test_source.elf"
-    }
-
-    test_deps += [
-      ":$aot_label",
-      ":$label",
-    ]
+    test_deps += [ ":$label" ]
     test_resources += [
       {
         path = "$target_out_dir/$test_source.dill"
         dest = "data/$test_source"
       },
+    ]
+  }
+  foreach(test_source, aot_test_sources) {
+    label = string_replace(test_source, "/", "_") + "_aot"
+    aot_snapshot(label) {
+      main_dart = test_source
+      output = "$target_out_dir/$test_source.elf"
+    }
+    test_deps += [ ":$label" ]
+    test_resources += [
       {
         path = "$target_out_dir/$test_source.elf"
         dest = "data/$test_source.elf"
@@ -467,7 +396,46 @@ if (is_fuchsia) {
         "libffi_test_dynamic_library.so",
         "libffi_test_functions.so",
       ]
-      resource_files = [ ".dart_tool/package_config.json" ]
+      resource_files = [
+        ".dart_tool/package_config.json",
+        "tests/standalone/io/addlatexhash_test_src.tex",
+        "tests/standalone/io/certificates/bad_server_chain.pem",
+        "tests/standalone/io/certificates/bad_server_key.pem",
+        "tests/standalone/io/certificates/client1.p12",
+        "tests/standalone/io/certificates/client1.pem",
+        "tests/standalone/io/certificates/client1_key.p12",
+        "tests/standalone/io/certificates/client1_key.pem",
+        "tests/standalone/io/certificates/client1_key_malformed.pem",
+        "tests/standalone/io/certificates/client2.pem",
+        "tests/standalone/io/certificates/client2_key.pem",
+        "tests/standalone/io/certificates/client_authority.p12",
+        "tests/standalone/io/certificates/client_authority.pem",
+        "tests/standalone/io/certificates/client_authority_malformed.pem",
+        "tests/standalone/io/certificates/server_chain.p12",
+        "tests/standalone/io/certificates/server_chain.pem",
+        "tests/standalone/io/certificates/server_chain_malformed1.pem",
+        "tests/standalone/io/certificates/server_chain_malformed2.pem",
+        "tests/standalone/io/certificates/server_key.p12",
+        "tests/standalone/io/certificates/server_key.pem",
+        "tests/standalone/io/certificates/server_trusted.pem",
+        "tests/standalone/io/certificates/trusted_certs.p12",
+        "tests/standalone/io/certificates/trusted_certs.pem",
+        "tests/standalone/io/certificates/trusted_certs_malformed.pem",
+        "tests/standalone/io/certificates/untrusted_server_chain.pem",
+        "tests/standalone/io/certificates/untrusted_server_key.pem",
+        "tests/standalone/io/create_sample_certificates.sh",
+        "tests/standalone/io/empty_file",
+        "tests/standalone/io/file_test.txt",
+        "tests/standalone/io/fixed_length_file",
+        "tests/standalone/io/fixed_length_file_out",
+        "tests/standalone/io/localhost.crt",
+        "tests/standalone/io/localhost.key",
+        "tests/standalone/io/read_as_text.dat",
+        "tests/standalone/io/readline_test1.dat",
+        "tests/standalone/io/readline_test2.dat",
+        "tests/standalone/io/readuntil_test.dat",
+        "tests/standalone/io/sample_certificate_v3_extensions",
+      ]
       resources = []
       foreach(file, library_files) {
         resources += [
@@ -494,6 +462,38 @@ if (is_fuchsia) {
       }
       deps = test_deps
       resources += test_resources
+
+      # Should the GN SDK be doing this?
+      if (current_cpu == "x64") {
+        triple = "x86_64-unknown-fuchsia"
+      } else if (current_cpu == "arm64") {
+        triple = "aarch64-unknown-fuchsia"
+      } else if (current_cpu == "riscv64") {
+        triple = "riscv64-unknown-fuchsia"
+      } else {
+        assert(false, "What cpu?")
+      }
+      if (is_asan) {
+        resources += [
+          {
+            path = "//third_party/fuchsia/sdk/linux/arch/$current_cpu/sysroot/dist/lib/asan/ld.so.1"
+            dest = "lib/asan/ld.so.1"
+          },
+          {
+            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.asan.so"
+            dest = "lib/libclang_rt.asan.so"
+          },
+        ]
+      } else if (is_ubsan) {
+        resources += [
+          {
+            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.ubsan_standalone.so"
+            dest = "lib/libclang_rt.ubsan_standalone.so"
+          },
+        ]
+      } else {
+        not_needed([ "triple" ])
+      }
     }
   }
 

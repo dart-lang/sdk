@@ -25,6 +25,6 @@ g() {
   var l = [
     for (i in [1, 2, 3]) 0,
     for (j in [1, 2, 3]) 1,
-    for (final k in [1, 2, 3]) 2
+    for (final k in [1, 2, 3]) 2,
   ];
 }

@@ -32,7 +32,7 @@ class InterfaceType extends DartType {}
   }
 
   test_isDartType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:kernel/ast.dart';
 
 void f(Object t) {
@@ -42,7 +42,7 @@ void f(Object t) {
   }
 
   test_isDartType_subclass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:kernel/ast.dart';
 
 void f(Object t) {

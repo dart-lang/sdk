@@ -35,7 +35,7 @@ void f(dynamic p) {
   }
 
   test_conditional_propertyAccess_sameProperty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   p.m != null ? [!p.m!()!] : null;
 }
@@ -43,7 +43,7 @@ void f(dynamic p) {
   }
 
   test_conditional_sameTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function()? func;
 void f() {
   func != null ? [!func!()!] : null;
@@ -62,7 +62,7 @@ void f(dynamic p) {
   }
 
   test_ifNotNull_propertyAccess_sameProperty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   if (p.m != null) {
     [!p.m!()!];
@@ -72,7 +72,7 @@ void f(dynamic p) {
   }
 
   test_ifNotNull_sameTarget_blockStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function()? func;
 void f() {
   if (func != null) {
@@ -83,7 +83,7 @@ void f() {
   }
 
   test_ifNotNull_sameTarget_expressionStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function()? func;
 void f() {
   if (func != null) [!func!()!];

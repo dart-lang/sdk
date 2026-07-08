@@ -36,11 +36,10 @@ version: 1.0.0+1
 environment:
   sdk: ">=3.0.0 <4.0.0"
 ''');
-    var mainFile = newFile('$testPackageRootPath/lib/main.dart', r'''
+    await assertNoDiagnostics(r'''
 // ignore: unused_import
 import 'dart:html';
 ''');
-    await assertNoDiagnosticsInFile(mainFile.path);
   }
 
   test_nonWebApp() async {
@@ -63,19 +62,17 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 ''');
-    var mainFile = newFile('$testPackageRootPath/lib/main.dart', r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore: unused_import
-import 'dart:html';
+[!import 'dart:html';!]
 ''');
-    await assertDiagnosticsInFile(mainFile.path, [lint(25, 19)]);
   }
 
   test_noPubspec() async {
-    var mainFile = newFile('$testPackageRootPath/lib/main.dart', r'''
+    await assertNoDiagnostics(r'''
 // ignore: unused_import
 import 'dart:html';
 ''');
-    await assertNoDiagnosticsInFile(mainFile.path);
   }
 
   test_webApp() async {
@@ -98,17 +95,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 ''');
-    var mainFile = newFile('$testPackageRootPath/lib/main.dart', r'''
-// ignore: unused_import
-import 'dart:html';
-''');
     newFile('$testPackageRootPath/web/README', 'Placeholder.');
-    await assertDiagnosticsInFile(mainFile.path, [
-      // Even in a package with a `web/` directory, do not use web libraries.
-      // Note(srawlins): This seems weird to me, but this is the expectation
-      // from the previous version of this test.
-      lint(25, 19),
-    ]);
+    // Even in a package with a `web/` directory, do not use web libraries.
+    // Note(srawlins): This seems weird to me, but this is the expectation
+    // from the previous version of this test.
+    await assertDiagnosticsFromMarkup(r'''
+// ignore: unused_import
+[!import 'dart:html';!]
+''');
   }
 
   test_webPlugin() async {
@@ -135,10 +129,9 @@ flutter:
         pluginClass: SamplePlugin
         fileName: main.dart
 ''');
-    var mainFile = newFile('$testPackageRootPath/lib/main.dart', r'''
+    await assertNoDiagnostics(r'''
 // ignore: unused_import
 import 'dart:html';
 ''');
-    await assertNoDiagnosticsInFile(mainFile.path);
   }
 }

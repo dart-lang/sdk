@@ -290,8 +290,6 @@ class RegularGetterDeclaration
         fileUri: _fragment.fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
-        isClosureContextLoweringEnabled:
-            libraryBuilder.loader.isClosureContextLoweringEnabled,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
@@ -313,7 +311,7 @@ class RegularGetterDeclaration
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     assert(
       asyncModifier.kind == this.asyncModifier.kind,
@@ -373,7 +371,7 @@ abstract class GetterFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 
   DartType get returnTypeContext;

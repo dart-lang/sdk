@@ -5,6 +5,7 @@
 // See: https://github.com/dart-lang/sdk/issues/42466
 
 import 'dart:collection';
+
 import 'package:expect/expect.dart';
 
 var caughtString;

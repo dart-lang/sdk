@@ -306,6 +306,8 @@ abstract final class LintNames {
 
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
 
+  static const String no_dynamic_casts = 'no_dynamic_casts';
+
   static const String no_leading_underscores_for_library_prefixes =
       'no_leading_underscores_for_library_prefixes';
 
@@ -316,6 +318,8 @@ abstract final class LintNames {
       'no_literal_bool_comparisons';
 
   static const String no_logic_in_create_state = 'no_logic_in_create_state';
+
+  static const String no_raw_types = 'no_raw_types';
 
   static const String no_runtimetype_tostring = 'no_runtimetype_tostring';
 
@@ -577,6 +581,9 @@ abstract final class LintNames {
   static const String unnecessary_overrides = 'unnecessary_overrides';
 
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+
+  static const String unnecessary_primary_constructor_body =
+      'unnecessary_primary_constructor_body';
 
   static const String unnecessary_raw_strings = 'unnecessary_raw_strings';
 

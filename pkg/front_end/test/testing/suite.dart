@@ -81,7 +81,13 @@ import 'package:kernel/ast.dart'
         Typedef,
         UnevaluatedConstant,
         Version,
-        LegacyVariable;
+        LocalVariable,
+        LateVariable,
+        SyntheticVariable,
+        CatchVariable,
+        ThisVariable,
+        PositionalParameter,
+        NamedParameter;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -835,8 +841,6 @@ CompilationSetup createCompilationSetup(
       ..onDiagnostic = (CfeDiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
-      ..enableUnscheduledExperiments =
-          folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
       ..librariesSpecificationUri = librariesSpecificationUri
@@ -1713,10 +1717,64 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkLegacyVariable_binaryOffsetNoTag(
+  bool checkLocalVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
-    LegacyVariable node,
-    LegacyVariable other,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkLateVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkSyntheticVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkCatchVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    CatchVariable node,
+    CatchVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkThisVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    ThisVariable node,
+    ThisVariable other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkPositionalParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    return true;
+  }
+
+  @override
+  bool checkNamedParameter_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
   ) {
     return true;
   }

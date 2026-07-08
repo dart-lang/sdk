@@ -101,8 +101,6 @@ void foo43() {
   });
 }
 
-// TODO: support instanitation of closures
-/*
 void foo44<S, T>() {
   callClosure(<U>() {
     callClosure(() {
@@ -111,7 +109,6 @@ void foo44<S, T>() {
     });
   });
 }
-*/
 
 void foo45() {
   var a = 10;

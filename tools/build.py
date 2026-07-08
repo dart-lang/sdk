@@ -47,8 +47,7 @@ def BuildOptions():
                              default=200 if sys.platform == 'win32' else 400)
     other_group.add_argument("-l",
                              type=int,
-                             help='Ninja -l option for RBE builds.',
-                             default=64)
+                             help='Ninja -l option for RBE builds.')
     other_group.add_argument("--no-start-rbe",
                              help="Don't try to start rbe",
                              default=False,
@@ -177,7 +176,8 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
         if options.no_start_rbe or StartRBE(out_dir, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
-            command += [('-l%s' % str(options.l))]
+            if options.l:
+                command += [('-l%s' % str(options.l))]
         else:
             exit(1)
     command += targets
@@ -198,8 +198,8 @@ def RunOneBuildCommand(build_config, args, env):
     return 0
 
 
-def CheckCleanBuild(build_config, args, rbe, env):
-    explain_args = args + ['-n', '-d', 'explain']
+def CheckCleanBuild(build_config, args, rbe, targets, env):
+    explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
     print(' '.join(explain_args))
     process = subprocess.Popen(explain_args,
                                env=env,
@@ -218,7 +218,7 @@ def CheckCleanBuild(build_config, args, rbe, env):
         return 1
 
     if rbe:
-        list_args = args + ['-t', 'commands']
+        list_args = args[0:3] + ['-t', 'commands'] + targets
         print(' '.join(list_args))
         process = subprocess.Popen(list_args,
                                    env=env,
@@ -298,7 +298,11 @@ def Build(configs, env, options):
 
     if options.check_clean:
         for (build_config, args, rbe) in configs:
-            if CheckCleanBuild(build_config, args, rbe, env=env) != 0:
+            if CheckCleanBuild(build_config,
+                               args,
+                               rbe,
+                               options.build_targets,
+                               env=env) != 0:
                 return 1
 
     return 0

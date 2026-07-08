@@ -45,7 +45,9 @@ exhaustiveBoundedTypeVariableByBound<T extends bool>(T x1, T x2) {
 }
 
 nonExhaustiveBoundedTypeVariableByOtherType<T extends bool, S extends bool>(
-    T x1, T x2) {
+  T x1,
+  T x2,
+) {
   switch (x1) /* Error */ {
     case S():
       break;

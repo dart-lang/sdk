@@ -91,7 +91,7 @@ void main([List<String> args = const []]) async {
       );
       expect(
         result.stdout,
-        stringContainsInOrder(['native add test', 'All tests passed!']),
+        stringContainsInOrder(['All tests passed!']),
       );
     });
   });
@@ -102,14 +102,22 @@ void main([List<String> args = const []]) async {
       timeout: longTimeout,
       () async {
         await nativeAssetsTest('dev_dependency_with_hook', (packageUri) async {
+          var expandedReporter = subcommand == 'test';
           final result = await runDart(
-            arguments: ['run', subcommand],
+            arguments: [
+              'run',
+              subcommand,
+              if (expandedReporter) '--reporter=expanded',
+            ],
             workingDirectory: packageUri,
             logger: logger,
           );
           expect(
             result.stdout,
-            stringContainsInOrder(['native add test', 'All tests passed!']),
+            stringContainsInOrder([
+              if (expandedReporter) 'native add test',
+              'All tests passed!',
+            ]),
           );
         });
       },
@@ -223,4 +231,22 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       });
     },
   );
+
+  test('dart run from different directory', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final tempUri = dartAppUri.parent;
+      final otherDirUri = tempUri.resolve('other_dir/');
+      await Directory.fromUri(otherDirUri).create();
+
+      final result = await runDart(
+        arguments: [
+          'run',
+          dartAppUri.resolve('bin/dart_app.dart').toFilePath(),
+        ],
+        workingDirectory: otherDirUri,
+        logger: logger,
+      );
+      expectDartAppStdout(result.stdout);
+    });
+  });
 }

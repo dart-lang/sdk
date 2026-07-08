@@ -13,6 +13,7 @@
 
 import 'dart:core';
 import 'dart:core' as core;
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' as v;
 
@@ -26,12 +27,14 @@ typedef F0<T> = Function Function([List<Function> x]);
 typedef F1<T> = core.List<core.int> Function(Function x);
 typedef F2<T> = List<T> Function();
 typedef F3<T> = void Function(int y, {core.List<core.int> x});
-typedef F4<T> =
-    int Function(int y, [int x]) Function<B extends core.int>(int x);
+typedef F4<T> = int Function(int y, [int x]) Function<B extends core.int>(
+  int x,
+);
 typedef F5<T> =
     int Function(int, [List<Function>]) Function<B extends core.int>(int x);
-typedef F6<T> =
-    int Function(int, {List<T> x}) Function<B extends core.int>(int x);
+typedef F6<T> = int Function(int, {List<T> x}) Function<B extends core.int>(
+  int x,
+);
 typedef F7<T> =
     Function Function(List<Function> x) Function<B extends core.int>(int x);
 typedef F8<T> =
@@ -55,11 +58,13 @@ typedef F14<T> =
     );
 typedef F15<T> =
     List<T> Function(int y, {List<T> x}) Function<B extends core.int>(int x);
-typedef F16<T> =
-    Function([List<Function> x]) Function<B extends core.int>(int x);
+typedef F16<T> = Function([List<Function> x]) Function<B extends core.int>(
+  int x,
+);
 typedef F17<T> = Function(List<T>) Function<B extends core.int>(int x);
-typedef F18<T> =
-    void Function(int, [Function]) Function<B extends core.int>(int x);
+typedef F18<T> = void Function(int, [Function]) Function<B extends core.int>(
+  int x,
+);
 typedef F19<T> =
     void Function(int, {core.List<core.int> x}) Function<B extends core.int>(
       int x,
@@ -68,8 +73,9 @@ typedef F20<T> =
     Function Function<A>(core.List<core.int> x) Function<B extends core.int>(
       int x,
     );
-typedef F21<T> =
-    List<T> Function<A>(List<T> x) Function<B extends core.int>(int x);
+typedef F21<T> = List<T> Function<A>(List<T> x) Function<B extends core.int>(
+  int x,
+);
 typedef F22<T> = List<A> Function<A>() Function<B extends core.int>(int x);
 
 Function f0([List<Function> x = const []]) => throw 'uncalled';

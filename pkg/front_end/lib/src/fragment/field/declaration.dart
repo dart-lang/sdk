@@ -24,6 +24,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/implicit_field_type.dart';
+import '../../kernel/internal_ast.dart';
 import '../../kernel/late_lowering.dart' as late_lowering;
 import '../../kernel/macro/metadata.dart';
 import '../../kernel/type_algorithms.dart';
@@ -125,12 +126,12 @@ abstract class FieldDeclaration {
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
-  /// Builds the [Initializer]s for each field used to encode this field
+  /// Builds the [InternalInitializer]s for each field used to encode this field
   /// using the [fileOffset] for the created nodes and [value] as the initial
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -323,7 +324,7 @@ class RegularFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -646,11 +647,6 @@ class RegularFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
-        isClosureContextLoweringEnabled: _fragment
-            .builder
-            .libraryBuilder
-            .loader
-            .isClosureContextLoweringEnabled,
       );
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -947,7 +943,7 @@ abstract class FieldFragmentDeclaration {
     required CoreTypes coreTypes,
     required Uri fileUri,
     Expression? initializer,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   });
 
   BodyBuilderContext createBodyBuilderContext();
@@ -1003,7 +999,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required CoreTypes coreTypes,
     required Uri fileUri,
     Expression? initializer,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     if (_fieldInitializerCache != null) {
       if (!hasBodyBeenBuilt) {

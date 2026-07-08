@@ -174,19 +174,13 @@ class TypeConstraintGathererTest {
       'lib::Q <: T1',
     ], typeParameters: 'T1 extends Object?');
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
-    checkConstraintsUpper(
-      '({T1 x}) -> dynamic',
-      '({Q x}) -> dynamic',
-      ['lib::Q <: T1'],
-      typeParameters: 'T1 extends Object?',
-    );
+    checkConstraintsUpper('({T1 x}) -> dynamic', '({Q x}) -> dynamic', [
+      'lib::Q <: T1',
+    ], typeParameters: 'T1 extends Object?');
     // ({x: T1?}) -> dynamic <: ({x: Q?}) -> dynamic, under constraint Q <: T1
-    checkConstraintsUpper(
-      '({T1? x}) -> dynamic',
-      '({Q? x}) -> dynamic',
-      ['lib::Q <: T1'],
-      typeParameters: 'T1 extends Object?',
-    );
+    checkConstraintsUpper('({T1? x}) -> dynamic', '({Q? x}) -> dynamic', [
+      'lib::Q <: T1',
+    ], typeParameters: 'T1 extends Object?');
   }
 
   void test_function_return_type() {
@@ -280,54 +274,42 @@ class TypeConstraintGathererTest {
   void test_typeParameters() {
     parseTestLibrary('class P; class Q; class Map<X, Y>;');
 
-    checkConstraintsUpper(
-      'Map<T1, T2>',
-      'Map<P, Q>',
-      ['T1 <: lib::P', 'T2 <: lib::Q'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
-    checkConstraintsUpper(
-      'Map<T1, T2>',
-      'Map<P?, Q?>',
-      ['T1 <: lib::P?', 'T2 <: lib::Q?'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
+    checkConstraintsUpper('Map<T1, T2>', 'Map<P, Q>', [
+      'T1 <: lib::P',
+      'T2 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
+    checkConstraintsUpper('Map<T1, T2>', 'Map<P?, Q?>', [
+      'T1 <: lib::P?',
+      'T2 <: lib::Q?',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
     checkConstraintsUpper(
       'Map<T1?, T2?>',
       'Map<P, Q>',
       null,
       typeParameters: 'T1 extends Object?, T2 extends Object?',
     );
-    checkConstraintsUpper(
-      'Map<T1?, T2?>',
-      'Map<P?, Q?>',
-      ['T1 <: lib::P', 'T2 <: lib::Q'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
-    checkConstraintsUpper(
-      'Map<T1, T2>?',
-      'Map<P, Q>?',
-      ['T1 <: lib::P', 'T2 <: lib::Q'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
-    checkConstraintsUpper(
-      'Map<T1, T2>?',
-      'Map<P?, Q?>?',
-      ['T1 <: lib::P?', 'T2 <: lib::Q?'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
+    checkConstraintsUpper('Map<T1?, T2?>', 'Map<P?, Q?>', [
+      'T1 <: lib::P',
+      'T2 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
+    checkConstraintsUpper('Map<T1, T2>?', 'Map<P, Q>?', [
+      'T1 <: lib::P',
+      'T2 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
+    checkConstraintsUpper('Map<T1, T2>?', 'Map<P?, Q?>?', [
+      'T1 <: lib::P?',
+      'T2 <: lib::Q?',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
     checkConstraintsUpper(
       'Map<T1?, T2?>?',
       'Map<P, Q>?',
       null,
       typeParameters: 'T1 extends Object?, T2 extends Object?',
     );
-    checkConstraintsUpper(
-      'Map<T1?, T2?>?',
-      'Map<P?, Q?>?',
-      ['T1 <: lib::P', 'T2 <: lib::Q'],
-      typeParameters: 'T1 extends Object?, T2 extends Object?',
-    );
+    checkConstraintsUpper('Map<T1?, T2?>?', 'Map<P?, Q?>?', [
+      'T1 <: lib::P',
+      'T2 <: lib::Q',
+    ], typeParameters: 'T1 extends Object?, T2 extends Object?');
   }
 
   void test_unknown_subtype_any() {

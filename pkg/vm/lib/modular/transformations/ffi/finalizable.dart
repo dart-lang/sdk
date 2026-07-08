@@ -279,9 +279,11 @@ mixin FinalizableTransformer on Transformer {
     }
     if (_isFinalizable(node.type)) {
       if (_possiblyUninitialized(node)) {
-        final alwaysInitializedDeclaration = Variable(
-          ':${node.name}:finalizableValue',
+        node as DeclaredVariable;
+        final alwaysInitializedDeclaration = SyntheticVariable(
+          cosmeticName: ':${node.cosmeticName}:finalizableValue',
           type: node.type.withDeclaredNullability(Nullability.nullable),
+          isSynthesized: false,
         );
         _currentScope!.addPossiblyUninitializedDeclaration(
           node,
@@ -553,12 +555,11 @@ mixin FinalizableTransformer on Transformer {
     Expression expression,
     List<Expression> declarations,
   ) {
-    final resultVariable = Variable(
-      ":expressionValueWrappedFinalizable",
+    final resultVariable = SyntheticVariable(
+      cosmeticName: ":expressionValueWrappedFinalizable",
       initializer: expression,
       type: staticTypeContext!.getExpressionType(expression),
       isFinal: true,
-      isSynthesized: true,
     );
     return BlockExpression(
       Block(<Statement>[
@@ -701,7 +702,8 @@ class _Scope {
   /// to nullable non-late variables that contain the same value.
   ///
   /// The map is mutable, because we populate it during visiting statements.
-  final Map<Variable, Variable> _possiblyUninitializedDeclarations = {};
+  final Map<DeclaredVariable, DeclaredVariable>
+  _possiblyUninitializedDeclarations = {};
 
   /// [ThisExpression] is not a [Variable] and needs to be tracked
   /// separately.
@@ -741,8 +743,8 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   }
 
   void addPossiblyUninitializedDeclaration(
-    Variable possiblyUninitialized,
-    Variable nullableValue,
+    DeclaredVariable possiblyUninitialized,
+    DeclaredVariable nullableValue,
   ) {
     assert(possiblyUninitialized.parent?.parent is VariableStatement);
     _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;

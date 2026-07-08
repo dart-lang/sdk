@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $BoxedDouble (sub final $#Top (struct
@@ -11,35 +11,42 @@
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (func $ktrue implicit getter (result i32) <...>)
   (func $numValue implicit getter (result (ref $#Top)) <...>)
-  (func $sinkNum <noInline> (param $var0 f64) <...>)
-  (func $sinkNumNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
-  (func $"testNumConstant <noInline>"
+  (func $jsifyInt (result (ref extern)) <...>)
+  (func $jsifyNum (param $var0 (ref $#Top)) (result externref) <...>)
+  (func $sinkNum (param $var0 f64) <...>)
+  (func $sinkNumNullable (param $var0 (ref null $BoxedDouble)) <...>)
+  (@binaryen.inline 0)
+  (func $testNumConstant
     call $jsifyInt
     call $"dart2wasm.R (import)"
     call $toDartDouble
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testNumConstantDouble <noInline>"
+  (@binaryen.inline 0)
+  (func $testNumConstantDouble
     f64.const 1.1
     call $"dart2wasm.P (import)"
     call $"dart2wasm.R (import)"
     call $toDartDouble
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testNumConstantNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testNumConstantNullable
     ref.null noextern
     call $"dart2wasm.M (import)"
     call $toDartNullableDouble
-    call $"sinkNumNullable <noInline>"
+    call $sinkNumNullable
   )
-  (func $"testNumValue <noInline>"
+  (@binaryen.inline 0)
+  (func $testNumValue
     call $"numValue implicit getter"
     call $jsifyNum
     call $"dart2wasm.R (import)"
     call $toDartDouble
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testNumValueNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testNumValueNullable
     (local $var0 (ref null $#Top))
     global.get $"numValueNullable initialized"
     if (result (ref null $#Top))
@@ -68,10 +75,8 @@
     end
     call $"dart2wasm.M (import)"
     call $toDartNullableDouble
-    call $"sinkNumNullable <noInline>"
+    call $sinkNumNullable
   )
-  (func $jsifyInt (result (ref extern)) <...>)
-  (func $jsifyNum (param $var0 (ref $#Top)) (result externref) <...>)
   (func $toDartDouble (param $var0 externref) (result f64) <...>)
   (func $toDartNullableDouble (param $var0 externref) (result (ref null $BoxedDouble)) <...>)
 )

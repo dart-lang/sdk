@@ -17,7 +17,7 @@ class CallbackSpecializer {
   CallbackSpecializer(this._staticTypeContext, this._util);
 
   Statement _generateDispatchCase(
-    FunctionType function,
+    FunctionType instantiatedFunctionType,
     Variable callbackVariable,
     List<Variable> positionalParameters,
     int requiredParameterCount, {
@@ -25,7 +25,8 @@ class CallbackSpecializer {
   }) {
     List<Expression> callbackArguments = [];
     for (int i = 0; i < requiredParameterCount; i++) {
-      DartType callbackParameterType = function.positionalParameters[i];
+      DartType callbackParameterType =
+          instantiatedFunctionType.positionalParameters[i];
       Expression expression;
       VariableGet v = VariableGet(positionalParameters[i]);
       if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
@@ -50,17 +51,12 @@ class CallbackSpecializer {
       FunctionAccessKind.FunctionType,
       VariableGet(callbackVariable),
       Arguments(callbackArguments),
-      // Instantiate any type parameters to bounds as they would otherwise
-      // be free type variables in this context.
-      functionType:
-          const _InstantiateToBounds().substituteType(function) as FunctionType,
+      functionType: instantiatedFunctionType,
     );
 
-    final temp = Variable(
-      null,
+    final temp = SyntheticVariable(
       initializer: callExpr,
       type: callExpr.getStaticType(_staticTypeContext),
-      isSynthesized: true,
     );
 
     final jsified = jsifyValue(
@@ -98,29 +94,29 @@ class CallbackSpecializer {
     // before being invoked. The second argument will be a `double` indicating
     // the number of arguments passed. The third argument is a cast closure if
     // needed.
-    final callbackVariable = Variable(
-      'callback',
-      type: _util.nonNullableObjectType,
+    final callbackVariable = PositionalParameter(
+      cosmeticName: 'callback',
+      type: _util.nonNullableWasmExternRefType,
       isSynthesized: true,
     );
-    final argumentsLengthWasmI32 = Variable(
-      'argumentsLengthWasmI32',
+    final argumentsLengthWasmI32 = PositionalParameter(
+      cosmeticName: 'argumentsLengthWasmI32',
       type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
       isSynthesized: true,
     );
-    final castClosure = Variable(
-      'castClosure',
+    final castClosure = PositionalParameter(
+      cosmeticName: 'castClosure',
       type: _util.nonNullableObjectType,
       isSynthesized: true,
     );
 
     // Initialize variable declarations.
-    List<Variable> positionalParameters = [];
+    List<PositionalParameter> positionalParameters = [];
     List<Expression> castClosureArguments = [];
     final positionalParametersLength = function.positionalParameters.length;
     for (int i = 0; i < positionalParametersLength; i++) {
-      final parameter = Variable(
-        'x${i + 1}',
+      final parameter = PositionalParameter(
+        cosmeticName: 'x${i + 1}',
         type: _util.nullableWasmExternRefType,
         isSynthesized: true,
       );
@@ -137,10 +133,9 @@ class CallbackSpecializer {
     List<Statement> body = [];
 
     // Convert `WasmI32` argument to Dart `int`.
-    final argumentsLength = Variable(
-      'argumentsLength',
+    final argumentsLength = SyntheticVariable(
+      cosmeticName: 'argumentsLength',
       type: _util.coreTypes.intNonNullableRawType,
-      isSynthesized: true,
       initializer: InstanceInvocation(
         InstanceAccessKind.Instance,
         VariableGet(argumentsLengthWasmI32),
@@ -149,7 +144,31 @@ class CallbackSpecializer {
         interfaceTarget: _util.wasmI32ToIntSigned,
         functionType: _util.wasmI32ToIntSigned.computeSignatureOrFunctionType(),
       ),
+      isSynthesized: false,
     );
+
+    final instantiatedFunctionType =
+        const _InstantiateToBounds().substituteType(function) as FunctionType;
+
+    // Convert `WasmExternRef` argument  to Dart Function
+    final callbackFunctionVar = SyntheticVariable(
+      cosmeticName: 'callbackFunction',
+      type: instantiatedFunctionType,
+      initializer: StaticInvocation(
+        _util.unsafeCastOpaqueTarget,
+        Arguments(
+          [
+            StaticInvocation(
+              _util.wasmInternalizeNonNullable,
+              Arguments([VariableGet(callbackVariable)]),
+            ),
+          ],
+          types: [instantiatedFunctionType],
+        ),
+      ),
+      isSynthesized: false,
+    );
+    body.add(VariableStatement(VariableDeclaration(callbackFunctionVar)));
 
     body.add(VariableStatement(VariableDeclaration(argumentsLength)));
 
@@ -185,8 +204,8 @@ class CallbackSpecializer {
           IntConstant(positionalParametersLength),
         ),
         _generateDispatchCase(
-          function,
-          callbackVariable,
+          instantiatedFunctionType,
+          callbackFunctionVar,
           positionalParameters,
           positionalParametersLength,
           boxExternRef: boxExternRef,
@@ -204,8 +223,8 @@ class CallbackSpecializer {
         IfStatement(
           _util.variableCheckConstant(argumentsLength, IntConstant(i)),
           _generateDispatchCase(
-            function,
-            callbackVariable,
+            instantiatedFunctionType,
+            callbackFunctionVar,
             positionalParameters,
             i,
             boxExternRef: boxExternRef,
@@ -305,19 +324,19 @@ class CallbackSpecializer {
       FunctionNode(
         null,
         positionalParameters: [
-          Variable(
-            'thisModule',
-            type: _util.nonNullableWasmExternRefType,
+          PositionalParameter(
+            cosmeticName: 'wasmFunction',
+            type: _util.nonNullableWasmFuncRefType,
             isSynthesized: true,
           ),
-          Variable(
-            'dartFunction',
+          PositionalParameter(
+            cosmeticName: 'dartFunction',
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
           if (needsCastClosure)
-            Variable(
-              'castClosure',
+            PositionalParameter(
+              cosmeticName: 'castClosure',
               type: _util.nonNullableWasmExternRefType,
               isSynthesized: true,
             ),
@@ -331,7 +350,6 @@ class CallbackSpecializer {
       numJsParameters: jsParametersLength,
       captureThis: captureThis,
       needsCastClosure: needsCastClosure,
-      trampoline: functionTrampoline,
     ).applyToMember(dartProcedure, _util.coreTypes);
 
     return (dartProcedure, functionTrampoline);
@@ -362,13 +380,13 @@ class CallbackSpecializer {
   /// Returns the cast closure if needed. Otherwise, returns `null`.
   FunctionExpression? _createCastClosure(FunctionType functionType) {
     final positionalParameters = functionType.positionalParameters;
-    List<Variable> castClosureParameters = [];
+    List<PositionalParameter> castClosureParameters = [];
     List<Statement> casts = [];
     for (int i = 0; i < positionalParameters.length; i++) {
       final type = positionalParameters[i];
       if (_needCastClosure(type)) {
-        final parameter = Variable(
-          'x${i + 1}',
+        final parameter = PositionalParameter(
+          cosmeticName: 'x${i + 1}',
           type: _util.nullableJSValueType,
           isSynthesized: true,
         );
@@ -415,35 +433,30 @@ class CallbackSpecializer {
       captureThis: captureThis,
     );
     return _createJSValue(
-      BlockExpression(
-        Block([
-          // This ensures TFA will retain the function which the
-          // JS code will call. The backend in return will export
-          // the function due to `@pragma('wasm:weak-export', ...)`
-          ExpressionStatement(
-            StaticInvocation(
-              _util.exportWasmFunctionTarget,
-              Arguments([
-                ConstantExpression(StaticTearOffConstant(exportedFunction)),
-              ]),
+      StaticInvocation(
+        jsWrapperFunction,
+        Arguments([
+          StaticInvocation(
+            _util.wasmFunctionFromFunction,
+            Arguments(
+              [ConstantExpression(StaticTearOffConstant(exportedFunction))],
+              types: [
+                exportedFunction.function.computeFunctionType(
+                  Nullability.nonNullable,
+                ),
+              ],
             ),
           ),
-        ]),
-        StaticInvocation(
-          jsWrapperFunction,
-          Arguments([
-            StaticGet(_util.thisModuleGetter),
+          StaticInvocation(
+            _util.jsObjectFromDartObjectTarget,
+            Arguments([argument]),
+          ),
+          if (castClosure != null)
             StaticInvocation(
               _util.jsObjectFromDartObjectTarget,
-              Arguments([argument]),
+              Arguments([castClosure]),
             ),
-            if (castClosure != null)
-              StaticInvocation(
-                _util.jsObjectFromDartObjectTarget,
-                Arguments([castClosure]),
-              ),
-          ]),
-        ),
+        ]),
       ),
     );
   }

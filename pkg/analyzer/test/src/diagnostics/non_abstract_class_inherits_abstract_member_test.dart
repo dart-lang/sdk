@@ -144,8 +144,6 @@ class A {}
 part of 'a.dart';
 
 augment class A with M {}
-//            ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
 ''',
     });
   }
@@ -161,8 +159,56 @@ class A {}
 // [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
 
 augment class A with M {}
-//            ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'M.foo'.
+''');
+  }
+
+  test_class_abstract_implementsClause_method() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+abstract class B implements A {}
+''');
+  }
+
+  test_class_concrete_implementsClause_method() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+class B implements A {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+''');
+  }
+
+  test_class_concrete_implementsClause_method_hasClassAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+class B implements A {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+
+augment class B {}
+''');
+  }
+
+  test_class_concrete_implementsClause_method_hasClassAugmentation_withImplementsClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+class B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+
+augment class B implements A {}
 ''');
   }
 
@@ -244,6 +290,52 @@ enum E with M {
 // [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter M.foo'.
   v;
 }
+''');
+  }
+
+  test_enum_implementsClause_method() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+enum B implements A {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+  v;
+}
+''');
+  }
+
+  test_enum_implementsClause_method_hasEnumAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+enum B implements A {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+  v;
+}
+
+augment enum B {}
+''');
+  }
+
+  test_enum_implementsClause_method_hasEnumAugmentation_withImplementsClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo();
+}
+
+enum B {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+  v;
+}
+
+augment enum B implements A {}
 ''');
   }
 

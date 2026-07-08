@@ -95,9 +95,8 @@ abstract class _FlutterBaseWrapBuilder extends ResolvedCorrectionProducer {
         builder.writeln(';');
 
         builder.write(indentNew1);
-        var addTrailingCommas = getCodeStyleOptions(
-          unitResult.file,
-        ).addTrailingCommas;
+        var addTrailingCommas = getCodeStyleOptions(unitResult.file)
+            .addTrailingCommas;
         builder.writeln('}${addTrailingCommas ? "," : ""}');
 
         builder.write(indentOld);

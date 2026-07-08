@@ -134,6 +134,32 @@ class A {
 ''');
   }
 
+  test_enum_enumConstant_augmentedByEnumConstant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  foo
+}
+augment enum E {
+  augment foo,
+//        ^^^
+// [diag.constantVariableAugmentation] Variable augmentations can't be const.
+}
+''');
+  }
+
+  test_enum_nothing_augmentedByEnumConstant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  bar
+}
+augment enum E {
+  augment foo,
+//        ^^^
+// [diag.constantVariableAugmentation] Variable augmentations can't be const.
+}
+''');
+  }
+
   test_enum_staticGetter_augmentedByField() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

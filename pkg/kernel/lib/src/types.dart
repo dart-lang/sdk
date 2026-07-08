@@ -296,9 +296,9 @@ class Types with StandardBounds {
               }
             }
           }
-          sFunctionType =
-              instantiator.substitute(sFunctionType.withoutTypeParameters)
-                  as FunctionType;
+          sFunctionType = instantiator.substitute(
+            sFunctionType.withoutTypeParameters,
+          ) as FunctionType;
         }
         result = result.and(
           performSubtypeCheck(

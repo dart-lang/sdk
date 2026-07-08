@@ -485,11 +485,7 @@ final class _PhiIterator implements Iterator<Phi> {
 }
 
 /// Iterable over [Phi] instructions in the [JoinBlock].
-final class _PhiIterable extends Iterable<Phi> {
-  final JoinBlock _block;
-
-  _PhiIterable(this._block);
-
+final class _PhiIterable(final JoinBlock _block) extends Iterable<Phi> {
   @override
   Iterator<Phi> get iterator => _PhiIterator(_block);
 }
@@ -522,7 +518,15 @@ final class TargetBlock extends Block {
 /// to represent incoming values of local variables, exception object and
 /// stack trace.
 final class CatchBlock extends Block {
-  CatchBlock(super.graph, super.sourcePosition);
+  final List<ast.DartType> guardTypes;
+  final bool isSynthetic;
+
+  CatchBlock(
+    super.graph,
+    super.sourcePosition,
+    this.guardTypes, {
+    required this.isSynthetic,
+  });
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCatchBlock(this);
@@ -624,7 +628,7 @@ final class Unreachable extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitUnreachable(this);
 }
 
-enum ComparisonOpcode {
+enum ComparisonOpcode(final String token) {
   // Simple object pointer equality.
   equal('=='),
   notEqual('!='),
@@ -649,9 +653,6 @@ enum ComparisonOpcode {
   doubleGreater('double >'),
   doubleGreaterOrEqual('double >=');
 
-  final String token;
-  const ComparisonOpcode(this.token);
-
   bool get isIntComparison => switch (this) {
     intEqual ||
     intNotEqual ||
@@ -674,7 +675,16 @@ enum ComparisonOpcode {
     _ => false,
   };
 
-  ComparisonOpcode flipOperands() => switch (this) {
+  /// The opcode for an equivalent comparison with the operands swapped.
+  ///
+  /// For example, `a < b` is equivalent to `b > a`,
+  /// so [intLess] becomes [intGreater].
+  /// Symmetric opcodes, such as those for equality,
+  /// stay the same when swapped.
+  ///
+  /// Swapping preserves the comparison's result and strictness,
+  /// unlike [negate], which inverts the result.
+  ComparisonOpcode get swapped => switch (this) {
     equal ||
     notEqual ||
     identical ||
@@ -685,14 +695,14 @@ enum ComparisonOpcode {
     intTestIsNotZero ||
     doubleEqual ||
     doubleNotEqual => this,
-    intLess => intGreaterOrEqual,
-    intLessOrEqual => intGreater,
-    intGreater => intLessOrEqual,
-    intGreaterOrEqual => intLess,
-    doubleLess => doubleGreaterOrEqual,
-    doubleLessOrEqual => doubleGreater,
-    doubleGreater => doubleLessOrEqual,
-    doubleGreaterOrEqual => doubleLess,
+    intLess => intGreater,
+    intLessOrEqual => intGreaterOrEqual,
+    intGreater => intLess,
+    intGreaterOrEqual => intLessOrEqual,
+    doubleLess => doubleGreater,
+    doubleLessOrEqual => doubleGreaterOrEqual,
+    doubleGreater => doubleLess,
+    doubleGreaterOrEqual => doubleLessOrEqual,
   };
 
   bool get canBeNegated => switch (this) {
@@ -1241,7 +1251,8 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral], [AllocateMapLiteral] and [EnterSuspendableFunction].
+/// [AllocateListLiteral], [AllocateMapLiteral], [InstantiateClosure] and
+/// [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1422,6 +1433,29 @@ final class StringInterpolation extends Definition
   R accept<R>(InstructionVisitor<R> v) => v.visitStringInterpolation(this);
 }
 
+/// Instantiate a generic closure with given type arguments.
+final class InstantiateClosure extends Definition with CanThrow, Pure {
+  @override
+  final CType type;
+
+  InstantiateClosure(
+    super.graph,
+    super.sourcePosition,
+    Definition typeArguments,
+    Definition closure,
+    this.type,
+  ) : super(inputCount: 2) {
+    setInputAt(0, typeArguments);
+    setInputAt(1, closure);
+  }
+
+  Definition get typeArguments => inputDefAt(0);
+  Definition get closure => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitInstantiateClosure(this);
+}
+
 /// Enter a suspendable function.
 /// Type arguments of the function return value are provided as input.
 final class EnterSuspendableFunction extends Instruction
@@ -1479,7 +1513,7 @@ final class Suspend extends Definition with CanThrow, HasSideEffects {
   R accept<R>(InstructionVisitor<R> v) => v.visitSuspend(this);
 }
 
-enum BinaryIntOpcode {
+enum BinaryIntOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1492,9 +1526,6 @@ enum BinaryIntOpcode {
   shiftLeft('<<'),
   shiftRight('>>'),
   unsignedShiftRight('>>>');
-
-  final String token;
-  const BinaryIntOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul || bitOr || bitAnd || bitXor => true,
@@ -1541,15 +1572,12 @@ final class BinaryIntOp extends Definition with Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryIntOp(this);
 }
 
-enum UnaryIntOpcode {
+enum UnaryIntOpcode(final String token) {
   neg('-'),
   bitNot('~'),
   toDouble('toDouble'),
   abs('abs'),
-  sign('sign');
-
-  final String token;
-  const UnaryIntOpcode(this.token);
+  sign('sign')
 }
 
 /// Unary operation on the int operand.
@@ -1576,7 +1604,7 @@ final class UnaryIntOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryIntOp(this);
 }
 
-enum BinaryDoubleOpcode {
+enum BinaryDoubleOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1584,9 +1612,6 @@ enum BinaryDoubleOpcode {
   truncatingDiv('~/'),
   mod('%'),
   rem('remainder');
-
-  final String token;
-  const BinaryDoubleOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul => true,
@@ -1625,7 +1650,7 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryDoubleOp(this);
 }
 
-enum UnaryDoubleOpcode {
+enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
   sign('sign'),
@@ -1637,10 +1662,7 @@ enum UnaryDoubleOpcode {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble');
-
-  final String token;
-  const UnaryDoubleOpcode(this.token);
+  truncateToDouble('truncateToDouble')
 }
 
 /// Unary operation on the double operand.
@@ -1670,11 +1692,8 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryDoubleOp(this);
 }
 
-enum UnaryBoolOpcode {
-  not('!');
-
-  final String token;
-  const UnaryBoolOpcode(this.token);
+enum UnaryBoolOpcode(final String token) {
+  not('!')
 }
 
 /// Unary operation on the bool operand.

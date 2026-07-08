@@ -526,7 +526,6 @@ class Types {
 
   w.ValueType emitAsCheck(
     AstCodeGenerator codeGen,
-    bool isCovarianceCheck,
     DartType testedAgainstType,
     DartType operandType,
     w.RefType boxedOperandType, [
@@ -534,10 +533,10 @@ class Types {
   ]) {
     final b = codeGen.b;
 
-    // Keep casts inserted by the CFE to ensure soundness of covariant types.
-    final checkOnlyNullAssignability =
-        !isCovarianceCheck &&
-        _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
+    final checkOnlyNullAssignability = _requiresOnlyNullAssignabilityCheck(
+      operandType,
+      testedAgainstType,
+    );
 
     final asCheckers = asCheckersForModule(b.moduleBuilder);
     final (typeToCheck, :checkArguments) = asCheckers.canUseTypeCheckHelper(

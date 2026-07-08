@@ -381,11 +381,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var typeArguments = inferrer.chooseFinalTypes();
 
     if (expectError) {
-      expect(
-        listener.diagnostics.map((e) => e.diagnosticCode).toList(),
-        [diag.couldNotInfer],
-        reason: 'expected exactly 1 could not infer error.',
-      );
+      expect(listener.diagnostics.map((e) => e.diagnosticCode).toList(), [
+        diag.couldNotInfer,
+      ], reason: 'expected exactly 1 could not infer error.');
     } else {
       expect(
         listener.diagnostics,

@@ -5,6 +5,7 @@
 library a;
 
 import 'clash_lib.dart' as lib;
+
 import 'package:expect/expect.dart';
 
 class A extends lib.B {

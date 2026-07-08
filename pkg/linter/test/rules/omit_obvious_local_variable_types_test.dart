@@ -18,7 +18,7 @@ class OmitObviousLocalVariableTypesTest extends LintRuleTest {
   String get lintRule => LintNames.omit_obvious_local_variable_types;
 
   test_as() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!int!] i = n as int;
 }
@@ -28,7 +28,7 @@ num n = 1;
   }
 
   test_as_dynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!dynamic!] i = n as dynamic;
 }
@@ -38,7 +38,7 @@ num n = 1;
   }
 
   test_cascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!A!] a = A()..x..x..x;
 }
@@ -70,7 +70,7 @@ f() {
   }
 
   test_forEach_inferredList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for ([!String!] s in ['a', 'b', 'c']) { }
 }
@@ -114,7 +114,7 @@ var list = [1, -2, 3];
   }
 
   test_forEach_typedList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for ([!int!] i in <int>[1, -2, 3]) { }
 }
@@ -155,7 +155,7 @@ String f() {
   }
 
   test_instanceCreation_generic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!A<int>!] a = A<int>();
 }
@@ -175,7 +175,7 @@ class A<X> {}
   }
 
   test_instanceCreation_nonGeneric() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!A!] a = A();
 }
@@ -195,7 +195,7 @@ class A {}
   }
 
   test_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!List<String>!] a = ['a', 'b', ('c' as dynamic) as String];
 }
@@ -232,7 +232,7 @@ List<X> foo<X>(X x) => [x];
   }
 
   test_literal_bool() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!bool!] b = true;
 }
@@ -240,7 +240,7 @@ f() {
   }
 
   test_literal_double() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!double!] d = 1.5;
 }
@@ -257,7 +257,7 @@ f() {
   }
 
   test_literal_int() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!int!] i = 1;
 }
@@ -274,7 +274,7 @@ f() {
   }
 
   test_literal_string() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!String!] s = "A string";
 }
@@ -282,7 +282,7 @@ f() {
   }
 
   test_literal_symbol() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!Symbol!] s = #print;
 }
@@ -290,7 +290,7 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!String!] a = 'a', b = 'b';
 }
@@ -306,7 +306,7 @@ f() {
   }
 
   test_map() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!Map<double, String>!] a = {1.5: 'a'};
 }
@@ -350,7 +350,7 @@ var b = 'b';
   }
 
   test_parameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int parameter) {
   [!int!] i = parameter;
 }
@@ -358,7 +358,7 @@ void f(int parameter) {
   }
 
   test_parameter_of_literal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function f() {
   return (int parameter) {
     [!int!] i = parameter;
@@ -416,7 +416,7 @@ f() {
   }
 
   test_recordLiteral_positionalFields() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!(int, String)!] main = (1, 'a');
 }

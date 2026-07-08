@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,19 +17,16 @@ main() {
 @reflectiveTest
 class NonConstantMapValueFromDeferredLibraryTest
     extends PubPackageResolutionTest {
-  @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
-    // reports wrong error code
     newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) 'a': 'b' else 'c' : a.c};
-''',
-      [error(diag.nonConstantMapValueFromDeferredLibrary, 99, 3)],
-    );
+//                                            ^^^
+// [diag.nonConstantMapValue] The values in a const map literal must be constant.
+''');
   }
 
   test_const_ifElement_thenTrue_thenDeferred() async {

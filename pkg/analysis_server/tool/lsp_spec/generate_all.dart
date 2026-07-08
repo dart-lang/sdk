@@ -48,9 +48,8 @@ Future<void> main(List<String> arguments) async {
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
     generatedFileHeader(2018, importCustom: true) + specTypesOutput,
   );
-  File(
-    path.join(outFolder, 'protocol_custom_generated.dart'),
-  ).writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
+  File(path.join(outFolder, 'protocol_custom_generated.dart'))
+      .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
 const argDownload = 'download';
@@ -73,24 +72,28 @@ final String languageServerProtocolPackagePath = path.join(
   'language_server_protocol',
 );
 
-final String
-licenseComment = LineSplitter.split(File(localLicensePath).readAsStringSync())
-    .skipWhile(
-      (line) =>
-          line !=
-          'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
-    )
-    .skip(2)
-    .map((line) => line.isEmpty ? '//' : '// $line')
-    .join('\n');
+final String licenseComment =
+    LineSplitter.split(File(localLicensePath).readAsStringSync())
+        .skipWhile(
+          (line) => line != 'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
+        )
+        .skip(2)
+        .map((line) => line.isEmpty ? '//' : '// $line')
+        .join('\n');
 
 final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
 final String localSpecPath =
     '$languageServerProtocolPackagePath/lsp_meta_model.json';
+final String lspPackageReadmePath =
+    '$languageServerProtocolPackagePath/README.md';
 
-final String sdkRootPath = File(
-  Platform.script.toFilePath(),
-).parent.parent.parent.parent.parent.path;
+final String sdkRootPath = File(Platform.script.toFilePath())
+    .parent
+    .parent
+    .parent
+    .parent
+    .parent
+    .path;
 
 final Uri specLicenseUri = Uri.parse(
   'https://microsoft.github.io/language-server-protocol/License-code.txt',
@@ -99,7 +102,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the LSP meta model to generate from. This should
 /// be periodically updated to the latest version.
 final Uri specUri = Uri.parse(
-  'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json',
+  'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/metaModel/metaModel.json',
 );
 
 Future<void> downloadSpec() async {
@@ -109,6 +112,17 @@ Future<void> downloadSpec() async {
   assert(specResp.statusCode == 200);
   assert(licenseResp.statusCode == 200);
 
+  await File(lspPackageReadmePath).writeAsString('''
+The language server protocol
+
+The contents of LICENSE is downloaded from:
+
+$specLicenseUri
+
+The file lsp_meta_model.json is downloaded from:
+
+$specUri
+''');
   var dartSdkLicense = await File('$sdkRootPath/LICENSE').readAsString();
   await File(localSpecPath).writeAsString(specResp.body);
   await File(localLicensePath).writeAsString('''
@@ -137,8 +151,8 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:language_server_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -262,11 +276,19 @@ List<LspEntity> getCustomClasses() {
       field('label', type: 'string'),
     ]),
 
-    // Custom types for experimental SnippetTextEdits
+    // Custom types for experimental (legacy) SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
-    interface('SnippetTextEdit', [
-      field('insertTextFormat', type: 'InsertTextFormat'),
-    ], baseType: 'TextEdit'),
+    interface(
+      'LegacySnippetTextEdit',
+      [field('insertTextFormat', type: 'InsertTextFormat')],
+      baseType: 'TextEdit',
+      comment:
+          'A custom TextEdit that supports snippets according to the '
+          'specification at '
+          'https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit'
+          '. LSP v3.18 introduced standard (but slightly different) support '
+          'for SnippetTextEdits which replaces this. This will soon be removed.',
+    ),
     // Return type for refactor.validate command.
     interface('ValidateRefactorResult', [
       field('valid', type: 'boolean'),
@@ -287,6 +309,7 @@ List<LspEntity> getCustomClasses() {
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
         UnionType([
+          TypeReference('LegacySnippetTextEdit'),
           TypeReference('SnippetTextEdit'),
           TypeReference('AnnotatedTextEdit'),
           TypeReference('TextEdit'),
@@ -321,7 +344,7 @@ List<LspEntity> getCustomClasses() {
     // Support for the original (Dart-specific) interactive-refactors.
     ...interactiveRefactorsClasses,
 
-    // Support for the new (Go-specified) interactive-refactors.
+    // Support for Interactive Forms.
     ...interactiveFormClasses,
   ];
   return customTypes;

@@ -12,6 +12,7 @@ general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
+general/setter_parameters: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
 regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash

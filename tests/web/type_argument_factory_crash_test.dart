@@ -6,6 +6,7 @@
 library type.argument.factory.crash.test;
 
 import "package:expect/expect.dart";
+
 import 'dart:collection' show LinkedHashMap;
 
 void main() {

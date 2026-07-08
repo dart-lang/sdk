@@ -745,9 +745,8 @@ void testReplace(TestMode mode) {
   );
   Expect.equals(
     'foo-BAR-foo-bar',
-    r(
-      'foo-bar-foo-bar',
-    ).replaceFirstMapped(a('bar'), (v) => a(v[0]!.toUpperCase())),
+    r('foo-bar-foo-bar')
+        .replaceFirstMapped(a('bar'), (v) => a(v[0]!.toUpperCase())),
   );
 
   for (final string in [r(''), r('x'), r('foo'), r('x\u2000z')]) {

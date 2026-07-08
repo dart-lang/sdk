@@ -12,7 +12,6 @@ class C([int x = f()]);
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Method invocation is not a constant expression.
 
-
 enum E([int x = f()]) {
   //            ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION

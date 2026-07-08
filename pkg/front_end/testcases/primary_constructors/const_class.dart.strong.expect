@@ -7,7 +7,7 @@ library;
 //   const C0() {}
 //   ^^^^^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:45:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:46:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const E0(this.v) {}
 //   ^^^^^
@@ -17,10 +17,10 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:15:15: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:15:16: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   this: x = x {}
-//               ^
+//   this : x = x {}
+//                ^
 //
 // pkg/front_end/testcases/primary_constructors/const_class.dart:19:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
@@ -47,37 +47,37 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:50:8: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:52:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:56:8: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:59:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:62:15: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:66:16: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   this: v = v {}
-//               ^
+//   this : v = v {}
+//                ^
 //
 // pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   e0(0);
 //   ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:49:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:50:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   e0(0);
 //   ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:54:6: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:56:6: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   e0.someName(0);
 //      ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:60:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:63:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   e0(0);
 //   ^
@@ -95,7 +95,7 @@ class C1 extends core::Object /*hasConstConstructor*/  {
 }
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C2
+  const constructor •(core::int x) → self::C2
     : self::C2::x = x, super core::Object::•() {}
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
@@ -105,7 +105,7 @@ class C3 extends core::Object /*hasConstConstructor*/  {
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final initializing-formal core::int x) → self::C4
+  const constructor •(initializing-formal core::int x) → self::C4
     : self::C4::x = x, super core::Object::•() {}
 }
 class A extends core::Object /*hasConstConstructor*/  {
@@ -115,7 +115,7 @@ class A extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C5 extends self::A /*hasConstConstructor*/  {
-  const constructor •(final super-initializing-formal core::int x) → self::C5
+  const constructor •(super-initializing-formal core::int x) → self::C5
     : super self::A::•(x) {}
 }
 class E0 extends core::_Enum /*isEnum*/  {
@@ -140,7 +140,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = invalid-expression "A const constructor can't have a body.";
   final field core::int v;
   static const field core::List<self::E2> values = invalid-expression "A const constructor can't have a body.";
-  const constructor someName(core::int #index, core::String #name, final initializing-formal core::int v) → self::E2
+  const constructor someName(core::int #index, core::String #name, initializing-formal core::int v) → self::E2
     : self::E2::v = v, super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -149,7 +149,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E3 e0 = invalid-expression "A const constructor can't have a body.";
   final field core::int v;
   static const field core::List<self::E3> values = invalid-expression "A const constructor can't have a body.";
-  const constructor •(core::int #index, core::String #name, final core::int v) → self::E3
+  const constructor •(core::int #index, core::String #name, core::int v) → self::E3
     : self::E3::v = v, super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";

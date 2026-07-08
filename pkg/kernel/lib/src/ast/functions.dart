@@ -39,9 +39,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
 
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
-  List<Variable> positionalParameters;
-  List<Variable> namedParameters;
-  Variable? thisVariable;
+  List<PositionalParameter> positionalParameters;
+  List<NamedParameter> namedParameters;
+  ThisVariable? thisVariable;
   DartType returnType; // Not null.
   Statement? _body;
 
@@ -104,34 +104,35 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   new(
     this._body, {
     List<TypeParameter>? typeParameters,
-    List<Variable>? positionalParameters,
-    List<Variable>? namedParameters,
+    List<PositionalParameter>? positionalParameters,
+    List<NamedParameter>? namedParameters,
     int? requiredParameterCount,
     this.returnType = const DynamicType(),
     this.asyncMarker = AsyncMarker.Sync,
     AsyncMarker? dartAsyncMarker,
     this.emittedValueType,
     this.thisVariable,
-  }) : this.positionalParameters = positionalParameters ?? <Variable>[],
+  }) : this.positionalParameters = positionalParameters ?? [],
        this.requiredParameterCount =
            requiredParameterCount ?? positionalParameters?.length ?? 0,
-       this.namedParameters = namedParameters ?? <Variable>[],
+       this.namedParameters = namedParameters ?? [],
        this.typeParameters = typeParameters ?? <TypeParameter>[],
        this.dartAsyncMarker = dartAsyncMarker ?? asyncMarker {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
+    thisVariable?.parent = this;
     _body?.parent = this;
   }
 
   static DartType _getTypeOfVariable(Variable node) => node.type;
 
   static NamedType _getNamedTypeOfVariable(
-    Variable node, [
+    NamedParameter node, [
     Substitution? substitution,
   ]) {
     return new NamedType(
-      node.name!,
+      node.parameterName,
       substitution != null ? substitution.substituteType(node.type) : node.type,
       isRequired: node.isRequired,
     );
@@ -180,8 +181,8 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   static FunctionType computeFunctionTypeFromData({
     required DartType returnType,
     required List<TypeParameter> typeParameters,
-    required List<Variable> positionalParameters,
-    required List<Variable> namedParameters,
+    required List<PositionalParameter> positionalParameters,
+    required List<NamedParameter> namedParameters,
     required Nullability nullability,
     required int requiredParameterCount,
   }) {
@@ -259,6 +260,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType.accept(v);
+    thisVariable?.accept(v);
     emittedValueType?.accept(v);
     redirectingFactoryTarget?.target?.acceptReference(v);
     if (redirectingFactoryTarget?.typeArguments != null) {
@@ -273,6 +275,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     v.transformList(positionalParameters, this);
     v.transformList(namedParameters, this);
     returnType = v.visitDartType(returnType);
+    if (thisVariable != null) {
+      thisVariable = v.transform(thisVariable!)..parent = this;
+    }
     if (emittedValueType != null) {
       emittedValueType = v.visitDartType(emittedValueType!);
     }
@@ -291,6 +296,10 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     v.transformVariableList(positionalParameters, this);
     v.transformVariableList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
+    if (thisVariable != null) {
+      thisVariable = v.transformOrRemove(thisVariable!, dummyThisVariable)
+        ?..parent = this;
+    }
     if (emittedValueType != null) {
       emittedValueType = v.visitDartType(
         emittedValueType!,

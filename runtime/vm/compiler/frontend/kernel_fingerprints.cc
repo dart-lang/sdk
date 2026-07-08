@@ -91,6 +91,7 @@ void KernelFingerprintHelper::CalculateArgumentsFingerprint() {
 void KernelFingerprintHelper::CalculateVariableDeclarationFingerprint() {
   ReadTag();       // read tag.
   ReadPosition();  // read position.
+  SkipCapturedContexts();
   CalculateVariableFingerprint();
 }
 
@@ -493,6 +494,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
       CalculateArgumentsFingerprint();           // read arguments.
       SkipDartType();                            // read function_type.
+      SkipDartType();                            // read result_type.
       CalculateMethodNameFingerprint();  // read interface_target_reference.
       return;
     case kDynamicInvocation:
@@ -652,8 +654,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kBlockExpression:
       ReadPosition();  // read position.
+      ReadUInt();      // read scope size.
       CalculateStatementListFingerprint();
       CalculateExpressionFingerprint();  // read expression.
+      SkipScope();
       return;
     case kInstantiation:
       ReadPosition();                         // read position.
@@ -756,7 +760,9 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
     case kBlock:
       ReadPosition();  // read file offset.
       ReadPosition();  // read file end offset.
+      ReadUInt();      // read scope size.
       CalculateStatementListFingerprint();
+      SkipScope();
       return;
     case kEmptyStatement:
       return;
@@ -781,8 +787,10 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     case kWhileStatement:
       ReadPosition();                    // read position.
+      ReadUInt();                        // read scope size.
       CalculateExpressionFingerprint();  // read condition.
       CalculateStatementFingerprint();   // read body.
+      SkipScope();
       return;
     case kDoStatement:
       ReadPosition();                    // read position.
@@ -791,6 +799,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     case kForStatement: {
       ReadPosition();                                    // read position.
+      ReadUInt();                                        // read scope size.
       CalculateListOfVariableDeclarationsFingerprint();  // read variables.
       Tag tag = ReadTag();  // Read first part of condition.
       if (tag == kSomething) {
@@ -798,6 +807,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       }
       CalculateListOfExpressionsFingerprint();  // read updates.
       CalculateStatementFingerprint();          // read body.
+      SkipScope();
       return;
     }
     case kSwitchStatement: {
@@ -844,6 +854,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       intptr_t catch_count = ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
         ReadPosition();                  // read position.
+        ReadUInt();                      // read scope size.
         CalculateDartTypeFingerprint();  // read guard.
         tag = ReadTag();                 // read first part of exception.
         BuildHash(tag);
@@ -856,6 +867,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
           CalculateVariableFingerprint();  // read stack trace.
         }
         CalculateStatementFingerprint();  // read body.
+        SkipScope();
       }
       return;
     }
@@ -906,12 +918,16 @@ uint32_t KernelFingerprintHelper::CalculateFieldFingerprint() {
   field_helper.SetJustRead(FieldHelper::kType);
 
   if (ReadTag() == kSomething) {
+    SkipVariable();  // read this_variable.
+  }
+  if (ReadTag() == kSomething) {
     if (PeekTag() == kFunctionExpression) {
       AlternativeReadingScope alt(&reader_);
       CalculateExpressionFingerprint();
     }
-    SkipExpression();
+    SkipExpression();  // read initializer.
   }
+  SkipScope();
 
   BuildHash(name.Hash());
   BuildHash(field_helper.flags_);
@@ -946,6 +962,8 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   if (ReadTag() == kSomething) {
     CalculateStatementFingerprint();  // Read body.
   }
+  SkipScope();
+  SkipCapturedContexts();
   BuildHash(function_node_helper.total_parameter_count_);
   BuildHash(function_node_helper.required_parameter_count_);
 }

@@ -107,6 +107,13 @@ class Merger {
 }
 
 extension YamlMapExtensions on YamlMap {
+  /// Return [nodes] as entries with [YamlNode] keys and values.
+  Iterable<({YamlNode keyNode, YamlNode valueNode})> get nodeEntries sync* {
+    for (var MapEntry(:key, :value) in nodeMap.entries) {
+      yield (keyNode: key, valueNode: value);
+    }
+  }
+
   /// Return [nodes] as a Map with [YamlNode] keys.
   Map<YamlNode, YamlNode> get nodeMap => nodes.cast<YamlNode, YamlNode>();
 

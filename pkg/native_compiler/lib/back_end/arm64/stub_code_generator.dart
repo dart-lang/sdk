@@ -16,7 +16,7 @@ abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
   final Arm64Assembler _asm;
 
   Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout)
-    : _asm = Arm64Assembler(vmOffsets, objectLayout);
+    : _asm = Arm64Assembler(vmOffsets, null, objectLayout);
 
   void _generate();
 
@@ -136,6 +136,7 @@ final class TypeTestingStub {
   static const Register subtypeTestCacheReg = R3;
   static const Register scratchReg = R4;
   static const Register subtypeTestCacheResultReg = R7;
+  static const Register entryPointReg = R9;
 }
 
 final class InstantiateTypeArgumentsStub {

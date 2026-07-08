@@ -1005,8 +1005,26 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    visited.add(VariableKind.LocalFunctionVariable);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
     visited.add(VariableKind.LateVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    visited.add(VariableKind.ConstVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    visited.add(VariableKind.SyntheticVariable);
     node.visitChildren(this);
   }
 
@@ -1031,18 +1049,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitThisVariable(ThisVariable node) {
     visited.add(VariableKind.ThisVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSyntheticVariable(SyntheticVariable node) {
-    visited.add(VariableKind.SyntheticVariable);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLegacyVariable(LegacyVariable node) {
-    visited.add(NodeKind.LegacyVariable);
     node.visitChildren(this);
   }
 
@@ -1343,7 +1349,6 @@ enum NodeKind {
   Extension,
   ExtensionTypeDeclaration,
   FunctionNode,
-  LegacyVariable,
   Library,
   LibraryDependency,
   LibraryPart,
@@ -1496,7 +1501,9 @@ enum StatementKind {
 
 enum VariableKind {
   CatchVariable,
+  ConstVariable,
   LateVariable,
+  LocalFunctionVariable,
   LocalVariable,
   NamedParameter,
   PositionalParameter,

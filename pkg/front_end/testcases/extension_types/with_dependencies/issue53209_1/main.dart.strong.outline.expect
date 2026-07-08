@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:8:46: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
-//   factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
-//                                              ^
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:9:7: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
+//       E2.redirectingFactoryWithMismatchingParameters;
+//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -23,13 +23,13 @@ static extension-type-member method E1|constructor#(initializing-formal core::St
 static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::String foo) → self::E1% /* erasure=core::String, declared=! */
   return self::E1|constructor#(foo);
 static extension-type-member method E1|constructor#redirectingFactoryToSubtype() → self::E1% /* erasure=core::String, declared=! */
-  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:8:46: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
-  factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
-                                             ^";
+  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:9:7: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
+      E2.redirectingFactoryWithMismatchingParameters;
+      ^";
 static extension-type-member synthetic method E1|constructor#_#redirectingFactoryToSubtype#tearOff() → self::E1% /* erasure=core::String, declared=! */
-  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:8:46: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
-  factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
-                                             ^";
+  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:9:7: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
+      E2.redirectingFactoryWithMismatchingParameters;
+      ^";
 
 library;
 //

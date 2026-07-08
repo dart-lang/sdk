@@ -191,10 +191,8 @@ void f(C c) {
               'end': {'offset': 72, 'line': 4, 'column': 17},
             },
           },
-          'problemMessage':
-              "The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.",
-          'correctionMessage':
-              "Try making the access conditional (using '?.') or adding a null check to the target ('!').",
+          'problemMessage': "The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.",
+          'correctionMessage': "Try making the access conditional (using '?.') or adding a null check to the target ('!').",
           'contextMessages': [
             {
               'location': {
@@ -204,8 +202,7 @@ void f(C c) {
                   'end': {'offset': 26, 'line': 2, 'column': 17},
                 },
               },
-              'message':
-                  "'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field",
+              'message': "'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field",
             },
           ],
           'documentation':
@@ -249,8 +246,7 @@ void f() {
             },
           },
           'problemMessage': "Undefined name 'x'.",
-          'correctionMessage':
-              'Try correcting the name to one that is defined, or defining the name.',
+          'correctionMessage': 'Try correcting the name to one that is defined, or defining the name.',
           'documentation': 'https://dart.dev/diagnostics/undefined_identifier',
         },
       ],

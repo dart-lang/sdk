@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -15,21 +15,21 @@ main() {
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions
-/// in one or another Analyzer subsystem. We are not interested not in specific
-/// errors generated, but we want to make sure that there is at least one,
-/// and analysis finishes without exceptions.
+/// in one or another Analyzer subsystem. We are not interested in specific
+/// diagnostics, but we want to make sure there is at least one, and analysis
+/// finishes without exceptions.
 @reflectiveTest
 class InvalidCodeTest extends PubPackageResolutionTest {
   // TODO(srawlins): Use null safety in test cases.
   // https://github.com/dart-lang/sdk/issues/44666
   test_const_AwaitExpression() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 const a = await b();
 ''');
   }
 
   test_const_ForPartsWithExpression() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 @A([for (;;) 0])
 void f() {}
 ''');
@@ -39,7 +39,7 @@ void f() {}
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
   test_constructorAndMethodNameCollision() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   var f = { : };
   @ ();
@@ -48,7 +48,7 @@ class C {
   }
 
   test_constructorDeclaration_named_missingName() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   C.();
 }
@@ -56,7 +56,7 @@ class C {
   }
 
   test_constructorDeclaration_named_missingName_factory() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   factory C.();
 }
@@ -64,7 +64,7 @@ class C {
   }
 
   test_duplicateName_class_enum() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class A<T> {
   void foo(B b) {
     b.bar(this);
@@ -82,7 +82,7 @@ enum A {
   }
 
   test_extensionOverrideInAnnotationContext() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class R {
   const R(int x);
 }
@@ -100,7 +100,7 @@ extension E on Object {
   int f() => 0;
 }
 ''');
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 import 'a.dart' as prefix;
 
 class A {
@@ -114,7 +114,7 @@ void g() {}
   }
 
   test_extensionOverrideInConstContext() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 extension E on Object {
   int f() => 0;
 }
@@ -124,7 +124,7 @@ const e = E(null).f();
   }
 
   test_fieldFormalParameter_annotation_localFunction() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 void main() {
   void foo(@deprecated this.bar) {}
 }
@@ -132,7 +132,7 @@ void main() {
   }
 
   test_functionExpression_emptyBody() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 var v = <T>();
 ''');
   }
@@ -140,13 +140,13 @@ var v = <T>();
   test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
     // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
     // we parse it as FunctionExpressionInvocation.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 var v = a?.8(b);
 ''');
   }
 
   test_fuzz_01() async {
-    var result = await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeResolved(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
     var alias = result.findElement.typeAlias('F');
@@ -160,19 +160,19 @@ typedef F = void Function(bool, int a(double b));
   }
 
   test_fuzz_02() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class G<class G{d
 ''');
   }
 
   test_fuzz_03() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class{const():super.{n
 ''');
   }
 
   test_fuzz_04() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 f({a: ({b = 0}) {}}) {}
 ''');
   }
@@ -182,13 +182,13 @@ f({a: ({b = 0}) {}}) {}
     // This triggers "reference before declaration" diagnostics.
     // It attempts to ask the enclosing unit element for "v".
     // Every (not library or unit) element must have the enclosing unit.
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 f({a = [for (v v in [])]}) {}
 ''');
   }
 
   test_fuzz_06() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class C {
   int f;
   set f() {}
@@ -198,7 +198,7 @@ class C {
 
   test_fuzz_07() async {
     // typedef v(<T extends T>(e
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 typedef F(a<TT extends TT>(e));
 ''');
   }
@@ -208,7 +208,7 @@ typedef F(a<TT extends TT>(e));
     //    v=((){try catch
     // When we resolve initializers of typed constant variables,
     // we should build locale elements.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class C {
   const Object v = () { var a = 0; };
 }
@@ -216,7 +216,7 @@ class C {
   }
 
   test_fuzz_09() async {
-    var result = await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeResolved(r'''
 typedef void F(int a, this.b);
 ''');
     var alias = result.findElement.typeAlias('F');
@@ -230,7 +230,7 @@ typedef void F(int a, this.b);
   }
 
   test_fuzz_10() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 void f<@A(() { Function() v; }) T>() {}
 ''');
   }
@@ -240,17 +240,17 @@ void f<@A(() { Function() v; }) T>() {}
     // so we did not read metadata `@b` for `c`. But default values must be
     // read fully.
     // Fixed 2020-11-12.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');
   }
 
   test_fuzz_13() async {
     // `x is int` promotes the type of `x` to `S extends int`, and the
-    // underlying element is `TypeParameterMember`, which by itself is
-    // questionable.  But this is not a valid constant anyway, so we should
-    // not even try to serialize it.
-    await _assertCanBeAnalyzed(r'''
+    // underlying element is a substituted type parameter element, which by
+    // itself is questionable. But this is not a valid constant anyway, so we
+    // should not even try to serialize it.
+    await _assertCanBeResolved(r'''
 const v = [<S extends num>(S x) => x is int ? x : 0];
 ''');
   }
@@ -259,7 +259,7 @@ const v = [<S extends num>(S x) => x is int ? x : 0];
     // This crashed because parser produces `ConstructorDeclaration`.
     // So, we try to create `ConstructorElement` for it, and it wants
     // `ClassElement` as the enclosing element. But we have `ExtensionElement`.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 extension E {
   factory S() {}
 }
@@ -269,7 +269,7 @@ extension E {
   test_fuzz_15() async {
     // `@A` is not a valid annotation, it is missing arguments.
     // There was a bug that we did not check for arguments being missing.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class A<T> {}
 
 @A
@@ -281,7 +281,7 @@ class B {}
     // The default constructor of `A` does not have formal parameters.
     // But we give it arguments.
     // There was a bug that we did not check for this mismatch.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class A<T> {}
 
 @A(0)
@@ -292,14 +292,14 @@ class B {}
   test_fuzz_38091() async {
     // https://github.com/dart-lang/sdk/issues/38091
     // this caused an infinite loop in parser recovery
-    await _assertCanBeAnalyzed(r'c(=k(<)>');
+    await _assertCanBeResolved('c(=k(<)>');
   }
 
   test_fuzz_38506() async {
     // https://github.com/dart-lang/sdk/issues/38506
     // We have only one LibraryElement to get resolved annotations.
     // Leave annotations node of other LibraryDirective(s) unresolved.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 library c;
 @foo
 library c;
@@ -308,7 +308,7 @@ library c;
 
   test_fuzz_38878() async {
     // We should not attempt to resolve `super` in annotations.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class C {
   @A(super.f())
   f(int x) {}
@@ -320,7 +320,7 @@ class C {
     // When we enter a directive, we should stop using the element walker
     // of the unit, just like when we enter a method body. Even though using
     // interpolation is not allowed in any directives.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 import '${[for(var v = 0;;) v]}';
 export '${[for(var v = 0;;) v]}';
 part '${[for(var v = 0;;) v]}';
@@ -328,43 +328,43 @@ part '${[for(var v = 0;;) v]}';
   }
 
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 C<int Function()> c;
 ''');
   }
 
   test_inAnnotation_noFlow_labeledStatement() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 @A(() { label: })
 typedef F = void Function();
 ''');
   }
 
   test_inDefaultValue_noFlow_ifExpression() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 typedef void F({a = [if (true) 0]});
 ''');
   }
 
   test_inDefaultValue_noFlow_ifStatement() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 typedef void F([a = () { if (true) 0; }]);
 ''');
   }
 
   test_invalid_unicode() async {
-    await assertErrorsInCode('\uFFFD', [error(diag.encoding, 0, 1)]);
+    await _assertCanBeResolved('\uFFFD');
   }
 
   test_invalidPart_withPart() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 part of a;
 part 'test.dart';
 ''');
   }
 
   test_issue_40837() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class A {
   const A(_);
 }
@@ -378,7 +378,7 @@ class B {}
     // During parsing we recover as `<synthetic>.bar.baz()`.
     // So, we have a synthetic empty identifier.
     // There was a bug - we considered it a reference to the unnamed extension.
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 void f() {
   final foo.bar.baz();
 }
@@ -388,7 +388,7 @@ extension on int {}
   }
 
   test_issue_52363() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 class A {
   const a = (var b,) = (0,);
 }
@@ -396,7 +396,7 @@ class A {
   }
 
   test_issue_52432() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 void f() {
   void g([super.foo]) {}
 }
@@ -404,7 +404,7 @@ void f() {
   }
 
   test_keywordInConstructorInitializer_assert() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   C() : assert = 0;
 }
@@ -412,7 +412,7 @@ class C {
   }
 
   test_keywordInConstructorInitializer_null() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   C() : null = 0;
 }
@@ -420,7 +420,7 @@ class C {
   }
 
   test_keywordInConstructorInitializer_super() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   C() : super = 0;
 }
@@ -428,7 +428,7 @@ class C {
   }
 
   test_keywordInConstructorInitializer_this() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class C {
   C() : this = 0;
 }
@@ -436,7 +436,7 @@ class C {
   }
 
   test_libraryAfterImport() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 import 'dart:async';
 @foo
 library my;
@@ -444,7 +444,7 @@ library my;
   }
 
   test_localFunction_defaultFieldFormalParameter_metadata() async {
-    await _assertCanBeAnalyzed(r'''
+    await _assertCanBeResolved(r'''
 const my = 0;
 
 void foo() {
@@ -455,13 +455,13 @@ void foo() {
   }
 
   test_syntheticImportPrefix() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 import 'dart:math' as;
 ''');
   }
 
   test_typeBeforeAnnotation() async {
-    await _assertCanBeAnalyzed('''
+    await _assertCanBeResolved('''
 class A {
   const A([x]);
 }
@@ -471,9 +471,9 @@ class B {
 ''');
   }
 
-  Future<TestResolvedUnitResult> _assertCanBeAnalyzed(String text) async {
+  Future<TestResolvedUnitResult> _assertCanBeResolved(String text) async {
     var result = await resolveTestCode(text);
-    assertHasTestErrors(result);
+    expect(result.diagnostics, isNotEmpty);
     return result;
   }
 }

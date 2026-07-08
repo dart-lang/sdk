@@ -27,4 +27,4 @@ The declaration will be sorted using the name `x`.
 ## Primary constructor bodies
 
 A primary constructor body is placed in its own group, and that group always
-sorts immediately before secondary constructors.
+sorts immediately before in-body constructors.

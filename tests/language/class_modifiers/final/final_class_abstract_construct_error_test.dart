@@ -7,6 +7,7 @@
 abstract final class NotConstructable {}
 
 mixin M {}
+
 abstract final class AlsoNotConstructable = Object with M;
 
 main() {

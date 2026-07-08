@@ -67,6 +67,13 @@ To learn more about the feature, check out the
 
 [primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
 
+#### Other changes
+
+- **Breaking change**: A minor change has been made to type promotion to avoid
+  unsound behavior. See SDK issue [#62889][] for details.
+
+[#62889]: https://github.com/dart-lang/sdk/issues/62889
+
 ### Libraries
 
 #### `dart:async`
@@ -99,6 +106,8 @@ To learn more about the feature, check out the
   instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
   and overrides `addresses` will need to update the return type.
   For more details, see SDK issue [#63216][].
+- The `InternetAddress.lookup` function no longer accepts invalid
+  IPv4 addresses that are traditionally accepted by `inet_aton`.
 
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
 
@@ -111,6 +120,7 @@ To learn more about the feature, check out the
   purely descriptive and intended for increased static type safety. Importantly,
   the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
   For more details, see SDK issue [#54557][].
+- `JSObject.getPrototypeOf` is added.
 
 [#54557]: https://github.com/dart-lang/sdk/issues/54557
 
@@ -118,104 +128,84 @@ To learn more about the feature, check out the
 
 #### Analyzer
 
+- A `no_raw_types` lint rule is introduced, which replaces the
+  `strict-raw-types` analysis option, offering a more consistent approach.
+- A `no_dynamic_casts` lint rule is introduced, which replaces the
+  `strict-casts` analysis option, offering a more consistent approach.
 - The following lint rules have been determined to be low value, and are
-  deprecated: `avoid_public_typedef_functions`, and `one_member_abstracts`.
+  deprecated: `avoid_private_typedef_functions`, and `one_member_abstracts`.
   If there is desire to keep using these, they can be re-implemented with
   [analyzer plugins][].
 
 [analyzer plugins]: https://dart.dev/tools/analyzer-plugins
 
-#### Dart format
+#### Formatter
 
-These changes are not language versioned and affect formatting all code:
+- Don't crash if an `analysis_options.yaml` file has an `include` that points to
+  a non-existent or unreadable file ([dart_style #1840][]).
 
-- Fix a bug where some collections or arguments might split unnecessarily.
+The following minor style bug fixes are not language versioned and apply to all
+formatted code:
+
+- Fix a bug in eager splitting optimization that in rare cases would lead to a
+  collection or argument list splitting unnecessarily ([dart_style #1809][]).
 
 - Don't add a blank line before a comment at the end of a compilation unit or
-  braced body.
+  braced body ([dart_style #1644][]).
 
 - Format extension type representation clauses the same way primary constructor
-  formal parameter lists are formatted:
-
-  ```dart
-  // Before:
-  extension type JSExportedDartFunction._(
-    JSExportedDartFunctionRepType _jsExportedDartFunction
-  )
-      implements JSFunction {}
-
-  // After:
-  extension type JSExportedDartFunction._(
-    JSExportedDartFunctionRepType _jsExportedDartFunction
-  ) implements JSFunction {}
-  ```
+  formal parameter lists are formatted.
 
 - When trailing commas are preserved, don't insert a newline before the `;` in
   an enum with members unless there actually is a trailing comma.
   (Fix by @Barbirosha.)
 
-These changes are [language versioned][] and only affect code at 3.13 or higher:
+The following changes only apply when formatting code at language version 3.13
+or higher:
 
-- Support block formatting parameter lists:
+- Fix a bug in an eager splitting optimization that would led the formatter to
+  prefer less desirable solutions ([dart_style #1847][]).
 
-  ```dart
-  // Before:
-  typedef DataViewBuilder<T> =
-      Widget Function(
-        BuildContext context,
-        PagingState<int, T> state,
-        NextPageCallback fetchNextPage,
-      );
+- Prefer to split call chains for single-element targets ([dart_style #1732][]).
 
-  // After:
-  typedef DataViewBuilder<T> = Widget Function(
-    BuildContext context,
-    PagingState<int, T> state,
-    NextPageCallback fetchNextPage,
-  );
-  ```
+- Allow block formatting parameter lists ([dart_style #1693][]).
 
-- Allow `as`, `is`, and `is!` expressions to be block formatted:
+- Allow `as`, `is`, and `is!` expressions to be block formatted
+  ([dart_style #1542][]).
 
-  ```dart
-  // Before:
-  variable =
-      function(
-            argument,
-            argument,
-            argument,
-          )
-          as Type;
+- Separate imports into sections ([dart_style #1120][]).
 
-  // After:
-  variable = function(
-    argument,
-    argument,
-    argument,
-  ) as Type;
-  ```
+- In if-case pieces, split the guard if the pattern block-splits
+  ([dart_style #1596][]).
+
+- When no solution fits the page width, prefer solutions where the overflowing
+  lines have trailing string literals or comments ([dart_style #1802][],
+  [dart_style #1803][], [dart_style #1837][]).
 
 - Force blank lines around a mixin or extension type declaration if it doesn't
-  have a `;` body:
+  have a `;` body.
 
-  ```dart
-  // Before:
-  int above;
-  extension type Inches(int x) {}
-  mixin M {}
-  int below;
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+[dart_style #1809]: https://github.com/dart-lang/dart_style/issues/1809
+[dart_style #1644]: https://github.com/dart-lang/dart_style/issues/1644
+[dart_style #1847]: https://github.com/dart-lang/dart_style/issues/1847
+[dart_style #1732]: https://github.com/dart-lang/dart_style/issues/1732
+[dart_style #1693]: https://github.com/dart-lang/dart_style/issues/1693
+[dart_style #1542]: https://github.com/dart-lang/dart_style/issues/1542
+[dart_style #1120]: https://github.com/dart-lang/dart_style/issues/1120
+[dart_style #1596]: https://github.com/dart-lang/dart_style/issues/1596
+[dart_style #1802]: https://github.com/dart-lang/dart_style/issues/1802
+[dart_style #1803]: https://github.com/dart-lang/dart_style/issues/1803
+[dart_style #1837]: https://github.com/dart-lang/dart_style/issues/1837
 
-  // After:
-  int above;
+#### Dart CLI
 
-  extension type Inches(int x) {}
-
-  mixin M {}
-
-  int below;
-  ```
-
-[language versioned]: https://dart.dev/to/language-version
+- Added support for cross-compilation to the `dart build cli` command via the
+  `--target-os` and `--target-arch` flags.
+- Both `dart build` and `dart compile` now support using locally-built target
+  binaries from a local SDK build directory (identifiable by the presence of a
+  `build.ninja` file), avoiding the need to download them from Google Cloud
+  Storage.
 
 ### Dart Runtime
 
@@ -226,7 +216,7 @@ certificates if the system certificates cannot be found.
 
 ## 3.12.0
 
-**Released on:** Unreleased
+**Released on:** 2026-05-20
 
 ### Language
 

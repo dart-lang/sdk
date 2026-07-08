@@ -19,7 +19,6 @@ import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dar
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.

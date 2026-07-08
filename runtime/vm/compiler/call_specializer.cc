@@ -895,7 +895,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (!dst_type.IsTopTypeForSubtyping()) {
+  if (!dst_type.IsTopType()) {
     // Compute if we need to type check the value. Always type check if
     // at a dynamic invocation.
     bool needs_check = true;
@@ -1105,14 +1105,11 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     }
     bool is_subtype = false;
     if (cls.IsNullClass()) {
-      // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
-      // In addition, 'null' is an instance of any nullable type.
+      // 'null' is an instance of any nullable type including
+      // Null, Object?, void and dynamic.
       // It is also an instance of FutureOr<T> if it is an instance of T.
-      const AbstractType& unwrapped_type =
-          AbstractType::Handle(type.UnwrapFutureOr());
-      ASSERT(unwrapped_type.IsInstantiated());
-      is_subtype = unwrapped_type.IsTopTypeForInstanceOf() ||
-                   unwrapped_type.IsNullable();
+      ASSERT(type.IsInstantiated());
+      is_subtype = Instance::NullIsAssignableTo(type);
     } else {
       is_subtype =
           Class::IsSubtypeOf(cls, Object::null_type_arguments(),
@@ -1140,6 +1137,11 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type,
   if (!type.IsInstantiated()) return false;
   // Function and record types have different type checking rules.
   if (type.IsFunctionType() || type.IsRecordType()) return false;
+  // A class id check is not sufficient for FutureOr, Never and nullable types.
+  if (type.IsFutureOrType() || type.IsNeverType() ||
+      Instance::NullIsAssignableTo(type)) {
+    return false;
+  }
 
   const Class& type_class = Class::Handle(type.type_class());
   if (!CHA::HasSingleConcreteImplementation(type_class, type_cid)) {
@@ -1157,13 +1159,6 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type,
     if (!is_raw_type) {
       return false;
     }
-  }
-  if (type.IsNullable() || type.IsTopTypeForInstanceOf() ||
-      type.IsNeverType()) {
-    // A class id check is not sufficient, since a null instance also satisfies
-    // the test against a nullable type.
-    // TODO(regis): Add a null check in addition to the class id check?
-    return false;
   }
   return true;
 }
@@ -1192,31 +1187,15 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     return true;
   }
 
-  // The goal is to emit code that will determine the result of 'x is type'
-  // depending solely on the fact that x == null or not.
-  // Checking whether the receiver is null can only help if the tested type is
-  // non-nullable or legacy (including Never*) or the Null type.
-  // Also, testing receiver for null cannot help with FutureOr.
-  if ((type.IsNullable() && !type.IsNullType()) || type.IsFutureOrType()) {
-    return false;
-  }
-
-  // If type is Null or the static type of the receiver is a
-  // subtype of the tested type, replace 'receiver is type' with
-  //  - 'receiver == null' if type is Null,
-  //  - 'receiver != null' otherwise.
-  if (type.IsNullType() || left_value->Type()->IsSubtypeOf(type)) {
+  // Replace 'receiver is Null' with 'receiver == null'.
+  if (type.IsNullType()) {
     Definition* replacement = new (Z) StrictCompareInstr(
-        call->source(),
-        type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
-        left_value->CopyWithType(Z),
+        call->source(), Token::kEQ_STRICT, left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /*needs_number_check=*/false, DeoptId::kNone);
     if (FLAG_trace_strong_mode_types) {
-      THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
-                call->ToCString(), replacement->ToCString(),
-                left_value->Type()->ToAbstractType()->ToCString(),
-                type.ToCString());
+      THR_Print("[Strong mode] replacing %s with %s\n", call->ToCString(),
+                replacement->ToCString());
     }
     ReplaceCall(call, replacement);
     return true;
@@ -2401,6 +2380,22 @@ class SimdLowering : public ValueObject {
         Gather(4);
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4GetX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(0, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(1, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(2, kUnboxedInt32);
+        return true;
+      case MethodRecognizer::kInt32x4GetW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        BoxScalar(3, kUnboxedInt32);
+        return true;
       case MethodRecognizer::kInt32x4GetFlagX:
         UnboxVector(0, kUnboxedInt32, kMintCid, 4);
         IntToBool();
@@ -3390,6 +3385,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kInt32x4FromBools:
     case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4GetW:
+    case MethodRecognizer::kInt32x4GetX:
+    case MethodRecognizer::kInt32x4GetY:
+    case MethodRecognizer::kInt32x4GetZ:
     case MethodRecognizer::kInt32x4GetFlagW:
     case MethodRecognizer::kInt32x4GetFlagX:
     case MethodRecognizer::kInt32x4GetFlagY:

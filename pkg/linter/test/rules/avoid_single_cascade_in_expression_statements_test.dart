@@ -27,7 +27,7 @@ void f(int p) {
   }
 
   test_singleCascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p..toString()!];
 }

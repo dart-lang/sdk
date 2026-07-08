@@ -21,7 +21,8 @@ Future<String> _getIsolateId(Uri serverUri) async {
 final httpGetIsolateRpcTests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final wsUri = Uri.parse(service.wsUri!);
-    final pathSegments = <String>[...wsUri.pathSegments]..removeWhere((e) => e.isEmpty);
+    final pathSegments = <String>[...wsUri.pathSegments]
+      ..removeWhere((e) => e.isEmpty);
     if (pathSegments.isNotEmpty && pathSegments.last == 'ws') {
       pathSegments.removeLast();
     }

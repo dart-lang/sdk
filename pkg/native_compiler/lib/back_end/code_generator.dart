@@ -6,11 +6,14 @@ import 'dart:typed_data';
 
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
+import 'package:cfg/utils/bit_vector.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
+import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
@@ -29,6 +32,9 @@ abstract base class CodeGenerator extends Pass
   /// Index of the current block in [codeGenBlockOrder].
   int _currentBlockIndex = -1;
 
+  /// Instruction being generated.
+  Instruction? _currentInstruction;
+
   /// Maps block preorder number to a preorder number of
   /// the first non-empty block.
   late final Int32List _firstNonEmptyBlock = _computeFirstNonEmptyBlock();
@@ -42,6 +48,18 @@ abstract base class CodeGenerator extends Pass
 
   /// Slow paths generated after all blocks.
   final List<SlowPath> _slowPaths = [];
+
+  /// Metadata describing exception handlers in the generated code.
+  late final ExceptionHandlers _exceptionHandlers;
+
+  /// Metadata describing call sites in the generated code.
+  late final PcDescriptors _pcDescriptors;
+
+  /// Metadata describing moves between exception site and exception handler.
+  CatchEntryMoves? _catchEntryMoves;
+
+  /// Metadata describing source positions in the generated code.
+  late final CodeSourceMap _codeSourceMap;
 
   CodeGenerator(this.backEndState) : super('CodeGen');
 
@@ -85,11 +103,46 @@ abstract base class CodeGenerator extends Pass
         _firstNonEmptyBlock[nextBlock.preorderNumber];
   }
 
+  void addCallSiteMetadata() {
+    final exceptionHandler = _currentInstruction!.block!.exceptionHandler;
+    final exceptionHandlerIndex = (exceptionHandler != null)
+        ? _exceptionHandlers.getHandler(exceptionHandler).index
+        : -1;
+    _pcDescriptors.add(
+      CallSite(
+        _asm.currentPcOffset,
+        exceptionHandlerIndex,
+        _currentInstruction!.sourcePosition,
+      ),
+    );
+    if (exceptionHandler != null) {
+      (_catchEntryMoves ??= CatchEntryMoves()).add(
+        ExceptionSite(
+          _asm.currentPcOffset,
+          // TODO: add moves
+        ),
+      );
+    }
+    _codeSourceMap.add(
+      CodeSourcePosition(
+        _asm.currentPcOffset,
+        _currentInstruction!.sourcePosition,
+      ),
+    );
+  }
+
   @override
   void run() {
     final blocks = codeGenBlockOrder;
     assert(blocks.first is EntryBlock);
     assert(blocks.length == graph.preorder.length);
+
+    final asyncMarker = graph.function.asyncMarker;
+    _exceptionHandlers = ExceptionHandlers(
+      hasAsyncHandler: asyncMarker == .Async || asyncMarker == .AsyncStar,
+    );
+    _pcDescriptors = PcDescriptors();
+    _codeSourceMap = CodeSourceMap();
 
     _asm = createAssembler();
 
@@ -102,9 +155,11 @@ abstract base class CodeGenerator extends Pass
     _currentBlockIndex = -1;
 
     for (final slowPath in _slowPaths) {
+      currentInstruction = _currentInstruction = slowPath.instruction;
       _asm.bind(slowPath.entry);
       slowPath.generator();
     }
+    currentInstruction = _currentInstruction = null;
 
     backEndState.consumeGeneratedCode(
       Code(
@@ -112,6 +167,10 @@ abstract base class CodeGenerator extends Pass
         graph.function,
         _asm.bytes,
         _asm.objectPool,
+        _exceptionHandlers,
+        _pcDescriptors,
+        _catchEntryMoves,
+        _codeSourceMap,
       ),
     );
   }
@@ -121,12 +180,14 @@ abstract base class CodeGenerator extends Pass
   void enterFrame();
 
   void generateBlock(Block block) {
+    currentInstruction = _currentInstruction = block;
     _asm.bind(blockLabel(block));
     block.accept(this);
     for (final instr in block) {
-      currentInstruction = instr;
+      currentInstruction = _currentInstruction = instr;
       instr.accept(this);
     }
+    currentInstruction = _currentInstruction = null;
   }
 
   /// Returns true if no code should be generated for this block.
@@ -169,7 +230,7 @@ abstract base class CodeGenerator extends Pass
 
   Label addSlowPath(void Function() generator) {
     final entry = Label();
-    _slowPaths.add(SlowPath(entry, generator));
+    _slowPaths.add(SlowPath(_currentInstruction!, entry, generator));
     return entry;
   }
 
@@ -183,7 +244,9 @@ abstract base class CodeGenerator extends Pass
   void visitTargetBlock(TargetBlock instr) {}
 
   @override
-  void visitCatchBlock(CatchBlock instr) {}
+  void visitCatchBlock(CatchBlock instr) {
+    _exceptionHandlers.getHandler(instr).pcOffset = _asm.currentPcOffset;
+  }
 
   @override
   void visitGoto(Goto instr) {
@@ -206,48 +269,64 @@ abstract base class CodeGenerator extends Pass
     // Generated via ParallelMove instructions inserted by register allocator.
   }
 
-  @override
-  void visitParallelMove(ParallelMove instr) {
-    // TODO: merge subsequent ParallelMove instructions.
-    final map = <Location, Location>{};
-    Set<Location>? overwritten;
+  /// Ensure that all destinations are distinct and
+  /// stack locations are not used both as a source and destination.
+  static bool _verifyParallelMoveDestinations(ParallelMove instr) {
+    final destinations = <Location>{};
+    for (final move in instr.moves) {
+      final to = switch (move) {
+        Move() => move.to.physicalLocation,
+        LoadConstant() => move.to.physicalLocation,
+        _ => throw 'Unexpected move ${move.runtimeType} $move',
+      };
+      if (!destinations.add(to)) {
+        throw 'Non-unique destination location $to in ${IrToText.instruction(instr)}';
+      }
+    }
     for (final move in instr.moves) {
       if (move is Move) {
         final from = move.from.physicalLocation;
         final to = move.to.physicalLocation;
-        assert(!(overwritten?.contains(from) ?? false));
+        if (from != to &&
+            from is StackLocation &&
+            destinations.contains(from)) {
+          throw 'Stack location $from is used both as a source and destination in ${IrToText.instruction(instr)}';
+        }
+      }
+    }
+    return true;
+  }
+
+  @override
+  void visitParallelMove(ParallelMove instr) {
+    // TODO: merge subsequent ParallelMove instructions.
+    assert(_verifyParallelMoveDestinations(instr));
+    final moves = <Move>[];
+    for (final move in instr.moves) {
+      if (move is Move) {
+        final from = move.from.physicalLocation;
+        final to = move.to.physicalLocation;
         if (from != to) {
-          if (to is StackLocation) {
+          if (from is StackLocation && to is StackLocation) {
             // Moves into spill slots cannot participate in cycles.
-            // Generate them eagerly and do not put them into the map
-            // as they may have the same source as register/register moves.
-            assert(!map.containsKey(to));
-            assert(() {
-              (overwritten ??= {}).add(to);
-              return true;
-            }());
-            if (from is StackLocation) {
-              final temp = getMoveTempRegister(RegisterClass.cpu);
-              generateMove(from, temp);
-              generateMove(temp, to);
-            } else {
-              generateMove(from, to);
-            }
+            // Generate them eagerly as they require a temporary register
+            // which can be occupied while breaking a cycle.
+            final temp = getMoveTempRegister(RegisterClass.cpu);
+            generateMove(from, temp);
+            generateMove(temp, to);
           } else {
-            assert(!map.containsKey(from));
-            map[from] = to;
+            moves.add(Move(from, to));
           }
         }
       }
     }
-    while (map.isNotEmpty) {
-      final from = map.keys.first;
-      final to = map[from]!;
-      if (map.containsKey(to)) {
-        _generateDependentMoves(from, to, map);
-      } else {
-        generateMove(from, to);
-        map.remove(from);
+    // The algorithm is described in Laurence Rideau, Bernard Paul Serpette, Xavier Leroy (2008)
+    // "Tilting at windmills with Coq: formal verification of a compilation algorithm for parallel moves".
+    final pending = BitVector(moves.length);
+    final processed = BitVector(moves.length);
+    for (var i = 0; i < moves.length; ++i) {
+      if (!processed[i]) {
+        _generateOneMove(i, moves, pending, processed);
       }
     }
     for (final move in instr.moves) {
@@ -257,48 +336,34 @@ abstract base class CodeGenerator extends Pass
     }
   }
 
-  void _generateDependentMoves(
-    Location from,
-    Location to,
-    Map<Location, Location> moves,
+  void _generateOneMove(
+    int i,
+    List<Move> moves,
+    BitVector pending,
+    BitVector processed,
   ) {
-    assert(from != to);
-    assert(moves[from] == to);
-    final pendingList = <Location>[from];
-    final pendingSet = <Location>{from};
-    // Visit the chain of dependent moves until it ends or cycle is found.
-    while (moves.containsKey(to)) {
-      if (pendingSet.contains(to)) {
-        // Moves form a cycle. Save value to the temporary register to generate moves.
-        // TODO: regalloc should provide scratch register(s) for
-        // ParallelMove instructions if there are available registers.
-        // TODO: we can also allocate a scratch register from ParallelMove
-        // itself, resusing source registers which are already moved out or
-        // destination registers which are not moved in yet.
-        final temp = getMoveTempRegister(
-          (to is FPRegister || moves[to] is FPRegister)
-              ? RegisterClass.fpu
-              : RegisterClass.cpu,
-        );
-        generateMove(to, temp);
-        while (pendingList.isNotEmpty) {
-          from = pendingList.removeLast();
-          if (from == to) {
-            generateMove(temp, moves.remove(from)!);
-            break;
-          }
-          generateMove(from, moves.remove(from)!);
-        }
-        break;
+    pending[i] = true;
+    final dst = moves[i].to;
+    for (var j = 0; j < moves.length; ++j) {
+      if (processed[j]) {
+        continue;
       }
-      from = to;
-      to = moves[from]!;
-      pendingList.add(from);
-      pendingSet.add(from);
+      if (dst == moves[j].from) {
+        if (pending[j]) {
+          final temp = getMoveTempRegister(
+            (moves[j].from is FPRegister || moves[j].to is FPRegister)
+                ? RegisterClass.fpu
+                : RegisterClass.cpu,
+          );
+          generateMove(moves[j].from, temp);
+          moves[j].from = temp;
+        } else {
+          _generateOneMove(j, moves, pending, processed);
+        }
+      }
     }
-    for (final from in pendingList.reversed) {
-      generateMove(from, moves.remove(from)!);
-    }
+    generateMove(moves[i].from, moves[i].to);
+    processed[i] = true;
   }
 
   Location getMoveTempRegister(RegisterClass registerClass);
@@ -324,10 +389,14 @@ abstract base class CodeGenerator extends Pass
   @override
   void visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
+
+  @override
+  void visitInstantiateClosure(InstantiateClosure instr) =>
+      throw 'Unexpected InstantiateClosure (should be lowered)';
 }
 
-class SlowPath {
-  final Label entry;
-  final void Function() generator;
-  SlowPath(this.entry, this.generator);
-}
+class SlowPath(
+  final Instruction instruction,
+  final Label entry,
+  final void Function() generator,
+);

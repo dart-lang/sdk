@@ -29,13 +29,13 @@ main() {
   UnresolvedClass();
 
   UnresolvedClass.unresolvedConstructor();
-  UnresolvedClass/**/ .unresolvedConstructor();
+  UnresolvedClass /**/ .unresolvedConstructor();
 
   unresolved_prefix.UnresolvedClass();
   unresolved_prefix. /**/ UnresolvedClass();
 
   unresolved_prefix.UnresolvedClass.unresolvedConstructor();
-  unresolved_prefix/**/ .UnresolvedClass.unresolvedConstructor();
+  unresolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
 
   UnresolvedClass<int>();
   UnresolvedClass /**/ <int>();
@@ -44,23 +44,23 @@ main() {
   UnresolvedClass /**/ <int>.unresolvedConstructor();
 
   unresolved_prefix.UnresolvedClass<int>();
-  unresolved_prefix/**/ .UnresolvedClass<int>();
+  unresolved_prefix /**/ .UnresolvedClass<int>();
 
   unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
-  unresolved_prefix/**/ .UnresolvedClass<int>.unresolvedConstructor();
+  unresolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
 
   ResolvedClass.unresolvedConstructor();
-  ResolvedClass/**/ .unresolvedConstructor();
+  ResolvedClass /**/ .unresolvedConstructor();
 
   resolved_prefix.UnresolvedClass();
   resolved_prefix. /**/ UnresolvedClass();
 
   resolved_prefix.UnresolvedClass.unresolvedConstructor();
-  resolved_prefix/**/ .UnresolvedClass.unresolvedConstructor();
+  resolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
 
   resolved_prefix.UnresolvedClass<int>();
   resolved_prefix. /**/ UnresolvedClass<int>();
 
   resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
-  resolved_prefix/**/ .UnresolvedClass<int>.unresolvedConstructor();
+  resolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
 }

@@ -261,10 +261,6 @@ class MethodDeclarationImpl
         fileUri: fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
-        isClosureContextLoweringEnabled: enclosingClassBuilder
-            .libraryBuilder
-            .loader
-            .isClosureContextLoweringEnabled,
       );
     }
     _encoding.ensureTypes(
@@ -274,7 +270,7 @@ class MethodDeclarationImpl
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -284,7 +280,7 @@ class MethodDeclarationImpl
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     _encoding.registerFunctionBody(
       body: body,
@@ -315,7 +311,7 @@ abstract class MethodFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 
   DartType get returnTypeContext;
@@ -334,5 +330,5 @@ abstract class MethodFragmentDeclaration {
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 }

@@ -4,6 +4,8 @@
 
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -15,8 +17,6 @@ import 'dartfuzz.dart';
 import 'flag_fuzzer.dart';
 
 const debug = false;
-const sigkill = 9;
-const negSigkill = -sigkill;
 const timeout = 60; // in seconds
 const dartHeapSize = 128; // in Mb
 
@@ -25,32 +25,49 @@ enum ReportStatus { reported, ignored, rerun, no_divergence }
 
 /// Result of running a test.
 class TestResult {
-  const TestResult(this.output, this.stderr, this.exitCode);
+  const TestResult(this.output, this.stderr, this.exitCode, this.timedOut);
   final String output;
   final String stderr;
   final int exitCode;
+  final bool timedOut;
 }
 
 /// Command runner.
-TestResult runCommand(List<String> cmd, Map<String, String> env) {
-  var res = Process.runSync('timeout', [
-    '-s',
-    '$sigkill',
-    '$timeout',
-    ...cmd,
-  ], environment: env);
+Future<TestResult> runCommand(List<String> cmd, Map<String, String> env) async {
+  var exec = cmd[0];
+  var args = cmd.sublist(1, cmd.length);
+  var process = await Process.start(exec, args, environment: env);
+  bool timedOut = false;
+  var timer = Timer(const Duration(seconds: timeout), () {
+    timedOut = true;
+    process.kill(ProcessSignal.sigkill);
+  });
+  var exitCode = await process.exitCode;
+  timer.cancel();
+  fold(Stream<List<int>> stream) {
+    return stream
+        .transform(utf8.decoder)
+        .fold<StringBuffer>(StringBuffer(), (buf, data) {
+          buf.write(data);
+          return buf;
+        })
+        .then((sb) => sb.toString());
+  }
+
+  var stdout = await fold(process.stdout);
+  var stderr = await fold(process.stderr);
   if (debug) {
     print(
       '\nrunning $cmd yields:\n'
-      '${res.exitCode}\n${res.stdout}\n${res.stderr}\n',
+      '${exitCode}\n${stdout}\n${stderr}\n',
     );
   }
-  return TestResult(res.stdout, res.stderr, res.exitCode);
+  return TestResult(stdout, stderr, exitCode, timedOut);
 }
 
 /// Abstraction for running one test in a particular mode.
 abstract class TestRunner {
-  TestResult run();
+  Future<TestResult> run();
   late String description;
 
   // Factory.
@@ -121,7 +138,7 @@ class TestRunnerJIT implements TestRunner {
   }
 
   @override
-  TestResult run() {
+  Future<TestResult> run() {
     return runCommand(cmd, env);
   }
 
@@ -160,8 +177,8 @@ class TestRunnerAOT implements TestRunner {
   }
 
   @override
-  TestResult run() {
-    var result = runCommand(cmd, env);
+  Future<TestResult> run() async {
+    var result = await runCommand(cmd, env);
     if (result.exitCode != 0) {
       return result;
     }
@@ -217,8 +234,8 @@ class TestRunnerDJS implements TestRunner {
   }
 
   @override
-  TestResult run() {
-    var result = runCommand([dart2js, fileName, '-o', js], env);
+  Future<TestResult> run() async {
+    var result = await runCommand([dart2js, fileName, '-o', js], env);
     if (result.exitCode != 0) {
       return result;
     }
@@ -264,7 +281,7 @@ class DartFuzzTest {
     this.dartSdkRevision,
   );
 
-  int run() {
+  Future<int> run() async {
     setup();
 
     print('\n$isolate: start');
@@ -276,7 +293,7 @@ class DartFuzzTest {
       numTests++;
       seed = rand.nextInt(1 << 32);
       generateTest();
-      runTest();
+      await runTest();
       if (showStats) {
         showStatistics();
       }
@@ -403,15 +420,15 @@ class DartFuzzTest {
     file.closeSync();
   }
 
-  void runTest() {
-    var result1 = runner1.run();
-    var result2 = runner2.run();
+  Future<void> runTest() async {
+    var result1 = await runner1.run();
+    var result2 = await runner2.run();
     var report = checkDivergence(result1, result2);
     if (report == ReportStatus.rerun && rerun) {
       print('\nCommencing re-run .... \n');
       numDivergences--;
-      result1 = runner1.run();
-      result2 = runner2.run();
+      result1 = await runner1.run();
+      result2 = await runner2.run();
       report = checkDivergence(result1, result2);
       if (report == ReportStatus.no_divergence) {
         print('\nNo error on re-run\n');
@@ -425,7 +442,11 @@ class DartFuzzTest {
   }
 
   ReportStatus checkDivergence(TestResult result1, TestResult result2) {
-    if (result1.exitCode == result2.exitCode) {
+    if (result1.timedOut && result2.timedOut) {
+      // Both had a time out.
+      numTimeout++;
+      timeoutSeeds.add(seed);
+    } else if (result1.exitCode == result2.exitCode) {
       // No divergence in result code.
       switch (result1.exitCode) {
         case 0:
@@ -436,11 +457,6 @@ class DartFuzzTest {
             reportDivergence(result1, result2);
             return ReportStatus.reported;
           }
-          break;
-        case negSigkill:
-          // Both had a time out.
-          numTimeout++;
-          timeoutSeeds.add(seed);
           break;
         default:
           // Both had an error.
@@ -454,7 +470,7 @@ class DartFuzzTest {
         // When only true divergences are requested, any divergence
         // with at least one time out or out of memory error is
         // treated as a regular time out or skipped test, respectively.
-        if (result1.exitCode == negSigkill || result2.exitCode == negSigkill) {
+        if (result1.timedOut || result2.timedOut) {
           numTimeout++;
           timeoutSeeds.add(seed);
           return ReportStatus.ignored;
@@ -628,7 +644,7 @@ class DartFuzzTestSession {
     }
   }
 
-  static void run(DartFuzzTestSession session) {
+  static void run(DartFuzzTestSession session) async {
     var divergences = 0;
     try {
       final m1 = getMode(session.mode1, null);
@@ -646,7 +662,7 @@ class DartFuzzTestSession {
         session.rerun,
         session.dartSdkRevision,
       );
-      divergences = fuzz.run();
+      divergences = await fuzz.run();
     } catch (e, st) {
       print('Isolate: $e\n$st');
     }

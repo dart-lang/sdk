@@ -101,7 +101,7 @@ class BytecodeAssembler {
       if (!added) {
         // There's already an entry for the current PC, so emit a Nop instruction
         // to provide a new pc offset for the requested source position.
-        _emitNop();
+        emitNop();
         added = sourcePositions.add(
           offset,
           position,
@@ -535,6 +535,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitDup() {
+    _emitInstruction0(Opcode.kDup);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadConstant(int ra, int re) {
     _emitInstructionAE(Opcode.kLoadConstant, ra, re);
   }
@@ -766,11 +771,11 @@ class BytecodeAssembler {
     _emitInstructionA(Opcode.kCheckStack, ra);
   }
 
-  // Nops are never created by the bytecode generator, but rather by
-  // the assembler in order to provide unique pc offsets for source
-  // positions.
+  // Nops are explicitly created by the bytecode generator in only one case
+  // (calls to dart:developer::debugger). Otherwise, they are introduced by
+  // the assembler in order to provide unique pc offsets for source positions.
   @pragma('vm:prefer-inline')
-  void _emitNop() {
+  void emitNop() {
     _emitInstruction0(Opcode.kNop);
   }
 

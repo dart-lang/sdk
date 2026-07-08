@@ -18,8 +18,12 @@ class B extends A {
 
 typedef TA = A;
 
-test(@TA.redir() int x, @TA.named() int x2, @A.redir() int x3,
-    @A.selfRedir() int x4) {
+test(
+  @TA.redir() int x,
+  @TA.named() int x2,
+  @A.redir() int x3,
+  @A.selfRedir() int x4,
+) {
   @TA.redir2()
   int localVariable = 0;
 
@@ -46,8 +50,12 @@ test(@TA.redir() int x, @TA.named() int x2, @A.redir() int x3,
 }
 
 class Test {
-  test(@TA.redir() int x, @TA.named() int x2, @A.redir() int x3,
-      @A.selfRedir() int x4) {
+  test(
+    @TA.redir() int x,
+    @TA.named() int x2,
+    @A.redir() int x3,
+    @A.selfRedir() int x4,
+  ) {
     @TA.redir2()
     int localVariable = 0;
 

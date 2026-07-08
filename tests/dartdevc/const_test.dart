@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:_foreign_helper' show JS, TYPE_REF;
 import 'dart:_runtime' as dart;
 

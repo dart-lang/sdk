@@ -107,7 +107,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // Issue(https://dartbug.com/37741):
   const bool is_service_test =
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") == 0) ||
-      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") == 0);
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") == 0) ||
+      (strcmp(run_filter, "DartAPI_VmService_OriginCheckDisabled_Runtime") ==
+       0);
   const bool is_exp_service_test =
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Exp") == 0) ||
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop_Exp") == 0);
@@ -174,9 +176,12 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       Dart_SetLibraryTagHandler(bin::Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
+  const bool origin_check_disabled =
+      (strcmp(run_filter, "DartAPI_VmService_OriginCheckDisabled_Runtime") ==
+       0);
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
-                             /*dev_mode_server=*/false,
+                             /*origin_check_disabled=*/origin_check_disabled,
                              /*auth_codes_disabled=*/true,
                              /*write_service_info_filename=*/"",
                              /*trace_loading=*/false, /*deterministic=*/true,

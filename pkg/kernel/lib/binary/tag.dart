@@ -219,7 +219,8 @@ class Tag {
   static const int PositionalParameter = 159;
   static const int NamedParameter = 160;
   static const int ThisVariable = 161;
-  static const int LegacyVariable = 162;
+  static const int LocalFunctionVariable = 162;
+  static const int ConstVariable = 163;
 
   static const int SpecializedTagHighBits = 0xE0; // 0b11100000
   static const int SpecializedTagMask = 0xF8; //    0b11111000
@@ -237,7 +238,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 131;
+  static const int BinaryFormatVersion = 138;
 }
 
 abstract class ConstantTag {

@@ -28,6 +28,7 @@ typedef _Constructors = Map<ConstructorElement, _Constructor>;
 /// the following changes:
 ///
 /// * changes the `class` keyword to `enum`,
+/// * removes any class modifiers,
 /// * removes the `const` keyword from the primary constructor, if there is one,
 /// * converts static fields into enum constant values,
 /// * removes an `int index` field if there is one,
@@ -192,9 +193,12 @@ class _EnumDescription {
   /// Use the [builder] and correction [utils] to apply the change necessary to
   /// convert the class to an enum.
   void applyChanges(DartFileEditBuilder builder, CorrectionUtils utils) {
-    // Replace the keyword.
+    // Replace the class keyword and remove leading class modifiers.
     builder.addSimpleReplacement(
-      range.token(classDeclaration.classKeyword),
+      range.startEnd(
+        classDeclaration.firstTokenAfterCommentAndMetadata,
+        classDeclaration.classKeyword,
+      ),
       'enum',
     );
 

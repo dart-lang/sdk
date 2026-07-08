@@ -213,7 +213,7 @@ class InstanceMemberInferrer {
       var valueFormalParameter = setter.valueFormalParameter;
 
       if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
-        valueFormalParameter.inheritsCovariant = true;
+        valueFormalParameter.isCovariant = true;
       }
 
       if (!valueFormalParameter.hasImplicitType) {
@@ -259,7 +259,7 @@ class InstanceMemberInferrer {
       var setter = field.setter;
       if (setter != null) {
         if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
-          setter.valueFormalParameter.inheritsCovariant = true;
+          setter.valueFormalParameter.isCovariant = true;
         }
       }
 
@@ -363,18 +363,25 @@ class InstanceMemberInferrer {
   void _inferConstructor(ConstructorElementImpl constructor) {
     for (var formalParameter in constructor.formalParameters) {
       if (formalParameter.hasImplicitType) {
-        if (formalParameter is FieldFormalParameterElementImpl) {
-          var field = formalParameter.field;
-          if (field != null) {
-            formalParameter.type = field.type;
-          }
-        } else if (formalParameter is SuperFormalParameterElementImpl) {
-          var superParameter = formalParameter.superConstructorParameter;
-          if (superParameter != null) {
-            formalParameter.type = superParameter.type;
-          } else {
-            formalParameter.type = DynamicTypeImpl.instance;
-          }
+        switch (formalParameter) {
+          case FieldFormalParameterElementImpl():
+            if (formalParameter.firstFragment
+                is FieldFormalParameterFragmentImpl) {
+              var field = formalParameter.field;
+              if (field != null) {
+                formalParameter.type = field.type;
+              }
+            }
+          case SuperFormalParameterElementImpl():
+            if (formalParameter.firstFragment
+                is SuperFormalParameterFragmentImpl) {
+              var superParameter = formalParameter.superConstructorParameter;
+              if (superParameter != null) {
+                formalParameter.type = superParameter.type;
+              } else {
+                formalParameter.type = DynamicTypeImpl.instance;
+              }
+            }
         }
       }
     }
@@ -462,8 +469,9 @@ class InstanceMemberInferrer {
     var formalParameters = element.formalParameters;
     for (var index = 0; index < formalParameters.length; index++) {
       var formalParameter = formalParameters[index];
-      _inferParameterCovariance(formalParameter, index, overriddenElements);
-
+      if (!formalParameter.isCovariant) {
+        _inferParameterCovariance(formalParameter, index, overriddenElements);
+      }
       if (formalParameter.hasImplicitType) {
         _inferParameterType(formalParameter, index, combinedSignatureType);
       }
@@ -520,7 +528,6 @@ class InstanceMemberInferrer {
     int index,
     List<InternalExecutableElement> overridden,
   ) {
-    var result = false;
     for (var o in overridden) {
       var param = _getCorrespondingParameter(
         parameter,
@@ -528,11 +535,10 @@ class InstanceMemberInferrer {
         o.formalParameters,
       );
       if (param != null && param.isCovariant) {
-        result = true;
-        break;
+        parameter.isCovariant = true;
+        return;
       }
     }
-    parameter.inheritsCovariant = result;
   }
 
   /// Set the type for the [parameter] at the given [index] from the given

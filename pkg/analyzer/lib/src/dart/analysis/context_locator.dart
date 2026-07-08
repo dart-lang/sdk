@@ -5,17 +5,13 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -24,11 +20,9 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart';
 
 /// Returns a list of the context roots that should be used to analyze the
-/// files that are included by the list of [includedPaths] and not excluded by
-/// the list of [excludedPaths].
+/// files that are included by the list of [includedPaths].
 ///
 /// If an [optionsFile] is specified, then it is assumed to be the path to the
 /// `analysis_options.yaml` file that should be used in place of the ones that
@@ -39,7 +33,6 @@ import 'package:yaml/yaml.dart';
 /// would be found by looking in the directories containing the context roots.
 List<ContextRootImpl> locateContextRoots({
   required List<String> includedPaths,
-  List<String> excludedPaths = const [],
   String? optionsFile,
   String? packageConfigFile,
   required ResourceProvider resourceProvider,
@@ -64,31 +57,11 @@ List<ContextRootImpl> locateContextRoots({
     includedPaths,
     resourceProvider,
   );
-  var (excludedFolders, excludedFiles) = _resourcesFromPaths(
-    excludedPaths,
-    resourceProvider,
-  );
-  // Use the excluded folders and files to filter the included folders and
-  // files.
-  includedFolders = includedFolders
-      .where(
-        (Folder includedFolder) =>
-            !includedFolder.isContainedInAny(excludedFolders),
-      )
-      .toList();
-  includedFiles = includedFiles
-      .where(
-        (File includedFile) =>
-            !includedFile.isContainedInAny(excludedFolders) &&
-            !excludedFiles.contains(includedFile),
-      )
-      .toList();
 
   return _ContextLocator(
     resourceProvider: resourceProvider,
     defaultOptionsFile: defaultOptionsFile,
     defaultPackageConfigFile: defaultPackageConfigFile,
-    excludedFolders: excludedFolders,
   )._locateRoots(
     includedFolders: includedFolders,
     includedFiles: includedFiles,
@@ -137,10 +110,8 @@ class _ContextLocator {
 
   final File? _defaultPackageConfigFile;
 
-  final List<Folder> _excludedFolders;
-
-  /// A cache of options file contents for each [SourceFactory].
-  final Map<SourceFactory, AnalysisOptionsCache> _analysisOptionsCaches = {};
+  /// A parse session for one context-location operation.
+  final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
 
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
@@ -152,12 +123,10 @@ class _ContextLocator {
     required ResourceProvider? resourceProvider,
     required File? defaultOptionsFile,
     required File? defaultPackageConfigFile,
-    required List<Folder> excludedFolders,
   }) : _resourceProvider =
            resourceProvider ?? PhysicalResourceProvider.INSTANCE,
        _defaultOptionsFile = defaultOptionsFile,
-       _defaultPackageConfigFile = defaultPackageConfigFile,
-       _excludedFolders = excludedFolders;
+       _defaultPackageConfigFile = defaultPackageConfigFile;
 
   /// Returns the location of a context root for a file in the [parent].
   ///
@@ -279,9 +248,9 @@ class _ContextLocator {
   /// non-`null`, then the given file is used even if there is a local version
   /// of the file.
   ///
-  /// For each directory within the given [folder] that is neither in the list
-  /// of [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
-  /// recursively searches for nested context roots.
+  /// For each directory within the given [folder] that isn't excluded by the
+  /// `containingRoot.excludedGlobs`, recursively searches for nested context
+  /// roots.
   ///
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
@@ -384,10 +353,9 @@ class _ContextLocator {
     return usedThisRoot;
   }
 
-  /// For each directory within the given [folder] that is neither in the list
-  /// of [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
-  /// recursively searches for nested context roots and add them to the list of
-  /// [_roots].
+  /// For each directory within the given [folder] that isn't excluded by the
+  /// `containingRoot.excludedGlobs`, recursively searches for nested context
+  /// roots and add them to the list of [_roots].
   ///
   /// If either the [_defaultOptionsFile] or [_defaultPackageConfigFile] is
   /// non-`null`, then the given file will be used even if there is a local
@@ -400,8 +368,7 @@ class _ContextLocator {
     File? optionsFileToUseForFolder,
   }) {
     bool isExcluded(Folder folder) {
-      if (_excludedFolders.contains(folder) ||
-          folder.shortName.startsWith('.')) {
+      if (folder.shortName.startsWith('.')) {
         return true;
       }
       for (var pattern in containingRoot.excludedGlobs) {
@@ -430,9 +397,7 @@ class _ContextLocator {
 
     for (Resource child in children) {
       if (child is Folder) {
-        if (_excludedFolders.contains(child)) {
-          containingRoot.excluded.add(child);
-        } else if (!isExcluded(child)) {
+        if (!isExcluded(child)) {
           _createContextRoots(
             visited,
             child,
@@ -511,39 +476,6 @@ class _ContextLocator {
     return null;
   }
 
-  Map<({Uri? containingUri, Uri uri}), YamlMap> _getCache(
-    SourceFactory sourceFactory,
-  ) {
-    return _analysisOptionsCaches.putIfAbsent(
-      sourceFactory,
-      () => CanonicalizedMap(
-        (key) {
-          var (:containingUri, :uri) = key;
-          if (uri.isScheme('package')) return uri;
-          if (uri.isScheme('file') || uri.scheme.isEmpty) {
-            if (uri.isAbsolute) return uri;
-            if (containingUri != null) {
-              return uriCache.resolveRelative(containingUri, uri);
-            }
-          }
-          return uri;
-        },
-        isValidKey: (key) {
-          // We can canonicalize a URI if it is a 'package:' URI (as this is per
-          // SourceFactory), or if it is an absolute 'file:' URI, or if it is a
-          // relative 'file:' URI and we have a "containing" URI which it is
-          // relative to (via `UriCache.resolveRelative`).
-          var (:containingUri, :uri) = key;
-          if (uri.isScheme('package')) return true;
-          if (uri.isScheme('file') || uri.scheme.isEmpty) {
-            return uri.isAbsolute || containingUri != null;
-          }
-          return false;
-        },
-      ),
-    );
-  }
-
   /// Gets the set of enabled legacy plugins for [optionsFile], taking into
   /// account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
@@ -551,16 +483,13 @@ class _ContextLocator {
       return const {};
     }
     try {
-      var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-      var analysisOptionsCache = _getCache(workspace.partialSourceFactory);
-      var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(
-          optionsFile,
-          analysisOptionsCache: analysisOptionsCache,
-        ),
-        file: optionsFile,
-        resourceProvider: _resourceProvider,
-      );
+      var options = _analysisOptionsParseSession
+          .parse(
+            sourceFactory: workspace.partialSourceFactory,
+            contextRoot: optionsFile.parent,
+            file: optionsFile,
+          )
+          .analysisOptions;
 
       return options.enabledLegacyPluginNames.toSet();
     } catch (_) {
@@ -579,25 +508,22 @@ class _ContextLocator {
   ) {
     if (optionsFile == null) return const [];
 
-    YamlMap options;
+    List<String> excludePatterns;
     try {
-      var analysisOptionsCache = _getCache(sourceFactory);
-      options = AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(
-        optionsFile,
-        analysisOptionsCache: analysisOptionsCache,
-      );
+      var options = _analysisOptionsParseSession
+          .parse(
+            sourceFactory: sourceFactory,
+            contextRoot: optionsFile.parent,
+            file: optionsFile,
+          )
+          .analysisOptions;
+      excludePatterns = options.excludePatterns;
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.
       return const [];
     }
 
-    var analyzerOptions = options.valueAt(AnalysisOptionsFileKeys.analyzer);
-    if (analyzerOptions is! YamlMap) return const [];
-    var excludeOptions = analyzerOptions.valueAt(
-      AnalysisOptionsFileKeys.exclude,
-    );
-    if (excludeOptions is! YamlList) return const [];
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
 
@@ -608,7 +534,7 @@ class _ContextLocator {
       );
     }
 
-    for (String excludedPath in excludeOptions.whereType<String>()) {
+    for (String excludedPath in excludePatterns) {
       var excludedComponents = posix.split(excludedPath);
       addGlob(excludedComponents);
       if (excludedComponents.length > 1 && excludedComponents.last == '**') {
@@ -623,8 +549,8 @@ class _ContextLocator {
   /// folder does not contain a package config file.
   File? _getPackageConfigFile(Folder folder) {
     var file = folder
-        .getChildAssumingFolder(file_paths.dotDartTool)
-        .getChildAssumingFile(file_paths.packageConfigJson);
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
     if (file.exists) {
       return file;
     }
@@ -653,9 +579,7 @@ class _ContextLocator {
   Set<Folder> _loadWorkspaceDetailsFromPubspec(String root) {
     var result = <Folder>{};
     var rootFolder = _resourceProvider.getFolder(root);
-    var rootPubspecFile = rootFolder.getChildAssumingFile(
-      file_paths.pubspecYaml,
-    );
+    var rootPubspecFile = rootFolder.getFile(file_paths.pubspecYaml);
     if (rootPubspecFile.exists) {
       var rootPubspec = Pubspec.parse(
         rootPubspecFile.readAsStringSync(),
@@ -847,7 +771,7 @@ class _ContextLocator {
           workspaceResolutionRootMap[location.workspace.root] ?? [],
         );
       } else {
-        var pubspecFile = folder.getChildAssumingFile(file_paths.pubspecYaml);
+        var pubspecFile = folder.getFile(file_paths.pubspecYaml);
         if (pubspecFile.exists) {
           var pubspec = Pubspec.parse(
             pubspecFile.readAsStringSync(),
@@ -936,10 +860,4 @@ class _RootLocation {
     required this.optionsFile,
     required this.packageConfigFile,
   });
-}
-
-extension on Resource {
-  /// Returns whether this Resource is contained in any of the [folders].
-  bool isContainedInAny(Iterable<Folder> folders) =>
-      folders.any((Folder folder) => folder.contains(path));
 }

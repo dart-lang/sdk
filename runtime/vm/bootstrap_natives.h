@@ -65,8 +65,6 @@ namespace dart {
   V(SendPort_sendInternal_, 2)                                                 \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
-  V(Integer_trailingZeroBitCount, 1)                                           \
-  V(Integer_oneBitCount, 1)                                                    \
   V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
@@ -302,6 +300,7 @@ namespace dart {
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
+  V(VMService_NotifyFinishedInitializing, 0)                                   \
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
@@ -312,6 +311,7 @@ namespace dart {
   V(Ffi_deleteIsolateGroupNativeCallable, 1)                                   \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
+  V(Ffi_dl_codeAsset, 1)                                                       \
   V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \

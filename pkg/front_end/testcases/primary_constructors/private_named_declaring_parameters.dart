@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C({
-    var int? _a,
-    final int? _b,
-    required var int _c,
-    required final int _d});
+  var int? _a,
+  final int? _b,
+  required var int _c,
+  required final int _d,
+});
 
 enum E({final int? _a, required final int _b}) {
-  x(b: 1), y(a: 0, b: 1)
+  x(b: 1),
+  y(a: 0, b: 1)
 }
 
 extension type ET1({int? _a});

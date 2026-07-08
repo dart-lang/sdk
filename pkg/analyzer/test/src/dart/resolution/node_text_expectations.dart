@@ -177,6 +177,36 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertAnalysisOptionsDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertAnalysisOptionsDiagnosticsInFiles',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsWithDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'parseAnalysisOptionsFilesWithDiagnostics',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertAnalysisOptionsText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'PubspecDiagnosticTest',
+      methodName: 'assertDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),
@@ -269,8 +299,10 @@ class NodeTextExpectationsCollector {
 
   static final Map<String, _File> _files = {};
 
+  static bool get shouldPrintFailureDetails => !currentTestIsExpectedToFail;
+
   static void add(String actual, {String? intraInvocationId}) {
-    if (!updatingIsEnabled) {
+    if (!updatingIsEnabled || currentTestIsExpectedToFail) {
       return;
     }
 

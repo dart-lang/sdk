@@ -1354,6 +1354,39 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   }
 
   @override
+  void visitForInControlFlowEnd(ForInControlFlowEnd node) {
+    ParserAstNode? beginNode = node.children?.firstOrNull;
+    if (beginNode is ForControlFlowBegin) {
+      Token beginToken = beginNode.awaitToken ?? beginNode.forToken;
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        beginToken,
+        beginToken,
+        node.token,
+        allowReplace: false,
+      )) {
+        return;
+      }
+    }
+    super.visitForInControlFlowEnd(node);
+  }
+
+  @override
+  void visitForInExpressionEnd(ForInExpressionEnd node) {
+    ParserAstNode? parent = node.parent;
+    if (parent is ForInControlFlowEnd) {
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.token.next!,
+        node.token,
+        parent.token,
+        allowReplace: false,
+      )) {
+        return;
+      }
+    }
+    super.visitForInExpressionEnd(node);
+  }
+
+  @override
   void visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(

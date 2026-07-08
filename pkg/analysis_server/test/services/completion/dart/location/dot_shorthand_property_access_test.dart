@@ -594,6 +594,40 @@ suggestions
 ''');
   }
 
+  Future<void> test_ifNull() async {
+    allowedIdentifiers = {'a'};
+    await computeSuggestions('''
+enum E {
+  a;
+  int get i => 42;
+}
+
+void f([E? e]) => (e ?? .^).i;
+''');
+    assertResponse('''
+suggestions
+  a
+    kind: enumConstant
+''');
+  }
+
+  Future<void> test_ifNullAssignmenmt() async {
+    allowedIdentifiers = {'a'};
+    await computeSuggestions('''
+enum E {
+  a;
+  int get i => 42;
+}
+
+void f([E? e]) => e ??= .^;
+''');
+    assertResponse('''
+suggestions
+  a
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_invalid_type() async {
     // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
     newFile(join(testPackageLibPath, 'private.dart'), '''

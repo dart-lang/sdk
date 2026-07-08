@@ -52,7 +52,6 @@ abstract class CompletionMetricsComputer {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollectionImpl(
       includedPaths: root.includedPaths.toList(),
-      excludedPaths: root.excludedPaths.toList(),
       resourceProvider: provider,
       withFineDependencies: true,
     );
@@ -129,9 +128,9 @@ abstract class CompletionMetricsComputer {
       }
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var result =
-              await context.currentSession.getResolvedUnit(filePath)
-                  as ResolvedUnitResult;
+          var result = await context.currentSession.getResolvedUnit(
+            filePath,
+          ) as ResolvedUnitResult;
 
           var analysisError = result.diagnostics.errors.firstOrNull;
           if (analysisError != null) {

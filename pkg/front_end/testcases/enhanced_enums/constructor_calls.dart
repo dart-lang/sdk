@@ -10,8 +10,7 @@ enum E {
 
   const E();
 
-  const E.named()
-    : this(); // Ok.
+  const E.named() : this(); // Ok.
 
   factory E.f() => values.first;
 

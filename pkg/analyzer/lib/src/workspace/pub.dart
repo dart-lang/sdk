@@ -110,7 +110,7 @@ class PackageConfigPackageUriResolver extends UriResolver {
       _context = workspace.provider.pathContext;
 
   // TODO(scheglov): Finish switching to [Packages].
-  Map<String, List<Folder>> get packageMap => _workspace.packageMap;
+  Map<String, Folder> get packageMap => _workspace.packageMap;
 
   @override
   Uri? pathToUri(String path) {
@@ -212,9 +212,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     this.packageConfigFile,
   ) {
     _packageConfigContent = packageConfigFile.readAsStringSync();
-    var pubspecFile = provider
-        .getFolder(root)
-        .getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = provider.getFolder(root).getFile(file_paths.pubspecYaml);
     if (pubspecFile.exists) {
       var pubspec = Pubspec.parse(
         pubspecFile.readAsStringSync(),
@@ -340,7 +338,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
         }
         return package;
       }
-      var pubspec = current.getChildAssumingFile(file_paths.pubspecYaml);
+      var pubspec = current.getFile(file_paths.pubspecYaml);
       if (pubspec.exists) {
         if (_isInThirdPartyDart(pubspec)) {
           return null;
@@ -385,8 +383,8 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     var start = provider.getFolder(filePath);
     for (var current in start.withAncestors) {
       var packageConfigFile = current
-          .getChildAssumingFolder(file_paths.dotDartTool)
-          .getChildAssumingFile(file_paths.packageConfigJson);
+          .getFolder(file_paths.dotDartTool)
+          .getFile(file_paths.packageConfigJson);
       if (packageConfigFile.exists) {
         var root = current.path;
         return PackageConfigWorkspace(
@@ -500,10 +498,10 @@ class PubPackage extends WorkspacePackageImpl {
     }
 
     var generatedRoot = _generatedPathParts.fold(root, (current, segment) {
-      return current.getChildAssumingFolder(segment);
+      return current.getFolder(segment);
     });
 
-    return generatedRoot.getChildAssumingFolder(packageName);
+    return generatedRoot.getFolder(packageName);
   }
 
   @override
@@ -551,13 +549,13 @@ class PubPackage extends WorkspacePackageImpl {
     if (filePath == null) return false;
 
     bool sourceIsInPublicApiUnder(Folder root, String filePath) {
-      var libFolder = root.getChildAssumingFolder('lib');
+      var libFolder = root.getFolder('lib');
       if (!libFolder.contains(filePath)) {
         return false;
       }
 
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      var libSrcFolder = libFolder.getFolder('src');
       return !libSrcFolder.contains(filePath);
     }
 

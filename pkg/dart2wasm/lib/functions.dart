@@ -94,6 +94,27 @@ class FunctionCollector {
         translator.coreTypes,
         member,
       );
+      final hasNeverInlineAnnotation =
+          util.getWasmNeverInlinePragma(translator.coreTypes, member) ?? false;
+      final bool neverInline;
+      if (member is Field) {
+        neverInline =
+            target.isStaticFieldInitializer &&
+            translator.neverInlineStaticFieldInitializer(member);
+      } else if (member is Constructor) {
+        neverInline =
+            hasNeverInlineAnnotation &&
+            (target == member.reference || target.isConstructorBodyReference);
+      } else {
+        member as Procedure;
+        neverInline =
+            hasNeverInlineAnnotation &&
+            (target == member.reference || target.isBodyReference);
+      }
+
+      final bool alwaysInline =
+          util.getWasmPreferInlinePragma(translator.coreTypes, member) ?? false;
+      final int? inlineHint = neverInline ? 0 : (alwaysInline ? 127 : null);
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
@@ -119,7 +140,8 @@ class FunctionCollector {
                     ftype,
                     "$importName (import)",
                   )
-                ..isPure = hasPureAnnotation;
+                ..isPure = hasPureAnnotation
+                ..inlineHint = inlineHint;
         }
       }
 
@@ -147,10 +169,12 @@ class FunctionCollector {
           : translator.signatureForDirectCall(target);
 
       final function = module.functions.define(ftype, getFunctionName(target))
-        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference;
+        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
+        ..inlineHint = inlineHint;
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
+        function.isJSCalled = true;
         module.exports.export(exportName, function);
       }
 
@@ -319,22 +343,8 @@ class FunctionCollector {
       return "$memberName (unchecked entry)";
     }
 
-    final noInline = translator.getPragma<bool>(
-      member,
-      "wasm:never-inline",
-      true,
-    );
-
-    // We add "<noInline>" to the function name. When we invoke `wasm-opt` we
-    // then pass the `--no-inline=*<noInline>*` flag, which will prevent
-    // binaryen from inlining those functions.
-    //
-    // => Effectively we make `@pragma('wasm:never-inline')` work for binaryen
-    // as well.
-    final inlinePostfix = noInline == true ? ' <noInline>' : '';
-
     if (target.isBodyReference) {
-      return "$memberName (body)$inlinePostfix";
+      return "$memberName (body)";
     }
 
     if (memberName.endsWith('.')) {
@@ -346,7 +356,9 @@ class FunctionCollector {
         return '$memberName= implicit setter';
       }
       if (target.isStaticFieldInitializer) {
-        return '$memberName field initializer';
+        return translator.neverInlineStaticFieldInitializer(member)
+            ? '$memberName field initializer'
+            : '$memberName field initializer';
       }
       return '$memberName implicit getter';
     }
@@ -354,11 +366,11 @@ class FunctionCollector {
     if (target.isInitializerReference) {
       return 'new $memberName (initializer)';
     } else if (target.isConstructorBodyReference) {
-      return 'new $memberName (constructor body)$inlinePostfix';
+      return 'new $memberName (constructor body)';
     } else if (member is Procedure && member.isFactory) {
       return 'new $memberName';
     } else {
-      return '$memberName$inlinePostfix';
+      return memberName;
     }
   }
 
@@ -367,7 +379,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.name;
+      final functionNodeName = lambdaNode.variable.cosmeticName;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -601,6 +613,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
     for (final initializer in node.initializers) {
@@ -657,6 +670,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
 
@@ -684,9 +698,10 @@ List<w.ValueType> _getConstructorInputTypes(
   Translator translator,
   Constructor member,
   List<TypeParameter> typeParameters,
-  List<Variable> parameters,
-  w.ValueType Function(DartType) translateType,
-) {
+  List<FunctionParameter> parameters,
+  w.ValueType Function(DartType) translateType, {
+  bool isBodyParameter = false,
+}) {
   final List<w.ValueType> inputs = [];
 
   final List<w.ValueType> wasmTypeParameters = List.filled(
@@ -695,15 +710,20 @@ List<w.ValueType> _getConstructorInputTypes(
   );
   inputs.addAll(wasmTypeParameters);
 
-  final List<DartType> params = parameters.map((p) {
+  final List<w.ValueType> params = parameters.map((p) {
+    if (isBodyParameter && !p.isFinal) {
+      return translator.translateTypeOfLocalVariable(p);
+    }
     final function = p.parent as FunctionNode;
-    final positionalIndex = function.positionalParameters.indexOf(p);
+    final positionalIndex = p is PositionalParameter
+        ? function.positionalParameters.indexOf(p)
+        : -1;
     final isRequired = positionalIndex != -1
         ? positionalIndex < function.requiredParameterCount
         : p.isRequired;
-    return translator.typeOfParameterVariable(p, isRequired);
+    return translateType(translator.typeOfParameterVariable(p, isRequired));
   }).toList();
-  inputs.addAll(params.map(translateType));
+  inputs.addAll(params);
 
   return inputs;
 }
@@ -724,12 +744,13 @@ List<w.ValueType> _getInputTypes(
     assert(member is Procedure);
     FunctionNode function = member.function!;
     typeParamCount = function.typeParameters.length;
-    List<String> names = [for (var p in function.namedParameters) p.name!]
-      ..sort();
+    List<String> names = [
+      for (var p in function.namedParameters) p.parameterName,
+    ]..sort();
     final typeForParam = translator.typeOfParameterVariable;
     Map<String, DartType> nameTypes = {
       for (var p in function.namedParameters)
-        p.name!: typeForParam(p, p.isRequired),
+        p.parameterName: typeForParam(p, p.isRequired),
     };
     final positionals = function.positionalParameters;
     params = [
@@ -962,12 +983,12 @@ final class MethodCallShape extends CallShape {
     }
     final namedParams = target.namedParameters;
     for (final name in namedParams) {
-      if (name.isRequired && !named.contains(name.name)) {
+      if (name.isRequired && !named.contains(name.parameterName)) {
         return false;
       }
     }
     for (final name in named) {
-      if (!namedParams.any((n) => n.name == name)) {
+      if (!namedParams.any((n) => n.parameterName == name)) {
         return false;
       }
     }

@@ -29,7 +29,7 @@ extension type E(IOSink _s) implements IOSink {}
   }
 
   test_extensionType_implementsSink_notClosed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(IOSink sink) {
   E [!e = E(sink)!];
@@ -156,7 +156,7 @@ class C {
   }
 
   test_field_initializedInMethod_notClosed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 class C {
   // ignore: unused_field
@@ -169,7 +169,7 @@ class C {
   }
 
   test_field_initializedInMethod_originPrimaryConstructor_notClosed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 // ignore: unused_field_from_primary_constructor
 class C([!var IOSink _sink!]) {
@@ -181,7 +181,7 @@ class C([!var IOSink _sink!]) {
   }
 
   test_field_initializedInMethod_withPrimaryConstructor_notClosed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 class C() {
   // ignore: unused_field
@@ -219,7 +219,7 @@ void f() {
   }
 
   test_localVariable_inFunction_notInitialized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void someFunction() {
   IOSink [!sink!];

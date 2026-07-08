@@ -5,6 +5,7 @@
 library private_selector_test;
 
 import "package:expect/expect.dart";
+
 import 'selector_lib.dart';
 
 class B extends A {}

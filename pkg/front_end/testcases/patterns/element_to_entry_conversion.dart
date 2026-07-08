@@ -7,11 +7,20 @@ test1(dynamic x, dynamic another) {
 }
 
 test2(bool b, dynamic x, dynamic another) {
-  return {1: 1, if (b) if (x case String y) ...another, 3: 3};
+  return {
+    1: 1,
+    if (b)
+      if (x case String y) ...another,
+    3: 3,
+  };
 }
 
 test3(dynamic x, dynamic y, dynamic another) {
-  return {1: 1, if (x case int x2) 2: x2 else if (y case int y2) ...another, 3: 3};
+  return {
+    1: 1,
+    if (x case int x2) 2: x2 else if (y case int y2) ...another,
+    3: 3,
+  };
 }
 
 main() {
@@ -19,10 +28,7 @@ main() {
     mapToString(test1("foo", {2: 2})),
     mapToString({1: 1, 2: 2, 3: 3}),
   );
-  expectEquals(
-    mapToString(test1(false, {2: 2})),
-    mapToString({1: 1, 3: 3}),
-  );
+  expectEquals(mapToString(test1(false, {2: 2})), mapToString({1: 1, 3: 3}));
 
   expectEquals(
     mapToString(test2(true, "foo", {2: 2})),

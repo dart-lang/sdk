@@ -21,7 +21,7 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_overrides;
 
   test_binaryOperator_expressionFunctionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int operator +(int other) => 0;
 }
@@ -52,7 +52,7 @@ augment class A {
   }
 
   test_enum_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a,b,c;
   @override
@@ -62,7 +62,7 @@ enum A {
   }
 
   test_enum_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a,b,c;
   @override
@@ -85,7 +85,7 @@ class C extends A {
   }
 
   test_getter_expressionFunctionBody_superCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int get x => 0;
 }
@@ -109,7 +109,7 @@ class C extends A {
   }
 
   test_method_blockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m() {}
 }
@@ -165,7 +165,7 @@ class E extends C {
   }
 
   test_method_expressionFunctionBody_everythingTheSame() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int m(int a, int b) => 0;
 }
@@ -189,7 +189,7 @@ class C extends A {
   }
 
   test_method_expressionFunctionBody_namedParameters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int m({int a = 0, int b = 0}) => 0;
 }
@@ -213,7 +213,7 @@ class C extends A {
   }
 
   test_method_expressionFunctionBody_namedParameters_outOfOrder() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int m({int a = 0, int b = 0}) => 0;
 }
@@ -440,7 +440,7 @@ class C extends A {
   }
 
   test_setter_blockBody_superCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   set x(other) {}
 }
@@ -491,7 +491,7 @@ class C extends A {
   }
 
   test_unaryOperator_expressionFunctionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A operator ~() => A();
 }

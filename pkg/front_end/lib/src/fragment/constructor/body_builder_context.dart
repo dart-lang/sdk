@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../../base/constant_context.dart';
 import '../../base/local_scope.dart';
@@ -41,11 +40,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   void registerSuperCall() {
-    _member.transformerFlags |= TransformerFlag.superCalls;
+    _member.containsSuperCalls = true;
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
 
@@ -140,13 +139,13 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     _declaration.registerFunctionBody(
       body,
       scopeProviderInfo?.scope,
-      scopeProviderInfo?.thisVariable,
+      thisVariable: scopeProviderInfo?.thisVariable,
     );
   }
 
   @override
-  void registerNoBodyConstructor() {
-    _declaration.registerNoBodyConstructor();
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+    _declaration.registerNoBodyConstructor(thisVariable: thisVariable);
   }
 
   @override

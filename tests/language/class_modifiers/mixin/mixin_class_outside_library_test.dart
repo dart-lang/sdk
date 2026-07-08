@@ -5,6 +5,7 @@
 // Mixing in a mixin class outside its library.
 
 import 'package:expect/expect.dart';
+
 import 'mixin_class_lib.dart';
 
 abstract class OutsideA with Class {}

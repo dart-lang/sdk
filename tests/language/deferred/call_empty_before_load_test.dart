@@ -6,6 +6,7 @@
 // trigger an error if the corresponding deferred library has not been loaded.
 
 import "package:expect/expect.dart";
+
 import "call_empty_before_load_lib.dart" deferred as lib1;
 
 main() {

@@ -6,7 +6,9 @@
 // instead just have the substitute file name: <data:application/dart>
 
 import "dart:isolate";
+
 import "package:expect/expect.dart";
+
 import 'dart:async';
 
 void main() {

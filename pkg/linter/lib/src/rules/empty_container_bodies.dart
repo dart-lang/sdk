@@ -17,7 +17,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use `;` instead of `{}` for empty container bodies.';
 
 class EmptyContainerBodies extends AnalysisRule {
-  new() : super(name: LintNames.empty_container_bodies, description: _desc);
+  new()
+    : super(
+        name: LintNames.empty_container_bodies,
+        description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.emptyContainerBodies;

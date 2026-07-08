@@ -5,7 +5,9 @@
 // The test checks the computation of the nullabilities of intersection types.
 
 class A {}
+
 class B extends A {}
+
 class C extends B {}
 
 class Foo<T extends A?> {

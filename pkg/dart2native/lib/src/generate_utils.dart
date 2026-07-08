@@ -6,7 +6,7 @@
 ///
 /// Can be used to check if the output of a process is empty or not.
 bool processOutputIsNotEmpty(Object? processOutput) => switch (processOutput) {
-      String() => processOutput.isNotEmpty,
-      List() => processOutput.isNotEmpty,
-      _ => false,
-    };
+  String() => processOutput.isNotEmpty,
+  List() => processOutput.isNotEmpty,
+  _ => false,
+};

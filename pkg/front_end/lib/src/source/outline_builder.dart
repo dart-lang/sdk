@@ -653,13 +653,7 @@ class OutlineBuilder extends StackListenerImpl {
       // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
-      push(
-        new CombinatorBuilder.hide(
-          names as Iterable<String>,
-          hideKeyword.charOffset,
-          _compilationUnit.fileUri,
-        ),
-      );
+      push(new CombinatorBuilder.hide(names as Iterable<String>));
     }
   }
 
@@ -671,13 +665,7 @@ class OutlineBuilder extends StackListenerImpl {
       // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
-      push(
-        new CombinatorBuilder.show(
-          names as Iterable<String>,
-          showKeyword.charOffset,
-          _compilationUnit.fileUri,
-        ),
-      );
+      push(new CombinatorBuilder.show(names as Iterable<String>));
     }
   }
 
@@ -1435,9 +1423,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    List<TypeBuilder>? mixins =
-        nullIfParserRecovery(pop(NullValues.TypeBuilderList))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? mixins = nullIfParserRecovery(
+      pop(NullValues.TypeBuilderList),
+    ) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
@@ -1836,6 +1824,7 @@ class OutlineBuilder extends StackListenerImpl {
       int? firstOptionalPositionalParameterOffset;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
+        List<MetadataBuilder>? metadata = formal.takeMetadata();
         Modifiers modifiers = formal.modifiers;
         if (kind == DeclarationKind.ExtensionType) {
           // Extension type representation fields are implicitly final.
@@ -1918,11 +1907,7 @@ class OutlineBuilder extends StackListenerImpl {
         }
         if (modifiers.isDeclaringParameter) {
           _builderFactory.addPrimaryConstructorField(
-            // TODO(johnniwinther): Support annotations on annotations on fields
-            // defined through a primary constructor. This is not needed for
-            // extension types where the field is not part of the AST but will
-            // be needed when primary constructors are generally supported.
-            metadata: null,
+            metadata: metadata,
             modifiers: modifiers,
             type: formal.type,
             name: formal.name,
@@ -2791,9 +2776,9 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    List<TypeBuilder>? interfaces =
-        nullIfParserRecovery(popIfNotNull(implementsKeyword))
-            as List<TypeBuilder>?;
+    List<TypeBuilder>? interfaces = nullIfParserRecovery(
+      popIfNotNull(implementsKeyword),
+    ) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Modifiers modifiers = pop() as Modifiers;

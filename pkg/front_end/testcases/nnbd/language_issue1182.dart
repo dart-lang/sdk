@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension Test<T> on T {
-  T Function(T) get test => (a) => this;
+  T Function(T) get test =>
+      (a) => this;
 }
 
 class Foo<S extends num> {

@@ -97,14 +97,12 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
 Future<void> main() async {
   CompilerOptions options = new CompilerOptions()
     ..explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
-  InternalCompilerResult result =
-      await compileScript(
-            '',
-            options: options,
-            requireMain: false,
-            retainDataForTesting: true,
-          )
-          as InternalCompilerResult;
+  InternalCompilerResult result = await compileScript(
+    '',
+    options: options,
+    requireMain: false,
+    retainDataForTesting: true,
+  ) as InternalCompilerResult;
   new FactorTypeTest(
     new TypeEnvironment(result.coreTypes!, result.classHierarchy!),
   ).run();

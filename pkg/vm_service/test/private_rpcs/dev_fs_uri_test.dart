@@ -9,7 +9,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
+import '../common/service_test_common.dart';
 import '../common/test_helper.dart';
+import 'dev_fs_uri_lib.dart' as testee_lib;
 import 'private_rpc_common.dart';
 
 Future<String> readResponse(HttpClientResponse response) {
@@ -24,126 +26,127 @@ Future<String> readResponse(HttpClientResponse response) {
   return completer.future;
 }
 
-final tests = <VMTest>[
-  (VmService service) async {
-    const fsId = 'test';
-    // NOTE: When using the URI encoding scheme, paths cannot be absolute.
-    const filePath = 'foo/bar.dat';
-    final fileUri = Uri.parse(filePath);
-    final fileUriBase64 = base64Encode(utf8.encode(fileUri.toString()));
-    const fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
-    final fileContentsBase64 = base64Encode(fileContents);
+void main([args = const <String>[]]) =>
+    VMTestHarness('dev_fs_uri_lib.dart', args)
+        .addTest((VmService service) async {
+      const fsId = 'test';
+      // NOTE: When using the URI encoding scheme, paths cannot be absolute.
+      const filePath = 'foo/bar.dat';
+      final fileUri = Uri.parse(filePath);
+      final fileUriBase64 = base64Encode(utf8.encode(fileUri.toString()));
+      const fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
+      final fileContentsBase64 = base64Encode(fileContents);
 
-    const filePath2 = 'baz/boo.dat';
-    final fileUri2 = Uri.parse(filePath2);
+      const filePath2 = 'baz/boo.dat';
+      final fileUri2 = Uri.parse(filePath2);
 
-    Future<Map<String, dynamic>> postToDevFS({
-      required List<int> content,
-      bool omitDevFsUri = false,
-    }) async {
-      final client = HttpClient();
-      final request = await client.putUrl(Uri.parse(serviceHttpAddress));
-      request.headers.add('dev_fs_name', fsId);
-      if (!omitDevFsUri) {
-        request.headers.add('dev_fs_uri_b64', fileUriBase64);
+      Future<Map<String, dynamic>> postToDevFS({
+        required List<int> content,
+        bool omitDevFsUri = false,
+      }) async {
+        final client = HttpClient();
+        final request = await client.putUrl(Uri.parse(serviceHttpAddress));
+        request.headers.add('dev_fs_name', fsId);
+        if (!omitDevFsUri) {
+          request.headers.add('dev_fs_uri_b64', fileUriBase64);
+        }
+        request.add(gzip.encode(content));
+        final response = await request.close();
+        final responseBody = await readResponse(response);
+        client.close();
+        return jsonDecode(responseBody);
       }
-      request.add(gzip.encode(content));
-      final response = await request.close();
-      final responseBody = await readResponse(response);
-      client.close();
-      return jsonDecode(responseBody);
-    }
 
-    Map<String, dynamic> result;
-    // Create DevFS.
-    result = await callMethod(service, '_createDevFS', args: {'fsName': fsId});
-    if (result case {'type': 'FileSystem', 'name': fsId, 'uri': String _}) {
-      // Expected
-    } else {
-      invalidResponse(result);
-    }
+      Map<String, dynamic> result;
+      // Create DevFS.
+      result =
+          await callMethod(service, '_createDevFS', args: {'fsName': fsId});
+      if (result case {'type': 'FileSystem', 'name': fsId, 'uri': String _}) {
+        // Expected
+      } else {
+        invalidResponse(result);
+      }
 
-    // Write the file by issuing an HTTP PUT.
-    result = await postToDevFS(content: [9]);
-    if (result case {'result': final Map<String, dynamic> innerResult}) {
-      expectSuccess(innerResult);
-    } else {
-      invalidResponse(result);
-    }
+      // Write the file by issuing an HTTP PUT.
+      result = await postToDevFS(content: [9]);
+      if (result case {'result': final Map<String, dynamic> innerResult}) {
+        expectSuccess(innerResult);
+      } else {
+        invalidResponse(result);
+      }
 
-    // Trigger an error by issuing an HTTP PUT.
-    result = await postToDevFS(content: fileContents, omitDevFsUri: true);
-    if (result case {'error': {'data': {'details': final String details}}}) {
-      print(details);
-      expect(
-        // TODO(bkonyi): remove the 'path' case once we move to the new VM
-        // service implementation.
-        details.contains(RegExp("expects the '(uri|path)' parameter")),
-        true,
+      // Trigger an error by issuing an HTTP PUT.
+      result = await postToDevFS(content: fileContents, omitDevFsUri: true);
+      if (result case {'error': {'data': {'details': final String details}}}) {
+        print(details);
+        expect(
+          // TODO(bkonyi): remove the 'path' case once we move to the new VM
+          // service implementation.
+          details.contains(RegExp("expects the '(uri|path)' parameter")),
+          true,
+        );
+      } else {
+        invalidResponse(result);
+      }
+
+      // Write the file again but this time with the true file contents.
+      result = await postToDevFS(content: fileContents);
+      if (result case {'result': final Map<String, dynamic> innerResult}) {
+        expectSuccess(innerResult);
+      } else {
+        invalidResponse(result);
+      }
+
+      // Read the file back.
+      result = await callMethod(
+        service,
+        '_readDevFSFile',
+        args: {
+          'fsName': fsId,
+          'uri': fileUri.toString(),
+        },
       );
-    } else {
-      invalidResponse(result);
-    }
+      if (result
+          case {'type': 'FSFile', 'fileContents': final String contents}) {
+        expect(contents, fileContentsBase64);
+      } else {
+        invalidResponse(result);
+      }
 
-    // Write the file again but this time with the true file contents.
-    result = await postToDevFS(content: fileContents);
-    if (result case {'result': final Map<String, dynamic> innerResult}) {
-      expectSuccess(innerResult);
-    } else {
-      invalidResponse(result);
-    }
+      // Write a second file via URI.
+      result = await callMethod(
+        service,
+        '_writeDevFSFile',
+        args: {
+          'fsName': fsId,
+          'uri': fileUri2.toString(),
+          'fileContents': fileContentsBase64,
+        },
+      );
 
-    // Read the file back.
-    result = await callMethod(
-      service,
-      '_readDevFSFile',
-      args: {
-        'fsName': fsId,
-        'uri': fileUri.toString(),
-      },
-    );
-    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
-      expect(contents, fileContentsBase64);
-    } else {
-      invalidResponse(result);
-    }
+      // Read the second file back.
+      result = await callMethod(
+        service,
+        '_readDevFSFile',
+        args: {
+          'fsName': fsId,
+          'uri': fileUri2.toString(),
+        },
+      );
+      if (result
+          case {'type': 'FSFile', 'fileContents': final String contents}) {
+        expect(contents, fileContentsBase64);
+      } else {
+        invalidResponse(result);
+      }
 
-    // Write a second file via URI.
-    result = await callMethod(
-      service,
-      '_writeDevFSFile',
-      args: {
-        'fsName': fsId,
-        'uri': fileUri2.toString(),
-        'fileContents': fileContentsBase64,
-      },
-    );
-
-    // Read the second file back.
-    result = await callMethod(
-      service,
-      '_readDevFSFile',
-      args: {
-        'fsName': fsId,
-        'uri': fileUri2.toString(),
-      },
-    );
-    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
-      expect(contents, fileContentsBase64);
-    } else {
-      invalidResponse(result);
-    }
-
-    // Delete DevFS.
-    result = await callMethod(
-      service,
-      '_deleteDevFS',
-      args: {
-        'fsName': fsId,
-      },
-    );
-    expectSuccess(result);
-  },
-];
-
-void main(List<String> args) => runVMTests(args, tests, 'dev_fs_uri_test.dart');
+      // Delete DevFS.
+      result = await callMethod(
+        service,
+        '_deleteDevFS',
+        args: {
+          'fsName': fsId,
+        },
+      );
+      expectSuccess(result);
+    }).run(testeeMain: testee_lib.main);

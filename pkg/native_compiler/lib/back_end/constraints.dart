@@ -7,9 +7,7 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 
-final class AnyCpuRegister implements Constraint {
-  const AnyCpuRegister();
-
+final class const AnyCpuRegister() implements Constraint {
   @override
   RegisterClass get registerClass => RegisterClass.cpu;
 
@@ -17,9 +15,7 @@ final class AnyCpuRegister implements Constraint {
   String toString() => 'reg';
 }
 
-final class AnyFpuRegister implements Constraint {
-  const AnyFpuRegister();
-
+final class const AnyFpuRegister() implements Constraint {
   @override
   RegisterClass get registerClass => RegisterClass.fpu;
 
@@ -27,12 +23,8 @@ final class AnyFpuRegister implements Constraint {
   String toString() => 'fpreg';
 }
 
-final class AnyLocation implements Constraint {
-  @override
-  final RegisterClass registerClass;
-
-  const AnyLocation(this.registerClass);
-
+final class const AnyLocation(final RegisterClass registerClass)
+    implements Constraint {
   @override
   String toString() => 'any';
 }
@@ -51,17 +43,11 @@ final class AnyLocation implements Constraint {
 /// both inputs and outputs.
 ///
 /// TODO: encode constraints as int/Uint32List.
-class InstructionConstraints {
-  final Constraint? result;
-  final List<Constraint?> inputs;
-  final List<Constraint> temps;
-
-  const InstructionConstraints(
-    this.result,
-    this.inputs, [
-    this.temps = const [],
-  ]);
-}
+class const InstructionConstraints(
+  final Constraint? result,
+  final List<Constraint?> inputs, [
+  final List<Constraint> temps = const [],
+]);
 
 const anyCpuRegister = AnyCpuRegister();
 const anyFpuRegister = AnyFpuRegister();
@@ -89,12 +75,13 @@ Constraint? anyRegisterOrImmediate(Definition def) =>
 Constraint? anyLocationOrImmediate(Definition def) =>
     def is Constant ? null : anyLocation(def);
 
+Constraint? anyFpuRegisterOrZero(Definition def) =>
+    (def is Constant && def.value.isZero) ? null : anyFpuRegister;
+
 /// Base class to define register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
-abstract base class Constraints
+abstract base class const Constraints()
     implements InstructionVisitor<InstructionConstraints?> {
-  const Constraints();
-
   int getNumberOfRegisters();
   List<Register> getAllocatableRegisters();
 
@@ -160,4 +147,8 @@ abstract base class Constraints
   @override
   InstructionConstraints? visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
+
+  @override
+  InstructionConstraints? visitInstantiateClosure(InstantiateClosure instr) =>
+      throw 'Unexpected InstantiateClosure (should be lowered)';
 }

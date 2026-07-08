@@ -980,7 +980,7 @@ IndexExpression
   index: SimpleStringLiteral
     literal: 'foo'
   rightBracket: ]
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: dart:core::@class::Map::@method::[]
     substitution: {K: String, V: int}
   staticType: int?
@@ -998,7 +998,7 @@ PostfixExpression
     index: SimpleStringLiteral
       literal: 'foo'
     rightBracket: ]
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: dart:core::@class::Map::@method::[]
       substitution: {K: String, V: int}
     staticType: int?
@@ -1065,7 +1065,7 @@ PostfixExpression
       arguments
         NullLiteral
           literal: null
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::t
             substitution: {T: int?}
           staticType: Null

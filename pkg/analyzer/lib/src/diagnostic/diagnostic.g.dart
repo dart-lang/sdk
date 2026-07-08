@@ -888,6 +888,65 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String modifier: the lexeme of the modifier.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+augmentationFormalParameterModifierExtra = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_modifier_extra',
+  problemMessage:
+      "The augmentation has the '{0}' modifier on this formal parameter, but the "
+      "declaration doesn't.",
+  correctionMessage:
+      "Try removing the '{0}' modifier, or adding it to the declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_modifier_extra',
+  withArguments: _withArgumentsAugmentationFormalParameterModifierExtra,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String modifier: the lexeme of the modifier.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+augmentationFormalParameterModifierMissing = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_modifier_missing',
+  problemMessage:
+      "The augmentation is missing the '{0}' modifier on this formal parameter "
+      "that the declaration has.",
+  correctionMessage:
+      "Try adding the '{0}' modifier, or removing it from the declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_modifier_missing',
+  withArguments: _withArgumentsAugmentationFormalParameterModifierMissing,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// Type expectedType: the type of the formal parameter in the declaration.
+/// Type actualType: the type of the formal parameter in the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType expectedType,
+    required DartType actualType,
+  })
+>
+augmentationFormalParameterTypeMismatch = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_type_mismatch',
+  problemMessage:
+      "The augmentation's formal parameter type '{1}' must be the same as the "
+      "declaration's formal parameter type '{0}'.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameter type to match the "
+      "declaration, or omit the type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_type_mismatch',
+  withArguments: _withArgumentsAugmentationFormalParameterTypeMismatch,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentationInducedGetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
@@ -977,6 +1036,44 @@ augmentationModifierMissing = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the formal parameter.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationNamedFormalParameterExtra = DiagnosticWithArguments(
+  name: 'augmentation_named_formal_parameter_extra',
+  problemMessage:
+      "The augmentation has a named formal parameter '{0}', but the declaration "
+      "doesn't.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_named_formal_parameter_extra',
+  withArguments: _withArgumentsAugmentationNamedFormalParameterExtra,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the formal parameter.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationNamedFormalParameterMissing = DiagnosticWithArguments(
+  name: 'augmentation_named_formal_parameter_missing',
+  problemMessage:
+      "The augmentation is missing the named formal parameter '{0}' from the "
+      "declaration.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_named_formal_parameter_missing',
+  withArguments: _withArgumentsAugmentationNamedFormalParameterMissing,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String declarationKind: the name of the declaration kind.
 /// String augmentationKind: the name of the augmentation kind.
 const DiagnosticWithArguments<
@@ -1008,6 +1105,79 @@ const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
       uniqueName: 'augmentation_of_mixin_application_class',
       expectedTypes: [],
     );
+
+/// Parameters:
+/// int expectedCount: the number of optional positional formal parameters in
+///                    the declaration.
+/// int actualCount: the number of optional positional formal parameters in
+///                  the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required int expectedCount,
+    required int actualCount,
+  })
+>
+augmentationOptionalPositionalFormalParameterCount = DiagnosticWithArguments(
+  name: 'augmentation_optional_positional_formal_parameter_count',
+  problemMessage:
+      "The augmentation has {1} optional positional formal parameters, but the "
+      "declaration has {0}.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_optional_positional_formal_parameter_count',
+  withArguments:
+      _withArgumentsAugmentationOptionalPositionalFormalParameterCount,
+  expectedTypes: [ExpectedType.int, ExpectedType.int],
+);
+
+/// Parameters:
+/// String expectedName: the name from a preceding declaration.
+/// String actualName: the name in the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String expectedName,
+    required String actualName,
+  })
+>
+augmentationPositionalFormalParameterName = DiagnosticWithArguments(
+  name: 'augmentation_positional_formal_parameter_name',
+  problemMessage:
+      "The parameter name '{1}' must either match the name '{0}' from a "
+      "preceding declaration or be '_'.",
+  correctionMessage: "Try changing the name to '{0}', or changing it to '_'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_positional_formal_parameter_name',
+  withArguments: _withArgumentsAugmentationPositionalFormalParameterName,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// int expectedCount: the number of required positional formal parameters in
+///                    the declaration.
+/// int actualCount: the number of required positional formal parameters in
+///                  the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required int expectedCount,
+    required int actualCount,
+  })
+>
+augmentationRequiredPositionalFormalParameterCount = DiagnosticWithArguments(
+  name: 'augmentation_required_positional_formal_parameter_count',
+  problemMessage:
+      "The augmentation has {1} required positional formal parameters, but the "
+      "declaration has {0}.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_required_positional_formal_parameter_count',
+  withArguments:
+      _withArgumentsAugmentationRequiredPositionalFormalParameterCount,
+  expectedTypes: [ExpectedType.int, ExpectedType.int],
+);
 
 /// Parameters:
 /// Type expectedType: the return type of the declaration
@@ -1722,6 +1892,7 @@ classUsedAsMixinDeclaresGenerativeConstructor = DiagnosticWithArguments(
   problemMessage:
       "The class '{0}' can't be used as a mixin because it declares a generative "
       "constructor.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'class_used_as_mixin_declares_generative_constructor',
   withArguments: _withArgumentsClassUsedAsMixinDeclaresGenerativeConstructor,
@@ -7825,6 +7996,19 @@ initializerForStaticField = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments initializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be initializing.",
+      correctionMessage:
+          "Try removing the `this.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'initializing_declaring_parameter',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String formalName: the name of the initializing formal that is not an
 ///                    instance variable in the immediately enclosing class
@@ -10975,6 +11159,7 @@ mixinClassDeclarationWithClause = DiagnosticWithArguments(
   correctionMessage:
       "Try removing the 'with' clause or removing the 'mixin' modifier from "
       "the class.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'mixin_class_declaration_with_clause',
   withArguments: _withArgumentsMixinClassDeclarationWithClause,
@@ -10990,6 +11175,7 @@ mixinClassDeclaresNonTrivialGenerativeConstructor = DiagnosticWithArguments(
   name: 'mixin_class_declares_non_trivial_generative_constructor',
   problemMessage:
       "The mixin class '{0}' can't declare a non-trivial generative constructor.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'mixin_class_declares_non_trivial_generative_constructor',
   withArguments:
@@ -11057,6 +11243,7 @@ mixinModifierMixinApplicationClassWithMultipleMixins = DiagnosticWithArguments(
   problemMessage:
       "The mixin application class '{0}' can only have a single mixin.",
   correctionMessage: "Try removing all but one mixin.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'mixin_modifier_mixin_application_class_with_multiple_mixins',
   withArguments:
@@ -13972,6 +14159,7 @@ const DiagnosticWithoutArguments primaryConstructorCannotRedirect =
       problemMessage:
           "A primary constructor can't be a redirecting constructor.",
       correctionMessage: "Try removing the redirect.",
+      hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'primary_constructor_cannot_redirect',
       expectedTypes: [],
@@ -14970,6 +15158,7 @@ returnOfInvalidTypeFromThen = DiagnosticWithArguments(
   problemMessage:
       "A value of type '{0}' can't be returned by the 'onError' handler because "
       "it must be assignable to '{1}', as required by 'Future.then'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'return_of_invalid_type_from_then',
   withArguments: _withArgumentsReturnOfInvalidTypeFromThen,
@@ -15013,6 +15202,7 @@ returnTypeInvalidForThen = DiagnosticWithArguments(
   problemMessage:
       "The return type '{0}' isn't assignable to '{1}', as required by "
       "'Future.then'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'return_type_invalid_for_then',
   withArguments: _withArgumentsReturnTypeInvalidForThen,
@@ -15618,6 +15808,19 @@ const DiagnosticWithoutArguments superInitializerInObject =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments superInitializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'super_initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be super parameters.",
+      correctionMessage:
+          "Try removing the `super.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'super_initializing_declaring_parameter',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments superInRedirectingConstructor =
     DiagnosticWithoutArgumentsImpl(
       name: 'super_in_redirecting_constructor',
@@ -16051,6 +16254,7 @@ const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
       problemMessage:
           "Returning a 'Future' without 'await' inside a try block.",
       correctionMessage: "Try adding an 'await'.",
+      hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
       uniqueName: 'unawaited_return_in_try_block',
       expectedTypes: [],
@@ -18590,6 +18794,34 @@ LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierExtra({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationFormalParameterModifierExtra,
+    [modifier],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierMissing({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationFormalParameterModifierMissing,
+    [modifier],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterTypeMismatch({
+  required DartType expectedType,
+  required DartType actualType,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationFormalParameterTypeMismatch, [
+    expectedType,
+    actualType,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsAugmentationInducedGetterReturnTypeMismatch({
   required DartType expectedType,
   required DartType actualType,
@@ -18612,6 +18844,22 @@ LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
   return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [modifier]);
 }
 
+LocatableDiagnostic _withArgumentsAugmentationNamedFormalParameterExtra({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationNamedFormalParameterExtra, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationNamedFormalParameterMissing({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationNamedFormalParameterMissing, [
+    name,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
   required String declarationKind,
   required String augmentationKind,
@@ -18620,6 +18868,38 @@ LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
     declarationKind,
     augmentationKind,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationOptionalPositionalFormalParameterCount({
+  required int expectedCount,
+  required int actualCount,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationOptionalPositionalFormalParameterCount,
+    [expectedCount, actualCount],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationPositionalFormalParameterName({
+  required String expectedName,
+  required String actualName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationPositionalFormalParameterName,
+    [expectedName, actualName],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationRequiredPositionalFormalParameterCount({
+  required int expectedCount,
+  required int actualCount,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationRequiredPositionalFormalParameterCount,
+    [expectedCount, actualCount],
+  );
 }
 
 LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({

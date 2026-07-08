@@ -6,6 +6,7 @@ library folder_isolate;
 
 // This is a package that's not available to the main isolate
 import 'package:folder_lib/folder_lib.dart' as isolate_package;
+
 import 'dart:isolate';
 
 // This file is spawned from package_isolate_test.dart

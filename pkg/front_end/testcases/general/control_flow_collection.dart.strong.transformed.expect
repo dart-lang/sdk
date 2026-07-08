@@ -103,7 +103,7 @@ static method oracle() → dynamic
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:9:26 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:18:26 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:29 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:33 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:20:26 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:31:29 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///control_flow_collection.dart:31:33 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 158, effectively constant: 4

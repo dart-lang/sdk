@@ -218,8 +218,8 @@ class ConstantEvaluationEngine {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
       // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
-      // class will wind up referring to a FieldMember).  The error is detected
-      // elsewhere, so just silently ignore it here.
+      // class will wind up referring to a SubstitutedFieldElementImpl). The
+      // error is detected elsewhere, so just silently ignore it here.
     } else {
       // Should not happen.
       assert(false);
@@ -337,8 +337,8 @@ class ConstantEvaluationEngine {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
       // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
-      // class will wind up referring to a FieldMember).  So just don't bother
-      // computing any dependencies.
+      // class will wind up referring to a SubstitutedFieldElementImpl). So just
+      // don't bother computing any dependencies.
     } else {
       // Should not happen.
       assert(false);

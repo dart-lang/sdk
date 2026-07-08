@@ -11,20 +11,19 @@ import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 
 /// Returns [content] with generated diagnostic expectation marker lines removed.
 String removeDiagnosticExpectations(String content) {
-  var lines = _Line.parse(content);
+  var allLines = _Line.parse(content);
+  var codeLines = allLines
+      .where((line) => !_LineMarker.isMarker(line))
+      .toList();
   var buffer = StringBuffer();
-  var isFirstLine = true;
-  for (var line in lines) {
-    if (_LineMarker.isMarker(line)) {
-      continue;
-    }
-
-    if (isFirstLine) {
-      isFirstLine = false;
-    } else {
-      buffer.writeln();
-    }
+  for (var i = 0; i < codeLines.length; i++) {
+    var line = codeLines[i];
     buffer.write(line.text);
+    // Write terminators as separators between retained lines; a terminator
+    // before a removed marker line should not become a trailing terminator.
+    if (i < codeLines.length - 1) {
+      buffer.write(line.lineTerminator);
+    }
   }
   return buffer.toString();
 }
@@ -293,32 +292,35 @@ final class _ExpectedDiagnosticsUpdater {
 
   String _writeContent() {
     var buffer = StringBuffer();
-    var isFirstLine = true;
     for (var line in lines) {
-      if (isFirstLine) {
-        isFirstLine = false;
-      } else {
-        buffer.writeln();
-      }
       buffer.write(line.text);
 
       var markers = markersByLine[line.number];
       if (markers != null) {
+        var markerLineTerminator = line.lineTerminator;
+
+        // Use a separator when adding markers after an unterminated final line.
+        if (markerLineTerminator.isEmpty) {
+          markerLineTerminator = '\n';
+        }
+
         markers.sort(_GeneratedMarker.compare);
         ({int column, int length})? currentCaret;
         for (var marker in markers) {
           if (marker.caretLength case var caretLength?) {
             var markerCaret = (column: marker.column, length: caretLength);
             if (markerCaret != currentCaret) {
-              buffer.writeln();
+              buffer.write(markerLineTerminator);
               buffer.write(_caretLine(marker.column, caretLength));
               currentCaret = markerCaret;
             }
           }
-          buffer.writeln();
+          buffer.write(markerLineTerminator);
           buffer.write(marker.expectationText);
         }
       }
+
+      buffer.write(line.lineTerminator);
     }
     return buffer.toString();
   }
@@ -331,7 +333,7 @@ final class _ExpectedDiagnosticsUpdater {
   }
 
   static String _toPosixPaths(String message) {
-    return message.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]+)'), (match) {
+    return message.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]*)'), (match) {
       var path = match.group(1)!;
       var posixPath = path.replaceAll(r'\', '/');
       return '/$posixPath';
@@ -456,7 +458,14 @@ final class _Line {
   /// The line text without the trailing newline characters.
   final String text;
 
-  _Line({required this.number, required this.text});
+  /// The line terminator, if present.
+  final String lineTerminator;
+
+  _Line({
+    required this.number,
+    required this.text,
+    required this.lineTerminator,
+  });
 
   /// Splits [content] into lines while preserving each line's offset.
   ///
@@ -470,24 +479,34 @@ final class _Line {
     for (var index = 0; index < content.length; index++) {
       var codeUnit = content.codeUnitAt(index);
       if (codeUnit == 0x0D || codeUnit == 0x0A) {
-        result.add(
-          _Line(
-            number: lineNumber++,
-            text: content.substring(lineStart, index),
-          ),
-        );
+        var lineText = content.substring(lineStart, index);
 
-        // Consume the `\n` in a `\r\n` line break.
+        var lineTerminator = content.substring(index, index + 1);
         if (codeUnit == 0x0D &&
             index + 1 < content.length &&
             content.codeUnitAt(index + 1) == 0x0A) {
+          lineTerminator = content.substring(index, index + 2);
           index++;
         }
+
+        result.add(
+          _Line(
+            number: lineNumber++,
+            text: lineText,
+            lineTerminator: lineTerminator,
+          ),
+        );
         lineStart = index + 1;
       }
     }
 
-    result.add(_Line(number: lineNumber, text: content.substring(lineStart)));
+    result.add(
+      _Line(
+        number: lineNumber,
+        text: content.substring(lineStart),
+        lineTerminator: '',
+      ),
+    );
     return result;
   }
 }

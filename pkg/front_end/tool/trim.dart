@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 // Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40,9 +41,8 @@ Future<void> main(List<String> args) async {
       dynamicInterfaceContents: dynamicInterface?.readAsStringSync(),
       requiredUserLibraries:
           (argResults['required-user-libraries'] as List<String>).toSet(),
-      requiredDartLibraries: FlutterTarget(
-        TargetFlags(),
-      ).extraRequiredLibraries.toSet(),
+      requiredDartLibraries: FlutterTarget(TargetFlags()).extraRequiredLibraries
+          .toSet(),
       librariesToClear: (argResults['clear-dart-library-body'] as List<String>)
           .toSet(),
     ),

@@ -149,9 +149,9 @@ class LocalVariables {
   bool get isSuspendableFunction => _currentFrame.isSuspendableFunction;
   bool get makesCopyOfParameters => _currentFrame.makesCopyOfParameters;
 
-  List<Variable> get originalNamedParameters =>
+  List<NamedParameter> get originalNamedParameters =>
       _currentFrame.originalNamedParameters;
-  List<Variable> get sortedNamedParameters =>
+  List<NamedParameter> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
   LocalVariables(Member node, this.options, this.staticTypeContext) {
@@ -224,8 +224,8 @@ class Frame {
   final Frame? parent;
   late Scope topScope;
 
-  late List<Variable> originalNamedParameters;
-  late List<Variable> sortedNamedParameters;
+  late List<NamedParameter> originalNamedParameters;
+  late List<NamedParameter> sortedNamedParameters;
   int numParameters = 0;
   int numTypeArguments = 0;
   bool hasOptionalParameters = false;
@@ -305,9 +305,12 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   _ScopeBuilder(this.locals);
 
-  List<Variable> _sortNamedParameters(FunctionNode function) {
+  List<NamedParameter> _sortNamedParameters(FunctionNode function) {
     final params = function.namedParameters.toList();
-    params.sort((Variable a, Variable b) => a.name!.compareTo(b.name!));
+    params.sort(
+      (NamedParameter a, NamedParameter b) =>
+          a.parameterName.compareTo(b.parameterName),
+    );
     return params;
   }
 
@@ -324,7 +327,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (node is Field) {
       if (_hasReceiverParameter(node)) {
         final receiverVar = _currentFrame.receiverVar =
-            _findThisVariable(node) ?? Variable('this');
+            _findThisVariable(node) ?? SyntheticVariable(cosmeticName: 'this');
         _declareVariable(receiverVar);
       }
       node.initializer?.accept(this);
@@ -339,13 +342,14 @@ class _ScopeBuilder extends RecursiveVisitor {
       FunctionNode function = (node as dynamic).function;
 
       if (function.dartAsyncMarker != AsyncMarker.Sync) {
-        final suspendStateVar = _currentFrame.suspendStateVar = Variable(
-          ':suspend_state',
-        );
+        final suspendStateVar = _currentFrame.suspendStateVar =
+            SyntheticVariable(cosmeticName: ':suspend_state');
         _declareVariable(suspendStateVar);
 
         if (function.dartAsyncMarker != AsyncMarker.SyncStar) {
-          final returnVar = _currentFrame.returnVar = Variable(':return');
+          final returnVar = _currentFrame.returnVar = SyntheticVariable(
+            cosmeticName: ':return',
+          );
           _declareVariable(returnVar);
         }
       }
@@ -356,14 +360,14 @@ class _ScopeBuilder extends RecursiveVisitor {
 
       if (_currentFrame.numTypeArguments > 0) {
         final functionTypeArgsVar = _currentFrame.functionTypeArgsVar =
-            Variable(':function_type_arguments_var')
+            SyntheticVariable(cosmeticName: ':function_type_arguments_var')
               ..fileOffset = function.fileOffset;
         _declareVariable(functionTypeArgsVar);
       }
 
       if (_hasReceiverParameter(node)) {
         final receiverVar = _currentFrame.receiverVar =
-            _findThisVariable(node) ?? Variable('this');
+            _findThisVariable(node) ?? SyntheticVariable(cosmeticName: 'this');
         _declareVariable(receiverVar);
       } else {
         final parentReceiverVar = _currentFrame.parent?.receiverVar;
@@ -372,7 +376,9 @@ class _ScopeBuilder extends RecursiveVisitor {
         }
       }
       if (node is FunctionDeclaration || node is FunctionExpression) {
-        final closureVar = _currentFrame.closureVar = Variable(':closure');
+        final closureVar = _currentFrame.closureVar = SyntheticVariable(
+          cosmeticName: ':closure',
+        );
         _declareVariable(closureVar);
       }
 
@@ -398,9 +404,13 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (node is FunctionDeclaration ||
         node is FunctionExpression ||
         _currentFrame.hasClosures) {
-      final contextVar = _currentFrame.contextVar = Variable(':context');
+      final contextVar = _currentFrame.contextVar = SyntheticVariable(
+        cosmeticName: ':context',
+      );
       _declareVariable(contextVar);
-      final scratchVar = _currentFrame.scratchVar = Variable(':scratch');
+      final scratchVar = _currentFrame.scratchVar = SyntheticVariable(
+        cosmeticName: ':scratch',
+      );
       _declareVariable(scratchVar);
     }
 
@@ -408,7 +418,9 @@ class _ScopeBuilder extends RecursiveVisitor {
       if (locals.isCaptured(_currentFrame.receiverVar!)) {
         // Duplicate receiver variable for local use.
         _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
-        final localReceiverVar = _currentFrame.receiverVar = Variable('this');
+        final localReceiverVar = _currentFrame.receiverVar = SyntheticVariable(
+          cosmeticName: 'this',
+        );
         _declareVariable(localReceiverVar);
       }
     }
@@ -514,7 +526,7 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void defaultVariable(Variable node) {
-    _declareVariable(node.variable);
+    _declareVariable(node);
     node.visitChildren(this);
   }
 
@@ -655,7 +667,9 @@ class _ScopeBuilder extends RecursiveVisitor {
     // an extra variable as they can be generated after all finally blocks.
     if (_enclosingTryBlocks.isNotEmpty &&
         (node.expression != null && node.expression is! BasicLiteral)) {
-      final returnVar = _currentFrame.returnVar = Variable(':return');
+      final returnVar = _currentFrame.returnVar = SyntheticVariable(
+        cosmeticName: ':return',
+      );
       _declareVariable(returnVar, _currentFrame.topScope);
     }
     node.visitChildren(this);
@@ -1004,21 +1018,17 @@ class _Allocator extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _allocateVariable(node.variable);
-    _allocateTemp(node);
     _visitFunction(node);
-    _freeTemp(node);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _allocateTemp(node);
     _visitFunction(node);
-    _freeTemp(node);
   }
 
   @override
   void defaultVariable(Variable node) {
-    _allocateVariable(node.variable);
+    _allocateVariable(node);
     node.visitChildren(this);
   }
 
@@ -1097,7 +1107,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1105,7 +1115,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1113,12 +1123,7 @@ class _Allocator extends RecursiveVisitor {
     if (node.isConst) {
       return;
     }
-    _visit(node, temps: 1);
-  }
-
-  @override
-  void visitStringConcatenation(StringConcatenation node) {
-    _visit(node, temps: 1);
+    _visit(node);
   }
 
   @override
@@ -1188,11 +1193,6 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitStaticSet(StaticSet node) {
-    _visit(node, temps: 1);
-  }
-
-  @override
   void visitTryCatch(TryCatch node) {
     _visit(node, temps: 2);
   }
@@ -1200,11 +1200,6 @@ class _Allocator extends RecursiveVisitor {
   @override
   void visitTryFinally(TryFinally node) {
     _visit(node, temps: 2);
-  }
-
-  @override
-  void visitNullCheck(NullCheck node) {
-    _visit(node, temps: 1);
   }
 
   @override

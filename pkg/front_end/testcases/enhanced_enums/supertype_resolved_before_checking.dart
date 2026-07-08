@@ -13,8 +13,8 @@ abstract class I {}
 
 abstract class GI<T> {}
 
-enum E<S extends num, T extends num>
-    with GM<T>, M
-    implements I, GI<S> { element }
+enum E<S extends num, T extends num> with GM<T>, M implements I, GI<S> {
+  element,
+}
 
 main() {}

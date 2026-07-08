@@ -12,7 +12,10 @@ void test1() {
 }
 
 void test2() {
-  var z = switch (42) { int v when (v = 1) >= 0 => v, _ => -1 };
+  var z = switch (42) {
+    int v when (v = 1) >= 0 => v,
+    _ => -1,
+  };
   print(z);
 }
 

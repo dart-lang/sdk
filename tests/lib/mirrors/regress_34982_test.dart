@@ -4,6 +4,7 @@
 
 // Regression test for http://dartbug.com/34982
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 abstract class A {

@@ -2,42 +2,42 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:10:41: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:13:41: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_Contravariant<T>(void Function(T) f) /* Error */ {}
 //                                         ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:12:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:15:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_Invariant<T>(void Function<S extends T>() f) /* Error */ {}
 //                                     ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:16:34: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:19:34: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_Bivariant<T>(T Function(T) f) /* Error */ {}
 //                                  ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:18:41: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:21:41: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_ContravariantAlias<T>(Contravariant<T> f) /* Error */ {}
 //                                         ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:20:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:23:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_InvariantAlias<T>(Invariant<T> f) /* Error */ {}
 //                                     ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:24:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:27:37: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 // extension type ET_BivariantAlias<T>(Bivariant<T> f) /* Error */ {}
 //                                     ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:27:23: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:30:23: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 //     (Contravariant<T> Function() f) /* Error */ {}
 //                       ^
 //
-// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:30:11: Error: An extension type parameter can't be used non-covariantly in its representation type.
+// pkg/front_end/testcases/extension_types/non_covariant_type_parameter.dart:33:11: Error: An extension type parameter can't be used non-covariantly in its representation type.
 // Try removing the type parameters from function parameter types and type parameter bounds.
 //     (void Function(Covariant<T>) f) /* Error */ {}
 //           ^

@@ -2,48 +2,48 @@ library;
 import self as self;
 import "dart:core" as core;
 
-[478]class X1 extends core::Object {
-[493]  field core::String? s = [493] [493] null;
-[503]  field core::int? i = [503] [503] null;
-[516]  field core::double? d = [516] [516] null;
-[478]  synthetic constructor [-1] [-1] •() → self::X1
+[412]class X1 extends core::Object {
+[427]  field core::String? s = [427] [427] null;
+[437]  field core::int? i = [437] [437] null;
+[450]  field core::double? d = [450] [450] null;
+[412]  synthetic constructor [-1] [-1] •() → self::X1
     : [-1] super core::Object::• [-1]()
 [-1]    ;
 }
-[528]class X2 extends core::Object {
-[543]  field core::String? s2 = [543] [543] null;
-[554]  field core::int? i = [554] [554] null;
-[567]  field core::double? d = [567] [567] null;
-[528]  synthetic constructor [-1] [-1] •() → self::X2
+[462]class X2 extends core::Object {
+[477]  field core::String? s2 = [477] [477] null;
+[488]  field core::int? i = [488] [488] null;
+[501]  field core::double? d = [501] [501] null;
+[462]  synthetic constructor [-1] [-1] •() → self::X2
     : [-1] super core::Object::• [-1]()
 [-1]    ;
 }
-[222]static method [228] [469] method([229] dynamic o) → void {
+[222]static method [228] [403] method([229, -1] dynamic o) → void {
 [236]  #L1:
 [236]  {
-[244]    [244] final synthesized dynamic #0#0 = [244] [244] o;
-[-1]    [-1] synthesized core::int? #0#3;
-[-1]    [-1] synthesized core::bool #0#3#isSet = [286] [286] false;
-[-1]    [-1] synthesized core::double? #0#4;
-[-1]    [-1] synthesized core::bool #0#4#isSet = [302] [302] false;
+[244]    [244, -1] final synthesized dynamic #0#0 = [244] [244] o;
+[-1]    [-1, -1] synthesized core::int? #0#3;
+[-1]    [-1, -1] synthesized core::bool #0#3#isSet = [269] [269] false;
+[-1]    [-1, -1] synthesized core::double? #0#4;
+[-1]    [-1, -1] synthesized core::bool #0#4#isSet = [277] [277] false;
 [253]    {
-[275]      [275] hoisted core::String? s;
-[291]      [291] hoisted core::int? i;
-[307]      [307] hoisted core::double? d;
-[253]      if([258] [258] [258] [258] [258] [258] [258] [258] [-1] [-1] #0#0 is self::X1 && [275]([275] let [275] final dynamic #t1 = [275] [275] s = [270] [270] [-1] [-1] #0#0{self::X1}.{self::X1::s}{core::String?} in [-1] [-1] true) && [291]([291] let [291] final dynamic #t2 = [291] [291] i = [286] [286] [-1] [-1] #0#3#isSet ?{core::int?} [-1] [-1] #0#3 : [286] [286] let [286] final dynamic #t3 = [286] [286] #0#3#isSet = [286] [286] true in [286] [286] #0#3 = [286] [286] [-1] [-1] #0#0{self::X1}.{self::X1::i}{core::int?} in [-1] [-1] true) && [307]([307] let [307] final dynamic #t4 = [307] [307] d = [302] [302] [-1] [-1] #0#4#isSet ?{core::double?} [-1] [-1] #0#4 : [302] [302] let [302] final dynamic #t5 = [302] [302] #0#4#isSet = [302] [302] true in [302] [302] #0#4 = [302] [302] [-1] [-1] #0#0{self::X1}.{self::X1::d}{core::double?} in [-1] [-1] true)) {
+[266]      [266, -1] hoisted core::String? s;
+[274]      [274, -1] hoisted core::int? i;
+[282]      [282, -1] hoisted core::double? d;
+[253]      if([258] [258] [258] [258] [258] [258] [258] [258] [-1] [-1] #0#0 is self::X1 && [266]([266] let [266, -1] final dynamic #t1 = [266] [266] s = [261] [261] [-1] [-1] #0#0{self::X1}.{self::X1::s}{core::String?} in [-1] [-1] true) && [274]([274] let [274, -1] final dynamic #t2 = [274] [274] i = [269] [269] [-1] [-1] #0#3#isSet ?{core::int?} [269] [269] #0#3 : [269] [269] let [269, -1] final dynamic #t3 = [269] [269] #0#3#isSet = [269] [269] true in [269] [269] #0#3 = [269] [269] [-1] [-1] #0#0{self::X1}.{self::X1::i}{core::int?} in [-1] [-1] true) && [282]([282] let [282, -1] final dynamic #t4 = [282] [282] d = [277] [277] [-1] [-1] #0#4#isSet ?{core::double?} [277] [277] #0#4 : [277] [277] let [277, -1] final dynamic #t5 = [277] [277] #0#4#isSet = [277] [277] true in [277] [277] #0#4 = [277] [277] [-1] [-1] #0#0{self::X1}.{self::X1::d}{core::double?} in [-1] [-1] true)) {
 [253]        {
-[325]          [325] [325] core::print [330]([331] "hello X1(${[342] [342] s}, ${[346] [346] i}, ${[350] [350] d})");
+[292]          [292] [292] core::print [297]([298] "hello X1(${[309] [309] s}, ${[313] [313] i}, ${[317] [317] d})");
 [-1]          break #L1;
         }
       }
     }
-[360]    {
-[382]      [382] hoisted core::String? s2;
-[399]      [399] hoisted core::int? i;
-[415]      [415] hoisted core::double? d;
-[360]      if([365] [365] [365] [365] [365] [365] [365] [365] [-1] [-1] #0#0 is self::X2 && [382]([382] let [382] final dynamic #t6 = [382] [382] s2 = [377] [377] [-1] [-1] #0#0{self::X2}.{self::X2::s2}{core::String?} in [-1] [-1] true) && [399]([399] let [399] final dynamic #t7 = [399] [399] i = [286] [286] [-1] [-1] #0#3#isSet ?{core::int?} [-1] [-1] #0#3 : [286] [286] let [286] final dynamic #t8 = [286] [286] #0#3#isSet = [286] [286] true in [286] [286] #0#3 = [394] [394] [-1] [-1] #0#0{self::X2}.{self::X2::i}{core::int?} in [-1] [-1] true) && [415]([415] let [415] final dynamic #t9 = [415] [415] d = [302] [302] [-1] [-1] #0#4#isSet ?{core::double?} [-1] [-1] #0#4 : [302] [302] let [302] final dynamic #t10 = [302] [302] #0#4#isSet = [302] [302] true in [302] [302] #0#4 = [410] [410] [-1] [-1] #0#0{self::X2}.{self::X2::d}{core::double?} in [-1] [-1] true)) {
-[360]        {
-[433]          [433] [433] core::print [438]([439] "hello X2(${[450] [450] s2}, ${[455] [455] i}, ${[459] [459] d})");
+[327]    {
+[340]      [340, -1] hoisted core::String? s2;
+[349]      [349, -1] hoisted core::int? i;
+[357]      [357, -1] hoisted core::double? d;
+[327]      if([332] [332] [332] [332] [332] [332] [332] [332] [-1] [-1] #0#0 is self::X2 && [340]([340] let [340, -1] final dynamic #t6 = [340] [340] s2 = [335] [335] [-1] [-1] #0#0{self::X2}.{self::X2::s2}{core::String?} in [-1] [-1] true) && [349]([349] let [349, -1] final dynamic #t7 = [349] [349] i = [269] [269] [-1] [-1] #0#3#isSet ?{core::int?} [269] [269] #0#3 : [269] [269] let [269, -1] final dynamic #t8 = [269] [269] #0#3#isSet = [269] [269] true in [269] [269] #0#3 = [344] [344] [-1] [-1] #0#0{self::X2}.{self::X2::i}{core::int?} in [-1] [-1] true) && [357]([357] let [357, -1] final dynamic #t9 = [357] [357] d = [277] [277] [-1] [-1] #0#4#isSet ?{core::double?} [277] [277] #0#4 : [277] [277] let [277, -1] final dynamic #t10 = [277] [277] #0#4#isSet = [277] [277] true in [277] [277] #0#4 = [352] [352] [-1] [-1] #0#0{self::X2}.{self::X2::d}{core::double?} in [-1] [-1] true)) {
+[327]        {
+[367]          [367] [367] core::print [372]([373] "hello X2(${[384] [384] s2}, ${[389] [389] i}, ${[393] [393] d})");
         }
       }
     }

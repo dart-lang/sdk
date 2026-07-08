@@ -86,11 +86,11 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.dartk: ['runtime'],
     Compiler.dartkp: ['runtime', 'runtime_precompiled'],
     Compiler.appJitk: ['runtime'],
-    Compiler.fasta: ['create_sdk', 'ddc_stable_test', 'kernel_platform_files'],
+    Compiler.fasta: ['front-end_bot'],
     Compiler.ddc: ['ddc_stable_test'],
-    Compiler.dart2js: ['create_sdk'],
-    Compiler.dart2wasm: ['dart2wasm_benchmark'],
-    Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
+    Compiler.dart2js: ['dart2js_bot'],
+    Compiler.dart2wasm: ['dart2wasm_bot'],
+    Compiler.dart2analyzer: ['analyzer_bot'],
     Compiler.specParser: <String>[],
   };
   final result = [...targetsForCompilers[compiler]!];

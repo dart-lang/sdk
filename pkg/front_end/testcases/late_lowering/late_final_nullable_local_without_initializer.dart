@@ -18,8 +18,10 @@ main() {
   local<T>(T? value) {
     late final T? lateGenericLocal;
 
-    throws(() => lateGenericLocal,
-        'Read value from uninitialized lateGenericLocal');
+    throws(
+      () => lateGenericLocal,
+      'Read value from uninitialized lateGenericLocal',
+    );
     // This `if` test prevents flow analysis from realizing that we
     // unconditionally write to `lateLocal`, so that we can write to it again
     // later without a static error.
@@ -27,8 +29,10 @@ main() {
       expect(value, lateGenericLocal = value);
     }
     expect(value, lateGenericLocal);
-    throws(() => lateGenericLocal = value,
-        'Write value to initialized lateGenericLocal');
+    throws(
+      () => lateGenericLocal = value,
+      'Write value to initialized lateGenericLocal',
+    );
   }
 
   local<int?>(null);

@@ -252,10 +252,10 @@ enum ExperimentalFlag {
 
   recordUse(
     name: 'record-use',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 13),
+    experimentReleasedVersion: const Version(3, 13),
   ),
 
   records(
@@ -316,6 +316,14 @@ enum ExperimentalFlag {
 
   testExperiment(
     name: 'test-experiment',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
+  thisPromotion(
+    name: 'this-promotion',
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,

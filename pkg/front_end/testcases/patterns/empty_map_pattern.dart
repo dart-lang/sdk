@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method(Map m) => switch (m) {
-      {} => 0,
-      _ => 1,
-    };
+  {} => 0,
+  _ => 1,
+};

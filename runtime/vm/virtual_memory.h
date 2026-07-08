@@ -39,6 +39,8 @@ namespace dart {
 #define DART_ENABLE_RX_WORKAROUNDS
 #endif
 
+class Cage;
+
 class VirtualMemory {
  public:
   enum Protection {
@@ -76,10 +78,20 @@ class VirtualMemory {
 #endif
   }
 
+  DART_FORCE_INLINE static bool ExecutesGeneratedCode() {
+#if defined(DART_PRECOMPILER) && !defined(TESTING)
+    return false;  // I.e., gen_snapshot.
+#else
+    return true;
+#endif
+  }
+
   // Write protect a chunk of machine code which is currently writable.
   DART_FORCE_INLINE static void WriteProtectCode(void* address, intptr_t size) {
     Protect(address, size,
-            ShouldDualMapExecutablePages() ? kReadOnly : kReadExecute);
+            ShouldDualMapExecutablePages() || !ExecutesGeneratedCode()
+                ? kReadOnly
+                : kReadExecute);
   }
   DART_FORCE_INLINE void WriteProtectCode() const {
     WriteProtectCode(address(), size());
@@ -97,15 +109,12 @@ class VirtualMemory {
   // the requested size cannot be allocated, nullptr is returned.
   static VirtualMemory* Allocate(intptr_t size,
                                  bool is_executable,
-                                 bool is_compressed,
                                  const char* name) {
-    return AllocateAligned(size, PageSize(), is_executable, is_compressed,
-                           name);
+    return AllocateAligned(size, PageSize(), is_executable, name);
   }
   static VirtualMemory* AllocateAligned(intptr_t size,
                                         intptr_t alignment,
                                         bool is_executable,
-                                        bool is_compressed,
                                         const char* name);
 
   // Duplicates `this` memory into the `target` memory using Mach specific
@@ -141,6 +150,12 @@ class VirtualMemory {
   // protection status changed by the VM.
   bool vm_owns_region() const { return reserved_.pointer() != nullptr; }
 
+#if defined(DART_COMPRESSED_POINTERS)
+  bool InCage() const { return cage_ != nullptr; }
+#else
+  bool InCage() const { return false; }
+#endif
+
   static VirtualMemory* ForImagePage(void* pointer, uword size);
   static VirtualMemory* Adopt(void* pointer, uword size);
 
@@ -174,6 +189,19 @@ class VirtualMemory {
         reserved_(reserved) {
   }
 
+#if defined(DART_COMPRESSED_POINTERS)
+  VirtualMemory(const MemoryRegion& region,
+                const MemoryRegion& reserved,
+                Cage* cage)
+      : region_(region),
+#if defined(DART_ENABLE_RX_WORKAROUNDS)
+        executable_alias_(region),
+#endif
+        reserved_(reserved),
+        cage_(cage) {
+  }
+#endif
+
   MemoryRegion region_;
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
@@ -188,13 +216,17 @@ class VirtualMemory {
   // Its size might disagree with region_ due to Truncate.
   MemoryRegion reserved_;
 
+#if defined(DART_COMPRESSED_POINTERS)
+  Cage* cage_ = nullptr;
+#endif
+
   static uword page_size_;
-  static VirtualMemory* compressed_heap_;
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
   static bool should_dual_map_executable_pages_;
 #endif
 
+  friend class Cage;
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };
 

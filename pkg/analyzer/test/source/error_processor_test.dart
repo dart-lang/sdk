@@ -7,10 +7,10 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -135,9 +135,7 @@ analyzer:
 
     group('processing', () {
       test('yaml map', () {
-        var options = AnalysisOptionsProvider(
-          SourceFactoryImpl([]),
-        ).getOptionsFromString(config);
+        var options = _parseYamlMap(config);
         var errorConfig = ErrorConfig(
           (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
         );
@@ -190,10 +188,9 @@ analyzer:
     });
 
     test('configure lints', () {
-      var options = AnalysisOptionsProvider(SourceFactoryImpl([]))
-          .getOptionsFromString(
-            'analyzer:\n  errors:\n    annotate_overrides: warning\n',
-          );
+      var options = _parseYamlMap(
+        'analyzer:\n  errors:\n    annotate_overrides: warning\n',
+      );
       var errorConfig = ErrorConfig(
         (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
       );
@@ -206,15 +203,24 @@ analyzer:
   });
 }
 
-class _TestContext {
+YamlMap _parseYamlMap(String content) {
+  var node = loadYamlNode(content);
+  return node is YamlMap ? node : YamlMap();
+}
+
+class _TestContext with ResourceProviderMixin {
   late AnalysisOptions analysisOptions;
 
   void configureOptions(String options) {
-    analysisOptions = AnalysisOptionsImpl.fromYaml(
-      optionsMap: AnalysisOptionsProvider(
-        SourceFactoryImpl([]),
-      ).getOptionsFromString(options),
-    );
+    var optionsFile = newFile('/analysis_options.yaml', options);
+    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    analysisOptions = AnalysisOptionsParseSession()
+        .parse(
+          sourceFactory: sourceFactory,
+          contextRoot: getFolder('/'),
+          file: optionsFile,
+        )
+        .analysisOptions;
   }
 
   ErrorProcessor? getProcessor(Diagnostic diagnostic) {

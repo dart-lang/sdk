@@ -72,21 +72,30 @@ class RefactoringProcessor {
           return;
         }
 
+        var interactiveFormsEnabled =
+            // Client has shown it has support by providing at least one
+            // input kind that it supports.
+            // It is up to the individual refactors to handle the specific
+            // kinds of input that are supported, this check is just to know if
+            // we will use Interactive Forms instead of the original
+            // Dart-specified self-described refactors.
+            context
+                .clientCapabilities
+                ?.supportedInteractiveFormInputTypes
+                .isNotEmpty ??
+            false;
+
         var parameters = producer is ParameterizedRefactoringProducer
             ? producer.parameters
             : <CommandParameter>[];
         // In debug mode, throw if we produced a refactoring that has parameters
-        // without default values that are not supported by the client.
+        // without default values. Support for fields without defaults was
+        // removed since this functionality was replaced by Interactive Forms,
+        // the only existing interactive refactor always has one, and we do not
+        // intend to add any more.
         assert(
-          () {
-            return parameters.every(
-              (parameter) =>
-                  parameter.defaultValue != null ||
-                  producer.supportsCommandParameter(parameter.kind),
-            );
-          }(),
-          '${producer.title} refactor returned parameters without defaults '
-          'that are not supported by the client',
+          parameters.every((parameter) => parameter.defaultValue != null),
+          '${producer.title} refactor returned parameters without defaults',
         );
 
         var command = entry.key;
@@ -107,7 +116,13 @@ class RefactoringProcessor {
                 parameters.map((param) => param.defaultValue).toList(),
               ),
             ),
-            data: {'parameters': parameters},
+            // Only include the parameters in data if interactive forms are NOT
+            // enabled, because if they are this will be handled by
+            // `command/resolve` and we don't want to trigger the old version
+            // on the client.
+            data: parameters.isNotEmpty && !interactiveFormsEnabled
+                ? {'parameters': parameters}
+                : null,
           ),
         );
         _performance?.producerTimings.add((

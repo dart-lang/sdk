@@ -38,7 +38,7 @@ void f(Type x) {
   }
 
   test_constType_matchDynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic x) {
   if (x case [!int!]) {}
 }
@@ -46,7 +46,7 @@ void f(dynamic x) {
   }
 
   test_constType_matchObject() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object x) {
   if (x case [!int!]) {}
 }
@@ -54,7 +54,7 @@ void f(Object x) {
   }
 
   test_constType_matchObjectNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object? x) {
   if (x case [!int!]) {}
 }
@@ -62,9 +62,9 @@ void f(Object? x) {
   }
 
   test_constType_matchType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertNoDiagnostics(r'''
 void f(Type x) {
-  if (x case [!int!]) {}
+  if (x case int) {}
 }
 ''');
   }
@@ -78,9 +78,9 @@ void f(Type x) {
   }
 
   test_constType_matchType_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertNoDiagnostics(r'''
 void f(A x) {
-  if (x case A(type: [!int!])) {}
+  if (x case A(type: int)) {}
 }
 
 class A {
@@ -91,7 +91,7 @@ class A {
   }
 
   test_constType_matchTypeParameter_boundObjectNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T extends Object?>(T x) {
   if (x case [!int!]) {}
 }
@@ -100,9 +100,17 @@ void f<T extends Object?>(T x) {
 
   /// Nobody will write such code, but just in case.
   test_constType_matchTypeParameter_boundType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertNoDiagnostics(r'''
 void f<T extends Type>(T x) {
-  if (x case [!int!]) {}
+  if (x case int) {}
+}
+''');
+  }
+
+  test_constType_matchTypeParameter_variable() async {
+    await assertNoDiagnostics(r'''
+void f<T>() {
+  if (T case int) {}
 }
 ''');
   }

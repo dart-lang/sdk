@@ -55,6 +55,7 @@ class WasmCompilerOptions {
   String? dumpKernelAfterTfa;
   bool dryRun = false;
   Uri? wasmOptPath;
+  bool stripToolchainAnnotations = true;
   int maxActiveWasmOptProcesses = _defaultMaxActiveWasmOptProcesses();
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};
@@ -75,12 +76,19 @@ class WasmCompilerOptions {
       translatorOptions.enableDeferredLoading ||
       translatorOptions.enableMultiModuleStressTestMode;
 
-  String moduleNameForId(String filePath, int id, {bool emitAsMain = false}) =>
-      emitAsMain || id == mainModuleId
-      ? path.basename(filePath)
-      : path.basename(path.setExtension(filePath, '_module$id.wasm'));
+  static String moduleNameForId(
+    String filePath,
+    int id, {
+    bool emitAsMain = false,
+  }) {
+    final basename = path.basename(filePath);
+    if (emitAsMain || id == mainModuleId) {
+      return basename;
+    }
+    return '${deferredModuleFilenamePrefix(basename)}$id.wasm';
+  }
 
-  int? idForModuleName(String mainWasmFilename, String moduleFilename) {
+  static int? idForModuleName(String mainWasmFilename, String moduleFilename) {
     assert(
       mainWasmFilename.endsWith('.wasm') &&
           !mainWasmFilename.contains(path.separator),
@@ -93,13 +101,27 @@ class WasmCompilerOptions {
         !moduleFilename.endsWith('.wasm')) {
       return null;
     }
-    return int.tryParse(
-      moduleFilename.substring(
-        prefix.length,
-        moduleFilename.length - '.wasm'.length,
-      ),
+    return idFromDeferredModuleFilename(moduleFilename);
+  }
+
+  /// Given a deferred module filename returns the module id.
+  ///
+  /// (i.e. returns `<id>` for `test_module<id>.wasm`).
+  static int idFromDeferredModuleFilename(String moduleName) {
+    // The name has pattern: "..._module<moduleId>.wasm"
+    assert(moduleName.endsWith('.wasm') && moduleName.contains('_module'));
+    final offset = moduleName.lastIndexOf('_module') + '_module'.length;
+    return int.parse(
+      moduleName.substring(offset, moduleName.length - '.wasm'.length),
     );
   }
+
+  /// The prefix of all deferred module filenames.
+  ///
+  /// (i.e. returns `test_module` for main module `test.wasm` and
+  /// deferred modules `test_module<id>.wasm`).
+  static String deferredModuleFilenamePrefix(String mainModuleFilename) =>
+      path.basename(path.setExtension(mainModuleFilename, '_module'));
 
   static int _defaultMaxActiveWasmOptProcesses() {
     try {

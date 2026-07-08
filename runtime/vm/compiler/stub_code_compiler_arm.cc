@@ -317,12 +317,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save LR, FP, THR (callee-saved) & R4 (temporaries, callee-saved).
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
+  // Save LR, FP, THR (callee-saved) & R4, R8, R9 (temporaries, callee-saved).
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
-  __ PushList((1 << THR) | (1 << R4));
+  __ PushList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
 
   COMPILE_ASSERT(IsCalleeSavedRegister(R4));
+  COMPILE_ASSERT(IsCalleeSavedRegister(R8));
+  COMPILE_ASSERT(IsCalleeSavedRegister(R9));
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   RegisterSet argument_registers;
@@ -333,7 +335,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PushRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(R0, Operand(TMP));
     __ mov(R1, Operand(SP));
 
@@ -346,8 +348,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ldr(TMP, Address(SP, 0 * target::kWordSize));              // entry_point
     CLOBBERS_LR(__ ldr(LR, Address(SP, 1 * target::kWordSize)));  // is_tail
     __ ldr(R4, Address(SP, 2 * target::kWordSize));               // epilogue
+    __ ldr(R8, Address(SP, 3 * target::kWordSize));  // caller_isolate
+    __ ldr(R9, Address(SP, 4 * target::kWordSize));  // caller_isolate_group
 
-    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PopRegistersAligned(argument_registers, 5 * target::kWordSize);
   }
 
   Label tail;
@@ -363,12 +367,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(TMP);  // entry_point
     __ PushRegistersAligned(return_registers, 0);
     __ mov(R0, Operand(THR));
+    __ mov(R1, Operand(R8));
+    __ mov(R2, Operand(R9));
     __ blx(R4);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blx(R0);  // dart_msan_unpoison_retval
     }
     __ PopRegistersAligned(return_registers, 0);
-    __ PopList((1 << THR) | (1 << R4));
+    __ PopList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
     // Returns.
     RESTORES_LR_FROM_FRAME(__ PopList((1 << PC) | (1 << FP)));
     __ Breakpoint();
@@ -380,7 +386,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(TMP);  // entry_point
     __ mov(R0, Operand(THR));
     __ mov(R1, Operand(R4));
-    __ PopList((1 << THR) | (1 << R4));
+    __ PopList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
     RESTORES_LR_FROM_FRAME(__ PopList((1 << LR) | (1 << FP)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
@@ -3346,10 +3352,8 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldrh(R2,
-          FieldAddress(R9, target::SingleTargetCache::lower_limit_offset()));
-  __ ldrh(R3,
-          FieldAddress(R9, target::SingleTargetCache::upper_limit_offset()));
+  __ ldr(R2, FieldAddress(R9, target::SingleTargetCache::lower_limit_offset()));
+  __ ldr(R3, FieldAddress(R9, target::SingleTargetCache::upper_limit_offset()));
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

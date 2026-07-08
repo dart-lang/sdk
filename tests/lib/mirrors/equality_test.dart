@@ -94,9 +94,9 @@ main() {
     {
       'reflectClass(A)': reflectClass(A),
       'thisLibrary.declarations[#A]': thisLibrary.declarations[#A],
-      'reflect(new A<int>()).type.originalDeclaration': reflect(
-        new A<int>(),
-      ).type.originalDeclaration,
+      'reflect(new A<int>()).type.originalDeclaration': reflect(new A<int>())
+          .type
+          .originalDeclaration,
     },
     {
       'reflectClass(B).superclass': reflectClass(B).superclass,

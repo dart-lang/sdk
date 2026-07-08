@@ -9,6 +9,7 @@
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import "static_separate_lib1.dart" deferred as lib1;
 import "static_separate_lib2.dart" deferred as lib2;
 

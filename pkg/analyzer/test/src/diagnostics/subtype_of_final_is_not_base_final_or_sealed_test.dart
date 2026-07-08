@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,27 +28,13 @@ class B extends A {}
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_inAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class B extend A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part 'a.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 class B {}
-''',
-      [
-        error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          38,
-          1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+augment class B extends A {}
+''');
   }
 
   test_class_extends_outside() async {

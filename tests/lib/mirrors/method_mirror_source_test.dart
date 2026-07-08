@@ -5,7 +5,9 @@
 // Note: This test relies on LF line endings in the source file.
 
 import "dart:mirrors";
+
 import "package:expect/expect.dart";
+
 import "method_mirror_source_other.dart";
 
 expectSource(Mirror mirror, String source) {
@@ -75,20 +77,14 @@ main() {
     "    /* Not so happy bar. */\n"
     "  }",
   );
-  expectSource(
-    cm.declarations[#someX]!,
-    "num get someX => 181;",
-  );
+  expectSource(cm.declarations[#someX]!, "num get someX => 181;");
   expectSource(
     cm.declarations[const Symbol("someX=")]!,
     "set someX(v) {\n"
     "    // Discard this one.\n"
     "  }",
   );
-  expectSource(
-    cm.declarations[#C]!,
-    "C(this._x, y) : _y = y, super();",
-  );
+  expectSource(cm.declarations[#C]!, "C(this._x, y) : _y = y, super();");
   expectSource(
     cm.declarations[#C.other]!,
     "factory C.other(num z) => C(z, z);",

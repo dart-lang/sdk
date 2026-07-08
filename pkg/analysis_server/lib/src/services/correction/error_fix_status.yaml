@@ -235,6 +235,12 @@ async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
   status: needsEvaluation
+augmentation_formal_parameter_modifier_extra:
+  status: needsEvaluation
+augmentation_formal_parameter_modifier_missing:
+  status: needsEvaluation
+augmentation_formal_parameter_type_mismatch:
+  status: needsEvaluation
 augmentation_induced_getter_already_complete:
   status: needsEvaluation
 augmentation_induced_getter_return_type_mismatch:
@@ -245,9 +251,19 @@ augmentation_modifier_extra:
   status: hasFix
 augmentation_modifier_missing:
   status: needsFix
+augmentation_named_formal_parameter_extra:
+  status: needsEvaluation
+augmentation_named_formal_parameter_missing:
+  status: needsEvaluation
 augmentation_of_different_declaration_kind:
   status: noFix
 augmentation_of_mixin_application_class:
+  status: needsEvaluation
+augmentation_optional_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_positional_formal_parameter_name:
+  status: needsEvaluation
+augmentation_required_positional_formal_parameter_count:
   status: needsEvaluation
 augmentation_return_type_mismatch:
   status: needsEvaluation
@@ -955,6 +971,8 @@ initializer_for_static_field:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
+initializing_declaring_parameter:
+  status: needsEvaluation
 initializing_formal_for_non_existent_field:
   status: hasFix
 instance_access_to_static_member:
@@ -1590,6 +1608,8 @@ super_initializer_in_object:
   status: noFix
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
+super_initializing_declaring_parameter:
+  status: needsEvaluation
 super_invocation_not_last:
   status: hasFix
 switch_case_completes_normally:
@@ -2174,7 +2194,9 @@ empty_container_bodies:
   status: hasFix
 empty_statements:
   status: hasFix
-eol_at_end_of_file:
+eol_at_end_of_file_missing:
+  status: hasFix
+eol_at_end_of_file_too_many:
   status: hasFix
 erase_dart_type_extension_types:
   status: needsEvaluation
@@ -2272,6 +2294,9 @@ no_default_cases:
     values that the default would have matched.
 no_duplicate_case_values:
   status: hasFix
+no_dynamic_casts:
+  status: needsFix
+  notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
 no_leading_underscores_for_local_identifiers:
@@ -2280,6 +2305,11 @@ no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
   status: noFix
+no_raw_types:
+  status: needsFix
+  notes: |-
+    There are a few basic cases where we can look at another expression's type
+    in order to find a replacement, like `C c = C<int>()`.
 no_runtimetype_tostring:
   status: noFix
 no_self_assignments:
@@ -2564,6 +2594,8 @@ unnecessary_nullable_for_final_variable_declarations:
 unnecessary_overrides:
   status: hasFix
 unnecessary_parenthesis:
+  status: hasFix
+unnecessary_primary_constructor_body:
   status: hasFix
 unnecessary_raw_strings:
   status: hasFix
@@ -3652,7 +3684,12 @@ inference_failure_on_instance_creation:
 inference_failure_on_uninitialized_variable:
   status: noFix
 inference_failure_on_untyped_parameter:
-  status: noFix
+  status: needsFix
+  notes:
+    The fix is to add a type for the parameter. The simple version of that is to
+    use `AddTypeAnnotation`, which will add `Object?` as the type. Longer term
+    we could consider looking at uses of the parameter to try to get a more
+    accurate type.
 invalid_annotation_target:
   status: hasFix
 invalid_await_not_required_annotation:

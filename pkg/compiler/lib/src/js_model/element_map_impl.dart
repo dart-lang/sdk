@@ -882,23 +882,24 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       );
     }
 
-    for (ir.Variable variable in node.positionalParameters) {
+    for (ir.PositionalParameter parameter in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getParameterType(variable));
+        optionalParameterTypes.add(getParameterType(parameter));
       } else {
-        parameterTypes.add(getParameterType(variable));
+        parameterTypes.add(getParameterType(parameter));
       }
     }
     var namedParameters = <String>[];
     var requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = [];
-    List<ir.Variable> sortedNamedParameters = node.namedParameters.toList()
-      ..sort((a, b) => a.name!.compareTo(b.name!));
-    for (ir.Variable variable in sortedNamedParameters) {
-      namedParameters.add(variable.name!);
-      namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name!);
+    List<ir.NamedParameter> sortedNamedParameters =
+        node.namedParameters.toList()
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
+    for (ir.NamedParameter parameter in sortedNamedParameters) {
+      namedParameters.add(parameter.parameterName);
+      namedParameterTypes.add(getParameterType(parameter));
+      if (parameter.isRequired) {
+        requiredNamedParameters.add(parameter.parameterName);
       }
     }
     List<FunctionTypeVariable> typeVariables;
@@ -1718,7 +1719,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     Map<Name, MemberEntity> memberMap,
   ) {
     JContextField boxedField = JContextField(
-      variable.name!,
+      variable.cosmeticName!,
       boxLocal,
       isConst: variable.isConst,
     );
@@ -1793,10 +1794,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     var requiredNamedParameters = <String>{};
     for (var p
         in node.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!))) {
-      namedParameters.add(p.name!);
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName))) {
+      namedParameters.add(p.parameterName);
       if (p.isRequired) {
-        requiredNamedParameters.add(p.name!);
+        requiredNamedParameters.add(p.parameterName);
       }
     }
     return ParameterStructure(
@@ -1983,7 +1984,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           closureClassInfo.registerFieldForVariable(
             variable,
             _constructClosureField(
-              variable.name!,
+              variable.cosmeticName!,
               closureClassInfo,
               memberThisType,
               memberMap,
@@ -2155,7 +2156,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         parts.add(anonymous);
         anonymous = '';
       } else if (node is ir.FunctionDeclaration) {
-        String? name = node.variable.name;
+        String? name = node.variable.cosmeticName;
         if (name != null && name != "") {
           parts.add(utils.operatorNameToIdentifier(name)!);
         } else {

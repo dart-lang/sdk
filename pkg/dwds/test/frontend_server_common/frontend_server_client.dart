@@ -24,8 +24,10 @@ void defaultConsumer(String message, {StackTrace? stackTrace}) =>
     ? _serverLogger.info(message)
     : _serverLogger.severe(message, null, stackTrace);
 
-typedef CompilerMessageConsumer =
-    void Function(String message, {StackTrace stackTrace});
+typedef CompilerMessageConsumer = void Function(
+  String message, {
+  StackTrace stackTrace,
+});
 
 class CompilerOutput {
   const CompilerOutput(this.outputFilename, this.errorCount, this.sources);

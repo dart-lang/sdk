@@ -18,6 +18,8 @@ class FuchsiaEmulator {
 
   // Publishes the packages to the Fuchsia environment.
   Future<void> publishPackage(String buildDir, String mode, String arch) async {
+    if (arch == "x64c") arch = "x64";
+    if (arch == "arm64c") arch = "arm64";
     assert(daemonIsolateDir == null);
     daemonIsolateDir = Directory.systemTemp.createTempSync();
     envs["FFX_ISOLATE_DIR"] = daemonIsolateDir!.path;

@@ -12,7 +12,7 @@ late int z; // Ok: it's late.
 class A<T extends Object?> {
   static int x; // Error.
   static int? y; // Ok: it's nullable.
-  static late int z; // Ok: it's late. 
+  static late int z; // Ok: it's late.
 
   int lx; // Error.
   int? ly; // Ok: it's nullable.

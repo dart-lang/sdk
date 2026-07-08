@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
@@ -15,7 +13,7 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:yaml/src/yaml_node.dart';
+import 'package:yaml/yaml.dart';
 
 import 'utils.dart';
 
@@ -269,8 +267,10 @@ linter:
     );
   }
 
-  YamlMap _parseOptions(String src) =>
-      AnalysisOptionsProvider(SourceFactoryImpl([])).getOptionsFromString(src);
+  YamlMap _parseOptions(String src) {
+    var node = loadYamlNode(src);
+    return node is YamlMap ? node : YamlMap();
+  }
 
   Future<void> _runLinter_noLintsFlag() async {
     await drive(

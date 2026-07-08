@@ -3571,7 +3571,7 @@ class CodeSourceMapDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       const intptr_t length = d.ReadUnsigned();
       CodeSourceMapPtr map = static_cast<CodeSourceMapPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(map, kPcDescriptorsCid,
+      Deserializer::InitializeHeader(map, kCodeSourceMapCid,
                                      CodeSourceMap::InstanceSize(length));
       map->untag()->length_ = length;
       uint8_t* cdata = reinterpret_cast<uint8_t*>(map->untag()->data());
@@ -10104,7 +10104,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
 
   if (Snapshot::IncludesCode(kind_)) {
     image_writer_->SetProfileWriter(profile_writer_);
-    image_writer_->Write(serializer.stream(), false);
+    image_writer_->Write(serializer.stream());
 #if defined(DART_PRECOMPILER)
     image_writer_->DumpStatistics();
 #endif
@@ -10139,7 +10139,7 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 
   if (Snapshot::IncludesCode(kind_)) {
     image_writer_->SetProfileWriter(profile_writer_);
-    image_writer_->Write(serializer.stream(), false);
+    image_writer_->Write(serializer.stream());
 #if defined(DART_PRECOMPILER)
     image_writer_->DumpStatistics();
 #endif
@@ -10351,7 +10351,7 @@ void FullSnapshotReader::InitializeBSS() {
   ASSERT(Snapshot::IncludesCode(kind_));
   Image image(instructions_image_);
   if (auto const bss = image.bss()) {
-    BSS::Initialize(thread_, bss, /*vm=*/false);
+    BSS::Initialize(thread_, bss);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

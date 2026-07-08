@@ -1,0 +1,58 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# The VM sometimes provides definitions that aren't actually in scope,
+# but if the alternative is to give an error we should use it anyway.
+
+sources: |
+  import "dart:developer";
+
+  extension on String  {
+    void foo() {
+      debugger();
+      bar();
+    }
+
+    void bar() {
+      print("Bar on String");
+    }
+  }
+
+  void main() {
+    "".foo();
+  }
+
+# Lets pretend the VM claims to have something called 'baz' too.
+definitions: ["#this", "baz"]
+definition_types: ["dart:core", "_OneByteString", "1", "0", "dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "_extension#0.foo"
+static: true
+offset: 68 # on 'debugger'
+scriptUri: main.dart
+expression: |
+  () {
+    baz;
+    this.baz;
+    baz();
+    this.baz();
+    baz[0];
+    this.baz[0];
+    -baz;
+    -this.baz;
+    --baz;
+    --this.baz;
+    ++baz;
+    ++this.baz;
+    baz--;
+    this.baz--;
+    baz++;
+    this.baz++;
+    baz.call();
+    this.baz.call();
+    baz = 42;
+    this.baz = 42;
+  }()

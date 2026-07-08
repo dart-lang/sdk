@@ -180,12 +180,8 @@ const char* V8SnapshotProfileWriter::ObjectId::IdSpaceToCString(IdSpace space) {
       return "Invalid";
     case IdSpace::kSnapshot:
       return "Snapshot";
-    case IdSpace::kVmText:
-      return "VmText";
     case IdSpace::kIsolateText:
       return "IsolateText";
-    case IdSpace::kVmData:
-      return "VmData";
     case IdSpace::kIsolateData:
       return "IsolateData";
     case IdSpace::kArtificial:

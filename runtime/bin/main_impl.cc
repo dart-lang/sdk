@@ -412,6 +412,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
   native_assets.dlopen_process = &NativeAssets::DlopenProcess;
   native_assets.dlsym = &NativeAssets::Dlsym;
+  native_assets.dlclose = &NativeAssets::Dlclose;
   Dart_InitializeNativeAssetsResolver(&native_assets);
 #endif  // !defined(DART_PRECOMPILER)
 
@@ -690,9 +691,12 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   PathSanitizer packages_config_sanitizer(packages_config);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  auto isolate_group_data =
-      new IsolateGroupData(script_uri, asset_resolution_base, packages_config,
-                           app_snapshot, isolate_run_app_snapshot);
+  auto isolate_group_data = new IsolateGroupData(
+      is_main_isolate && Options::script_uri_override() != nullptr
+          ? Options::script_uri_override()
+          : script_uri,
+      asset_resolution_base, packages_config, app_snapshot,
+      isolate_run_app_snapshot);
   if (kernel_buffer != nullptr) {
     isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
                                                   kernel_buffer_size);

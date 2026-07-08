@@ -15,7 +15,8 @@ aot_snapshot("dynamic_module_runner_snapshot") {
   name = "dynamic_module_runner"
   gen_kernel_args =
       [ "--dynamic-interface=" + rebase_path(
-            "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml") ]
+            "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml",
+            root_build_dir) ]
 }
 
 aot_snapshot("dynamic_modules_test_suite_snapshot") {

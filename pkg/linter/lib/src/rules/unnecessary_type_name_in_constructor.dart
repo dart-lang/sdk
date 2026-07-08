@@ -20,6 +20,7 @@ class UnnecessaryTypeNameInConstructor extends AnalysisRule {
     : super(
         name: LintNames.unnecessary_type_name_in_constructor,
         description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
       );
 
   @override

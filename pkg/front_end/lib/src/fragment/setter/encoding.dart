@@ -192,7 +192,7 @@ sealed class SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 }
 
@@ -325,8 +325,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      Variable parameter = extern.createParameterVariable(
-        "#synthetic",
+      PositionalParameter parameter = extern.createPositionalParameter(
+        cosmeticName: "#synthetic",
+        type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
       function.positionalParameters.clear();
@@ -476,7 +477,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -486,7 +487,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = function;
   }
 }
 
@@ -627,7 +630,9 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
+      positionalParameters: [
+        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+      ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,
@@ -651,9 +656,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter (after #this).
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      Variable thisParameter = function.positionalParameters[0];
-      Variable parameter = extern.createParameterVariable(
-        "#synthetic",
+      PositionalParameter thisParameter = function.positionalParameters[0];
+      PositionalParameter parameter = extern.createPositionalParameter(
+        cosmeticName: "#synthetic",
+        type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
       function.positionalParameters.clear();
@@ -848,7 +854,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -858,6 +864,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = function;
   }
 }

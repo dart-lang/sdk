@@ -21,12 +21,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
@@ -105,10 +103,6 @@ class EditGetFixesHandler extends LegacyHandler
     var errorFixesList = <AnalysisErrorFixes>[];
     var resourceProvider = server.resourceProvider;
     var optionsFile = resourceProvider.getFile(file);
-    var content = _safelyRead(optionsFile);
-    if (content == null) {
-      return errorFixesList;
-    }
     var driver = server.getAnalysisDriver(file);
     if (driver == null) {
       return errorFixesList;
@@ -123,35 +117,36 @@ class EditGetFixesHandler extends LegacyHandler
     var sdkVersionConstraint = (package is PubPackage)
         ? package.sdkVersionConstraint
         : null;
-    var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var parseResult = AnalysisOptionsParseSession().parse(
       sourceFactory: sourceFactory,
-      contextRoot: analysisContext.contextRoot.root.path,
+      contextRoot: analysisContext.contextRoot.root,
+      file: optionsFile,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
-    var options = _getOptions(sourceFactory, content);
-    if (options == null) {
+    );
+    var fileContent = parseResult.content;
+    var yamlMap = fileContent?.yamlMap;
+    if (fileContent == null || yamlMap == null) {
       return errorFixesList;
     }
+    var lineInfo = fileContent.lineInfo;
+    var diagnostics = parseResult.diagnostics;
     for (var diagnostic in diagnostics) {
       var generator = AnalysisOptionsFixGenerator(
         resourceProvider,
         diagnostic,
-        content,
-        options,
+        fileContent.text,
+        yamlMap,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
-        var lineInfo = LineInfo.fromContent(content);
         // Options are not used in the analysis *of options* so associating
         // an empty set is accurate if not ideal.
         var analysisOptions = AnalysisOptionsImpl();
         var result = engine.ErrorsResultImpl(
           session: session,
           file: optionsFile,
-          content: content,
+          content: fileContent.text,
           uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isLibrary: true,
@@ -340,15 +335,6 @@ error.errorCode: ${diagnostic.diagnosticCode}
       return _computePubspecFixes(file, offset);
     }
     return <AnalysisErrorFixes>[];
-  }
-
-  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-    try {
-      return optionsProvider.getOptionsFromString(content);
-    } on OptionsFormatException {
-      return null;
-    }
   }
 
   /// Return the contents of the [file], or `null` if the file does not exist or

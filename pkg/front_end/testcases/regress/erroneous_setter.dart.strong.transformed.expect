@@ -25,12 +25,6 @@ class Baz extends core::Object {
     invalid-expression "pkg/front_end/testcases/regress/erroneous_setter.dart:32:10: Error: A setter should have exactly one formal parameter.
   set foo({final newFoo}) {
          ^";
-    {
-      final dynamic newFoo = null;
-      {
-        core::print(this.{self::Baz::foo}{core::int});
-      }
-    }
   }
   get foo() → core::int
     return 42;
@@ -57,12 +51,6 @@ static extension-member method Foo|set#foo(lowered final core::int #this, dynami
   invalid-expression "pkg/front_end/testcases/regress/erroneous_setter.dart:8:10: Error: A setter should have exactly one formal parameter.
   set foo({final newFoo}) {
          ^";
-  {
-    final dynamic newFoo = null;
-    {
-      core::print(self::Foo|get#foo(#this));
-    }
-  }
 }
 static extension-member method Foo|get#foo(lowered final core::int #this) → core::int
   return 42;
@@ -81,12 +69,6 @@ static extension-type-member method Bar|set#foo(lowered final self::Bar% /* eras
   invalid-expression "pkg/front_end/testcases/regress/erroneous_setter.dart:20:10: Error: A setter should have exactly one formal parameter.
   set foo({final newFoo}) {
          ^";
-  {
-    final dynamic newFoo = null;
-    {
-      core::print(self::Bar|get#foo(#this));
-    }
-  }
 }
 static extension-type-member method Bar|get#foo(lowered final self::Bar% /* erasure=core::int, declared=! */ #this) → core::int
   return 42;

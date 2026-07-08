@@ -5,21 +5,16 @@
 import 'dart:_internal' show patch;
 import 'dart:_simd';
 
-// These are naive patches for SIMD typed data which we can use until Wasm
-// we implement intrinsics for Wasm SIMD.
-// TODO(joshualitt): Implement SIMD intrinsics and delete this patch.
-
 @patch
 class Int32x4 {
   @patch
-  factory Int32x4(int x, int y, int z, int w) = NaiveInt32x4;
+  factory Int32x4(int x, int y, int z, int w) = I32x4;
 
   @patch
-  factory Int32x4.bool(bool x, bool y, bool z, bool w) = NaiveInt32x4.bool;
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) = I32x4.bool;
 
   @patch
-  factory Int32x4.fromFloat32x4Bits(Float32x4 x) =
-      NaiveInt32x4.fromFloat32x4Bits;
+  factory Int32x4.fromFloat32x4Bits(Float32x4 x) = I32x4.fromFloat32x4Bits;
 }
 
 @patch

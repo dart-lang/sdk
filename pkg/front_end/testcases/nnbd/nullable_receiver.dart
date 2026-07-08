@@ -48,10 +48,18 @@ ok<T extends Object?>(String? s, A? a, T t, B? b, Invocation i) {
   t.toString();
   b.toString();
 
-  try { s.noSuchMethod(i); } catch (e, t) {}
-  try { a.noSuchMethod(i); } catch (e, t) {}
-  try { t.noSuchMethod(i); } catch (e, t) {}
-  try { b.noSuchMethod(i); } catch (e, t) {}
+  try {
+    s.noSuchMethod(i);
+  } catch (e, t) {}
+  try {
+    a.noSuchMethod(i);
+  } catch (e, t) {}
+  try {
+    t.noSuchMethod(i);
+  } catch (e, t) {}
+  try {
+    b.noSuchMethod(i);
+  } catch (e, t) {}
 
   s.runtimeType;
   a.runtimeType;

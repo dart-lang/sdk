@@ -638,7 +638,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
   // Has no initializer.
-  Variable variable;
+  DeclaredVariable variable;
 
   Expression iterable;
 
@@ -724,9 +724,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
         new Name('iterator'),
       );
       if (member != null) {
-        iteratorType = Substitution.fromInterfaceType(
-          iterableType,
-        ).substituteType(member.getterType);
+        iteratorType = Substitution.fromInterfaceType(iterableType)
+            .substituteType(member.getterType);
       }
     }
     return iteratorType ?? const DynamicType();
@@ -1216,8 +1215,8 @@ class TryCatch extends Statement {
 
 class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
-  Variable? exception;
-  Variable? stackTrace;
+  CatchVariable? exception;
+  CatchVariable? stackTrace;
   Statement body;
 
   @override
@@ -1267,11 +1266,11 @@ class Catch extends TreeNode implements ScopeProvider {
   void transformOrRemoveChildren(RemovingTransformer v) {
     guard = v.visitDartType(guard, cannotRemoveSentinel);
     if (exception != null) {
-      exception = v.transformOrRemoveVariable(exception!);
+      exception = v.transformOrRemoveVariable(exception!) as CatchVariable;
       exception?.parent = this;
     }
     if (stackTrace != null) {
-      stackTrace = v.transformOrRemoveVariable(stackTrace!);
+      stackTrace = v.transformOrRemoveVariable(stackTrace!) as CatchVariable;
       stackTrace?.parent = this;
     }
     body = v.transform(body);
@@ -1482,8 +1481,6 @@ class VariableStatement extends Statement {
       ..parent = this;
   }
 
-  /// Returns a possibly synthesized name for this variable, consistent with
-  /// the names used across all [toString] calls.
   @override
   String toString() {
     return "VariableStatement(${toStringInternal()})";
@@ -1500,7 +1497,7 @@ class VariableStatement extends Statement {
 ///
 /// The body of the function may use [variable] as its self-reference.
 class FunctionDeclaration extends Statement implements LocalFunction {
-  Variable variable; // Is final and has no initializer.
+  LocalFunctionVariable variable; // Is final and has no initializer.
 
   @override
   FunctionNode function;

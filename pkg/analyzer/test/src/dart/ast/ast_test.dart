@@ -23,87 +23,77 @@ main() {
 
 @reflectiveTest
 class CompilationUnitImplTest extends ParserDiagnosticsTest {
-  late final String testSource;
-  late final CompilationUnitImpl testUnit;
-
-  parse(String source) {
-    testSource = source;
-    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
+  CompilationUnitImpl parse(String source) {
+    return parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
   }
 
   test_languageVersionComment_afterScriptTag() {
-    parse('''
+    var unit = parse('''
 #!/bin/false
 // @dart=2.9
 void main() {}
 ''');
-    var token = testUnit.languageVersionToken!;
+    var token = unit.languageVersionToken!;
     expect(token.major, 2);
     expect(token.minor, 9);
     expect(token.offset, 13);
   }
 
   test_languageVersionComment_afterScriptTag_andComment() {
-    parse('''
+    var unit = parse('''
 #!/bin/false
 // A normal comment.
 // @dart=2.9
 void main() {}
 ''');
-    var token = testUnit.languageVersionToken!;
+    var token = unit.languageVersionToken!;
     expect(token.major, 2);
     expect(token.minor, 9);
     expect(token.offset, 34);
   }
 
   test_languageVersionComment_firstComment() {
-    parse('''
+    var unit = parse('''
 // @dart=2.6
 void main() {}
 ''');
-    expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments,
-    );
+    expect(unit.languageVersionToken, unit.beginToken.precedingComments);
   }
 
   test_languageVersionComment_none() {
-    parse('''
+    var unit = parse('''
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken, null);
+    expect(unit.languageVersionToken, null);
   }
 
   test_languageVersionComment_none_onlyNormalComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken, null);
+    expect(unit.languageVersionToken, null);
   }
 
   test_languageVersionComment_secondComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 // @dart=2.6
 void main() {}
 ''');
-    expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments!.next,
-    );
+    expect(unit.languageVersionToken, unit.beginToken.precedingComments!.next);
   }
 
   test_languageVersionComment_thirdComment() {
-    parse('''
+    var unit = parse('''
 // A normal comment.
 // Another normal comment.
 // @dart=2.6
 void main() {}
 ''');
     expect(
-      testUnit.languageVersionToken,
-      testUnit.beginToken.precedingComments!.next!.next,
+      unit.languageVersionToken,
+      unit.beginToken.precedingComments!.next!.next,
     );
   }
 }
@@ -228,7 +218,7 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
 
   parse(String source) {
     testSource = source;
-    testUnit = parseStringWithErrors(source).unit as CompilationUnitImpl;
+    testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
   }
 
   test_inConstantContext_enumConstant_true() {

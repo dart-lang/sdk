@@ -379,14 +379,14 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       dataForTesting.flowAnalysisResult.assignedVariables =
-          new AssignedVariablesForTesting<TreeNode, Variable>();
+          new AssignedVariablesForTesting<TreeNode, InternalVariable>();
       assignedVariables = new AssignedVariablesImpl(
         dataForTesting.flowAnalysisResult.assignedVariables!,
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     } else {
       assignedVariables = new AssignedVariablesImpl(
-        new AssignedVariables<TreeNode, Variable>(),
+        new AssignedVariables<TreeNode, InternalVariable>(),
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     }
@@ -415,7 +415,11 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
 // TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
 class InferenceDataForTesting
-    extends shared.TypeConstraintGenerationDataForTesting<Variable, TreeNode> {
+    extends
+        shared.TypeConstraintGenerationDataForTesting<
+          InternalVariable,
+          TreeNode
+        > {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
 
   final TypeInferenceResultForTesting typeInferenceResult =
@@ -446,7 +450,7 @@ class FlowAnalysisResult {
   final List<TreeNode> definitelyUnassignedNodes = [];
 
   /// The assigned variables information that computed for the member.
-  AssignedVariablesForTesting<TreeNode, Variable>? assignedVariables;
+  AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables;
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
@@ -461,14 +465,14 @@ class FlowAnalysisResult {
 class OperationsCfe
     with
         TypeAnalyzerOperationsMixin<
-          Variable,
+          InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     implements
         TypeAnalyzerOperations<
-          Variable,
+          InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
@@ -595,7 +599,7 @@ class OperationsCfe
   bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
-  bool isFinal(Variable variable) {
+  bool isFinal(InternalVariable variable) {
     return variable.isFinal;
   }
 
@@ -683,14 +687,11 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView variableType(Variable variable) {
+  SharedTypeView variableType(InternalVariable variable) {
     // When late variables get lowered, their type is changed, but the
     // original type is stored in `VariableDeclarationImpl.lateType`, so we
     // use that if it exists.
-    DartType? lateType = variable is InternalVariable
-        ? (variable as InternalVariable).lateType
-        : null;
-    return new SharedTypeView(lateType ?? variable.type);
+    return new SharedTypeView(variable.lateType ?? variable.type);
   }
 
   @override
@@ -772,7 +773,7 @@ class OperationsCfe
   }
 
   @override
-  bool isVariableFinal(Variable node) {
+  bool isVariableFinal(InternalVariable node) {
     return node.isFinal;
   }
 
@@ -1053,9 +1054,8 @@ class OperationsCfe
     DartType type,
     List<SharedTypeParameter> typeParametersToEliminate,
   ) {
-    return new FreeTypeParameterEliminator(
-      coreTypes: typeEnvironment.coreTypes,
-    ).eliminateToGreatest(type);
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
+        .eliminateToGreatest(type);
   }
 
   @override
@@ -1063,9 +1063,8 @@ class OperationsCfe
     DartType type,
     List<SharedTypeParameter> typeParametersToEliminate,
   ) {
-    return new FreeTypeParameterEliminator(
-      coreTypes: typeEnvironment.coreTypes,
-    ).eliminateToLeast(type);
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
+        .eliminateToLeast(type);
   }
 
   @override
@@ -1097,7 +1096,7 @@ class OperationsCfe
 
   @override
   TypeConstraintGenerator<
-    Variable,
+    InternalVariable,
     TypeDeclarationType,
     TypeDeclaration,
     TreeNode
@@ -1180,11 +1179,62 @@ class OperationsCfe
       types.cast(),
     ).substitute(typeToSubstitute);
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType? lookupMemberTypeInternal(DartType type, String lookupName) {
+    switch (type) {
+      case InterfaceType(:var classNode):
+        Member? member = typeEnvironment.hierarchy.getInterfaceMember(
+          classNode,
+          new Name(lookupName, classNode.enclosingLibrary),
+        );
+        if (member == null) {
+          return null;
+        } else {
+          Class? memberEnclosingClass = member.enclosingClass;
+          if (memberEnclosingClass == null) {
+            return null;
+          } else {
+            DartType? memberType =
+                member is Procedure && member.kind == ProcedureKind.Getter
+                ? member.getterType
+                : member.function?.computeFunctionType(Nullability.nullable);
+            if (memberType == null) {
+              return null;
+            } else {
+              if (memberEnclosingClass.typeParameters.isEmpty) {
+                return memberType;
+              } else {
+                InterfaceType? asInstanceOfMemberEnclosingClass =
+                    typeEnvironment.hierarchy.getInterfaceTypeAsInstanceOfClass(
+                      type,
+                      memberEnclosingClass,
+                    );
+                if (asInstanceOfMemberEnclosingClass == null) {
+                  return null;
+                } else {
+                  return Substitution.fromInterfaceType(
+                    asInstanceOfMemberEnclosingClass,
+                  ).substituteType(memberType);
+                }
+              }
+            }
+          }
+        }
+      default:
+        return null;
+    }
+  }
 }
 
 /// Type inference results used for testing.
 class TypeInferenceResultForTesting
-    extends shared.TypeConstraintGenerationDataForTesting<Variable, TreeNode> {
+    extends
+        shared.TypeConstraintGenerationDataForTesting<
+          InternalVariable,
+          TreeNode
+        > {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

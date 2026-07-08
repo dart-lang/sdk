@@ -11,17 +11,14 @@ import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-import 'dylib_utils.dart';
 import 'threading_utils.dart';
-
-@pragma('vm:shared')
-int counter = 0;
 
 void testRunSyncOnCurrentIsolate() {
   // Run on current isolate.
@@ -40,6 +37,8 @@ void testRunSyncOnCurrentIsolate() {
   );
 }
 
+noop() {}
+
 Future<void> testFailRunSyncOnAnotherIsolate() async {
   final rpChild = ReceivePort();
   final rpChildExit = ReceivePort();
@@ -55,7 +54,7 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   );
   SendPort rpChildRequestExit = await rpChild.first;
   Expect.throws(
-    () => child.runSync(() {}),
+    () => child.runSync(noop),
     (e) => e is StateError && e.message.contains("Isolate has a message loop"),
   );
   rpChildRequestExit.send(true);
@@ -64,19 +63,23 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   rpChild.close();
 }
 
+newRawReceivePort() {
+  return RawReceivePort()..keepIsolateAlive = false;
+}
+
+newRawReceivePortSendPort() {
+  final rp = RawReceivePort()..keepIsolateAlive = false;
+  return rp.sendPort;
+}
+
 void testRunSyncChecks() {
   final isolate = Isolate.current;
   // Only deeply immutable values can be returned from runSync closure.
   Expect.throwsArgumentError(() {
-    isolate.runSync(() => RawReceivePort()..keepIsolateAlive = false);
+    isolate.runSync(newRawReceivePort);
   });
   // SendPort can be returned from runSync closure.
-  Expect.isNotNull(
-    isolate.runSync(() {
-      final rrp = RawReceivePort()..keepIsolateAlive = false;
-      return rrp.sendPort;
-    }),
-  );
+  Expect.isNotNull(isolate.runSync(newRawReceivePortSendPort));
 
   // Only deeply immutable values can be captured by runSync closure.
   {
@@ -90,7 +93,6 @@ void testRunSyncChecks() {
 
 Future<void> testFailToRunOnExitedIsolate() async {
   // Enter isolate that never gets to the finish single message loop iteration.
-  counter = 0;
   final rp = ReceivePort();
   final rpChildExit = ReceivePort();
   final child = await Isolate.spawn(
@@ -104,9 +106,7 @@ Future<void> testFailToRunOnExitedIsolate() async {
   );
   final spChildListening = await rp.first;
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
+    () => child.runSync(noop),
     (e) =>
         e is StateError &&
         e.message.contains("Isolate has a message loop running"),
@@ -115,10 +115,11 @@ Future<void> testFailToRunOnExitedIsolate() async {
   await rpChildExit.first;
   rpChildExit.close();
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
-    (e) => e is StateError && e.message.contains("Unable to enter the isolate"),
+    () => child.runSync(noop),
+    (e) =>
+        e is StateError &&
+        (e.message.contains("Unable to enter the isolate") ||
+            e.message.contains("Isolate has a message loop running")),
   );
   rp.close();
 }
@@ -129,7 +130,7 @@ final dartSetCurrentThreadOwnsIsolate = DynamicLibrary.executable()
     .asFunction<void Function()>();
 
 int threadMain(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = Isolate.create(debugName: "helperMain");
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
   });
@@ -139,6 +140,11 @@ int threadMain(Pointer<Void> data) {
   new_isolate.shutdownSync();
   return 0;
 }
+
+@pragma('vm:shared')
+final dartNewSendPort = DynamicLibrary.executable()
+    .lookup<NativeFunction<Handle Function(Int64)>>("Dart_NewSendPort")
+    .asFunction<SendPort Function(int)>();
 
 Future<void> testRunSyncOnPinnedToSelfIsolate() async {
   if (Platform.isWindows) {
@@ -163,36 +169,36 @@ Future<void> testRunSyncOnPinnedToSelfIsolate() async {
     ),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
-@pragma('vm:shared')
-late SendPort sp;
 @pragma('vm:shared')
 final Mutex mutexCondvar = Mutex();
 @pragma('vm:shared')
 final ConditionVariable condVar = ConditionVariable();
 @pragma('vm:shared')
-bool latchOpened = false;
+final latchOpened = Uint8List(1);
+@pragma('vm:shared')
+final nativeSendPort = Uint64List(1);
 
 void waitLatch() {
   mutexCondvar.runLocked(() {
-    while (!latchOpened) {
+    while (latchOpened[0] == 0) {
       condVar.wait(mutexCondvar);
     }
-    latchOpened = false;
+    latchOpened[0] = 0;
   });
 }
 
 void openLatch() {
   mutexCondvar.runLocked(() {
-    latchOpened = true;
+    latchOpened[0] = 1;
     condVar.notify();
   });
 }
 
 int threadMainPinned(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = Isolate.create(debugName: "helperPinned");
 
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
@@ -200,7 +206,13 @@ int threadMainPinned(Pointer<Void> data) {
   new_isolate.runSync(() {
     print('Hello, new pinned isolate!');
   });
-  sp.send(new_isolate);
+
+  try {
+    dartNewSendPort(nativeSendPort[0]).send(new_isolate);
+  } catch (e) {
+    print(e);
+  }
+
   waitLatch();
 
   new_isolate.shutdownSync();
@@ -226,7 +238,8 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
     openLatch();
     completer.complete();
   });
-  sp = rp.sendPort;
+
+  nativeSendPort[0] = rp.sendPort.nativePort;
 
   final callback =
       NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
@@ -248,14 +261,21 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
-int threadMainWaitingLatch(Pointer<Void> data) {
-  final helper = Isolate.create(debugName: "helper");
+@pragma('vm:shared')
+final isHelperInThreadMainWaitingLatchRunning = Uint8List(1);
 
-  sp.send(helper);
+int threadMainWaitingLatch(Pointer<Void> data) {
+  final helper = Isolate.create(debugName: "helperWaitingLatch");
+
+  dartNewSendPort(nativeSendPort[0]).send(helper);
+
   helper.runSync(() {
+    mutexCondvar.runLocked(() {
+      isHelperInThreadMainWaitingLatchRunning[0] = 1;
+    });
     waitLatch();
   });
   print('shutting down the isolate');
@@ -269,8 +289,15 @@ Future<void> testFailRunSyncWithTimeout() async {
   }
 
   final completer = Completer();
-  final rp = RawReceivePort((Isolate child_isolate) {
+  final rp = RawReceivePort((Isolate child_isolate) async {
     print('received $child_isolate');
+    while (mutexCondvar.runLocked(
+      () => isHelperInThreadMainWaitingLatchRunning[0] == 0,
+    )) {
+      // Let the thread which should do `helper.runSync`
+      // actually do that.
+      await Future.delayed(Duration(milliseconds: 10));
+    }
     Expect.throws(
       () => child_isolate.runSync(() {
         Expect.fail("Should not run");
@@ -282,7 +309,7 @@ Future<void> testFailRunSyncWithTimeout() async {
     openLatch();
     completer.complete();
   });
-  sp = rp.sendPort;
+  nativeSendPort[0] = rp.sendPort.nativePort;
 
   final callback =
       NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
@@ -304,13 +331,19 @@ Future<void> testFailRunSyncWithTimeout() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 Future<void> testFailRunSyncDifferentIsolateGroup() async {
-  final isolate = await Isolate.spawnUri(Platform.script, <String>[
-    "worker",
-  ], null);
+  final rpFromChild = ReceivePort();
+  final rpChildIsDone = ReceivePort();
+  final isolate = await Isolate.spawnUri(
+    Platform.script,
+    <String>["worker"],
+    rpFromChild.sendPort,
+    onExit: rpChildIsDone.sendPort,
+    onError: rpChildIsDone.sendPort,
+  );
   Expect.isNotNull(isolate);
   Expect.throws(
     () => isolate.runSync(() {
@@ -322,13 +355,54 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
           "Target isolate should be part of the same isolate group.",
         ),
   );
+  final spChildControl = (await rpFromChild.first) as SendPort;
+  spChildControl.send('please, exit');
+  await rpChildIsDone.first;
 }
 
-main(List<String> args, List<SendPort>? message) async {
-  if (message != null) {
+int threadMainCreatesTimer(Pointer<Void> data) {
+  final new_isolate = Isolate.create(debugName: "helperMainCreatesTimer");
+  new_isolate.runSync(() {
+    print(Future.delayed(Duration(seconds: 1)));
+  });
+  new_isolate.shutdownSync();
+  return 0;
+}
+
+Future<void> testCreateTimer() async {
+  if (Platform.isWindows) {
+    return; // pthread is not available on Windows.
+  }
+
+  final callback =
+      NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
+        threadMainCreatesTimer,
+        exceptionalReturn: -1,
+      );
+
+  final threadInfo = ThreadInfo();
+  Expect.equals(0, pthreadAttrInit(threadInfo.ptr_attr));
+  Expect.equals(
+    0,
+    pthreadCreate(
+      threadInfo.ptr_tid,
+      threadInfo.ptr_attr,
+      callback.nativeFunction,
+      threadInfo.ptr_data.cast<Void>(),
+    ),
+  );
+
+  threadInfo.joinAndDestroy();
+}
+
+main(List<String> args, SendPort? toParent) async {
+  if (toParent != null) {
     Expect.equals(1, args.length);
     Expect.equals("worker", args[0]);
-    await ReceivePort().first;
+    final rp = ReceivePort();
+    // child isolate provides a sendport to parent, so it can tell when to exit
+    toParent.send(rp.sendPort);
+    await rp.first;
     return;
   }
 
@@ -352,6 +426,8 @@ main(List<String> args, List<SendPort>? message) async {
   await testFailRunSyncOnPinnedIsolate();
   await testFailRunSyncWithTimeout();
   await testFailRunSyncDifferentIsolateGroup();
+
+  await testCreateTimer();
 
   asyncEnd();
 }

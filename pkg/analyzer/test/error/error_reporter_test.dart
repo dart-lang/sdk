@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -10,7 +11,6 @@ import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../generated/test_support.dart';
 import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class ErrorReporterTest extends PubPackageResolutionTest {
-  var listener = GatheringDiagnosticListener();
+  final RecordingDiagnosticListener listener = RecordingDiagnosticListener();
 
   test_atElement_named() async {
     var result = await resolveTestCode('class A {}');
@@ -246,6 +246,37 @@ zap: baz
     expect(listener.diagnostics, hasLength(1));
     expect(listener.diagnostics.first.offset, offset);
     expect(listener.diagnostics.first.length, length);
+  }
+
+  test_atSourceSpan_trimsTrailingLineTerminators() async {
+    var source = FileSource(newFile('/test.dart', ''));
+    var reporter = DiagnosticReporter(listener, source);
+
+    var text = 'foo: bar\r\nzap: baz\r\n';
+    var offset = text.indexOf('baz');
+
+    var span = SourceSpanBase(
+      SourceLocation(offset),
+      SourceLocation(offset + 'baz\r\n'.length),
+      'baz\r\n',
+    );
+
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
+    );
+    reporter.report(diag.abstractClassMember.atSourceSpan(span));
+
+    expect(listener.diagnostics, hasLength(2));
+    for (var diagnostic in listener.diagnostics) {
+      expect(diagnostic.offset, offset);
+      expect(diagnostic.length, 'baz'.length);
+    }
   }
 
   test_creation() async {

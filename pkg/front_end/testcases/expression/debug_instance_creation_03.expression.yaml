@@ -1,0 +1,35 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  import 'dart:developer';
+
+  class C {
+    final String _s1;
+    final String _s2;
+    C({required String s1, required String s2}) : _s1 = s1, _s2 = s2;
+  }
+
+  void main() {
+    debugger();
+    C c = new C(s1: "hello", s2: "world");
+    print(c);
+  }
+
+definitions: ["s1", "s2"]
+# String, String
+definition_types: ["dart:core", "_OneByteString", "1", "0", "dart:core", "_OneByteString", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "C"
+position: "#C"
+static: false
+# On ";" after the initializer list.
+# Here they are not found, but as they will shadow nothing it's best to allow
+# them to be used.
+offset: 142
+scriptUri: main.dart
+expression: |
+  () { return "$s1 $s2"; }()

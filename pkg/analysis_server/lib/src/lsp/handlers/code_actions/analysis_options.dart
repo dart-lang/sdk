@@ -8,14 +8,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
-import 'package:analyzer/src/generated/source.dart' show SourceFactory;
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:yaml/yaml.dart';
 
 /// Produces [CodeActionLiteral]s from analysis options fixes.
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
@@ -65,38 +60,33 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     var resourceProvider = server.resourceProvider;
     var sourceFactory = driver.sourceFactory;
     var optionsFile = resourceProvider.getFile(path);
-    var content = safelyRead(optionsFile);
-    if (content == null) {
-      return [];
-    }
-    var lineInfo = LineInfo.fromContent(content);
-
-    var options = _getOptions(sourceFactory, content);
-    if (options == null) {
-      return [];
-    }
-
     var contextRoot = session.analysisContext.contextRoot;
     var package = contextRoot.workspace.findPackageFor(optionsFile.path);
     var sdkVersionConstraint = (package is PubPackage)
         ? package.sdkVersionConstraint
         : null;
 
-    var errors = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var parseResult = AnalysisOptionsParseSession().parse(
       sourceFactory: sourceFactory,
-      contextRoot: contextRoot.root.path,
+      contextRoot: contextRoot.root,
+      file: optionsFile,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
+    );
+    var fileContent = parseResult.content;
+    var yamlMap = fileContent?.yamlMap;
+    if (fileContent == null || yamlMap == null) {
+      return [];
+    }
+    var lineInfo = fileContent.lineInfo;
+    var errors = parseResult.diagnostics;
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {
       var generator = AnalysisOptionsFixGenerator(
         resourceProvider,
         error,
-        content,
-        options,
+        fileContent.text,
+        yamlMap,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
@@ -138,13 +128,4 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   Future<List<CodeAction>> getSourceActions() async => [];
-
-  YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
-    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-    try {
-      return optionsProvider.getOptionsFromString(content);
-    } on OptionsFormatException {
-      return null;
-    }
-  }
 }

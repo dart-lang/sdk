@@ -766,6 +766,16 @@ abstract class ElementAnnotation {
   /// if the value of this annotation could not be computed because of errors.
   DartObject? computeConstantValue();
 
+  /// Whether this annotation is a valid annotation for the given [element].
+  ///
+  /// Returns `true` if the annotation has known target kinds, and the
+  /// [element] matches one of them. Returns `false` if the annotation has known
+  /// target kinds, and the [element] does not match any of them.
+  ///
+  /// Returns `null` if there is no known set of target kinds for this
+  /// annotation.
+  bool? isValidAtElement(Element element);
+
   /// Returns a textual description of this annotation in a form approximating
   /// valid source.
   ///
@@ -1364,12 +1374,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   @override
   FormalParameterFragment get firstFragment;
 
-  /// The formal parameters defined by this formal parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// formal parameter.
-  List<FormalParameterElement> get formalParameters;
-
   @override
   List<FormalParameterFragment> get fragments;
 
@@ -1379,10 +1383,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   /// Whether the parameter is covariant, meaning it is allowed to have a
   /// narrower type in an override.
   bool get isCovariant;
-
-  /// Whether the parameter is an initializing formal parameter.
-  @Deprecated('Use element is FieldFormalParameterElement instead')
-  bool get isInitializingFormal;
 
   /// Whether the parameter is a named parameter.
   ///
@@ -1432,16 +1432,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
 
   /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional;
-
-  /// Whether the parameter is a super formal parameter.
-  @Deprecated('Use element is SuperFormalParameterElement instead')
-  bool get isSuperFormal;
-
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].

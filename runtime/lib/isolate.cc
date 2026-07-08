@@ -508,6 +508,8 @@ DEFINE_NATIVE_ENTRY(Isolate_create_, 0, 1) {
     UNREACHABLE();
   }
 
+  auto initialize_callback = Isolate::InitializeCallback();
+
   char* error = nullptr;
   auto group = IsolateGroup::Current();
 
@@ -520,6 +522,16 @@ DEFINE_NATIVE_ENTRY(Isolate_create_, 0, 1) {
   Isolate* created_isolate =
       CreateWithinExistingIsolateGroup(group, debug_name_cstr, &error);
   RELEASE_ASSERT(created_isolate != nullptr);
+
+  void* child_isolate_data = nullptr;
+  const bool success = initialize_callback(&child_isolate_data, &error);
+  if (!success) {
+    const auto& error_str = String::Handle(String::New(error));
+    Exceptions::ThrowStateError(error_str);
+    UNREACHABLE();
+  }
+
+  created_isolate->set_init_callback_data(child_isolate_data);
 
   Dart_ExitIsolate();
   Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);
@@ -577,6 +589,8 @@ class IsolateAcquireScope : public ValueObject {
         return "Isolate is pinned to a different thread already";
       case IsolateAcquireResult::BUSY:
         return "Isolate is busy, running on a different thread";
+      case IsolateAcquireResult::HAS_MESSAGE_LOOP_OR_UNAVAILABLE:
+        return "Isolate has a message loop running or otherwise unavailable.";
       default:
         UNREACHABLE();
     }
@@ -637,13 +651,6 @@ DEFINE_NATIVE_ENTRY(Isolate_runEventLoopSync_, 0, 1) {
   }
 
   Dart_Port control_port_id = isolate_control_port.Id();
-
-  if (PortMap::HasEventLoopRunning(control_port_id)) {
-    const auto& error =
-        String::Handle(String::New("Isolate has a message loop running."));
-    Exceptions::ThrowStateError(error);
-    UNREACHABLE();
-  }
 
   Error& result_error = Error::Handle();
   Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
@@ -714,13 +721,6 @@ DEFINE_NATIVE_ENTRY(Isolate_runSync_, 1, 2) {
       UNREACHABLE();
     }
   } else {
-    if (PortMap::HasEventLoopRunning(control_port_id)) {
-      const auto& error =
-          String::Handle(String::New("Isolate has a message loop running."));
-      Exceptions::ThrowStateError(error);
-      UNREACHABLE();
-    }
-
     if (isolate != nullptr) {
       ASSERT(Thread::Current()->isolate() == isolate);
       Thread::ExitIsolate(/*isolate_shutdown=*/false);

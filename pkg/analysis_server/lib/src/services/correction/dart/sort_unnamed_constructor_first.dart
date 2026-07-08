@@ -25,17 +25,30 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var clazz = coveringNode?.parent?.parent?.parent;
-    if (clazz is! ClassDeclaration) {
-      return;
+    // In the case of new() of factory() we might already be on the constructor
+    // declaration. Otherwise we are likely the identifier for the constructor
+    // name.
+    var constructorDeclaration = coveringNode is ConstructorDeclaration
+        ? coveringNode
+        : coveringNode?.parent;
+
+    var declaration = constructorDeclaration?.parent?.parent;
+    NodeList<ClassMember> members;
+    int topOfBodyOffset;
+    switch (declaration) {
+      case ClassDeclaration(body: BlockClassBody body):
+        members = body.members;
+        topOfBodyOffset = body.leftBracket.end;
+      case EnumDeclaration(body: BlockEnumBody body):
+        members = body.members;
+        topOfBodyOffset =
+            body.semicolon?.end ??
+            body.constants.lastOrNull?.end ??
+            body.leftBracket.end;
+      default:
+        return;
     }
 
-    var body = clazz.body;
-    if (body is! BlockClassBody) {
-      return;
-    }
-
-    var members = body.members;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
 
     var firstConstructor = constructors.firstOrNull;
@@ -63,11 +76,11 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       builder.addDeletion(moveRange);
 
       var firstIndex = members.indexOf(firstConstructor);
-      var tokenBeforeFirst = firstIndex != 0
-          ? members[firstIndex - 1].endToken
-          : body.leftBracket;
+      var insertionOffset = firstIndex != 0
+          ? members[firstIndex - 1].endToken.end
+          : topOfBodyOffset;
       builder.addSimpleInsertion(
-        tokenBeforeFirst.end,
+        insertionOffset,
         utils.getRangeText(moveRange),
       );
     });

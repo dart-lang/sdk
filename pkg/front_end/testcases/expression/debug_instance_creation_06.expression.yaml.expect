@@ -1,0 +1,6 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::String _s1, dart.core::String _s2) → dynamic
+  return (() → dart.core::String {
+    return "${_s1} ${_s2} ${_s1} ${_s2}";
+  })(){() → dart.core::String};

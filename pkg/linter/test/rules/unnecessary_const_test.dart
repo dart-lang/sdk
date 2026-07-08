@@ -88,7 +88,7 @@ void f(Object o) {
   }
 
   test_constConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   const C();
 }
@@ -97,7 +97,7 @@ const c = [!const!] C();
   }
 
   test_constConstructor_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   const C();
 }
@@ -106,7 +106,7 @@ const C c = [!const!] .new();
   }
 
   test_constConstructor_dotShorthand_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   const C.named();
 }
@@ -115,19 +115,19 @@ const C c = [!const!] .named();
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const l = [!const!] [];
 ''');
   }
 
   test_mapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const m = [!const!] {1: 1};
 ''');
   }
 
   test_setLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const s = [!const!] {1};
 ''');
   }
@@ -148,7 +148,7 @@ class A {
   }
 
   test_constVariable_constCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const x = [!const!] A();
 class A {
   const A();
@@ -157,7 +157,7 @@ class A {
   }
 
   test_constVariable_constCall_newName_noArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const x = [!const!] A.new();
 class A {
   const A();
@@ -166,7 +166,7 @@ class A {
   }
 
   test_constVariable_constCall_nonConstArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const x = [!const!] A([]);
 class A {
   const A(Object o);
@@ -303,7 +303,7 @@ class A {
   }
 
   test_recordLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const r = [!const!] (a: 1);
 ''');
   }
@@ -315,7 +315,7 @@ const r = (a: 1);
   }
 
   test_variable_constCall_constListArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = const A([!const!] []);
 class A {
   const A(Object o);
@@ -324,7 +324,7 @@ class A {
   }
 
   test_variable_constCall_constSetArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = const A([!const!] {});
 class A {
   const A(Object o);
@@ -333,7 +333,7 @@ class A {
   }
 
   test_variable_constCall_newName_constArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = const A.new([!const!] []);
 class A {
   const A(Object o);

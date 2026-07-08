@@ -173,7 +173,6 @@ class ImpliedTypeComputer {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
-      excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];

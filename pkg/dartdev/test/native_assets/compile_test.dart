@@ -47,6 +47,41 @@ void main() async {
     });
   });
 
+  test('dart compile from different directory', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final tempUri = dartAppUri.parent;
+      final otherDirUri = tempUri.resolve('other_dir/');
+      await Directory.fromUri(otherDirUri).create();
+
+      final result = await runDart(
+        arguments: [
+          'compile',
+          'exe',
+          dartAppUri.resolve('bin/dart_app.dart').toFilePath(),
+        ],
+        workingDirectory: otherDirUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(
+        result.stderr,
+        stringContainsInOrder([
+          "'dart compile' does not support build hooks, use 'dart build' instead.",
+          'Packages with build hooks:',
+        ]),
+      );
+      expect(
+        result.stderr,
+        contains('native_add'),
+      );
+      expect(
+        result.stderr,
+        contains('native_subtract'),
+      );
+      expect(result.exitCode, 255);
+    });
+  });
+
   test('dart compile only bails in bin/', timeout: longTimeout, () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
       await runDart(

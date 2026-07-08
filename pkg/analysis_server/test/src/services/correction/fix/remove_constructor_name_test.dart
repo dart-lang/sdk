@@ -75,16 +75,7 @@ class RemoveConstructorNameTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_constructor_name;
 
-  Future<void> test_declaration_primary() async {
-    await resolveTestCode(r'''
-class C.new(int x);
-''');
-    await assertHasFix(r'''
-class C(int x);
-''');
-  }
-
-  Future<void> test_declaration_secondary() async {
+  Future<void> test_declaration_inBody() async {
     await resolveTestCode(r'''
 class A {
   A.new(int x) {
@@ -98,6 +89,15 @@ class A {
     print('new: $x');
   }
 }
+''');
+  }
+
+  Future<void> test_declaration_primary() async {
+    await resolveTestCode(r'''
+class C.new(int x);
+''');
+    await assertHasFix(r'''
+class C(int x);
 ''');
   }
 

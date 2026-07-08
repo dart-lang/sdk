@@ -1,7 +1,43 @@
-## 0.3.16-dev
+## 0.3.20-dev
 
-- Require version `13.1.0-dev` of the `analyzer` package.
-- Require version `0.14.10-dev` of the `analyzer_plugin` package.
+- Avoid an issue where one plugin's configuration, as specified in analysis
+  options, would bleed into another's. This effectively would remove one or
+  more plugin configurations.
+- Fix an issue with Dart SDKs <= 3.12.x, where `dart analyze` could spin
+  indefinitely.
+- Require version `14.1.0-dev` of the `analyzer` package.
+- Require version `0.14.14-dev` of the `analyzer_plugin` package.
+- Allows fixes to be applied to the whole file with `multiFixKind` and the valid `applicability` options.
+
+## 0.3.19
+
+- Require version `14.0.0` of the `analyzer` package.
+- Require version `0.14.13` of the `analyzer_plugin` package.
+
+## 0.3.18
+
+- Require version `13.3.0` of the `analyzer` package.
+- Require version `0.14.12` of the `analyzer_plugin` package.
+
+## 0.3.17
+
+- Require version `13.2.0` of the `analyzer` package.
+- Require version `0.14.11` of the `analyzer_plugin` package.
+- Export the following classes from `analyzer_plugin` for convenience:
+  - `ChangeBuilder` (along with `ChangeWorkspace`, `EditBuilder`,
+    `FileEditBuilder`, `LinkedEditBuilder`, `DartFileEditBuilder`,
+    `DartEditBuilder`, `DartLinkedEditBuilder`, `ImportLibraryElementResult`,
+    `YamlFileEditBuilder`, `YamlEditBuilder`, `YamlLinkedEditBuilder`,
+    `LinkedEditSuggestionKind`, `Position`, and `SourceChange`, which are found
+    in `ChangeBuilder`'s public API.
+  - `AssistKind`
+  - `FixKind`
+  - `RangeFactory` (and the `range` singleton instance)
+
+## 0.3.16
+
+- Require version `13.1.0` of the `analyzer` package.
+- Require version `0.14.10` of the `analyzer_plugin` package.
 - Overhaul the plugin server which decides what files to re-analyze after
   various events, including overlay changes (in the IDE), file watch events,
   etc. This change results in better results caching, so that, generally

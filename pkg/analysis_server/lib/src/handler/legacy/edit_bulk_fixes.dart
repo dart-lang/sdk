@@ -43,8 +43,8 @@ class EditBulkFixes extends LegacyHandler {
         sdkPath: server.sdkPath,
         byteStore: server.byteStore,
         withFineDependencies: true,
-        updateAnalysisOptions4: codes != null && codes.isNotEmpty
-            ? ({required analysisOptions}) {
+        configureAnalysisOptionsBuilder: codes != null && codes.isNotEmpty
+            ? ({required analysisOptionsBuilder}) {
                 var rules = <AbstractAnalysisRule>[];
                 for (var code in codes) {
                   var rule = Registry.ruleRegistry.getRule(code);
@@ -53,13 +53,13 @@ class EditBulkFixes extends LegacyHandler {
                   }
                 }
                 if (rules.isNotEmpty) {
-                  analysisOptions.lint = true;
-                  var existingNames = analysisOptions.lintRules
+                  analysisOptionsBuilder.lint = true;
+                  var existingNames = analysisOptionsBuilder.lintRules
                       .map((rule) => rule.name)
                       .toSet();
                   for (var rule in rules) {
                     if (!existingNames.contains(rule.name)) {
-                      analysisOptions.lintRules.add(rule);
+                      analysisOptionsBuilder.lintRules.add(rule);
                     }
                   }
                 }
@@ -72,6 +72,7 @@ class EditBulkFixes extends LegacyHandler {
       var processor = BulkFixProcessor(
         server.instrumentationService,
         workspace,
+        byteStore: server.byteStore,
         codes: codes,
       );
       if (!updatePubspec) {

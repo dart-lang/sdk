@@ -108,7 +108,7 @@ class FakeSharedVariableBuilder implements SharedVariableBuilder {
   @override
   SharedVariable getSharedVariable(Variable variable) =>
       _sharedVariables[variable] ??= FakeSharedVariable(
-        variable.name ?? '__tmp',
+        variable.cosmeticName ?? '__tmp',
       );
   @override
   SharedVariable getSharedCapturedThis(Member member) =>

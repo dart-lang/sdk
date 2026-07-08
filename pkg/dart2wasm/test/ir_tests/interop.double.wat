@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $BoxedDouble (sub final $#Top (struct
@@ -11,27 +11,31 @@
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
   (func $doubleValue implicit getter (result f64) <...>)
   (func $ktrue implicit getter (result i32) <...>)
-  (func $sinkDouble <noInline> (param $var0 f64) <...>)
-  (func $sinkDoubleNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
-  (func $"testDoubleConstant <noInline>"
+  (func $sinkDouble (param $var0 f64) <...>)
+  (func $sinkDoubleNullable (param $var0 (ref null $BoxedDouble)) <...>)
+  (@binaryen.inline 0)
+  (func $testDoubleConstant
     f64.const 1.1
     call $"dart2wasm.R (import)"
     call $toDartDouble
-    call $"sinkDouble <noInline>"
+    call $sinkDouble
   )
-  (func $"testDoubleConstantNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testDoubleConstantNullable
     ref.null noextern
     call $"dart2wasm.N (import)"
     call $toDartNullableDouble
-    call $"sinkDoubleNullable <noInline>"
+    call $sinkDoubleNullable
   )
-  (func $"testDoubleValue <noInline>"
+  (@binaryen.inline 0)
+  (func $testDoubleValue
     call $"doubleValue implicit getter"
     call $"dart2wasm.R (import)"
     call $toDartDouble
-    call $"sinkDouble <noInline>"
+    call $sinkDouble
   )
-  (func $"testDoubleValueNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testDoubleValueNullable
     (local $var0 (ref null $BoxedDouble))
     global.get $"doubleValueNullable initialized"
     if (result (ref null $BoxedDouble))
@@ -39,7 +43,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
-        i32.const 92
+        i32.const 93
         call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else
@@ -62,7 +66,7 @@
     end
     call $"dart2wasm.N (import)"
     call $toDartNullableDouble
-    call $"sinkDoubleNullable <noInline>"
+    call $sinkDoubleNullable
   )
   (func $toDartDouble (param $var0 externref) (result f64) <...>)
   (func $toDartNullableDouble (param $var0 externref) (result (ref null $BoxedDouble)) <...>)

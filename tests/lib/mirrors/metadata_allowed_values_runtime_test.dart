@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 import 'metadata_allowed_values_import.dart'; // Unprefixed.

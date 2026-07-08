@@ -9,6 +9,7 @@ import "dart:async";
 import "dart:collection";
 import "dart:isolate";
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 const large = 2 * 1024 * 1024;
@@ -259,9 +260,9 @@ testIterableToList() {
   }
   final map = {list1: true, list2: true};
   Iterable<Uint8List> iterable = map.keys;
-  final result = TransferableTypedData.fromList(
-    iterable.toList(),
-  ).materialize().asUint8List();
+  final result = TransferableTypedData.fromList(iterable.toList())
+      .materialize()
+      .asUint8List();
   for (int i = 0; i < result.length; i++) {
     Expect.equals(i, result[i]);
   }

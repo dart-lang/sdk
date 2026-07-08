@@ -9,14 +9,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart'
+    as expected_diagnostics;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -47,13 +49,14 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     // Configure `strict-casts: false`.
     writeTestPackageAnalysisOptionsFile(analysisOptionsContent());
 
-    addTestFile(r'''
+    var code = r'''
 dynamic a = 0;
 int b = a;
-''');
+''';
+    addTestFile(code);
 
     // `strict-cast: false`, so no errors.
-    assertErrorsInList(await _computeTestFileDiagnostics(), []);
+    await _assertTestFileDiagnostics(code: code, expected: code);
 
     // Configure `strict-casts: true`.
     await disposeAnalysisContextCollection();
@@ -62,15 +65,23 @@ int b = a;
     );
 
     // `strict-cast: true`, so has errors.
-    assertErrorsInList(await _computeTestFileDiagnostics(), [
-      error(diag.invalidAssignment, 23, 1),
-    ]);
+    await _assertTestFileDiagnostics(
+      code: code,
+      expected: r'''
+dynamic a = 0;
+int b = a;
+//      ^
+// [diag.invalidAssignment] A value of type 'dynamic' can't be assigned to a variable of type 'int'.
+''',
+    );
   }
 
   test_change_factoryConstructor_addEqNothing() async {
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A();
+//        ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
 }
 ''');
 
@@ -78,17 +89,21 @@ class A {
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() =;
+//        ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
 }
 ''');
   }
 
   test_change_factoryConstructor_moveStaticToken() async {
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A();
+//        ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
   static void foo<U>() {}
 }
 ''');
@@ -97,18 +112,22 @@ class A {
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() =
+//        ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
   static void foo<U>() {}
 }
 ''');
   }
 
   test_change_field_outOfOrderStaticConst() async {
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static f = Object();
+//       ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
 
@@ -116,10 +135,11 @@ class A {
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
-    await resolveTestCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const
   static f = Object();
+// [diag.missingConstFinalVarOrType][column 2][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
   }
@@ -127,16 +147,19 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    addTestFile(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const a = 0;
   static const b = 1;
   static final Set<int> f = {a};
   const A {}
+//      ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
+//        ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
 ''');
 
-    var result = await resolveTestFile();
     assertType(result.findElement.field('f').type, 'Set<int>');
 
     // The summary for the library was linked.
@@ -147,20 +170,23 @@ class A {
     // We will reuse the byte store, so can reuse summaries.
     await disposeAnalysisContextCollection();
 
-    addTestFile(r'''
+    result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const a = 0;
   static const b = 1;
   static final Set<int> f = <int>{a, b, 2};
   const A {}
+//      ^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
+//        ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
 }
 ''');
 
-    result = await resolveTestFile();
     assertType(result.findElement.field('f').type, 'Set<int>');
 
     // We changed the initializer of the final field. But it is static, so
-    // even though the class hsa a constant constructor, we don't need its
+    // even though the class has a constant constructor, we don't need its
     // initializer, so nothing should be linked.
     _assertNoLinkedCycles();
   }
@@ -168,13 +194,12 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    addTestFile(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   print(0);
 }
 ''');
 
-    var result = await resolveTestFile();
     expect(result.findNode.integerLiteral('0'), isNotNull);
 
     // The summary for the library was linked.
@@ -185,7 +210,7 @@ void f() {
     // We will reuse the byte store, so can reuse summaries.
     await disposeAnalysisContextCollection();
 
-    addTestFile(r'''
+    result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   print(1);
 }
@@ -268,15 +293,21 @@ import 'a.dart';
     // So, the lint rule will be activated.
     writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'my_test'));
 
-    addTestFile(r'''
+    var code = r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
-''');
+''';
+    addTestFile(code);
 
     // We don't have a dependency on `package:aaa`, so there is a lint.
-    _assertHasLintReported(
-      await _computeTestFileDiagnostics(),
-      'depend_on_referenced_packages',
+    await _assertTestFileDiagnostics(
+      code: code,
+      expected: r'''
+// ignore:unused_import
+import 'package:aaa/a.dart';
+//     ^^^^^^^^^^^^^^^^^^^^
+// [diag.dependOnReferencedPackages] The imported package 'aaa' isn't a dependency of the importing package.
+''',
     );
 
     // The summary for the library was linked.
@@ -292,7 +323,7 @@ import 'package:aaa/a.dart';
     );
 
     // With dependency on `package:aaa` added, no lint is reported.
-    expect(await _computeTestFileDiagnostics(), isEmpty);
+    await _assertTestFileDiagnostics(code: code, expected: code);
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
@@ -304,15 +335,14 @@ import 'package:aaa/a.dart';
     // Configure without any lint, but without experiments as well.
     writeTestPackageAnalysisOptionsFile(analysisOptionsContent());
 
-    addTestFile(r'''
+    var code = r'''
 void f() {
   ![0].isEmpty;
 }
-''');
+''';
 
     // We don't have any lints configured, so no errors.
-    var result = await resolveTestFile();
-    expect(result.diagnostics, isEmpty);
+    await resolveTestCodeWithDiagnostics(code);
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -327,8 +357,13 @@ void f() {
     );
 
     // Check that the lint was run, and reported.
-    result = await resolveTestFile();
-    _assertHasLintReported(result.diagnostics, 'prefer_is_not_empty');
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  ![0].isEmpty;
+//^^^^^^^^^^^^
+// [diag.preferIsNotEmpty] Use 'isNotEmpty' rather than negating the result of 'isEmpty'.
+}
+''');
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
@@ -345,16 +380,29 @@ void f() {
     }
   }
 
-  void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
-    var matching = diagnostics.where((element) {
-      var diagnosticCode = element.diagnosticCode;
-      return diagnosticCode is LintCode && diagnosticCode.lowerCaseName == name;
-    }).toList();
-    expect(matching, hasLength(1));
-  }
-
   void _assertNoLinkedCycles() {
     expect(_linkedCycles, isEmpty);
+  }
+
+  Future<void> _assertTestFileDiagnostics({
+    required String code,
+    required String expected,
+  }) async {
+    // This helper intentionally doesn't write `code`.
+    // The tests that use it check what happens when environment changes.
+    expect(testFile.readAsStringSync(), code);
+
+    var actual = expected_diagnostics.updateExpectedDiagnostics(
+      content: code,
+      actualDiagnostics: await _computeTestFileDiagnostics(),
+    );
+    if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
+    }
   }
 
   /// Note that we intentionally use this method, we don't want to use
@@ -364,9 +412,9 @@ void f() {
   /// But this method is used to check returning diagnostics from the cache, or
   /// recomputing when the cache key is expected to be different.
   Future<List<Diagnostic>> _computeTestFileDiagnostics() async {
-    var errorsResult =
-        await contextFor(testFile).currentSession.getErrors(testFile.path)
-            as ErrorsResult;
+    var analysisSession = contextFor(testFile).currentSession;
+    var errorsResult = await analysisSession.getErrors(testFile.path);
+    errorsResult as ErrorsResult;
     return errorsResult.diagnostics;
   }
 }

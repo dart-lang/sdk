@@ -55,9 +55,8 @@ Future<void> run(List<String> args, bool silent) async {
     }
     Uri dir = Uri.base.resolveUri(new Uri.file(arg));
     libUris.add(dir);
-    while (!File.fromUri(
-      dir.resolve(".dart_tool/package_config.json"),
-    ).existsSync()) {
+    while (!File.fromUri(dir.resolve(".dart_tool/package_config.json"))
+        .existsSync()) {
       Uri newDir = dir.resolve("..");
       if (newDir != dir) {
         dir = newDir;
@@ -76,9 +75,8 @@ Future<void> run(List<String> args, bool silent) async {
   compilerOptions.packagesFileUri = packageConfigUri;
 
   for (Uri uri in libUris) {
-    List<FileSystemEntity> entities = new Directory.fromUri(
-      uri,
-    ).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(uri)
+        .listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File && entity.path.endsWith(".dart")) {
         options.inputs.add(entity.uri);

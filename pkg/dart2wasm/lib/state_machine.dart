@@ -994,6 +994,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
           switchInfo.compare(
             switchValueNonNullableLocal,
             () => translateExpression(exp, switchInfo.nonNullableType),
+            exp,
           );
           b.if_();
           _jumpToTarget(innerTargets[c]!);

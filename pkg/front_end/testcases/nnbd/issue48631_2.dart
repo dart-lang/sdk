@@ -23,7 +23,7 @@ abstract class D<W> implements A {}
 typedef Bar<V, U extends A> = V Function(U);
 
 final baz = C<int>((a) {
-    return a.foo(B(Future.value(0)));
+  return a.foo(B(Future.value(0)));
 });
 
 main() {}

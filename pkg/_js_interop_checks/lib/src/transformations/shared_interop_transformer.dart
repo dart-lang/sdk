@@ -365,11 +365,10 @@ class SharedInteropTransformer extends Transformer {
     // already a variable for both these declarations.
     // TODO(srujzs): Change these to `VariableDeclaration.forValue` once
     // https://github.com/dart-lang/sdk/issues/54734 is resolved.
-    var dartInstance = Variable(
-      '#dartInstance',
+    var dartInstance = SyntheticVariable(
+      cosmeticName: '#dartInstance',
       initializer: invocation.arguments.positional[0],
       type: dartType,
-      isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
     block.add(
       VariableStatement(
@@ -377,11 +376,10 @@ class SharedInteropTransformer extends Transformer {
       )..fileOffset = invocation.fileOffset,
     );
 
-    var jsExporter = Variable(
-      '#jsExporter',
+    var jsExporter = SyntheticVariable(
+      cosmeticName: '#jsExporter',
       initializer: getLiteral(proto),
       type: ExtensionType(_jsObject, Nullability.nonNullable),
-      isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
     block.add(
       VariableStatement(
@@ -460,13 +458,12 @@ class SharedInteropTransformer extends Transformer {
         //
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
-        var getSetMap = Variable(
+        var getSetMap = SyntheticVariable(
           // Don't use the exportName here because it might not be a valid JS
           // identifier.
-          '#${exportNameIdentifierCounter++}Mapping',
+          cosmeticName: '#${exportNameIdentifierCounter++}Mapping',
           initializer: getLiteral(),
           type: ExtensionType(_jsObject, Nullability.nonNullable),
-          isSynthesized: true,
         )..fileOffset = invocation.fileOffset;
         block.add(
           VariableStatement(
@@ -509,8 +506,8 @@ class SharedInteropTransformer extends Transformer {
           );
         }
         if (setter != null) {
-          var setterParameter = Variable(
-            '#val',
+          var setterParameter = PositionalParameter(
+            cosmeticName: '#val',
             type: _staticInteropMockValidator.typeParameterResolver.resolve(
               setter.setterType,
             ),
@@ -602,15 +599,21 @@ class SharedInteropTransformer extends Transformer {
         receiverInteropTypeDeclaration is ExtensionTypeDeclaration
         ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
         : false;
-    final receiverVar = receiver is VariableGet
-        ? receiver.variable
-        // Synthesize declaration to avoid re-evaluating expressions.
-        : (Variable.forValue(
-            receiver,
-            type: receiverIsJSType
-                ? ExtensionType(_jsAny, Nullability.nullable)
-                : receiverStaticType,
-          )..fileOffset = invocation.fileOffset);
+    final SyntheticVariable? letVariable;
+    final Variable receiverVar;
+    if (receiver is VariableGet) {
+      receiverVar = receiver.variable;
+      letVariable = null;
+    } else {
+      // Synthesize declaration to avoid re-evaluating expressions.
+      receiverVar = letVariable = SyntheticVariable(
+        initializer: receiver,
+        type: receiverIsJSType
+            ? ExtensionType(_jsAny, Nullability.nullable)
+            : receiverStaticType,
+        isFinal: true,
+      )..fileOffset = invocation.fileOffset;
+    }
     final receiverVarAsJSAny =
         receiverIsJSType
               ? VariableGet(receiverVar)
@@ -811,7 +814,7 @@ class SharedInteropTransformer extends Transformer {
       check = BoolLiteral(true);
     }
 
-    return receiver is VariableGet ? check : Let(receiverVar, check)
+    return letVariable == null ? check : Let(letVariable, check)
       ..fileOffset = invocation.fileOffset
       ..parent = invocation.parent;
   }

@@ -432,17 +432,6 @@ augment enum A {}
 ''');
   }
 
-  test_enum_constant_augments_constant() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum A {
-  foo
-}
-augment enum A {
-  augment foo(),
-}
-''');
-  }
-
   test_enum_constant_augments_instanceMethod() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum A {
@@ -451,9 +440,8 @@ enum A {
 }
 augment enum A {
   augment foo(),
-//^^^^^^^
-// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 //        ^^^
+// [diag.constantVariableAugmentation] Variable augmentations can't be const.
 // [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 ''');

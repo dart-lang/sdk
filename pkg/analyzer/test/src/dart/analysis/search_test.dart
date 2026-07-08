@@ -71,9 +71,8 @@ class SearchTest extends PubPackageResolutionTest {
   final OperationPerformanceImpl performance = OperationPerformanceImpl(
     '<root>',
   );
+  late AnalysisDriver driver = driverFor(testFile);
   Set<Uri>? includedLibraryUris;
-
-  AnalysisDriver get driver => driverFor(testFile);
 
   String get testUriStr => 'package:test/test.dart';
 
@@ -85,7 +84,9 @@ class SearchTest extends PubPackageResolutionTest {
     var actual = _getDeclarationsText(symbols, inFiles);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -98,10 +99,11 @@ class SearchTest extends PubPackageResolutionTest {
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertElementReferencesText(
@@ -112,10 +114,11 @@ class SearchTest extends PubPackageResolutionTest {
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertLibraryFragmentReferencesText(
@@ -125,10 +128,12 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.referencesLibraryFragment(fragment);
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertLibraryImportReferencesText(
@@ -138,10 +143,12 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.referencesLibraryImport(import);
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertUnresolvedMemberReferencesText(
@@ -151,10 +158,12 @@ class SearchTest extends PubPackageResolutionTest {
     var results = await driver.search.unresolvedMemberReferences(name);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   test_classMembers_class() async {
@@ -1852,30 +1861,39 @@ class C {
   }
 
   test_searchReferences_analyzer_diagnosticCode() async {
-    var diagnosticFile = newFile('$testPackageLibPath/diagnostic.dart', r'''
+    var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
+    writePackageConfig(
+      analyzerPackageRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
+    );
+
+    var analyzerPackageLibPath = '$analyzerPackageRootPath/lib';
+    var analyzerPackageTestPath = '$analyzerPackageRootPath/test';
+    var diagnosticFile = newFile(
+      '$analyzerPackageLibPath/src/diagnostic/diagnostic.dart',
+      r'''
 const myDiagnosticCode = 0;
-''');
+''',
+    );
 
     var diagnosticLibrary = await libraryElementForFile(diagnosticFile);
     var element = diagnosticLibrary.topLevelVariables.firstWhere(
       (v) => v.name == 'myDiagnosticCode',
     );
 
-    newFile('$testPackageLibPath/helper.dart', r'''
-import 'diagnostic.dart';
-''');
-
-    await resolveTestCode(r'''
-import 'helper.dart';
-
+    var analyzerTestFile = newFile('$analyzerPackageTestPath/test.dart', r'''
 void f() {
   '// [diag.myDiagnosticCode]';
 }
 ''');
+    driver = driverFor(analyzerTestFile);
+    driver.addFile2(analyzerTestFile);
+    await driver.applyPendingFileChanges();
 
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> f@28
-  46 4:13 |myDiagnosticCode| REFERENCE qualified
+test.dart f@5
+  23 2:13 |myDiagnosticCode| REFERENCE qualified
 ''');
   }
 
@@ -2240,6 +2258,37 @@ var v_p = p.A;
   46 5:9 |A| REFERENCE
 <testLibraryFragment> v_p@53
   61 6:13 |A| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_annotation() async {
+    var result = await resolveTestCode(r'''
+import 'test.dart' as p;
+
+class A {
+  const A();
+  const A.named();
+}
+
+@A()
+@p.A()
+@A.named()
+@p.A.named()
+void f() {}
+''');
+
+    var unnamed = result.findElement.unnamedConstructor('A');
+    await assertElementReferencesText(unnamed, r'''
+<testLibraryFragment> f@112
+  73 8:3 || INVOCATION qualified
+  80 9:5 || INVOCATION qualified
+''');
+
+    var named = result.findElement.constructor('named', of: 'A');
+    await assertElementReferencesText(named, r'''
+<testLibraryFragment> f@112
+  85 10:3 |.named| INVOCATION qualified
+  98 11:5 |.named| INVOCATION qualified
 ''');
   }
 

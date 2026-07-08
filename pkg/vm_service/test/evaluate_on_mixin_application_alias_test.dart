@@ -8,49 +8,30 @@
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'evaluate_on_mixin_application_alias_lib.dart' as testee_lib;
 
-class S {}
-
-mixin class M {
-  static String? foo;
-  void bar() {
-    foo = 'theExpectedValue';
-  }
-}
-
-// MA=S&M -> S -> Object
-class MA = S with M;
-
-late final MA global;
-void testeeMain() {
-  global = MA()..bar();
-}
-
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final rootLib = await service.getObject(
-      isolateId,
-      isolate.rootLib!.id!,
-    ) as Library;
-    final fieldRef = rootLib.variables!.singleWhere((v) => v.name == 'global');
-    final field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    final instance = field.staticValue! as InstanceRef;
-    await evaluateAndExpect(
-      service,
-      isolateId,
-      instance.id!,
-      'foo',
-      'theExpectedValue',
-    );
-  },
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'evaluate_on_mixin_application_alias_lib.dart',
       args,
-      tests,
-      'evaluate_on_mixin_application_alias_test.dart',
-      testeeConcurrent: testeeMain,
-    );
+    ).addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final isolate = await service.getIsolate(isolateId);
+      final rootLib = await service.getObject(
+        isolateId,
+        isolate.libraries!
+            .firstWhere((l) =>
+                l.uri!.contains('evaluate_on_mixin_application_alias_lib'))
+            .id!,
+      ) as Library;
+      final fieldRef =
+          rootLib.variables!.singleWhere((v) => v.name == 'global');
+      final field = await service.getObject(isolateId, fieldRef.id!) as Field;
+      final instance = field.staticValue! as InstanceRef;
+      await evaluateAndExpect(
+        service,
+        isolateId,
+        instance.id!,
+        'foo',
+        'theExpectedValue',
+      );
+    }).run(testeeMain: testee_lib.main);

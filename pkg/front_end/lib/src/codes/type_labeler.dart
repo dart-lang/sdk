@@ -20,11 +20,7 @@ import 'denylisted_classes.dart' show denylistedCoreClasses;
 /// [LabeledString] objects it needs, then it can call [toString] (or simply use
 /// the [LabeledString] object in a string interpolation) to fully label the
 /// objects.
-class LabeledString {
-  final List<Object> parts;
-
-  new(this.parts);
-
+class LabeledString(final List<Object> parts) {
   @override
   String toString() => parts.join();
 }
@@ -626,15 +622,13 @@ class TypeLabeler
 
 final Uri unknownUri = Uri.parse("unknown");
 
-class LabeledNode {
-  final TreeNode node;
-  final TypeLabeler typeLabeler;
-  final String name;
-  final Uri importUri;
-  final Uri fileUri;
-
-  new(this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
-
+class LabeledNode(
+  final TreeNode node,
+  final String name,
+  final Uri importUri,
+  final Uri fileUri,
+  final TypeLabeler typeLabeler,
+) {
   @override
   String toString() {
     List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;

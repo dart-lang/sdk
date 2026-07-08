@@ -41,10 +41,6 @@ DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
 
-#if defined(DART_COMPRESSED_POINTERS)
-static zx_handle_t compressed_heap_vmar_ = ZX_HANDLE_INVALID;
-static uword compressed_heap_base_ = 0;
-#endif  // defined(DART_COMPRESSED_POINTERS)
 static zx_handle_t vmex_resource_ = ZX_HANDLE_INVALID;
 
 intptr_t VirtualMemory::CalculatePageSize() {
@@ -71,26 +67,6 @@ void VirtualMemory::Init() {
     FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
   }
 
-#if defined(DART_COMPRESSED_POINTERS)
-  if (compressed_heap_vmar_ == ZX_HANDLE_INVALID) {
-    const zx_vm_option_t align_flag =
-        Utils::ShiftForPowerOfTwo(kCompressedHeapAlignment) << ZX_VM_ALIGN_BASE;
-    const zx_vm_option_t options = ZX_VM_CAN_MAP_READ | ZX_VM_CAN_MAP_WRITE |
-                                   ZX_VM_CAN_MAP_SPECIFIC | align_flag;
-    zx_vaddr_t region;
-    zx_status_t status =
-        zx_vmar_allocate(zx_vmar_root_self(), options, 0, kCompressedHeapSize,
-                         &compressed_heap_vmar_, &region);
-    if (status != ZX_OK) {
-      LOG_ERR("zx_vmar_allocate(0x%lx) failed: %s\n", kCompressedHeapSize,
-              zx_status_get_string(status));
-    } else {
-      compressed_heap_base_ = reinterpret_cast<uword>(region);
-      ASSERT(Utils::IsAligned(compressed_heap_base_, kCompressedHeapAlignment));
-    }
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
-
   page_size_ = CalculatePageSize();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -108,20 +84,9 @@ void VirtualMemory::Init() {
 void VirtualMemory::Cleanup() {
   vmex_resource_ = ZX_HANDLE_INVALID;
   page_size_ = 0;
-
-#if defined(DART_COMPRESSED_POINTERS)
-  zx_vmar_destroy(compressed_heap_vmar_);
-  compressed_heap_vmar_ = ZX_HANDLE_INVALID;
-  compressed_heap_base_ = 0;
-#endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 static zx_handle_t getVmarForAddress(uword address) {
-#if defined(DART_COMPRESSED_POINTERS)
-  if (address - compressed_heap_base_ < kCompressedHeapSize) {
-    return compressed_heap_vmar_;
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
   return zx_vmar_root_self();
 }
 
@@ -141,7 +106,6 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
-                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -151,21 +115,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
 
+  // Ignore executable for gen_snapshot/simulator, but still let the heap
+  // track code and data pages separately.
+  if (!VirtualMemory::ExecutesGeneratedCode()) {
+    is_executable = false;
+  }
+
   const zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(alignment)
                                     << ZX_VM_ALIGN_BASE;
   ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
 
-#if defined(DART_COMPRESSED_POINTERS)
-  zx_handle_t vmar;
-  if (is_compressed) {
-    RELEASE_ASSERT(!is_executable);
-    vmar = compressed_heap_vmar_;
-  } else {
-    vmar = zx_vmar_root_self();
-  }
-#else
   zx_handle_t vmar = zx_vmar_root_self();
-#endif  // defined(DART_COMPRESSED_POINTERS)
   zx_handle_t vmo = ZX_HANDLE_INVALID;
   zx_status_t status = zx_vmo_create(size, 0u, &vmo);
   if (status == ZX_ERR_NO_MEMORY) {
@@ -213,17 +173,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   VirtualMemory* result = new VirtualMemory(region, region);
   zx_handle_close(vmo);
 
-#if defined(DART_COMPRESSED_POINTERS)
-  if (!is_executable) {
-    uword offset = result->start() - compressed_heap_base_;
-    ASSERT(offset < kCompressedHeapSize);
-  }
-#endif  // defined(DART_COMPRESSED_POINTERS)
-
   return result;
 }
 
 VirtualMemory::~VirtualMemory() {
+#if defined(DART_COMPRESSED_POINTERS)
+  if (cage_ != nullptr) {
+    cage_->Free(reserved_.pointer(), reserved_.size());
+    return;
+  }
+#endif  // defined(DART_COMPRESSED_POINTERS)
   // Reserved region may be empty due to VirtualMemory::Truncate.
   if (vm_owns_region() && reserved_.size() != 0) {
     Unmap(getVmarForAddress(reserved_.start()), reserved_.start(),

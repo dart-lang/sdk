@@ -11,7 +11,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -328,17 +327,19 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // variable if they are ordered right to left, when the variable
     // appears co- and contra-variantly, and that an error is issued
     // for the non-matching bound.
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     T f<T extends Func1<S, S>, S>(S x) => null;
+//                                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
     void test() { var x = f(3)(null); }
-   ''';
-    var result = await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
-      error(diag.unusedLocalVariable, 110, 1),
-      error(diag.couldNotInfer, 114, 1),
-      error(diag.argumentTypeNotAssignable, 119, 4),
-    ]);
+//                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//                        ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'Object? Function(Never)' for 'T' which doesn't work:\n  Type parameter 'T' is declared to extend 'S Function(S)' producing 'int Function(int)'.\n\nConsider passing explicit type argument(s) to the generic.
+//                             ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'Never'.
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
       result.unit,
@@ -961,39 +962,36 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards1() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     Future<int> test() => mk(new Future<int>.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
   test_futureOr_downwards2() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters when the downwards context is FutureOr
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     FutureOr<int> test() => mk(new Future<int>.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
   test_futureOr_downwards3() async {
     // Test that downwards inference correctly propagates into
     // arguments.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     Future<int> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1004,13 +1002,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards4() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters when the downwards context is FutureOr
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     FutureOr<int> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1021,13 +1018,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards5() async {
     // Test that downwards inference correctly pins the type when it
     // comes from a FutureOr
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     FutureOr<num> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOf([_isNum])(invoke.staticType as InterfaceType);
     _isFutureOf([_isNum])(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1038,13 +1034,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards6() async {
     // Test that downwards inference doesn't decompose FutureOr
     // when instantiating type variables.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     T mk<T>(T x) => null;
+//                  ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
     FutureOr<int> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 42, 4)],
-    );
+    ''');
     _isFutureOrOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1055,13 +1050,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards7() async {
     // Test that downwards inference incorporates bounds correctly
     // when instantiating type variables.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
       T mk<T extends Future<int>>(T x) => null;
+//                                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
       FutureOr<int> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 64, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1074,13 +1068,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // when instantiating type variables.
     // TODO(leafp): I think this should pass once the inference changes
     // that jmesserly is adding are landed.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     T mk<T extends Future<Object>>(T x) => null;
+//                                         ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
     FutureOr<int> test() => mk(new Future.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 65, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
     _isFutureOfInt(
       invoke.argumentList.arguments[0].argumentExpression.staticType
@@ -1091,13 +1084,12 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards9() async {
     // Test that downwards inference decomposes correctly with
     // other composite types
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     List<T> mk<T>(T x) => null;
+//                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'List<T>'.
     FutureOr<List<int>> test() => mk(3);
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 48, 4)],
-    );
+    ''');
     _isListOf(_isInt)(invoke.staticType as InterfaceType);
     _isInt(invoke.argumentList.arguments[0].argumentExpression.typeOrThrow);
   }
@@ -1112,50 +1104,42 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_methods2() async {
     // Test that FutureOr does not have the constituent type methods
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
-    ''',
-      expectedDiagnostics: [error(diag.undefinedMethod, 61, 3)],
-    );
+//                                     ^^^
+// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'FutureOr'.
+    ''');
     _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods3() async {
     // Test that FutureOr does not have the Future type methods
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
-    ''',
-      expectedDiagnostics: [error(diag.undefinedMethod, 61, 4)],
-    );
+//                                     ^^^^
+// [diag.undefinedMethod] The method 'then' isn't defined for the type 'FutureOr'.
+    ''');
     _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods4() async {
     // Test that FutureOr<dynamic> does not have all methods
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
-    ''',
-      expectedDiagnostics: [
-        error(diag.uncheckedMethodInvocationOfNullableValue, 65, 3),
-      ],
-    );
+//                                         ^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'abs' can't be unconditionally invoked because the receiver can be 'null'.
+    ''');
     _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_no_return() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then((int x) {});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1163,16 +1147,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOr_no_return_value() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then((int x) {return;});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1180,16 +1161,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOr_return_null() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then((int x) {return null;});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1199,40 +1177,35 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_upwards1() async {
     // Test that upwards inference correctly prefers to instantiate type
     // variables with the "smaller" solution when both are possible.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
+//                                    ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
     dynamic test() => mk(new Future<int>.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 60, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
   test_futureOr_upwards2() async {
     // Test that upwards inference fails when the solution doesn't
     // match the bound.
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     T mk<T extends Future<Object>>(FutureOr<T> x) => null;
+//                                                   ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
     dynamic test() => mk(new Future<int>.value(42));
-    ''',
-      expectedDiagnostics: [error(diag.returnOfInvalidTypeFromFunction, 75, 4)],
-    );
+    ''');
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
 
   test_futureOrNull_no_return() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then<Null>((int x) {});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1240,16 +1213,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOrNull_no_return_value() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then<Null>((int x) {return;});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1257,16 +1227,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOrNull_return_null() async {
-    MethodInvocation invoke = await _testFutureOr(
-      r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
+//              ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
     test() => f.then<Null>((int x) { return null;});
-    ''',
-      expectedDiagnostics: [
-        error(diag.notInitializedNonNullableVariable, 79, 1),
-      ],
-    );
+    ''');
     _isFunction2Of(_isInt, _isNull)(
       invoke.argumentList.arguments[0].argumentExpression.typeOrThrow,
     );
@@ -1355,20 +1322,21 @@ void test() {
   }
 
   test_inference_error_arguments() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(F<T, T> f) => (x) => f(f(x));
 
 test() {
   var h = g((int x) => 42.0);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'h' isn't used.
+//        ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'double' for 'T' which doesn't work:\n  Parameter 'f' declared as     'T Function(T)'\n                but argument is 'double Function(int)'.\n\nConsider passing explicit type argument(s) to the generic.
+//          ^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'double Function(int)' can't be assigned to the parameter type 'F<double, double>'.
 }
- ''';
-    var result = await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 84, 1),
-      error(diag.couldNotInfer, 88, 1),
-      error(diag.argumentTypeNotAssignable, 90, 15),
-    ]);
+ ''');
     _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
@@ -1382,21 +1350,23 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_error_arguments2() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(F<T, T> a, F<T, T> b) => (x) => a(b(x));
 
 test() {
   var h = g((int x) => 42.0, (double x) => 42);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'h' isn't used.
+//        ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'num' for 'T' which doesn't work:\n  Parameter 'a' declared as     'T Function(T)'\n                but argument is 'double Function(int)'.\n  Parameter 'b' declared as     'T Function(T)'\n                but argument is 'int Function(double)'.\n\nConsider passing explicit type argument(s) to the generic.
+//          ^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'double Function(int)' can't be assigned to the parameter type 'F<num, num>'.
+//                           ^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int Function(double)' can't be assigned to the parameter type 'F<num, num>'.
 }
- ''';
-    var result = await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 95, 1),
-      error(diag.couldNotInfer, 99, 1),
-      error(diag.argumentTypeNotAssignable, 101, 15),
-      error(diag.argumentTypeNotAssignable, 118, 16),
-    ]);
+ ''');
     _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
@@ -1439,13 +1409,13 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::max::@formalParameter::x
           substitution: {T: Never}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::max::@formalParameter::y
           substitution: {T: Never}
         staticType: int
@@ -1490,20 +1460,21 @@ test(Iterable values) {
   }
 
   test_inference_error_returnContext() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(T t) => (x) => t;
 
 test() {
   F<num, int> h = g(42);
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'h' isn't used.
+//                ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'num' for 'T' which doesn't work:\n  Return type declared as 'T Function(T)'\n              used where  'int Function(num)' is required.\n\nConsider passing explicit type argument(s) to the generic.
+//                ^^^^^
+// [diag.invalidAssignment] A value of type 'F<num, num>' can't be assigned to a variable of type 'F<num, int>'.
 }
- ''';
-    var result = await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 80, 1),
-      error(diag.couldNotInfer, 84, 1),
-      error(diag.invalidAssignment, 84, 5),
-    ]);
+ ''');
     _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
@@ -1560,21 +1531,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -1596,21 +1567,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -1632,21 +1603,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -1668,21 +1639,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -1728,21 +1699,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -1764,21 +1735,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -1800,21 +1771,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -1836,21 +1807,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -1896,21 +1867,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -1932,21 +1903,21 @@ Block
           arguments
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -1968,21 +1939,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
@@ -2004,21 +1975,21 @@ Block
           arguments
             SimpleIdentifier
               token: target
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
             SimpleIdentifier
               token: compare
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
-              correspondingParameter: ParameterMember
+              correspondingParameter: SubstitutedFormalParameterElementImpl
                 baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
               element: <testLibrary>::@function::_mergeSort::@formalParameter::list
@@ -2062,7 +2033,7 @@ MethodInvocation
           token: g
           element: <testLibrary>::@function::g
           staticType: S Function<S>(S)
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
@@ -2100,7 +2071,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: fold
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::Iterable::@method::fold
       substitution: {T: dynamic, S: S}
     staticType: S Function<S>(S, S Function(S, dynamic))
@@ -2116,11 +2087,11 @@ MethodInvocation
           period: .
           identifier: SimpleIdentifier
             token: first
-            element: GetterMember
+            element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::Iterable::@getter::first
               substitution: {T: dynamic}
             staticType: dynamic
-          element: GetterMember
+          element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::Iterable::@getter::first
             substitution: {T: dynamic}
           staticType: dynamic
@@ -2129,7 +2100,7 @@ MethodInvocation
           name: num
           element: dart:core::@class::num
           type: num
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: s@null
           substitution: {S: num}
         staticType: num
@@ -2138,7 +2109,7 @@ MethodInvocation
           token: max
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: f@null
           substitution: {S: num}
         staticType: num Function(num, num)
@@ -3552,14 +3523,14 @@ class B<T2, U2> {
     _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
-  /// Verifies the result has [diag.couldNotInfer] with
+  /// Verifies the result has a `could_not_infer` diagnostic with
   /// the expected [errorMessage].
   void _expectInferenceError(
     TestResolvedUnitResult result,
     String errorMessage,
   ) {
     var errors = result.diagnostics
-        .where((e) => e.diagnosticCode == diag.couldNotInfer)
+        .where((e) => e.diagnosticCode.lowerCaseUniqueName == 'could_not_infer')
         .map((e) => e.message)
         .toList();
     expect(errors.length, 1);
@@ -3602,20 +3573,16 @@ class B<T2, U2> {
 
   /// Helper method for testing `FutureOr<T>`.
   ///
-  /// Validates that [code] produces [expectedDiagnostics]. It should define a
-  /// function "test", whose body is an expression that invokes a method.
-  /// Returns that invocation.
-  Future<MethodInvocation> _testFutureOr(
-    String code, {
-    List<ExpectedDiagnostic> expectedDiagnostics = const [],
-  }) async {
+  /// Validates that [code] defines a function "test", whose body is an
+  /// expression that invokes a method. Returns that invocation.
+  Future<MethodInvocation> _testFutureOr(String code) async {
     var fullCode =
         """
 import "dart:async";
 
 $code
 """;
-    var result = await assertErrorsInCode(fullCode, expectedDiagnostics);
+    var result = await resolveTestCodeWithDiagnostics(fullCode);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
@@ -4339,7 +4306,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: map
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::List::@method::map
       substitution: {E: dynamic, T: T}
     staticType: T Function<T>(T Function(dynamic))
@@ -4364,7 +4331,7 @@ MethodInvocation
         declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: dynamic Function(dynamic)
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: f@null
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
@@ -4385,7 +4352,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: map
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::List::@method::map
       substitution: {E: dynamic, T: T}
     staticType: T Function<T>(T Function(dynamic))
@@ -4409,7 +4376,7 @@ MethodInvocation
         declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: int Function(dynamic)
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: f@null
           substitution: {T: int}
         staticType: int Function(dynamic)
@@ -4523,7 +4490,7 @@ MethodInvocation
           rightBracket: >
         element: <testLibrary>::@class::C
         type: C<S>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
@@ -4533,7 +4500,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: f
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::f
       substitution: {T: S, S: S}
     staticType: S Function<S₀>(S₀)
@@ -4550,7 +4517,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 3
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: x@null
           substitution: {S: int}
         staticType: int
@@ -4595,7 +4562,7 @@ MethodInvocation
           rightBracket: >
         element: <testLibrary>::@class::C
         type: C<S>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
@@ -4605,7 +4572,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: f
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::f
       substitution: {T: S, S: S}
     staticType: S Function<S₀ extends S>(S₀)
@@ -4622,7 +4589,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 3
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: x@null
           substitution: {S: int}
         staticType: int
@@ -4637,7 +4604,7 @@ MethodInvocation
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: f
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::C::@method::f
     substitution: {T: S, S: S}
   staticType: S Function<S₀ extends S>(S₀)
@@ -5088,24 +5055,18 @@ class D extends C {}
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
     // Test that instance creations are strictly checked for malbounded default
     // types
-    var result = await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 void test() {
   var c = new C();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//            ^
+// [context 1] The raw type was instantiated as 'C<List<Object?>, List<List<Object?>>>', and is not regular-bounded.
+// [diag.couldNotInfer] Couldn't infer type parameter 'T0'.\n\nTried to infer 'List<Object?>' for 'T0' which doesn't work:\n  Type parameter 'T0' is declared to extend 'List<T1>' producing 'List<List<List<Object?>>>'.\n\nConsider passing explicit type argument(s) to the generic.
+// [diag.typeArgumentNotMatchingBounds][context 1] 'List<Object?>' doesn't conform to the bound 'List<List<List<Object?>>>' of the type parameter 'T0'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 73, 1),
-        error(diag.couldNotInfer, 81, 1),
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          81,
-          1,
-          contextMessages: [message(testFile, 81, 1)],
-        ),
-      ],
-    );
+''');
     _assertLocalVarType(result, 'c', 'C<List<Object?>, List<List<Object?>>>');
   }
 
@@ -5238,20 +5199,19 @@ void main() {
   test_instantiateToBounds_generic_function_error_malbounded() async {
     // Test that generic methods are strictly checked for malbounded default
     // types
-    var result = await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T0 f<T0 extends List<T1>, T1 extends List<T0>>() {}
+// ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'T0', is a potentially non-nullable type.
 void g() {
   var c = f();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//        ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T0'.\n\nTried to infer 'List<Object?>' for 'T0' which doesn't work:\n  Type parameter 'T0' is declared to extend 'List<T1>' producing 'List<List<List<Object?>>>'.\n\nConsider passing explicit type argument(s) to the generic.
   return;
 }
-''',
-      [
-        error(diag.bodyMightCompleteNormally, 3, 1),
-        error(diag.unusedLocalVariable, 69, 1),
-        error(diag.couldNotInfer, 73, 1),
-      ],
-    );
+''');
     _assertLocalVarType(result, 'c', 'List<Object?>');
   }
 
@@ -5275,7 +5235,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::m
       substitution: {T: T, S0: S0, S1: S1}
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
@@ -5284,13 +5244,13 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: p0@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: p1@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
@@ -5321,7 +5281,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::m
       substitution: {T: T, S0: S0, S1: S1}
     staticType: Map<S0, S1> Function<S0 extends T, S1 extends List<S0>>()
@@ -5354,7 +5314,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::m
       substitution: {T: T, S: S}
     staticType: void Function<S extends T>(S)
@@ -5363,7 +5323,7 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: p0@null
           substitution: {S: T}
         staticType: Null
@@ -5393,7 +5353,7 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::C::@method::m
       substitution: {T: T, S: S}
     staticType: S Function<S extends T>()
@@ -5419,19 +5379,30 @@ class C<E> {
   }
 
   test_objectMethodOnFunctions_Anonymous() async {
-    await _objectMethodOnFunctions_helper2(
-      r'''
+    await _objectMethodOnFunctions_helper2(r'''
 void main() {
   var f = (x) => 3;
   // No errors, correct type
   var t0 = f.toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't0' isn't used.
   var t1 = f.toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't1' isn't used.
   var t2 = f.hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't2' isn't used.
 
   // Expressions, no errors, correct type
   var t3 = (f).toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't3' isn't used.
   var t4 = (f).toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't4' isn't used.
   var t5 = (f).hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't5' isn't used.
 
   // Cascades, no errors
   f..toString();
@@ -5443,81 +5414,99 @@ void main() {
   (f)..toString;
   (f)..hashCode;
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 69, 2),
-        error(diag.unusedLocalVariable, 94, 2),
-        error(diag.unusedLocalVariable, 117, 2),
-        error(diag.unusedLocalVariable, 183, 2),
-        error(diag.unusedLocalVariable, 210, 2),
-        error(diag.unusedLocalVariable, 235, 2),
-      ],
-    );
+''');
   }
 
   test_objectMethodOnFunctions_Function() async {
-    await _objectMethodOnFunctions_helper2(
-      r'''
+    await _objectMethodOnFunctions_helper2(r'''
 void main() {
   Function f;
   // No errors, correct type
   var t0 = f.toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't0' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t1 = f.toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't1' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t2 = f.hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't2' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Expressions, no errors, correct type
   var t3 = (f).toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't3' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t4 = (f).toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't4' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t5 = (f).hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't5' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Cascades, no errors
   f..toString();
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   f..toString;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   f..hashCode;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Expression cascades, no errors
   (f)..toString();
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   (f)..toString;
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   (f)..hashCode;
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 63, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 68, 1),
-        error(diag.unusedLocalVariable, 88, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 93, 1),
-        error(diag.unusedLocalVariable, 111, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 116, 1),
-        error(diag.unusedLocalVariable, 177, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 183, 1),
-        error(diag.unusedLocalVariable, 204, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 210, 1),
-        error(diag.unusedLocalVariable, 229, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 235, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 276, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 293, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 308, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 361, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 380, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 397, 1),
-      ],
-    );
+''');
   }
 
   test_objectMethodOnFunctions_Static() async {
-    await _objectMethodOnFunctions_helper2(
-      r'''
+    await _objectMethodOnFunctions_helper2(r'''
 int f(int x) => null;
+//              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'int'.
 void main() {
   // No errors, correct type
   var t0 = f.toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't0' isn't used.
   var t1 = f.toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't1' isn't used.
   var t2 = f.hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't2' isn't used.
 
   // Expressions, no errors, correct type
   var t3 = (f).toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't3' isn't used.
   var t4 = (f).toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't4' isn't used.
   var t5 = (f).hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't5' isn't used.
 
   // Cascades, no errors
   f..toString();
@@ -5529,68 +5518,72 @@ void main() {
   (f)..toString;
   (f)..hashCode;
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromFunction, 16, 4),
-        error(diag.unusedLocalVariable, 71, 2),
-        error(diag.unusedLocalVariable, 96, 2),
-        error(diag.unusedLocalVariable, 119, 2),
-        error(diag.unusedLocalVariable, 185, 2),
-        error(diag.unusedLocalVariable, 212, 2),
-        error(diag.unusedLocalVariable, 237, 2),
-      ],
-    );
+''');
   }
 
   test_objectMethodOnFunctions_Typedef() async {
-    await _objectMethodOnFunctions_helper2(
-      r'''
+    await _objectMethodOnFunctions_helper2(r'''
 typedef bool Predicate<T>(T object);
 
 void main() {
   Predicate<int> f;
   // No errors, correct type
   var t0 = f.toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't0' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t1 = f.toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't1' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t2 = f.hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't2' isn't used.
+//         ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Expressions, no errors, correct type
   var t3 = (f).toString();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't3' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t4 = (f).toString;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't4' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   var t5 = (f).hashCode;
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 't5' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Cascades, no errors
   f..toString();
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   f..toString;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   f..hashCode;
+//^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 
   // Expression cascades, no errors
   (f)..toString();
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   (f)..toString;
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
   (f)..hashCode;
+// ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 107, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 112, 1),
-        error(diag.unusedLocalVariable, 132, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 137, 1),
-        error(diag.unusedLocalVariable, 155, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 160, 1),
-        error(diag.unusedLocalVariable, 221, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 227, 1),
-        error(diag.unusedLocalVariable, 248, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 254, 1),
-        error(diag.unusedLocalVariable, 273, 2),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 279, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 320, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 337, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 352, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 405, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 424, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 441, 1),
-      ],
-    );
+''');
   }
 
   test_returnOfInvalidType_object_void() async {
@@ -5706,11 +5699,8 @@ main() {
     assertType(element.type, expectedType);
   }
 
-  Future<void> _objectMethodOnFunctions_helper2(
-    String code,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var result = await assertErrorsInCode(code, expectedDiagnostics);
+  Future<void> _objectMethodOnFunctions_helper2(String code) async {
+    var result = await resolveTestCodeWithDiagnostics(code);
     _assertLocalVarType(result, 't0', "String");
     _assertLocalVarType(result, 't1', "String Function()");
     _assertLocalVarType(result, 't2', "int");

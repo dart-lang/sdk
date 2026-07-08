@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/extensions/text_document_filters.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -134,18 +135,16 @@ abstract class AbstractLspAnalysisServerTest
         return response == null
             ? null
             : {
-                pluginIsolate: Future.delayed(
-                  respondAfter,
-                ).then((_) => response.toResponse('-', 1)),
+                pluginIsolate: Future.delayed(respondAfter)
+                    .then((_) => response.toResponse('-', 1)),
               };
       };
     }
 
     if (respondWith != null) {
       pluginManager.broadcastResults = {
-        pluginIsolate: Future.delayed(
-          respondAfter,
-        ).then((_) => respondWith.toResponse('-', 1)),
+        pluginIsolate: Future.delayed(respondAfter)
+            .then((_) => respondWith.toResponse('-', 1)),
       };
     }
 
@@ -228,21 +227,8 @@ abstract class AbstractLspAnalysisServerTest
     List<Registration> registrations,
     Method method,
   ) {
-    bool includesDart(Registration r) {
-      var options = TextDocumentRegistrationOptions.fromJson(
-        r.registerOptions as Map<String, Object?>,
-      );
-
-      return options.documentSelector?.any(
-            (selector) =>
-                selector.language == dartLanguageId ||
-                (selector.pattern?.contains('.dart') ?? false),
-          ) ??
-          false;
-    }
-
     return registrations
-        .where((r) => r.method == method.toJson() && includesDart(r))
+        .where((r) => r.method == method.toJson() && r.includesDart)
         .toList();
   }
 
@@ -601,6 +587,17 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setCompletionListApplyKindSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionList': {'applyKindSupport': supported},
+        },
+      },
+    );
+  }
+
   void setCompletionListDefaults(List<String> defaults) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -724,6 +721,12 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('hover');
   }
 
+  /// Enables support for the legacy custom SnippetTextEdit support that was
+  /// used prior to LSP v3.18 getting standard support.
+  void setLegacySnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
   void setLineFoldingOnly() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -757,8 +760,21 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setSignatureHelpNullActiveParameterSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'signatureHelp': {
+          'signatureInformation': {'noActiveParameterSupport': supported},
+        },
+      },
+    );
+  }
+
   void setSnippetTextEditSupport([bool supported = true]) {
-    experimentalCapabilities['snippetTextEdit'] = supported;
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {'snippetEditSupport': supported},
+    });
   }
 
   /// Sets the supported [CodeActionKind]s for this client. This implies
@@ -780,10 +796,16 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
-  void setSupportedCommandParameterKinds(Set<String>? kinds) {
-    experimentalCapabilities['dartCodeAction'] = {
-      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
-    };
+  void setSupportedInteractiveFormInputKinds(Set<String>? inputTypes) {
+    const parentKey = 'interactiveResolve';
+    const inputTypesKey = 'inputTypes';
+    if (inputTypes != null) {
+      experimentalCapabilities[parentKey] = {
+        inputTypesKey: inputTypes.toList(),
+      };
+    } else {
+      experimentalCapabilities.remove(parentKey);
+    }
   }
 
   void setSupportsWindowShowMessageRequest([bool supported = true]) {
@@ -1268,7 +1290,7 @@ mixin LspAnalysisServerTestMixin
       DidOpenTextDocumentParams(
         textDocument: TextDocumentItem(
           uri: uri,
-          languageId: dartLanguageId,
+          languageId: LanguageKind.Dart,
           version: version,
           text: content,
         ),
@@ -1661,5 +1683,24 @@ mixin LspSharedTestMixin on AbstractLspAnalysisServerTest
   Future<void> initializeServer() async {
     await initialize();
     await currentAnalysis;
+  }
+}
+
+extension on Registration {
+  /// Whether this registration is for Dart files, either by language ID
+  /// or because the pattern covers `.dart` files.
+  bool get includesDart {
+    var options = TextDocumentRegistrationOptions.fromJson(
+      registerOptions as Map<String, Object?>,
+    );
+
+    return options.documentSelector?.any(selectorIncludesDart) ?? false;
+  }
+
+  /// Helper to check if a selector covers Dart files, either by language ID
+  /// or because the pattern covers `.dart` files.
+  bool selectorIncludesDart(TextDocumentFilterScheme selector) {
+    return selector.language == dartLanguageId ||
+        (selector.patternString?.contains('.dart') ?? false);
   }
 }

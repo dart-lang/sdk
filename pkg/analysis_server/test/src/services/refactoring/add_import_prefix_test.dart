@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/add_import_prefix.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../support/interactive_forms.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -21,7 +25,8 @@ void main() {
 /// references to imported symbols) are in
 /// `test\services\refactoring\legacy\rename_import_test.dart`.
 @reflectiveTest
-class AddImportPrefixTest extends RefactoringTest {
+class AddImportPrefixTest extends RefactoringTest
+    with InteractiveFormsTestMixin {
   @override
   String get refactoringCommandId => AddImportPrefix.commandName;
 
@@ -214,6 +219,56 @@ import 'foo - bar.dart' as foo_bar;
       originalSource: originalSource,
       expected: expected,
     );
+  }
+
+  Future<void> test_interactiveForm_clientModifiedValues() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+^import 'package:test/main.dart';
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+import 'package:test/main.dart' as custom_prefix;
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'custom_prefix',
+    });
+
+    await verifyCommandEdits(completedCommand, expected);
+  }
+
+  Future<void> test_interactiveForm_expectedFields() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+^import 'package:test/main.dart';
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+    var interactiveCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(interactiveCommand.formFields, hasLength(1));
+    var field = interactiveCommand.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Import Prefix');
+    expect(field.defaultValue, 'main');
+    expect(field.error, isNull);
+    expect(field.type, isA<FormFieldTypeString>());
   }
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {

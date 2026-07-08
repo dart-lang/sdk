@@ -24,15 +24,14 @@ class C extends A {
 }
 
 void main() {
-  dynamic f =
-      (
-        String a1,
-        int a2,
-        A a3, {
-        String n1 = "default_named",
-        int n2 = -1,
-        A n3 = const A(-1),
-      }) {};
+  dynamic f = (
+    String a1,
+    int a2,
+    A a3, {
+    String n1 = "default_named",
+    int n2 = -1,
+    A n3 = const A(-1),
+  }) {};
 
   f("test_fixed", 1, A(1), n1: "test_named", n2: 2, n3: A(2));
 

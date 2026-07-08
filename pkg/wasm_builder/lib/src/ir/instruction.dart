@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -578,6 +580,7 @@ abstract mixin class Instruction implements Serializable {
           final instruction = V128Instruction.fromOpcode(opcode);
           if (instruction != null) return instruction;
           return switch (opcode) {
+            0x0C => V128Const.deserialize(d),
             0x0D => I8x16Shuffle.deserialize(d),
             0x15 => I8x16ExtractLaneS.deserialize(d),
             0x16 => I8x16ExtractLaneU.deserialize(d),
@@ -3133,6 +3136,30 @@ class F64Const extends Instruction {
 
   @override
   String get name => 'f64.const $value';
+}
+
+class V128Const extends Instruction {
+  final Uint8List bytes;
+
+  V128Const(this.bytes) : assert(bytes.length == 16);
+
+  static V128Const deserialize(Deserializer d) {
+    return V128Const(d.readBytes(16));
+  }
+
+  @override
+  bool get isConstant => true;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x0C);
+    s.writeBytes(bytes);
+  }
+
+  @override
+  String get name =>
+      'v128.const 0x${bytes.map((b) => b.toRadixString(16).padLeft(2, "0")).join()}';
 }
 
 class I32Eqz extends SingleByteInstruction {

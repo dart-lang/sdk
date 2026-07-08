@@ -42,8 +42,7 @@ extension type ExtensionType5(ClassC c) /* Ok */
 extension type ExtensionType6a(ClassF c) /* Error */
     implements ClassD, ClassE {}
 
-extension type ExtensionType6b(ClassF c) /* Ok */
-    implements ClassD, ClassE {
+extension type ExtensionType6b(ClassF c) /* Ok */ implements ClassD, ClassE {
   void method2() {}
 }
 
@@ -55,9 +54,7 @@ extension type ExtensionType7b(ClassF c) /* Ok */
   void method2() {}
 }
 
-
-extension type ExtensionType8a(ClassI c) /* Ok */
-  implements ClassG, ClassH {}
+extension type ExtensionType8a(ClassI c) /* Ok */ implements ClassG, ClassH {}
 
 extension type ExtensionType8b(ClassI c) /* Ok */
     implements ExtensionTypeG, ExtensionTypeH {}
@@ -68,7 +65,7 @@ extension type ExtensionType9(int i) {
 }
 
 extension type ExtensionType9a(ClassJK n) /* Error */
-  implements ClassJ, ClassK {}
+    implements ClassJ, ClassK {}
 
 extension type ExtensionType9b(ClassJK n) /* Error */
     implements ClassJ, ClassK {
@@ -80,7 +77,7 @@ extension type ExtensionType10a(ClassJK i) /* Error */
     implements ExtensionTypeJ, ExtensionTypeK {}
 
 extension type ExtensionType10b(ClassJK i) /* Ok */
-   implements ExtensionTypeJ, ExtensionTypeK {
+    implements ExtensionTypeJ, ExtensionTypeK {
   int get method4 => 42; /* Ok */
   void set method4(int value) {} /* Ok */
 }
@@ -93,13 +90,11 @@ extension type ExtensionType11(int n) {
 extension type ExtensionType12a(ClassLM n) /* Error */
     implements ClassL, ClassM {}
 
-extension type ExtensionType12b(ClassL n) /* Error */
-    implements ClassL {
+extension type ExtensionType12b(ClassL n) /* Error */ implements ClassL {
   void set property(bool value) {} /* Error */
 }
 
-extension type ExtensionType12c(ClassM n) /* Error */
-    implements ClassM {
+extension type ExtensionType12c(ClassM n) /* Error */ implements ClassM {
   bool get property => true; /* Error */
 }
 
@@ -134,8 +129,7 @@ extension type ExtensionType14a(ExtensionTypeLN n) /* Ok */
 extension type ExtensionType14b(ExtensionTypeLN n) /* Ok */
     implements ExtensionTypeL, ClassN {}
 
-extension type ExtensionType14c(ClassL n) /* Ok */
-    implements ClassL {
+extension type ExtensionType14c(ClassL n) /* Ok */ implements ClassL {
   void set property(int value) {} /* Ok */
 }
 

@@ -87,9 +87,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   /// A [Future] that completes when both the client has finished initializing
   /// and any in-progress context rebuilds are complete.
-  Future<void> get _initializedWithContexts => Future.value(
-    server.lspInitialized,
-  ).then((_) => server.analysisContextsRebuilt);
+  Future<void> get _initializedWithContexts =>
+      Future.value(server.lspInitialized)
+          .then((_) => server.analysisContextsRebuilt);
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
     ServerErrorCodes.fileAnalysisFailed,

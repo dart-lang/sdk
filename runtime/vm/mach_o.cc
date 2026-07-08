@@ -12,8 +12,8 @@
 #include "platform/mach_o.h"
 #include "platform/unwinding_records.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
@@ -262,8 +262,11 @@ class NonHashingMachOWriteStream
   void WriteBytes(const void* bytes, intptr_t len) override {
     SharedObjectWriter::DelegatingWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
-    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset);
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
+    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset,
+                                                            fill_byte);
   }
   bool HasValueForLabel(intptr_t label, intptr_t* value) const override {
     return MachOWriteStream::HasValueForLabel(label, value);
@@ -318,10 +321,12 @@ class HashingMachOWriteStream : public BaseWriteStream,
   void WriteBytes(const void* bytes, intptr_t len) override {
     BaseWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
     ASSERT(Utils::IsPowerOfTwo(alignment));
     ASSERT(alignment <= macho_.page_size());
-    return BaseWriteStream::Align(alignment, offset);
+    return BaseWriteStream::Align(alignment, offset, fill_byte);
   }
 
   bool HasHashes() const override { return true; }
@@ -2127,7 +2132,7 @@ class MachOHeader : public MachOContents {
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
   void GenerateCompactUnwindingInformation(
-      DwarfSharedObjectStream& stream,
+      DebugInfoStream& stream,
       const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes);
 #endif
 
@@ -2530,34 +2535,22 @@ void MachOHeader::CreateBSS() {
       mach_o::S_NO_ATTRIBUTES, /*has_contents=*/false);
   data_segment->AddContents(bss_section);
 
-  for (const auto& portion : text_section->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kSnapshotBssAsmSymbol;
-      label = SharedObjectWriter::kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
-    symbols->Add({symbol_name, SharedObjectWriter::SymbolData::Type::Section, 0,
-                  size, label});
-    bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
-                            symbols);
-  }
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray(zone_, 1);
+  symbols->Add({kSnapshotBssAsmSymbol,
+                SharedObjectWriter::SymbolData::Type::Section, 0, size,
+                SharedObjectWriter::kIsolateBssLabel});
+  bss_section->AddPortion(/*bytes=*/nullptr, size, /*relocations=*/nullptr,
+                          symbols);
 }
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
 void MachOHeader::GenerateCompactUnwindingInformation(
-    DwarfSharedObjectStream& stream,
+    DebugInfoStream& stream,
     const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
   // Each instructions image starts with the Image header and the
   // InstructionsSection header.
@@ -2755,8 +2748,8 @@ void MachOHeader::GenerateUnwindingInformation() {
 
     // Even if the unwinding information is not written to the output, it is
     // generated so a zerofill section of the appropriate size can be created.
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone(), &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone(), &stream);
 
     SharedObjectWriter::SymbolDataArray* symbols = nullptr;
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
@@ -2932,8 +2925,7 @@ void MachOHeader::FinalizeDwarfSections() {
   }
 
   const intptr_t alignment = 1;  // No extra padding.
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     ASSERT(!dwarf_segment->FindSection(name, mach_o::SEG_DWARF));
     auto* const section =
         new (zone()) MachOSection(zone(), name, mach_o::SEG_DWARF, alignment,
@@ -2944,22 +2936,22 @@ void MachOHeader::FinalizeDwarfSections() {
   };
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_ABBREV, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_INFO, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_LINE, dwarf_stream);
   }

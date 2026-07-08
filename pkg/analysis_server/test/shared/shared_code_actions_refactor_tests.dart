@@ -199,8 +199,7 @@ void newMethod() {
       throwsA(
         isResponseError(
           ErrorCodes.RequestCancelled,
-          message:
-              'Another workspace/executeCommand request for a refactor was started',
+          message: 'Another workspace/executeCommand request for a refactor was started',
         ),
       ),
     );
@@ -673,7 +672,7 @@ mixin SharedExtractWidgetRefactorCodeActionsTests
   final extractWidgetTitle = 'Extract Widget';
 
   String get expectedNewWidgetConstructorDeclaration => '''
-const NewWidget({
+const new({
     super.key,
   });
 ''';

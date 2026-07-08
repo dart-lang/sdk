@@ -266,9 +266,7 @@ class MoveFieldInitializers {
           }
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(
-                Variable(null, initializer: initExpr, isSynthesized: true),
-              )
+            ? LocalInitializer(SyntheticVariable(initializer: initExpr))
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -1146,7 +1144,7 @@ class TreeShaker {
     }
   }
 
-  void addUsedParameters(List<Variable> params) {
+  void addUsedParameters(List<FunctionParameter> params) {
     for (var param in params) {
       // Do not visit initializer (default value) of a parameter as it is
       // going to be removed during pass 2.
@@ -1203,7 +1201,11 @@ class FieldMorpher {
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
-          new Variable('value', type: field.type, isSynthesized: true)
+          new PositionalParameter(
+              cosmeticName: 'value',
+              type: field.type,
+              isSynthesized: true,
+            )
             ..isCovariantByDeclaration = field.isCovariantByDeclaration
             ..isCovariantByClass = field.isCovariantByClass
             ..fileOffset = field.fileOffset;
@@ -1428,11 +1430,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new Variable(
-        null,
-        initializer: _makeUnreachableCall(args),
-        isSynthesized: true,
-      ),
+      new SyntheticVariable(initializer: _makeUnreachableCall(args)),
     );
   }
 
@@ -1908,10 +1906,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       if (!shaker.retainField(field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
-            Variable(
-              null,
+            SyntheticVariable(
               initializer: node.value,
-              isSynthesized: true,
               type: visitDartType(field.type, cannotRemoveSentinel),
             ),
           );
@@ -2496,10 +2492,10 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   void _removeDefaultValuesOfParameters(FunctionNode function) {
     for (var p in function.positionalParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
     for (var p in function.namedParameters) {
-      p.initializer = null;
+      p.defaultValue = null;
     }
   }
 

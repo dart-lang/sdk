@@ -1,10 +1,10 @@
-(module $module0
+(module $M
   (type $#Top <...>)
   (type $JSExternWrapper <...>)
   (type $Object <...>)
   (global $"\"fooAlwaysThrows\"" (ref $JSExternWrapper) <...>)
   (global $"\"foo\"" (ref $JSExternWrapper) <...>)
-  (func $Error._throwWithCurrentStackTrace <noInline> (param $object (ref $#Top)) <...>)
+  (func $Error._throwWithCurrentStackTrace (param $object (ref $#Top)) <...>)
   (func $Object (result (ref $Object)) <...>)
   (func $foo (result (ref null $#Top))
     global.get $"\"foo\""
@@ -20,7 +20,7 @@
     ref.null none
     drop
     call $Object
-    call $"Error._throwWithCurrentStackTrace <noInline>"
+    call $Error._throwWithCurrentStackTrace
     unreachable
   )
   (func $print (param $object (ref null $#Top)) <...>)

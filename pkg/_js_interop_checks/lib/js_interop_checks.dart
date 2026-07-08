@@ -873,7 +873,7 @@ class JsInteropChecks extends RecursiveVisitor {
                   : 'Object literal constructors',
             ),
         firstPositionalParam.fileOffset,
-        firstPositionalParam.name!.length,
+        firstPositionalParam.cosmeticName!.length,
         firstPositionalParam.location!.file,
       );
     }
@@ -886,7 +886,7 @@ class JsInteropChecks extends RecursiveVisitor {
       _reporter.report(
         diag.jsInteropNamedParameters,
         firstNamedParam.fileOffset,
-        firstNamedParam.name!.length,
+        firstNamedParam.parameterName.length,
         firstNamedParam.location!.file,
       );
     }
@@ -899,11 +899,11 @@ class JsInteropChecks extends RecursiveVisitor {
       ...node.positionalParameters,
       ...node.namedParameters,
     ]) {
-      if (param.hasDeclaredInitializer) {
+      if (param.hasDeclaredDefaultValue) {
         _reporter.report(
           diag.jsInteropStaticInteropParameterInitializersAreIgnored,
           param.fileOffset,
-          param.name!.length,
+          param.cosmeticName!.length,
           param.location!.file,
         );
       }

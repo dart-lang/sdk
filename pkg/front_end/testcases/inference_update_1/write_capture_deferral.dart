@@ -17,7 +17,10 @@ withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {
   }
 }
 
-withUnnamedArgumentsParenthesized(int? i, void Function(void Function(), Object?) f) {
+withUnnamedArgumentsParenthesized(
+  int? i,
+  void Function(void Function(), Object?) f,
+) {
   if (i != null) {
     f((() {
       i = null;
@@ -26,7 +29,10 @@ withUnnamedArgumentsParenthesized(int? i, void Function(void Function(), Object?
   }
 }
 
-withUnnamedArgumentsParenthesizedTwice(int? i, void Function(void Function(), Object?) f) {
+withUnnamedArgumentsParenthesizedTwice(
+  int? i,
+  void Function(void Function(), Object?) f,
+) {
   if (i != null) {
     f(((() {
       i = null;
@@ -36,37 +42,46 @@ withUnnamedArgumentsParenthesizedTwice(int? i, void Function(void Function(), Ob
 }
 
 withNamedArguments(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: () {
-          i = null;
-        },
-        x: i);
+      g: () {
+        i = null;
+      },
+      x: i,
+    );
     i;
   }
 }
 
 withNamedArgumentsParenthesized(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: (() {
-          i = null;
-        }),
-        x: i);
+      g: (() {
+        i = null;
+      }),
+      x: i,
+    );
     i;
   }
 }
 
 withNamedArgumentsParenthesizedTwice(
-    int? i, void Function({required void Function() g, Object? x}) f) {
+  int? i,
+  void Function({required void Function() g, Object? x}) f,
+) {
   if (i != null) {
     f(
-        g: ((() {
-          i = null;
-        })),
-        x: i);
+      g: ((() {
+        i = null;
+      })),
+      x: i,
+    );
     i;
   }
 }
@@ -93,16 +108,16 @@ withIdentical_rhs(int? i) {
 class B {
   B(Object? x, void Function() g, Object? y);
   B.redirectingConstructorInvocation(int? i)
-      : this(i!, () {
-          i = null;
-        }, i);
+    : this(i!, () {
+        i = null;
+      }, i);
 }
 
 class C extends B {
   C.superConstructorInvocation(int? i)
-      : super(i!, () {
-          i = null;
-        }, i);
+    : super(i!, () {
+        i = null;
+      }, i);
 }
 
 main() {}

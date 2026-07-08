@@ -289,7 +289,9 @@ class FunctionNodeHelper {
     kEndPosition,
     kAsyncMarker,
     kDartAsyncMarker,
+    kScopeSize,
     kTypeParameters,
+    kThisVariable,
     kTotalParameterCount,
     kRequiredParameterCount,
     kPositionalParameters,
@@ -298,6 +300,8 @@ class FunctionNodeHelper {
     kEmittedValueType,
     kRedirectingFactoryTarget,
     kBody,
+    kScope,
+    kCapturedContexts,
     kEnd,
   };
 
@@ -492,9 +496,12 @@ class FieldHelper {
     kEndPosition,
     kFlags,
     kName,
+    kScopeSize,
     kAnnotations,
     kType,
+    kThisVariable,
     kInitializer,
+    kScope,
     kEnd,
   };
 
@@ -1355,6 +1362,8 @@ class KernelReaderHelper {
   void SkipVariable();
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
+  void SkipScope();
+  void SkipCapturedContexts();
   TokenPosition ReadPosition();
   Tag ReadTag(uint8_t* payload = nullptr);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }

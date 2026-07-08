@@ -2719,7 +2719,7 @@ class ICData : public CallSiteData {
     kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx = 0,
     kCachedICDataMaxArgsTestedWithoutExactnessTracking = 2,
     kCachedICDataOneArgWithExactnessTrackingIdx =
-        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+            kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
         kCachedICDataMaxArgsTestedWithoutExactnessTracking + 1,
     kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
   };
@@ -6299,9 +6299,9 @@ class PcDescriptors : public Object {
   // The base argument is added to the PC offset for each entry.
   void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
- private:
-  static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
+  static const char* KindToCString(UntaggedPcDescriptors::Kind kind);
 
+ private:
   static PcDescriptorsPtr New(intptr_t length);
 
   void SetLength(intptr_t value) const;
@@ -9497,22 +9497,17 @@ class AbstractType : public Instance {
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents the 'Object?' type.
-  bool IsNullableObjectType() const {
-    return IsObjectType() && (nullability() == Nullability::kNullable);
-  }
+  bool IsNullableObjectType() const { return IsObjectType() && IsNullable(); }
 
   // Check if this type represents a top type for subtyping,
-  // assignability and 'as' type tests.
+  // assignability, 'as' and 'is' type tests.
   //
   // Returns true if
   //  - any type is a subtype of this type;
   //  - any value can be assigned to a variable of this type;
   //  - 'as' type test always succeeds for this type.
-  bool IsTopTypeForSubtyping() const;
-
-  // Check if this type represents a top type for 'is' type tests.
-  // Returns true if 'is' type test always returns true for this type.
-  bool IsTopTypeForInstanceOf() const;
+  //  - 'is' type test always returns true for this type.
+  bool IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }
@@ -12213,7 +12208,8 @@ class Pointer : public Instance {
 class DynamicLibrary : public Instance {
  public:
   static DynamicLibraryPtr New(void* handle,
-                               bool canBeClosed,
+                               Dart_NativeAssetsDlsymCallback dlsym,
+                               Dart_NativeAssetsDlcloseCallback dlclose,
                                Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -12235,23 +12231,39 @@ class DynamicLibrary : public Instance {
     StoreNonPointer(&untag()->handle_, value);
   }
 
-  bool CanBeClosed() const {
+  Dart_NativeAssetsDlsymCallback Dlsym() const {
     ASSERT(!IsNull());
-    return untag()->canBeClosed_;
+    return LoadNonPointer<Dart_NativeAssetsDlsymCallback,
+                          std::memory_order_relaxed>(&untag()->dlsym_);
   }
 
-  void SetCanBeClosed(bool value) const {
+  void SetDlsym(Dart_NativeAssetsDlsymCallback value) const {
     ASSERT(!IsNull());
-    StoreNonPointer(&untag()->canBeClosed_, value);
+    StoreNonPointer<Dart_NativeAssetsDlsymCallback,
+                    Dart_NativeAssetsDlsymCallback, std::memory_order_relaxed>(
+        &untag()->dlsym_, value);
+  }
+
+  Dart_NativeAssetsDlcloseCallback Dlclose() const {
+    ASSERT(!IsNull());
+    return LoadNonPointer<Dart_NativeAssetsDlcloseCallback,
+                          std::memory_order_relaxed>(&untag()->dlclose_);
+  }
+
+  void SetDlclose(Dart_NativeAssetsDlcloseCallback value) const {
+    ASSERT(!IsNull());
+    StoreNonPointer<Dart_NativeAssetsDlcloseCallback,
+                    Dart_NativeAssetsDlcloseCallback,
+                    std::memory_order_relaxed>(&untag()->dlclose_, value);
   }
 
   bool IsClosed() const {
     ASSERT(!IsNull());
-    return untag()->isClosed_;
+    return untag()->is_closed_;
   }
 
   void SetClosed(bool value) const {
-    StoreNonPointer(&untag()->isClosed_, value);
+    StoreNonPointer(&untag()->is_closed_, value);
   }
 
  private:

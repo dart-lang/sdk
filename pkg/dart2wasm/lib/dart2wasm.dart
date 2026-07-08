@@ -82,6 +82,9 @@ final List<Option> options = [
   Flag("omit-bounds-checks", (o, value) {
     o.translatorOptions.omitBoundsChecksOverride = value;
   }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
+  Flag("omit-error-details", (o, value) {
+    o.translatorOptions.omitErrorDetailsOverride = value;
+  }, defaultsTo: _d.translatorOptions.omitErrorDetails),
   Flag(
     "verbose",
     (o, value) => o.translatorOptions.verbose = value,
@@ -199,6 +202,12 @@ final List<Option> options = [
     "require-js-string-builtin",
     (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
     defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
+  ),
+
+  Flag(
+    "strip-toolchain-annotations",
+    (o, value) => o.stripToolchainAnnotations = value,
+    defaultsTo: _d.stripToolchainAnnotations,
   ),
 
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),

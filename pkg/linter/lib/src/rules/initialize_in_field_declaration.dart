@@ -21,6 +21,7 @@ class InitializeInFieldDeclaration extends AnalysisRule {
     : super(
         name: LintNames.initialize_in_field_declaration,
         description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
       );
 
   @override

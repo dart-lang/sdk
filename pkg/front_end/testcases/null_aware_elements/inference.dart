@@ -35,7 +35,10 @@ test3(String? key) {
 test4(dynamic key) {
   Map<Symbol, num> y1 = {?new TypeExpecter<Symbol?>().checkType(key): 1.0};
 
-  Map<Symbol, num> y2 = {#key: 1.0, ?new TypeExpecter<Symbol?>().checkType(key): 1.0};
+  Map<Symbol, num> y2 = {
+    #key: 1.0,
+    ?new TypeExpecter<Symbol?>().checkType(key): 1.0,
+  };
 
   var y3 = {#key: 1.0, ?new TypeExpecter<dynamic>().checkType(key): 1.0};
 }
@@ -54,7 +57,10 @@ test5(String? value) {
 test6(dynamic value) {
   Map<int, Symbol> y1 = {0: ?new TypeExpecter<Symbol?>().checkType(value)};
 
-  Map<int, Symbol> y2 = {0: #key, 1: ?new TypeExpecter<Symbol?>().checkType(value)};
+  Map<int, Symbol> y2 = {
+    0: #key,
+    1: ?new TypeExpecter<Symbol?>().checkType(value),
+  };
 
   var y3 = {0: #key, 1: ?new TypeExpecter<dynamic>().checkType(value)};
 }
@@ -75,17 +81,20 @@ test7(int? key, Symbol? value) {
 
 test8(dynamic key, dynamic value) {
   Map<String, double> y1 = {
-    ?new TypeExpecter<String?>().checkType(key): ?new TypeExpecter<double?>().checkType(value)
+    ?new TypeExpecter<String?>().checkType(key): ?new TypeExpecter<double?>()
+        .checkType(value),
   };
 
   Map<String, double> y2 = {
     "": 1.0,
-    ?new TypeExpecter<String?>().checkType(key): ?new TypeExpecter<double?>().checkType(value)
+    ?new TypeExpecter<String?>().checkType(key): ?new TypeExpecter<double?>()
+        .checkType(value),
   };
 
   var y3 = {
     "": 1.0,
-    ?new TypeExpecter<dynamic>().checkType(key): ?new TypeExpecter<dynamic>().checkType(value)
+    ?new TypeExpecter<dynamic>().checkType(key): ?new TypeExpecter<dynamic>()
+        .checkType(value),
   };
 }
 
@@ -95,21 +104,27 @@ main() {
 
   test2("element");
   test2(null);
-  expectThrows<TypeError>(() {test2(0);});
+  expectThrows<TypeError>(() {
+    test2(0);
+  });
 
   test3("key");
   test3(null);
 
   test4(#foo);
   test4(null);
-  expectThrows<TypeError>(() {test4("foo");});
+  expectThrows<TypeError>(() {
+    test4("foo");
+  });
 
   test5("value");
   test5(null);
 
   test6(#foo);
   test6(null);
-  expectThrows<TypeError>(() {test6("foo");});
+  expectThrows<TypeError>(() {
+    test6("foo");
+  });
 
   test7(0, #value);
   test7(0, null);
@@ -120,15 +135,21 @@ main() {
   test8("key", null);
   test8(null, 1.0);
   test8(null, null);
-  expectThrows<TypeError>(() {test8(#key, 1.0);});
-  expectThrows<TypeError>(() {test8("key", "value");});
-  expectThrows<TypeError>(() {test8(#key, "value");});
+  expectThrows<TypeError>(() {
+    test8(#key, 1.0);
+  });
+  expectThrows<TypeError>(() {
+    test8("key", "value");
+  });
+  expectThrows<TypeError>(() {
+    test8(#key, "value");
+  });
 }
 
 expectType<T>(x) {
   if (x is! T) {
     throw "Expected the passed value to be of type 'T', "
-      "got '${x.runtimeType}'.";
+        "got '${x.runtimeType}'.";
   }
 }
 
@@ -143,7 +164,7 @@ expectThrows<T>(void Function() f) {
     hasThrownT = false;
   }
   if (!hasThrownT) {
-      throw "Expected the passed function to throw.";
+    throw "Expected the passed function to throw.";
   }
 }
 
@@ -151,7 +172,7 @@ class TypeExpecter<X> {
   Y checkType<Y>(dynamic value) {
     if (X != Y) {
       throw "Expected the captured type ($Y) "
-        "to be the same as the passed type ($X).";
+          "to be the same as the passed type ($X).";
     }
     return value as Y;
   }

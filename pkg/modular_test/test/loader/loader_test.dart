@@ -20,8 +20,11 @@ void main(List<String> args) async {
   await for (var entry in baseDir.list(recursive: false)) {
     if (entry is Directory) {
       var dirName = entry.uri.path.substring(baseDir.path.length);
-      test(dirName, () => _runTest(entry.uri, dirName, options),
-          skip: options.filter != null && !dirName.contains(options.filter!));
+      test(
+        dirName,
+        () => _runTest(entry.uri, dirName, options),
+        skip: options.filter != null && !dirName.contains(options.filter!),
+      );
     }
   }
 }
@@ -39,14 +42,19 @@ Future<void> _runTest(Uri uri, String dirName, _Options options) async {
 
   var file = File.fromUri(uri.resolve('expectation.txt'));
   if (!options.updateExpectations) {
-    expect(await file.exists(), isTrue,
-        reason: "expectation.txt file is missing");
+    expect(
+      await file.exists(),
+      isTrue,
+      reason: "expectation.txt file is missing",
+    );
     var expectation = await file.readAsString();
     if (expectation != result) {
-      print("expectation.txt doesn't match the result of the test. "
-          "To update it, run:\n"
-          "   ${Platform.executable} ${Platform.script} "
-          "--update --show-update --filter $dirName");
+      print(
+        "expectation.txt doesn't match the result of the test. "
+        "To update it, run:\n"
+        "   ${Platform.executable} ${Platform.script} "
+        "--update --show-update --filter $dirName",
+      );
     }
     expect(result, expectation);
   } else if (await file.exists() && (await file.readAsString() == result)) {
@@ -80,8 +88,10 @@ String _dumpAsText(ModularTest test) {
     if (module.dependencies.isEmpty) {
       buffer.write('\n  (no dependencies)');
     } else {
-      buffer.write('\n  dependencies: '
-          '${module.dependencies.map((d) => d.name).join(", ")}');
+      buffer.write(
+        '\n  dependencies: '
+        '${module.dependencies.map((d) => d.name).join(", ")}',
+      );
     }
 
     if (module.sources.isEmpty) {
@@ -106,18 +116,26 @@ class _Options {
 
   static _Options parse(List<String> args) {
     var parser = ArgParser()
-      ..addFlag('update',
-          abbr: 'u',
-          defaultsTo: false,
-          help: "update expectation files if the result don't match")
-      ..addFlag('show-update',
-          defaultsTo: false,
-          help: "print the result when updating expectation files")
-      ..addFlag('show-skipped',
-          defaultsTo: false,
-          help: "print the name of the tests skipped by the filtering option")
-      ..addOption('filter',
-          help: "only run tests containing this filter as a substring");
+      ..addFlag(
+        'update',
+        abbr: 'u',
+        defaultsTo: false,
+        help: "update expectation files if the result don't match",
+      )
+      ..addFlag(
+        'show-update',
+        defaultsTo: false,
+        help: "print the result when updating expectation files",
+      )
+      ..addFlag(
+        'show-skipped',
+        defaultsTo: false,
+        help: "print the name of the tests skipped by the filtering option",
+      )
+      ..addOption(
+        'filter',
+        help: "only run tests containing this filter as a substring",
+      );
     ArgResults argResults = parser.parse(args);
     return _Options()
       ..updateExpectations = argResults['update']

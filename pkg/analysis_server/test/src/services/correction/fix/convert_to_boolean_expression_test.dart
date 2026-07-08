@@ -49,12 +49,11 @@ void f(bool value) {
   if (value && false) print(value);
 }
 ''');
-    var lint = await lintCodeByName(lintCode);
     await assertHasFix(r'''
 void f(bool value) {
   if (false) print(value);
 }
-''', filter: (error) => error.diagnosticCode == lint);
+''', filter: lintNameFilter(LintNames.no_literal_bool_comparisons));
   }
 
   Future<void> test_andAndTrue() async {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -945,29 +944,22 @@ class B implements A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_method_returnType_interface_fromAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int foo() => 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 
 class B {
   String foo() => '';
+//       ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('String Function()') isn't a valid override of 'A.foo' ('int Function()').
 }
 
 augment class B implements A {}
-''',
-      [
-        error(
-          diag.invalidOverride,
-          50,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_interface_grandparent() async {
@@ -1017,29 +1009,22 @@ class B extends A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_method_returnType_superclass_fromAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int foo() => 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 
 class B {
   String foo() => '';
+//       ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('String Function()') isn't a valid override of 'A.foo' ('int Function()').
 }
 
 augment class B extends A {}
-''',
-      [
-        error(
-          diag.invalidOverride,
-          50,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_superclass_grandparent() async {
@@ -1143,29 +1128,22 @@ mixin M on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_method_returnType_on_fromAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 
 mixin M {
   String foo() => '';
+//       ^^^
+// [diag.invalidOverride][context 1] 'M.foo' ('String Function()') isn't a valid override of 'A.foo' ('int Function()').
 }
 
 augment mixin M on A {}
-''',
-      [
-        error(
-          diag.invalidOverride,
-          50,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_setter_type_on() async {

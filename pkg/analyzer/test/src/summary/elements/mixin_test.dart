@@ -44,11 +44,11 @@ library
               inducedGetter: #F4
               inducedSetter: #F5
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo1
               inducingVariable: #F3
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               inducingVariable: #F3
               formalParameters
@@ -63,11 +63,11 @@ library
               inducedGetter: #F8
               inducedSetter: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F8 isComplete isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@getter::foo2
               inducingVariable: #F7
           setters
-            #F9 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F9 isComplete isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@setter::foo2
               inducingVariable: #F7
               formalParameters
@@ -156,11 +156,11 @@ library
               inducedGetter: #F6
               inducedSetter: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 isComplete isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@getter::foo1
               inducingVariable: #F5
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F7 isComplete isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@setter::foo1
               inducingVariable: #F5
               formalParameters
@@ -179,11 +179,11 @@ library
               inducedGetter: #F10
               inducedSetter: #F11
           getters
-            #F10 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F10 isComplete isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@getter::foo2
               inducingVariable: #F9
           setters
-            #F11 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F11 isComplete isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@setter::foo2
               inducingVariable: #F9
               formalParameters
@@ -272,12 +272,12 @@ library
               inducedSetter: #F5
               nextFragment: #F6
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F7
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -295,12 +295,12 @@ library
               inducedSetter: #F10
               previousFragment: #F3
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F6
               previousFragment: #F4
           setters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F10 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -372,12 +372,12 @@ library
               inducedSetter: #F5
               nextFragment: #F6
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F7
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -390,7 +390,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F7 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F12
@@ -404,12 +404,12 @@ library
               inducedSetter: #F10
               previousFragment: #F3
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+            #F12 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F6
               previousFragment: #F7
           setters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+            #F10 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -481,12 +481,12 @@ library
               inducedSetter: #F5
               nextFragment: #F6
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F7
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -499,7 +499,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           setters
-            #F10 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F10 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F9 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
@@ -518,12 +518,12 @@ library
               inducedSetter: #F13
               previousFragment: #F3
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F6
               previousFragment: #F4
           setters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+            #F13 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -591,12 +591,12 @@ library
               inducedSetter: #F5
               nextFragment: #F6
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F7
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -614,12 +614,12 @@ library
               inducedSetter: #F10
               previousFragment: #F3
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F6
               previousFragment: #F4
           setters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+            #F10 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -687,7 +687,7 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F5 isComplete isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F6
         #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
@@ -700,12 +700,12 @@ library
               inducedSetter: #F7
               previousFragment: #F3
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F6 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F4
               previousFragment: #F5
           setters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F4
               formalParameters
@@ -775,12 +775,12 @@ library
               inducedSetter: #F5
               nextFragment: #F6
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F7
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -800,13 +800,13 @@ library
               previousFragment: #F3
               nextFragment: #F12
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F6
               previousFragment: #F4
               nextFragment: #F13
           setters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F10 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -826,12 +826,12 @@ library
               inducedSetter: #F15
               previousFragment: #F6
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F13 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F12
               previousFragment: #F7
           setters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F15 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F12
               formalParameters
@@ -892,11 +892,11 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           getters
-            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@getter::x
               inducingVariable: #F2
           setters
-            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@setter::x
               inducingVariable: #F2
               formalParameters
@@ -954,7 +954,7 @@ library
               element: <testLibrary>::@mixin::M::@field::x
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@mixin::M::@getter::x
               inducingVariable: #F2
   mixins
@@ -1003,7 +1003,7 @@ library
             #F3 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
-            #F4 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isComplete isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo1
         #F2 isAugmentation mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@mixin::A
@@ -1012,7 +1012,7 @@ library
             #F5 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F6 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
+            #F6 isComplete isOriginDeclaration foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
               element: <testLibrary>::@mixin::A::@getter::foo2
   mixins
     isSimplyBounded mixin A
@@ -1151,16 +1151,16 @@ library
             #F4 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F5 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F5 isComplete isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo1
               nextFragment: #F6
-            #F7 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:41) (firstTokenOffset:33) (offset:41)
+            #F7 isComplete isOriginDeclaration foo2 (nameOffset:41) (firstTokenOffset:33) (offset:41)
               element: <testLibrary>::@mixin::A::@getter::foo2
         #F2 isAugmentation mixin A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:91) (firstTokenOffset:75) (offset:91)
+            #F6 isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:91) (firstTokenOffset:75) (offset:91)
               element: <testLibrary>::@mixin::A::@getter::foo1
               previousFragment: #F5
   mixins
@@ -1221,12 +1221,12 @@ library
               inducedGetter: #F4
               inducedSetter: #F5
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F6
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -1236,7 +1236,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F6 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
   mixins
@@ -1302,12 +1302,12 @@ library
               inducedGetter: #F4
               inducedSetter: #F5
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
               nextFragment: #F6
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -1318,7 +1318,7 @@ library
           previousFragment: #F1
           nextFragment: #F8
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F6 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F9
@@ -1326,7 +1326,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           getters
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
+            #F9 isAugmentation isComplete isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F6
   mixins
@@ -1390,7 +1390,7 @@ library
             #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
-            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isComplete isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F5
         #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
@@ -1398,7 +1398,7 @@ library
           previousFragment: #F1
           nextFragment: #F6
           getters
-            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
+            #F5 isAugmentation isComplete isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F7
@@ -1406,7 +1406,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:118) (firstTokenOffset:102) (offset:118)
+            #F7 isAugmentation isComplete isOriginDeclaration foo (nameOffset:118) (firstTokenOffset:102) (offset:118)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F5
   mixins
@@ -1451,7 +1451,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 invokesSuperSelf isComplete isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
     isSimplyBounded mixin M
@@ -1495,7 +1495,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 invokesSuperSelf isComplete isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
     isSimplyBounded mixin M
@@ -1539,7 +1539,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
     isSimplyBounded mixin M
@@ -1584,13 +1584,13 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
         #F2 isAugmentation mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
+            #F4 isComplete isOriginDeclaration bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
     isSimplyBounded mixin A
@@ -1636,7 +1636,7 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
         #F2 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
@@ -1646,7 +1646,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 isCompleteDeclaration isOriginDeclaration bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
+            #F6 isComplete isOriginDeclaration bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
     isSimplyBounded mixin A
@@ -1696,7 +1696,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration a (nameOffset:44) (firstTokenOffset:37) (offset:44)
@@ -1709,7 +1709,7 @@ library
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F7 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:80) (firstTokenOffset:80) (offset:80)
@@ -1776,7 +1776,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:48) (offset:55)
@@ -1786,7 +1786,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
@@ -1858,7 +1858,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:48) (offset:55)
@@ -1868,7 +1868,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
                 #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
@@ -1934,16 +1934,16 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo1
               nextFragment: #F4
-            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F5 isComplete isOriginDeclaration foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@mixin::A::@method::foo2
         #F2 isAugmentation mixin A (nameOffset:61) (firstTokenOffset:47) (offset:61)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
+            #F4 isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
               element: <testLibrary>::@mixin::A::@method::foo1
               previousFragment: #F3
   mixins
@@ -1991,10 +1991,10 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F5 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F6
-            #F7 isCompleteDeclaration isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F7 isComplete isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::A::@method::bar
         #F2 isAugmentation mixin A (nameOffset:59) (firstTokenOffset:45) (offset:59)
           element: <testLibrary>::@mixin::A
@@ -2004,16 +2004,13 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
+            #F6 isAugmentation isComplete isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F5
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       superclassConstraints
         Object
       methods
@@ -2054,7 +2051,7 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F6
         #F2 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
@@ -2065,7 +2062,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
+            #F6 isAugmentation isComplete isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F5
   mixins
@@ -2114,7 +2111,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration a (nameOffset:60) (firstTokenOffset:53) (offset:60)
@@ -2124,7 +2121,7 @@ library
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F7 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::B::@method::foo
               nextFragment: #F8
               formalParameters
@@ -2135,7 +2132,7 @@ library
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F8 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
+            #F8 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
               element: <testLibrary>::@mixin::B::@method::foo
               previousFragment: #F7
               formalParameters
@@ -2203,7 +2200,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
         #F2 isAugmentation mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
@@ -2211,7 +2208,7 @@ library
           previousFragment: #F1
           nextFragment: #F5
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F6
@@ -2219,7 +2216,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
+            #F6 isAugmentation isComplete isOriginDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
   mixins
@@ -2258,7 +2255,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2269,7 +2266,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -2316,7 +2313,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2327,7 +2324,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -2374,7 +2371,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2385,7 +2382,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -2432,7 +2429,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2443,7 +2440,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -2492,7 +2489,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2504,7 +2501,7 @@ library
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
@@ -2517,7 +2514,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
+            #F8 isAugmentation isComplete isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -2566,7 +2563,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2581,7 +2578,7 @@ library
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -2598,7 +2595,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
+            #F10 isAugmentation isComplete isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -2621,8 +2618,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2652,7 +2647,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2667,7 +2662,7 @@ library
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -2684,7 +2679,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isComplete isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -2707,8 +2702,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2738,7 +2731,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2756,7 +2749,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F12
@@ -2777,7 +2770,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+            #F12 isAugmentation isComplete isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -2803,10 +2796,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
-            #E2 V
-              firstFragment: #F9
           returnType: void
 ''');
   }
@@ -2836,7 +2825,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2851,7 +2840,7 @@ library
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:54) (offset:67)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:54) (offset:67)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -2868,7 +2857,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+            #F10 isAugmentation isComplete isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -2922,7 +2911,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -2937,7 +2926,7 @@ library
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -2954,7 +2943,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isComplete isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -3006,7 +2995,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -3020,7 +3009,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+            #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -3067,7 +3056,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:17) (offset:22)
+            #F2 invokesSuperSelf isComplete isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     isSimplyBounded mixin M
@@ -3108,7 +3097,7 @@ library
         #F3 mixin B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@mixin::B
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration A (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F4 isComplete isOriginDeclaration A (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@mixin::B::@method::A
   classes
     isSimplyBounded class A
@@ -3152,7 +3141,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     isSimplyBounded mixin M
@@ -3191,7 +3180,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration _ (nameOffset:26) (firstTokenOffset:24) (offset:26)
@@ -3283,25 +3272,25 @@ library
             #F16 isOriginGetterSetter s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@mixin::M::@field::s
           getters
-            #F13 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F13 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::M::@getter::f
               inducingVariable: #F12
-            #F17 isCompleteDeclaration isOriginDeclaration g (nameOffset:115) (firstTokenOffset:109) (offset:115)
+            #F17 isComplete isOriginDeclaration g (nameOffset:115) (firstTokenOffset:109) (offset:115)
               element: <testLibrary>::@mixin::M::@getter::g
           setters
-            #F14 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+            #F14 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::M::@setter::f
               inducingVariable: #F12
               formalParameters
                 #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
                   element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::value
-            #F19 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration s (nameOffset:129) (firstTokenOffset:125) (offset:129)
+            #F19 hasImplicitReturnType isComplete isOriginDeclaration s (nameOffset:129) (firstTokenOffset:125) (offset:129)
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
                 #F20 requiredPositional isOriginDeclaration v (nameOffset:135) (firstTokenOffset:131) (offset:135)
                   element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            #F21 isCompleteDeclaration isOriginDeclaration m (nameOffset:147) (firstTokenOffset:143) (offset:147)
+            #F21 isComplete isOriginDeclaration m (nameOffset:147) (firstTokenOffset:143) (offset:147)
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
                 #F22 requiredPositional isOriginDeclaration v (nameOffset:156) (firstTokenOffset:149) (offset:156)
@@ -3675,19 +3664,19 @@ library
         #F1 isAugmentation mixin A (nameOffset:14) (firstTokenOffset:0) (offset:14)
           element: <testLibrary>::@mixin::A
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F2 isComplete isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@mixin::A::@method::foo1
         #F3 mixin A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@mixin::A#1
           nextFragment: #F4
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
+            #F5 isComplete isOriginDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
               element: <testLibrary>::@mixin::A#1::@method::foo2
         #F4 isAugmentation mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@mixin::A#1
           previousFragment: #F3
           methods
-            #F6 isCompleteDeclaration isOriginDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
+            #F6 isComplete isOriginDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
               element: <testLibrary>::@mixin::A#1::@method::foo3
   mixins
     isSimplyBounded mixin A
@@ -3743,13 +3732,13 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F3
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
+            #F4 isComplete isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
               element: <testLibrary>::@mixin::A::@method::foo1
         #F3 isAugmentation mixin A (nameOffset:64) (firstTokenOffset:50) (offset:64)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F5 isComplete isOriginDeclaration foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
               element: <testLibrary>::@mixin::A::@method::foo2
   mixins
     isSimplyBounded mixin B
@@ -4099,7 +4088,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   mixins
@@ -4204,7 +4193,7 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
 ''');
@@ -4404,7 +4393,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int Function(String)}
   mixins
@@ -4478,7 +4467,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: List<int>}
   mixins
@@ -4566,7 +4555,7 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::I::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::I::@constructor::new
             substitution: {X: int}
   mixins
@@ -4659,7 +4648,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::S::@constructor::new
             substitution: {T3: String}
   mixins
@@ -4761,7 +4750,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::S::@constructor::new
             substitution: {T4: String}
   mixins
@@ -5013,7 +5002,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F5
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F4
       mixins
@@ -5596,7 +5585,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F5
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F4
       mixins
@@ -5907,8 +5896,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       superclassConstraints
         Object
 ''');
@@ -5969,8 +5956,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       superclassConstraints
         Object
 ''');
@@ -6041,10 +6026,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       superclassConstraints
         Object
 ''');
@@ -6319,7 +6300,7 @@ library
             #F3 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           setters
-            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F4 hasImplicitReturnType isComplete isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
                 #F5 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
@@ -6331,7 +6312,7 @@ library
             #F6 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
-            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
+            #F7 hasImplicitReturnType isComplete isOriginDeclaration foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
                 #F8 requiredPositional isOriginDeclaration _ (nameOffset:67) (firstTokenOffset:63) (offset:67)
@@ -6403,14 +6384,14 @@ library
             #F4 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
-            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F5 hasImplicitReturnType isComplete isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
                 #F6 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::_
                   nextFragment: #F7
               nextFragment: #F8
-            #F9 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F9 hasImplicitReturnType isComplete isOriginDeclaration foo2 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
                 #F10 requiredPositional isOriginDeclaration _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
@@ -6419,7 +6400,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           setters
-            #F8 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:87) (firstTokenOffset:75) (offset:87)
+            #F8 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:87) (firstTokenOffset:75) (offset:87)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:96) (firstTokenOffset:92) (offset:96)
@@ -6492,11 +6473,11 @@ library
               inducedGetter: #F4
               inducedSetter: #F5
           getters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               inducingVariable: #F3
           setters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               inducingVariable: #F3
               formalParameters
@@ -6508,7 +6489,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           setters
-            #F8 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F8 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
@@ -6568,7 +6549,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
@@ -6619,7 +6600,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 hasImplicitReturnType invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 hasImplicitReturnType invokesSuperSelf isComplete isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)

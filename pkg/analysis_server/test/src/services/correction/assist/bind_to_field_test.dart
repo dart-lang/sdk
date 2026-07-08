@@ -21,6 +21,62 @@ class BindToFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.bindToField;
 
+  Future<void>
+  test_class_inBodyConstructor_optionalPositional_inDefault() async {
+    await resolveTestCode('''
+class C {
+  C([int i = ^0]);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_class_inBodyConstructor_sameNamedField() async {
+    await resolveTestCode('''
+class A {
+  int? i;
+
+  A(int ^i);
+}
+''');
+    await assertHasAssist('''
+class A {
+  int? i;
+
+  A(this.i);
+}
+''');
+  }
+
+  Future<void> test_class_inBodyConstructor_sameNamedField_wrongType() async {
+    await resolveTestCode('''
+class A {
+  String? i;
+
+  A(int ^i);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_class_inBodyConstructor_sameNamedMethod() async {
+    await resolveTestCode('''
+class A {
+  void i(){}
+
+  A(int ^i);
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_class_primaryConstructor_declaring() async {
+    await resolveTestCode('''
+class C(final int ^i);
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_class_primaryConstructor_requiredPositional() async {
     await resolveTestCode('''
 class C(int ^i);
@@ -43,57 +99,7 @@ class C(this.i) {
 ''');
   }
 
-  Future<void>
-  test_class_secondaryConstructor_optionalPositional_inDefault() async {
-    await resolveTestCode('''
-class C {
-  C([int i = ^0]);
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_class_secondaryConstructor_sameNamedField() async {
-    await resolveTestCode('''
-class A {
-  int? i;
-
-  A(int ^i);
-}
-''');
-    await assertHasAssist('''
-class A {
-  int? i;
-
-  A(this.i);
-}
-''');
-  }
-
-  Future<void>
-  test_class_secondaryConstructor_sameNamedField_wrongType() async {
-    await resolveTestCode('''
-class A {
-  String? i;
-
-  A(int ^i);
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_class_secondaryConstructor_sameNamedMethod() async {
-    await resolveTestCode('''
-class A {
-  void i(){}
-
-  A(int ^i);
-}
-''');
-    await assertNoAssist();
-  }
-
-  Future<void> test_enum_secondaryConstructor() async {
+  Future<void> test_enum_inBodyConstructor() async {
     await resolveTestCode('''
 enum A {
   e(3);
@@ -112,7 +118,7 @@ enum A {
 ''');
   }
 
-  Future<void> test_enum_secondaryConstructor_sameNamedField() async {
+  Future<void> test_enum_inBodyConstructor_sameNamedField() async {
     await resolveTestCode('''
 enum A {
   i(3);
@@ -146,6 +152,23 @@ class A {
   core.int p;
 
   A(this.p);
+}
+''');
+  }
+
+  Future<void> test_inBodyConstructor_finalParameter() async {
+    await resolveTestCode('''
+// @dart = 3.10
+class A {
+  A(final ^i);
+}
+''');
+    await assertHasAssist('''
+// @dart = 3.10
+class A {
+  final i;
+
+  A(this.i);
 }
 ''');
   }
@@ -268,23 +291,6 @@ class A {
   var i;
 
   A({required this.i});
-}
-''');
-  }
-
-  Future<void> test_secondaryConstructor_finalParameter() async {
-    await resolveTestCode('''
-// @dart = 3.10
-class A {
-  A(final ^i);
-}
-''');
-    await assertHasAssist('''
-// @dart = 3.10
-class A {
-  final i;
-
-  A(this.i);
 }
 ''');
   }

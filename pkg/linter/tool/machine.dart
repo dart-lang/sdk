@@ -51,10 +51,9 @@ Future<String> getMachineListing(
   Iterable<AbstractAnalysisRule> ruleRegistry, {
   Map<String, String> fixStatusMap = const {},
 }) async {
-  var rulesToDocument = List<AbstractAnalysisRule>.of(
-    ruleRegistry,
-    growable: false,
-  ).where((rule) => !rule.state.isInternal).sortedBy((rule) => rule.name);
+  var rulesToDocument = ruleRegistry
+      .where((rule) => _shouldDocumentRule(rule, messagesRuleInfo))
+      .sortedBy((rule) => rule.name);
 
   var json = JsonEncoder.withIndent('  ').convert([
     for (var (rule, info) in rulesToDocument.map(
@@ -103,6 +102,31 @@ Map<String, String> readFixStatusMap() {
     for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
       code: value['status'] as String,
   };
+}
+
+/// Returns whether [rule] should be included in the machine listing.
+bool _shouldDocumentRule(
+  AbstractAnalysisRule rule,
+  Map<String, RuleInfo> ruleInfoMap,
+) {
+  // Include non-removed rules that should appear in public documentation.
+  var state = rule.state;
+  if (!state.isInternal && !state.isRemoved && !state.isTesting) return true;
+
+  // Exclude removed rules unless they were publicly visible before removal.
+  if (!state.isRemoved) return false;
+
+  // Removed lints stay in the machine listing only when
+  // they were publicly visible before removal.
+  // A rule that was only internal or for testing shouldn't
+  // gain a public record just because it was removed.
+  var ruleInfo = ruleInfoMap[rule.name];
+  if (ruleInfo == null) return false;
+
+  for (var state in ruleInfo.states) {
+    if (!state.isInternal && !state.isRemoved && !state.isTesting) return true;
+  }
+  return false;
 }
 
 String _versionToString(Version? version) {

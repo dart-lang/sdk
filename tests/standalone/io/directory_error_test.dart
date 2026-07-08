@@ -63,12 +63,11 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
     (e) => checkCreateTempInNonExistentFileSystemException(e),
   );
 
-  Future<Directory?>.value(nonExistent.createTemp('tempdir')).catchError((
-    error,
-  ) {
-    checkCreateTempInNonExistentFileSystemException(error);
-    done();
-  });
+  Future<Directory?>.value(nonExistent.createTemp('tempdir'))
+      .catchError((error) {
+        checkCreateTempInNonExistentFileSystemException(error);
+        done();
+      });
 }
 
 bool checkDeleteNonExistentFileSystemException(e) {
@@ -110,12 +109,11 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
     (e) => checkDeleteRecursivelyNonExistentFileSystemException(e),
   );
 
-  Future<FileSystemEntity?>.value(
-    nonExistent.delete(recursive: true),
-  ).catchError((error) {
-    checkDeleteRecursivelyNonExistentFileSystemException(error);
-    done();
-  });
+  Future<FileSystemEntity?>.value(nonExistent.delete(recursive: true))
+      .catchError((error) {
+        checkDeleteRecursivelyNonExistentFileSystemException(error);
+        done();
+      });
 }
 
 bool checkListNonExistentFileSystemException(e) {

@@ -257,7 +257,7 @@ class FfiNativeTransformer extends FfiTransformer {
         !env.isSubtypeOf(dartParameterType, pointerVoidType));
   }
 
-  Variable _declareTemporary(
+  SyntheticVariable _declareTemporary(
     Expression initializer,
     DartType dartParameterType,
     DartType ffiParameterType,
@@ -266,12 +266,11 @@ class FfiNativeTransformer extends FfiTransformer {
         (_requiresPointerConversion(dartParameterType, ffiParameterType)
         ? nativeFieldWrapperClass1Type
         : dartParameterType);
-    return Variable(
-      variableDeclarationTemporaryName,
+    return SyntheticVariable(
+      cosmeticName: variableDeclarationTemporaryName,
       initializer: initializer,
       type: wrappedType,
       isFinal: true,
-      isSynthesized: true,
     );
   }
 
@@ -288,11 +287,10 @@ class FfiNativeTransformer extends FfiTransformer {
       );
 
       if (checkForNullptr) {
-        final pointerAddressVar = Variable(
-          "#pointerAddress",
+        final pointerAddressVar = SyntheticVariable(
+          cosmeticName: "#pointerAddress",
           initializer: pointerAddress,
           type: coreTypes.intNonNullableRawType,
-          isSynthesized: true,
         );
         pointerAddress = BlockExpression(
           Block([
@@ -403,12 +401,11 @@ class FfiNativeTransformer extends FfiTransformer {
     }
 
     //   final T #t1 = foo(Pointer.fromAddress(_getNativeField(#t0)));
-    final result = Variable(
-      variableDeclarationTemporaryName,
+    final result = SyntheticVariable(
+      cosmeticName: variableDeclarationTemporaryName,
       initializer: resultInitializer,
       type: dartFunctionType.returnType,
       isFinal: true,
-      isSynthesized: true,
     );
 
     invocation.arguments = Arguments(callArguments);
@@ -615,8 +612,10 @@ class FfiNativeTransformer extends FfiTransformer {
         positionalParameters: [
           for (final positionalParameter
               in wrappedDartFunctionType.positionalParameters)
-            Variable(/*name=*/ '#t${varCounter++}', type: positionalParameter)
-              ..fileOffset = node.fileOffset,
+            PositionalParameter(
+              cosmeticName: '#t${varCounter++}',
+              type: positionalParameter,
+            )..fileOffset = node.fileOffset,
         ],
         returnType: wrappedDartFunctionType.returnType,
       )..fileOffset = node.fileOffset,

@@ -1,0 +1,18 @@
+name: dart_app_download_hook
+
+publish_to: none
+description: >-
+  A dart test application that uses a build hook to provide native provide
+  native assets without using `package:native_toolchain_c`. This is
+  equivalent to the scenario where the package downloads its native assets
+  instead of building them locally.
+
+environment:
+  sdk: ^3.12.0-0
+
+dependencies:
+  code_assets: any
+  hooks: any
+
+executables:
+  dart_app_download_hook:

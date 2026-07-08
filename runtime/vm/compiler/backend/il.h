@@ -9200,7 +9200,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), op_kind_(op_kind) {
-    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
+    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT) ||
+           (op_kind == Token::kPOPCNT) || (op_kind == Token::kCTZ));
     SetInputAt(0, value);
   }
 
@@ -9294,8 +9295,11 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE);
+    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE ||
+           op_kind == Token::kPOPCNT || op_kind == Token::kCTZ);
   }
+
+  static bool IsSupported(Token::Kind op_kind);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -11178,6 +11182,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   SIMD_BINARY_INTEGER_OP_LIST(M, BINARY_OP, Int32x4)                           \
   SIMD_PER_COMPONENT_XYZW(M, 1, Float32x4Get, (Float32x4), Double)             \
   SIMD_PER_COMPONENT_XYZW(M, 2, Float32x4With, (Double, Float32x4), Float32x4) \
+  SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4Get, (Int32x4), Int32)                  \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4GetFlag, (Int32x4), Bool)               \
   SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4WithFlag, (Int32x4, Bool), Int32x4)     \
   M(1, MASK, Float32x4Shuffle, (Float32x4), Float32x4)                         \

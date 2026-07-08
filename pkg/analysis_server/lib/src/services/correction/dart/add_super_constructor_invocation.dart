@@ -36,7 +36,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       var superType = _supertypeOfClass(node.parent?.parent);
       if (superType == null) return const [];
 
-      return _producersFromSecondary(superType, node);
+      return _producersFromInBody(superType, node);
     } else {
       var targetConstructor = node.parent;
       if (targetConstructor is! ConstructorDeclaration) return const [];
@@ -44,8 +44,42 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       var superType = _supertypeOfClass(targetConstructor.parent?.parent);
       if (superType == null) return const [];
 
-      return _producersFromSecondary(superType, targetConstructor);
+      return _producersFromInBody(superType, targetConstructor);
     }
+  }
+
+  List<ResolvedCorrectionProducer> _producersFromInBody(
+    InterfaceType superType,
+    ConstructorDeclaration constructor,
+  ) {
+    var initializers = constructor.initializers;
+    int insertOffset;
+    String prefix;
+    if (initializers.isEmpty) {
+      insertOffset = constructor.parameters.end;
+      prefix = ' : ';
+    } else {
+      var lastInitializer = initializers[initializers.length - 1];
+      insertOffset = lastInitializer.end;
+      prefix = ', ';
+    }
+    var producers = <ResolvedCorrectionProducer>[];
+    for (var superConstructor in superType.constructors) {
+      // Only propose public constructors.
+      var name = superConstructor.name;
+      if (name != null && !Identifier.isPrivateName(name)) {
+        producers.add(
+          _AddInvocation(
+            context: context,
+            constructor: superConstructor,
+            editRange: range.startOffsetLength(insertOffset, 0),
+            prefixParts: [prefix],
+            suffixParts: [''],
+          ),
+        );
+      }
+    }
+    return producers;
   }
 
   List<ResolvedCorrectionProducer> _producersFromPrimary(
@@ -123,40 +157,6 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     return producers;
   }
 
-  List<ResolvedCorrectionProducer> _producersFromSecondary(
-    InterfaceType superType,
-    ConstructorDeclaration constructor,
-  ) {
-    var initializers = constructor.initializers;
-    int insertOffset;
-    String prefix;
-    if (initializers.isEmpty) {
-      insertOffset = constructor.parameters.end;
-      prefix = ' : ';
-    } else {
-      var lastInitializer = initializers[initializers.length - 1];
-      insertOffset = lastInitializer.end;
-      prefix = ', ';
-    }
-    var producers = <ResolvedCorrectionProducer>[];
-    for (var superConstructor in superType.constructors) {
-      // Only propose public constructors.
-      var name = superConstructor.name;
-      if (name != null && !Identifier.isPrivateName(name)) {
-        producers.add(
-          _AddInvocation(
-            context: context,
-            constructor: superConstructor,
-            editRange: range.startOffsetLength(insertOffset, 0),
-            prefixParts: [prefix],
-            suffixParts: [''],
-          ),
-        );
-      }
-    }
-    return producers;
-  }
-
   InterfaceType? _supertypeOfClass(AstNode? node) {
     if (node is! ClassDeclaration) {
       return null;
@@ -223,13 +223,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
     var namedParameters = <String>{};
     if (currentConstructor case ConstructorDeclaration(:var parameters)) {
       for (var parameter in parameters.parameters) {
-        if (parameter case SuperFormalParameter(
-          :var isPositional,
-        ) when isPositional) {
+        if (parameter case SuperFormalParameter(:var isPositional)
+            when isPositional) {
           positionalParameters++;
-        } else if (parameter case SuperFormalParameter(
-          :var isNamed,
-        ) when isNamed) {
+        } else if (parameter case SuperFormalParameter(:var isNamed)
+            when isNamed) {
           namedParameters.add(parameter.name.lexeme);
         }
       }

@@ -99,10 +99,6 @@ class CompilerOptions {
   /// List of names that are allowed in dynamic calls in dynamic modules.
   List<String> dynamicCallsSelectorAllowList = [];
 
-  /// The declared variables for use by configurable imports and constant
-  /// evaluation.
-  Map<String, String>? declaredVariables;
-
   /// The [FileSystem] which should be used by the front end to access files.
   ///
   /// All file system access performed by the front end goes through this
@@ -127,8 +123,6 @@ class CompilerOptions {
   AllowedExperimentalFlags? allowedExperimentalFlagsForTesting;
   Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
-
-  bool enableUnscheduledExperiments = false;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -285,7 +279,6 @@ class CompilerOptions {
         other.dynamicInterfaceSpecificationUri) {
       return false;
     }
-    if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
     if (fileSystem != other.fileSystem) return false;
     if (compileSdk != other.compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
@@ -333,9 +326,6 @@ class CompilerOptions {
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;
-    if (enableUnscheduledExperiments != other.enableUnscheduledExperiments) {
-      return false;
-    }
 
     return true;
   }
@@ -438,16 +428,12 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
   return flags;
 }
 
-class InvocationMode {
+class const InvocationMode(final String name) {
   /// This mode is used for when the CFE is invoked in order to compile an
   /// executable.
   ///
   /// If used, a message about the null safety compilation mode will be emitted.
   static const InvocationMode compile = const InvocationMode('compile');
-
-  final String name;
-
-  const new(this.name);
 
   /// Returns the set of information modes from a comma-separated list of
   /// invocation mode names.
@@ -496,7 +482,7 @@ class InvocationMode {
 }
 
 /// Verbosity level used for filtering messages during compilation.
-class Verbosity {
+class const Verbosity(final String name, final String help) {
   /// Only error messages are emitted.
   static const Verbosity error = const Verbosity(
     'error',
@@ -604,11 +590,6 @@ class Verbosity {
   }
 
   static const String defaultValue = 'all';
-
-  final String name;
-  final String help;
-
-  const new(this.name, this.help);
 
   @override
   String toString() => 'Verbosity($name)';

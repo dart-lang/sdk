@@ -516,13 +516,16 @@ class KFunctionData extends KMemberData {
     JsToElementMap elementMap,
     void Function(DartType type, String? name, ConstantValue? defaultValue) f,
   ) {
-    void handleParameter(ir.Variable parameter, {bool isOptional = true}) {
+    void handleParameter(
+      ir.FunctionParameter parameter, {
+      bool isOptional = true,
+    }) {
       DartType type = elementMap.getDartType(parameter.type);
-      String? name = parameter.name;
+      String? name = parameter.cosmeticName;
       ConstantValue? defaultValue;
       if (isOptional) {
-        if (parameter.initializer != null) {
-          defaultValue = elementMap.getConstantValue(parameter.initializer);
+        if (parameter.defaultValue != null) {
+          defaultValue = elementMap.getConstantValue(parameter.defaultValue);
         } else {
           defaultValue = NullConstantValue();
         }

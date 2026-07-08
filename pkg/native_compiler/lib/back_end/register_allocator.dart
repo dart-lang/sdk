@@ -981,9 +981,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
                 input.value,
               );
             } else {
-              final from = liveRangeFor(
-                input,
-              ).bundle.findSplitChildAt(predEnd - 1);
+              final from = liveRangeFor(input).bundle
+                  .findSplitChildAt(predEnd - 1);
               if (from.allocatedLocation != to.allocatedLocation) {
                 _insertMoveBefore(
                   insertionPoint,
@@ -1228,10 +1227,13 @@ class LiveRange {
     assert(!isPhysical);
     for (int i = currentUse; i <= uses.length; ++i) {
       final use = uses[uses.length - i];
-      if (use.pos >= pos &&
-          (use.constraint is AnyCpuRegister ||
-              use.constraint is AnyFpuRegister)) {
-        return use;
+      if (use.pos >= pos) {
+        final constr = use.constraint;
+        if (constr is AnyCpuRegister ||
+            constr is AnyFpuRegister ||
+            constr is PhysicalRegister) {
+          return use;
+        }
       }
     }
     return null;

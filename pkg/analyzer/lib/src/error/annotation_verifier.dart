@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/annotation_target.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -373,18 +374,8 @@ class AnnotationVerifier {
   }
 
   void _checkKinds(Annotation node, AstNode parent, ElementAnnotation element) {
-    // As `@override` is declared in the Dart SDK, `TargetKind` is unavailable
-    // to it.
-    var kinds = element.isOverride
-        ? {
-            TargetKind.field,
-            TargetKind.getter,
-            TargetKind.method,
-            TargetKind.setter,
-          }
-        : element.targetKinds;
-
-    if (kinds.isNotEmpty) {
+    var kinds = element.targetKinds;
+    if (kinds != null && kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element!;
         var name = invokedElement.name;
@@ -430,7 +421,7 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is MethodDeclaration) {
       if (parent.parent?.parent is ExtensionTypeDeclaration ||
-          parent.isAbstract) {
+          !parent.isComplete) {
         _diagnosticReporter.report(
           diag.invalidNonVirtualAnnotation.at(node.name),
         );
@@ -720,36 +711,6 @@ class AnnotationVerifier {
   /// when the annotation is marked as being valid for the given [kinds] of
   /// targets.
   bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
-    // `TargetKind.overridableMember` is complex, so we handle it separately.
-    if (kinds.contains(TargetKind.overridableMember)) {
-      if ((target is FieldDeclaration && !target.isStatic) ||
-          target is MethodDeclaration && !target.isStatic) {
-        var parent = target.parent;
-        var parent2 = parent?.parent;
-        if (parent is BlockClassBody &&
-            (parent2 is ClassDeclaration ||
-                parent2 is ExtensionTypeDeclaration ||
-                parent2 is MixinDeclaration)) {
-          // Members of `EnumDeclaration`s and `ExtensionDeclaration`s are not
-          // overridable.
-          return true;
-        }
-      }
-      if (target is FormalParameter) {
-        var element = target.declaredFragment?.element;
-        if (element is FieldFormalParameterElement && element.isDeclaring) {
-          return true;
-        }
-      }
-    }
-
-    if (target is FormalParameter) {
-      var element = target.declaredFragment?.element;
-      if (element is FieldFormalParameterElement && element.isDeclaring) {
-        if (kinds.contains(TargetKind.field)) return true;
-      }
-    }
-
     // Handle the case of the deprecated `TargetKind.directive` before handling
     // the Directive subclasses below.
     // ignore: deprecated_member_use
@@ -767,41 +728,51 @@ class AnnotationVerifier {
       }
     }
 
+    for (var element in _targetElements(target)) {
+      if (isValidAnnotationTargetElement(element, kinds)) {
+        return true;
+      }
+    }
+
     return switch (target) {
-      ClassDeclaration() =>
-        kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
-      ClassTypeAlias() =>
-        kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
-      ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
-      EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
-      EnumDeclaration() =>
-        kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
       ExportDirective() => kinds.contains(TargetKind.exportDirective),
-      ExtensionTypeDeclaration() => kinds.contains(TargetKind.extensionType),
-      ExtensionDeclaration() => kinds.contains(TargetKind.extension),
-      FieldDeclaration() => kinds.contains(TargetKind.field),
-      FunctionDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
-      FunctionDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
-      FunctionDeclaration() => kinds.contains(TargetKind.function),
-      MethodDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
-      MethodDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
-      MethodDeclaration() => kinds.contains(TargetKind.method),
-      MixinDeclaration() =>
-        kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
+      ImportDirective() => kinds.contains(TargetKind.importDirective),
       PartOfDirective() => kinds.contains(TargetKind.partOfDirective),
-      PrimaryConstructorBody() => kinds.contains(TargetKind.constructor),
-      FormalParameter() =>
-        kinds.contains(TargetKind.parameter) ||
-            (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
-      FunctionTypeAlias() || GenericTypeAlias() =>
-        kinds.contains(TargetKind.typedefType) ||
-            kinds.contains(TargetKind.type),
-      TopLevelVariableDeclaration() => kinds.contains(
-        TargetKind.topLevelVariable,
-      ),
-      TypeParameter() => kinds.contains(TargetKind.typeParameter),
       _ => false,
     };
+  }
+
+  /// Maps the syntax where an annotation is written to the element targets it
+  /// can be understood to annotate.
+  ///
+  /// Usually this is a single declared element, but some syntax, such as a
+  /// field declaration with multiple variables or a declaring formal parameter,
+  /// can correspond to multiple element targets.
+  List<Element> _targetElements(AstNode target) {
+    switch (target) {
+      case FieldDeclaration(:var fields):
+        return [
+          for (var variable in fields.variables)
+            ?variable.declaredFragment?.element,
+        ];
+      case FormalParameter():
+        var element = target.declaredFragment?.element;
+        if (element is FieldFormalParameterElement && element.isDeclaring) {
+          return [element, ?element.field];
+        }
+        return [?element];
+      case PrimaryConstructorBody(:var declaration):
+        return [?declaration?.declaredFragment?.element];
+      case TopLevelVariableDeclaration(:var variables):
+        return [
+          for (var variable in variables.variables)
+            ?variable.declaredFragment?.element,
+        ];
+      case Declaration(:var declaredFragment):
+        return [?declaredFragment?.element];
+      default:
+        return const [];
+    }
   }
 }
 

@@ -3951,62 +3951,6 @@ patchInjectionFailed:
   problemMessage: "Can't inject public '#name' into '#uri'."
   correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
 
-invalidCastFunctionExpr:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The function expression type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function expression or the context in which it is used."
-
-invalidCastLiteralList:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The list literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the list literal or the context in which it is used."
-
-invalidCastLiteralMap:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The map literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the map literal or the context in which it is used."
-
-invalidCastLiteralSet:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The set literal type '#actualType' isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the set literal or the context in which it is used."
-
-invalidCastLocalFunction:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The local function has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function or the context in which it is used."
-
-invalidCastNewExpr:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The constructor returns type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the object being constructed or the context in which it is used."
-
-invalidCastStaticMethod:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The static method has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the method or the context in which it is used."
-
-invalidCastTopLevelFunction:
-  parameters:
-    Type actualType: The invalid type.
-    Type expectedType: The type that was expected.
-  problemMessage: "The top level function has type '#actualType' that isn't of expected type '#expectedType'."
-  correctionMessage: "Change the type of the function or the context in which it is used."
-
 invalidUseOfNullAwareAccess:
   parameters: none
   problemMessage: "Cannot use '?.' here."
@@ -5105,6 +5049,13 @@ ffiDeeplyImmutableFieldsModifiers:
   correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
   external: test/ffi_test.dart
 
+ffiVmSharedFieldsModifiers:
+  # Used by dart:ffi
+  parameters: none
+  problemMessage: 'Shared fields must be final non-late.'
+  correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
+  external: test/ffi_test.dart
+
 ffiDeeplyImmutableSubtypesMustBeDeeplyImmutable:
   # Used by dart:ffi
   parameters: none
@@ -5630,6 +5581,24 @@ variableCouldBeNullDueToWrite:
       if (i == null) return;
       i = j;
       i.isEven;
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
+
+variableNotPromotedDueToSuspension:
+  parameters:
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "Variable '#variableName' could not be promoted due to an 'await' or 'yield'."
+  correctionMessage: "Try checking the type of the variable after the 'await' or 'yield'.  See #documentationUrl"
+  script: |
+    void foo(int? i) {
+      void bar() async {
+        if (i == null) return;
+        await null;
+        i.isEven;
+      }
+      i = 0;
     }
   includeErrorContext: true
   exampleAllowOtherCodes: true
@@ -7239,6 +7208,18 @@ wasmExternMemoryMissingAnnotation:
   parameters: none
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
   correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
+
+wasmConstantLaneOutOfRange:
+  parameters:
+    String name: The lane name.
+    int value: The invalid value.
+    String size: The expected size (e.g., "8-bit").
+  problemMessage: "WasmV128 constant lane '#name' value '#value' does not fit in a signed #size integer."
+  script: |
+    import 'dart:_wasm';
+    void main() {
+      const WasmV128.i8x16(128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
 
 wasmExternInvalidLoad:
   parameters: none

@@ -30,7 +30,7 @@ void f() {
   }
 
   test_localVariableDeclaration_nullOnLeft() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var x = [!null!] ?? 1;
 }
@@ -126,7 +126,7 @@ var x = 1 ?? 1;
   }
 
   test_topLevelVariableDeclaration_nullOnLeft() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!null!] ?? 1;
 ''');
   }

@@ -9,6 +9,8 @@ import 'dart:typed_data';
 
 @pragma("vm:external-name", "Ffi_dl_open")
 external DynamicLibrary _open(String path);
+@pragma("vm:external-name", "Ffi_dl_codeAsset")
+external DynamicLibrary _codeAsset(String assetId);
 @pragma("vm:external-name", "Ffi_dl_processLibrary")
 external DynamicLibrary _processLibrary();
 @pragma("vm:external-name", "Ffi_dl_executableLibrary")
@@ -20,6 +22,11 @@ final class DynamicLibrary {
   @patch
   factory DynamicLibrary.open(String path) {
     return _open(path);
+  }
+
+  @patch
+  factory DynamicLibrary.codeAsset(String assetId) {
+    return _codeAsset(assetId);
   }
 
   @patch

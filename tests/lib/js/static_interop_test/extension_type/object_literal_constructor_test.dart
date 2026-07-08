@@ -6,6 +6,7 @@ library object_literal_constructor_test;
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+
 import 'package:expect/expect.dart';
 
 extension type Literal._(JSObject _) implements JSObject {

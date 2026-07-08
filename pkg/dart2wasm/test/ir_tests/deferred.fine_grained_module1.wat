@@ -1,2 +1,2 @@
-(module $module1
+(module $M1
 )

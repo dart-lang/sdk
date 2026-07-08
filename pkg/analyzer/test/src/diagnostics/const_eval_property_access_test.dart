@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,35 +32,27 @@ const C b = C(false || a.x);
   }
 
   test_constructorFieldInitializer_fromSeparateLibrary() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', r'''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;
+//                ^^^^^
+// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [diag.invalidConstant] Invalid constant value.
+//                  ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 }
-''');
-    await assertErrorsInCode(
-      r'''
+''',
+      testFile: r'''
 import 'lib.dart';
 const a = const A();
+//        ^^^^^^^^^
+// [diag.constEvalPropertyAccess][context 1] The property 'foo' can't be accessed on the type 'Type' in a constant expression.
 ''',
-      [
-        error(
-          diag.constEvalPropertyAccess,
-          29,
-          9,
-          contextMessages: [
-            contextMessage(
-              lib,
-              46,
-              5,
-              textContains: [
-                "The error is in the field initializer of 'A', and occurs here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_length_dynamic_notNull() async {

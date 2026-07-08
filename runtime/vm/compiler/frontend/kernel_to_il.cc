@@ -1119,6 +1119,10 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       STORE_NATIVE_FIELD_NO_BARRIER(CASE)
 #undef CASE
       return true;
+    case MethodRecognizer::kInteger_trailingZeroBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kCTZ);
+    case MethodRecognizer::kInteger_oneBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kPOPCNT);
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoubleRem:
@@ -1771,6 +1775,24 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildDoubleHashCode();
       body += Box(kUnboxedInt64);
     } break;
+    case MethodRecognizer::kInteger_trailingZeroBitCount:
+    case MethodRecognizer::kInteger_oneBitCount: {
+      const auto op_kind =
+          kind == MethodRecognizer::kInteger_trailingZeroBitCount
+              ? Token::kCTZ
+              : Token::kPOPCNT;
+      if (UnaryInt64OpInstr::IsSupported(op_kind)) {
+        ASSERT_EQUAL(function.NumParameters(), 1);
+        body += LoadLocal(parsed_function_->RawParameterVariable(0));
+        body += UnboxTruncate(kUnboxedInt64);
+        Value* value = Pop();
+        UnaryInt64OpInstr* op =
+            new (Z) UnaryInt64OpInstr(op_kind, value, DeoptId::kNone);
+        Push(op);
+        body <<= op;
+        body += Box(kUnboxedInt64);
+      }
+    } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
     case MethodRecognizer::kFfiAsExternalTypedDataInt32:
@@ -2333,7 +2355,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            AssertAssignableInstr::Kind kind,
                                            TokenPosition token_pos) {
   Fragment instructions;
-  if (!dst_type.IsTopTypeForSubtyping()) {
+  if (!dst_type.IsTopType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions +=
@@ -2430,7 +2452,7 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
   Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
     bound = target_type_parameters.BoundAt(i);
-    if (bound.IsTopTypeForSubtyping()) {
+    if (bound.IsTopType()) {
       continue;
     }
 
@@ -2506,7 +2528,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
           &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
     }
 
-    if (target_type->IsTopTypeForSubtyping()) continue;
+    if (target_type->IsTopType()) continue;
 
     const bool is_covariant = param->is_explicit_covariant_parameter();
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
@@ -4120,7 +4142,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += Drop();  // argument count
 
   AbstractType& return_type = AbstractType::Handle(function.result_type());
-  if (!return_type.IsTopTypeForSubtyping()) {
+  if (!return_type.IsTopType()) {
     body += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
                                               return_type, Symbols::Empty());
   }
@@ -6056,7 +6078,7 @@ SwitchHelper::SwitchHelper(Zone* zone,
       sorted_expressions_(case_count) {
   case_expression_counts_.FillWith(0, 0, case_count);
 
-  if (expression_type.nullability() == Nullability::kNonNullable) {
+  if (expression_type.IsNonNullable()) {
     if (expression_type.IsIntType() || expression_type.IsSmiType()) {
       is_optimizable_ = true;
     } else if (expression_type.HasTypeClass() &&

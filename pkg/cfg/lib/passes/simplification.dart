@@ -115,7 +115,7 @@ final class Simplification extends Pass
     }
     // Move constant operand to the right.
     if (left is Constant) {
-      instr.op = instr.op.flipOperands();
+      instr.op = instr.op.swapped;
       instr.replaceInputAt(0, right);
       instr.replaceInputAt(1, left);
       left = instr.left;
@@ -256,6 +256,10 @@ final class Simplification extends Pass
   Instruction visitStringInterpolation(StringInterpolation instr) {
     final buf = _StringInterpolationBuffer(constantFolding);
     buf.addStringInterpolation(instr);
+    assert(buf.consumed.isEmpty || buf.optimized);
+    for (final i in buf.consumed) {
+      i.removeFromGraph();
+    }
     if (buf.inputs.length == 1) {
       final input = buf.inputs.single;
       if (input is String) {
@@ -281,6 +285,9 @@ final class Simplification extends Pass
     }
     return replacement;
   }
+
+  @override
+  Instruction visitInstantiateClosure(InstantiateClosure instr) => instr;
 
   @override
   Instruction visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
@@ -633,6 +640,9 @@ class _StringInterpolationBuffer {
   // Contains either String or Definition.
   final List<Object> inputs = [];
 
+  // Consumed StringInterpolation instructions.
+  final List<StringInterpolation> consumed = [];
+
   bool optimized = false;
 
   _StringInterpolationBuffer(this.constantFolding);
@@ -669,7 +679,11 @@ class _StringInterpolationBuffer {
           break;
         case StringInterpolation() when input.singleUser == instr:
           addStringInterpolation(input);
-          input.removeFromGraph();
+          // Do not remove the consumed instruction from the graph immediately,
+          // as removal may change "has single user" property.
+          // As a result, instruction which is used multiple times would be both added
+          // as input and removed, leaving the graph in the inconsistent state.
+          consumed.add(input);
           optimized = true;
           break;
         default:

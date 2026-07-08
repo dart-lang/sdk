@@ -18,19 +18,14 @@ class FileNamesTest extends LintRuleTest {
   String get lintRule => LintNames.file_names;
 
   test_invalidName() async {
-    var testFilePath = convertPath('$testPackageLibPath/a-test.dart');
-    newFile(testFilePath, r'''
-class A { }
+    await assertDiagnosticsInFileNameFromMarkup('a-test.dart', r'''
+[!!]class A { }
 ''');
-
-    await assertDiagnosticsInFile(testFilePath, [lint(0, 0)]);
   }
 
   test_validName() async {
-    var testFilePath = convertPath('$testPackageLibPath/non-strict.css.dart');
-    newFile(testFilePath, r'''
+    await assertNoDiagnosticsInFileName('non-strict.css.dart', r'''
 class A { }
 ''');
-    await assertNoDiagnosticsInFile(testFilePath);
   }
 }

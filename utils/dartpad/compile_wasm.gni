@@ -82,7 +82,7 @@ template("compile_dart2wasm") {
     }
 
     deps = [
-      "../dart2wasm:compile_dart2wasm_platform",
+      "../dart2wasm:dart2wasm_platform",
       "../dart2wasm:dart2wasm_snapshot",
     ]
     if (product_mode) {

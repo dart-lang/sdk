@@ -30,10 +30,16 @@ class ValueKinds {
       const SingleValueKind<type.Pattern>();
   static const SingleValueKind<type.Pattern> PatternOrNull =
       const SingleValueKind<type.Pattern>(NullValues.Pattern);
+  static const SingleValueKind<type.PatternGuard> PatternGuard =
+      const SingleValueKind<type.PatternGuard>();
+  static const SingleValueKind<type.PatternSwitchCase> PatternSwitchCase =
+      const SingleValueKind<type.PatternSwitchCase>();
   static const SingleValueKind<type.Statement> Statement =
       const SingleValueKind<type.Statement>();
   static const SingleValueKind<type.Statement> StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Statement);
   static const SingleValueKind<type.SwitchCase> SwitchCase =
       const SingleValueKind<type.SwitchCase>();
+  static const SingleValueKind<type.SwitchExpressionCase> SwitchExpressionCase =
+      const SingleValueKind<type.SwitchExpressionCase>();
 }

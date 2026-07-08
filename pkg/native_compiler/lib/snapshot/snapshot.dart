@@ -17,6 +17,7 @@ import 'package:kernel/type_environment.dart'
     as ast_type_environment
     show StaticTypeContext;
 import 'package:native_compiler/back_end/code.dart';
+import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/names.dart';
@@ -82,6 +83,10 @@ enum PredefinedClusters {
   icDatas,
   subtypeTestCaches,
   objectPools,
+  exceptionHandlers,
+  pcDescriptors,
+  catchEntryMoves,
+  codeSourceMap,
   instances, // Separate cluster for every class.
 }
 
@@ -165,6 +170,10 @@ class SnapshotSerializer {
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
     addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    addBaseObject(UndefinedConstant());
+    addBaseObject(ExceptionHandlers(hasAsyncHandler: false));
+    addBaseObject(ExceptionHandlers(hasAsyncHandler: true));
+    addBaseObject(PcDescriptors());
     // TODO: generate these stubs instead of referencing them from the VM.
     addBaseObject(StubCode.Subtype1TestCache);
     addBaseObject(StubCode.Subtype2TestCache);
@@ -193,9 +202,9 @@ class SnapshotSerializer {
     out.writeUint(numBaseObjects);
     out.writeUint(numObjects);
 
-    final codeCluster =
-        getPredefinedCluster(PredefinedClusters.codes)
-            as CodeSerializationCluster;
+    final codeCluster = getPredefinedCluster(
+      PredefinedClusters.codes,
+    ) as CodeSerializationCluster;
     final lastCode = codeCluster._objects.last;
     out.writeUint(
       lastCode.instructionsImageOffset! + lastCode.instructions.lengthInBytes,
@@ -371,6 +380,14 @@ class SnapshotSerializer {
       PredefinedClusters.subtypeTestCaches,
     ),
     ObjectPool() => getPredefinedCluster(PredefinedClusters.objectPools),
+    ExceptionHandlers() => getPredefinedCluster(
+      PredefinedClusters.exceptionHandlers,
+    ),
+    PcDescriptors() => getPredefinedCluster(PredefinedClusters.pcDescriptors),
+    CatchEntryMoves() => getPredefinedCluster(
+      PredefinedClusters.catchEntryMoves,
+    ),
+    CodeSourceMap() => getPredefinedCluster(PredefinedClusters.codeSourceMap),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
 
@@ -411,6 +428,10 @@ class SnapshotSerializer {
         .icDatas => ICDataSerializationCluster(),
         .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
         .objectPools => ObjectPoolSerializationCluster(),
+        .exceptionHandlers => ExceptionHandlersSerializationCluster(),
+        .pcDescriptors => PcDescriptorsSerializationCluster(),
+        .catchEntryMoves => CatchEntryMovesSerializationCluster(),
+        .codeSourceMap => CodeSourceMapSerializationCluster(),
         .instances => throw 'Each class has a separate instance cluster',
       };
 }
@@ -418,17 +439,14 @@ class SnapshotSerializer {
 /// AST Constant which wraps an arbitrary object.
 /// Used during snapshot serialization in order to embed arbitrary objects
 /// (such as Name) into other constants (such as ListConstant).
-class WrapperConstant extends ast.AuxiliaryConstant {
-  final Object? unwrap;
-
-  WrapperConstant(this.unwrap);
-
+class WrapperConstant(final Object? unwrap) extends ast.AuxiliaryConstant {
   @override
   void visitChildren(ast.Visitor v) => throw 'Should not be called.';
 
   @override
-  void toTextInternal(ast_printer.AstPrinter printer) =>
-      throw 'Should not be called.';
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('WrapperConstant(${unwrap})');
+  }
 
   @override
   ast.DartType getType(ast_type_environment.StaticTypeContext context) =>
@@ -1220,16 +1238,12 @@ final class InterfaceTypeSerializationCluster extends SerializationCluster {
 }
 
 /// Declaration of type parameters, corresponds to the VM TypeParameters object.
-class TypeParameters {
-  final ast.ListConstant names;
-  final TypeArgumentsConstant bounds;
-  final TypeArgumentsConstant defaultTypes;
-
-  TypeParameters._(this.names, this.bounds, this.defaultTypes);
-
-  factory TypeParameters.fromStructuralParameters(
-    List<ast.StructuralParameter> params,
-  ) {
+class TypeParameters._(
+  final ast.ListConstant names,
+  final TypeArgumentsConstant bounds,
+  final TypeArgumentsConstant defaultTypes,
+) {
+  factory fromStructuralParameters(List<ast.StructuralParameter> params) {
     final names = getListConstant([for (final p in params) p.name!]);
     final bounds = TypeArgumentsConstant([for (final p in params) p.bound]);
     final defaultTypes = TypeArgumentsConstant([
@@ -1292,9 +1306,9 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
     _objects.add(type);
     if (type.typeParameters.isNotEmpty) {
       // Establish StructuralParameter -> owner links.
-      final typeParamCluster =
-          serializer.getPredefinedCluster(PredefinedClusters.typeParameterTypes)
-              as TypeParameterTypeSerializationCluster;
+      final typeParamCluster = serializer.getPredefinedCluster(
+        PredefinedClusters.typeParameterTypes,
+      ) as TypeParameterTypeSerializationCluster;
       for (final tp in type.typeParameters) {
         typeParamCluster._structuralParameterOwner[tp] = type;
       }
@@ -1511,6 +1525,10 @@ final class CodeSerializationCluster extends SerializationCluster {
     _objects.add(code);
     serializer.push(code.function);
     serializer.push(code.objectPool);
+    serializer.push(code.exceptionHandlers);
+    serializer.push(code.pcDescriptors);
+    serializer.push(code.catchEntryMoves);
+    serializer.push(code.codeSourceMap);
   }
 
   @override
@@ -1531,17 +1549,20 @@ final class CodeSerializationCluster extends SerializationCluster {
     for (final code in _objects) {
       serializer.writeRefId(code.objectPool);
       serializer.writeRefId(code.function);
+      serializer.writeRefId(code.exceptionHandlers);
+      serializer.writeRefId(code.pcDescriptors);
+      serializer.writeRefId(code.catchEntryMoves);
+      serializer.writeRefId(code.codeSourceMap);
       serializer.writeUint(code.instructions.lengthInBytes);
     }
   }
 }
 
-class ICData {
-  final CFunction owner;
-  final ArgumentsShape argumentsShape;
-  final Name targetName;
-  ICData(this.owner, this.argumentsShape, this.targetName);
-}
+class ICData(
+  final CFunction owner,
+  final ArgumentsShape argumentsShape,
+  final Name targetName,
+);
 
 final class ICDataSerializationCluster extends SerializationCluster {
   final List<ICData> _objects = [];
@@ -1630,6 +1651,9 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               entry.selector,
             );
             serializer.push(icData);
+          case SubtypeTestCacheWithName():
+            serializer.push(entry.stc);
+            serializer.push(entry.name);
           case ReservedEntry():
             break;
         }
@@ -1672,6 +1696,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case DynamicCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
+            case SubtypeTestCacheWithName():
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.stc);
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.name);
             case ReservedEntry():
           }
         } else if (entry is UnboxedIntConstant) {
@@ -1689,11 +1718,246 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
   }
 }
 
+final class ExceptionHandlersSerializationCluster extends SerializationCluster {
+  final List<ExceptionHandlers> _objects = [];
+  final List<ast.ListConstant> _guardTypes = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final exceptionHandlers = object as ExceptionHandlers;
+    _objects.add(exceptionHandlers);
+    final guardTypes = getListConstant([
+      for (final handler in exceptionHandlers.handlers)
+        getListConstant(handler.guardTypes),
+    ]);
+    _guardTypes.add(guardTypes);
+    serializer.push(guardTypes);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.exceptionHandlers.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final eh in _objects) {
+      serializer.assignRef(eh);
+      serializer.writeUint(eh.handlers.length);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0, n = _objects.length; i < n; ++i) {
+      final eh = _objects[i];
+      final guardTypes = _guardTypes[i];
+      serializer.writeUint(eh.handlers.length);
+      serializer.writeUint(eh.hasAsyncHandler ? 1 : 0);
+      serializer.writeRefId(guardTypes);
+      for (final handler in eh.handlers) {
+        serializer.writeUint(handler.pcOffset);
+        serializer.writeUint(handler.outerIndex + 1);
+        serializer.writeUint(handler.needsStackTrace ? 1 : 0);
+        serializer.writeUint(handler.hasCatchAll ? 1 : 0);
+        serializer.writeUint(handler.isSynthetic ? 1 : 0);
+      }
+    }
+  }
+}
+
+final class PcDescriptorsSerializationCluster extends SerializationCluster {
+  final List<PcDescriptors> _objects = [];
+  final List<SnapshotStreamWriter> _encoded = [];
+
+  SnapshotStreamWriter _encode(
+    SnapshotSerializer serializer,
+    PcDescriptors pcDescriptors,
+  ) {
+    final vmOffsets = serializer.objectLayout.vmOffsets;
+    final stream = SnapshotStreamWriter(initialSize: 32);
+    var previousPcOffset = 0;
+    var previousFileOffset = 0;
+    for (final cs in pcDescriptors.callSites) {
+      final packedFields =
+          (PcDescriptorKind.Other.index <<
+              vmOffsets.UntaggedPcDescriptors_kKindBitsPos) |
+          ((cs.exceptionHandlerIndex + 1) <<
+              vmOffsets.UntaggedPcDescriptors_kTryIndexBitsPos);
+      stream.writeSLEB128(packedFields);
+      final pcOffset = cs.pcOffset;
+      stream.writeSLEB128(pcOffset - previousPcOffset);
+      previousPcOffset = pcOffset;
+      stream.writeSLEB128(0); // Delta-encoded deoptId.
+      final fileOffset = cs.sourcePosition.fileOffset;
+      stream.writeSLEB128(fileOffset - previousFileOffset);
+      previousFileOffset = fileOffset;
+    }
+    return stream;
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final pcDescriptors = object as PcDescriptors;
+    _objects.add(pcDescriptors);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.pcDescriptors.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final pcDescriptors in _objects) {
+      serializer.assignRef(pcDescriptors);
+      final encoded = _encode(serializer, pcDescriptors);
+      _encoded.add(encoded);
+      serializer.writeUint(encoded.position);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final encoded in _encoded) {
+      serializer.writeUint(encoded.position);
+      for (final buf in encoded.getContents()) {
+        serializer.out.writeUint8List(buf);
+      }
+    }
+  }
+}
+
+final class CatchEntryMovesSerializationCluster extends SerializationCluster {
+  final List<CatchEntryMoves> _objects = [];
+  final List<SnapshotStreamWriter> _encoded = [];
+
+  SnapshotStreamWriter _encode(
+    SnapshotSerializer serializer,
+    CatchEntryMoves catchEntryMoves,
+  ) {
+    final stream = SnapshotStreamWriter(initialSize: 16);
+    for (final es in catchEntryMoves.exceptionSites) {
+      stream.writeInt(es.pcOffset);
+      // TODO: write moves
+      stream.writeInt(0); // length
+      stream.writeInt(0); // suffix length
+      stream.writeInt(0); // suffix offset
+    }
+    return stream;
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final catchEntryMoves = object as CatchEntryMoves;
+    _objects.add(catchEntryMoves);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.catchEntryMoves.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final catchEntryMoves in _objects) {
+      serializer.assignRef(catchEntryMoves);
+      final encoded = _encode(serializer, catchEntryMoves);
+      _encoded.add(encoded);
+      serializer.writeUint(encoded.position);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final encoded in _encoded) {
+      serializer.writeUint(encoded.position);
+      for (final buf in encoded.getContents()) {
+        serializer.out.writeUint8List(buf);
+      }
+    }
+  }
+}
+
+enum CodeSourceMapOp {
+  changePosition,
+  advancePC,
+  pushFunction,
+  popFunction,
+  nullCheck,
+}
+
+final class CodeSourceMapSerializationCluster extends SerializationCluster {
+  final List<CodeSourceMap> _objects = [];
+  final List<SnapshotStreamWriter> _encoded = [];
+
+  static const int opBits = 3;
+  static const int argMask = (1 << (32 - opBits)) - 1;
+  static const int startPosition = -12; // kDartCodePrologue
+
+  SnapshotStreamWriter _encode(
+    SnapshotSerializer serializer,
+    CodeSourceMap codeSourceMap,
+  ) {
+    final stream = SnapshotStreamWriter(initialSize: 16);
+    var previousPcOffset = 0;
+    var previousFileOffset = startPosition;
+    for (final sp in codeSourceMap.sourcePositions) {
+      // TODO: encode inline stacks
+      final fileOffset = sp.sourcePosition.fileOffset;
+      stream.writeInt(
+        CodeSourceMapOp.changePosition.index |
+            ((fileOffset - previousFileOffset) & argMask) << opBits,
+      );
+      previousFileOffset = fileOffset;
+      final pcOffset = sp.pcOffset;
+      stream.writeInt(
+        CodeSourceMapOp.advancePC.index |
+            ((pcOffset - previousPcOffset) & argMask) << opBits,
+      );
+      previousPcOffset = pcOffset;
+    }
+    return stream;
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final codeSourceMap = object as CodeSourceMap;
+    _objects.add(codeSourceMap);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.codeSourceMap.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final codeSourceMap in _objects) {
+      serializer.assignRef(codeSourceMap);
+      final encoded = _encode(serializer, codeSourceMap);
+      _encoded.add(encoded);
+      serializer.writeUint(encoded.position);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final encoded in _encoded) {
+      serializer.writeUint(encoded.position);
+      for (final buf in encoded.getContents()) {
+        serializer.out.writeUint8List(buf);
+      }
+    }
+  }
+}
+
 /// Buffers snapshot writing.
 class SnapshotStreamWriter {
-  /// Initial size of the buffer.
-  static const int initialSize = 1024;
-
   // Constants for variable-length encoding used by snapshots.
   static const int dataBitsPerByte = 7;
   static const int byteMask = (1 << dataBitsPerByte) - 1;
@@ -1709,10 +1973,11 @@ class SnapshotStreamWriter {
   // Total length of data in [_buffers].
   int _buffersLength = 0;
 
-  Uint8List _currentBuffer = Uint8List(initialSize);
+  Uint8List _currentBuffer;
   int _currentLength = 0;
 
-  SnapshotStreamWriter();
+  SnapshotStreamWriter({int initialSize = 1024})
+    : _currentBuffer = Uint8List(initialSize);
 
   List<Uint8List> getContents() {
     final list = <Uint8List>[];
@@ -1822,6 +2087,22 @@ class SnapshotStreamWriter {
       _currentBuffer[_currentLength++] = (value >> 7) & 127;
     }
     _currentBuffer[_currentLength++] = ((value >> 0) & 127) | 128;
+  }
+
+  @pragma('vm:prefer-inline')
+  void writeSLEB128(int value) {
+    var last = false;
+    do {
+      int part = value & 0x7f;
+      value >>= 7;
+      if ((value == 0 && (part & 0x40) == 0) ||
+          (value == -1 && (part & 0x40) != 0)) {
+        last = true;
+      } else {
+        part |= 0x80;
+      }
+      writeByte(part);
+    } while (!last);
   }
 
   void writeDouble(double value) {

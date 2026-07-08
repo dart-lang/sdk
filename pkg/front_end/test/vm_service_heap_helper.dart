@@ -132,16 +132,18 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         if (_interestsClassNames.contains(member.classRef!.name)) {
           String? libraryId = member.classRef?.library?.id;
           if (libraryId == null) continue;
-          vmService.Library library =
-              (await serviceClient.getObject(_isolateRef.id!, libraryId))
-                  as vmService.Library;
+          vmService.Library library = (await serviceClient.getObject(
+            _isolateRef.id!,
+            libraryId,
+          )) as vmService.Library;
           String? importUriString = library.uri;
           if (importUriString == null) continue;
           String? classId = member.classRef?.id;
           if (classId == null) continue;
-          vmService.Class c =
-              (await serviceClient.getObject(_isolateRef.id!, classId))
-                  as vmService.Class;
+          vmService.Class c = (await serviceClient.getObject(
+            _isolateRef.id!,
+            classId,
+          )) as vmService.Class;
           String? partUriString = c.location?.script?.uri;
           if (partUriString == null) continue;
           String? className = c.name;
@@ -177,7 +179,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       }
       if (leaks.isNotEmpty) {
         for (Leak leak in leaks) {
-          leakDetected(leak.duplicate, leak.count, leak.prettyPrints);
+          await leakDetected(leak.duplicate, leak.count, leak.prettyPrints);
         }
         if (throwOnPossibleLeak) {
           throw "Leaks found";
@@ -260,8 +262,10 @@ class VMServiceHeapHelperSpecificExactLeakFinder
     // Expression evaluation to find duplicates: Put all entries into a map
     // indexed by the `toString` code created above, mapping to list of that
     // data.
-    vmService.InstanceRef mappedData =
-        (await serviceClient.evaluate(isolateRef.id!, instancesAsList.id!, """
+    vmService.InstanceRef mappedData = (await serviceClient.evaluate(
+      isolateRef.id!,
+      instancesAsList.id!,
+      """
           this
               .fold({}, (dynamic index, dynamic element) {
                 String key = '$fieldsToStringCode';
@@ -269,21 +273,24 @@ class VMServiceHeapHelperSpecificExactLeakFinder
                 list.add(element);
                 return index;
               })
-        """))
-            as vmService.InstanceRef;
+        """,
+    )) as vmService.InstanceRef;
     // Expression calculation to find if any of the lists created as values
     // above contains more than one entry (i.e. there's a duplicate).
-    vmService.InstanceRef duplicatesLengthRef =
-        (await serviceClient.evaluate(isolateRef.id!, mappedData.id!, """
+    vmService.InstanceRef duplicatesLengthRef = (await serviceClient.evaluate(
+      isolateRef.id!,
+      mappedData.id!,
+      """
           this
               .values
               .where((dynamic element) => (element.length > 1) as bool)
               .length
-        """))
-            as vmService.InstanceRef;
-    vmService.Instance duplicatesLength =
-        (await serviceClient.getObject(isolateRef.id!, duplicatesLengthRef.id!))
-            as vmService.Instance;
+        """,
+    )) as vmService.InstanceRef;
+    vmService.Instance duplicatesLength = (await serviceClient.getObject(
+      isolateRef.id!,
+      duplicatesLengthRef.id!,
+    )) as vmService.Instance;
     int? duplicates = int.tryParse(duplicatesLength.valueAsString!);
     if (duplicates != 0) {
       // There are duplicates. Expression calculation to encode the duplication
@@ -294,8 +301,10 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       // e.g. encode the string "string" as "6:string" (length 6, string),
       // and the list ["foo", "bar"] as "2:3:foo:3:bar" (2 entries, length 3,
       // foo, length 3, bar).
-      vmService.ObjRef duplicatesDataRef =
-          (await serviceClient.evaluate(isolateRef.id!, mappedData.id!, """
+      vmService.ObjRef duplicatesDataRef = (await serviceClient.evaluate(
+        isolateRef.id!,
+        mappedData.id!,
+        """
           this
               .entries
               .where((element) => (element.value as List).length > 1)
@@ -309,16 +318,14 @@ class VMServiceHeapHelperSpecificExactLeakFinder
                 .join(":");
             return "\${keyPart}:\${valuePart1}:\${valuePart2}";
           }).join(":")
-          """))
-              as vmService.ObjRef;
+          """,
+      )) as vmService.ObjRef;
       if (duplicatesDataRef is! vmService.InstanceRef) {
         if (duplicatesDataRef is vmService.ErrorRef) {
-          vmService.Error error =
-              (await serviceClient.getObject(
-                    isolateRef.id!,
-                    duplicatesDataRef.id!,
-                  ))
-                  as vmService.Error;
+          vmService.Error error = (await serviceClient.getObject(
+            isolateRef.id!,
+            duplicatesDataRef.id!,
+          )) as vmService.Error;
           throw "Leak found, but trying to evaluate pretty printing "
               "didn't go as planned.\n"
               "Got error with message "
@@ -331,9 +338,10 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         }
       }
 
-      vmService.Instance duplicatesData =
-          (await serviceClient.getObject(isolateRef.id!, duplicatesDataRef.id!))
-              as vmService.Instance;
+      vmService.Instance duplicatesData = (await serviceClient.getObject(
+        isolateRef.id!,
+        duplicatesDataRef.id!,
+      )) as vmService.Instance;
       String encodedData = duplicatesData.valueAsString!;
       try {
         return parseEncodedLeakString(encodedData);
@@ -381,7 +389,11 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
   int _latestLeakIteration = -1;
 
-  void leakDetected(String duplicate, int count, List<String> prettyPrints) {
+  Future<void> leakDetected(
+    String duplicate,
+    int count,
+    List<String> prettyPrints,
+  ) {
     if (_iterationNumber != _latestLeakIteration) {
       print("======================================");
       print("WARNING: Duplicated pretty prints of objects.");
@@ -394,6 +406,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       print(" => ${prettyPrint}");
     }
     print("");
+    return Future.value();
   }
 
   void noLeakDetected() {}

@@ -3,39 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C1 {
-  new ();
+  new();
 }
 
 class C2 {
   var x;
-  new () : x = 0;
+  new() : x = 0;
 }
 
 class C3 {
-  new () {}
+  new() {}
 }
 
 class C4 {
   var x;
-  new () : x = 0 {}
+  new() : x = 0 {}
 }
 
 class C5 {
-  const new ();
+  const new();
 }
 
 class C6 {
   var x;
-  const new () : x = 0;
+  const new() : x = 0;
 }
 
 class C7 {
-  const new () {}
+  const new() {}
 }
 
 class C8 {
   var x;
-  const new () : x = 0 {}
+  const new() : x = 0 {}
 }
 
 class C9 {

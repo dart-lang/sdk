@@ -582,8 +582,7 @@ class SynthesizedExtensionSignature {
       fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
-      hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      hasImmediatelyDeclaredDefaultValue: false,
     );
     return new SynthesizedExtensionSignature._(
       clonedDeclarationTypeParameters,
@@ -650,8 +649,7 @@ class SynthesizedExtensionTypeSignature {
       fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
-      hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      hasImmediatelyDeclaredDefaultValue: false,
     );
 
     return new SynthesizedExtensionTypeSignature._(

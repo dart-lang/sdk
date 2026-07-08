@@ -19,7 +19,7 @@ class ParameterAssignmentsTest extends LintRuleTest {
   String get lintRule => LintNames.parameter_assignments;
 
   test_anonymousFunction_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   (int i) {
     [!i = 42!];
@@ -29,7 +29,7 @@ void main() {
   }
 
   test_anonymousFunction_assignment_arrowBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   (int i) => [!i = 42!];
 }
@@ -37,7 +37,7 @@ void main() {
   }
 
   test_anonymousFunction_assignment_notInvoked() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   (int i) {
     [!i = 42!];
@@ -47,7 +47,7 @@ void main() {
   }
 
   test_assignment_followedByNotOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool p) {
   [!p = true!];
   if (!p || p) {}
@@ -56,7 +56,7 @@ void f(bool p) {
   }
 
   test_assignment_inIfElseBranches() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo({String? value}) {
   if (1 == 1) {
     /*[0*/value = ' $value'/*0]*/;
@@ -68,7 +68,7 @@ void foo({String? value}) {
   }
 
   test_assignment_nullableParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([int? p]) {
   p ??= 8;
   [!p = 42!];
@@ -77,7 +77,7 @@ void f([int? p]) {
   }
 
   test_assignment_nullableParameter_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({int? p}) {
   p ??= 8;
   [!p = 42!];
@@ -100,7 +100,7 @@ void f([int? _]) {
   }
 
   test_closure_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   (int p) {
     [!p = 2!];
@@ -110,25 +110,15 @@ void f() {
   }
 
   test_compoundAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p += 3!];
 }
 ''');
   }
 
-  test_constructor_primary_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class C(int x) {
-  this {
-    [!x = 4!];
-  }
-}
-''');
-  }
-
-  test_constructor_secondary_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+  test_constructor_inBody_assignment() async {
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C(int x) {
     [!x = 4!];
@@ -137,8 +127,18 @@ class C {
 ''');
   }
 
+  test_constructor_primary_assignment() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C(int x) {
+  this {
+    [!x = 4!];
+  }
+}
+''');
+  }
+
   test_function_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p = 4!];
 }
@@ -146,7 +146,7 @@ void f(int p) {
   }
 
   test_function_incrementAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p += 4!];
 }
@@ -154,7 +154,7 @@ void f(int p) {
   }
 
   test_function_named_default() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({int p = 5}) {
   print([!p++!]);
 }
@@ -213,7 +213,7 @@ void f([int? optional]) {
   }
 
   test_function_positional_optional_re_incremented() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([int? optional]) {
   optional ??= 8;
   [!optional += 16!];
@@ -222,7 +222,7 @@ void f([int? optional]) {
   }
 
   test_function_positional_optional_reassigned() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([int? optional]) {
   optional ??= 8;
   [!optional = 16!];
@@ -231,7 +231,7 @@ void f([int? optional]) {
   }
 
   test_function_postfix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p++!];
 }
@@ -239,7 +239,7 @@ void f(int p) {
   }
 
   test_function_prefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!++p!];
 }
@@ -247,7 +247,7 @@ void f(int p) {
   }
 
   test_instanceMethod_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m(int p) {
     [!p = 4!];
@@ -267,7 +267,7 @@ class A {
   }
 
   test_instanceSetter_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   set x(int value) {
     [!value = 5!];
@@ -280,7 +280,7 @@ class A {
   // constant pattern expressions.
 
   test_listAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(int b) {
   [![b]!] = [1];
 }
@@ -288,7 +288,7 @@ f(int b) {
   }
 
   test_localFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   void g() {
     [!p = 3!];
@@ -299,7 +299,7 @@ void f(int p) {
   }
 
   test_mapAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(int a) {
   [!{'a': a}!] = {'a': 1};
 }
@@ -307,7 +307,7 @@ f(int a) {
   }
 
   test_member_setter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   set x(int v) {
     [!v = 5!];
@@ -370,7 +370,7 @@ void f([int? p]) {
   }
 
   test_objectAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -383,7 +383,7 @@ f(int b) {
   }
 
   test_postfixOperation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p++!];
 }
@@ -391,7 +391,7 @@ void f(int p) {
   }
 
   test_postfixOperation_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({int p = 5}) {
   [!p++!];
 }
@@ -399,7 +399,7 @@ void f({int p = 5}) {
   }
 
   test_recordAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int a) {
   var b = 0;
   [!(a, b)!] = (1, 2);
@@ -408,7 +408,7 @@ void f(int a) {
   }
 
   test_topLevelFunction_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int p) {
   [!p = 4!];
 }

@@ -16,6 +16,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
@@ -83,7 +84,7 @@ String b = "/*[1*/Test/*1]*/";
 
     var err = diagnostics!.first;
     expect(err.severity, DiagnosticSeverity.Error);
-    expect(err.message, equals('Test error from plugin'));
+    expect(err.message.asString, equals('Test error from plugin'));
     expect(err.code, equals('ERR1'));
     expect(err.range.start.line, errorRange.range.start.line);
     expect(err.range.start.character, errorRange.range.start.character);
@@ -190,7 +191,7 @@ f
     var diagnostic = initialDiagnostics!.first;
     expect(diagnostic.severity, DiagnosticSeverity.Error);
     expect(diagnostic.code, 'parse_error');
-    expect(diagnostic.message, "Expected ':'.");
+    expect(diagnostic.message.asString, "Expected ':'.");
   }
 
   Future<void> test_contextMessage() async {
@@ -253,7 +254,7 @@ void f() {
     var diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     var diagnostic = diagnostics!.first;
-    expect(diagnostic.message, contains('\nTry'));
+    expect(diagnostic.message.asString, contains('\nTry'));
   }
 
   /// Verify that if a nonexistant file is imported, creating that file causes
@@ -536,7 +537,10 @@ version: latest
     await initialize();
     var initialDiagnostics = await initialDiagnosticsFuture;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics!.first.message, contains(serverErrorMessage));
+    expect(
+      initialDiagnostics!.first.message.asString,
+      contains(serverErrorMessage),
+    );
 
     var pluginTriggeredDiagnosticFuture = waitForDiagnostics(mainFileUri);
     var pluginError = plugin.AnalysisError(
@@ -551,7 +555,7 @@ version: latest
 
     var pluginTriggeredDiagnostics = await pluginTriggeredDiagnosticFuture;
     expect(
-      pluginTriggeredDiagnostics!.map((error) => error.message),
+      pluginTriggeredDiagnostics!.map((error) => error.message.asString),
       containsAll([pluginErrorMessage, contains(serverErrorMessage)]),
     );
   }
@@ -574,7 +578,7 @@ version: latest
 
     // Expect only the server diagnostic.
     expect(
-      (await diagnosticsFuture)!.single.message,
+      (await diagnosticsFuture)!.single.message.asString,
       contains(serverErrorMessage),
     );
 
@@ -602,7 +606,10 @@ version: latest
 
     // Wait for the diagnostic updated and ensure it's still empty and no stale
     // error has come back.
-    expect((await diagnosticsFuture)!.single.message, pluginErrorMessage);
+    expect(
+      (await diagnosticsFuture)!.single.message.asString,
+      pluginErrorMessage,
+    );
   }
 
   Future<void> test_fromPlugins_nonDartFile() async {
@@ -678,7 +685,10 @@ void f(dynamic a) => a.foo();
       var diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(1));
       var diagnostic = diagnostics!.first;
-      expect(diagnostic.message, contains("The function 'Bad' isn't defined"));
+      expect(
+        diagnostic.message.asString,
+        contains("The function 'Bad' isn't defined"),
+      );
     }
 
     // Closing the file should remove the diagnostics.

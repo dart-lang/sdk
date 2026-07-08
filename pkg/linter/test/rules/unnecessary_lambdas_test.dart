@@ -45,7 +45,7 @@ var x = [].map((e) => C.new(e));
     newFile('$testPackageLibPath/b.dart', r'''
 class C {}
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'b.dart' as b;
 
 var x = [[!() => b.C()!]];
@@ -82,7 +82,7 @@ var x = [].map((e) => C.named(e));
   }
 
   test_constructorCall_noArgs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {}
 var x = [[!() => C()!]];
 ''');
@@ -147,13 +147,13 @@ var x = [() => f<int>()];
   }
 
   test_functionCall_matchingArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [].forEach([!(x) => print(x)!]);
 ''');
   }
 
   test_functionCall_singleStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final f = () {};
 final l = [!() {
   f();
@@ -171,7 +171,7 @@ var x = [].forEach(print);
     newFile('$testPackageLibPath/b.dart', r'''
 bool isB(Object o) => true;
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'b.dart' as b;
 
 void f() {
@@ -258,7 +258,7 @@ void f() {
   }
 
   test_methodCallOnFinalLocal_matchingArg() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   final l = [];
   [].where([!(e) => l.contains(e)!]);
@@ -315,7 +315,7 @@ void f() {
   }
 
   test_noParameter_targetIsFinalField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final f = 1;
   Function m() {
@@ -354,7 +354,7 @@ Future<void> foo({required String? txt}) async {}
   }
 
   test_targetIsFinalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 void f(List<String> list) {
   list.where((final e) => ([!(a) => e.contains(a)!])(e));

@@ -1,0 +1,24 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# The VM sometimes provides definitions that aren't actually in scope,
+# but if the alternative is to give an error we should use it anyway.
+
+sources: |
+  void main() {
+    print("hello");
+  }
+
+# We pretend the VM claims we have "bar" in scope.
+definitions: ["bar"]
+definition_types: ["dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "main"
+static: false
+offset: 16 # on 'print'
+scriptUri: main.dart
+expression: |
+  bar

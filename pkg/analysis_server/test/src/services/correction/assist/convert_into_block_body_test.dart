@@ -157,6 +157,25 @@ mixin M ^{}
     await assertNoAssist();
   }
 
+  Future<void> test_inBodyConstructor() async {
+    await resolveTestCode('''
+class C {
+  C.named();
+
+  factory ^C() => C.named();
+}
+''');
+    await assertHasAssist('''
+class C {
+  C.named();
+
+  factory C() {
+    return C.named();
+  }
+}
+''');
+  }
+
   Future<void> test_inExpression() async {
     await resolveTestCode('''
 void f() => ^123;
@@ -233,25 +252,6 @@ class C() {
   }
 
   int x;
-}
-''');
-  }
-
-  Future<void> test_secondaryConstructor() async {
-    await resolveTestCode('''
-class C {
-  C.named();
-
-  factory ^C() => C.named();
-}
-''');
-    await assertHasAssist('''
-class C {
-  C.named();
-
-  factory C() {
-    return C.named();
-  }
 }
 ''');
   }

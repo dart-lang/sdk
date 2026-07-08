@@ -9,34 +9,118 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../support/interactive_forms.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MoveTopLevelToFileTest);
+    defineReflectiveTests(OriginalInteractiveRefactorsMoveTopLevelToFileTest);
+    defineReflectiveTests(InteractiveFormsMoveTopLevelToFileTest);
   });
 }
 
+/// Tests running using the new Interactive Forms refactors
+/// implementation. Extends [MoveTopLevelToFileTest] for basic tests and adds
+/// protocol-specific tests.
+///
+/// Tests in the base class do not excercise the input collecting mechanism,
+/// they just verify the refactors using defaults behave the same. Tests in this
+/// sub-class like [test_protocol_clientModifiedValues] test providing custom
+/// (non-default) values.
+///
+/// There are more tests verifying resolve behaviour in
+/// `test/lsp/commands/resolve_test.dart` and tests verifying the Interactive
+/// Forms helper classes in
+/// `test/src/services/interactive_forms/interactive_forms_test.dart`.
 @reflectiveTest
-class MoveTopLevelToFileTest extends RefactoringTest {
+class InteractiveFormsMoveTopLevelToFileTest extends MoveTopLevelToFileTest
+    with InteractiveFormsTestMixin {
+  @override
+  void setUp() {
+    super.setUp();
+
+    setSupportedInteractiveFormInputKinds({'file'});
+  }
+
+  Future<void> test_protocol_clientModifiedValues() async {
+    addTestSource(simpleClassContent);
+
+    /// Filename to inject to replace default.
+    var newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
+    var newFileUri = Uri.file(newFilePath);
+
+    /// Expected new file content.
+    const expected = '''
+>>>>>>>>>> lib/main.dart empty
+>>>>>>>>>> lib/my_new_class.dart created
+class A {}
+''';
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    var originalCommand = action.command!;
+
+    var completedCommand = await completeInteractiveForm(originalCommand, {
+      'destinationUri': newFileUri.toString(),
+    });
+
+    await verifyCommandEdits(completedCommand, expected);
+  }
+
+  /// Since we have Interactive Forms enabled, we should not see the parameters
+  /// (which support the original Dart-specific interactive refactors) in the
+  /// returned action's data field.
+  Future<void> test_protocol_doesNotAddParametersToData() async {
+    // data is on CodeAction so we need to support that, otherwise we'll get the
+    // Command version (which would just execute with the default value in the
+    // original system).
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
+    addTestSource(simpleClassContent);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    var actionLiteral = action.asCodeActionLiteral;
+    expect(actionLiteral.data, isNull);
+  }
+
+  Future<void> test_protocol_expectedFields() async {
+    addTestSource(simpleClassContent);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    var command = action.asCommand;
+    var interactiveCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(interactiveCommand.formFields, hasLength(1));
+    var field = interactiveCommand.formFields!.single;
+    expect(
+      field.type,
+      isA<FormFieldTypeFile>()
+          .having((fieldType) => fieldType.type, 'type', FileType.Regular)
+          .having((fieldType) => fieldType.existence, 'existence', isNull)
+          .having((fieldType) => fieldType.filters, 'filters', ['dart']),
+    );
+  }
+}
+
+abstract class MoveTopLevelToFileTest extends RefactoringTest {
   /// Simple file content with a single class named 'A'.
-  static const simpleClassContent = '''
+  final simpleClassContent = '''
 class ^A {}
 ''';
 
   /// The title of the refactor when using [simpleClassContent].
-  static const simpleClassRefactorTitle = "Move 'A' to file";
+  final simpleClassRefactorTitle = "Move 'A' to file";
 
   @override
   String get refactoringCommandId => MoveTopLevelToFile.commandName;
-
-  /// Replaces the "Save URI" argument in [action].
-  void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
-    var arguments = getRefactorCommandArguments(action.command?.arguments);
-    // The filename is the first item we prompt for so is first in the
-    // arguments.
-    arguments[0] = newFileUri.toString();
-  }
 
   @override
   void setUp() {
@@ -1327,19 +1411,12 @@ class A {}<<<<<<<<<<
     );
   }
 
-  Future<void>
-  test_protocol_available_withClientCommandParameterSupport() async {
+  Future<void> test_protocol_available() async {
     addTestSource(simpleClassContent);
     await initializeServer();
-    await expectCodeActionWithTitle(simpleClassRefactorTitle);
-  }
-
-  Future<void>
-  test_protocol_available_withoutClientCommandParameterSupport() async {
-    addTestSource(simpleClassContent);
-    await initializeServer();
-    // This refactor is available without command parameter support because
-    // it has defaults.
+    // This refactor is available regardless of command parameter support
+    // because it has a default value for the only field which is coded into
+    // the arguments by default.
     await expectCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
@@ -1347,34 +1424,6 @@ class A {}<<<<<<<<<<
     addTestSource(simpleClassContent);
     await initializeServer(experimentalOptInFlag: false);
     await expectCodeActionWithTitle(simpleClassRefactorTitle);
-  }
-
-  Future<void> test_protocol_clientModifiedValues() async {
-    addTestSource(simpleClassContent);
-
-    /// Filename to inject to replace default.
-    var newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
-    var newFileUri = Uri.file(newFilePath);
-
-    /// Expected new file content.
-    const expected = '''
->>>>>>>>>> lib/main.dart empty
->>>>>>>>>> lib/my_new_class.dart created
-class A {}
-''';
-
-    await initializeServer();
-    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
-    // Replace the file URI argument with our custom path.
-    replaceSaveUriArgument(action, newFileUri);
-    await verifyCommandEdits(action.command!, expected);
-  }
-
-  Future<void> test_protocol_unavailable_withoutFileCreateSupport() async {
-    addTestSource(simpleClassContent);
-    setFileCreateSupport(false);
-    await initializeServer();
-    await expectNoCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
   Future<void> test_sealedClass_enumImplements() async {
@@ -2027,6 +2076,13 @@ int variableToMove = 3;
     );
   }
 
+  Future<void> test_unavailable_withoutFileCreateSupport() async {
+    addTestSource(simpleClassContent);
+    setFileCreateSupport(false);
+    await initializeServer();
+    await expectNoCodeActionWithTitle(simpleClassRefactorTitle);
+  }
+
   Future<void> _multipleDeclarations({
     required String originalSource,
     required int count,
@@ -2097,5 +2153,55 @@ ${code.code}
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
     );
+  }
+}
+
+/// Tests running using the original (Dart-specific) interactive refactors
+/// implementation. Extends [MoveTopLevelToFileTest] for basic tests and add
+/// protocol-specific tests.
+@reflectiveTest
+class OriginalInteractiveRefactorsMoveTopLevelToFileTest
+    extends MoveTopLevelToFileTest {
+  /// Replaces the "Save URI" argument in [action].
+  void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
+    var arguments = getRefactorCommandArguments(action.command!.arguments);
+    // The filename is the first item we prompt for so is first in the
+    // arguments.
+    arguments[0] = newFileUri.toString();
+  }
+
+  Future<void> test_protocol_addsParametersToData() async {
+    // data is on CodeAction so we need to support that, otherwise we'll get the
+    // Command version (which would just execute with the default value).
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
+    addTestSource(simpleClassContent);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    var actionLiteral = action.asCodeActionLiteral;
+    expect(actionLiteral.data, isNotNull);
+    expect(actionLiteral.data, contains('parameters'));
+  }
+
+  Future<void> test_protocol_clientModifiedValues() async {
+    addTestSource(simpleClassContent);
+
+    /// Filename to inject to replace default.
+    var newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
+    var newFileUri = Uri.file(newFilePath);
+
+    /// Expected new file content.
+    const expected = '''
+>>>>>>>>>> lib/main.dart empty
+>>>>>>>>>> lib/my_new_class.dart created
+class A {}
+''';
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    // Replace the file URI argument with our custom path.
+    replaceSaveUriArgument(action, newFileUri);
+    await verifyCommandEdits(action.command!, expected);
   }
 }

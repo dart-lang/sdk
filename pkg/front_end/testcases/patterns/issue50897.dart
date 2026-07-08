@@ -14,6 +14,6 @@ class Unit {
 String test(Map map) {
   return switch (map) {
     {13: Square(size: Unit(1))} => "object",
-    _ => "default"
+    _ => "default",
   };
 }

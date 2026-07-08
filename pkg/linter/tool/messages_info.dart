@@ -96,8 +96,10 @@ class _RuleBuilder {
 
   new(this.sharedName);
 
-  bool get _wasRemoved =>
-      _states?.keys.any((key) => key == LintStateName.removed) ?? false;
+  bool get _canOmitCategories =>
+      _hasState(LintStateName.removed) || _hasState(LintStateName.testing);
+
+  bool get _wasRemoved => _hasState(LintStateName.removed);
 
   void addEntry(String uniqueName, LintMessage message) {
     _addCode(uniqueName, message);
@@ -113,11 +115,7 @@ class _RuleBuilder {
     name: sharedName,
     codes: _validateCodes(),
     states: _validateStates(),
-    categories: _requireSpecified(
-      'categories',
-      _categories,
-      ifNotRemovedFallback: const {},
-    ),
+    categories: _validateCategories(),
     hasPublishedDocs: _hasPublishedDocs ?? false,
     documentation: _documentation,
     deprecatedDetails: _requireSpecified(
@@ -147,21 +145,16 @@ class _RuleBuilder {
     );
   }
 
+  bool _hasState(LintStateName state) => _states?.keys.contains(state) ?? false;
+
   void _requireNotEmpty(String propertyName, String value) {
     if (value.trim().isEmpty) {
       _throwLintError("The '$propertyName' value must not be empty.");
     }
   }
 
-  T _requireSpecified<T extends Object>(
-    String propertyName,
-    T? value, {
-    T? ifNotRemovedFallback,
-  }) {
+  T _requireSpecified<T extends Object>(String propertyName, T? value) {
     if (value == null) {
-      if (_wasRemoved && ifNotRemovedFallback != null) {
-        return ifNotRemovedFallback;
-      }
       _throwLintError("The '$propertyName' property must be specified.");
     }
 
@@ -219,6 +212,15 @@ class _RuleBuilder {
     throw StateError('$sharedName - $message');
   }
 
+  Set<LintCategory> _validateCategories() {
+    var categories = _categories;
+    if (categories != null) return categories;
+
+    if (_canOmitCategories) return const {};
+
+    _throwLintError("The 'categories' property must be specified.");
+  }
+
   List<CodeInfo> _validateCodes() {
     if (_wasRemoved) return const [];
 
@@ -267,6 +269,7 @@ class _RuleBuilder {
             ),
             LintStateName.stable => RuleState.stable(since: entry.value),
             LintStateName.internal => RuleState.internal(since: entry.value),
+            LintStateName.testing => RuleState.testing(since: entry.value),
             LintStateName.deprecated => RuleState.deprecated(
               since: entry.value,
             ),

@@ -391,7 +391,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
           getVariableIndexerForTesting() as VariableIndexer2?;
       Map<String, DartType> expectedVariablesMap = {};
       for (Variable variable in varIndexer?.declsOrder ?? const []) {
-        String? name = variable.name;
+        String? name = variable.cosmeticName;
         if (name != null && name != "" && !variable.isSynthesized) {
           if (variable.isHoisted && !setVariables.contains(variable)) {
             // A hoisted variable that isn't set (yet) --- pretend it isn't
@@ -606,16 +606,28 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeVariableList(List<Variable> nodes) {
+  void writePositionalParameterList(List<PositionalParameter> nodes) {
     bool oldInFunctionNodeParameters = inFunctionNodeParameters;
-    if (identical(nodes, currentFunctionNode?.positionalParameters) ||
-        identical(nodes, currentFunctionNode?.namedParameters)) {
+    if (identical(nodes, currentFunctionNode?.positionalParameters)) {
       // We pretend like all parameters are in scope when standing at a
       // parameter because in practise the VM says it's standing at the last
       // parameter when it's actually done processing the initialization.
       inFunctionNodeParameters = true;
     }
-    super.writeVariableList(nodes);
+    super.writePositionalParameterList(nodes);
+    inFunctionNodeParameters = oldInFunctionNodeParameters;
+  }
+
+  @override
+  void writeNamedParameterList(List<NamedParameter> nodes) {
+    bool oldInFunctionNodeParameters = inFunctionNodeParameters;
+    if (identical(nodes, currentFunctionNode?.namedParameters)) {
+      // We pretend like all parameters are in scope when standing at a
+      // parameter because in practise the VM says it's standing at the last
+      // parameter when it's actually done processing the initialization.
+      inFunctionNodeParameters = true;
+    }
+    super.writeNamedParameterList(nodes);
     inFunctionNodeParameters = oldInFunctionNodeParameters;
   }
 

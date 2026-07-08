@@ -1077,29 +1077,43 @@ class Closure {
         ? member.enclosingClass!.typeParameters
         : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
-    List<Variable> convertParameters(List<Variable> params) => [
+    List<PositionalParameter> convertPositionalParameters(
+      List<PositionalParameter> params,
+    ) => [
       for (final p in params)
-        Variable(
-          p.name,
-          initializer: (p.initializer != null)
+        PositionalParameter(
+          cosmeticName: p.cosmeticName,
+          defaultValue: (p.defaultValue != null)
               ? ConstantExpression(
-                  (p.initializer as ConstantExpression).constant,
+                  (p.defaultValue as ConstantExpression).constant,
                 )
               : null,
           type: freshTypeParameters.substitute(p.type),
-          flags: p.flags,
-        ),
+        )..flags = p.flags,
     ];
+    List<NamedParameter> convertNamedParameters(List<NamedParameter> params) =>
+        [
+          for (final p in params)
+            NamedParameter(
+              parameterName: p.parameterName,
+              defaultValue: (p.defaultValue != null)
+                  ? ConstantExpression(
+                      (p.defaultValue as ConstantExpression).constant,
+                    )
+                  : null,
+              type: freshTypeParameters.substitute(p.type),
+            )..flags = p.flags,
+        ];
     return Procedure(
       Name.callName,
       ProcedureKind.Method,
       FunctionNode(
         null,
         typeParameters: freshTypeParameters.freshTypeParameters,
-        positionalParameters: convertParameters(
+        positionalParameters: convertPositionalParameters(
           functionNode.positionalParameters,
         ),
-        namedParameters: convertParameters(functionNode.namedParameters),
+        namedParameters: convertNamedParameters(functionNode.namedParameters),
         requiredParameterCount: functionNode.requiredParameterCount,
         returnType: freshTypeParameters.substitute(functionNode.returnType),
       ),

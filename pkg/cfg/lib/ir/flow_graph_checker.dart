@@ -134,13 +134,25 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
       final user = use.getInstruction(graph);
       switch (user) {
         case CallInstruction():
-          assert(user.hasTypeArguments);
-          assert(user.typeArguments == def);
+          if (!user.hasTypeArguments) {
+            // Exception: direct call to _instantiateClosure from dart:_internal
+            // may take type arguments as a regular argument.
+            final target = (user as DirectCall).target;
+            assert(target.member.name.text == '_instantiateClosure');
+            assert(
+              target.member.enclosingLibrary.importUri.toString() ==
+                  'dart:_internal',
+            );
+          } else {
+            assert(user.typeArguments == def);
+          }
         case AllocateObject():
           assert(user.typeArguments == def);
         case AllocateListLiteral():
           assert(user.typeArguments == def);
         case AllocateMapLiteral():
+          assert(user.typeArguments == def);
+        case InstantiateClosure():
           assert(user.typeArguments == def);
         case EnterSuspendableFunction():
           assert(user.typeArguments == def);
@@ -417,6 +429,11 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitStringInterpolation(StringInterpolation instr) {}
+
+  @override
+  void visitInstantiateClosure(InstantiateClosure instr) {
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
+  }
 
   @override
   void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {

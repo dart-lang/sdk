@@ -1,11 +1,27 @@
-## 0.3.0-dev
+## 0.3.4-dev
+
+- Require version `14.1.0-dev` of the `analyzer` package.
+
+## 0.3.3
+
+- Require version `14.0.0` of the `analyzer` package.
+
+## 0.3.2
+
+- Require version `13.3.0` of the `analyzer` package.
+
+## 0.3.1
+
+- Require version `13.2.0` of the `analyzer` package.
+
+## 0.3.0
 
 - Add `PackageConfigFileBuilder` to the public API.
 - Breaking change: `ResourceProviderMixin.newPackageConfigJsonFileFromBuilder`
   now takes the `PackageConfigFileBuilder` from `package:analyzer_testing`.
 - Fix mocks for Flutter's `painting/text_span.dart`, `widgets/media_query.dart`,
   and `widgets/scroll_delegate.dart` libraries.
-- Require version `13.1.0-dev` of the `analyzer` package.
+- Require version `13.1.0` of the `analyzer` package.
 
 ## 0.2.6
 

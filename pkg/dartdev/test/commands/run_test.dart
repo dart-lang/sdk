@@ -973,6 +973,129 @@ Future<void> main() async {
   });
 
   test(
+    'resident compiler invocation has working Platform.script',
+    () async {
+      p = project(name: 'foo');
+      p.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '>=2.12.0<3.0.0'
+''');
+      p.file('bin/script1.dart', r'''
+import "dart:io";
+import "dart:isolate";
+
+Future<void> main() async {
+  print("Script1: ${Platform.script}");
+  var exitPort = ReceivePort();
+  var isolate = await Isolate.spawn(
+    entryPoint,
+    "",
+    onExit: exitPort.sendPort,
+  );
+  await exitPort.first;
+
+  exitPort = ReceivePort();
+  await Isolate.spawnUri(
+    Uri.parse("script2.dart"),
+    [],
+    "",
+    onExit: exitPort.sendPort,
+  );
+  await exitPort.first;
+}
+
+void entryPoint(String arg) {
+  print("  -> ${Platform.script}");
+}
+''');
+      p.file('bin/script2.dart', r'''
+import "dart:io";
+import "dart:isolate";
+
+Future<void> main() async {
+  print("Script2: ${Platform.script}");
+  var exitPort = ReceivePort();
+  var isolate = await Isolate.spawn(
+    entryPoint,
+    "",
+    onExit: exitPort.sendPort,
+  );
+  await exitPort.first;
+}
+
+void entryPoint(String arg) {
+  print("  -> ${Platform.script}");
+}
+''');
+
+      var script1 = File(path.join(p.dir.path, 'bin/script1.dart'));
+      expect(script1.existsSync(), true);
+      var script2 = File(path.join(p.dir.path, 'bin/script2.dart'));
+      expect(script2.existsSync(), true);
+
+      ProcessResult pubGetResult = await p.run(['pub', 'get']);
+      expect(pubGetResult.stderr, isEmpty);
+      expect(pubGetResult.exitCode, 0);
+
+      ProcessResult result = await p.run([
+        'run',
+        '--resident',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+        'bin/script1.dart',
+      ]);
+
+      String stdout = result.stdout.toString().replaceAll('\r\n', '\n').trim();
+      String expected =
+          '''
+Script1: ${script1.uri}
+  -> ${script1.uri}
+Script2: ${script2.uri}
+  -> ${script2.uri}
+'''
+              .trim();
+      if (Platform.isWindows) {
+        // Windows _sometimes_ uses a lower-case drive-letter and
+        // sometimes uses an upper-case one. Convert everything to
+        // lowercase so we don't fail on that.
+        stdout = stdout.toLowerCase();
+        expected = expected.toLowerCase();
+      }
+      expect(stdout, expected);
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+    },
+  );
+
+  test(
+    'resident compiler works with non-ASCII filenames',
+    () async {
+      p = project();
+      p.file('æble.dart', r'''
+Future<void> main() async {
+  print("Hello, æble!");
+}
+''');
+
+      var script = File(path.join(p.dir.path, 'æble.dart'));
+      expect(script.existsSync(), true);
+      print(script);
+
+      ProcessResult result = await p.run([
+        'run',
+        '--resident',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+        'æble.dart',
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      String stdout = result.stdout.toString().trim();
+      expect(stdout, 'Hello, æble!');
+    },
+  );
+
+  test(
     'passing --resident is a prerequisite for passing --resident-compiler-info-file',
     () async {
       p = project(mainSrc: 'void main() {}');

@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+
 import 'binary/utils.dart';
 
 void main() {
@@ -82,7 +83,7 @@ void main() {
 
   FunctionNode setterFunction = new FunctionNode(
     new Block([]),
-    positionalParameters: [new Variable("foo")],
+    positionalParameters: [new PositionalParameter(cosmeticName: "foo")],
   );
   Procedure setter = new Procedure(
     new Name("f"),
@@ -158,9 +159,8 @@ void main() {
   // Load the written stuff and ensure it is as expected.
   // First one has a field.
   Component componentLoaded = new Component();
-  new BinaryBuilder(
-    writtenBytesFieldOriginal,
-  ).readSingleFileComponent(componentLoaded);
+  new BinaryBuilder(writtenBytesFieldOriginal)
+      .readSingleFileComponent(componentLoaded);
   verifyTargets(
     componentLoaded.libraries[0].procedures.single,
     componentLoaded.libraries[1].procedures.single,
@@ -170,9 +170,8 @@ void main() {
 
   // Second one has a getter/setter pair.
   componentLoaded = new Component();
-  new BinaryBuilder(
-    writtenBytesGetterSetter,
-  ).readSingleFileComponent(componentLoaded);
+  new BinaryBuilder(writtenBytesGetterSetter)
+      .readSingleFileComponent(componentLoaded);
   assert(componentLoaded.libraries[0].procedures[2].isSetter);
   verifyTargets(
     componentLoaded.libraries[0].procedures[0],
@@ -183,9 +182,8 @@ void main() {
 
   // Third one has a field again.
   componentLoaded = new Component();
-  new BinaryBuilder(
-    writtenBytesFieldNew,
-  ).readSingleFileComponent(componentLoaded);
+  new BinaryBuilder(writtenBytesFieldNew)
+      .readSingleFileComponent(componentLoaded);
   verifyTargets(
     componentLoaded.libraries[0].procedures.single,
     componentLoaded.libraries[1].procedures.single,

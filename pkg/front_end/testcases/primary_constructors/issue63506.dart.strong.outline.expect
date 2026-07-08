@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •({required initializing-formal core::int i}) → self::B
+    : self::B::i = i, super core::Object::•()
+    ;
+}
+class C extends self::B /*hasConstConstructor*/  {
+  const constructor •({required core::int i}) → self::C
+    : super self::B::•(i: i)
+    ;
+}
+static method main() → dynamic
+  ;

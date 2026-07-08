@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
-import '../transformations/flags.dart';
 import 'tag.dart';
 
 const int $_ = 95;
@@ -135,6 +134,7 @@ class BinaryBuilder {
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List</* TypeParameter | StructuralParameter */ Object>
   typeParameterStack = <Object>[];
+  final List<VariableContext> variableContextStack = <VariableContext>[];
   final String? filename;
   final Uint8List _bytes;
   int _byteOffset = 0;
@@ -149,7 +149,6 @@ class BinaryBuilder {
 
   late Map<int, DartType?> _cachedSimpleInterfaceTypes;
   List<FunctionType?> _voidFunctionFunctionTypesCache = [null, null, null];
-  int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
 
@@ -999,6 +998,59 @@ class BinaryBuilder {
     );
   }
 
+  int readScopeSizeAndAllocateContexts() {
+    int scopeSize = readUInt30();
+    for (int index = 0; index < scopeSize; index++) {
+      variableContextStack.add(
+        new VariableContext(
+          captureKind: CaptureKind.notCaptured,
+          // The list of variables will be updated later, in
+          // [_readVariableContext].
+          variables: const [],
+        ),
+      );
+    }
+    return scopeSize;
+  }
+
+  Scope? readOptionalScope(int scopeSize) {
+    return readAndCheckOptionTag() ? _readScope(scopeSize) : null;
+  }
+
+  Scope _readScope(int scopeSize) {
+    int contextCount = readUInt30();
+    assert(scopeSize == contextCount);
+    List<VariableContext> contexts = new List<VariableContext>.generate(
+      contextCount,
+      (int variableContextIndex) =>
+          _readVariableContext(variableContextIndex, scopeSize),
+      growable: useGrowableLists,
+    );
+    variableContextStack.length -= scopeSize;
+    return new Scope(contexts: contexts);
+  }
+
+  VariableContext _readVariableContext(
+    int variableContextIndex,
+    int scopeSize,
+  ) {
+    int captureKindIndex = readByte();
+    CaptureKind captureKind = CaptureKind.values[captureKindIndex];
+    int variableCount = readUInt30();
+    List<VariableBase> variables = new List<VariableBase>.generate(
+      variableCount,
+      (_) => readVariableReference(),
+      growable: useGrowableLists,
+    );
+    VariableContext variableContext =
+        variableContextStack[variableContextStack.length -
+            scopeSize +
+            variableContextIndex];
+    variableContext.captureKind = captureKind;
+    variableContext.variables = variables;
+    return variableContext;
+  }
+
   /// Read the uri-to-source part of the binary.
   /// Note that this can include coverage, but that it is only included if
   /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
@@ -1821,17 +1873,6 @@ class BinaryBuilder {
     };
   }
 
-  int getAndResetTransformerFlags() {
-    int flags = _transformerFlags;
-    _transformerFlags = 0;
-    return flags;
-  }
-
-  /// Adds the given flag to the current [Member.transformerFlags].
-  void addTransformerFlag(int flags) {
-    _transformerFlags |= flags;
-  }
-
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
@@ -1868,14 +1909,18 @@ class BinaryBuilder {
         );
       }
     }
+    int scopeSize = readScopeSizeAndAllocateContexts();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
       return true;
     }());
     DartType type = readDartType();
+    // TODO(63493): Remove the next line when the scopes are serialized before
+    // function bodies.
+    ThisVariable? thisVariable = readAndPushVariableOption() as ThisVariable?;
     Expression? initializer = readExpressionOption();
-    int transformerFlags = getAndResetTransformerFlags();
+    Scope? scope = readOptionalScope(scopeSize);
     assert(((_) => true)(debugPath.removeLast()));
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
@@ -1884,9 +1929,11 @@ class BinaryBuilder {
     node.fileUri = fileUri;
     node.annotations = annotations;
     node.type = type;
+    node.thisVariable = thisVariable;
+    node.thisVariable?.parent = node;
     node.initializer = initializer;
     node.initializer?.parent = node;
-    node.transformerFlags = transformerFlags;
+    node.scope = scope;
     return node;
   }
 
@@ -1910,7 +1957,8 @@ class BinaryBuilder {
       debugPath.add(name.text);
       return true;
     }());
-    FunctionNode function = readFunctionNode();
+    FunctionNodeAndContexts functionNodeAndContexts = readFunctionNode();
+    FunctionNode function = functionNodeAndContexts.functionNode;
     if (node == null) {
       node = new Constructor(
         function,
@@ -1919,11 +1967,20 @@ class BinaryBuilder {
         fileUri: fileUri,
       );
     }
+    if (function.thisVariable != null) {
+      pushVariableDeclaration(function.thisVariable!);
+    }
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
+
+    int savedVariableContextStackSize = variableContextStack.length;
+    if (functionNodeAndContexts.preAllocatedContexts case var contexts?) {
+      variableContextStack.addAll(contexts);
+    }
     _readInitializers(node);
+    variableContextStack.length = savedVariableContextStackSize;
+
     variableStack.length = 0;
-    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1934,7 +1991,6 @@ class BinaryBuilder {
     node.annotations = annotations;
     setParents(annotations, node);
     node.function = function..parent = node;
-    node.transformerFlags = transformerFlags;
     return node;
   }
 
@@ -1974,7 +2030,7 @@ class BinaryBuilder {
     FunctionNode function = readFunctionNode(
       lazyLoadBody: !readFunctionNodeNow,
       outerEndOffset: endOffset,
-    );
+    ).functionNode;
     if (node == null) {
       node = new Procedure(
         name,
@@ -1986,7 +2042,6 @@ class BinaryBuilder {
     } else {
       assert(node.kind == kind);
     }
-    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileStartOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1997,7 +2052,6 @@ class BinaryBuilder {
     node.annotations = annotations;
     setParents(annotations, node);
     node.function = function..parent = node;
-    node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
     node.signatureType = signatureType;
@@ -2095,7 +2149,8 @@ class BinaryBuilder {
 
   Initializer _readLocalInitializer() {
     int offset = readOffset();
-    return new LocalInitializer(readAndPushVariable())..fileOffset = offset;
+    return new LocalInitializer(readAndPushVariable() as SyntheticVariable)
+      ..fileOffset = offset;
   }
 
   Initializer _readAssertInitializer() {
@@ -2104,7 +2159,7 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
-  FunctionNode readFunctionNode({
+  FunctionNodeAndContexts readFunctionNode({
     bool lazyLoadBody = false,
     int outerEndOffset = -1,
   }) {
@@ -2115,12 +2170,25 @@ class BinaryBuilder {
     AsyncMarker asyncMarker = AsyncMarker.values[readByte()];
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
+    int scopeSize = readScopeSizeAndAllocateContexts();
+    List<VariableContext>? preAllocatedContexts;
+    if (scopeSize > 0) {
+      preAllocatedContexts = variableContextStack
+          .getRange(
+            variableContextStack.length - scopeSize,
+            variableContextStack.length,
+          )
+          .toList();
+    }
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    int variableStackHeight = variableStack.length;
+    // TODO(63493): Remove the next line when the scopes are serialized before
+    // function bodies.
+    ThisVariable? thisVariable = readAndPushVariableOption() as ThisVariable?;
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
-    int variableStackHeight = variableStack.length;
-    List<Variable> positional = readAndPushVariableList();
-    List<Variable> named = readAndPushVariableList();
+    List<PositionalParameter> positional = readAndPushPositionalParameterList();
+    List<NamedParameter> named = readAndPushNamedParameterList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
@@ -2155,10 +2223,14 @@ class BinaryBuilder {
     }
 
     Statement? body;
+    Scope? scope;
+    List<VariableContext>? capturedContexts;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
       switchCaseStackBase = switchCaseStack.length;
       body = readStatementOption();
+      scope = readOptionalScope(scopeSize);
+      capturedContexts = readOptionalCapturedContexts();
     }
 
     FunctionNode result =
@@ -2175,7 +2247,11 @@ class BinaryBuilder {
           )
           ..fileOffset = offset
           ..fileEndOffset = endOffset
-          ..redirectingFactoryTarget = redirectingFactoryTarget;
+          ..redirectingFactoryTarget = redirectingFactoryTarget
+          ..thisVariable = thisVariable
+          ..scope = scope
+          ..capturedContexts = capturedContexts;
+    thisVariable?.parent = result;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(
@@ -2183,6 +2259,7 @@ class BinaryBuilder {
         oldLabelStackBase,
         oldSwitchCaseStackBase,
         variableStackHeight,
+        scopeSize: scopeSize,
       );
     }
 
@@ -2191,21 +2268,25 @@ class BinaryBuilder {
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
 
-    return result;
+    return new FunctionNodeAndContexts(result, preAllocatedContexts);
   }
 
   void _setLazyLoadFunction(
     FunctionNode result,
     int oldLabelStackBase,
     int oldSwitchCaseStackBase,
-    int variableStackHeight,
-  ) {
+    int variableStackHeight, {
+    required int scopeSize,
+  }) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack
         .cast<TypeParameter>()
         .toList();
     final List<Variable> variables = variableStack.toList();
+    final List<VariableContext> variableContexts = variableContextStack
+        .toList();
+    variableContextStack.length -= scopeSize;
     final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
       _byteOffset = savedByteOffset;
@@ -2214,18 +2295,18 @@ class BinaryBuilder {
       typeParameterStack.addAll(typeParameters);
       variableStack.clear();
       variableStack.addAll(variables);
+      variableContextStack.clear();
+      variableContextStack.addAll(variableContexts);
       _componentStartOffset = componentStartOffset;
 
       result.body = readStatementOption();
       result.body?.parent = result;
+      result.scope = readOptionalScope(scopeSize);
+      result.capturedContexts = readOptionalCapturedContexts();
       labelStackBase = oldLabelStackBase;
       switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
-      TreeNode? parent = result.parent;
-      if (parent is Procedure) {
-        parent.transformerFlags |= getAndResetTransformerFlags();
-      }
     };
   }
 
@@ -2235,6 +2316,18 @@ class BinaryBuilder {
 
   void pushVariableDeclarations(List<Variable> variables) {
     variableStack.addAll(variables);
+  }
+
+  Variable? readVariableReferenceOption() {
+    return readAndCheckOptionTag() ? readVariableReference() : null;
+  }
+
+  DeclaredVariable readDeclaredVariableReference() {
+    return readVariableReference() as DeclaredVariable;
+  }
+
+  LocalFunctionVariable readLocalFunctionVariableReference() {
+    return readVariableReference() as LocalFunctionVariable;
   }
 
   Variable readVariableReference() {
@@ -2591,7 +2684,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperPropertyGet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertyGet.byReference(
       readExpression(),
       readName(),
@@ -2601,7 +2693,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperPropertySet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertySet.byReference(
       readExpression(),
       readName(),
@@ -2612,7 +2703,6 @@ class BinaryBuilder {
 
   Expression _readSuperPropertyGet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
       readExpression(),
       readName(),
@@ -2622,7 +2712,6 @@ class BinaryBuilder {
 
   Expression _readSuperPropertySet() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertySet.byReference(
       readExpression(),
       readName(),
@@ -2680,14 +2769,21 @@ class BinaryBuilder {
     InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
     int flags = readByte();
     int offset = readOffset();
+    Expression receiver = readExpression();
+    Name name = readName();
+    Arguments arguments = readArguments();
+    FunctionType functionType = readDartType() as FunctionType;
+    DartType resultType = readDartType();
+    Reference interfaceTargetReference = readNonNullInstanceMemberReference();
     return new InstanceInvocation.byReference(
         kind,
-        readExpression(),
-        readName(),
-        readArguments(),
-        functionType: readDartType() as FunctionType,
-        interfaceTargetReference: readNonNullInstanceMemberReference(),
+        receiver,
+        name,
+        arguments,
+        functionType: functionType,
+        interfaceTargetReference: interfaceTargetReference,
       )
+      ..resultType = resultType
       ..fileOffset = offset
       ..flags = flags;
   }
@@ -2758,7 +2854,7 @@ class BinaryBuilder {
 
   Expression _readLocalFunctionInvocation() {
     int offset = readOffset();
-    Variable variable = readVariableReference();
+    LocalFunctionVariable variable = readLocalFunctionVariableReference();
     return new LocalFunctionInvocation(
       variable,
       readArguments(),
@@ -2783,7 +2879,6 @@ class BinaryBuilder {
 
   Expression _readAbstractSuperMethodInvocation() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperMethodInvocation.byReference(
       readExpression(),
       readName(),
@@ -2794,7 +2889,6 @@ class BinaryBuilder {
 
   Expression _readSuperMethodInvocation() {
     int offset = readOffset();
-    addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
       readExpression(),
       readName(),
@@ -3134,14 +3228,14 @@ class BinaryBuilder {
   Expression _readFunctionExpression() {
     int offset = readOffset();
     final LocalFunctionId id = LocalFunctionId(readUInt30());
-    return new FunctionExpression(readFunctionNode())
+    return new FunctionExpression(readFunctionNode().functionNode)
       ..fileOffset = offset
       ..id = id;
   }
 
   Expression _readLet() {
     int offset = readOffset();
-    Variable variable = readVariable();
+    SyntheticVariable variable = readVariable() as SyntheticVariable;
     int stackHeight = variableStack.length;
     pushVariableDeclaration(variable);
     Expression body = readExpression();
@@ -3152,11 +3246,14 @@ class BinaryBuilder {
   Expression _readBlockExpression() {
     int offset = readOffset();
     int stackHeight = variableStack.length;
+    int scopeSize = readScopeSizeAndAllocateContexts();
     List<Statement> statements = readStatementListAlwaysGrowable();
     Expression value = readExpression();
+    Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = stackHeight;
     return new BlockExpression(new Block(statements), value)
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..scope = scope;
   }
 
   Expression _readInstantiation() {
@@ -3274,16 +3371,16 @@ class BinaryBuilder {
     );
   }
 
-  List<Variable> _readVariableReferenceList() {
+  List<DeclaredVariable> _readDeclaredVariableReferenceList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      return emptyListOfVariable;
+      return emptyListOfDeclaredVariable;
     }
-    return new List<Variable>.generate(
+    return new List<DeclaredVariable>.generate(
       length,
-      (_) => readVariableReference(),
+      (_) => readDeclaredVariableReference(),
       growable: useGrowableLists,
     );
   }
@@ -3311,12 +3408,14 @@ class BinaryBuilder {
   AssignedVariablePattern _readAssignedVariablePattern() {
     int fileOffset = readOffset();
     Variable variable = readVariableReference();
+    Variable? setter = readVariableReferenceOption();
     DartType? matchedType = readDartTypeOption();
     bool needsCheck = readByte() == 1;
     return AssignedVariablePattern(variable)
       ..fileOffset = fileOffset
       ..matchedValueType = matchedType
-      ..needsCast = needsCheck;
+      ..needsCast = needsCheck
+      ..setter = setter;
   }
 
   CastPattern _readCastPattern() {
@@ -3341,7 +3440,8 @@ class BinaryBuilder {
   InvalidPattern _readInvalidPattern() {
     int fileOffset = readOffset();
     Expression invalidExpression = readExpression();
-    List<Variable> declaredVariables = readAndPushVariableList();
+    List<DeclaredVariable> declaredVariables =
+        readAndPushDeclaredVariableList();
     return InvalidPattern(
       invalidExpression,
       declaredVariables: declaredVariables,
@@ -3466,7 +3566,8 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     Pattern left = _readPattern();
     Pattern right = _readPattern();
-    List<Variable> orPatternJointVariables = _readVariableReferenceList();
+    List<DeclaredVariable> orPatternJointVariables =
+        _readDeclaredVariableReferenceList();
     return new OrPattern(
       left,
       right,
@@ -3523,7 +3624,7 @@ class BinaryBuilder {
   VariablePattern _readVariablePattern() {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
-    Variable variable = readVariable();
+    DeclaredVariable variable = readDeclaredVariable();
     DartType? matchedType = readDartTypeOption();
     return new VariablePattern(type, variable)
       ..matchedValueType = matchedType
@@ -3667,7 +3768,7 @@ class BinaryBuilder {
   void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
     int variableCount = readUInt30();
     for (int i = 0; i < variableCount; ++i) {
-      caseNode.jointVariables.add(readVariable()..parent = caseNode);
+      caseNode.jointVariables.add(readDeclaredVariable()..parent = caseNode);
     }
     int caseCount = readUInt30();
     for (int i = 0; i < caseCount; ++i) {
@@ -3806,8 +3907,13 @@ class BinaryBuilder {
 
   Statement _readWhileStatement() {
     int offset = readOffset();
-    return new WhileStatement(readExpression(), readStatement())
-      ..fileOffset = offset;
+    int scopeSize = readScopeSizeAndAllocateContexts();
+    Expression condition = readExpression();
+    Statement body = readStatement();
+    Scope? scope = readOptionalScope(scopeSize);
+    return new WhileStatement(condition, body)
+      ..fileOffset = offset
+      ..scope = scope;
   }
 
   Statement _readDoStatement() {
@@ -3819,13 +3925,16 @@ class BinaryBuilder {
   Statement _readForStatement() {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
+    int scopeSize = readScopeSizeAndAllocateContexts();
     List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
     Expression? condition = readExpressionOption();
     List<Expression> updates = readExpressionList();
     Statement body = readStatement();
+    Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
     return new ForStatement(variables, condition, updates, body)
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..scope = scope;
   }
 
   Statement _readForInStatement(int tag) {
@@ -3833,13 +3942,16 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     int bodyOffset = readOffset();
-    Variable variable = readAndPushVariable();
+    int scopeSize = readScopeSizeAndAllocateContexts();
+    DeclaredVariable variable = readAndPushDeclaredVariable();
     Expression iterable = readExpression();
     Statement body = readStatement();
+    Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
     return new ForInStatement(variable, iterable, body, isAsync: isAsync)
       ..fileOffset = offset
-      ..bodyOffset = bodyOffset;
+      ..bodyOffset = bodyOffset
+      ..scope = scope;
   }
 
   Statement _readSwitchStatement() {
@@ -3934,17 +4046,20 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.VariableDeclaration);
     int offset = readOffset();
-    Variable variable = readVariable();
+    List<VariableContext>? capturedContexts = readOptionalCapturedContexts();
+    DeclaredVariable variable = readDeclaredVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
-    return new VariableDeclaration(variable)..fileOffset = offset;
+    return new VariableDeclaration(variable)
+      ..fileOffset = offset
+      ..capturedContexts = capturedContexts;
   }
 
   Statement _readFunctionDeclaration() {
     int offset = readOffset();
-    Variable variable = readVariable();
+    LocalFunctionVariable variable = readLocalFunctionVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     final LocalFunctionId id = LocalFunctionId(readUInt30());
-    return new FunctionDeclaration(variable, readFunctionNode())
+    return new FunctionDeclaration(variable, readFunctionNode().functionNode)
       ..fileOffset = offset
       ..id = id;
   }
@@ -3978,24 +4093,30 @@ class BinaryBuilder {
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
+    int scopeSize = readScopeSizeAndAllocateContexts();
     DartType guard = readDartType();
-    Variable? exception = readAndPushVariableOption();
-    Variable? stackTrace = readAndPushVariableOption();
+    CatchVariable? exception = readAndPushVariableOption() as CatchVariable?;
+    CatchVariable? stackTrace = readAndPushVariableOption() as CatchVariable?;
     Statement body = readStatement();
+    Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
-      ..fileOffset = offset;
+      ..fileOffset = offset
+      ..scope = scope;
   }
 
   Block _readBlock() {
     int stackHeight = variableStack.length;
     int offset = readOffset();
     int endOffset = readOffset();
+    int scopeSize = readScopeSizeAndAllocateContexts();
     List<Statement> body = readStatementListAlwaysGrowable();
+    Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = stackHeight;
     return new Block(body)
       ..fileOffset = offset
-      ..fileEndOffset = endOffset;
+      ..fileEndOffset = endOffset
+      ..scope = scope;
   }
 
   AssertBlock _readAssertBlock() {
@@ -4443,16 +4564,44 @@ class BinaryBuilder {
     );
   }
 
-  List<Variable> readAndPushVariableList() {
+  List<DeclaredVariable> readAndPushDeclaredVariableList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      return emptyListOfVariable;
+      return emptyListOfDeclaredVariable;
     }
-    return new List<Variable>.generate(
+    return new List<DeclaredVariable>.generate(
       length,
-      (_) => readAndPushVariable(),
+      (_) => readAndPushDeclaredVariable(),
+      growable: useGrowableLists,
+    );
+  }
+
+  List<PositionalParameter> readAndPushPositionalParameterList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfPositionalParameter;
+    }
+    return new List<PositionalParameter>.generate(
+      length,
+      (_) => readAndPushPositionalParameter(),
+      growable: useGrowableLists,
+    );
+  }
+
+  List<NamedParameter> readAndPushNamedParameterList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfNamedParameter;
+    }
+    return new List<NamedParameter>.generate(
+      length,
+      (_) => readAndPushNamedParameter(),
       growable: useGrowableLists,
     );
   }
@@ -4465,6 +4614,40 @@ class BinaryBuilder {
     Variable variable = readVariable();
     variableStack.add(variable);
     return variable;
+  }
+
+  DeclaredVariable readAndPushDeclaredVariable() {
+    DeclaredVariable variable = readDeclaredVariable();
+    variableStack.add(variable);
+    return variable;
+  }
+
+  PositionalParameter readAndPushPositionalParameter() {
+    PositionalParameter variable = readPositionalParameter();
+    variableStack.add(variable);
+    return variable;
+  }
+
+  NamedParameter readAndPushNamedParameter() {
+    NamedParameter variable = readNamedParameter();
+    variableStack.add(variable);
+    return variable;
+  }
+
+  DeclaredVariable readDeclaredVariable() {
+    return readVariable() as DeclaredVariable;
+  }
+
+  PositionalParameter readPositionalParameter() {
+    return readVariable() as PositionalParameter;
+  }
+
+  NamedParameter readNamedParameter() {
+    return readVariable() as NamedParameter;
+  }
+
+  LocalFunctionVariable readLocalFunctionVariable() {
+    return readVariable() as LocalFunctionVariable;
   }
 
   Variable readVariable() {
@@ -4480,36 +4663,32 @@ class BinaryBuilder {
     Expression? initializer = readExpressionOption();
     Variable node;
     switch (tag) {
-      case Tag.LegacyVariable:
-        node =
-            new LegacyVariable(
-                name,
-                type: type,
-                initializer: initializer,
-                flags: flags,
-              )
-              ..fileOffset = offset
-              ..fileEqualsOffset = fileEqualsOffset;
       case Tag.LocalVariable:
         node =
-            new LocalVariable(
-                cosmeticName: name,
-                type: type,
-                initializer: initializer,
-              )
+            new LocalVariable(name: name!, type: type, initializer: initializer)
               ..flags = flags
               ..fileOffset = offset
               ..fileEqualsOffset = fileEqualsOffset;
       case Tag.LateVariable:
         node =
-            new LateVariable(
-                cosmeticName: name,
-                type: type,
-                initializer: initializer,
-              )
+            new LateVariable(name: name!, type: type, initialValue: initializer)
               ..flags = flags
               ..fileOffset = offset
               ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.LocalFunctionVariable:
+        assert(
+          initializer == null,
+          "Unexpected initializer on LocalFunctionVariable",
+        );
+        node = new LocalFunctionVariable(name: name!, type: type)
+          ..flags = flags
+          ..fileOffset = offset
+          ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.ConstVariable:
+        node = new ConstVariable(name: name!, type: type, value: initializer)
+          ..flags = flags
+          ..fileOffset = offset
+          ..fileEqualsOffset = fileEqualsOffset;
       case Tag.SyntheticVariable:
         node =
             new SyntheticVariable(
@@ -4565,6 +4744,30 @@ class BinaryBuilder {
       node.annotations = annotations;
     }
     return node;
+  }
+
+  List<VariableContext>? readOptionalCapturedContexts() {
+    return readAndCheckOptionTag() ? readCapturedContexts() : null;
+  }
+
+  List<VariableContext> readCapturedContexts() {
+    int length = readUInt30();
+    return new List<VariableContext>.generate(
+      length,
+      (_) => readVariableContextReference(),
+      growable: useGrowableLists,
+    );
+  }
+
+  VariableContext readVariableContextReference() {
+    int index = readUInt30();
+    if (index >= variableContextStack.length) {
+      throw fail(
+        'Unexpected variable context index: $index. '
+        'Current variable context count: ${variableContextStack.length}.',
+      );
+    }
+    return variableContextStack[index];
   }
 
   int readOffset() {
@@ -4796,17 +4999,22 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  FunctionNode readFunctionNode({
+  FunctionNodeAndContexts readFunctionNode({
     bool lazyLoadBody = false,
     int outerEndOffset = -1,
   }) {
     final int nodeOffset = _byteOffset;
     final bool hasMetadata = _hasMetadata(_byteOffset);
-    final FunctionNode result = super.readFunctionNode(
+    final FunctionNodeAndContexts result = super.readFunctionNode(
       lazyLoadBody: lazyLoadBody,
       outerEndOffset: outerEndOffset,
     );
-    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
+    return hasMetadata
+        ? new FunctionNodeAndContexts(
+            _associateMetadata(result.functionNode, nodeOffset),
+            result.preAllocatedContexts,
+          )
+        : result;
   }
 
   @override
@@ -4916,12 +5124,22 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 }
 
 /// Deserialized MetadataMapping corresponding to the given metadata repository.
-class _MetadataSubsection {
+class _MetadataSubsection(this.repository, this.mapping) {
   /// [MetadataRepository] that can read this subsection.
   final MetadataRepository repository;
 
   /// Deserialized mapping from node offsets to metadata offsets.
   final Map<int, int> mapping;
+}
 
-  new(this.repository, this.mapping);
+/// Result of reading a function node and allocating its scope.
+///
+/// Function nodes with lazily loaded bodies have empty scopes immediately after
+/// the moment of reading, even though the scope may be not empty after loading
+/// the body. This helper class holds both the read function (potentially,
+/// without the body and the scope) and the pre-allocated variable contexts from
+/// the scope.
+class FunctionNodeAndContexts(this.functionNode, this.preAllocatedContexts) {
+  final FunctionNode functionNode;
+  final List<VariableContext>? preAllocatedContexts;
 }

@@ -7,9 +7,9 @@
 // results in a compile-time error, due to function expressions not being const
 // values, but it shouldn't crash.
 class Class {
-  const Class.named(
-      {dynamic x = (({dynamic y = const [Alias2.impl()]}) =>
-          const [Alias.impl()])});
+  const Class.named({
+    dynamic x = (({dynamic y = const [Alias2.impl()]}) => const [Alias.impl()]),
+  });
 }
 
 typedef Alias<X> = Const<X>;

@@ -284,6 +284,25 @@ void my_function(String a) {
     assertHasRange(HighlightRegionType.COMMENT_BLOCK, parsedRanges[2]);
   }
 
+  /// We only support code blocks in LSP Semantic Tokens because there's no
+  /// `HighlightRegionType` for them.
+  Future<void> test_COMMENT_codeBlock() async {
+    addTestFile('''
+/*[0*//// f/*0]*/
+/*[1*/////*1]*/
+/*[2*//// ```/*2]*/
+/*[3*//// CODE/*3]*/
+/*[4*//// ```/*4]*/
+void f() {}
+''');
+    await prepareHighlights();
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[0]);
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[1]);
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[2]);
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[3]);
+    assertHasRange(HighlightRegionType.COMMENT_DOCUMENTATION, parsedRanges[4]);
+  }
+
   Future<void> test_constantPattern_const() async {
     addTestFile('''
 void f(Object o) {

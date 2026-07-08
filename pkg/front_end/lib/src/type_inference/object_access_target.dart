@@ -91,6 +91,11 @@ enum ObjectAccessTargetKind {
   /// representation field. This is an erroneous case and a compile-time error
   /// is reported.
   nullableExtensionTypeRepresentation,
+
+  /// A access to a parameter passed in expression compilation that isn't really
+  /// in scope, but where the alternative is an error or (in expression
+  /// compilation) a dynamic call that will probably not work.
+  expressionEvaluationParameter,
 }
 
 /// Type of the target in a function-like invocation.
@@ -569,6 +574,13 @@ abstract class ObjectAccessTarget {
   //  `invokeTarget`?
   Member? get tearoffTarget =>
       throw new UnsupportedError('ObjectAccessTarget.tearoffTarget');
+
+  // Coverage-ignore(suite): Not run.
+  /// Get the variable used by [ExpressionEvaluationParameterTarget].
+  Variable get expressionEvaluationParameterVariable =>
+      throw new UnsupportedError(
+        'ObjectAccessTarget.expressionEvaluationParameterVariable',
+      );
 
   InvocationTargetType _getFunctionType(
     InferenceVisitorBase base,
@@ -1699,4 +1711,54 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
   String toString() =>
       'ExtensionTypeRepresentationAccessTarget'
       '($kind,$receiverType,$extensionType)';
+}
+
+// Coverage-ignore(suite): Not run.
+class ExpressionEvaluationParameterTarget extends ObjectAccessTarget {
+  @override
+  final Variable expressionEvaluationParameterVariable;
+
+  new(this.expressionEvaluationParameterVariable)
+    : super.internal(ObjectAccessTargetKind.expressionEvaluationParameter);
+
+  @override
+  DartType getBinaryOperandType(InferenceVisitorBase base) {
+    return const InvalidType();
+  }
+
+  @override
+  InvocationTargetType getFunctionType(InferenceVisitorBase base) {
+    return const InvocationTargetDynamicType();
+  }
+
+  @override
+  DartType getGetterType(InferenceVisitorBase base) {
+    return expressionEvaluationParameterVariable.type;
+  }
+
+  @override
+  DartType getIndexKeyType(InferenceVisitorBase base) {
+    return const InvalidType();
+  }
+
+  @override
+  DartType getIndexSetValueType(InferenceVisitorBase base) {
+    return const InvalidType();
+  }
+
+  @override
+  DartType getReturnType(InferenceVisitorBase base) {
+    return const InvalidType();
+  }
+
+  @override
+  DartType getSetterType(InferenceVisitorBase base) {
+    return const InvalidType();
+  }
+
+  @override
+  Member? get member => null;
+
+  @override
+  DartType? get receiverType => null;
 }

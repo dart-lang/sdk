@@ -66,9 +66,9 @@ void main() {
               fail('$fullName not found in ${coverageFile.path}');
             }
 
-            var fileName = getCamelWords(
-              request.method,
-            ).map((s) => s.toLowerCase()).join('_');
+            var fileName = getCamelWords(request.method)
+                .map((s) => s.toLowerCase())
+                .join('_');
             var testName = path.join(domain.name, '${fileName}_test.dart');
             var testPath = path.join(pathPrefix, 'integration_test', testName);
 

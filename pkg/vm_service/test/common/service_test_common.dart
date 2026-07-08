@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library service_test_common;
-
 import 'dart:async';
 import 'dart:collection' show HashMap;
+import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
@@ -13,11 +12,405 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_protos/vm_service_protos.dart' hide Frame;
 
+import 'service_test_common.dart' as service_test_common;
+
+import 'test_helper.dart'
+    show runIsolateTests, runIsolateTestsSynchronous, runVMTests;
+
+abstract class _TestHarness<T> {
+  final List<String> args;
+  final String _scriptName;
+  final List<T> _tests = [];
+  final TestScriptParser _scriptParser;
+
+  _TestHarness(this._scriptName, this.args)
+      : _scriptParser = TestScriptParser(_scriptName);
+
+  List<T> get tests => _tests;
+}
+
+class VMTestHarness extends _TestHarness<VMTest> {
+  VMTestHarness(super.scriptName, super.args);
+
+  VMTestHarness addTest(VMTest test) {
+    _tests.add(test);
+    return this;
+  }
+
+  VMTestHarness addTestWithParser(VMTestWithParser test) {
+    _tests.add((service) => test(service, _scriptParser));
+    return this;
+  }
+
+  Future<void> run({
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+    bool pauseOnUnhandledExceptions = false,
+    bool allowForNonZeroExitCode = false,
+    bool useAuthToken = false,
+    List<String>? extraArgs,
+    VmServiceFactory serviceFactory = VmService.defaultFactory,
+    required Future<void> Function(List<String> args) testeeMain,
+  }) =>
+      runVMTests(
+        args,
+        _tests,
+        _scriptName,
+        pauseOnStart: pauseOnStart,
+        pauseOnExit: pauseOnExit,
+        pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+        extraArgs: extraArgs,
+        serviceFactory: serviceFactory,
+        testeeMain: testeeMain,
+      );
+}
+
+class IsolateTestHarness extends _TestHarness<IsolateTest> {
+  final List<String> _recordedStops = [];
+
+  IsolateTestHarness(super.scriptName, super.args);
+
+  IsolateTestHarness addCustomTestWithParser(IsolateTestWithParser test) {
+    _tests
+        .add((service, isolateRef) => test(service, isolateRef, _scriptParser));
+    return this;
+  }
+
+  IsolateTestHarness addCustomTest(IsolateTest test) {
+    _tests.add(test);
+    return this;
+  }
+
+  Future<void> run({
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+    bool pauseOnUnhandledExceptions = false,
+    bool launchTesteeWithDartRunResident = false,
+    bool allowForNonZeroExitCode = false,
+    bool useAuthToken = false,
+    List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
+    required Future<void> Function(List<String> args) testeeMain,
+  }) =>
+      runIsolateTests(
+        args,
+        _tests,
+        _scriptName,
+        pauseOnStart: pauseOnStart,
+        pauseOnExit: pauseOnExit,
+        pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+        launchTesteeWithDartRunResident: launchTesteeWithDartRunResident,
+        allowForNonZeroExitCode: allowForNonZeroExitCode,
+        useAuthToken: useAuthToken,
+        extraArgs: extraArgs,
+        testeeEnvironment: testeeEnvironment,
+        testeeMain: testeeMain,
+      );
+
+  void runSync({
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+    List<String>? extraArgs,
+    required Future<void> Function(List<String> args) testeeMain,
+  }) =>
+      runIsolateTestsSynchronous(
+        args,
+        _tests,
+        _scriptName,
+        pauseOnStart: pauseOnStart,
+        pauseOnExit: pauseOnExit,
+        extraArgs: extraArgs,
+        testeeMain: testeeMain,
+      );
+
+  IsolateTestHarness stoppedAtLine(String lineTag) {
+    _tests.add(
+        service_test_common.stoppedAtLine(_scriptParser.lineForTag(lineTag)));
+    return this;
+  }
+
+  IsolateTestHarness stoppedAtLineColumnWithTag({
+    required String lineTag,
+    int? column,
+  }) {
+    _tests.add(service_test_common.stoppedAtLineColumn(
+        line: _scriptParser.lineForTag(lineTag), column: column));
+    return this;
+  }
+
+  IsolateTestHarness setBreakpointAtLine(String lineTag) {
+    _tests.add(service_test_common.setBreakpointAtUriAndLine(
+        _scriptName, _scriptParser.lineForTag(lineTag)));
+    return this;
+  }
+
+  IsolateTestHarness setBreakpointAtUriAndLine(String uri, String lineTag) {
+    _tests.add((service, isolateRef) async {
+      final resolvedUri = uri.startsWith('package:')
+          ? (await service.lookupResolvedPackageUris(isolateRef.id!, [uri]))
+              .uris![0]!
+          : uri;
+
+      return service_test_common.setBreakpointAtUriAndLine(
+              uri, _scriptParser.lineForTag(lineTag, script: resolvedUri))(
+          service, isolateRef);
+    });
+    return this;
+  }
+
+  IsolateTestHarness setBreakpointAtLineColumn(String lineTag, int column) {
+    _tests.add(service_test_common.setBreakpointAtUriLineColumn(
+        _scriptName, _scriptParser.lineForTag(lineTag), column));
+    return this;
+  }
+
+  IsolateTestHarness hasStoppedAtBreakpoint() {
+    _tests.add(service_test_common.hasStoppedAtBreakpoint);
+    return this;
+  }
+
+  IsolateTestHarness hasPausedAtStart() {
+    _tests.add(service_test_common.hasPausedAtStart);
+    return this;
+  }
+
+  IsolateTestHarness hasStoppedPostRequest() {
+    _tests.add(service_test_common.hasStoppedPostRequest);
+    return this;
+  }
+
+  IsolateTestHarness hasStoppedWithUnhandledException() {
+    _tests.add(service_test_common.hasStoppedWithUnhandledException);
+    return this;
+  }
+
+  IsolateTestHarness hasStoppedAtExit() {
+    _tests.add(service_test_common.hasStoppedAtExit);
+    return this;
+  }
+
+  IsolateTestHarness markDartColonLibrariesDebuggable() {
+    _tests.add(service_test_common.markDartColonLibrariesDebuggable);
+    return this;
+  }
+
+  IsolateTestHarness reloadSources({bool pause = false}) {
+    _tests.add(service_test_common.reloadSources(pause: pause));
+    return this;
+  }
+
+  IsolateTestHarness hasLocalVarInTopStackFrame(String varName) {
+    _tests.add(service_test_common.hasLocalVarInTopStackFrame(varName));
+    return this;
+  }
+
+  IsolateTestHarness stoppedInFunction(String functionName) {
+    _tests.add(service_test_common.stoppedInFunction(functionName));
+    return this;
+  }
+
+  IsolateTestHarness stepOver() {
+    _tests.add(service_test_common.stepOver);
+    return this;
+  }
+
+  IsolateTestHarness stepInto() {
+    _tests.add(service_test_common.stepInto);
+    return this;
+  }
+
+  IsolateTestHarness stepOut() {
+    _tests.add(service_test_common.stepOut);
+    return this;
+  }
+
+  IsolateTestHarness smartNext() {
+    _tests.add(service_test_common.smartNext);
+    return this;
+  }
+
+  IsolateTestHarness asyncNext() {
+    _tests.add(service_test_common.asyncNext);
+    return this;
+  }
+
+  IsolateTestHarness syncNext() {
+    _tests.add(service_test_common.syncNext);
+    return this;
+  }
+
+  IsolateTestHarness resumeIsolate() {
+    _tests.add(service_test_common.resumeIsolate);
+    return this;
+  }
+
+  IsolateTestHarness resumeProgramRecordingStops(
+    bool includeCaller,
+  ) {
+    _tests.add(service_test_common.resumeProgramRecordingStops(
+        _recordedStops, includeCaller));
+    return this;
+  }
+
+  IsolateTestHarness runStepThroughProgramRecordingStops() {
+    _tests.add(service_test_common
+        .runStepThroughProgramRecordingStops(_recordedStops));
+    return this;
+  }
+
+  IsolateTestHarness runStepIntoThroughProgramRecordingStops() {
+    _tests.add(service_test_common
+        .runStepIntoThroughProgramRecordingStops(_recordedStops));
+    return this;
+  }
+
+  IsolateTestHarness checkRecordedStops({
+    bool removeDuplicates = false,
+    bool debugPrint = false,
+    String? debugPrintFile,
+    int? debugPrintLine,
+  }) {
+    final goldenUri =
+        io.Platform.script.resolve('${io.Platform.script.path}.stops');
+
+    _tests.add(service_test_common.checkRecordedStops(
+        _recordedStops, goldenUri.toFilePath(),
+        removeDuplicates: removeDuplicates,
+        debugPrint: debugPrint,
+        debugPrintFile: debugPrintFile,
+        debugPrintLine: debugPrintLine,
+        updateGoldens: args.contains('--update-goldens')));
+    return this;
+  }
+
+  IsolateTestHarness validateRecordedStops(
+    void Function(List<String> recordedStops) validator,
+  ) {
+    _tests.add((service, isolateRef) async {
+      validator(_recordedStops);
+    });
+    return this;
+  }
+}
+
+class TestScriptParser {
+  final String _mainScript;
+  final Map<String, _ParserFileData> _fileData = {};
+
+  TestScriptParser(this._mainScript);
+
+  int lineForTag(String lineTag, {String? script}) {
+    script ??= _mainScript;
+    return _fileData
+        .putIfAbsent(script, () => _ParserFileData(script!))
+        .lineForTag(lineTag);
+  }
+
+  int lineForRegExp(RegExp regExp, {String? script}) {
+    script ??= _mainScript;
+    return _fileData
+        .putIfAbsent(script, () => _ParserFileData(script!))
+        .lineForRegExp(regExp);
+  }
+
+  int offsetForTag(String lineTag, {String? script}) {
+    script ??= _mainScript;
+    return _fileData
+        .putIfAbsent(script, () => _ParserFileData(script!))
+        .offsetForTag(lineTag);
+  }
+}
+
+class _ParserFileData {
+  final String script;
+  late final Map<String, int> _lineTags = _generateLineTags();
+  late final Map<String, int> _offsetTags = _generateOffsetTags();
+  static final RegExp _lineEndTagRegex = RegExp(r'// LINE_(\S+)$');
+  static final RegExp _lineAnyTagRegex = RegExp(r'/\* LINE_(\S+) \*/');
+  static final RegExp _offsetTagRegex = RegExp(r'/\* OFFSET_(\S+) \*/');
+  static final RegExp _nonWhitespaceRegex = RegExp(r'\S');
+
+  _ParserFileData(this.script);
+
+  Map<String, int> _generateOffsetTags() {
+    var text =
+        io.File.fromUri(io.Platform.script.resolve(script)).readAsStringSync();
+    final offsetTags = <String, int>{};
+    RegExpMatch? match;
+    int offsetCounter = 0;
+
+    while ((match = _offsetTagRegex.firstMatch(text)) != null) {
+      final matchString = match!.group(0)!;
+      final offsetTag = matchString.substring(3, matchString.length - 3);
+      final nextCharOffset = text.indexOf(_nonWhitespaceRegex, match.end);
+      offsetTags[offsetTag] = nextCharOffset + offsetCounter;
+      text = text.substring(match.end);
+      offsetCounter += match.end;
+    }
+    return offsetTags;
+  }
+
+  Map<String, int> _generateLineTags() {
+    final lines =
+        io.File.fromUri(io.Platform.script.resolve(script)).readAsLinesSync();
+    final lineTags = <String, int>{};
+    int lineNum = 1;
+    for (final line in lines) {
+      if (_lineEndTagRegex.firstMatch(line) case final match?) {
+        final lineTag = match.group(0)!.substring(3);
+        lineTags[lineTag] = lineNum;
+      } else if (_lineAnyTagRegex.firstMatch(line) case final match?) {
+        final matchString = match.group(0)!;
+        final lineTag = matchString.substring(3, matchString.length - 3);
+        lineTags[lineTag] = lineNum;
+      }
+      lineNum++;
+    }
+    return lineTags;
+  }
+
+  int lineForRegExp(RegExp regExp) {
+    final lines =
+        io.File.fromUri(io.Platform.script.resolve(script)).readAsLinesSync();
+    int lineNum = 1;
+    for (final line in lines) {
+      if (regExp.hasMatch(line)) {
+        return lineNum;
+      }
+      lineNum++;
+    }
+    throw 'RegExp $regExp not found in $script';
+  }
+
+  int lineForTag(String lineTag) {
+    final line = _lineTags[lineTag];
+    if (line == null) {
+      throw 'Line tag $lineTag not found in $script';
+    }
+    return line;
+  }
+
+  int offsetForTag(String offsetTag) {
+    final offset = _offsetTags[offsetTag];
+    if (offset == null) {
+      throw 'Offset tag $offsetTag not found in $script';
+    }
+    return offset;
+  }
+}
+
 typedef IsolateTest = Future<void> Function(
   VmService service,
   IsolateRef isolate,
 );
+typedef IsolateTestWithParser = Future<void> Function(
+  VmService service,
+  IsolateRef isolate,
+  TestScriptParser scriptParser,
+);
 typedef VMTest = Future<void> Function(VmService service);
+typedef VMTestWithParser = Future<void> Function(
+    VmService service, TestScriptParser scriptParser);
 
 Future<void> smartNext(VmService service, IsolateRef isolateRef) async {
   print('smartNext');
@@ -73,19 +466,26 @@ Future<void> hasPausedFor(
   IsolateRef isolateRef,
   String kind,
 ) async {
-  Completer<dynamic>? completer = Completer();
+  final completer = Completer<void>();
   late StreamSubscription<Event> subscription;
-  subscription = service.onDebugEvent.listen((event) async {
+  bool completed = false;
+
+  // Synchronously guard the entry to complete() before any async yields to
+  // prevent concurrent execution paths (e.g., the stream listener and
+  // getIsolate fallback) from double-completing it and throwing a StateError.
+  Future<void> complete() async {
+    if (completed) return;
+    completed = true;
+    try {
+      await subscription.cancel();
+      await _unsubscribeDebugStream(service);
+    } catch (_) {}
+    completer.complete();
+  }
+
+  subscription = service.onDebugEvent.listen((event) {
     if ((isolateRef.id == event.isolate!.id) && (event.kind == kind)) {
-      if (completer != null) {
-        try {
-          await service.streamCancel(EventStreams.kDebug);
-        } catch (_) {/* swallow exception */} finally {
-          await subscription.cancel();
-          completer?.complete();
-          completer = null;
-        }
-      }
+      unawaited(complete());
     }
   });
 
@@ -96,16 +496,9 @@ Future<void> hasPausedFor(
   final isolate = await service.getIsolate(id);
   final event = isolate.pauseEvent!;
   if (event.kind == kind) {
-    if (completer != null) {
-      try {
-        await service.streamCancel(EventStreams.kDebug);
-      } catch (_) {/* swallow exception */} finally {
-        await subscription.cancel();
-        completer?.complete();
-      }
-    }
+    await complete();
   }
-  return completer?.future; // Will complete when breakpoint hit.
+  return completer.future; // Will complete when breakpoint hit.
 }
 
 // WARNING: interleaving calls based on hasPausedFor using Future.wait() may
@@ -167,46 +560,24 @@ Future<void> markDartColonLibrariesDebuggable(
   await Future.wait(requests);
 }
 
-// Currying is your friend.
-IsolateTest setBreakpointAtLine(int line) {
-  return (VmService service, IsolateRef isolateRef) async {
-    print('Setting breakpoint for line $line');
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final Library lib =
-        (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
-    final script = lib.scripts!.first;
-
-    final Breakpoint bpt =
-        await service.addBreakpoint(isolateId, script.id!, line);
-    print('Breakpoint is $bpt');
-  };
-}
-
 IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print('Setting breakpoint for line $line in $uri');
-    final Breakpoint bpt =
-        await service.addBreakpointWithScriptUri(isolateRef.id!, uri, line);
+    final Breakpoint bpt = await service.addBreakpointWithScriptUri(
+      isolateRef.id!,
+      uri,
+      line,
+    );
     print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
   };
 }
 
-IsolateTest setBreakpointAtLineColumn(int line, int column) {
+IsolateTest setBreakpointAtUriLineColumn(String uri, int line, int column) {
   return (VmService service, IsolateRef isolateRef) async {
     print('Setting breakpoint for line $line column $column');
-    final isolateId = isolateRef.id!;
-    final isolate = await service.getIsolate(isolateId);
-    final lib =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    final ScriptRef script = lib.scripts!.firstWhere((s) => s.uri == lib.uri);
-    final Breakpoint bpt = await service.addBreakpoint(
-      isolateId,
-      script.id!,
-      line,
-      column: column,
-    );
+    final Breakpoint bpt = await service
+        .addBreakpointWithScriptUri(isolateRef.id!, uri, line, column: column);
     print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
   };
@@ -229,8 +600,8 @@ extension BreakpointLocation on Breakpoint {
       script.uri!,
       (
         script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
-        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
-      )
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1,
+      ),
     );
   }
 }
@@ -252,8 +623,8 @@ extension FrameLocation on Frame {
       script.uri!,
       (
         script.getLineNumberFromTokenPos(location!.tokenPos!) ?? -1,
-        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1
-      )
+        script.getColumnNumberFromTokenPos(location!.tokenPos!) ?? -1,
+      ),
     );
   }
 }
@@ -318,8 +689,10 @@ IsolateTest stoppedAtLineColumn({required int line, int? column}) {
     expect(frames.length, greaterThanOrEqualTo(1));
 
     final top = frames[0];
-    final (_, (actualLine, actualColumn)) =
-        await top.getLocation(service, isolateRef);
+    final (_, (actualLine, actualColumn)) = await top.getLocation(
+      service,
+      isolateRef,
+    );
     if (actualLine != line) {
       final sb = StringBuffer();
       sb.writeln(
@@ -345,24 +718,37 @@ IsolateTest stoppedAtLine(int line) {
 }
 
 Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
-  final Completer completer = Completer();
+  Completer<void>? completer = Completer<void>();
+  // Capture the future synchronously before any async yields or nullification
+  // to ensure the caller always awaits the actual completion of the cleanup
+  // tasks.
+  final future = completer.future;
   late StreamSubscription<Event> subscription;
   bool cancelStreamAfterResume = false;
-  subscription = service.onDebugEvent.listen((event) async {
-    if (event.kind == EventKind.kResume) {
-      try {
-        if (cancelStreamAfterResume) {
-          await service.streamCancel(EventStreams.kDebug);
-        }
-      } catch (_) {/* swallow exception */} finally {
-        await subscription.cancel();
-        completer.complete();
+
+  // Synchronously nullify the completer before any async yields to prevent
+  // concurrent execution paths (e.g., multiple stream events) from
+  // double-completing it and throwing a StateError.
+  Future<void> complete() async {
+    if (completer != null) {
+      final c = completer!;
+      completer = null; // Synchronously set to null
+      if (cancelStreamAfterResume) {
+        await _unsubscribeDebugStream(service);
       }
+      await subscription.cancel();
+      c.complete();
+    }
+  }
+
+  subscription = service.onDebugEvent.listen((event) {
+    if (event.kind == EventKind.kResume && event.isolate?.id == isolate.id) {
+      complete();
     }
   });
   cancelStreamAfterResume = await _subscribeDebugStream(service);
   await service.resume(isolate.id!);
-  return completer.future;
+  return future;
 }
 
 Future<bool> _subscribeDebugStream(VmService service) async {
@@ -445,8 +831,11 @@ IsolateTest resumeProgramRecordingStops(
         final stack = await service.getStack(isolateRef.id!);
         expect(stack.frames!.length, greaterThanOrEqualTo(2));
 
-        String brokeAt =
-            await _locationToString(service, isolateRef, stack.frames![0]);
+        String brokeAt = await _locationToString(
+          service,
+          isolateRef,
+          stack.frames![0],
+        );
         if (includeCaller) {
           brokeAt =
               '$brokeAt (${await _locationToString(service, isolateRef, stack.frames![1])})';
@@ -544,11 +933,12 @@ IsolateTest runStepIntoThroughProgramRecordingStops(List<String> recordStops) {
 
 IsolateTest checkRecordedStops(
   List<String> recordStops,
-  List<String> expectedStops, {
+  String goldenFileName, {
   bool removeDuplicates = false,
   bool debugPrint = false,
   String? debugPrintFile,
   int? debugPrintLine,
+  bool updateGoldens = false,
 }) {
   String formatLine(String line) {
     String output = line;
@@ -556,8 +946,9 @@ IsolateTest checkRecordedStops(
       final int firstColon = line.indexOf(':');
       final int lastColon = line.lastIndexOf(':');
       if (firstColon > 0 && lastColon > 0) {
-        final int lineNumber =
-            int.parse(line.substring(firstColon + 1, lastColon));
+        final int lineNumber = int.parse(
+          line.substring(firstColon + 1, lastColon),
+        );
         final int relativeLineNumber = lineNumber - debugPrintLine;
         final columnNumber = line.substring(lastColon + 1);
         final file = line.substring(0, firstColon);
@@ -570,58 +961,82 @@ IsolateTest checkRecordedStops(
   }
 
   return (VmService service, IsolateRef isolate) async {
+    var updatedStops =
+        recordStops.takeWhile((s) => !s.contains('test_helper.dart')).toList();
     if (debugPrint) {
-      for (int i = 0; i < recordStops.length; i++) {
-        final line = recordStops[i];
+      for (int i = 0; i < updatedStops.length; i++) {
+        final line = updatedStops[i];
         final output = formatLine(line);
-        final String comma = i == recordStops.length - 1 ? '' : ',';
+        final String comma = i == updatedStops.length - 1 ? '' : ',';
         print("'$output'$comma");
       }
     }
     if (removeDuplicates) {
-      recordStops = removeAdjacentDuplicates(recordStops);
+      updatedStops = removeAdjacentDuplicates(updatedStops);
+    }
+
+    print('Loading golden file from: $goldenFileName');
+    final goldenFile = io.File(goldenFileName);
+
+    if (updateGoldens) {
+      goldenFile.writeAsStringSync(
+        '// This file is generated by running the associated test with '
+        '--update-goldens. Do not edit this file directly.\n\n'
+        '${updatedStops.join('\n')}\n',
+      );
+      print('Updated golden file: ${goldenFile.path}');
+      return;
+    }
+
+    if (!goldenFile.existsSync()) {
+      throw 'Golden file not found: ${goldenFile.path}. Run with '
+          '--update-goldens to generate.';
+    }
+
+    // Skip the first 3 lines which are comments.
+    List<String> expectedStops = goldenFile.readAsLinesSync().skip(3).toList();
+    if (removeDuplicates) {
       expectedStops = removeAdjacentDuplicates(expectedStops);
     }
 
-    // Single stepping may record extra stops.
-    // Allow the extra ones as long as the expected ones are recorded.
     int i = 0;
     int j = 0;
-    while (i < recordStops.length && j < expectedStops.length) {
-      if (recordStops[i] != expectedStops[j]) {
-        // Check if recordStops[i] is an extra stop.
+    while (i < updatedStops.length && j < expectedStops.length) {
+      if (updatedStops[i] != expectedStops[j]) {
         int k = i + 1;
-        while (k < recordStops.length && recordStops[k] != expectedStops[j]) {
+        while (k < updatedStops.length && updatedStops[k] != expectedStops[j]) {
           k++;
         }
-        if (k < recordStops.length) {
-          // Allow and ignore extra recorded stops from i to k-1.
+        if (k < updatedStops.length) {
           if (debugPrint) {
             print('Skipping recorded stops [$i, $k)');
           }
           i = k;
         } else {
-          // This will report an error.
           expect(
-            formatLine(recordStops[i]),
+            formatLine(updatedStops[i]),
             formatLine(expectedStops[j]),
-            reason: 'Recorded stop $i does not match expected stop $j.',
+            reason: 'Recorded stop $i does not match expected stop $j. '
+                'To regenerate golden, run with test with --update-goldens.',
           );
         }
       }
       if (debugPrint) {
-        print('Recorded stop $i matches expected stop $j: '
-            '${formatLine(recordStops[i])}');
+        print(
+          'Recorded stop $i matches expected stop $j: '
+          '${formatLine(updatedStops[i])}',
+        );
       }
       i++;
       j++;
     }
 
     expect(
-      recordStops.length >= expectedStops.length,
+      updatedStops.length >= expectedStops.length,
       true,
       reason: 'Expects at least ${expectedStops.length} breaks, '
-          'got ${recordStops.length}.',
+          'got ${updatedStops.length}. To regenerate golden, run with test '
+          'with --update-goldens.',
     );
   };
 }
@@ -791,10 +1206,8 @@ IsolateTest stoppedInFunction(String functionName) {
     expect(frames, isNotEmpty);
 
     final topFrame = frames[0];
-    final function = await service.getObject(
-      isolateId,
-      topFrame.function!.id!,
-    ) as Func;
+    final function =
+        await service.getObject(isolateId, topFrame.function!.id!) as Func;
     final name = function.name!;
     if (name != functionName) {
       final sb = StringBuffer();
@@ -819,8 +1232,11 @@ Future<String> qualifiedFunctionName(
   final funcName = func.name ?? '<unknown>';
   switch (func.owner) {
     case final FuncRef parentFuncRef:
-      final parentFuncName =
-          await qualifiedFunctionName(service, isolate, parentFuncRef);
+      final parentFuncName = await qualifiedFunctionName(
+        service,
+        isolate,
+        parentFuncRef,
+      );
       return '$parentFuncName.$funcName';
 
     case final ClassRef parentClass:
@@ -866,10 +1282,8 @@ Future<String> getCurrentExceptionAsString(
 ) async {
   final isolate = await service.getIsolate(isolateRef.id!);
   final event = isolate.pauseEvent!;
-  final exception = await service.getObject(
-    isolateRef.id!,
-    event.exception!.id!,
-  ) as Instance;
+  final exception =
+      await service.getObject(isolateRef.id!, event.exception!.id!) as Instance;
   return exception.valueAsString!;
 }
 

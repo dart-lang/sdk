@@ -2,9 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# This value will be inherited in the toolchain below.
-concurrent_links = exec_script("get_concurrent_links.py", [], "value")
-
 # This template defines a toolchain for something that works like gcc
 # (including clang).
 #
@@ -117,6 +114,8 @@ template("gcc_toolchain") {
     }
 
     tool("asm") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+
       # For GCC we can just use the C compiler to compile assembly.
       depfile = "{{output}}.d"
       command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} {{asmflags}} -c {{source}} -o {{output}}"
@@ -127,6 +126,11 @@ template("gcc_toolchain") {
     }
 
     tool("alink") {
+      if (is_clang) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
+      } else {
+        pool = "//build/toolchain:gnu_link_pool($host_toolchain)"
+      }
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -138,6 +142,11 @@ template("gcc_toolchain") {
     }
 
     tool("solink") {
+      if (is_clang) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
+      } else {
+        pool = "//build/toolchain:gnu_link_pool($host_toolchain)"
+      }
       soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
       sofile = "{{root_out_dir}}/$soname"  # Possibly including toolchain dir.
       rspfile = sofile + ".rsp"
@@ -190,6 +199,11 @@ template("gcc_toolchain") {
     }
 
     tool("link") {
+      if (is_clang) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
+      } else {
+        pool = "//build/toolchain:gnu_link_pool($host_toolchain)"
+      }
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"

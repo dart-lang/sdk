@@ -17,15 +17,11 @@ import 'package:kernel/type_environment.dart' show StaticTypeContext;
 /// (e.g. constant type arguments) have dedicated subclasses of
 /// [ast.AuxiliaryConstant].
 extension type ConstantValue(ast.Constant constant) {
-  factory ConstantValue.fromInt(int value) =>
-      ConstantValue(ast.IntConstant(value));
-  factory ConstantValue.fromDouble(double value) =>
-      ConstantValue(ast.DoubleConstant(value));
-  factory ConstantValue.fromBool(bool value) =>
-      ConstantValue(ast.BoolConstant(value));
-  factory ConstantValue.fromNull() => ConstantValue(ast.NullConstant());
-  factory ConstantValue.fromString(String value) =>
-      ConstantValue(ast.StringConstant(value));
+  factory fromInt(int value) => ConstantValue(ast.IntConstant(value));
+  factory fromDouble(double value) => ConstantValue(ast.DoubleConstant(value));
+  factory fromBool(bool value) => ConstantValue(ast.BoolConstant(value));
+  factory fromNull() => ConstantValue(ast.NullConstant());
+  factory fromString(String value) => ConstantValue(ast.StringConstant(value));
 
   int get intValue => switch (constant) {
     ast.IntConstant(:var value) => value,
@@ -91,9 +87,7 @@ extension type ConstantValue(ast.Constant constant) {
 /// Methods of this class return `null` when constant folding
 /// cannot be performed (e.g. corresponding operation would
 /// throw an exception at runtime).
-class ConstantFolding {
-  const ConstantFolding();
-
+class const ConstantFolding() {
   ConstantValue comparison(
     ComparisonOpcode op,
     ConstantValue left,
@@ -269,14 +263,21 @@ class ConstantFolding {
     }
     return ConstantValue.fromString(buf.toString());
   }
+
+  ConstantValue instantiateClosure(
+    ConstantValue typeArguments,
+    ConstantValue closure,
+  ) {
+    final types = (typeArguments as TypeArgumentsConstant).types;
+    return ConstantValue(
+      ast.InstantiationConstant(closure as ast.TearOffConstant, types),
+    );
+  }
 }
 
 /// Constant type arguments.
-class TypeArgumentsConstant extends ast.AuxiliaryConstant {
-  final List<ast.DartType> types;
-
-  TypeArgumentsConstant(this.types);
-
+class TypeArgumentsConstant(final List<ast.DartType> types)
+    extends ast.AuxiliaryConstant {
   @override
   void visitChildren(ast.Visitor v) {
     ast.visitList(types, v);
@@ -307,8 +308,6 @@ class TypeArgumentsConstant extends ast.AuxiliaryConstant {
 /// value of a late local variable, late or static field or
 /// a value of an optional parameter which was not passed.
 class SentinelConstant extends ast.AuxiliaryConstant {
-  SentinelConstant();
-
   @override
   void visitChildren(ast.Visitor v) {}
 
@@ -334,18 +333,13 @@ class SentinelConstant extends ast.AuxiliaryConstant {
 ///
 /// Used by certain back-ends to distinguish raw unboxed values
 /// (incompatible with Dart objects) from regular constants.
-abstract base class UnboxedConstant extends ast.AuxiliaryConstant {
-  UnboxedConstant();
-}
+abstract base class UnboxedConstant extends ast.AuxiliaryConstant;
 
 /// Unboxed int constant.
 ///
 /// Used by certain back-ends to distinguish raw unboxed values
 /// (incompatible with Dart objects) from regular constants.
-final class UnboxedIntConstant extends UnboxedConstant {
-  final int value;
-  UnboxedIntConstant(this.value);
-
+final class UnboxedIntConstant(final int value) extends UnboxedConstant {
   @override
   void visitChildren(ast.Visitor v) {}
 
@@ -373,10 +367,7 @@ final class UnboxedIntConstant extends UnboxedConstant {
 ///
 /// Used by certain back-ends to distinguish raw unboxed values
 /// (incompatible with Dart objects) from regular constants.
-final class UnboxedDoubleConstant extends UnboxedConstant {
-  final double value;
-  UnboxedDoubleConstant(this.value);
-
+final class UnboxedDoubleConstant(final double value) extends UnboxedConstant {
   @override
   void visitChildren(ast.Visitor v) {}
 
@@ -402,8 +393,6 @@ final class UnboxedDoubleConstant extends UnboxedConstant {
 
 /// Synthetic constant representing undefined value of a local variable.
 class UndefinedConstant extends ast.AuxiliaryConstant {
-  UndefinedConstant();
-
   @override
   void visitChildren(ast.Visitor v) {}
 

@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $JSExternWrapper (sub $#Top (struct
@@ -11,29 +11,34 @@
   (global $stringValueNullable (mut (ref null $JSExternWrapper)) <...>)
   (func $ktrue implicit getter (result i32) <...>)
   (func $new JSStringImpl.fromRef (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
-  (func $sinkString <noInline> (param $var0 (ref $JSExternWrapper)) <...>)
-  (func $sinkStringNullable <noInline> (param $var0 (ref null $JSExternWrapper)) <...>)
   (func $stringValue implicit getter (result (ref $JSExternWrapper)) <...>)
-  (func $"testStringConstant <noInline>"
+  (func $JSStringImpl.fromRefNullable (param $var0 externref) (result (ref null $JSExternWrapper)) <...>)
+  (func $sinkString (param $var0 (ref $JSExternWrapper)) <...>)
+  (func $sinkStringNullable (param $var0 (ref null $JSExternWrapper)) <...>)
+  (@binaryen.inline 0)
+  (func $testStringConstant
     global.get $.a
     call $"dart2wasm.P (import)"
     call $"new JSStringImpl.fromRef"
-    call $"sinkString <noInline>"
+    call $sinkString
   )
-  (func $"testStringConstantNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testStringConstantNullable
     ref.null noextern
     call $"dart2wasm.M (import)"
     call $JSStringImpl.fromRefNullable
-    call $"sinkStringNullable <noInline>"
+    call $sinkStringNullable
   )
-  (func $"testStringValue <noInline>"
+  (@binaryen.inline 0)
+  (func $testStringValue
     call $"stringValue implicit getter"
     struct.get $JSExternWrapper $_externRef
     call $"dart2wasm.P (import)"
     call $"new JSStringImpl.fromRef"
-    call $"sinkString <noInline>"
+    call $sinkString
   )
-  (func $"testStringValueNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testStringValueNullable
     (local $var0 (ref null $JSExternWrapper))
     (local $var1 (ref null $JSExternWrapper))
     global.get $"stringValueNullable initialized"
@@ -62,7 +67,6 @@
     end
     call $"dart2wasm.M (import)"
     call $JSStringImpl.fromRefNullable
-    call $"sinkStringNullable <noInline>"
+    call $sinkStringNullable
   )
-  (func $JSStringImpl.fromRefNullable (param $var0 externref) (result (ref null $JSExternWrapper)) <...>)
 )

@@ -1,0 +1,32 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# The VM sometimes provides definitions that aren't actually in scope,
+# but if the alternative is to give an error we should use it anyway.
+# If something is in scope though, we use that.
+
+sources: |
+  import "dart:developer";
+
+  void main() {
+    foo<num>();
+  }
+
+  void foo<bar>() {
+    debugger();
+    print(bar);
+  }
+
+# We pretend the vm says we have a "bar" variable in scope.
+definitions: ["bar"]
+definition_types: ["dart:core", "_Smi", "1", "0"]
+type_definitions: ["bar"]
+type_bounds: ["dart:core", "Object", "0", "0"]
+type_defaults: ["null"]
+method: "foo"
+static: true
+offset: 79 # on 'debugger'
+scriptUri: main.dart
+expression: |
+  bar

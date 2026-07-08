@@ -67,18 +67,19 @@ void main(List<String> args) async {
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
         '--extra-compiler-option=--unique-types',
-        for (final option in compilerOptions)
-          if (option == '--standalone')
-            '--standalone'
-          else
-            '--extra-compiler-option=$option',
+        '--no-strip-toolchain-annotations',
         '--extra-compiler-option=--no-unique-constant-names',
         '--extra-compiler-option=--enable-experimental-wasm-interop',
         // Minify interop names so that the names of these entities are more
         // stable against SDK and compiler changes.
         '--extra-compiler-option=--minify-interop-names',
-        if (runFromSource) '--src',
         '--no-strip-wasm',
+        for (final option in compilerOptions)
+          if (option == '--standalone')
+            '--standalone'
+          else
+            '--extra-compiler-option=$option',
+        if (runFromSource) '--src',
         '-o',
         wasmFile.path,
         dartFilename,

@@ -11,12 +11,14 @@ template("wasm_module") {
   action(target_name) {
     script = rebase_path("//build/gn_run_binary.py")
     args = [
-      "compiled_action",
-      rebase_path("//third_party/emsdk/upstream/emscripten/emcc"),
+      rebase_path("//third_party/emsdk/upstream/emscripten/emcc",
+                  root_build_dir),
       "--no-entry",
-      rebase_path("//tests/web/wasm/ffi/${invoker.module_name}.c"),
+      rebase_path("//tests/web/wasm/ffi/${invoker.module_name}.c",
+                  root_build_dir),
       "-o",
-      rebase_path("$root_out_dir/wasm/${invoker.module_name}.wasm"),
+      rebase_path("$root_out_dir/wasm/${invoker.module_name}.wasm",
+                  root_build_dir),
       "-O",
     ]
     inputs = [ "//tests/web/wasm/ffi/${invoker.module_name}.c" ]
@@ -42,7 +44,7 @@ aot_snapshot("dart2wasm_product_snapshot") {
   force_product_mode = true
 }
 
-compile_platform("compile_dart2wasm_platform") {
+compile_platform("dart2wasm_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
@@ -58,7 +60,7 @@ compile_platform("compile_dart2wasm_platform") {
   ]
 }
 
-compile_platform("compile_dart2wasm_js_compatibility_platform") {
+compile_platform("dart2wasm_js_compatibility_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
@@ -75,7 +77,7 @@ compile_platform("compile_dart2wasm_js_compatibility_platform") {
   ]
 }
 
-compile_platform("compile_dart2wasm_standalone_platform") {
+compile_platform("dart2wasm_standalone_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"

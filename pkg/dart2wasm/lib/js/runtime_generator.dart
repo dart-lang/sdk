@@ -68,13 +68,11 @@ class RuntimeFinalizer {
         case JsCodeData(:final jsCode):
           final importName = _interopMemberNamer.getImportName(p)!.itemName;
           usedJSMethods.add((importName: importName, jsCode: jsCode));
-        case JsTrampolineWrapperData(:final trampoline):
+        case JsTrampolineWrapperData():
           final importName = _interopMemberNamer.getImportName(p)!.itemName;
           usedJSMethods.add((
             importName: importName,
-            jsCode: annotationInfo.jsCode(
-              _interopMemberNamer.getExportName(trampoline)!,
-            ),
+            jsCode: annotationInfo.jsCode(),
           ));
         case JsTrampolineData():
         // do nothing
@@ -161,7 +159,6 @@ class RuntimeFinalizer {
         ? moduleLoadingHelperTemplate.instantiate({
             ...jsStringBuiltinPolyfillImportVars,
             'MAIN_MODULE_NAME': mainModuleName,
-            'THIS_MODULE_SETTER_NAME': _interopMemberNamer.thisModuleSetterName,
           })
         : '';
 
@@ -170,7 +167,6 @@ class RuntimeFinalizer {
       ...moduleLoadingImportVars,
       'BUILTINS_MAP_BODY': builtins.join(', '),
       'JS_METHODS': jsMethods,
-      'THIS_MODULE_SETTER_NAME': _interopMemberNamer.thisModuleSetterName,
       'INTERNAL_IMPORTS_MODULE_NAME':
           _interopMemberNamer.interopHelperModuleName,
       'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,

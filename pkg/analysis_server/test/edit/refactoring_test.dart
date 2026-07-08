@@ -1507,9 +1507,8 @@ import 'new_folder/file.dart';
   Future<Response> _cancelMoveRequest() {
     // 0 is the id from _sendMoveRequest
     // 1 is another arbitrary id for the cancel request
-    var request = ServerCancelRequestParams(
-      '0',
-    ).toRequest('1', clientUriConverter: server.uriConverter);
+    var request = ServerCancelRequestParams('0')
+        .toRequest('1', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -2269,7 +2268,7 @@ enum E {
 enum E {
   v1.newName(), v2.newName();
 
-  const E.newName();
+  const new newName();
 }
 ''',
       feedbackValidator: (feedback) {

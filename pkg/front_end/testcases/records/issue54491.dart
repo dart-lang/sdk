@@ -14,9 +14,10 @@ void main() {
   const Chk(Ex((1,)), eq: (1,));
   const Chk(Ex((Ex(1),)), eq: (1,));
 }
+
 class Chk {
-  const Chk(Object? v, {required Object? eq}) :
-    assert(v == eq, "Not equal ${(v, eq: eq)}");
+  const Chk(Object? v, {required Object? eq})
+    : assert(v == eq, "Not equal ${(v, eq: eq)}");
 }
 
 extension type const Ex(Object? value) {}

@@ -25,116 +25,52 @@ part of 'dart:async';
 /// Handlers can either stop propagating the request (by simply not calling the
 /// parent handler), or forward to the parent zone, potentially modifying the
 /// arguments on the way.
-abstract final class ZoneSpecification {
+final class ZoneSpecification {
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
+  final HandleUncaughtErrorHandler? handleUncaughtError;
+
+  /// A custom [Zone.run] implementation for a new zone.
+  final RunHandler? run;
+
+  /// A custom [Zone.runUnary] implementation for a new zone.
+  final RunUnaryHandler? runUnary;
+
+  /// A custom [Zone.runBinary] implementation for a new zone.
+  final RunBinaryHandler? runBinary;
+
+  /// A custom [Zone.registerCallback] implementation for a new zone.
+  final RegisterCallbackHandler? registerCallback;
+
+  /// A custom [Zone.registerUnaryCallback] implementation for a new zone.
+  final RegisterUnaryCallbackHandler? registerUnaryCallback;
+
+  /// A custom [Zone.registerBinaryCallback] implementation for a new zone.
+  final RegisterBinaryCallbackHandler? registerBinaryCallback;
+
+  /// A custom [Zone.errorCallback] implementation for a new zone.
+  final ErrorCallbackHandler? errorCallback;
+
+  /// A custom [Zone.scheduleMicrotask] implementation for a new zone.
+  final ScheduleMicrotaskHandler? scheduleMicrotask;
+
+  /// A custom [Zone.createTimer] implementation for a new zone.
+  final CreateTimerHandler? createTimer;
+
+  /// A custom [Zone.createPeriodicTimer] implementation for a new zone.
+  final CreatePeriodicTimerHandler? createPeriodicTimer;
+
+  /// A custom [Zone.print] implementation for a new zone.
+  final PrintHandler? print;
+
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
+  final ForkHandler? fork;
+
   /// Creates a specification with the provided handlers.
   ///
   /// If the [handleUncaughtError] is provided, the new zone will be a new
   /// "error zone" which will prevent errors from flowing into other
   /// error zones (see [Zone.errorZone], [Zone.inSameErrorZone]).
-  const factory ZoneSpecification({
-    HandleUncaughtErrorHandler? handleUncaughtError,
-    RunHandler? run,
-    RunUnaryHandler? runUnary,
-    RunBinaryHandler? runBinary,
-    RegisterCallbackHandler? registerCallback,
-    RegisterUnaryCallbackHandler? registerUnaryCallback,
-    RegisterBinaryCallbackHandler? registerBinaryCallback,
-    ErrorCallbackHandler? errorCallback,
-    ScheduleMicrotaskHandler? scheduleMicrotask,
-    CreateTimerHandler? createTimer,
-    CreatePeriodicTimerHandler? createPeriodicTimer,
-    PrintHandler? print,
-    ForkHandler? fork,
-  }) = _ZoneSpecification;
-
-  /// Creates a specification from [other] and provided handlers.
-  ///
-  /// The created zone specification has the handlers of [other]
-  /// and any individually provided handlers.
-  /// If a handler is provided both through [other] and individually,
-  /// the individually provided handler overrides the one from [other].
-  factory ZoneSpecification.from(
-    ZoneSpecification other, {
-    HandleUncaughtErrorHandler? handleUncaughtError,
-    RunHandler? run,
-    RunUnaryHandler? runUnary,
-    RunBinaryHandler? runBinary,
-    RegisterCallbackHandler? registerCallback,
-    RegisterUnaryCallbackHandler? registerUnaryCallback,
-    RegisterBinaryCallbackHandler? registerBinaryCallback,
-    ErrorCallbackHandler? errorCallback,
-    ScheduleMicrotaskHandler? scheduleMicrotask,
-    CreateTimerHandler? createTimer,
-    CreatePeriodicTimerHandler? createPeriodicTimer,
-    PrintHandler? print,
-    ForkHandler? fork,
-  }) {
-    return ZoneSpecification(
-      handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
-      run: run ?? other.run,
-      runUnary: runUnary ?? other.runUnary,
-      runBinary: runBinary ?? other.runBinary,
-      registerCallback: registerCallback ?? other.registerCallback,
-      registerUnaryCallback:
-          registerUnaryCallback ?? other.registerUnaryCallback,
-      registerBinaryCallback:
-          registerBinaryCallback ?? other.registerBinaryCallback,
-      errorCallback: errorCallback ?? other.errorCallback,
-      scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
-      createTimer: createTimer ?? other.createTimer,
-      createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
-      print: print ?? other.print,
-      fork: fork ?? other.fork,
-    );
-  }
-
-  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
-  HandleUncaughtErrorHandler? get handleUncaughtError;
-
-  /// A custom [Zone.run] implementation for a new zone.
-  RunHandler? get run;
-
-  /// A custom [Zone.runUnary] implementation for a new zone.
-  RunUnaryHandler? get runUnary;
-
-  /// A custom [Zone.runBinary] implementation for a new zone.
-  RunBinaryHandler? get runBinary;
-
-  /// A custom [Zone.registerCallback] implementation for a new zone.
-  RegisterCallbackHandler? get registerCallback;
-
-  /// A custom [Zone.registerUnaryCallback] implementation for a new zone.
-  RegisterUnaryCallbackHandler? get registerUnaryCallback;
-
-  /// A custom [Zone.registerBinaryCallback] implementation for a new zone.
-  RegisterBinaryCallbackHandler? get registerBinaryCallback;
-
-  /// A custom [Zone.errorCallback] implementation for a new zone.
-  ErrorCallbackHandler? get errorCallback;
-
-  /// A custom [Zone.scheduleMicrotask] implementation for a new zone.
-  ScheduleMicrotaskHandler? get scheduleMicrotask;
-
-  /// A custom [Zone.createTimer] implementation for a new zone.
-  CreateTimerHandler? get createTimer;
-
-  /// A custom [Zone.createPeriodicTimer] implementation for a new zone.
-  CreatePeriodicTimerHandler? get createPeriodicTimer;
-
-  /// A custom [Zone.print] implementation for a new zone.
-  PrintHandler? get print;
-
-  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
-  ForkHandler? get fork;
-}
-
-/// Internal [ZoneSpecification] class.
-///
-/// The implementation wants to rely on the fact that the getters cannot change
-/// dynamically. We thus require users to go through the redirecting
-/// [ZoneSpecification] constructor which instantiates this class.
-base class _ZoneSpecification implements ZoneSpecification {
-  const _ZoneSpecification({
+  const ZoneSpecification({
     this.handleUncaughtError,
     this.run,
     this.runUnary,
@@ -150,19 +86,44 @@ base class _ZoneSpecification implements ZoneSpecification {
     this.fork,
   });
 
-  final HandleUncaughtErrorHandler? handleUncaughtError;
-  final RunHandler? run;
-  final RunUnaryHandler? runUnary;
-  final RunBinaryHandler? runBinary;
-  final RegisterCallbackHandler? registerCallback;
-  final RegisterUnaryCallbackHandler? registerUnaryCallback;
-  final RegisterBinaryCallbackHandler? registerBinaryCallback;
-  final ErrorCallbackHandler? errorCallback;
-  final ScheduleMicrotaskHandler? scheduleMicrotask;
-  final CreateTimerHandler? createTimer;
-  final CreatePeriodicTimerHandler? createPeriodicTimer;
-  final PrintHandler? print;
-  final ForkHandler? fork;
+  /// Creates a specification from [other] and provided handlers.
+  ///
+  /// The created zone specification has the handlers of [other]
+  /// and any individually provided handlers.
+  /// If a handler is provided both through [other] and individually,
+  /// the individually provided handler overrides the one from [other].
+  ZoneSpecification.from(
+    ZoneSpecification other, {
+    HandleUncaughtErrorHandler? handleUncaughtError,
+    RunHandler? run,
+    RunUnaryHandler? runUnary,
+    RunBinaryHandler? runBinary,
+    RegisterCallbackHandler? registerCallback,
+    RegisterUnaryCallbackHandler? registerUnaryCallback,
+    RegisterBinaryCallbackHandler? registerBinaryCallback,
+    ErrorCallbackHandler? errorCallback,
+    ScheduleMicrotaskHandler? scheduleMicrotask,
+    CreateTimerHandler? createTimer,
+    CreatePeriodicTimerHandler? createPeriodicTimer,
+    PrintHandler? print,
+    ForkHandler? fork,
+  }) : this(
+         handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
+         run: run ?? other.run,
+         runUnary: runUnary ?? other.runUnary,
+         runBinary: runBinary ?? other.runBinary,
+         registerCallback: registerCallback ?? other.registerCallback,
+         registerUnaryCallback:
+             registerUnaryCallback ?? other.registerUnaryCallback,
+         registerBinaryCallback:
+             registerBinaryCallback ?? other.registerBinaryCallback,
+         errorCallback: errorCallback ?? other.errorCallback,
+         scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
+         createTimer: createTimer ?? other.createTimer,
+         createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
+         print: print ?? other.print,
+         fork: fork ?? other.fork,
+       );
 }
 
 // Names and documentation for the functions of a ZoneSpecification.
@@ -188,14 +149,13 @@ base class _ZoneSpecification implements ZoneSpecification {
 /// to `parent.handleUncaughtError`. If the thrown object is [error],
 /// the throw is considered a re-throw and the original [stackTrace]
 /// is retained. This allows an asynchronous error to leave the error zone.
-typedef HandleUncaughtErrorHandler =
-    void Function(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      Object error,
-      StackTrace stackTrace,
-    );
+typedef HandleUncaughtErrorHandler = void Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  Object error,
+  StackTrace stackTrace,
+);
 
 /// The type of a custom [Zone.run] implementation function.
 ///
@@ -218,8 +178,12 @@ typedef HandleUncaughtErrorHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef RunHandler =
-    R Function<R>(Zone self, ZoneDelegate parent, Zone zone, R Function() f);
+typedef RunHandler = R Function<R>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function() f,
+);
 
 /// The type of a custom [Zone.runUnary] implementation function.
 ///
@@ -242,14 +206,13 @@ typedef RunHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef RunUnaryHandler =
-    R Function<R, T>(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      R Function(T arg) f,
-      T arg,
-    );
+typedef RunUnaryHandler = R Function<R, T>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function(T arg) f,
+  T arg,
+);
 
 /// The type of a custom [Zone.runBinary] implementation function.
 ///
@@ -272,15 +235,14 @@ typedef RunUnaryHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef RunBinaryHandler =
-    R Function<R, T1, T2>(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      R Function(T1 arg1, T2 arg2) f,
-      T1 arg1,
-      T2 arg2,
-    );
+typedef RunBinaryHandler = R Function<R, T1, T2>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function(T1 arg1, T2 arg2) f,
+  T1 arg1,
+  T2 arg2,
+);
 
 /// The type of a custom [Zone.registerCallback] implementation function.
 ///
@@ -303,13 +265,12 @@ typedef RunBinaryHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef RegisterCallbackHandler =
-    ZoneCallback<R> Function<R>(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      R Function() f,
-    );
+typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function() f,
+);
 
 /// The type of a custom [Zone.registerUnaryCallback] implementation function.
 ///
@@ -332,13 +293,12 @@ typedef RegisterCallbackHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef RegisterUnaryCallbackHandler =
-    ZoneUnaryCallback<R, T> Function<R, T>(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      R Function(T arg) f,
-    );
+typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function(T arg) f,
+);
 
 /// The type of a custom [Zone.registerBinaryCallback] implementation function.
 ///
@@ -405,14 +365,13 @@ typedef RegisterBinaryCallbackHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef ErrorCallbackHandler =
-    AsyncError? Function(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      Object error,
-      StackTrace? stackTrace,
-    );
+typedef ErrorCallbackHandler = AsyncError? Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  Object error,
+  StackTrace? stackTrace,
+);
 
 /// The type of a custom [Zone.scheduleMicrotask] implementation function.
 ///
@@ -436,8 +395,12 @@ typedef ErrorCallbackHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef ScheduleMicrotaskHandler =
-    void Function(Zone self, ZoneDelegate parent, Zone zone, void Function() f);
+typedef ScheduleMicrotaskHandler = void Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  void Function() f,
+);
 
 /// The type of a custom [Zone.createTimer] implementation function.
 ///
@@ -465,14 +428,13 @@ typedef ScheduleMicrotaskHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef CreateTimerHandler =
-    Timer Function(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      Duration duration,
-      void Function() f,
-    );
+typedef CreateTimerHandler = Timer Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  Duration duration,
+  void Function() f,
+);
 
 /// The type of a custom [Zone.createPeriodicTimer] implementation function.
 ///
@@ -500,14 +462,13 @@ typedef CreateTimerHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef CreatePeriodicTimerHandler =
-    Timer Function(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      Duration period,
-      void Function(Timer timer) f,
-    );
+typedef CreatePeriodicTimerHandler = Timer Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  Duration period,
+  void Function(Timer timer) f,
+);
 
 /// The type of a custom [Zone.print] implementation function.
 ///
@@ -528,8 +489,12 @@ typedef CreatePeriodicTimerHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef PrintHandler =
-    void Function(Zone self, ZoneDelegate parent, Zone zone, String line);
+typedef PrintHandler = void Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  String line,
+);
 
 /// The type of a custom [Zone.fork] implementation function.
 ///
@@ -556,11 +521,10 @@ typedef PrintHandler =
 /// The function must only access zone-related functionality through
 /// [self], [parent] or [zone].
 /// It should not depend on the current zone ([Zone.current]).
-typedef ForkHandler =
-    Zone Function(
-      Zone self,
-      ZoneDelegate parent,
-      Zone zone,
-      ZoneSpecification? specification,
-      Map<Object?, Object?>? zoneValues,
-    );
+typedef ForkHandler = Zone Function(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  ZoneSpecification? specification,
+  Map<Object?, Object?>? zoneValues,
+);

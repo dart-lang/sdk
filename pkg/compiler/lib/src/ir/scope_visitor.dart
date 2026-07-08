@@ -306,7 +306,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
-  void _handleVariableDeclaration(ir.Variable node, VariableUse usage) {
+  void _handleVariableDeclaration(
+    ir.Variable node,
+    ir.Expression? initializer,
+    VariableUse usage,
+  ) {
     if (!node.isInitializingFormal) {
       _scopeVariables.add(node);
     }
@@ -329,7 +333,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   @override
   EvaluationComplexity defaultVariable(ir.Variable node) {
-    _handleVariableDeclaration(node.variable, SimpleVariableUse.localType);
+    _handleVariableDeclaration(
+      node,
+      node.initializer,
+      SimpleVariableUse.localType,
+    );
     return const EvaluationComplexity.lazy();
   }
 
@@ -869,11 +877,19 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
         ? MemberParameterVariableUse(parent)
         : LocalParameterVariableUse(parent as ir.LocalFunction);
     visitNodesInContext(node.typeParameters, parameterUsage);
-    for (ir.Variable declaration in node.positionalParameters) {
-      _handleVariableDeclaration(declaration, parameterUsage);
+    for (ir.PositionalParameter declaration in node.positionalParameters) {
+      _handleVariableDeclaration(
+        declaration,
+        declaration.defaultValue,
+        parameterUsage,
+      );
     }
-    for (ir.Variable declaration in node.namedParameters) {
-      _handleVariableDeclaration(declaration, parameterUsage);
+    for (ir.NamedParameter declaration in node.namedParameters) {
+      _handleVariableDeclaration(
+        declaration,
+        declaration.defaultValue,
+        parameterUsage,
+      );
     }
     visitInContext(
       node.returnType,

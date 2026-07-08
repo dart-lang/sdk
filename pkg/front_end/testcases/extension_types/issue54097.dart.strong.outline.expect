@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:9:28: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:10:28: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef G1 = void Function<X extends E1<X>>(); // Error.
 //                            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:23:28: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:31:28: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef G2 = void Function<X extends E1<Y>, Y extends X>(); // Error.
 //                            ^
@@ -17,77 +17,77 @@ library;
 // class A1<X extends E1<X>> {} // Error.
 //          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:8:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:9:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef F1<X extends E1<X>> = int; // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:10:17: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:11:17: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef void H1<X extends E1<X>>(); // Error.
 //                 ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:11:16: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:13:16: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // extension Ext1<X extends E1<X>> on List<X> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:12:12: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:15:12: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
-// enum Enum1<X extends E1<X>> { element<Never>(); } // Error.
+// enum Enum1<X extends E1<X>> { element<Never>() } // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:13:6: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:17:6: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // foo1<X extends E1<X>>() {} // Error.
 //      ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:14:10: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:19:10: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // mixin M1<X extends E1<X>> on List<num> {} // Error.
 //          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:19:20: Error: Type 'X' can't use itself as a bound.
+// pkg/front_end/testcases/extension_types/issue54097.dart:26:20: Error: Type 'X' can't use itself as a bound.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // extension type ET1<X extends E1<X>>(Object? it) {} // Error.
 //                    ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:21:10: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:28:10: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // class A2<X extends E1<Y>, Y extends X> {} // Error.
 //          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:22:12: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:30:12: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef F2<X extends E1<Y>, Y extends X> = int; // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:24:17: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:32:17: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // typedef void H2<X extends E1<Y>, Y extends X>(); // Error.
 //                 ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:25:16: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:34:16: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // extension Ext2<X extends E1<Y>, Y extends X> on List<X> {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:26:12: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:36:12: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
-// enum Enum2<X extends E1<Y>, Y extends X> { element<Never, Never>(); } // Error.
+// enum Enum2<X extends E1<Y>, Y extends X> { element<Never, Never>() } // Error.
 //            ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:27:6: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:38:6: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // foo2<X extends E1<Y>, Y extends X>() {} // Error.
 //      ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:28:10: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:40:10: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // mixin M2<X extends E1<Y>, Y extends X> on List<num> {} // Error.
 //          ^
 //
-// pkg/front_end/testcases/extension_types/issue54097.dart:33:20: Error: Type 'X' is a bound of itself via 'Y'.
+// pkg/front_end/testcases/extension_types/issue54097.dart:47:20: Error: Type 'X' is a bound of itself via 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 // extension type ET2<X extends E1<Y>, Y extends X>(Object? it) {} // Error.
 //                    ^
@@ -177,8 +177,8 @@ static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue54097.dart:12:31 -> InstanceConstant(const Enum1<Never>{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue54097.dart:12:6 -> ListConstant(const <Enum1<<invalid>>>[const Enum1<Never>{_Enum.index: 0, _Enum._name: "element"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue54097.dart:26:44 -> InstanceConstant(const Enum2<Never, Never>{_Enum.index: 0, _Enum._name: "element"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue54097.dart:26:6 -> ListConstant(const <Enum2<<invalid>, <invalid>>>[const Enum2<Never, Never>{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue54097.dart:15:31 -> InstanceConstant(const Enum1<Never>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue54097.dart:15:6 -> ListConstant(const <Enum1<<invalid>>>[const Enum1<Never>{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue54097.dart:36:44 -> InstanceConstant(const Enum2<Never, Never>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue54097.dart:36:6 -> ListConstant(const <Enum2<<invalid>, <invalid>>>[const Enum2<Never, Never>{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 26, effectively constant: 4

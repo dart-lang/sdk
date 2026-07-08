@@ -73,8 +73,9 @@ class FileTest {
     }
   }
 
-  static void createTempDirectory(Function doNext) {
+  static void setupTempDirectory(Function doNext) {
     tempDirectory = Directory.systemTemp.createTempSync('dart_file');
+
     doNext();
   }
 
@@ -1584,6 +1585,58 @@ class FileTest {
     }
   }
 
+  static void testFileDateTimeMicrosecondPrecision() {
+    // We don't know the timestamp resolution of the filesystem the test is
+    // being run on (e.g. exFAT has 2 second resolution).
+    // Therefore we compare against timestamps set and read by python os.utime
+    // and os.stat, which has nanosecond resolution on systems which support
+    // that.
+    final dartFilePath =
+        '${tempDirectory.path}/file_datetime_microsecond_precision_test_dart';
+    final nativeFilePath =
+        '${tempDirectory.path}/file_datetime_microsecond_precision_test_native';
+    final dartFile = File(dartFilePath);
+    final nativeFile = File(nativeFilePath);
+    dartFile.createSync();
+    nativeFile.createSync();
+
+    final modifiedTime = DateTime.utc(2026, 5, 29, 12, 1, 2, 123, 456);
+    final accessedTime = DateTime.utc(2026, 5, 29, 12, 1, 2, 123, 456);
+
+    // Dart write
+    dartFile.setLastModifiedSync(modifiedTime);
+    dartFile.setLastAccessedSync(accessedTime);
+
+    // Verify Dart read vs Native read.
+    final dartFileTimestamps = getNativeTimestamps(dartFile.path);
+
+    final readMtime = dartFile.lastModifiedSync();
+    Expect.isFalse(readMtime.isUtc);
+    Expect.equals(readMtime.toUtc(), dartFileTimestamps.modified);
+
+    final readAtime = dartFile.lastAccessedSync();
+    Expect.isFalse(readAtime.isUtc);
+    Expect.equals(readAtime.toUtc(), dartFileTimestamps.accessed);
+
+    final stat = dartFile.statSync();
+    Expect.isFalse(stat.modified.isUtc);
+    Expect.equals(stat.modified.toUtc(), dartFileTimestamps.modified);
+    Expect.isFalse(stat.accessed.isUtc);
+    Expect.equals(stat.accessed.toUtc(), dartFileTimestamps.accessed);
+
+    // Native write
+    setNativeTimestamps(
+      nativeFile.path,
+      atime: accessedTime,
+      mtime: modifiedTime,
+    );
+
+    // Verify Dart setter matches Native setter.
+    final nativeFileTimestamps = getNativeTimestamps(nativeFile.path);
+    Expect.equals(dartFileTimestamps.modified, nativeFileTimestamps.modified);
+    Expect.equals(dartFileTimestamps.accessed, nativeFileTimestamps.accessed);
+  }
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -1703,11 +1756,12 @@ class FileTest {
         .then((_) {
           if (Platform.operatingSystem != "windows") {
             Future<File?>.value(
-              new Link(
-                source,
-              ).create(dest).then((_) => file.rename("xxx")).then((_) {
-                throw "Rename of broken link succeeded";
-              }),
+              new Link(source)
+                  .create(dest)
+                  .then((_) => file.rename("xxx"))
+                  .then((_) {
+                    throw "Rename of broken link succeeded";
+                  }),
             ).catchError((e) {
               Expect.isTrue(e is FileSystemException);
               asyncTestDone("testRename$targetExists");
@@ -1845,7 +1899,7 @@ class FileTest {
   static testMain() {
     asyncStart();
 
-    createTempDirectory(() {
+    setupTempDirectory(() {
       // `testAbsolute` sets the current working directory so run it first
       // (synchronously) so that it doesn't change the working directory while
       // other tests are running.
@@ -1913,6 +1967,7 @@ class FileTest {
       testSetLastAccessed();
       testSetLastAccessedSync();
       testSetLastAccessedSyncDirectory();
+      testFileDateTimeMicrosecondPrecision();
       testDoubleAsyncOperation();
       createLargeFile(() {
         testReadAsBytesLargeFile();
@@ -1925,23 +1980,55 @@ class FileTest {
         asyncEnd();
       });
     });
-    testRead();
-    testReadSync();
-    testReadStream();
+    testLastAccessedSync();
+    testLastModifiedSync();
     testLengthSync();
-    testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
+    testPositionSync();
+    testRead();
     testReadAsBytesSync();
     testReadAsBytesSyncEmptyFile();
+    testReadAsLinesSync();
     testReadAsTextSync();
     testReadAsTextSyncEmptyFile();
-    testReadAsLinesSync();
-    testLastModifiedSync();
-    testLastAccessedSync();
+    testReadStream();
+    testReadSync();
   }
 }
 
 main() {
   FileTest.testMain();
+}
+
+({DateTime accessed, DateTime modified}) getNativeTimestamps(String path) {
+  final result = Process.runSync('python3', [
+    '-c',
+    'import os; stat = os.stat(r"$path"); print(f"{stat.st_atime_ns} {stat.st_mtime_ns}")',
+  ]);
+  if (result.exitCode != 0) {
+    throw StateError('python3 stat failed: ${result.stderr}');
+  }
+  final parts = result.stdout.toString().trim().split(' ');
+  final atimeNs = int.parse(parts[0]);
+  final mtimeNs = int.parse(parts[1]);
+  return (
+    accessed: DateTime.fromMicrosecondsSinceEpoch(atimeNs ~/ 1000, isUtc: true),
+    modified: DateTime.fromMicrosecondsSinceEpoch(mtimeNs ~/ 1000, isUtc: true),
+  );
+}
+
+void setNativeTimestamps(
+  String path, {
+  required DateTime atime,
+  required DateTime mtime,
+}) {
+  final atimeNs = atime.microsecondsSinceEpoch * 1000;
+  final mtimeNs = mtime.microsecondsSinceEpoch * 1000;
+  final pythonCmd = 'import os; os.utime(r"$path", ns=($atimeNs, $mtimeNs))';
+
+  final result = Process.runSync('python3', ['-c', pythonCmd]);
+  if (result.exitCode != 0) {
+    throw StateError('python3 utime failed: ${result.stderr}');
+  }
 }

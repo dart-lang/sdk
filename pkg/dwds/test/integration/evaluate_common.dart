@@ -286,26 +286,19 @@ void testAll({
         });
       });
 
-      test(
-        'extension method scope variables can be evaluated',
-        () async {
-          await onBreakPoint(mainScript, 'extension', (Event event) async {
-            final stack = await context.service.getStack(isolateId);
-            final scope = _getFrameVariables(stack.frames!.first);
-            for (final p in scope.entries) {
-              final name = p.key;
-              final value = p.value as InstanceRef;
-              final result = await getInstanceRef(
-                event.topFrame!.index!,
-                name!,
-              );
+      test('extension method scope variables can be evaluated', () async {
+        await onBreakPoint(mainScript, 'extension', (Event event) async {
+          final stack = await context.service.getStack(isolateId);
+          final scope = _getFrameVariables(stack.frames!.first);
+          for (final p in scope.entries) {
+            final name = p.key;
+            final value = p.value as InstanceRef;
+            final result = await getInstanceRef(event.topFrame!.index!, name!);
 
-              expect(result, matchInstanceRef(value.valueAsString));
-            }
-          });
-        },
-        skip: 'https://github.com/dart-lang/webdev/issues/1371',
-      );
+            expect(result, matchInstanceRef(value.valueAsString));
+          }
+        });
+      }, skip: 'https://github.com/dart-lang/webdev/issues/1371');
 
       test('does not crash if class metadata cannot be found', () async {
         await onBreakPoint(mainScript, 'printStream', (Event event) async {
@@ -695,18 +688,14 @@ void testAll({
         return isolate.rootLib!.id!;
       }
 
-      test(
-        'RecordType getters',
-        () async {
-          final libraryId = getRootLibraryId();
+      test('RecordType getters', () async {
+        final libraryId = getRootLibraryId();
 
-          final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
-          final result = await getInstanceRef(type.id, 'hashCode');
+        final type = await getInstanceRef(libraryId, '(0,1).runtimeType');
+        final result = await getInstanceRef(type.id, 'hashCode');
 
-          expect(result, matchInstanceRefKind('Double'));
-        },
-        skip: 'https://github.com/dart-lang/sdk/issues/54609',
-      );
+        expect(result, matchInstanceRefKind('Double'));
+      }, skip: 'https://github.com/dart-lang/sdk/issues/54609');
 
       test('Object getters', () async {
         final libraryId = getRootLibraryId();

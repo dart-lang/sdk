@@ -163,7 +163,9 @@ class FieldInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.writeName(field.name);
+    printer.write(' = ');
+    printer.writeExpression(value);
   }
 }
 
@@ -323,7 +325,7 @@ class RedirectingInitializer extends Initializer {
 /// The variable is in scope for the remainder of the initializer list, but is
 /// not in scope in the constructor body.
 class LocalInitializer extends Initializer {
-  Variable variable;
+  SyntheticVariable variable;
 
   new(this.variable) {
     variable.parent = this;

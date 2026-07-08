@@ -71,7 +71,8 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
-    if (meta || flutter) {
+    // flutter_test also depends on meta for @isTestGroup / @isTest
+    if (meta || flutter || addFlutterTestPackageDep) {
       var libFolder = addMeta();
       config.add(name: 'meta', rootFolder: libFolder.parent);
     }
@@ -93,10 +94,14 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       );
 
       var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
-      var libFolder = flutterTestRoot.getChildAssumingFolder('lib')..create();
-      libFolder.getChildAssumingFile('flutter_test.dart').writeAsStringSync(r'''
+      var libFolder = flutterTestRoot.getFolder('lib')..create();
+      libFolder.getFile('flutter_test.dart').writeAsStringSync(r'''
+import 'package:meta/meta.dart';
+
+@isTest
 void test(Object description, dynamic Function() body) {}
 
+@isTestGroup
 void group(Object description, void Function() body) {}
 
 void main() {
@@ -118,11 +123,10 @@ void main() {
     var content = config.toContent();
 
     var projectFolder = resourceProvider.getFolder(projectFolderPath);
-    var dartToolFolder = projectFolder.getChildAssumingFolder(
-      file_paths.dotDartTool,
-    )..create();
+    var dartToolFolder = projectFolder.getFolder(file_paths.dotDartTool)
+      ..create();
     dartToolFolder
-        .getChildAssumingFile(file_paths.packageConfigJson)
+        .getFile(file_paths.packageConfigJson)
         .writeAsStringSync(content);
   }
 

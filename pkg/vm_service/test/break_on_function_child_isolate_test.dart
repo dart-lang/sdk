@@ -8,7 +8,6 @@ import 'break_on_function_many_child_isolates_test.dart';
 Future<void> main(List<String> args) async {
   await runIsolateBreakpointPauseTest(
     args,
-    scriptName: 'break_on_function_child_isolate_test.dart',
     isolateCount: 1,
   );
 }

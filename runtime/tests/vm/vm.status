@@ -232,25 +232,17 @@ dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image
 dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 
 [ $system == macos ]
-cc/Service_ReadNativeMemory_InvalidAddress: Skip
-cc/Service_ReadNativeMemory_LargeRead: Skip
-cc/Service_ReadNativeMemory_NullAddress: Skip
-cc/Service_ReadNativeMemory_ValidAddress: Skip
 dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to cause OOM doesn't work on mac
 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
-cc/Service_ReadNativeMemory_InvalidAddress: Skip
-cc/Service_ReadNativeMemory_LargeRead: Skip
-cc/Service_ReadNativeMemory_NullAddress: Skip
-cc/Service_ReadNativeMemory_ValidAddress: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $system != windows ]
 dart/ctrlc_handling_test: SkipByDesign
 
 [ $qemu ]
-cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+cc/ManyClasses: SkipSlow # Generates 100k classes, slow on emulated architectures.
 cc/StressMallocDirectly: Skip # Queries RSS
 cc/StressMallocThroughZones: Skip # Queries RSS
 cc/SweepDontNeed: Skip # Queries RSS
@@ -391,7 +383,9 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
 dart/hash_map_probes_limit_test: SkipSlow
+dart/heap_snapshot_on_oom_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
+dart/heap_snapshot_regress_49710_test: SkipSlow
 dart/heap_snapshot_regress_49711_test: Pass, Slow
 dart/heap_snapshot_test: SkipSlow
 dart/heapsnapshot_cli_test: SkipSlow

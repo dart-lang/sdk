@@ -46,24 +46,33 @@ Future<ModularTest> loadTest(Uri uri) async {
       if (fileName.endsWith('.dart')) {
         var moduleName = fileName.substring(0, fileName.indexOf('.dart'));
         if (moduleName == 'sdk') {
-          return _invalidTest("The file '$fileName' defines a module called "
-              "'$moduleName' which conflicts with the sdk module "
-              "that is provided by default.");
+          return _invalidTest(
+            "The file '$fileName' defines a module called "
+            "'$moduleName' which conflicts with the sdk module "
+            "that is provided by default.",
+          );
         }
         if (defaultPackages.contains(moduleName)) {
-          return _invalidTest("The file '$fileName' defines a module called "
-              "'$moduleName' which conflicts with a package by the same name "
-              "that is provided by default.");
+          return _invalidTest(
+            "The file '$fileName' defines a module called "
+            "'$moduleName' which conflicts with a package by the same name "
+            "that is provided by default.",
+          );
         }
         if (modules.containsKey(moduleName)) {
           return _moduleConflict(fileName, modules[moduleName]!, testUri);
         }
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
-        var module = Module(moduleName, [], testUri, [relativeUri],
-            mainSource: isMain ? relativeUri : null,
-            isMain: isMain,
-            packageBase: Uri.parse('.'));
+        var module = Module(
+          moduleName,
+          [],
+          testUri,
+          [relativeUri],
+          mainSource: isMain ? relativeUri : null,
+          isMain: isMain,
+          packageBase: Uri.parse('.'),
+        );
         if (isMain) mainModule = module;
         modules[moduleName] = module;
       } else if (fileName == 'modules.yaml') {
@@ -74,21 +83,30 @@ Future<ModularTest> loadTest(Uri uri) async {
       var path = entryUri.path;
       var moduleName = path.substring(testUri.path.length, path.length - 1);
       if (moduleName == 'sdk') {
-        return _invalidTest("The folder '$moduleName' defines a module "
-            "which conflicts with the sdk module "
-            "that is provided by default.");
+        return _invalidTest(
+          "The folder '$moduleName' defines a module "
+          "which conflicts with the sdk module "
+          "that is provided by default.",
+        );
       }
       if (defaultPackages.contains(moduleName)) {
-        return _invalidTest("The folder '$moduleName' defines a module "
-            "which conflicts with a package by the same name "
-            "that is provided by default.");
+        return _invalidTest(
+          "The folder '$moduleName' defines a module "
+          "which conflicts with a package by the same name "
+          "that is provided by default.",
+        );
       }
       if (modules.containsKey(moduleName)) {
         return _moduleConflict(moduleName, modules[moduleName]!, testUri);
       }
       var sources = await _listModuleSources(entryUri);
-      modules[moduleName] = Module(moduleName, [], testUri, sources,
-          packageBase: Uri.parse('$moduleName/'));
+      modules[moduleName] = Module(
+        moduleName,
+        [],
+        testUri,
+        sources,
+        packageBase: Uri.parse('$moduleName/'),
+      );
     }
   }
   if (specString == null) {
@@ -102,7 +120,8 @@ Future<ModularTest> loadTest(Uri uri) async {
   for (final name in defaultPackages) {
     if (spec.packages.containsKey(name)) {
       _invalidTest(
-          ".packages file defines a conflicting entry for package '$name'.");
+        ".packages file defines a conflicting entry for package '$name'.",
+      );
     }
   }
   await _addModulePerPackage(defaultTestSpecification.packages, root, modules);
@@ -133,12 +152,15 @@ Future<List<Uri>> _listModuleSources(Uri root) async {
 
 /// Add links between modules based on the provided dependency map.
 void _attachDependencies(
-    Map<String, List<String>> dependencies, Map<String, Module> modules) {
+  Map<String, List<String>> dependencies,
+  Map<String, Module> modules,
+) {
   dependencies.forEach((name, moduleDependencies) {
     final module = modules[name];
     if (module == null) {
       _invalidTest(
-          "declared dependencies for a nonexistent module named '$name'");
+        "declared dependencies for a nonexistent module named '$name'",
+      );
     }
     if (module.dependencies.isNotEmpty) {
       _invalidTest("Module dependencies have already been declared on $name.");
@@ -146,8 +168,10 @@ void _attachDependencies(
     for (var dependencyName in moduleDependencies) {
       final moduleDependency = modules[dependencyName];
       if (moduleDependency == null) {
-        _invalidTest("'$name' declares a dependency on a nonexistent module "
-            "named '$dependencyName'");
+        _invalidTest(
+          "'$name' declares a dependency on a nonexistent module "
+          "named '$dependencyName'",
+        );
       }
       module.dependencies.add(moduleDependency);
     }
@@ -164,8 +188,11 @@ void _addSdkDependencies(Map<String, Module> modules, Module sdkModule) {
 }
 
 /// Create a module for each package dependency.
-Future<void> _addModulePerPackage(Map<String, String> packages, Uri configRoot,
-    Map<String, Module> modules) async {
+Future<void> _addModulePerPackage(
+  Map<String, String> packages,
+  Uri configRoot,
+  Map<String, Module> modules,
+) async {
   for (var packageName in packages.keys) {
     var module = modules[packageName];
     if (module != null) {
@@ -177,23 +204,26 @@ Future<void> _addModulePerPackage(Map<String, String> packages, Uri configRoot,
       // TODO(sigmund): validate that we don't use a different alias for a
       // module that is part of the test (package name and module name should
       // match).
-      modules[packageName] = Module(packageName, [], packageRootUri, sources,
-          isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
+      modules[packageName] = Module(
+        packageName,
+        [],
+        packageRootUri,
+        sources,
+        isPackage: true,
+        packageBase: Uri.parse('lib/'),
+        isShared: true,
+      );
     }
   }
 }
 
 Future<Module> _createSdkModule(Uri root) async {
-  List<Uri> sources = [
-    Uri.parse('sdk/lib/libraries.json'),
-  ];
+  List<Uri> sources = [Uri.parse('sdk/lib/libraries.json')];
 
   // Include all dart2js, ddc, vm library sources and patch files.
   // Note: we don't extract the list of files from the libraries.json because
   // it doesn't list files that are transitively imported.
-  var sdkLibrariesAndPatchesRoots = [
-    'sdk/lib/',
-  ];
+  var sdkLibrariesAndPatchesRoots = ['sdk/lib/'];
   for (var path in sdkLibrariesAndPatchesRoots) {
     var dir = Directory.fromUri(root.resolve(path));
     await for (var file in dir.list(recursive: true)) {
@@ -208,7 +238,9 @@ Future<Module> _createSdkModule(Uri root) async {
 
 /// Trim the set of modules, and detect cycles while we are at it.
 void _detectCyclesAndRemoveUnreachable(
-    Map<String, Module> modules, Module main) {
+  Map<String, Module> modules,
+  Module main,
+) {
   Set<Module> visiting = {};
   Set<Module> visited = {};
 
@@ -224,8 +256,9 @@ void _detectCyclesAndRemoveUnreachable(
 
   helper(main);
   Set<String> toKeep = visited.map((m) => m.name).toSet();
-  List<String> toRemove =
-      modules.keys.where((name) => !toKeep.contains(name)).toList();
+  List<String> toRemove = modules.keys
+      .where((name) => !toKeep.contains(name))
+      .toList();
   toRemove.forEach(modules.remove);
 }
 
@@ -260,9 +293,11 @@ Never _moduleConflict(String name, Module existing, Uri root) {
       ? existing.sources.single.pathSegments.last
       : existing.name;
 
-  return _invalidTest("The $entryType '$name' defines a module "
-      "which conflicts with the module defined by the $existingEntryType "
-      "'$existingName'.");
+  return _invalidTest(
+    "The $entryType '$name' defines a module "
+    "which conflicts with the module defined by the $existingEntryType "
+    "'$existingName'.",
+  );
 }
 
 Never _invalidTest(String message) {

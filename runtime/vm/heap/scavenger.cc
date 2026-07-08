@@ -128,7 +128,8 @@ static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
 }
 
 class ScavengerVisitor : public ObjectPointerVisitor,
-                         public PredicateObjectPointerVisitor {
+                         public PredicateObjectPointerVisitor,
+                         public MallocAllocated {
  public:
   explicit ScavengerVisitor(IsolateGroup* isolate_group,
                             Scavenger* scavenger,
@@ -715,14 +716,14 @@ class ScavengerTask : public SafepointTask {
   DISALLOW_COPY_AND_ASSIGN(ScavengerTask);
 };
 
-SemiSpace::SemiSpace(intptr_t gc_threshold_in_words)
-    : gc_threshold_in_words_(gc_threshold_in_words) {}
+SemiSpace::SemiSpace(intptr_t gc_threshold_in_words, Cage* cage)
+    : gc_threshold_in_words_(gc_threshold_in_words), cage_(cage) {}
 
 SemiSpace::~SemiSpace() {
   Page* page = head_;
   while (page != nullptr) {
     Page* next = page->next();
-    page->Deallocate();
+    page->Deallocate(cage_);
     page = next;
   }
 }
@@ -731,7 +732,7 @@ Page* SemiSpace::TryAllocatePageLocked(bool link) {
   if (capacity_in_words_ >= gc_threshold_in_words_) {
     return nullptr;  // Full.
   }
-  Page* page = Page::Allocate(Page::kPageSize, Page::kNew);
+  Page* page = Page::Allocate(cage_, Page::kPageSize, Page::kNew);
   if (page == nullptr) {
     return nullptr;  // Out of memory;
   }
@@ -793,7 +794,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
   const intptr_t initial_semi_capacity_in_words = Utils::Minimum(
       max_semi_capacity_in_words, FLAG_new_gen_semi_initial_size * MBInWords);
 
-  to_ = new SemiSpace(initial_semi_capacity_in_words);
+  to_ = new SemiSpace(initial_semi_capacity_in_words, heap_->cage());
   idle_scavenge_threshold_in_words_ = initial_semi_capacity_in_words;
 
   UpdateMaxHeapCapacity();
@@ -1045,7 +1046,8 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   {
     MutexLocker ml(&space_lock_);
     from = to_;
-    to_ = new SemiSpace(NewSizeInWords(from->gc_threshold_in_words(), reason));
+    to_ = new SemiSpace(NewSizeInWords(from->gc_threshold_in_words(), reason),
+                        heap_->cage());
   }
 
   return from;

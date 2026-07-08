@@ -1854,14 +1854,18 @@ class AstBuilder extends StackListener {
         thisKeyword == null,
         "Can't have both 'this' and 'super' in a parameter.",
       );
-      if (functionTypedSuffix == null &&
-          keyword is KeywordToken &&
-          keyword.keyword == Keyword.VAR) {
-        handleRecoverableError(
-          fe_diag.extraneousModifier.withArguments(lexeme: keyword),
-          keyword,
-          keyword,
-        );
+      if (memberKind != MemberKind.PrimaryConstructor) {
+        // The parser reports a special error for declaring parameters, so we
+        // avoid emitting this error here for primary constructors.
+        if (functionTypedSuffix == null &&
+            keyword is KeywordToken &&
+            keyword.keyword == Keyword.VAR) {
+          handleRecoverableError(
+            fe_diag.extraneousModifier.withArguments(lexeme: keyword),
+            keyword,
+            keyword,
+          );
+        }
       }
       parameter = SuperFormalParameterImpl(
         comment: comment,

@@ -28,7 +28,10 @@ void expectFormatError(String error, Function() test) {
 }
 
 void expectExpandError(
-    String template, Map<String, dynamic> options, String error) {
+  String template,
+  Map<String, dynamic> options,
+  String error,
+) {
   try {
     var configurations = Configuration.expandTemplate(template, options);
     fail("Expected FormatException but got $configurations.");

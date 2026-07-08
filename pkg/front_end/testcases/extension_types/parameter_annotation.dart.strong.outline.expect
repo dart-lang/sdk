@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Self extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Self
+    : super core::Object::•()
+    ;
+}
+extension type MyComponent(core::int? x) {
+  @self::Self::•()
+  abstract extension-type-member representation-field get x() → core::int?;
+  constructor • = self::MyComponent|constructor#;
+  constructor tearoff • = self::MyComponent|constructor#_#new#tearOff;
+}
+static extension-type-member method MyComponent|constructor#(final initializing-formal core::int? x) → self::MyComponent% /* erasure=core::int?, declared=! */
+  ;
+static extension-type-member synthetic method MyComponent|constructor#_#new#tearOff(core::int? x) → self::MyComponent% /* erasure=core::int?, declared=! */
+  return self::MyComponent|constructor#(x);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///parameter_annotation.dart:7:29 -> InstanceConstant(const Self{})
+Extra constant evaluation: evaluated: 3, effectively constant: 1

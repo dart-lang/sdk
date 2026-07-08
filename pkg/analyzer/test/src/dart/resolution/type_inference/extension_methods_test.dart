@@ -39,11 +39,11 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: int}
     staticType: List<int>
-  element: GetterMember
+  element: SubstitutedGetterElementImpl
     baseElement: <testLibrary>::@extension::E::@getter::foo
     substitution: {T: int}
   staticType: List<int>
@@ -73,7 +73,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
@@ -82,7 +82,7 @@ MethodInvocation
     arguments
       DoubleLiteral
         literal: 1.0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: u@null
           substitution: {U: double}
         staticType: double
@@ -112,7 +112,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: T}
     staticType: List<T> Function()
@@ -145,7 +145,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: String, U: U}
     staticType: Map<String, U> Function<U>(U)
@@ -154,7 +154,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: value@null
           substitution: {U: int}
         staticType: int
@@ -189,11 +189,11 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extension::E::@method::foo
     substitution: {T: int, U: U}
   staticType: Map<int, U> Function<U>(U)
@@ -230,13 +230,13 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: SetterMember
+  writeElement: SubstitutedSetterElementImpl
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int
@@ -266,7 +266,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: test
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::Test::@method::test
       substitution: {T: S}
     staticType: S Function(S) Function()
@@ -303,7 +303,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: test
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::Test::@getter::test
       substitution: {T: S}
     staticType: S Function(S)
@@ -351,7 +351,7 @@ AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::Test::@setter::test::@formalParameter::_
       substitution: {T: S}
     staticInvokeType: S Function()
@@ -360,7 +360,7 @@ AssignmentExpression
       S
   readElement: <null>
   readType: null
-  writeElement: SetterMember
+  writeElement: SubstitutedSetterElementImpl
     baseElement: <testLibrary>::@extension::Test::@setter::test
     substitution: {T: S}
   writeType: S
@@ -456,7 +456,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: num}
     staticType: List<num>
@@ -507,7 +507,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
@@ -516,7 +516,7 @@ MethodInvocation
     arguments
       DoubleLiteral
         literal: 1.0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: u@null
           substitution: {U: double}
         staticType: double
@@ -571,7 +571,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: num, U: U}
     staticType: Map<num, U> Function<U>(U)
@@ -629,13 +629,13 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: num}
     staticType: double
   readElement: <null>
   readType: null
-  writeElement: SetterMember
+  writeElement: SubstitutedSetterElementImpl
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: num}
   writeType: num
@@ -696,7 +696,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: int}
     staticType: List<int>
@@ -739,7 +739,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
@@ -748,7 +748,7 @@ MethodInvocation
     arguments
       DoubleLiteral
         literal: 1.0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: u@null
           substitution: {U: double}
         staticType: double
@@ -795,7 +795,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int, U: U}
     staticType: Map<int, U> Function<U>(U)
@@ -845,13 +845,13 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
+    correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: SetterMember
+  writeElement: SubstitutedSetterElementImpl
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int

@@ -84,9 +84,8 @@ testDatagramSocketReuseAddress() {
           reusePort: Platform.isMacOS,
         ).then((s) => Expect.isTrue(s is RawDatagramSocket)).then(asyncSuccess);
       } else {
-        await FutureExpect.throws(
-          RawDatagramSocket.bind(address, socket.port),
-        ).then(asyncSuccess);
+        await FutureExpect.throws(RawDatagramSocket.bind(address, socket.port))
+            .then(asyncSuccess);
       }
     });
   }

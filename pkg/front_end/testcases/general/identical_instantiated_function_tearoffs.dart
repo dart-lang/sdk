@@ -16,7 +16,9 @@ main() {
 
   expect(true, identical(implicitConstInstantiation, implicitInstantiation));
   expect(
-      true, identical(implicitConstInstantiation, implicitConstInstantiation));
+    true,
+    identical(implicitConstInstantiation, implicitConstInstantiation),
+  );
   expect(false, identical(implicitConstInstantiation, create<int>()));
 }
 

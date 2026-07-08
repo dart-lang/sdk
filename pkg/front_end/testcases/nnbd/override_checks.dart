@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Super {}
+
 class Sub extends Super {}
 
 class A<X extends num> {}
@@ -27,7 +28,8 @@ class C2<X extends int> implements C1 {}
 
 class D {
   D.foo(num x);
-  factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
+  factory D.bar(num? x) =
+      D.foo; // Error in strong mode and Warning in weak mode.
 }
 
 main() {}

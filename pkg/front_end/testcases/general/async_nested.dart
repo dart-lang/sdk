@@ -11,17 +11,21 @@ void main() async {
   String expected = "1 2 3 4 5 6 7 8 9 10";
   Node node = new Node('1', [
     new Node('2', []),
-    await new Future.value(new Node('3', [
-      await new Future.value(new Node('4', [
-        new Node('5', [
-          await new Future.value(new Node('6', [
-            await new Future.value(new Node('7', [])),
-          ])),
-          await new Future.value(new Node('8', [])),
-          await new Future.value(new Node('9', [])),
-        ]),
-      ])),
-    ])),
+    await new Future.value(
+      new Node('3', [
+        await new Future.value(
+          new Node('4', [
+            new Node('5', [
+              await new Future.value(
+                new Node('6', [await new Future.value(new Node('7', []))]),
+              ),
+              await new Future.value(new Node('8', [])),
+              await new Future.value(new Node('9', [])),
+            ]),
+          ]),
+        ),
+      ]),
+    ),
     await new Future.value(new Node('10', [])),
   ]);
   String actual = node.toSimpleString();

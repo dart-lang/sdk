@@ -18,7 +18,11 @@ const _desc = r'Unnecessary `await` keyword in return.';
 
 class UnnecessaryAwaitInReturn extends AnalysisRule {
   new()
-    : super(name: LintNames.unnecessary_await_in_return, description: _desc);
+    : super(
+        name: LintNames.unnecessary_await_in_return,
+        description: _desc,
+        state: .deprecated(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryAwaitInReturn;

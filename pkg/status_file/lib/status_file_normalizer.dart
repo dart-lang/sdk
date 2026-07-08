@@ -6,6 +6,7 @@ import 'package:status_file/src/expression.dart';
 import 'package:status_file/status_file_entries_file_checker.dart';
 
 import 'canonical_status_file.dart';
+
 import 'dart:convert';
 
 StatusFile normalizeStatusFile(

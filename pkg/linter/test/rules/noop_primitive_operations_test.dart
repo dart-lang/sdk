@@ -18,7 +18,7 @@ class NoopPrimitiveOperationsTest extends LintRuleTest {
   String get lintRule => LintNames.noop_primitive_operations;
 
   test_double_toDouble() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(double x) {
   x.[!toDouble!]();
 }
@@ -26,7 +26,7 @@ void f(double x) {
   }
 
   test_int_ceil() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {
   x.[!ceil!]();
 }
@@ -34,7 +34,7 @@ void f(int x) {
   }
 
   test_int_floor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {
   x.[!floor!]();
 }
@@ -42,7 +42,7 @@ void f(int x) {
   }
 
   test_int_round() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {
   x.[!round!]();
 }
@@ -50,7 +50,7 @@ void f(int x) {
   }
 
   test_int_toInt() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {
   x.[!toInt!]();
 }
@@ -58,7 +58,7 @@ void f(int x) {
   }
 
   test_int_truncate() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {
   x.[!truncate!]();
 }
@@ -66,7 +66,7 @@ void f(int x) {
   }
 
   test_interpolation_object_toString() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   '${1.[!toString!]()}';
 }
@@ -84,7 +84,7 @@ class C {
   }
 
   test_print_null_toString() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   print(null.[!toString!]());
 }
@@ -92,7 +92,7 @@ void f() {
   }
 
   test_print_object_toString() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   print(1.[!toString!]());
 }
@@ -108,7 +108,7 @@ onPrint() {
   }
 
   test_string_adjacentBlankString_lintInMiddle() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(String x) {
   x = 'hello\n' [!''!] 'world\n';
 }
@@ -140,7 +140,7 @@ void f(String? x) {
   }
 
   test_string_toString() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(String x) {
   x.[!toString!]();
 }

@@ -6,6 +6,7 @@
 // static field initialization.
 
 import "dart:isolate";
+
 import "package:expect/async_helper.dart";
 
 dynamic staticFieldWithBadInitializer = badInitializer();

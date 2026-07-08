@@ -311,9 +311,8 @@ analyzer:
 
     // Opening the file should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([
-        excludedFile.path,
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([excludedFile.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -398,9 +397,8 @@ void f() {
     // Add and overlay and give chance for the file to be analyzed (if
     // it would).
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -419,9 +417,8 @@ void f() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -431,9 +428,8 @@ void f() {
 
     // Remove the overlay (this file no longer exists anywhere).
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     await waitForTasksFinished();
@@ -456,9 +452,8 @@ void f() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: AddContentOverlay('err')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -473,9 +468,8 @@ void f() {
 
     // Remove the overlay.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({brokenFile.path: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

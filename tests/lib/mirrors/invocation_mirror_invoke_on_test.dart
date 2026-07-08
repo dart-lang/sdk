@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:mirrors" show reflect;
+
 import "package:expect/expect.dart";
 
 // Testing InstanceMirror.delegate method; test of issue 7227.

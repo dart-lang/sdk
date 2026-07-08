@@ -264,21 +264,7 @@ void f(/*[1*/E/*1]*/ e) {}
 ''');
   }
 
-  Future<void> test_extensionType_constructor_primary() async {
-    await assertOccurrences(
-      kind: ElementKind.CONSTRUCTOR,
-      elementName: 'E.named',
-      '''
-extension type E./*[0*/named/*0]*/(int it) {}
-
-void f() {
-  E./*[1*/named/*1]*/(0);
-}
-''',
-    );
-  }
-
-  Future<void> test_extensionType_constructor_secondary() async {
+  Future<void> test_extensionType_constructor_inBody() async {
     await assertOccurrences(
       kind: ElementKind.CONSTRUCTOR,
       elementName: 'E.named',
@@ -289,6 +275,20 @@ extension type E(int it) {
 
 void f() {
   E./*[1*/named/*1]*/();
+}
+''',
+    );
+  }
+
+  Future<void> test_extensionType_constructor_primary() async {
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'E.named',
+      '''
+extension type E./*[0*/named/*0]*/(int it) {}
+
+void f() {
+  E./*[1*/named/*1]*/(0);
 }
 ''',
     );

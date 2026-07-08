@@ -118,7 +118,7 @@ namespace dart {
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
   V(AssertAssignable)                                                          \
-  V(TypeIsTopTypeForSubtyping)                                                 \
+  V(IsTopType)                                                                 \
   V(NullIsAssignableToType)                                                    \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \

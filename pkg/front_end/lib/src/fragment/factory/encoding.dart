@@ -837,7 +837,7 @@ class FactoryEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     assert(
       asyncModifier.kind == AsyncMarker.Sync,
@@ -855,7 +855,9 @@ class FactoryEncoding implements InferredTypeListener {
       );
     }
     _procedure.function.scope = scope;
-    _procedure.function.thisVariable = thisVariable;
+    _procedure.function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = _procedure.function;
   }
 
   void becomeNative(SourceLoader loader) {
@@ -868,7 +870,7 @@ class FactoryEncoding implements InferredTypeListener {
   FunctionSignature get signature =>
       new FunctionNodeSignature(_procedure.function);
 
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     if (_tearOff != null) {
       if (index < _tearOff.function.positionalParameters.length) {
         return _tearOff.function.positionalParameters[index];

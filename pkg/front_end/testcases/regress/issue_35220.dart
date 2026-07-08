@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  A bad() { return true != 2; }
+  A bad() {
+    return true != 2;
+  }
 }
 
 main() {}

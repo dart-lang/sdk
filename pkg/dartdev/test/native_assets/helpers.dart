@@ -10,6 +10,7 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
 import 'package:hooks_runner/src/utils/run_process.dart' as run_process;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
@@ -78,6 +79,18 @@ Future<run_process.RunProcessResult> runProcess({
   filesystem: const LocalFileSystem(),
 );
 
+Future<void> copyDirectory(Directory source, Directory target) async {
+  await target.create(recursive: true);
+  await for (final entity in source.list(recursive: false)) {
+    final newPath = path.join(target.path, path.basename(entity.path));
+    if (entity is Directory) {
+      await copyDirectory(entity, Directory(newPath));
+    } else if (entity is File) {
+      await entity.copy(newPath);
+    }
+  }
+}
+
 Future<void> copyTestProjects(
   Uri copyTargetUri,
   Logger logger,
@@ -132,7 +145,12 @@ Future<void> copyTestProjects(
             .resolve('third_party/pkg/native/pkgs/$package/')
             .toFilePath(),
       },
-    'meta': {'path': sdkRoot.resolve('pkg/meta/').toFilePath()},
+    for (final package in [
+      '_fe_analyzer_shared',
+      'analyzer', // package:analyzer depends on package:meta.
+      'meta',
+    ])
+      package: {'path': sdkRoot.resolve('pkg/$package/').toFilePath()},
   };
   final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {
@@ -266,6 +284,7 @@ Future<void> nativeAssetsTest(
     'native_dynamic_linking',
     'recursive_invocation',
     'system_library',
+    'treeshaking_dylib_record_use',
     'treeshaking_native_libs',
     'user_defines',
   ],

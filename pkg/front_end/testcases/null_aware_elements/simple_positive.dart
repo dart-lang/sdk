@@ -7,13 +7,15 @@ foo2(String? x) => <String>{?x};
 foo3(bool? x, num y) => <bool, num>{?x: y};
 
 bar1(int? x) => <int>[?x];
-bar2(int? x, bool b) => <int>{ if (b) ?x };
-bar3(int? x, List<String> y) => <int>{ for (var _ in y) ?x };
+bar2(int? x, bool b) => <int>{if (b) ?x};
+bar3(int? x, List<String> y) => <int>{for (var _ in y) ?x};
 bar4(String x, bool? y) => <String, bool>{x: ?y};
 bar5(int? x, num y) => <int, num>{?x: y};
 bar6(Symbol? x, String? y) => <Symbol, String>{?x: ?y};
-bar7(int? x, double? y, bool b) => <int, double>{ if (b) ?x: ?y };
-bar8(bool? x, Symbol? y, List<num> z) => <bool, Symbol>{ for (var _ in z) ?x: ?y };
+bar7(int? x, double? y, bool b) => <int, double>{if (b) ?x: ?y};
+bar8(bool? x, Symbol? y, List<num> z) => <bool, Symbol>{
+  for (var _ in z) ?x: ?y,
+};
 
 main() {
   expectShallowEqualLists(foo1(0), <int>[0]);
@@ -49,7 +51,9 @@ main() {
   expectShallowEqualMaps(bar7(null, 1.0, false), <int, double>{});
   expectShallowEqualMaps(bar7(null, null, true), <int, double>{});
   expectShallowEqualMaps(bar7(null, null, false), <int, double>{});
-  expectShallowEqualMaps(bar8(false, #value, [1.0]), <bool, Symbol>{false: #value});
+  expectShallowEqualMaps(bar8(false, #value, [1.0]), <bool, Symbol>{
+    false: #value,
+  });
   expectShallowEqualMaps(bar8(false, #value, []), <int, double>{});
   expectShallowEqualMaps(bar8(false, null, [1.0]), <int, double>{});
   expectShallowEqualMaps(bar8(false, null, []), <int, double>{});

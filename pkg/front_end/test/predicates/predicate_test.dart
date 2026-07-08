@@ -220,31 +220,31 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     String? name;
     String? tag;
     if (isLateLoweredLocal(node)) {
-      name = extractLocalNameFromLateLoweredLocal(node.name!);
+      name = extractLocalNameFromLateLoweredLocal(node.cosmeticName!);
       tag = Tags.lateLocal;
       identity = name;
     } else if (isLateLoweredIsSetLocal(node)) {
-      name = extractLocalNameFromLateLoweredIsSet(node.name!);
+      name = extractLocalNameFromLateLoweredIsSet(node.cosmeticName!);
       tag = Tags.lateIsSetLocal;
       identity = name;
     } else if (isLateLoweredLocalGetter(node)) {
-      name = extractLocalNameFromLateLoweredGetter(node.name!);
+      name = extractLocalNameFromLateLoweredGetter(node.cosmeticName!);
       tag = Tags.lateLocalGetter;
       identity = name;
     } else if (isLateLoweredLocalSetter(node)) {
-      name = extractLocalNameFromLateLoweredSetter(node.name!);
+      name = extractLocalNameFromLateLoweredSetter(node.cosmeticName!);
       tag = Tags.lateLocalSetter;
       identity = name;
     } else if (isExtensionThis(node)) {
-      name = extractLocalNameForExtensionThis(node.name!);
+      name = extractLocalNameForExtensionThis(node.cosmeticName!);
       tag = Tags.extensionThis;
       identity = name;
     } else if (isJoinedIntermediateVariable(node)) {
-      name = extractJoinedIntermediateName(node.name!);
+      name = extractJoinedIntermediateName(node.cosmeticName!);
       tag = Tags.joinedIntermediate;
       identity = node;
-    } else if (node.name != null) {
-      name = node.name;
+    } else if (node.cosmeticName != null) {
+      name = node.cosmeticName;
       identity = name;
     }
     if (name != null) {

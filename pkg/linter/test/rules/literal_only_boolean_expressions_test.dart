@@ -19,7 +19,7 @@ class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   String get lintRule => LintNames.literal_only_boolean_expressions;
 
   test_adjacent_string_interpolation_constant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   const a = 20;
   [!if ('$a' '0' == 20) {}!]
@@ -36,7 +36,7 @@ void f(int a) {
   }
 
   test_doWhile_false() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!do {} while (false);!]
 }
@@ -44,7 +44,7 @@ void f() {
   }
 
   test_for_trueCondition() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!for (; true; ) {}!]
 }
@@ -52,7 +52,7 @@ void f() {
   }
 
   test_if_andTrue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (1 != 0 && true) {}!]
 }
@@ -79,7 +79,7 @@ void f(String? text) {
   }
 
   test_if_or_thenAndTrue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (1 != 0 || 3 < 4 && true) {}!]
 }
@@ -87,7 +87,7 @@ void f() {
   }
 
   test_if_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (true) {}!]
 }
@@ -95,7 +95,7 @@ void f() {
   }
 
   test_if_trueAnd() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (true && 1 != 0) {}!]
 }
@@ -103,7 +103,7 @@ void f() {
   }
 
   test_if_trueAnd_thenOr() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (true && 1 != 0 || 3 < 4) {}!]
 }
@@ -122,7 +122,7 @@ void bad() {
   }
 
   test_if_x() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!if (1 != 0) {}!]
 }
@@ -219,7 +219,7 @@ void f<T>(a) {
   }
 
   test_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool p) {
   [!if (null ?? p) {}!]
 }
@@ -227,7 +227,7 @@ void f(bool p) {
   }
 
   test_string_interpolation_constant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   const a = 15;
   [!if ('$a' == '20') {}!]

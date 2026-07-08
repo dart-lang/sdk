@@ -445,7 +445,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
         field.isCovariantByClass = false;
       }
     }
-    void clearCovariant(Variable parameter) {
+    void clearCovariant(FunctionParameter parameter) {
       parameter.isCovariantByDeclaration = false;
       parameter.isCovariantByClass = false;
     }

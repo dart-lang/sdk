@@ -29,7 +29,11 @@ enum Category {
 }
 
 /// Abstraction to capture the maturity of a library.
-class Maturity {
+class const Maturity(
+  final int level,
+  final String name,
+  final String description,
+) {
   static const Maturity DEPRECATED = const Maturity(
     0,
     "Deprecated",
@@ -74,14 +78,6 @@ class Maturity {
     "Unspecified",
     "The maturity for this library has not been specified.",
   );
-
-  final int level;
-
-  final String name;
-
-  final String description;
-
-  const new(this.level, this.name, this.description);
 
   @override
   String toString() => "$name: $level\n$description\n";

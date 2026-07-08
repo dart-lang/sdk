@@ -8,8 +8,10 @@ library js_array_test;
 import 'dart:html';
 
 import 'dart:js' as js;
+
 import 'package:js/js.dart';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+
 import 'json_helper.dart' as json_helper;
 
 _injectJs() {

@@ -8,7 +8,7 @@ class Check {
   final _ignored;
 
   const Check(x, y)
-      : assert(identical(x, y)),
+    : assert(identical(x, y)),
       _ignored = identical(x, y) ? 42 : 1 ~/ 0;
 }
 

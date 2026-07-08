@@ -7,6 +7,7 @@
 library NestedSpawnTest;
 
 import 'dart:isolate';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 

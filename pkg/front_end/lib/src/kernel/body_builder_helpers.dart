@@ -13,21 +13,15 @@ enum JumpTargetKind {
   Goto, // Continue label in switch.
 }
 
-class Operator {
-  final Token token;
-
+class Operator(final Token token, final int charOffset) {
   String get name => token.stringValue!;
-
-  final int charOffset;
-
-  new(this.token, this.charOffset);
 
   @override
   String toString() => "operator($name)";
 }
 
 class JumpTarget {
-  final List<Statement> users = <Statement>[];
+  final List<InternalGotoStatement> users = [];
 
   final JumpTargetKind kind;
 
@@ -47,36 +41,42 @@ class JumpTarget {
 
   bool get hasUsers => users.isNotEmpty;
 
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     assert(isBreakTarget);
     users.add(statement);
   }
 
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     assert(isContinueTarget);
     users.add(statement);
   }
 
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     assert(isGotoTarget);
     users.add(statement);
   }
 
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    InternalStatement targetStatement,
+  ) {
     assert(isBreakTarget);
-    for (Statement user in users) {
-      BreakStatementImpl breakStatement = user as BreakStatementImpl;
+    for (InternalStatement user in users) {
+      InternalBreakStatement breakStatement = user as InternalBreakStatement;
       breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
     }
     users.clear();
   }
 
-  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     assert(isContinueTarget);
-    List<BreakStatementImpl> statements = <BreakStatementImpl>[];
-    for (Statement user in users) {
-      BreakStatementImpl breakStatement = user as BreakStatementImpl;
+    List<InternalContinueStatement> statements = [];
+    for (InternalGotoStatement user in users) {
+      InternalContinueStatement breakStatement =
+          user as InternalContinueStatement;
       breakStatement.target = target;
       statements.add(breakStatement);
     }
@@ -84,11 +84,11 @@ class JumpTarget {
     return statements;
   }
 
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
-    for (Statement user in users) {
-      ContinueSwitchStatement continueSwitchStatement =
-          user as ContinueSwitchStatement;
+    for (InternalGotoStatement user in users) {
+      InternalContinueSwitchStatement continueSwitchStatement =
+          user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
     }
     users.clear();
@@ -129,7 +129,8 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Statement> get users => unsupported("users", charOffset, fileUri);
+  List<InternalGotoStatement> get users =>
+      unsupported("users", charOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -145,47 +146,52 @@ class LabelTarget implements JumpTarget {
   bool get isGotoTarget => false;
 
   @override
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     breakTarget.addBreak(statement);
   }
 
   @override
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     continueTarget.addContinue(statement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(
+    InternalLabeledStatement target,
+    InternalStatement targetStatement,
+  ) {
     breakTarget.resolveBreaks(target, targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+  List<InternalContinueStatement>? resolveContinues(
+    InternalLabeledStatement target,
+  ) {
     return continueTarget.resolveContinues(target);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 }
 
-class FunctionTypeParameters {
-  final List<ParameterBuilder>? parameters;
-  final int charOffset;
-  final int length;
-  final Uri uri;
-
-  new(this.parameters, this.charOffset, this.length, this.uri) {
+class FunctionTypeParameters(
+  final List<ParameterBuilder>? parameters,
+  final int charOffset,
+  final int length,
+  final Uri uri,
+) {
+  this {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -251,20 +257,13 @@ abstract class Parameters {
   }
 }
 
-class FormalParameters extends Parameters {
-  @override
-  final List<FormalParameterBuilder>? parameters;
-
-  @override
-  final int charOffset;
-
-  @override
-  final int length;
-
-  @override
-  final Uri uri;
-
-  new(this.parameters, this.charOffset, this.length, this.uri) {
+class FormalParameters(
+  @override final List<FormalParameterBuilder>? parameters,
+  @override final int charOffset,
+  @override final int length,
+  @override final Uri uri,
+) extends Parameters {
+  this {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -275,7 +274,7 @@ class FormalParameters extends Parameters {
     required TypeBuilder? returnTypeBuilder,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required int fileOffset,
     required int fileEndOffset,
   }) {
@@ -284,16 +283,17 @@ class FormalParameters extends Parameters {
       TypeUse.returnType,
     );
     int requiredParameterCount = 0;
-    List<InternalVariable> positionalParameters = [];
-    List<InternalVariable> namedParameters = [];
+    List<InternalPositionalParameter> positionalParameters = [];
+    List<InternalNamedParameter> namedParameters = [];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        InternalVariable parameter = formal.build(libraryBuilder);
-        if (formal.isPositional) {
-          positionalParameters.add(parameter);
-          if (formal.isRequiredPositional) requiredParameterCount++;
-        } else if (formal.isNamed) {
-          namedParameters.add(parameter);
+        InternalFunctionParameter parameter = formal.build(libraryBuilder);
+        switch (parameter) {
+          case InternalPositionalParameter():
+            positionalParameters.add(parameter);
+            if (formal.isRequiredPositional) requiredParameterCount++;
+          case InternalNamedParameter():
+            namedParameters.add(parameter);
         }
       }
       namedParameters.sort((InternalVariable a, InternalVariable b) {
@@ -329,9 +329,27 @@ class FormalParameters extends Parameters {
   }
 }
 
-class CatchParameters extends Parameters {
+class CatchParameters(
+  @override final List<CatchParameterBuilder>? parameters,
+  @override final int charOffset,
+  @override final int length,
+  @override final Uri uri,
+) extends Parameters {
+  this {
+    if (parameters?.isEmpty ?? false) {
+      throw "Empty parameters should be null";
+    }
+  }
+
   @override
-  final List<CatchParameterBuilder>? parameters;
+  String toString() {
+    return "CatchParameters($parameters, $charOffset, $uri)";
+  }
+}
+
+class AnonymousMethodParameters extends Parameters {
+  @override
+  final List<AnonymousMethodParameterBuilder>? parameters;
 
   @override
   final int charOffset;
@@ -350,7 +368,7 @@ class CatchParameters extends Parameters {
 
   @override
   String toString() {
-    return "CatchParameters($parameters, $charOffset, $uri)";
+    return "AnonymousMethodParameters($parameters, $charOffset, $uri)";
   }
 }
 
@@ -372,22 +390,15 @@ String debugName(String className, String name) {
 
 /// A data holder used to hold the information about a label that is pushed on
 /// the stack.
-class Label {
-  String name;
-  int charOffset;
-
-  new(this.name, this.charOffset);
-
+class Label(final String name, final int charOffset) {
   @override
   String toString() => "label($name)";
 }
 
-class Condition {
-  final Expression expression;
-  final PatternGuard? patternGuard;
-
-  new(this.expression, [this.patternGuard]);
-
+class Condition(
+  final Expression expression, [
+  final InternalPatternGuard? patternGuard,
+]) {
   @override
   String toString() =>
       'Condition($expression'
@@ -400,16 +411,16 @@ final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
       dummyExpression,
     );
 
-class ExpressionOrPatternGuardCase {
-  final int caseOffset;
-  final Expression? expression;
-  final PatternGuard? patternGuard;
+class ExpressionOrPatternGuardCase._(
+  final int caseOffset,
+  final Expression? expression,
+  final InternalPatternGuard? patternGuard,
+) {
+  new expression(int caseOffset, Expression expression)
+    : this._(caseOffset, expression, null);
 
-  new expression(this.caseOffset, Expression this.expression)
-    : patternGuard = null;
-
-  new patternGuard(this.caseOffset, PatternGuard this.patternGuard)
-    : expression = null;
+  new patternGuard(int caseOffset, InternalPatternGuard patternGuard)
+    : this._(caseOffset, null, patternGuard);
 }
 
 extension on MemberKind {
@@ -440,118 +451,78 @@ extension on MemberKind {
 }
 
 /// Annotations that needs to be inferred about the body has been inferred.
-class PendingAnnotations {
-  final List<SingleTargetAnnotations>? singleTargetAnnotations;
-  final List<MultiTargetAnnotations>? multiTargetAnnotations;
-
-  new(this.singleTargetAnnotations, this.multiTargetAnnotations);
-}
+class PendingAnnotations(
+  final List<SingleTargetAnnotations>? singleTargetAnnotations,
+  final List<MultiTargetAnnotations>? multiTargetAnnotations,
+);
 
 /// A single target holding annotations to be inferred.
-class SingleTargetAnnotations {
-  final Annotatable target;
-  final List<int>? indicesOfAnnotationsToBeInferred;
-
-  new(this.target, [this.indicesOfAnnotationsToBeInferred]);
-}
+class SingleTargetAnnotations(
+  final Annotatable target, [
+  final List<int>? indicesOfAnnotationsToBeInferred,
+]);
 
 /// A multiple targets holding annotations to be inferred.
 ///
 /// The annotations are on the first target and needs to be cloned to the
 /// subsequent targets after inference.
-class MultiTargetAnnotations {
-  final List<Annotatable> targets;
+class MultiTargetAnnotations(final List<Annotatable> targets);
 
-  new(this.targets);
-}
+class BuildInitializersResult(
+  final List<InternalInitializer> initializers,
+  final PendingAnnotations? annotations,
+);
 
-class BuildInitializersResult {
-  final List<Initializer> initializers;
-  final PendingAnnotations? annotations;
+class BuildParameterDefaultValueResult(
+  final Expression defaultValue,
+  final PendingAnnotations? annotations,
+);
 
-  new(this.initializers, this.annotations);
-}
+class BuildRedirectingFactoryMethodResult(
+  final PendingAnnotations? annotations,
+);
 
-class BuildParameterInitializerResult {
-  final Expression initializer;
-  final PendingAnnotations? annotations;
+class BuildFieldsResult(
+  final Map<Identifier, Expression?> fieldInitializers,
+  final PendingAnnotations? annotations,
+);
 
-  new(this.initializer, this.annotations);
-}
+class BuildPrimaryConstructorResult(
+  final List<InternalInitializer> initializers,
+  final PendingAnnotations? annotations,
+);
 
-class BuildRedirectingFactoryMethodResult {
-  final PendingAnnotations? annotations;
+class BuildFunctionBodyResult({
+  required final AsyncModifier asyncModifier,
+  required final InternalStatement? body,
+  required final List<InternalInitializer> initializers,
+  required final PendingAnnotations? annotations,
+});
 
-  new(this.annotations);
-}
+class BuildPrimaryConstructorBodyResult({
+  required final AsyncModifier asyncModifier,
+  required final InternalStatement? body,
+  required final List<InternalInitializer> initializers,
+  required final PendingAnnotations? annotations,
+});
 
-class BuildFieldsResult {
-  final Map<Identifier, Expression?> fieldInitializers;
-  final PendingAnnotations? annotations;
+class BuildMetadataListResult(
+  final List<Expression> expressions,
+  final PendingAnnotations? annotations,
+);
 
-  new(this.fieldInitializers, this.annotations);
-}
+class BuildFieldInitializerResult(
+  final Expression initializer,
+  final PendingAnnotations? annotations,
+);
 
-class BuildPrimaryConstructorResult {
-  final List<Initializer> initializers;
-  final PendingAnnotations? annotations;
-
-  new(this.initializers, this.annotations);
-}
-
-class BuildFunctionBodyResult {
-  final AsyncModifier asyncModifier;
-  final Statement? body;
-  final List<Initializer> initializers;
-  final PendingAnnotations? annotations;
-
-  new({
-    required this.asyncModifier,
-    required this.body,
-    required this.initializers,
-    required this.annotations,
-  });
-}
-
-class BuildPrimaryConstructorBodyResult {
-  final AsyncModifier asyncModifier;
-  final Statement? body;
-  final List<Initializer> initializers;
-  final PendingAnnotations? annotations;
-
-  new({
-    required this.asyncModifier,
-    required this.body,
-    required this.initializers,
-    required this.annotations,
-  });
-}
-
-class BuildMetadataListResult {
-  final List<Expression> expressions;
-  final PendingAnnotations? annotations;
-
-  new(this.expressions, this.annotations);
-}
-
-class BuildFieldInitializerResult {
-  final Expression initializer;
-  final PendingAnnotations? annotations;
-
-  new(this.initializer, this.annotations);
-}
-
-class BuildEnumConstantResult {
-  final ActualArguments arguments;
-  final PendingAnnotations? annotations;
-
-  new(this.arguments, this.annotations);
-}
+class BuildEnumConstantResult(
+  final ActualArguments arguments,
+  final PendingAnnotations? annotations,
+);
 
 // Coverage-ignore(suite): Not run.
-class BuildSingleExpressionResult {
-  final Expression expression;
-  final PendingAnnotations? annotations;
-
-  new(this.expression, this.annotations);
-}
+class BuildSingleExpressionResult(
+  final Expression expression,
+  final PendingAnnotations? annotations,
+);

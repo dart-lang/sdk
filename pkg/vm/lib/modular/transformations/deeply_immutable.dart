@@ -82,6 +82,17 @@ class DeeplyImmutableValidator {
     }
     for (final field in library.fields) {
       if (_isVmSharedField(field)) {
+        if (!field.isFinal || field.isLate) {
+          // Relax this constraint for all of the 'dart:*'
+          if (!field.enclosingLibrary.importUri.isScheme('dart')) {
+            diagnosticReporter.report(
+              diag.ffiVmSharedFieldsModifiers,
+              field.fileOffset,
+              field.name.text.length,
+              field.location!.file,
+            );
+          }
+        }
         addDeeplyImmutableAnnotationIfNeeded(field);
       }
     }

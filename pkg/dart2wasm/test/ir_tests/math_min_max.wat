@@ -1,4 +1,4 @@
-(module $$
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $BoxedDouble (sub final $#Top (struct
@@ -13,39 +13,48 @@
   (func $intB implicit getter (result i64) <...>)
   (func $numIntA implicit getter (result (ref $#Top)) <...>)
   (func $numIntB implicit getter (result (ref $#Top)) <...>)
-  (func $"sinkDouble <noInline>" (param $var0 f64)
-    i32.const 92
+  (func $_maxSlow (param $var0 (ref $#Top)) (param $var1 (ref $#Top)) (result (ref $#Top)) <...>)
+  (func $_minSlow (param $var0 (ref $#Top)) (param $var1 (ref $#Top)) (result (ref $#Top)) <...>)
+  (func $print (param $var0 (ref $#Top)) <...>)
+  (@binaryen.inline 0)
+  (func $sinkDouble (param $var0 f64)
+    i32.const 93
     local.get $var0
     struct.new $BoxedDouble
     call $print
   )
-  (func $"sinkInt <noInline>" (param $var0 i64)
-    i32.const 86
+  (@binaryen.inline 0)
+  (func $sinkInt (param $var0 i64)
+    i32.const 84
     local.get $var0
     struct.new $BoxedInt
     call $print
   )
-  (func $"sinkNum <noInline>" (param $var0 (ref $#Top))
+  (@binaryen.inline 0)
+  (func $sinkNum (param $var0 (ref $#Top))
     local.get $var0
     call $print
   )
-  (func $"testMaxDoubleDouble <noInline>"
+  (@binaryen.inline 0)
+  (func $testMaxDoubleDouble
     call $"doubleA implicit getter"
     call $"doubleB implicit getter"
     f64.max
-    call $"sinkDouble <noInline>"
+    call $sinkDouble
   )
-  (func $"testMaxIntDouble <noInline>"
-    i32.const 86
+  (@binaryen.inline 0)
+  (func $testMaxIntDouble
+    i32.const 84
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 92
+    i32.const 93
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_maxSlow
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testMaxIntInt <noInline>"
+  (@binaryen.inline 0)
+  (func $testMaxIntInt
     (local $var0 i64)
     (local $var1 i64)
     call $"intA implicit getter"
@@ -56,9 +65,10 @@
     local.get $var1
     i64.ge_s
     select
-    call $"sinkInt <noInline>"
+    call $sinkInt
   )
-  (func $"testMaxNumNum <noInline>"
+  (@binaryen.inline 0)
+  (func $testMaxNumNum
     (local $var0 (ref $#Top))
     (local $var1 (ref $#Top))
     (local $var2 i64)
@@ -67,17 +77,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $field0
-      i32.const 86
+      i32.const 84
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $field0
-      i32.const 86
+      i32.const 84
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 86
+        i32.const 84
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value
@@ -95,16 +105,16 @@
       end
       local.get $var0
       struct.get $#Top $field0
-      i32.const 92
+      i32.const 93
       i32.ne
       local.get $var1
       struct.get $#Top $field0
-      i32.const 92
+      i32.const 93
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 92
+        i32.const 93
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value
@@ -119,25 +129,28 @@
       local.get $var1
       call $_maxSlow
     end $label0
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testMinDoubleDouble <noInline>"
+  (@binaryen.inline 0)
+  (func $testMinDoubleDouble
     call $"doubleA implicit getter"
     call $"doubleB implicit getter"
     f64.min
-    call $"sinkDouble <noInline>"
+    call $sinkDouble
   )
-  (func $"testMinIntDouble <noInline>"
-    i32.const 86
+  (@binaryen.inline 0)
+  (func $testMinIntDouble
+    i32.const 84
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 92
+    i32.const 93
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_minSlow
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $"testMinIntInt <noInline>"
+  (@binaryen.inline 0)
+  (func $testMinIntInt
     (local $var0 i64)
     (local $var1 i64)
     call $"intA implicit getter"
@@ -148,9 +161,10 @@
     local.get $var1
     i64.le_s
     select
-    call $"sinkInt <noInline>"
+    call $sinkInt
   )
-  (func $"testMinNumNum <noInline>"
+  (@binaryen.inline 0)
+  (func $testMinNumNum
     (local $var0 (ref $#Top))
     (local $var1 (ref $#Top))
     (local $var2 i64)
@@ -159,17 +173,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $field0
-      i32.const 86
+      i32.const 84
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $field0
-      i32.const 86
+      i32.const 84
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 86
+        i32.const 84
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value
@@ -187,16 +201,16 @@
       end
       local.get $var0
       struct.get $#Top $field0
-      i32.const 92
+      i32.const 93
       i32.ne
       local.get $var1
       struct.get $#Top $field0
-      i32.const 92
+      i32.const 93
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 92
+        i32.const 93
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value
@@ -211,9 +225,6 @@
       local.get $var1
       call $_minSlow
     end $label0
-    call $"sinkNum <noInline>"
+    call $sinkNum
   )
-  (func $_maxSlow (param $var0 (ref $#Top)) (param $var1 (ref $#Top)) (result (ref $#Top)) <...>)
-  (func $_minSlow (param $var0 (ref $#Top)) (param $var1 (ref $#Top)) (result (ref $#Top)) <...>)
-  (func $print (param $var0 (ref $#Top)) <...>)
 )

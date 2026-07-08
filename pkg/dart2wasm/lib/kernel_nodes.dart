@@ -288,6 +288,60 @@ mixin KernelNodes {
   late final wasmF32Class = index.getClass("dart:_wasm", "WasmF32");
   late final wasmF64Class = index.getClass("dart:_wasm", "WasmF64");
   late final wasmV128Class = index.getClass("dart:_wasm", "WasmV128");
+  late final Class wasmI8x16ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmI8x16Impl",
+  );
+  late final Class wasmI16x8ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmI16x8Impl",
+  );
+  late final Class wasmI32x4ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmI32x4Impl",
+  );
+  late final Class wasmI64x2ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmI64x2Impl",
+  );
+  late final Class wasmF32x4ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmF32x4Impl",
+  );
+  late final Class wasmF64x2ImplClass = index.getClass(
+    "dart:_wasm",
+    "_WasmF64x2Impl",
+  );
+
+  List<Reference> _getLaneReferences(Class classNode) {
+    final fields = classNode.fields.toList();
+    fields.sort((a, b) {
+      final aIndex = int.parse(a.name.text.substring(1));
+      final bIndex = int.parse(b.name.text.substring(1));
+      return aIndex.compareTo(bIndex);
+    });
+    return fields.map((f) => f.fieldReference).toList();
+  }
+
+  late final List<Reference> wasmI8x16Lanes = _getLaneReferences(
+    wasmI8x16ImplClass,
+  );
+  late final List<Reference> wasmI16x8Lanes = _getLaneReferences(
+    wasmI16x8ImplClass,
+  );
+  late final List<Reference> wasmI32x4Lanes = _getLaneReferences(
+    wasmI32x4ImplClass,
+  );
+  late final List<Reference> wasmI64x2Lanes = _getLaneReferences(
+    wasmI64x2ImplClass,
+  );
+  late final List<Reference> wasmF32x4Lanes = _getLaneReferences(
+    wasmF32x4ImplClass,
+  );
+  late final List<Reference> wasmF64x2Lanes = _getLaneReferences(
+    wasmF64x2ImplClass,
+  );
+
   late final Class wasmAnyRefClass = index.getClass("dart:_wasm", "WasmAnyRef");
   late final Class wasmExternRefClass = index.getClass(
     "dart:_wasm",
@@ -774,6 +828,12 @@ mixin KernelNodes {
     LibraryIndex.topLevel,
     'get:_loadingMap',
   );
+  late final Procedure? dartInternalModuleNamePrefixGetter = index
+      .tryGetProcedure(
+        'dart:_internal',
+        LibraryIndex.topLevel,
+        'get:_moduleNamePrefix',
+      );
   late final Procedure? dartInternalLoadingMapNamesGetter = index
       .tryGetProcedure(
         'dart:_internal',

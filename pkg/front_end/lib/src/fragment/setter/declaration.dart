@@ -289,11 +289,6 @@ class RegularSetterDeclaration
         fileUri: _fragment.fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
-        isClosureContextLoweringEnabled: libraryBuilder
-            .loader
-            .target
-            .backendTarget
-            .isConstructorTearOffLoweringEnabled,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
@@ -317,30 +312,13 @@ class RegularSetterDeclaration
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
         declaredFormals.length != 1 ||
         declaredFormals.single.isOptionalPositional) {
       int fileOffset = _fragment.formalsOffset;
-      if (body == null) {
-        body = extern.createEmptyStatement(fileOffset: fileOffset);
-      }
-      if (declaredFormals != null) {
-        // Illegal parameters were removed by the function builder.
-        // Add them as local variable to put them in scope of the body.
-        List<Statement> statements = <Statement>[];
-        for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(
-            extern.createVariableStatement(
-              extern.createVariableDeclaration(parameter.variable.astVariable),
-            ),
-          );
-        }
-        statements.add(body);
-        body = extern.createBlock(statements, fileOffset: fileOffset);
-      }
       body = extern.createBlock([
         extern.createExpressionStatement(
           problemReporting.buildProblem(
@@ -351,7 +329,6 @@ class RegularSetterDeclaration
             length: noLength,
           ),
         ),
-        body,
       ], fileOffset: fileOffset);
     }
     assert(
@@ -417,7 +394,7 @@ abstract class SetterFragmentDeclaration {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 
   DartType get returnTypeContext;

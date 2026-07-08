@@ -5,6 +5,7 @@
 library JsInterop1Test;
 
 import 'package:expect/async_helper.dart';
+
 import 'dart:async';
 import 'dart:html';
 

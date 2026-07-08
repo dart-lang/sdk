@@ -35,7 +35,8 @@ import '../kernel/body_builder.dart'
         ExpressionOrPatternGuardCase,
         FormalParameters,
         JumpTarget,
-        Label;
+        Label,
+        AnonymousMethodParameters;
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 import 'outline_builder.dart' as type;
@@ -46,6 +47,14 @@ class ValueKinds {
       const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+  static const ValueKind AnonymousMethodParameters =
+      const SingleValueKind<type.AnonymousMethodParameters>();
+  static const ValueKind AnonymousMethodParameterBuilder =
+      const SingleValueKind<type.AnonymousMethodParameterBuilder>();
+  static const ValueKind AnonymousMethodParameterListOrNull =
+      const SingleValueKind<List<type.AnonymousMethodParameterBuilder>>(
+        NullValues.FormalParameters,
+      );
   static const ValueKind Argument = const SingleValueKind<type.Argument>();
   static const ValueKind Arguments =
       const SingleValueKind<type.ActualArguments>();
@@ -60,7 +69,7 @@ class ValueKinds {
   static const ValueKind AwaitTokenOrNull = const SingleValueKind<type.Token>(
     NullValues.AwaitToken,
   );
-  static const ValueKind Block = const SingleValueKind<type.Block>();
+  static const ValueKind Block = const SingleValueKind<type.InternalBlock>();
   static const ValueKind BreakTarget = const SingleValueKind<type.JumpTarget>(
     NullValues.BreakTarget,
   );
@@ -127,7 +136,7 @@ class ValueKinds {
   static const ValueKind IdentifierOrOperatorOrParserRecovery =
       const UnionValueKind([Identifier, Operator, ParserRecovery]);
   static const ValueKind Initializer =
-      const SingleValueKind<type.Initializer>();
+      const SingleValueKind<type.InternalInitializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind Label = const SingleValueKind<type.Label>();
   static const ValueKind LabelListOrNull =
@@ -201,18 +210,20 @@ class ValueKinds {
         NullValues.RecordTypeFieldList,
       );
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
-  static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
+  static const ValueKind SwitchCase =
+      const SingleValueKind<type.InternalSwitchCase>();
   static const ValueKind SwitchCaseList =
-      const SingleValueKind<List<type.SwitchCase>>();
+      const SingleValueKind<List<type.InternalSwitchCase>>();
   static const ValueKind SwitchExpressionCase =
-      const SingleValueKind<type.SwitchExpressionCase>();
+      const SingleValueKind<type.InternalSwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
-      const SingleValueKind<List<type.SwitchExpressionCase>>();
-  static const ValueKind Statement = const SingleValueKind<type.Statement>();
+      const SingleValueKind<List<type.InternalSwitchExpressionCase>>();
+  static const ValueKind Statement =
+      const SingleValueKind<type.InternalStatement>();
   static const ValueKind StatementOrNull =
-      const SingleValueKind<type.Statement>(NullValues.Block);
+      const SingleValueKind<type.InternalStatement>(NullValues.Block);
   static const ValueKind StatementListOrNullList =
-      const SingleValueKind<List<List<type.Statement>?>>();
+      const SingleValueKind<List<List<type.InternalStatement>?>>();
   static const ValueKind String = const SingleValueKind<type.String>();
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull = const SingleValueKind<type.Token>(
@@ -245,8 +256,8 @@ class ValueKinds {
       const SingleValueKind<List<type.NominalParameterBuilder>>(
         NullValues.NominalParameters,
       );
-  static const ValueKind InternalVariableListOrNull =
-      const SingleValueKind<List<type.InternalVariable>>(
+  static const ValueKind InternalDeclaredVariableListOrNull =
+      const SingleValueKind<List<type.InternalDeclaredVariable>>(
         NullValues.VariableDeclarationList,
       );
 }

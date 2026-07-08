@@ -233,8 +233,10 @@ ${ownType} is not a subtype of ${superType}
     }
 
     for (int i = 0; i < superFunction.positionalParameters.length; ++i) {
-      final Variable ownParameter = ownFunction.positionalParameters[i];
-      final Variable superParameter = superFunction.positionalParameters[i];
+      final PositionalParameter ownParameter =
+          ownFunction.positionalParameters[i];
+      final PositionalParameter superParameter =
+          superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
         ownSubstitution.substituteType(ownParameter.type),
         superSubstitution.substituteType(superParameter.type),
@@ -242,7 +244,7 @@ ${ownType} is not a subtype of ${superType}
         isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
       )) {
         return '''
-type of parameter ${ownParameter.name} is incompatible
+type of parameter ${ownParameter.cosmeticName} is incompatible
 override declares ${ownParameter.type}
 super method declares ${superParameter.type}
 ''';
@@ -255,15 +257,15 @@ super method declares ${superParameter.type}
 
     // Note: FunctionNode.namedParameters are not sorted so we convert them
     // to map to make lookup faster.
-    final Map<String, Variable> ownParameters =
-        new Map<String, Variable>.fromIterable(
-          ownFunction.namedParameters,
-          key: (v) => v.name,
-        );
-    for (Variable superParameter in superFunction.namedParameters) {
-      final Variable? ownParameter = ownParameters[superParameter.name];
+    final Map<String, NamedParameter> ownParameters = new Map.fromIterable(
+      ownFunction.namedParameters,
+      key: (v) => v.parameterName,
+    );
+    for (NamedParameter superParameter in superFunction.namedParameters) {
+      final NamedParameter? ownParameter =
+          ownParameters[superParameter.parameterName];
       if (ownParameter == null) {
-        return 'override is missing ${superParameter.name} parameter';
+        return 'override is missing ${superParameter.parameterName} parameter';
       }
 
       if (!_isValidParameterOverride(
@@ -273,7 +275,7 @@ super method declares ${superParameter.type}
         isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
       )) {
         return '''
-type of parameter ${ownParameter.name} is incompatible
+type of parameter ${ownParameter.parameterName} is incompatible
 override declares ${ownParameter.type}
 super method declares ${superParameter.type}
 ''';

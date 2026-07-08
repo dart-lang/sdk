@@ -116,18 +116,16 @@ void generalTest() {
         .toDartObject,
   );
 
-  _identity =
-      ((ExternalDartReference<DartSubclass> et) =>
-              et.toDartObject.toExternalReference)
-          .toJS;
+  _identity = ((
+    ExternalDartReference<DartSubclass> et,
+  ) => et.toDartObject.toExternalReference).toJS;
   Expect.throws(() => identity(externalDartReference));
 
   // Check that we do the right thing with nullability still, both in the type
   // parameter and outside it.
-  _identity =
-      ((ExternalDartReference<Object> et) =>
-              et.toDartObject.toExternalReference)
-          .toJS;
+  _identity = ((
+    ExternalDartReference<Object> et,
+  ) => et.toDartObject.toExternalReference).toJS;
   nullableExternalDartReference = null?.toExternalReference;
   Expect.isTrue(nullableExternalDartReference == null);
   Expect.throwsWhen(

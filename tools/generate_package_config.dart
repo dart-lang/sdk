@@ -43,7 +43,7 @@ dependency_overrides:
     path: third_party/pkg/material_color_utilities/dart
   characters:
     path: third_party/pkg/core/pkgs/characters/'''
-  "$overrides");
+        "$overrides");
   } else {
     // Delete the overrides file if it exists.
     if (overridesFile.existsSync()) {
@@ -85,7 +85,7 @@ dependency_overrides:
               rootUri.startsWith(
                 '../tools',
               ) || // A tool package for developing the SDK.
-              rootUri.startsWith('../utils' ) || // Utils for building the SDK.
+              rootUri.startsWith('../utils') || // Utils for building the SDK.
               rootUri == '../' // The main workspace package
           )) {
         print('Package ${package['name']} is imported from outside the SDK.');

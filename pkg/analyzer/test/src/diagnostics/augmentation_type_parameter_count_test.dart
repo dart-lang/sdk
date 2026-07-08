@@ -36,7 +36,7 @@ ClassDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@27
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -99,6 +99,8 @@ class A<T> {}
 augment class A<T, U> {}
 //                 ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+
+void f(A<int> a) {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -117,7 +119,7 @@ ClassDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -150,11 +152,11 @@ ClassDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
         TypeParameter
           name: V
           declaredFragment: <testLibraryFragment> V@36
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -218,7 +220,7 @@ MethodDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@65
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -227,7 +229,7 @@ MethodDeclaration
     semicolon: ;
   declaredFragment: <testLibraryFragment> foo@61
     element: <testLibrary>::@class::A::@method::foo
-      type: void Function<T>()
+      type: void Function()
 ''');
   }
 
@@ -278,6 +280,10 @@ augment class A {
 //                    ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 }
+
+void f(A a) {
+  a.foo<int>();
+}
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
@@ -298,7 +304,7 @@ MethodDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@71
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -307,7 +313,63 @@ MethodDeclaration
     semicolon: ;
   declaredFragment: <testLibraryFragment> foo@64
     element: <testLibrary>::@class::A::@method::foo
-      type: void Function<T, U>()
+      type: void Function<T>()
+''');
+  }
+
+  test_class_method_2_1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo<T, U>() {}
+}
+augment class A {
+  augment void foo<T>();
+//                  ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+}
+''');
+  }
+
+  test_class_staticMethod_0_1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment static void foo<T>();
+//                        ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+}
+''');
+  }
+
+  test_class_staticMethod_1_2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo<T>() {}
+}
+augment class A {
+  augment static void foo<T, U>();
+//                           ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+}
+
+void f() {
+  A.foo<int>();
+}
+''');
+  }
+
+  test_class_staticMethod_2_1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo<T, U>() {}
+}
+augment class A {
+  augment static void foo<T>();
+//                         ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+}
 ''');
   }
 
@@ -331,7 +393,7 @@ EnumDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@26
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
@@ -412,7 +474,7 @@ EnumDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@32
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
@@ -469,7 +531,7 @@ ExtensionDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@42
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -547,7 +609,7 @@ ExtensionDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@48
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -607,7 +669,7 @@ ExtensionTypeDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@53
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -697,7 +759,7 @@ ExtensionTypeDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@59
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -757,7 +819,7 @@ MixinDeclaration
       TypeParameter
         name: T
         declaredFragment: <testLibraryFragment> T@27
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -835,7 +897,7 @@ MixinDeclaration
       TypeParameter
         name: U
         declaredFragment: <testLibraryFragment> U@33
-          defaultType: dynamic
+          defaultType: null
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
@@ -895,7 +957,7 @@ FunctionDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@27
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -904,11 +966,11 @@ FunctionDeclaration
       semicolon: ;
     declaredFragment: <testLibraryFragment> f@25
       element: <testLibrary>::@function::f
-        type: void Function<T>()
-    staticType: void Function<T>()
+        type: void Function()
+    staticType: void Function()
   declaredFragment: <testLibraryFragment> f@25
     element: <testLibrary>::@function::f
-      type: void Function<T>()
+      type: void Function()
 ''');
   }
 
@@ -956,6 +1018,10 @@ void f<T>() {}
 augment void f<T, U>();
 //                ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+
+void g() {
+  f<int>();
+}
 ''');
     var node = result.findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
@@ -977,7 +1043,7 @@ FunctionDeclaration
         TypeParameter
           name: U
           declaredFragment: <testLibraryFragment> U@33
-            defaultType: dynamic
+            defaultType: null
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -986,11 +1052,20 @@ FunctionDeclaration
       semicolon: ;
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
-        type: void Function<T, U>()
-    staticType: void Function<T, U>()
+        type: void Function<T>()
+    staticType: void Function<T>()
   declaredFragment: <testLibraryFragment> f@28
     element: <testLibrary>::@function::f
-      type: void Function<T, U>()
+      type: void Function<T>()
+''');
+  }
+
+  test_topLevelFunction_2_1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T, U>() {}
+augment void f<T>();
+//              ^
+// [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 ''');
   }
 }

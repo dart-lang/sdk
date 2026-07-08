@@ -19,24 +19,38 @@ const listConcatenation = <int>[...listLiteral];
 const setConcatenation = <int>{...setLiteral};
 const mapConcatenation = <int, String>{...mapLiteral};
 
-const objectTypeLiteralIdentical =
-    identical(objectTypeLiteral, lib.objectTypeLiteral);
-const partialInstantiationIdentical =
-    identical(partialInstantiation, lib.partialInstantiation);
+const objectTypeLiteralIdentical = identical(
+  objectTypeLiteral,
+  lib.objectTypeLiteral,
+);
+const partialInstantiationIdentical = identical(
+  partialInstantiation,
+  lib.partialInstantiation,
+);
 const instanceIdentical = identical(instance, lib.instance);
-const functionTypeLiteralIdentical =
-    identical(functionTypeLiteral, lib.functionTypeLiteral);
-const genericFunctionTypeLiteralIdentical =
-    identical(genericFunctionTypeLiteral, lib.genericFunctionTypeLiteral);
+const functionTypeLiteralIdentical = identical(
+  functionTypeLiteral,
+  lib.functionTypeLiteral,
+);
+const genericFunctionTypeLiteralIdentical = identical(
+  genericFunctionTypeLiteral,
+  lib.genericFunctionTypeLiteral,
+);
 const listLiteralIdentical = identical(listLiteral, lib.listLiteral);
 const setLiteralIdentical = identical(setLiteral, lib.setLiteral);
 const mapLiteralIdentical = identical(mapLiteral, lib.mapLiteral);
-const listConcatenationIdentical =
-    identical(listConcatenation, lib.listConcatenation);
-const setConcatenationIdentical =
-    identical(setConcatenation, lib.setConcatenation);
-const mapConcatenationIdentical =
-    identical(mapConcatenation, lib.mapConcatenation);
+const listConcatenationIdentical = identical(
+  listConcatenation,
+  lib.listConcatenation,
+);
+const setConcatenationIdentical = identical(
+  setConcatenation,
+  lib.setConcatenation,
+);
+const mapConcatenationIdentical = identical(
+  mapConcatenation,
+  lib.mapConcatenation,
+);
 
 main() {
   test(objectTypeLiteral, lib.objectTypeLiteral);

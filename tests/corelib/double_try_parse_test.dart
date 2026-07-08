@@ -5,6 +5,7 @@
 // VMOptions=
 
 import "dart:math" show pow;
+
 import "package:expect/expect.dart";
 
 // U+0085 has been whitespace, isn't any more in all browsers.

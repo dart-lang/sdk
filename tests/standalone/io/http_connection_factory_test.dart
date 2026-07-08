@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 import "dart:io";
 import 'dart:convert';
+
 import "package:expect/expect.dart";
+
 import 'http_proxy_test.dart' show setupProxyServer;
 import 'test_utils.dart' show withTempDir;
 

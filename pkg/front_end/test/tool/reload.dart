@@ -28,6 +28,9 @@ class RemoteVm {
   /// Port used to connect to the vm service protocol, typically 8181.
   final int port;
 
+  /// Host used to connect to the vm service protocol, typically 127.0.0.1.
+  final String host;
+
   /// An peer point used to send service protocol messages. The service
   /// protocol uses JSON rpc on top of web-sockets.
   json_rpc.Peer get rpc => _rpc ??= _createPeer();
@@ -68,11 +71,11 @@ class RemoteVm {
     return (_eventStreams[streamId] = controller).stream;
   }
 
-  new([this.port = 8181]);
+  new([this.port = 8181, this.host = '127.0.0.1']);
 
   /// Establishes the JSON rpc connection.
   json_rpc.Peer _createPeer() {
-    var socket = new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
+    var socket = new IOWebSocketChannel.connect('ws://$host:$port/ws');
     var peer = new json_rpc.Peer(socket.cast<String>());
     peer
         .listen()
@@ -97,11 +100,10 @@ class RemoteVm {
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    final isolateStartEventFuture = getEventStream('Isolate').firstWhere((
-      event,
-    ) {
-      return event['kind'] == 'IsolateStart';
-    });
+    final isolateStartEventFuture = getEventStream('Isolate')
+        .firstWhere((event) {
+          return event['kind'] == 'IsolateStart';
+        });
 
     var vm = await rpc.sendRequest('getVM', {});
     var isolates = vm['isolates'];

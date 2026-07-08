@@ -216,6 +216,25 @@ class C(var int x) {
 ''');
   }
 
+  Future<void> test_field_withDocComment() async {
+    await resolveTestCode('''
+class C(int x) {
+  /// A comment
+  /// on multiple lines.
+  int x;
+
+  this : x = x;
+}
+''');
+    await assertHasFix('''
+class C(
+  /// A comment
+  /// on multiple lines.
+  var int x) {
+}
+''');
+  }
+
   Future<void> test_optionalNamed_fieldFormalParameter_final() async {
     await resolveTestCode('''
 class C({this.x = 0}) {
@@ -352,6 +371,28 @@ class C(int x) {
 class C(var int _x) {
 
   int get y => _x + 1;
+}
+''');
+  }
+
+  Future<void> test_privateField_referencedInInitializer() async {
+    await resolveTestCode('''
+class C({required int? i}) {
+  final int? _i;
+  final bool _b;
+
+  this : _i = i, _b = i != null;
+
+  num get use => (_i ?? 0) + (_b ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+class C({required final int? _i}) {
+  final bool _b;
+
+  this : _b = _i != null;
+
+  num get use => (_i ?? 0) + (_b ? 1 : 0);
 }
 ''');
   }

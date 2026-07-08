@@ -1523,8 +1523,18 @@ void main() {
       skip: isRunningOnIA32,
     );
     test(
+      'compile jit-snapshot',
+      () => testDepFileGeneration('jit-snapshot'),
+      skip: isRunningOnIA32,
+    );
+    test(
       'compile kernel',
       () => testDepFileGeneration('kernel'),
+      skip: isRunningOnIA32,
+    );
+    test(
+      'compile wasm',
+      () => testDepFileGeneration('wasm'),
       skip: isRunningOnIA32,
     );
   });

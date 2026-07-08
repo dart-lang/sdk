@@ -4,6 +4,7 @@
 //
 
 import "package:expect/expect.dart";
+
 import "dart:async";
 import "dart:io";
 import "dart:mirrors";
@@ -294,6 +295,14 @@ Future<HttpServer> setupTargetServer() {
         Expect.isNull(
           request.headers.value("Authorization"),
           "expected 'Authorization' header to be removed on redirect",
+        );
+        Expect.isNull(
+          request.headers.value("Proxy-Authorization"),
+          "expected 'Proxy-Authorization' header to be removed on redirect",
+        );
+        Expect.isNull(
+          request.headers.value("Cookie"),
+          "expected 'Cookie' header to be removed on redirect",
         );
         request.response.close();
       } else {
@@ -731,6 +740,8 @@ void testCrossDomainAutoRedirectWithHeaders() {
           .then((HttpClientRequest request) {
             request.headers.add("X-Request-Header", "value");
             request.headers.add("Authorization", "Basic ...");
+            request.headers.add("Proxy-Authorization", "Basic ...");
+            request.headers.add("Cookie", "secret=value");
             return request.close();
           })
           .then((HttpClientResponse response) {

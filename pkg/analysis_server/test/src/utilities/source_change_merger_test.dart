@@ -248,8 +248,7 @@ class SourceChangeMergerTest {
   void test_overlap_secondInsertsIntoFirst2() {
     verifyMerge(
       start: 'AAAAAAAAAABBBBBBBBBB',
-      expected:
-          'AAAAAAAAAACCCCCCCCCCEEEEEEEEEEGGGGGGGGGGHHHHHHHHHHFFFFFFFFFFDDDDDDDDDDBBBBBBBBBB',
+      expected: 'AAAAAAAAAACCCCCCCCCCEEEEEEEEEEGGGGGGGGGGHHHHHHHHHHFFFFFFFFFFDDDDDDDDDDBBBBBBBBBB',
       edits: [
         SourceFileEdit(
           '',

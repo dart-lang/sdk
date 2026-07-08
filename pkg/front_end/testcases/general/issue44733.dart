@@ -8,8 +8,7 @@ mixin C on D {}
 
 B get x => super.x;
 void f() {
-  switch (x.y.z) {
-  }
+  switch (x.y.z) {}
 }
 
 abstract class E {}

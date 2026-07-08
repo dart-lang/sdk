@@ -5,6 +5,7 @@
 // Note: These tests rely on specific line endings in the source files.
 
 import "dart:mirrors";
+
 import "package:expect/expect.dart";
 
 import "method_mirror_source_line_ending_lf.dart";

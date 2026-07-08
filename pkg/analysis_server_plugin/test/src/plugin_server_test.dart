@@ -50,19 +50,6 @@ class PluginServerMapTest extends PluginServerTestBase
     await startPlugin();
   }
 
-  Future<void> test_warningsCanBeIgnored_correctPlugin() async {
-    // See https://github.com/dart-lang/sdk/issues/62173
-    writeAnalysisOptionsWithPlugin();
-    newFile(filePath, '''
-// ignore: no_literals/no_bools
-bool b = false;
-''');
-    await _setRoots();
-    var paramsQueue = _analysisErrorsParams;
-    var params = await paramsQueue.next;
-    expect(params.errors, isEmpty);
-  }
-
   void writeAnalysisOptionsWithPlugin({
     Map<String, String> diagnosticConfiguration = const {},
     StringBuffer? buffer,
@@ -151,6 +138,46 @@ bool b = false;'''),
       }
     }
   }
+
+  Future<void> test_warningRulesCanBeDisabled() async {
+    writeAnalysisOptionsWithPlugin(
+      diagnosticConfiguration: {'no_bools': 'disable'},
+    );
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_warningRulesCanBeDisabled_withOtherPlugins() async {
+    newAnalysisOptionsYamlFile(packagePath, '''
+plugins:
+  no_literals:
+    path: some/path
+    diagnostics:
+      no_bools: disable
+  other_plugin:
+    path: some/other/path
+''');
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_warningsCanBeIgnored_incorrectPlugin() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: other_plugin/no_bools
+bool b = false;
+''');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+  }
 }
 
 @reflectiveTest
@@ -197,11 +224,68 @@ bool b = false;
   Future<void> test_handleAnalysisSetContextRoots() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await _setRoots();
-    var paramsQueue = _analysisErrorsParams;
+
+    var notifications = channel.notifications.asBroadcastStream();
+    var statusQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_STATUS)
+          .map((n) => protocol.PluginStatusParams.fromNotification(n)),
+    );
+    var paramsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n)),
+    );
+
+    var setRootsFuture = _setRoots();
+
+    var status1 = await statusQueue.next;
+    expect(status1.analysis!.isAnalyzing, isTrue);
+
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
+
+    var status2 = await statusQueue.next;
+    expect(status2.analysis!.isAnalyzing, isFalse);
+
+    await setRootsFuture;
+  }
+
+  Future<void> test_handleAnalysisSetContextRoots_only() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var notifications = channel.notifications.asBroadcastStream();
+    var statusQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_STATUS)
+          .map((n) => protocol.PluginStatusParams.fromNotification(n)),
+    );
+    var paramsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n)),
+    );
+
+    // Rather than using `_setRoots`, this test emulates Dart Analysis Server
+    // <= 3.12.0, where only `protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS` is
+    // sent.
+    var requestFuture = channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var status1 = await statusQueue.next;
+    expect(status1.analysis!.isAnalyzing, isTrue);
+
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+
+    var status2 = await statusQueue.next;
+    expect(status2.analysis!.isAnalyzing, isFalse);
+
+    await requestFuture;
   }
 
   Future<void> test_handleEditGetAssists() async {
@@ -380,6 +464,42 @@ var n = ^10;
     );
     var result = protocol.EditGetFixesResult.fromResponse(response);
     expect(result.fixes.first.fixes, hasLength(4));
+  }
+
+  Future<void> test_handleEditGetFixes_multiFixInFile() async {
+    writeAnalysisOptionsWithPlugin();
+    var code = TestCode.parseNormalized('''
+void f() {
+  bool b1 = ^false;
+  bool b2 = true;
+  bool b3 = false;
+}
+''');
+    newFile(filePath, code.code);
+
+    await _setContextRootsAndReadFirstErrors();
+
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, code.position.offset),
+    );
+    var result = protocol.EditGetFixesResult.fromResponse(response);
+    expect(result.fixes, isNotEmpty);
+    var fixes = result.fixes.first.fixes;
+
+    // Should have fixes available: both individual and multi-fix versions
+    // plus 3 ignore fixes
+    expect(fixes.length, greaterThanOrEqualTo(4));
+
+    // Verify we have the multi-fix version available
+    var multiFixMessages = fixes
+        .map((f) => f.change.message)
+        .where((msg) => msg.contains('everywhere'))
+        .toList();
+    expect(
+      multiFixMessages.length,
+      greaterThan(0),
+      reason: 'Should have a multi-fix ("everywhere in file") option',
+    );
   }
 
   Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
@@ -913,12 +1033,13 @@ mixin PluginServerTestMixin on PluginServerTestBase {
   }
 
   Future<void> _setRoots() async {
-    await channel.sendRequest(
+    var future1 = channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
     );
-    await channel.sendRequest(
+    var future2 = channel.sendRequest(
       protocol.AnalysisSetAnalysisRootsParams([contextRoot.root], []),
     );
+    await Future.wait([future1, future2]);
   }
 }
 
@@ -992,6 +1113,12 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
     'Wrap in quotes',
   );
 
+  static const _wrapInQuotesAllKind = FixKind(
+    'dart.fix.wrapInQuotes.multi',
+    10,
+    'Wrap in quotes everywhere in file',
+  );
+
   _WrapInQuotes({required super.context});
 
   @override
@@ -1000,6 +1127,9 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => _wrapInQuotesKind;
+
+  @override
+  FixKind? get multiFixKind => _wrapInQuotesAllKind;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

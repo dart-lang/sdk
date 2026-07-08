@@ -32,12 +32,7 @@ TreeNode transformAsExpression(
 
   if (canBeReducedToNullCheckAndCast(node, operandType, env)) {
     // Transform 'x as T' to 'Let tmp = x in (tmp == null) ? tmp as T : tmp'.
-    final tmp = Variable(
-      null,
-      initializer: node.operand,
-      type: operandType,
-      isSynthesized: true,
-    );
+    final tmp = SyntheticVariable(initializer: node.operand, type: operandType);
     final dstType = node.type;
     return Let(
       tmp,

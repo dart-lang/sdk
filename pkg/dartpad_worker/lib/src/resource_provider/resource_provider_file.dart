@@ -116,14 +116,19 @@ final class _ResourceProviderFileFileSystem extends f.FileSystem {
   io.FileSystemEntityType typeSync(String path, {bool followLinks = true}) {
     final absPath = _resolve(path);
     try {
-      final resource = _rp.getResource(absPath);
-      if (resource.exists) {
-        if (resource is Folder) return io.FileSystemEntityType.directory;
-        if (resource is File) return io.FileSystemEntityType.file;
-      } else {
+      if (!followLinks) {
         if (_rp.getLink(absPath).exists) {
           return io.FileSystemEntityType.link;
         }
+      }
+      if (_rp.getFolder(absPath).exists) {
+        return io.FileSystemEntityType.directory;
+      }
+      if (_rp.getFile(absPath).exists) {
+        return io.FileSystemEntityType.file;
+      }
+      if (_rp.getLink(absPath).exists) {
+        return io.FileSystemEntityType.link;
       }
     } catch (_) {}
     return io.FileSystemEntityType.notFound;
@@ -226,9 +231,6 @@ abstract class _ResourceProviderEntity implements f.FileSystemEntity {
   Future<bool> exists() async => existsSync();
 
   @override
-  bool existsSync() => _resource.exists;
-
-  @override
   Future<io.FileStat> stat() => fileSystem.stat(_path);
 
   @override
@@ -255,6 +257,10 @@ class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
   _ResourceProviderFile(super.fileSystem, super.path);
 
   File get _file => fileSystem._rp.getFile(_path);
+
+  @override
+  bool existsSync() =>
+      fileSystem.typeSync(path) == io.FileSystemEntityType.file;
 
   @override
   f.File get absolute => fileSystem.file(fileSystem.path.absolute(_path));
@@ -440,8 +446,10 @@ class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
         _file.writeAsBytesSync(bytes);
       } else if (mode == io.FileMode.append ||
           mode == io.FileMode.writeOnlyAppend) {
-        final current = _file.exists ? _file.readAsBytesSync() : <int>[];
-        _file.writeAsBytesSync([...current, ...bytes]);
+        final builder = BytesBuilder(copy: false);
+        if (_file.exists) builder.add(_file.readAsBytesSync());
+        builder.add(bytes);
+        _file.writeAsBytesSync(builder.takeBytes());
       }
     } catch (e) {
       throw io.FileSystemException(e.toString(), path);
@@ -487,6 +495,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
   Folder get _folder => fileSystem._rp.getFolder(_path);
 
   @override
+  bool existsSync() =>
+      fileSystem.typeSync(path) == io.FileSystemEntityType.directory;
+
+  @override
   f.Directory get absolute =>
       fileSystem.directory(fileSystem.path.absolute(_path));
 
@@ -527,7 +539,7 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
     var i = 0;
     while (true) {
       var name = "${prefix ?? 'temp'}_$i";
-      var temp = _folder.getChildAssumingFolder(name);
+      var temp = _folder.getFolder(name);
       if (!temp.exists) {
         temp.create();
         return _ResourceProviderDirectory(fileSystem, temp.path);
@@ -625,10 +637,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
     }
     for (final child in source.getChildren()) {
       if (child is File) {
-        final destFile = dest.getChildAssumingFile(child.shortName);
+        final destFile = dest.getFile(child.shortName);
         destFile.writeAsBytesSync(child.readAsBytesSync());
       } else if (child is Folder) {
-        final destChild = dest.getChildAssumingFolder(child.shortName);
+        final destChild = dest.getFolder(child.shortName);
         _copyFolderSync(child, destChild);
       }
     }
@@ -651,6 +663,11 @@ class _ResourceProviderLink extends _ResourceProviderEntity implements f.Link {
   _ResourceProviderLink(super.fileSystem, super.path);
 
   Link get _link => fileSystem._rp.getLink(_path);
+
+  @override
+  bool existsSync() =>
+      fileSystem.typeSync(path, followLinks: false) ==
+      io.FileSystemEntityType.link;
 
   @override
   f.Link get absolute => fileSystem.link(fileSystem.path.absolute(_path));
@@ -701,7 +718,7 @@ class _FileIOSink implements io.IOSink {
   final _ResourceProviderFile _file;
   final io.FileMode _mode;
   final Encoding _encoding;
-  final List<int> _buffer = [];
+  final BytesBuilder _buffer = BytesBuilder();
   bool _closed = false;
 
   _FileIOSink(
@@ -722,7 +739,7 @@ class _FileIOSink implements io.IOSink {
   @override
   void add(List<int> data) {
     if (_closed) throw StateError('Sink closed');
-    _buffer.addAll(data);
+    _buffer.add(data);
   }
 
   @override
@@ -750,8 +767,7 @@ class _FileIOSink implements io.IOSink {
 
   void _flushSync() {
     if (_buffer.isEmpty) return;
-    _file.writeAsBytesSync(_buffer, mode: _mode);
-    _buffer.clear();
+    _file.writeAsBytesSync(_buffer.takeBytes(), mode: _mode);
   }
 
   @override

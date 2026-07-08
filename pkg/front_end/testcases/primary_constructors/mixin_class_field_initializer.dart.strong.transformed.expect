@@ -43,7 +43,7 @@ class C3 extends core::Object implements self::M3 /*isEliminatedMixin*/  {
 }
 mixin class M4 extends core::Object {
   final field core::int id;
-  constructor •(final core::int x) → self::M4
+  constructor •(core::int x) → self::M4
     : self::M4::id = x, super core::Object::•()
     ;
 }

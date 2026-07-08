@@ -8,6 +8,7 @@ extension on Object {
 
 void main() {
   switch (Object() as dynamic) {
-    case Object(q: var x): print(x);
+    case Object(q: var x):
+      print(x);
   }
 }

@@ -553,7 +553,7 @@ IsolateGroupReloadContext::IsolateGroupReloadContext(
       isolate_group_(isolate_group),
       class_table_(class_table),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
-      reload_timestamp_(OS::GetCurrentTimeMillis()),
+      reload_timestamp_(OS::GetCurrentTimeMicros()),
       js_(js),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),

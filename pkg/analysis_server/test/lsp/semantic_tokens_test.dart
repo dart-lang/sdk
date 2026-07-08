@@ -1040,6 +1040,131 @@ int double(int bbb) => bbb * 2;
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_dartdoc_codeBlock_indented() async {
+    var content = '''
+/// MyClass.
+///
+///     CODE
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('     CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_dartdoc_codeBlock_tripleBackticks() async {
+    var content = '''
+/// MyClass.
+///
+/// ```
+/// CODE
+/// ```
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_dartdoc_codeBlock_tripleBackticks_namedLanguage() async {
+    var content = '''
+/// MyClass.
+///
+/// ```dart
+/// CODE
+/// ```
+class MyClass;
+''';
+
+    var expected = [
+      _Token('/// MyClass.', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```dart', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' CODE', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('///', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' ```', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+        CustomSemanticTokenModifiers.source,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_directives() async {
     failTestOnErrorDiagnostic = false; // Test has invalid imports.
 

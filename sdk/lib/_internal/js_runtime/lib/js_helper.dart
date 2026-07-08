@@ -3987,12 +3987,10 @@ abstract class TrustedGetRuntimeType {}
 // the dynamic result to the desired type. We know the result is some kind of
 // non-null, non-Dart object.
 @pragma('dart2js:as:trust')
-Object get staticInteropGlobalContext =>
-    JS_EMBEDDED_GLOBAL(
-          'creates:;returns:JSObject;depends:none;effects:none;gvn:true',
-          CACHED_GLOBAL_THIS,
-        )
-        as Object;
+Object get staticInteropGlobalContext => JS_EMBEDDED_GLOBAL(
+  'creates:;returns:JSObject;depends:none;effects:none;gvn:true',
+  CACHED_GLOBAL_THIS,
+) as Object;
 
 /// Return a fresh object literal.
 T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');

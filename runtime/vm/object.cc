@@ -78,6 +78,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -4246,8 +4247,7 @@ bool Function::NeedsDynamicInvocationForwarder() const {
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       bound = type_params.BoundAt(i);
-      if (!bound.IsTopTypeForSubtyping() &&
-          !type_params.IsGenericCovariantImplAt(i)) {
+      if (!bound.IsTopType() && !type_params.IsGenericCovariantImplAt(i)) {
         return true;
       }
     }
@@ -4261,8 +4261,8 @@ bool Function::NeedsDynamicInvocationForwarder() const {
   auto& type = AbstractType::Handle(zone);
   for (intptr_t i = NumImplicitParameters(); i < num_params; ++i) {
     type = ParameterTypeAt(i);
-    if (!type.IsTopTypeForSubtyping() &&
-        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
+    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
+        !is_covariant.Contains(i)) {
       return true;
     }
   }
@@ -6088,8 +6088,7 @@ void Class::set_declaration_type(const Type& value) const {
   // Since DeclarationType is used as the runtime type of instances of a
   // non-generic class, its nullability must be kNonNullable.
   // The exception is DeclarationType of Null which is kNullable.
-  ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
-  ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
+  ASSERT((value.type_class_id() == kNullCid) == value.IsNullable());
   untag()->set_declaration_type<std::memory_order_release>(value.ptr());
 }
 
@@ -6268,7 +6267,7 @@ bool Class::IsSubtypeOf(const Class& cls,
       const AbstractType& other_type_arg =
           AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
       // Check if S1 is a top type.
-      if (other_type_arg.IsTopTypeForSubtyping()) {
+      if (other_type_arg.IsTopType()) {
         TRACE_TYPE_CHECKS_VERBOSE(
             "   - result: true (right is FutureOr top)\n");
         return true;
@@ -6900,8 +6899,8 @@ void TypeParameters::Print(Thread* thread,
     if (FLAG_show_internal_names || !AllDynamicBounds()) {
       type = BoundAt(i);
       // Do not print default bound.
-      if (!type.IsNull() && (FLAG_show_internal_names || !type.IsObjectType() ||
-                             type.IsNonNullable())) {
+      if (!type.IsNull() &&
+          (FLAG_show_internal_names || !type.IsNullableObjectType())) {
         printer->AddString(" extends ");
         type.PrintName(name_visibility, printer);
         if (FLAG_show_internal_names && !AllDynamicDefaults()) {
@@ -9239,6 +9238,7 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (RecognizedKindForceOptimize() || IsFfiCallClosure() ||
       IsFfiCallbackTrampoline() || is_ffi_native() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
@@ -9254,6 +9254,11 @@ bool Function::ForceOptimize() const {
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions as
   // force-optimize via `@pragma('vm:force-optimize')`.
   return InVmTests(*this);
+#else
+  // These are not supposed to be called in AOT runtime.
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 bool Function::IsPreferInline() const {
@@ -9315,6 +9320,7 @@ InstancePtr Function::GetFfiCallClosurePragmaValue() const {
 }
 
 bool Function::RecognizedKindForceOptimize() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   switch (recognized_kind()) {
     // Uses unboxed/untagged data not supported in unoptimized, or uses
     // LoadIndexed/StoreIndexed/MemoryCopy instructions with typed data
@@ -9424,9 +9430,21 @@ bool Function::RecognizedKindForceOptimize() const {
     // Both unboxed/untagged data and atomic-to-GC operation.
     case MethodRecognizer::kFinalizerEntry_allocate:
       return true;
+    // Only force-optimize when the hardware fast path is available, since the
+    // fall-through Dart body contains integer-arithmetic instance calls which
+    // are not allowed inside force-optimized functions.
+    case MethodRecognizer::kInteger_oneBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kPOPCNT);
+    case MethodRecognizer::kInteger_trailingZeroBitCount:
+      return UnaryInt64OpInstr::IsSupported(Token::kCTZ);
     default:
       return false;
   }
+#else
+  // These are not supposed to be called in AOT runtime.
+  UNREACHABLE();
+  return false;
+#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -9810,8 +9828,7 @@ ObjectPtr Function::DoArgumentTypesMatch(
         bound = params.BoundAt(i);
         // Only perform non-covariant checks where the bound is not
         // the top type.
-        if (params.IsGenericCovariantImplAt(i) ||
-            bound.IsTopTypeForSubtyping()) {
+        if (params.IsGenericCovariantImplAt(i) || bound.IsTopType()) {
           continue;
         }
         param = TypeParameterAt(i);
@@ -9837,7 +9854,7 @@ ObjectPtr Function::DoArgumentTypesMatch(
                            const TypeArguments& instantiator_type_args,
                            const TypeArguments& function_type_args) -> bool {
     // If the argument type is the top type, no need to check.
-    if (type.IsTopTypeForSubtyping()) return true;
+    if (type.IsTopType()) return true;
     return argument.IsInstanceOf(type, instantiator_type_args,
                                  function_type_args);
   };
@@ -10215,7 +10232,7 @@ bool FunctionType::IsContravariantParameter(
     FunctionTypeMapping* function_type_equivalence) const {
   const AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (param_type.IsTopTypeForSubtyping()) {
+  if (param_type.IsTopType()) {
     return true;
   }
   const AbstractType& other_param_type =
@@ -10351,7 +10368,7 @@ bool FunctionType::IsSubtypeOf(
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
   // 'void Function()' is a subtype of 'Object Function()'.
-  if (!other_res_type.IsTopTypeForSubtyping()) {
+  if (!other_res_type.IsTopType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (!res_type.IsSubtypeOf(other_res_type, space,
                               function_type_equivalence)) {
@@ -10531,11 +10548,13 @@ FunctionPtr Function::New(const FunctionType& signature,
     ASSERT(space == Heap::kOld);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Force-optimized functions are not debuggable because they cannot
   // deoptimize.
   if (result.ForceOptimize()) {
     result.set_is_debuggable(false);
   }
+#endif
   signature.set_num_implicit_parameters(result.NumImplicitParameters());
   result.SetSignature(signature);
   NOT_IN_PRECOMPILED(
@@ -16312,10 +16331,10 @@ PcDescriptorsPtr PcDescriptors::New(intptr_t length) {
   return result.ptr();
 }
 
-const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
+const char* PcDescriptors::KindToCString(UntaggedPcDescriptors::Kind kind) {
   switch (kind) {
     case UntaggedPcDescriptors::kDeopt:
-      return "deopt        ";
+      return "deopt";
     case UntaggedPcDescriptors::kIcCall:
       return "ic-call";
     case UntaggedPcDescriptors::kUnoptStaticCall:
@@ -16326,8 +16345,6 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
       return "osr-entry";
     case UntaggedPcDescriptors::kRewind:
       return "rewind";
-    case UntaggedPcDescriptors::kBSSRelocation:
-      return "bss reloc";
     case UntaggedPcDescriptors::kOther:
       return "other";
     case UntaggedPcDescriptors::kAnyKind:
@@ -16348,11 +16365,11 @@ void PcDescriptors::WriteToBuffer(BaseTextBuffer* buffer, uword base) const {
       addr_width, "pc");
   Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    buffer->Printf("%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd
-                   "\n",
-                   addr_width, base + iter.PcOffset(), KindAsStr(iter.Kind()),
-                   iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
-                   iter.YieldIndex());
+    buffer->Printf(
+        "%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd "\n",
+        addr_width, base + iter.PcOffset(), KindToCString(iter.Kind()),
+        iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
+        iter.YieldIndex());
   }
 }
 
@@ -21432,7 +21449,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   ASSERT(other.IsFinalized());
   ASSERT(ptr() != Object::sentinel().ptr());
   // Instance may not have runtimeType dynamic, void, or Never.
-  if (other.IsTopTypeForSubtyping()) {
+  if (other.IsTopType()) {
     return true;
   }
   Thread* thread = Thread::Current();
@@ -21448,8 +21465,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
           kAllFree, Heap::kOld);
-      if (instantiated_other.IsTopTypeForSubtyping() ||
-          instantiated_other.IsObjectType() ||
+      if (instantiated_other.IsTopType() || instantiated_other.IsObjectType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
@@ -21473,8 +21489,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
           kAllFree, Heap::kOld);
-      if (instantiated_other.IsTopTypeForSubtyping() ||
-          instantiated_other.IsObjectType() ||
+      if (instantiated_other.IsTopType() || instantiated_other.IsObjectType() ||
           instantiated_other.IsDartRecordType()) {
         return true;
       }
@@ -21525,19 +21540,12 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
         kAllFree, Heap::kOld);
-    if (instantiated_other.IsTopTypeForSubtyping()) {
+    if (instantiated_other.IsTopType()) {
       return true;
     }
   }
   if (IsNull()) {
-    if (instantiated_other.IsNullType()) {
-      return true;
-    }
-    if (RuntimeTypeIsSubtypeOfFutureOr(zone, instantiated_other)) {
-      return true;
-    }
-    // At this point, instantiated_other can be a function type.
-    return !instantiated_other.IsNonNullable();
+    return NullIsAssignableTo(instantiated_other);
   }
   if (!instantiated_other.IsType()) {
     return false;
@@ -21555,7 +21563,7 @@ bool Instance::RuntimeTypeIsSubtypeOfFutureOr(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
-    if (other_type_arg.IsTopTypeForSubtyping()) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
@@ -21783,8 +21791,7 @@ TypeArgumentsPtr AbstractType::arguments() const {
 }
 
 bool AbstractType::IsStrictlyNonNullable() const {
-  // Null can be assigned to legacy and nullable types.
-  if (!IsNonNullable()) {
+  if (IsNullable()) {
     return false;
   }
 
@@ -21847,12 +21854,12 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
       return unwrapped_type.ptr();
     }
     if (cid == kInstanceCid) {
-      if (IsNonNullable()) {
+      if (IsNullable()) {
+        return Type::Cast(unwrapped_type)
+            .ToNullability(Nullability::kNullable, space);
+      } else {
         return unwrapped_type.ptr();
       }
-      ASSERT(IsNullable());
-      return Type::Cast(unwrapped_type)
-          .ToNullability(Nullability::kNullable, space);
     }
     if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
       ObjectStore* object_store = IsolateGroup::Current()->object_store();
@@ -22101,7 +22108,9 @@ bool AbstractType::IsSentinelType() const {
   return type_class_id() == kSentinelCid;
 }
 
-bool AbstractType::IsTopTypeForInstanceOf() const {
+// Must be kept in sync with StubCodeCompiler::GenerateIsTopTypeStub
+// if any changes are made.
+bool AbstractType::IsTopType() const {
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
@@ -22111,24 +22120,7 @@ bool AbstractType::IsTopTypeForInstanceOf() const {
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
-    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForInstanceOf();
-  }
-  return false;
-}
-
-// Must be kept in sync with GenerateTypeIsTopTypeForSubtyping in
-// stub_code_compiler.cc if any changes are made.
-bool AbstractType::IsTopTypeForSubtyping() const {
-  const classid_t cid = type_class_id();
-  if (cid == kDynamicCid || cid == kVoidCid) {
-    return true;
-  }
-  if (cid == kInstanceCid) {  // Object type.
-    return !IsNonNullable();
-  }
-  if (cid == kFutureOrCid) {
-    // FutureOr<T> where T is a top type behaves as a top type.
-    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForSubtyping();
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopType();
   }
   return false;
 }
@@ -22286,14 +22278,11 @@ bool AbstractType::IsSubtypeOf(
     return true;
   }
   // Right top type.
-  if (other.IsTopTypeForSubtyping()) {
+  if (other.IsTopType()) {
     TRACE_TYPE_CHECKS_VERBOSE("   - result: true (right is top)\n");
     return true;
   }
   // Left bottom type.
-  // Any form of Never in weak mode maps to Null and Null is a bottom type in
-  // weak mode. In strong mode, Never and Never* are bottom types. Therefore,
-  // Never and Never* are bottom types regardless of weak/strong mode.
   // Note that we cannot encounter Never?, as it is normalized to Null.
   if (IsNeverType()) {
     ASSERT(!IsNullable());
@@ -22459,7 +22448,7 @@ bool AbstractType::IsSubtypeOfFutureOr(
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
-    if (other_type_arg.IsTopTypeForSubtyping()) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
@@ -26367,13 +26356,15 @@ const char* Pointer::ToCString() const {
 }
 
 DynamicLibraryPtr DynamicLibrary::New(void* handle,
-                                      bool canBeClosed,
+                                      Dart_NativeAssetsDlsymCallback dlsym,
+                                      Dart_NativeAssetsDlcloseCallback dlclose,
                                       Heap::Space space) {
   const auto& result =
       DynamicLibrary::Handle(Object::Allocate<DynamicLibrary>(space));
   ASSERT_EQUAL(result.IsClosed(), false);
   result.SetHandle(handle);
-  result.SetCanBeClosed(canBeClosed);
+  result.SetDlsym(dlsym);
+  result.SetDlclose(dlclose);
   return result.ptr();
 }
 
@@ -26752,7 +26743,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
     BaseTextBuffer* buffer,
     uword call_addr,
     uword instructions,
-    bool vm,
     LoadingUnit* unit = nullptr) {
   const Image image(reinterpret_cast<const uint8_t*>(instructions));
   if (!image.contains(call_addr)) return false;
@@ -26766,7 +26756,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_shared_object()) {
+  if (image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -26780,7 +26770,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions,
                                            const Array& loading_units,
                                            LoadingUnit* unit) {
   if (!loading_units.IsNull()) {
@@ -26792,15 +26781,13 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
       auto const instructions =
           reinterpret_cast<uword>(unit->instructions_image());
       if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                    instructions,
-                                                    /*vm=*/false, unit)) {
+                                                    instructions, unit)) {
         return;
       }
     }
   } else {
     if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                  isolate_instructions,
-                                                  /*vm=*/false)) {
+                                                  isolate_instructions)) {
       return;
     }
   }
@@ -27077,8 +27064,7 @@ const char* StackTrace::ToCString() const {
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }
@@ -27090,8 +27076,7 @@ const char* StackTrace::ToCString() const {
         // non-symbolic stack traces.
         PrintSymbolicStackFrameIndex(&buffer, frame_index);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }

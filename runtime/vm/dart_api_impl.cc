@@ -18,6 +18,7 @@
 #include "vm/app_snapshot.h"
 #include "vm/bytecode_reader.h"
 #include "vm/class_finalizer.h"
+#include "vm/coff.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -3111,10 +3112,6 @@ DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   return Api::NewHandle(T, arr.ptr());
 }
 
-static bool CanTypeContainNull(const Type& type) {
-  return (type.nullability() == Nullability::kNullable);
-}
-
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length) {
   DARTSCOPE(Thread::Current());
@@ -3129,7 +3126,7 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
         "%s expects argument 'type' to be a fully resolved type.",
         CURRENT_FUNC);
   }
-  if ((length > 0) && !CanTypeContainNull(type)) {
+  if ((length > 0) && !Instance::NullIsAssignableTo(type)) {
     return Api::NewError("%s expects argument 'type' to be a nullable type.",
                          CURRENT_FUNC);
   }
@@ -3231,7 +3228,8 @@ DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
         "'element_type'.",
         CURRENT_FUNC);
   }
-  if ((length > 0) && instance.IsNull() && !CanTypeContainNull(type)) {
+  if ((length > 0) && instance.IsNull() &&
+      !Instance::NullIsAssignableTo(type)) {
     return Api::NewError(
         "%s expects argument 'fill_object' to be non-null for a non-nullable "
         "'element_type'.",
@@ -6661,8 +6659,6 @@ static void CreateAppAOTSnapshotHelper(
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
                                              "WriteAppAOTSnapshot"));
 
-  ZoneWriteStream vm_snapshot_data(T->zone(), FullSnapshotWriter::kInitialSize);
-  ZoneWriteStream vm_snapshot_instructions(T->zone(), kInitialSize);
   ZoneWriteStream isolate_snapshot_data(T->zone(),
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(T->zone(), kInitialSize);
@@ -6672,6 +6668,11 @@ static void CreateAppAOTSnapshotHelper(
   if (format == Dart_AotBinaryFormat_Assembly) {
     // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
     generate_debug = false;  // PDB unimplemented, no DWARF in PE.
+  }
+  if (format == Dart_AotBinaryFormat_PECoff_Obj) {
+    // COFF debug info is emitted as CodeView records in the .obj itself. The
+    // linker materializes those records into app.pdb via /DEBUG.
+    generate_debug = false;
   }
 #endif
 
@@ -6722,7 +6723,7 @@ static void CreateAppAOTSnapshotHelper(
 
   Dwarf* const dwarf =
       (format == Dart_AotBinaryFormat_Assembly || strip) ? nullptr
-      : generate_debug                                   ? debug_dwarf
+      : generate_debug ? debug_dwarf
                        : new (Z) Dwarf(Z, deobfuscation_trie, identifier);
   SharedObjectWriter* so = nullptr;
   if (format == Dart_AotBinaryFormat_Elf) {
@@ -6738,6 +6739,9 @@ static void CreateAppAOTSnapshotHelper(
     so = new (Z)
         MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
                     identifier, path, dwarf, object_writer);
+  } else if (format == Dart_AotBinaryFormat_PECoff_Obj) {
+    so = new (Z) CoffWriter(Z, &output_stream,
+                            SharedObjectWriter::Type::Snapshot, dwarf);
   }
 
   if (format == Dart_AotBinaryFormat_Assembly) {
@@ -6747,8 +6751,7 @@ static void CreateAppAOTSnapshotHelper(
     use_output_writer(&assembly_writer);
   } else {
     BlobImageWriter blob_writer(
-        T, &vm_snapshot_instructions, &isolate_snapshot_instructions,
-        deobfuscation_trie, debug_so, so,
+        T, &isolate_snapshot_instructions, deobfuscation_trie, debug_so, so,
         /*needs_unique_names=*/object_callback_data != nullptr);
     use_output_writer(&blob_writer);
   }
@@ -6957,7 +6960,7 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
 }
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat snapshot_format,
                                   Dart_StreamingWriteCallback callback,
                                   void* callback_data,
                                   bool strip,
@@ -6970,6 +6973,12 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
+#if !(defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
+  if (snapshot_format == Dart_AotBinaryFormat_PECoff_Obj) {
+    return Api::NewError(
+        "PE/COFF AOT snapshot output is only supported on Windows x64.");
+  }
+#endif
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(callback);
@@ -6977,7 +6986,7 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTProgramSnapshot(callback, callback_data, strip, format,
+  CreateAppAOTProgramSnapshot(callback, callback_data, strip, snapshot_format,
                               debug_callback_data, identifier, path);
 
   return Api::Success();
@@ -7105,8 +7114,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(
       Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
-  BlobImageWriter image_writer(T, /*vm_instructions=*/nullptr,
-                               &isolate_snapshot_instructions);
+  BlobImageWriter image_writer(T, &isolate_snapshot_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, &isolate_snapshot_data,
                             &image_writer);
   writer.WriteFullSnapshot();

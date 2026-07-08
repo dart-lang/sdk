@@ -7,6 +7,7 @@
 abstract interface class NotConstructable {}
 
 mixin M {}
+
 abstract interface class AlsoNotConstructable = Object with M;
 
 main() {

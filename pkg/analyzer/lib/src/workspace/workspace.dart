@@ -100,8 +100,8 @@ abstract class WorkspacePackageImpl implements WorkspacePackage {
   /// listed in the 'dev_dependencies' section of the 'pubspec.yaml' file.
   bool canBeDevDependency(Source source) {
     var cuPath = source.fullName;
-    var libDir = root.getChildAssumingFolder('lib');
-    var binDir = root.getChildAssumingFolder('bin');
+    var libDir = root.getFolder('lib');
+    var binDir = root.getFolder('bin');
     return !(libDir.contains(cuPath) || binDir.contains(cuPath));
   }
 
@@ -126,7 +126,7 @@ abstract class WorkspacePackageImpl implements WorkspacePackage {
   @protected
   bool isInTestDirectoryUnder(Folder root, File file) {
     return _testDirectoryNames.any((name) {
-      return root.getChildAssumingFolder(name).contains(file.path);
+      return root.getFolder(name).contains(file.path);
     });
   }
 

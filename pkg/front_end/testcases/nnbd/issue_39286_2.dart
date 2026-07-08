@@ -7,13 +7,20 @@ class C {
   D? f() => new D();
   C h() => this;
 }
+
 class D {
   D g() => this;
-  String operator [](String s) { return "!$s!";}
+  String operator [](String s) {
+    return "!$s!";
+  }
 }
+
 void test(C x) {
-  x..f()!.g()['Hi!']!..h()!.y = 2;
+  x
+    ..f()!.g()['Hi!']!
+    ..h()!.y = 2;
 }
+
 main() {
   test(new C());
 }

@@ -52,9 +52,10 @@ class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
     Map<Id, ActualData<DartType>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,

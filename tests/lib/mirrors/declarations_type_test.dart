@@ -7,6 +7,7 @@
 library test.declarations_type;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class C {}

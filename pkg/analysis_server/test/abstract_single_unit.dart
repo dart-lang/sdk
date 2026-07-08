@@ -33,6 +33,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late FindNode findNode;
   late FindElement2 findElement2;
   late LibraryElement testLibraryElement;
+
   TestCode get parsedTestCode => _parsedTestCode!;
   set parsedTestCode(TestCode value) {
     if (_parsedTestCode != null) {
@@ -57,14 +58,17 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     newFile(testFile.path, testCode);
   }
 
-  int findEnd(String search) {
-    return findOffset(search) + search.length;
-  }
-
   int findOffset(String search) {
     var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
+  }
+
+  Future<ParsedUnitResult> getParsedUnit(File file) async {
+    var path = file.path;
+    var session = await sessionFor(fileForContextSelection ?? file);
+    var result = session.getParsedUnit(path);
+    return result as ParsedUnitResult;
   }
 
   @override

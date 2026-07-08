@@ -5,7 +5,9 @@
 library test;
 
 import "package:expect/expect.dart";
+
 import "dart:convert";
+
 import "unicode_tests.dart" show UNICODE_TESTS;
 
 main() {

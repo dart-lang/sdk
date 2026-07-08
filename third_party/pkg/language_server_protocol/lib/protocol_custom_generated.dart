@@ -30,8 +30,8 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -931,8 +931,9 @@ typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
 
-typedef TextDocumentEditEdits
-    = List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>;
+typedef TextDocumentEditEdits = List<
+    Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit,
+        TextEdit>>;
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -1178,10 +1179,10 @@ abstract class CommandParameter implements ToJsonable {
   }
 }
 
-class CompletionItemResolutionInfo implements ToJsonable {
+class CompletionResolutionInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    CompletionItemResolutionInfo.canParse,
-    CompletionItemResolutionInfo.fromJson,
+    CompletionResolutionInfo.canParse,
+    CompletionResolutionInfo.fromJson,
   );
 
   @override
@@ -1189,8 +1190,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    return other is CompletionItemResolutionInfo &&
-        other.runtimeType == CompletionItemResolutionInfo;
+    return other is CompletionResolutionInfo &&
+        other.runtimeType == CompletionResolutionInfo;
   }
 
   @override
@@ -1203,20 +1204,28 @@ class CompletionItemResolutionInfo implements ToJsonable {
     if (obj is Map<String, Object?>) {
       return true;
     } else {
-      reporter.reportError('must be of type CompletionItemResolutionInfo');
+      reporter.reportError('must be of type CompletionResolutionInfo');
       return false;
     }
   }
 
-  static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
-    if (DartCompletionResolutionInfo.canParse(json, nullLspJsonReporter)) {
-      return DartCompletionResolutionInfo.fromJson(json);
+  static CompletionResolutionInfo fromJson(Map<String, Object?> json) {
+    if (DartCompletionMergedResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartCompletionMergedResolutionInfo.fromJson(json);
+    }
+    if (DartCompletionRequestResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartCompletionRequestResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
     }
-    return CompletionItemResolutionInfo();
+    if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
+      return DartCompletionItemResolutionInfo.fromJson(json);
+    }
+    return CompletionResolutionInfo();
   }
 }
 
@@ -1292,28 +1301,28 @@ class ConnectToDtdParams implements ToJsonable {
   }
 }
 
-class DartCompletionResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
+class DartCompletionItemResolutionInfo
+    implements CompletionResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(
-    DartCompletionResolutionInfo.canParse,
-    DartCompletionResolutionInfo.fromJson,
+    DartCompletionItemResolutionInfo.canParse,
+    DartCompletionItemResolutionInfo.fromJson,
   );
 
   /// The file where the completion is being inserted.
   ///
   /// This is used to compute where to add the import.
-  final String file;
+  final String? file;
 
   /// The URIs to be imported if this completion is selected.
-  final List<String> importUris;
+  final List<String>? importUris;
 
   /// The encoded ElementLocation2 of the item being completed.
   ///
   /// This is used to provide documentation in the resolved response.
   final String? ref;
-  DartCompletionResolutionInfo({
-    required this.file,
-    required this.importUris,
+  DartCompletionItemResolutionInfo({
+    this.file,
+    this.importUris,
     this.ref,
   });
   @override
@@ -1325,8 +1334,112 @@ class DartCompletionResolutionInfo
 
   @override
   bool operator ==(Object other) {
-    return other is DartCompletionResolutionInfo &&
-        other.runtimeType == DartCompletionResolutionInfo &&
+    return other is DartCompletionItemResolutionInfo &&
+        other.runtimeType == DartCompletionItemResolutionInfo &&
+        file == other.file &&
+        const DeepCollectionEquality().equals(importUris, other.importUris) &&
+        ref == other.ref;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (file != null) {
+      result['file'] = file;
+    }
+    if (importUris != null) {
+      result['importUris'] = importUris;
+    }
+    if (ref != null) {
+      result['ref'] = ref;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListString(obj, reporter, 'importUris',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'ref',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartCompletionItemResolutionInfo');
+      return false;
+    }
+  }
+
+  static DartCompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
+    if (DartCompletionMergedResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartCompletionMergedResolutionInfo.fromJson(json);
+    }
+    final fileJson = json['file'];
+    final file = fileJson as String?;
+    final importUrisJson = json['importUris'];
+    final importUris = (importUrisJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final refJson = json['ref'];
+    final ref = refJson as String?;
+    return DartCompletionItemResolutionInfo(
+      file: file,
+      importUris: importUris,
+      ref: ref,
+    );
+  }
+}
+
+class DartCompletionMergedResolutionInfo
+    implements
+        CompletionResolutionInfo,
+        DartCompletionItemResolutionInfo,
+        DartCompletionRequestResolutionInfo,
+        ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartCompletionMergedResolutionInfo.canParse,
+    DartCompletionMergedResolutionInfo.fromJson,
+  );
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  @override
+  final String file;
+
+  /// The URIs to be imported if this completion is selected.
+  @override
+  final List<String>? importUris;
+
+  /// The encoded ElementLocation2 of the item being completed.
+  ///
+  /// This is used to provide documentation in the resolved response.
+  @override
+  final String? ref;
+  DartCompletionMergedResolutionInfo({
+    required this.file,
+    this.importUris,
+    this.ref,
+  });
+  @override
+  int get hashCode => Object.hash(
+        file,
+        lspHashCode(importUris),
+        ref,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartCompletionMergedResolutionInfo &&
+        other.runtimeType == DartCompletionMergedResolutionInfo &&
         file == other.file &&
         const DeepCollectionEquality().equals(importUris, other.importUris) &&
         ref == other.ref;
@@ -1336,7 +1449,9 @@ class DartCompletionResolutionInfo
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['file'] = file;
-    result['importUris'] = importUris;
+    if (importUris != null) {
+      result['importUris'] = importUris;
+    }
     if (ref != null) {
       result['ref'] = ref;
     }
@@ -1353,30 +1468,93 @@ class DartCompletionResolutionInfo
         return false;
       }
       if (!_canParseListString(obj, reporter, 'importUris',
-          allowsUndefined: false, allowsNull: false)) {
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       return _canParseString(obj, reporter, 'ref',
           allowsUndefined: true, allowsNull: false);
     } else {
-      reporter.reportError('must be of type DartCompletionResolutionInfo');
+      reporter
+          .reportError('must be of type DartCompletionMergedResolutionInfo');
       return false;
     }
   }
 
-  static DartCompletionResolutionInfo fromJson(Map<String, Object?> json) {
+  static DartCompletionMergedResolutionInfo fromJson(
+      Map<String, Object?> json) {
     final fileJson = json['file'];
     final file = fileJson as String;
     final importUrisJson = json['importUris'];
-    final importUris = (importUrisJson as List<Object?>)
-        .map((item) => item as String)
+    final importUris = (importUrisJson as List<Object?>?)
+        ?.map((item) => item as String)
         .toList();
     final refJson = json['ref'];
     final ref = refJson as String?;
-    return DartCompletionResolutionInfo(
+    return DartCompletionMergedResolutionInfo(
       file: file,
       importUris: importUris,
       ref: ref,
+    );
+  }
+}
+
+class DartCompletionRequestResolutionInfo
+    implements CompletionResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartCompletionRequestResolutionInfo.canParse,
+    DartCompletionRequestResolutionInfo.fromJson,
+  );
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  final String file;
+
+  DartCompletionRequestResolutionInfo({
+    required this.file,
+  });
+
+  @override
+  int get hashCode => file.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartCompletionRequestResolutionInfo &&
+        other.runtimeType == DartCompletionRequestResolutionInfo &&
+        file == other.file;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['file'] = file;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter
+          .reportError('must be of type DartCompletionRequestResolutionInfo');
+      return false;
+    }
+  }
+
+  static DartCompletionRequestResolutionInfo fromJson(
+      Map<String, Object?> json) {
+    if (DartCompletionMergedResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartCompletionMergedResolutionInfo.fromJson(json);
+    }
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    return DartCompletionRequestResolutionInfo(
+      file: file,
     );
   }
 }
@@ -1438,27 +1616,37 @@ class DartMigrateParams implements ToJsonable {
     DartMigrateParams.fromJson,
   );
 
+  /// Whether to apply the migration changes.
+  final bool? apply;
+
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
 
   DartMigrateParams({
+    this.apply,
     required this.uris,
   });
-
   @override
-  int get hashCode => lspHashCode(uris);
+  int get hashCode => Object.hash(
+        apply,
+        lspHashCode(uris),
+      );
 
   @override
   bool operator ==(Object other) {
     return other is DartMigrateParams &&
         other.runtimeType == DartMigrateParams &&
+        apply == other.apply &&
         const DeepCollectionEquality().equals(uris, other.uris);
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (apply != null) {
+      result['apply'] = apply;
+    }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
     return result;
   }
@@ -1468,6 +1656,10 @@ class DartMigrateParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseBool(obj, reporter, 'apply',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       return _canParseListUri(obj, reporter, 'uris',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -1477,11 +1669,14 @@ class DartMigrateParams implements ToJsonable {
   }
 
   static DartMigrateParams fromJson(Map<String, Object?> json) {
+    final applyJson = json['apply'];
+    final apply = applyJson as bool?;
     final urisJson = json['uris'];
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
     return DartMigrateParams(
+      apply: apply,
       uris: uris,
     );
   }
@@ -3747,6 +3942,93 @@ class InteractiveParams implements ToJsonable {
   }
 }
 
+/// A custom TextEdit that supports snippets according to the specification at
+/// https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit.
+/// LSP v3.18 introduced standard (but slightly different) support for
+/// SnippetTextEdits which replaces this. This will soon be removed.
+class LegacySnippetTextEdit implements TextEdit, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    LegacySnippetTextEdit.canParse,
+    LegacySnippetTextEdit.fromJson,
+  );
+
+  final InsertTextFormat insertTextFormat;
+
+  /// The string to be inserted. For delete operations use an empty string.
+  @override
+  final String newText;
+
+  /// The range of the text document to be manipulated. To insert text into a
+  /// document create a range where start === end.
+  @override
+  final Range range;
+  LegacySnippetTextEdit({
+    required this.insertTextFormat,
+    required this.newText,
+    required this.range,
+  });
+  @override
+  int get hashCode => Object.hash(
+        insertTextFormat,
+        newText,
+        range,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is LegacySnippetTextEdit &&
+        other.runtimeType == LegacySnippetTextEdit &&
+        insertTextFormat == other.insertTextFormat &&
+        newText == other.newText &&
+        range == other.range;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['insertTextFormat'] = insertTextFormat.toJson();
+    result['newText'] = newText;
+    result['range'] = range.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'newText',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type LegacySnippetTextEdit');
+      return false;
+    }
+  }
+
+  static LegacySnippetTextEdit fromJson(Map<String, Object?> json) {
+    final insertTextFormatJson = json['insertTextFormat'];
+    final insertTextFormat =
+        InsertTextFormat.fromJson(insertTextFormatJson as int);
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    return LegacySnippetTextEdit(
+      insertTextFormat: insertTextFormat,
+      newText: newText,
+      range: range,
+    );
+  }
+}
+
 class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Message.canParse,
@@ -4256,7 +4538,7 @@ class PublishOutlineParams implements ToJsonable {
 }
 
 class PubPackageCompletionItemResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
+    implements CompletionResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     PubPackageCompletionItemResolutionInfo.canParse,
     PubPackageCompletionItemResolutionInfo.fromJson,
@@ -4737,89 +5019,6 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
       kind: kind,
       parameterLabel: parameterLabel,
       parameterTitle: parameterTitle,
-    );
-  }
-}
-
-class SnippetTextEdit implements TextEdit, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    SnippetTextEdit.canParse,
-    SnippetTextEdit.fromJson,
-  );
-
-  final InsertTextFormat insertTextFormat;
-
-  /// The string to be inserted. For delete operations use an empty string.
-  @override
-  final String newText;
-
-  /// The range of the text document to be manipulated. To insert text into a
-  /// document create a range where start === end.
-  @override
-  final Range range;
-  SnippetTextEdit({
-    required this.insertTextFormat,
-    required this.newText,
-    required this.range,
-  });
-  @override
-  int get hashCode => Object.hash(
-        insertTextFormat,
-        newText,
-        range,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is SnippetTextEdit &&
-        other.runtimeType == SnippetTextEdit &&
-        insertTextFormat == other.insertTextFormat &&
-        newText == other.newText &&
-        range == other.range;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['insertTextFormat'] = insertTextFormat.toJson();
-    result['newText'] = newText;
-    result['range'] = range.toJson();
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseString(obj, reporter, 'newText',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type SnippetTextEdit');
-      return false;
-    }
-  }
-
-  static SnippetTextEdit fromJson(Map<String, Object?> json) {
-    final insertTextFormatJson = json['insertTextFormat'];
-    final insertTextFormat =
-        InsertTextFormat.fromJson(insertTextFormatJson as int);
-    final newTextJson = json['newText'];
-    final newText = newTextJson as String;
-    final rangeJson = json['range'];
-    final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return SnippetTextEdit(
-      insertTextFormat: insertTextFormat,
-      newText: newText,
-      range: range,
     );
   }
 }

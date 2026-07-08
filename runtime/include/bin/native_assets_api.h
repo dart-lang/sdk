@@ -18,6 +18,7 @@ class NativeAssets {
   static void* DlopenProcess(char** error);
   static void* DlopenExecutable(char** error);
   static void* Dlsym(void* handle, const char* symbol, char** error);
+  static void Dlclose(void* handle, char** error);
 };
 
 }  // namespace bin

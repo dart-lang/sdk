@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/names.dart' show noSuchMethodName;
 import 'package:yaml/yaml.dart';
+
 import '../source/source_loader.dart' show SourceLoader;
 import '../api_prototype/lowering_predicates.dart'
     show extractQualifiedNameFromExtensionMethodName;
@@ -443,10 +444,8 @@ class DynamicInterfaceLanguageImplPragmas {
   bool isAnnotatedWith(Annotatable node, String pragmaName) {
     for (Expression annotation in node.annotations) {
       if (annotation case ConstantExpression(:var constant)) {
-        if (constant case InstanceConstant(
-          :var classNode,
-          :var fieldValues,
-        ) when classNode == coreTypes.pragmaClass) {
+        if (constant case InstanceConstant(:var classNode, :var fieldValues)
+            when classNode == coreTypes.pragmaClass) {
           if (fieldValues[coreTypes.pragmaName.fieldReference]
               case StringConstant(:var value) when value == pragmaName) {
             return true;

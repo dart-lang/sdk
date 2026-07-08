@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/annotation_new.dart:31:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:34:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @method // Error
 //  ^
 //
-// pkg/front_end/testcases/general/annotation_new.dart:32:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:35:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @self.method // Error
 //       ^
 //
-// pkg/front_end/testcases/general/annotation_new.dart:34:8: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:37:8: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @Class.method // Error
 //        ^
 //
-// pkg/front_end/testcases/general/annotation_new.dart:35:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:38:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @Class.new // Error
 //  ^
 //
-// pkg/front_end/testcases/general/annotation_new.dart:37:13: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:40:13: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @self.Class.method // Error
 //             ^
 //
-// pkg/front_end/testcases/general/annotation_new.dart:38:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general/annotation_new.dart:41:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @self.Class.new // Error
 //       ^
 //
@@ -53,24 +53,24 @@ static method method() → void {}
 @#C4
 @#C1
 @#C1
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:31:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:34:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @method // Error
  ^"
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:32:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:35:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @self.method // Error
       ^"
 @#C1
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:34:8: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:37:8: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @Class.method // Error
        ^"
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:35:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:38:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @Class.new // Error
  ^"
 @#C1
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:37:13: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:40:13: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @self.Class.method // Error
             ^"
-@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:38:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/annotation_new.dart:41:7: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @self.Class.new // Error
       ^"
 static method main() → dynamic {}
@@ -85,6 +85,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///annotation_new.dart:
-- Class. (from org-dartlang-testcase:///annotation_new.dart:12:9)
+- Class. (from org-dartlang-testcase:///annotation_new.dart:15:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- GenericClass. (from org-dartlang-testcase:///annotation_new.dart:20:9)
+- GenericClass. (from org-dartlang-testcase:///annotation_new.dart:23:9)

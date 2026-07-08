@@ -31,14 +31,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredNamed isOriginDeclaration n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -75,14 +75,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredNamed isOriginDeclaration n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -119,14 +119,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalNamed isOriginDeclaration n1 (nameOffset:14) (firstTokenOffset:10) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -163,14 +163,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalNamed isOriginDeclaration n1 (nameOffset:14) (firstTokenOffset:10) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -207,14 +207,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredNamed isOriginDeclaration n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -251,7 +251,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -261,7 +261,7 @@ library
             #F5 requiredNamed isOriginOtherFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -278,9 +278,6 @@ library
       formalParameters
         #E0 requiredNamed n1
           firstFragment: #F3
-          type: int
-        #E1 requiredNamed n1
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -304,7 +301,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -314,7 +311,7 @@ library
             #F5 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -331,9 +328,6 @@ library
       formalParameters
         #E0 requiredNamed n1
           firstFragment: #F3
-          type: int
-        #E1 requiredNamed n2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -357,7 +351,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -367,7 +361,7 @@ library
             #F5 requiredNamed isOriginDeclaration n1 (nameOffset:40) (firstTokenOffset:27) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -410,7 +404,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -420,7 +414,7 @@ library
             #F5 requiredNamed isOriginDeclaration n1 (nameOffset:40) (firstTokenOffset:27) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -463,7 +457,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -473,7 +467,7 @@ library
             #F5 requiredNamed isOriginDeclaration n2 (nameOffset:40) (firstTokenOffset:27) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -517,7 +511,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -527,7 +521,7 @@ library
             #F5 requiredNamed isOriginDeclaration n2 (nameOffset:40) (firstTokenOffset:27) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -540,7 +534,7 @@ library
               element: <testLibrary>::@function::foo::@formalParameter::n2
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:100) (firstTokenOffset:87) (offset:100)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:100) (firstTokenOffset:87) (offset:100)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           formalParameters
@@ -583,7 +577,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -593,7 +587,7 @@ library
             #F5 requiredNamed isOriginDeclaration n1 (nameOffset:40) (firstTokenOffset:27) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -641,14 +635,14 @@ library
         <testLibraryFragment>::@prefix::core
           fragments: @22
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:28) (offset:33)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:28) (offset:33)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalNamed isOriginDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@function::foo::@formalParameter::<null-name>
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:65) (firstTokenOffset:52) (offset:65)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:65) (firstTokenOffset:52) (offset:65)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -681,14 +675,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -725,14 +719,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -769,14 +763,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:10) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -813,14 +807,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:10) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -858,7 +852,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -868,7 +862,7 @@ library
             #F5 requiredPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -881,7 +875,7 @@ library
               element: <testLibrary>::@function::foo::@formalParameter::p2
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           formalParameters
@@ -898,9 +892,6 @@ library
       formalParameters
         #E0 requiredPositional p1
           firstFragment: #F3
-          type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -924,14 +915,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -968,14 +959,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 optionalPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:10) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1012,7 +1003,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1022,7 +1013,7 @@ library
             #F5 requiredPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1039,9 +1030,6 @@ library
       formalParameters
         #E0 requiredPositional p1
           firstFragment: #F3
-          type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -1065,7 +1053,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1075,7 +1063,7 @@ library
             #F5 optionalPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1092,9 +1080,6 @@ library
       formalParameters
         #E0 optionalPositional p1
           firstFragment: #F3
-          type: int
-        #E1 optionalPositional p2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -1117,22 +1102,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:28) (firstTokenOffset:9) (offset:28)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:48) (firstTokenOffset:35) (offset:48)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:48) (firstTokenOffset:35) (offset:48)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
             #F4 requiredPositional isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:52) (offset:57)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:64) (firstTokenOffset:60) (offset:64)
-                  element: a@64
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1160,14 +1142,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1204,7 +1186,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1214,7 +1196,7 @@ library
             #F5 requiredNamed isOriginDeclaration n1 (nameOffset:31) (firstTokenOffset:18) (offset:31)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1257,7 +1239,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1267,7 +1249,7 @@ library
             #F5 requiredNamed isOriginDeclaration n1 (nameOffset:31) (firstTokenOffset:18) (offset:31)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1310,7 +1292,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1326,7 +1308,7 @@ library
             #F9 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               nextFragment: #F10
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1350,14 +1332,8 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
-          type: int
-        #E2 requiredNamed n1
+        #E1 requiredNamed n1
           firstFragment: #F7
-          type: int
-        #E3 requiredNamed n2
-          firstFragment: #F9
           type: int
       returnType: void
   exportEntries
@@ -1381,7 +1357,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1391,7 +1367,7 @@ library
             #F5 requiredPositional isOriginDeclaration p2 (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1434,7 +1410,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1444,7 +1420,7 @@ library
             #F5 optionalPositional isOriginDeclaration p2 (nameOffset:22) (firstTokenOffset:18) (offset:22)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1487,7 +1463,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1497,7 +1473,7 @@ library
             #F5 requiredPositional isOriginDeclaration p2 (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1540,7 +1516,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1556,7 +1532,7 @@ library
             #F9 requiredNamed isOriginDeclaration n2 (nameOffset:56) (firstTokenOffset:43) (offset:56)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               nextFragment: #F10
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:77) (firstTokenOffset:64) (offset:77)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:77) (firstTokenOffset:64) (offset:77)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1610,21 +1586,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+              nextFragment: #F4
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:45) (offset:64)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:45) (offset:64)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               previousFragment: #F3
   functions
@@ -1635,10 +1608,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1656,25 +1625,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+              nextFragment: #F4
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F6 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:53) (offset:57)
-                  element: a@57
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1684,10 +1647,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1705,25 +1664,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+              nextFragment: #F4
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F6 requiredPositional isOriginDeclaration a (nameOffset:60) (firstTokenOffset:53) (offset:60)
-                  element: a@60
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1733,10 +1686,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1754,47 +1703,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              typeParameters
-                #F4 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
-                  element: #E0 T
-              parameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:19) (offset:21)
-                  element: a@21
-              nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+              nextFragment: #F4
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F6 requiredPositional isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              typeParameters
-                #F7 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
-                  element: #E1 T
-              parameters
-                #F8 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:55) (offset:57)
-                  element: a@57
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        #E2 requiredPositional p1
+        #E0 requiredPositional p1
           firstFragment: #F3
           type: int Function<T>(T)
-          typeParameters
-            #E0 T
-              firstFragment: #F4
-          formalParameters
-            #E3 requiredPositional a
-              firstFragment: #F5
-              type: T
       returnType: void
 ''');
   }
@@ -1813,7 +1743,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           formalParameters
@@ -1823,7 +1753,7 @@ library
             #F5 optionalPositional isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:18) (offset:22)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
@@ -1867,7 +1797,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 isAsynchronous isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
+        #F1 isAsynchronous isComplete isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -1892,7 +1822,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 isAsynchronous isCompleteDeclaration isGenerator isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
+        #F1 isAsynchronous isComplete isGenerator isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:22) (offset:29)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -1916,10 +1846,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:27) (firstTokenOffset:14) (offset:27)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:27) (firstTokenOffset:14) (offset:27)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
   functions
@@ -1947,7 +1877,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@function::foo
   functions
     isOriginDeclaration isStatic foo
@@ -2020,7 +1950,7 @@ library
           partKeywordOffset: 16
           unit: #F2
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:33) (offset:38)
+        #F3 isComplete isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@function::foo
           nextFragment: #F4
     #F1 package:test/a1.dart
@@ -2038,7 +1968,7 @@ library
           partKeywordOffset: 38
           unit: #F6
       functions
-        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
           element: <testLibrary>::@function::foo
           previousFragment: #F3
           nextFragment: #F7
@@ -2048,7 +1978,7 @@ library
       previousFragment: #F1
       nextFragment: #F6
       functions
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
           element: <testLibrary>::@function::foo
           previousFragment: #F4
           nextFragment: #F8
@@ -2058,7 +1988,7 @@ library
       previousFragment: #F5
       nextFragment: #F2
       functions
-        #F8 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+        #F8 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
           element: <testLibrary>::@function::foo
           previousFragment: #F7
           nextFragment: #F9
@@ -2077,7 +2007,7 @@ library
           partKeywordOffset: 38
           unit: #F11
       functions
-        #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+        #F9 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
           element: <testLibrary>::@function::foo
           previousFragment: #F8
           nextFragment: #F12
@@ -2087,7 +2017,7 @@ library
       previousFragment: #F2
       nextFragment: #F11
       functions
-        #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+        #F12 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
           element: <testLibrary>::@function::foo
           previousFragment: #F9
           nextFragment: #F13
@@ -2096,7 +2026,7 @@ library
       enclosingFragment: #F2
       previousFragment: #F10
       functions
-        #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
+        #F13 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:32) (firstTokenOffset:19) (offset:32)
           element: <testLibrary>::@function::foo
           previousFragment: #F12
   functions
@@ -2121,10 +2051,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:14) (offset:26)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
   functions
@@ -2150,14 +2080,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
             #F3 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F5
@@ -2166,7 +2096,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F6
-        #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
+        #F5 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2198,7 +2128,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
@@ -2208,7 +2138,7 @@ library
             #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: #E1 U
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -2221,7 +2151,7 @@ library
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2238,8 +2168,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       returnType: void
 ''');
   }
@@ -2259,7 +2187,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
@@ -2269,7 +2197,7 @@ library
             #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: #E1 U
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -2282,7 +2210,7 @@ library
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2299,8 +2227,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       returnType: void
 ''');
   }
@@ -2319,7 +2245,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
@@ -2332,7 +2258,7 @@ library
             #F7 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: #E2 V
               nextFragment: #F8
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F9
@@ -2349,7 +2275,7 @@ library
               element: #E2 V
               previousFragment: #F7
               nextFragment: #F12
-        #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+        #F9 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2369,10 +2295,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       returnType: void
 ''');
   }
@@ -2391,7 +2313,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
@@ -2401,7 +2323,7 @@ library
             #F5 U (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E1 U
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -2414,7 +2336,7 @@ library
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2452,7 +2374,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
@@ -2462,7 +2384,7 @@ library
             #F5 U (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E1 U
               nextFragment: #F6
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           nextFragment: #F7
@@ -2475,7 +2397,7 @@ library
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
-        #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@function::foo
           previousFragment: #F2
           typeParameters
@@ -2518,7 +2440,7 @@ library
               element: <testLibrary>::@class::foo::@constructor::new
               typeName: foo
       functions
-        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
           element: <testLibrary>::@function::foo
   classes
     isSimplyBounded class foo
@@ -2553,10 +2475,10 @@ library
         #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F2 isComplete isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
       functions
-        #F3 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
+        #F3 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@function::foo
   topLevelVariables
     isOriginGetterSetter isStatic foo
@@ -2595,13 +2517,13 @@ library
         #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::foo
       setters
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@setter::foo
           formalParameters
             #F3 requiredPositional isOriginDeclaration _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
               element: <testLibrary>::@setter::foo::@formalParameter::_
       functions
-        #F4 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@function::foo
   topLevelVariables
     isOriginGetterSetter isStatic foo
@@ -2646,18 +2568,18 @@ library
           inducedGetter: #F2
           inducedSetter: #F3
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::foo
           inducingVariable: #F1
       setters
-        #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::foo
           inducingVariable: #F1
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::foo::@formalParameter::value
       functions
-        #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
+        #F5 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:13) (offset:26)
           element: <testLibrary>::@function::foo
   topLevelVariables
     hasInitializer isOriginDeclaration isStatic foo
@@ -2706,7 +2628,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:60) (firstTokenOffset:44) (offset:60)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:60) (firstTokenOffset:44) (offset:60)
           element: <testLibrary>::@function::f
           documentationComment: /**\n * Docs\n */
   functions
@@ -2729,7 +2651,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
   functions
     isOriginDeclaration isStatic main
@@ -2807,7 +2729,7 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       functions
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::main
   functions
     isOriginDeclaration isStatic main
@@ -2828,7 +2750,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isExternal isOriginDeclaration isStatic f (nameOffset:9) (firstTokenOffset:0) (offset:9)
+        #F1 hasImplicitReturnType isComplete isExternal isOriginDeclaration isStatic f (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@function::f
   functions
     isExternal isOriginDeclaration isStatic f
@@ -2865,7 +2787,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic loadLibrary (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic loadLibrary (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::loadLibrary#1
   functions
     isOriginDeclaration isStatic loadLibrary
@@ -2899,7 +2821,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:13) (firstTokenOffset:7) (offset:13)
@@ -2927,7 +2849,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
@@ -2956,7 +2878,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 optionalNamed isFinal isOriginDeclaration this.a (nameOffset:17) (firstTokenOffset:8) (offset:17)
@@ -2992,14 +2914,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
               element: <testLibrary>::@function::f::@formalParameter::a
-              parameters
-                #F3 requiredPositional isOriginDeclaration b (nameOffset:22) (firstTokenOffset:18) (offset:22)
-                  element: b@22
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -3008,10 +2927,6 @@ library
         #E0 requiredPositional isFinal this.a
           firstFragment: #F2
           type: int Function(int)
-          formalParameters
-            #E1 requiredPositional b
-              firstFragment: #F3
-              type: int
           field: <null>
       returnType: void
 ''');
@@ -3028,7 +2943,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional hasImplicitType isFinal isOriginDeclaration x (nameOffset:8) (firstTokenOffset:2) (offset:8)
@@ -3056,7 +2971,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
@@ -3084,7 +2999,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:3) (firstTokenOffset:3) (offset:3)
@@ -3112,7 +3027,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
@@ -3140,16 +3055,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration g (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::g
-              parameters
-                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
-                  element: x@4
-                #F4 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:7) (firstTokenOffset:7) (offset:7)
-                  element: y@7
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -3158,13 +3068,6 @@ library
         #E0 requiredPositional g
           firstFragment: #F2
           type: dynamic Function(dynamic, dynamic)
-          formalParameters
-            #E1 requiredPositional hasImplicitType x
-              firstFragment: #F3
-              type: dynamic
-            #E2 requiredPositional hasImplicitType y
-              firstFragment: #F4
-              type: dynamic
       returnType: dynamic
 ''');
   }
@@ -3180,7 +3083,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration g (nameOffset:6) (firstTokenOffset:2) (offset:6)
@@ -3208,7 +3111,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration g (nameOffset:7) (firstTokenOffset:2) (offset:7)
@@ -3236,7 +3139,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration i (nameOffset:6) (firstTokenOffset:2) (offset:6)
@@ -3264,7 +3167,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -3298,7 +3201,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration a (nameOffset:9) (firstTokenOffset:7) (offset:9)
@@ -3326,7 +3229,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:2) (firstTokenOffset:2) (offset:2)
@@ -3359,7 +3262,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -3380,7 +3283,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -3401,7 +3304,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -3422,7 +3325,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@function::f
   functions
     isOriginDeclaration isStatic f
@@ -3443,7 +3346,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:2) (firstTokenOffset:0) (offset:2)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
@@ -3470,7 +3373,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -3480,9 +3383,6 @@ library
           formalParameters
             #F4 requiredPositional isOriginDeclaration x (nameOffset:15) (firstTokenOffset:13) (offset:15)
               element: <testLibrary>::@function::f::@formalParameter::x
-              parameters
-                #F5 requiredPositional isOriginDeclaration u (nameOffset:19) (firstTokenOffset:17) (offset:19)
-                  element: u@19
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -3496,10 +3396,6 @@ library
         #E2 requiredPositional x
           firstFragment: #F4
           type: T Function(U)
-          formalParameters
-            #E3 requiredPositional u
-              firstFragment: #F5
-              type: U
       returnType: void
 ''');
   }
@@ -3525,7 +3421,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -3553,7 +3449,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -3581,9 +3477,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
     isOriginDeclaration isStatic f
@@ -3608,7 +3504,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic get (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic get (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::get
   functions
     isOriginDeclaration isStatic get
@@ -3767,7 +3663,7 @@ library
         #F1 isOriginGetterSetter isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::main
       getters
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:0) (offset:4)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic main (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::main
   topLevelVariables
     isOriginGetterSetter isStatic main
@@ -3857,11 +3753,11 @@ library
           inducedGetter: #F2
           inducedSetter: #F3
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isComplete isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::main
           inducingVariable: #F1
       setters
-        #F3 isCompleteDeclaration isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isComplete isOriginVariable isStatic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::main
           inducingVariable: #F1
           formalParameters
@@ -3922,7 +3818,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic set (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic set (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::set
           formalParameters
             #F2 requiredPositional isOriginDeclaration _ (nameOffset:8) (firstTokenOffset:4) (offset:8)
@@ -3953,14 +3849,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
             #F3 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           typeParameters
@@ -3989,6 +3885,7 @@ augment void foo<T extends String>() {}
 ''');
 
     configuration.withExportScope = true;
+    configuration.withDefaultType = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3996,14 +3893,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::foo
           nextFragment: #F2
           typeParameters
             #F3 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
               nextFragment: #F4
-        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:42) (firstTokenOffset:29) (offset:42)
+        #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:42) (firstTokenOffset:29) (offset:42)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           typeParameters
@@ -4018,6 +3915,7 @@ library
         #E0 T
           firstFragment: #F3
           bound: int
+          defaultType: int
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo

@@ -23,6 +23,7 @@ Map<String, DartType>? createDefinitionsWithTypes(
   Iterable<Library>? knownLibraries,
   List<String> definitionTypes,
   List<String> definitions,
+  Set<String> definitionsAddedByUser,
 ) {
   if (knownLibraries == null) {
     return null;
@@ -48,6 +49,9 @@ Map<String, DartType>? createDefinitionsWithTypes(
       ParsedType type = definitionTypesParsed[i];
       DartType dartType = type.createDartType(libraryIndex);
       completeDefinitions[name] = dartType;
+      if (type.wasAddedViaCustomScope) {
+        definitionsAddedByUser.add(definitions[i]);
+      }
     }
   }
   return completeDefinitions;
@@ -98,13 +102,28 @@ List<TypeParameter>? createTypeParametersWithBounds(
 // Coverage-ignore(suite): Not run.
 List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   List<ParsedType> result = [];
+  bool wasCurrentAddedViaScope = false;
+
+  void addResult(ParsedType type) {
+    type.wasAddedViaCustomScope = wasCurrentAddedViaScope;
+    wasCurrentAddedViaScope = false;
+    result.add(type);
+  }
+
   int i = 0;
   List<ParsedType> argumentReceivers = [];
   while (i < definitionTypes.length) {
     String uriOrSpecialString = definitionTypes[i];
+
+    if (uriOrSpecialString == "viaScope") {
+      wasCurrentAddedViaScope = true;
+      i++;
+      continue;
+    }
+
     if (uriOrSpecialString == "null") {
       if (argumentReceivers.isEmpty) {
-        result.add(new ParsedType.nullType());
+        addResult(new ParsedType.nullType());
       } else {
         argumentReceivers.removeLast().arguments!.add(
           new ParsedType.nullType(),
@@ -129,7 +148,7 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
 
       ParsedType type = new ParsedType.record(nullability, fieldNames);
       if (argumentReceivers.isEmpty) {
-        result.add(type);
+        addResult(type);
       } else {
         argumentReceivers.removeLast().arguments!.add(type);
       }
@@ -149,7 +168,7 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
         nullability,
       );
       if (argumentReceivers.isEmpty) {
-        result.add(type);
+        addResult(type);
       } else {
         argumentReceivers.removeLast().arguments!.add(type);
       }
@@ -175,6 +194,7 @@ class ParsedType {
   final int? nullability;
   final List<ParsedType>? arguments;
   final List<String?>? recordFieldNames;
+  bool wasAddedViaCustomScope = false;
 
   new interface(this.uri, this.className, this.nullability)
     : type = ParsedTypeKind.Interface,
@@ -202,6 +222,7 @@ class ParsedType {
     if (uri != other.uri) return false;
     if (className != other.className) return false;
     if (nullability != other.nullability) return false;
+    if (wasAddedViaCustomScope != other.wasAddedViaCustomScope) return false;
     if (arguments?.length != other.arguments?.length) return false;
     if (arguments != null) {
       for (int i = 0; i < arguments!.length; i++) {

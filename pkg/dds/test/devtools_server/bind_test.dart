@@ -6,19 +6,7 @@ import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
 
-late final DevToolsServerTestController testController;
-
 void main() {
-  testController = DevToolsServerTestController();
-
-  setUp(() async {
-    await testController.setUp();
-  });
-
-  tearDown(() async {
-    await testController.tearDown();
-  });
-
   test('can bind to next available port', () async {
     final server1 = await DevToolsServerDriver.create(port: 8855);
     try {

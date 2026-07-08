@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../support/interactive_forms.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -17,7 +21,376 @@ void main() {
 }
 
 @reflectiveTest
-class AddConstructorNameInClassTest extends _AddConstructorNameTest {
+class AddConstructorNameInClassTest extends _AddConstructorNameTest
+    with InteractiveFormsTestMixin {
+  Future<void> test_inBody_factory_named_onKeyword() async {
+    var originalSource = '''
+class C {
+  factory^ name() => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_factory_named_onName() async {
+    var originalSource = '''
+class C {
+  factory nam^e() => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_factory_noSpace() async {
+    var originalSource = '''
+class C {
+  factory^() => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  factory name() => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_factory_onKeyword() async {
+    var originalSource = '''
+class C {
+  factory^ () => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    // Unfortunately, the refactor doesn't get the AST for the constructor
+    // declaration, so it doesn't know about the space after `factory`.
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  factory name () => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_factory_onParameterList() async {
+    var originalSource = '''
+class C {
+  factory ^() => C._()
+  C._();
+}
+
+void f() {
+  C();
+}
+''';
+    // Unfortunately, the refactor doesn't get the AST for the constructor
+    // declaration, so it doesn't know about the space after `factory`.
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  factory name () => C._()
+  C._();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_new_named_onKeyword() async {
+    var originalSource = '''
+class C {
+  new^ name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_new_named_onName() async {
+    var originalSource = '''
+class C {
+  new ^name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_new_noSpace() async {
+    var originalSource = '''
+class C {
+  new^();
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_new_onKeyword() async {
+    var originalSource = '''
+class C {
+  new^ ();
+}
+
+void f() {
+  C();
+}
+''';
+    // Unfortunately, the refactor doesn't get the AST for the constructor
+    // declaration, so it doesn't know about the space after `new`.
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new name ();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_new_onParameterList() async {
+    var originalSource = '''
+class C {
+  new ^();
+}
+
+void f() {
+  C();
+}
+''';
+    // Unfortunately, the refactor doesn't get the AST for the constructor
+    // declaration, so it doesn't know about the space after `new`.
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new name ();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple() async {
+    var originalSource = '''
+class C {
+  C^();
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  C.name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple_hasConflict() async {
+    var originalSource = '''
+class C {
+  C^();
+
+  String get name => '';
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  C.name1();
+
+  String get name => '';
+}
+
+void f() {
+  C.name1();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple_named_onClassName() async {
+    var originalSource = '''
+class C {
+  C^.name();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_inBody_simple_named_onConstructorName() async {
+    var originalSource = '''
+class C {
+  C.na^me();
+}
+
+void f() {
+  C.name();
+}
+''';
+    await _assertNoRefactoring(originalSource: originalSource);
+  }
+
+  Future<void> test_interactiveForm_clientModifiedValues() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C.customName() {}
+
+void f() {
+  C.customName();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'customName',
+    });
+
+    await verifyCommandEdits(completedCommand, expected);
+  }
+
+  Future<void> test_interactiveForm_expectedFields() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+    var interactiveCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(interactiveCommand.formFields, hasLength(1));
+    var field = interactiveCommand.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Constructor Name');
+    expect(field.defaultValue, 'name');
+    expect(field.error, isNull);
+    expect(field.type, isA<FormFieldTypeString>());
+  }
+
   Future<void> test_primary() async {
     var originalSource = '''
 class C^() {}
@@ -61,316 +434,54 @@ void f() {
 ''';
     await _assertNoRefactoring(originalSource: originalSource);
   }
-
-  Future<void> test_secondary_factory_named_onKeyword() async {
-    var originalSource = '''
-class C {
-  factory^ name() => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_factory_named_onName() async {
-    var originalSource = '''
-class C {
-  factory nam^e() => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_factory_noSpace() async {
-    var originalSource = '''
-class C {
-  factory^() => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  factory name() => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_factory_onKeyword() async {
-    var originalSource = '''
-class C {
-  factory^ () => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    // Unfortunately, the refactor doesn't get the AST for the constructor
-    // declaration, so it doesn't know about the space after `factory`.
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  factory name () => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_factory_onParameterList() async {
-    var originalSource = '''
-class C {
-  factory ^() => C._()
-  C._();
-}
-
-void f() {
-  C();
-}
-''';
-    // Unfortunately, the refactor doesn't get the AST for the constructor
-    // declaration, so it doesn't know about the space after `factory`.
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  factory name () => C._()
-  C._();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_new_named_onKeyword() async {
-    var originalSource = '''
-class C {
-  new^ name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_new_named_onName() async {
-    var originalSource = '''
-class C {
-  new ^name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_new_noSpace() async {
-    var originalSource = '''
-class C {
-  new^();
-}
-
-void f() {
-  C();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  new name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_new_onKeyword() async {
-    var originalSource = '''
-class C {
-  new^ ();
-}
-
-void f() {
-  C();
-}
-''';
-    // Unfortunately, the refactor doesn't get the AST for the constructor
-    // declaration, so it doesn't know about the space after `new`.
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  new name ();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_new_onParameterList() async {
-    var originalSource = '''
-class C {
-  new ^();
-}
-
-void f() {
-  C();
-}
-''';
-    // Unfortunately, the refactor doesn't get the AST for the constructor
-    // declaration, so it doesn't know about the space after `new`.
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  new name ();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple() async {
-    var originalSource = '''
-class C {
-  C^();
-}
-
-void f() {
-  C();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  C.name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple_hasConflict() async {
-    var originalSource = '''
-class C {
-  C^();
-
-  String get name => '';
-}
-
-void f() {
-  C();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-class C {
-  C.name1();
-
-  String get name => '';
-}
-
-void f() {
-  C.name1();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple_named_onClassName() async {
-    var originalSource = '''
-class C {
-  C^.name();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_simple_named_onConstructorName() async {
-    var originalSource = '''
-class C {
-  C.na^me();
-}
-
-void f() {
-  C.name();
-}
-''';
-    await _assertNoRefactoring(originalSource: originalSource);
-  }
 }
 
 @reflectiveTest
 class AddConstructorNameInEnumTest extends _AddConstructorNameTest {
+  Future<void> test_inBody_new() async {
+    var originalSource = '''
+enum E {
+  a;
+
+  new^();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+enum E {
+  a.name();
+
+  new name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_inBody_simple() async {
+    var originalSource = '''
+enum E {
+  a;
+
+  E^();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+enum E {
+  a.name();
+
+  E.name();
+}
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
   Future<void> test_primary() async {
     var originalSource = '''
 enum E^() {
@@ -396,50 +507,6 @@ enum E.n^ame() {
 }
 ''';
     await _assertNoRefactoring(originalSource: originalSource);
-  }
-
-  Future<void> test_secondary_new() async {
-    var originalSource = '''
-enum E {
-  a;
-
-  new^();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-enum E {
-  a.name();
-
-  new name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
-  }
-
-  Future<void> test_secondary_simple() async {
-    var originalSource = '''
-enum E {
-  a;
-
-  E^();
-}
-''';
-    var expected = '''
->>>>>>>>>> lib/main.dart
-enum E {
-  a.name();
-
-  E.name();
-}
-''';
-    await _assertRefactoring(
-      originalSource: originalSource,
-      expected: expected,
-    );
   }
 }
 

@@ -24,36 +24,36 @@ class C extends S {
   C.cc08(this.x) : assert(x == x), super.named();
   C.cc09(int x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x;
   //  ^
   // [cfe] Can't have initializers after 'super'.
   C.cc10(int x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x;
   //  ^
   // [cfe] Can't have initializers after 'super'.
   C.cc11(this.x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       assert(x == x);
   //  ^
   // [cfe] Can't have initializers after 'super'.
   C.cc12(this.x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       assert(x == x);
   //  ^
   // [cfe] Can't have initializers after 'super'.
   C.cc13(int x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x,
       // [error column 7]
       // [cfe] Can't have initializers after 'super'.
@@ -62,8 +62,8 @@ class C extends S {
   // [cfe] Can't have initializers after 'super'.
   C.cc14(int x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x,
       // [error column 7]
       // [cfe] Can't have initializers after 'super'.
@@ -97,36 +97,36 @@ class C extends S {
   const C.cc24(this.x) : assert(x == x), super.named();
   const C.cc25(int x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x;
   //  ^
   // [cfe] Can't have initializers after 'super'.
   const C.cc26(int x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x;
   //  ^
   // [cfe] Can't have initializers after 'super'.
   const C.cc27(this.x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       assert(x == x);
   //  ^
   // [cfe] Can't have initializers after 'super'.
   const C.cc28(this.x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       assert(x == x);
   //  ^
   // [cfe] Can't have initializers after 'super'.
   const C.cc29(int x)
     : super(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x,
       // [error column 7]
       // [cfe] Can't have initializers after 'super'.
@@ -135,8 +135,8 @@ class C extends S {
   // [cfe] Can't have initializers after 'super'.
   const C.cc30(int x)
     : super.named(),
-    //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
+      // [error column 7]
+      // [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
       x = x,
       // [error column 7]
       // [cfe] Can't have initializers after 'super'.

@@ -19,9 +19,9 @@ class Y extends B {}
 class Z implements A, B {}
 
 method(S s) => switch (s) {
-      X() as A => 0,
-      Y() as B => 1,
-    };
+  X() as A => 0,
+  Y() as B => 1,
+};
 
 test() {
   method(Z());

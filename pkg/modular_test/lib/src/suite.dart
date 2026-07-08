@@ -65,13 +65,18 @@ class Module {
   /// will be true only for the SDK and shared packages like `package:expect`.
   bool isShared;
 
-  Module(this.name, this.dependencies, this.rootUri, this.sources,
-      {this.mainSource,
-      this.isPackage = false,
-      this.isMain = false,
-      this.packageBase,
-      this.isShared = false,
-      this.isSdk = false}) {
+  Module(
+    this.name,
+    this.dependencies,
+    this.rootUri,
+    this.sources, {
+    this.mainSource,
+    this.isPackage = false,
+    this.isMain = false,
+    this.packageBase,
+    this.isShared = false,
+    this.isSdk = false,
+  }) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
     }
@@ -83,19 +88,24 @@ class Module {
     // Note: we validate this now and not in the constructor because loader.dart
     // may update `isPackage` after the module is created.
     if (isSdk && isPackage) {
-      throw InvalidModularTestError("invalid module: $name is an sdk "
-          "module but was also marked as a package module.");
+      throw InvalidModularTestError(
+        "invalid module: $name is an sdk "
+        "module but was also marked as a package module.",
+      );
     }
 
     for (var dependency in dependencies) {
       if (isPackage && !dependency.isPackage && !dependency.isSdk) {
-        throw InvalidModularTestError("invalid dependency: $name is a package "
-            "but it depends on ${dependency.name}, which is not.");
+        throw InvalidModularTestError(
+          "invalid dependency: $name is a package "
+          "but it depends on ${dependency.name}, which is not.",
+        );
       }
       if (isShared && !dependency.isShared) {
         throw InvalidModularTestError(
-            "invalid dependency: $name is a shared module "
-            "but it depends on ${dependency.name}, which is not.");
+          "invalid dependency: $name is a shared module "
+          "but it depends on ${dependency.name}, which is not.",
+        );
       }
       if (isSdk) {
         // TODO(sigmund): we should allow to split sdk modules in smaller
@@ -104,9 +114,10 @@ class Module {
         //   extraRequiredLibraries in CFE)
         // - add logic to specify sdk dependencies.
         throw InvalidModularTestError(
-            "invalid dependency: $name is an sdk module that depends on  "
-            "${dependency.name}, but sdk modules are not expected to "
-            "have dependencies.");
+          "invalid dependency: $name is an sdk module that depends on  "
+          "${dependency.name}, but sdk modules are not expected to "
+          "have dependencies.",
+        );
       }
     }
   }

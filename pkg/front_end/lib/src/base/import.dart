@@ -12,54 +12,41 @@ import '../source/source_library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'configuration.dart' show Configuration;
 
-class Import {
+class Import({
+  required SourceCompilationUnit importer,
+
   /// The library being imported.
-  CompilationUnit? importedCompilationUnit;
+  required var CompilationUnit? importedCompilationUnit,
+  required final bool deferred,
+  required final String? prefix,
+  required final List<CombinatorBuilder>? combinators,
+  required final List<Configuration>? configurations,
+  required Uri fileUri,
+  required final int importOffset,
+  required final int prefixOffset,
 
+  /// The LibraryBuilder for the imported library ('imported') may be null when
+  /// this field is set.
+  final String? nativeImportPath,
+}) {
   final PrefixFragment? prefixFragment;
-
-  final bool deferred;
-
-  final String? prefix;
-
-  final List<CombinatorBuilder>? combinators;
-
-  final List<Configuration>? configurations;
-
-  final int importOffset;
-
-  final int prefixOffset;
-
-  // The LibraryBuilder for the imported library ('imported') may be null when
-  // this field is set.
-  final String? nativeImportPath;
 
   /// The [LibraryDependency] node corresponding to this import.
   ///
   /// This set in [SourceLibraryBuilder._addDependencies].
   LibraryDependency? libraryDependency;
 
-  new({
-    required SourceCompilationUnit importer,
-    required this.importedCompilationUnit,
-    required this.deferred,
-    required this.prefix,
-    required this.combinators,
-    required this.configurations,
-    required Uri fileUri,
-    required this.importOffset,
-    required this.prefixOffset,
-    this.nativeImportPath,
-  }) : prefixFragment = createPrefixFragment(
-         prefix,
-         importer,
-         importedCompilationUnit,
-         combinators,
-         deferred,
-         fileUri,
-         importOffset,
-         prefixOffset,
-       );
+  this
+    : prefixFragment = createPrefixFragment(
+        prefix,
+        importer,
+        importedCompilationUnit,
+        combinators,
+        deferred,
+        fileUri,
+        importOffset,
+        prefixOffset,
+      );
 
   LibraryBuilder? get importedLibraryBuilder =>
       importedCompilationUnit?.libraryBuilder;

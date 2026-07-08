@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A1<X extends A1<X, Y>, Y extends A2<X, Y>> {}
+
 class A2<X extends A1<X, Y>, Y extends A2<X, Y>> {}
+
 class B extends A1<B, B> implements A2<B, B> {}
+
 class C1 extends B {}
+
 class C2 extends B {}
 
 void f<X extends A1<X, Y>, Y extends A2<X, Y>>(X x, Y y) {}

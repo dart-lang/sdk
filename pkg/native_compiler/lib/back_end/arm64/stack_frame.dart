@@ -76,12 +76,26 @@ final class Arm64StackFrame extends StackFrame {
     switch (instr) {
       case CallInstruction():
         return instr.inputCount;
+      case AllocateClosure():
+        return 4; // Result + 3 arguments for AllocateClosure runtime call.
+      case AllocateContext():
+        return 2; // Result + 1 argument for AllocateContext runtime call.
+      case AllocateList():
+        return 3; // Result + 2 arguments for AllocateList runtime call.
+      case AllocateRecord():
+        return 2; // Result + 1 argument for AllocateRecord runtime call.
       case TypeLiteral():
         return 4; // Result + 3 arguments for InstantiateType runtime call.
+      case TypeCast():
+        return 3; // Result + 2 arguments for TypeError runtime call.
       case TypeTest():
         return 6; // Result + 5 arguments for Instanceof runtime call.
       case Suspend(:var op) when op == .asyncYield || op == .asyncYieldStar:
         return 2; // 2 arguments for _AsyncStarStreamController.add/addStream call.
+      case Throw(kind: .exception):
+        return 2; // Result + 1 argument for Throw runtime call.
+      case Throw(kind: .rethrowException):
+        return 4; // Result + 3 argument for ReThrow runtime call.
       default:
         return 0;
     }

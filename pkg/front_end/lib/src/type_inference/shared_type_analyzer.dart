@@ -21,10 +21,10 @@ class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<
           TreeNode,
-          Statement,
+          InternalStatement,
           Expression,
-          Variable,
-          Pattern,
+          InternalVariable,
+          InternalPattern,
           InvalidExpression
         > {
   final InferenceVisitorImpl visitor;
@@ -75,14 +75,14 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression duplicateAssignmentPatternVariable({
-    required Variable variable,
-    required Pattern original,
-    required Pattern duplicate,
+    required InternalVariable variable,
+    required InternalPattern original,
+    required InternalPattern duplicate,
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.duplicatePatternAssignmentVariable.withArguments(
-        variableName: variable.name!,
+        variableName: variable.cosmeticName!,
       ),
       fileUri: uri,
       fileOffset: duplicate.fileOffset,
@@ -99,10 +99,10 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression duplicateRecordPatternField({
-    required Pattern objectOrRecordPattern,
+    required InternalPattern objectOrRecordPattern,
     required String name,
-    required RecordPatternField<TreeNode, Pattern> original,
-    required RecordPatternField<TreeNode, Pattern> duplicate,
+    required RecordPatternField<TreeNode, InternalPattern> original,
+    required RecordPatternField<TreeNode, InternalPattern> duplicate,
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
@@ -122,7 +122,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression duplicateRestPattern({
-    required Pattern mapOrListPattern,
+    required InternalPattern mapOrListPattern,
     required TreeNode original,
     required TreeNode duplicate,
   }) {
@@ -143,7 +143,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  InvalidExpression emptyMapPattern({required Pattern pattern}) {
+  InvalidExpression emptyMapPattern({required InternalPattern pattern}) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.emptyMapPattern,
@@ -155,8 +155,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required Variable variable,
-    required Variable component,
+    required InternalVariable variable,
+    required InternalVariable component,
   }) {
     // TODO(johnniwinther): How should we handle errors that are not report
     // here? Should we have a sentinel error node, allow a nullable result, or ?
@@ -170,7 +170,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression? matchedTypeIsStrictlyNonNullable({
-    required Pattern pattern,
+    required InternalPattern pattern,
     required SharedTypeView matchedType,
   }) {
     // These are only warnings, so we don't report anything.
@@ -179,7 +179,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void matchedTypeIsSubtypeOfRequired({
-    required Pattern pattern,
+    required InternalPattern pattern,
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
   }) {
@@ -217,7 +217,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression patternTypeMismatchInIrrefutableContext({
-    required Pattern pattern,
+    required InternalPattern pattern,
     required TreeNode context,
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
@@ -236,7 +236,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression refutablePatternInIrrefutableContext({
-    required covariant Pattern pattern,
+    required covariant InternalPattern pattern,
     required TreeNode context,
   }) {
     return problemReporting.buildProblem(
@@ -268,7 +268,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression relationalPatternOperatorReturnTypeNotAssignableToBool({
-    required Pattern pattern,
+    required InternalPattern pattern,
     required SharedTypeView returnType,
   }) {
     return problemReporting.buildProblem(
@@ -285,7 +285,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression restPatternInMap({
-    required Pattern node,
+    required InternalPattern node,
     required TreeNode element,
   }) {
     return problemReporting.buildProblem(
@@ -299,7 +299,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression switchCaseCompletesNormally({
-    required covariant SwitchStatement node,
+    required covariant InternalSwitchStatement node,
     required int caseIndex,
   }) {
     return problemReporting.buildProblem(
@@ -313,7 +313,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void unnecessaryWildcardPattern({
-    required Pattern pattern,
+    required InternalPattern pattern,
     required UnnecessaryWildcardKind kind,
   }) {
     // TODO(scheglov): implement unnecessaryWildcardPattern

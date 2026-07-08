@@ -54,8 +54,8 @@ Function httpServe(void Function(String) onRequest) {
   nativeHttpStartServing(callback.nativeFunction);
 
   return () {
-      nativeHttpStopServing();
-      callback.close();
+    nativeHttpStopServing();
+    callback.close();
   };
 }
 

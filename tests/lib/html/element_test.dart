@@ -6,9 +6,11 @@ library ElementTest;
 
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 import 'package:expect/expect.dart';
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
+
 import 'utils.dart';
 
 expectLargeRect(Rectangle rect) {
@@ -103,8 +105,7 @@ main() {
 
     test('.html table', () {
       // http://developers.whatwg.org/tabular-data.html#tabular-data
-      TableElement node =
-          new Element.html('''
+      TableElement node = new Element.html('''
 <table>
  <caption>Characteristics with positive and negative sides</caption>
  <thead>
@@ -121,8 +122,7 @@ main() {
    <td headers="n r2"> Failing
    <th id="r2"> Grade
    <td> Passing
-</table>''')
-              as TableElement;
+</table>''') as TableElement;
       expect(node.tagName, 'TABLE');
       expect(node.parent, isNull);
       expect(
@@ -997,9 +997,9 @@ main() {
     //      some of these tests validate that a method can be called.
     //   2. Some methods are implemented by mixins.
 
-    ElementList<Element> makeElementList() => (new Element.html(
-      "<div>Foo<br/><!--baz--><br/><br/></div>",
-    )).querySelectorAll('br');
+    ElementList<Element> makeElementList() =>
+        (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
+            .querySelectorAll('br');
 
     test('hashCode', () {
       var nodes = makeElementList();

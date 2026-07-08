@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
+
 import 'unicode_tests.dart';
 
 String decode(List<int> bytes) => new Utf8Decoder().convert(bytes);

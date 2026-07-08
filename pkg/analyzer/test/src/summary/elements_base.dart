@@ -51,7 +51,9 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     var actual = getLibraryText(library: library, configuration: configuration);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }

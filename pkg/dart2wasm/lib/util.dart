@@ -104,6 +104,24 @@ bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
   return hasPragma(coreTypes, member, "wasm:weak-export");
 }
 
+bool? getWasmPreferInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:prefer-inline",
+    defaultValue: true,
+  );
+}
+
+bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:never-inline",
+    defaultValue: true,
+  );
+}
+
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
   return getPragma<String>(
     coreTypes,
@@ -163,6 +181,31 @@ List<int> _intToLittleEndianBytes(int i) {
 }
 
 String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
+
+/// The name of the module with given [id].
+///
+/// NOTE:
+///
+/// This is the name used in the name section of the module. If a wasm runtime
+/// doesn't know where the wasm file came from (e.g. no url or file path) then
+/// stack traces may fallback to use the module name. Using a stable naming for
+/// the module names allows mapping module names in stack frames back to module
+/// ids and therefore back the file name:
+///
+/// We also use this name in imports: Wasm modules that import things from other
+/// wasm modules use this name as import module name. (Currently the only cross
+/// module imports are deferred modules importing the main module, deferred
+/// modules don't import other deferred modules).
+String moduleNameFromId(int id) => id == 0 ? 'M' : 'M$id';
+
+/// The reverse of [moduleNameFromId].
+int? moduleNameToId(String moduleName) {
+  if (moduleName == 'M') return 0;
+  if (moduleName.startsWith('M')) {
+    return int.tryParse(moduleName.substring(1));
+  }
+  return null;
+}
 
 /// Maps ints to minimal length strings.
 ///

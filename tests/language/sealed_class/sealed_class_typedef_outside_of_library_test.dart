@@ -5,6 +5,7 @@
 // Allow typedef in different library, used by class in library.
 
 import "package:expect/expect.dart";
+
 import 'sealed_class_typedef_outside_of_library_lib.dart';
 
 main() {

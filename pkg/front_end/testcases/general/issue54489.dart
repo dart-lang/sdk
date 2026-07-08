@@ -11,7 +11,8 @@ void main() {
   const Chk(2 > 2, id: false);
   const Chk(2 >= 2, id: true);
 }
+
 class Chk {
-  const Chk(Object? v, {required Object? id}) :
-    assert(identical(v, id), "Not identical${(v, id: id)}");
+  const Chk(Object? v, {required Object? id})
+    : assert(identical(v, id), "Not identical${(v, id: id)}");
 }

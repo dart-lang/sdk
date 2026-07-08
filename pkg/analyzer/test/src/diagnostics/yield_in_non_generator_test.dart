@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,20 +34,15 @@ f() async* {
 ''');
   }
 
-  @FailingTest(
-    reason:
-        'We are currently trying to parse the yield statement as a '
-        'binary expression.',
-  )
   test_sync() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   yield 0;
+//^^^^^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.undefinedIdentifier] Undefined name 'yield'.
 }
-''',
-      [error(diag.yieldInNonGenerator, 0, 0)],
-    );
+''');
   }
 
   test_syncStar() async {

@@ -42,9 +42,8 @@ RunDetails createData(
   Directory.fromUri(libDirUri).createSync();
 
   // Write analysis_options.
-  File.fromUri(
-    packageDirUri.resolve('analysis_options.yaml'),
-  ).writeAsStringSync('''
+  File.fromUri(packageDirUri.resolve('analysis_options.yaml'))
+      .writeAsStringSync('''
 linter:
   rules:
     - prefer_single_quotes

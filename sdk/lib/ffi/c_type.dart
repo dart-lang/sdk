@@ -560,7 +560,7 @@ final class Size extends AbiSpecificInteger {
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint32(),
   Abi.androidIA32: Uint32(),
-  Abi.androidX64: Uint32(),
+  Abi.androidX64: Int32(),
   Abi.androidRiscv64: Int32(),
   Abi.fuchsiaArm64: Uint32(),
   Abi.fuchsiaX64: Int32(),

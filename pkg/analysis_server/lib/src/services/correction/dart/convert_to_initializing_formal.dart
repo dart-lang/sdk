@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -41,6 +42,20 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     NodeList<ConstructorInitializer>? initializers;
     Comment? documentationComment;
     FunctionBody? body;
+    var fieldInitializers = <Expression>[];
+
+    void findFieldInitializers(AstNode? containerBody) {
+      switch (containerBody) {
+        case ClassBody(:var members):
+        case EnumBody(:var members):
+          fieldInitializers = members
+              .whereType<FieldDeclaration>()
+              .expand((declaration) => declaration.fields.variables)
+              .map((declaration) => declaration.initializer)
+              .nonNulls
+              .toList();
+      }
+    }
 
     var anchorNode = _findAnchorNode();
     if (anchorNode case ConstructorDeclaration constructor) {
@@ -48,6 +63,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       initializers = constructor.initializers;
       documentationComment = constructor.documentationComment;
       body = constructor.body;
+      findFieldInitializers(constructor.parent);
     } else if (anchorNode
         case PrimaryConstructorDeclaration primaryConstructor) {
       parameterList = primaryConstructor.formalParameters;
@@ -57,6 +73,15 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         documentationComment = primaryBody.documentationComment;
         body = primaryBody.body;
       }
+      var containerBody = switch (primaryConstructor.parent) {
+        ClassDeclaration(:var body) => body,
+        EnumDeclaration(:var body) => body,
+        ExtensionDeclaration(:var body) => body,
+        ExtensionTypeDeclaration(:var body) => body,
+        MixinDeclaration(:var body) => body,
+        _ => null,
+      };
+      findFieldInitializers(containerBody);
     } else if (anchorNode case PrimaryConstructorBody primaryBody) {
       var declaration = primaryBody.declaration;
       if (declaration == null) return;
@@ -64,6 +89,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       initializers = primaryBody.initializers;
       documentationComment = primaryBody.documentationComment;
       body = primaryBody.body;
+      findFieldInitializers(primaryBody.parent);
     } else {
       return;
     }
@@ -85,14 +111,16 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             case VariableElement field:
             case SetterElement(variable: VariableElement field):
               await _computeChange(
-                builder,
-                parameterList,
-                initializers,
-                documentationComment,
-                parameter,
-                parameterElement,
-                field,
                 assignment: statement,
+                builder: builder,
+                constructorBody: body,
+                documentationComment: documentationComment,
+                field: field,
+                fieldInitializers: fieldInitializers,
+                initializers: initializers,
+                parameter: parameter,
+                parameterElement: parameterElement,
+                parameterList: parameterList,
               );
           }
         }
@@ -107,27 +135,30 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           if (field is! VariableElement) return;
 
           await _computeChange(
-            builder,
-            parameterList,
-            initializers,
-            documentationComment,
-            parameter,
-            parameterElement,
-            field,
+            builder: builder,
+            constructorBody: body,
+            documentationComment: documentationComment,
+            field: field,
+            fieldInitializers: fieldInitializers,
             initializer: initializer,
+            initializers: initializers,
+            parameter: parameter,
+            parameterElement: parameterElement,
+            parameterList: parameterList,
           );
         }
 
       case RegularFormalParameter parameter:
         // A constructor parameter declaration.
         await _computeChangeFromParameter(
-          builder,
-          parameterList,
-          initializers,
-          documentationComment,
-          body,
-          parameter,
-          parameter.declaredFragment!.element,
+          body: body,
+          builder: builder,
+          documentationComment: documentationComment,
+          fieldInitializers: fieldInitializers,
+          initializers: initializers,
+          parameter: parameter,
+          parameterElement: parameter.declaredFragment!.element,
+          parameterList: parameterList,
         );
 
       case SimpleIdentifier parameterUse:
@@ -138,13 +169,14 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             _,
           )) {
             await _computeChangeFromParameter(
-              builder,
-              parameterList,
-              initializers,
-              documentationComment,
-              body,
-              parameter,
-              parameterElement,
+              body: body,
+              builder: builder,
+              documentationComment: documentationComment,
+              fieldInitializers: fieldInitializers,
+              initializers: initializers,
+              parameter: parameter,
+              parameterElement: parameterElement,
+              parameterList: parameterList,
             );
           }
         }
@@ -159,21 +191,24 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   ///
   /// The parameter should currently be initialized by either [initializer] or
   /// [assignment] but not both.
-  Future<void> _computeChange(
-    ChangeBuilder builder,
-    FormalParameterList parameterList,
-    NodeList<ConstructorInitializer>? initializers,
-    Comment? documentationComment,
-    FormalParameter parameter,
-    FormalParameterElement parameterElement,
-    VariableElement field, {
-    ConstructorFieldInitializer? initializer,
+  Future<void> _computeChange({
+    required ChangeBuilder builder,
+    required FunctionBody? constructorBody,
+    required Comment? documentationComment,
+    required VariableElement field,
+    required List<Expression> fieldInitializers,
+    required NodeList<ConstructorInitializer>? initializers,
+    required FormalParameter parameter,
+    required FormalParameterElement parameterElement,
+    required FormalParameterList parameterList,
     Statement? assignment,
+    ConstructorFieldInitializer? initializer,
   }) async {
     assert(initializer == null || assignment == null);
     if (parameter is SuperFormalParameter) return;
     var parameterName = parameter.name!.lexeme;
     var fieldName = field.displayName;
+    var references = <SimpleIdentifier>[];
     var updateCommentReferences = false;
 
     if (parameter.isNamed) {
@@ -184,6 +219,13 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             Identifier.isPrivateName(fieldName)) {
           return;
         }
+        references = findParameterReferences(
+          parameterElement: parameterElement,
+          constructorBody: constructorBody,
+          fieldInitializers: fieldInitializers,
+          initializers: initializers,
+          nodesBeingRemoved: [?initializer, ?assignment],
+        );
         updateCommentReferences = true;
       } else if (fieldName != parameterName) {
         // We can't rename the parameter to match the field name if the parameter
@@ -277,6 +319,11 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         }
       }
 
+      // Update references to the parameter to use the name of the field.
+      for (var reference in references) {
+        builder.addSimpleReplacement(reference.sourceRange, fieldName);
+      }
+
       if (updateCommentReferences) {
         var references = documentationComment?.references;
         if (references != null) {
@@ -297,15 +344,16 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   ///
   /// Looks for a corresponding constructor initializer or assignment statement
   /// and applies the conversion if one is found.
-  Future<void> _computeChangeFromParameter(
-    ChangeBuilder builder,
-    FormalParameterList parameterList,
-    NodeList<ConstructorInitializer>? initializers,
-    Comment? documentationComment,
-    FunctionBody? body,
-    FormalParameter parameter,
-    FormalParameterElement parameterElement,
-  ) async {
+  Future<void> _computeChangeFromParameter({
+    required ChangeBuilder builder,
+    required FunctionBody? body,
+    required Comment? documentationComment,
+    required List<Expression> fieldInitializers,
+    required NodeList<ConstructorInitializer>? initializers,
+    required FormalParameter parameter,
+    required FormalParameterElement parameterElement,
+    required FormalParameterList parameterList,
+  }) async {
     // If there happens to be both an initializer and an assignment, the
     // initializer will be first, so convert that and ignore the later mutating
     // assignment.
@@ -314,28 +362,32 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         : null;
     if (initializer?.fieldName.element case VariableElement field) {
       await _computeChange(
-        builder,
-        parameterList,
-        initializers,
-        documentationComment,
-        parameter,
-        parameterElement,
-        field,
+        builder: builder,
+        constructorBody: body,
+        documentationComment: documentationComment,
+        field: field,
+        fieldInitializers: fieldInitializers,
         initializer: initializer,
+        initializers: initializers,
+        parameter: parameter,
+        parameterElement: parameterElement,
+        parameterList: parameterList,
       );
     } else if (_findAssignment(body, parameterElement) case (
       var statement,
       var field,
     )) {
       await _computeChange(
-        builder,
-        parameterList,
-        initializers,
-        documentationComment,
-        parameter,
-        parameterElement,
-        field,
         assignment: statement,
+        builder: builder,
+        constructorBody: body,
+        documentationComment: documentationComment,
+        field: field,
+        fieldInitializers: fieldInitializers,
+        initializers: initializers,
+        parameter: parameter,
+        parameterElement: parameterElement,
+        parameterList: parameterList,
       );
     } else if (parameter is RegularFormalParameter &&
         parameterElement is FieldFormalParameterElement) {
@@ -423,9 +475,11 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     FormalParameterElement parameter,
   ) {
     for (var initializer in initializers) {
-      if (initializer case ConstructorFieldInitializer(
-        expression: SimpleIdentifier identifier,
-      ) when identifier.element == parameter) {
+      if (initializer
+          case ConstructorFieldInitializer(
+            expression: SimpleIdentifier identifier,
+          )
+          when identifier.element == parameter) {
         return initializer;
       }
     }

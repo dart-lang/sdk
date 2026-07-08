@@ -24,7 +24,6 @@ class const C10(final int a, [final int? b, final int c = 42]) {}
 
 class const C11({final int? a, required final int b, final int c = 42}) {}
 
-
 main() {
   new C1(0);
   new C1(0, 1);

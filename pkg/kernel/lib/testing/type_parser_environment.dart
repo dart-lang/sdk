@@ -252,10 +252,9 @@ class TypeParserEnvironment {
     Map<String, DartType Function()>? additionalTypes,
   }) {
     return _kernelFromParsedType(
-          type_parser.parse(text).single,
-          additionalTypes: additionalTypes,
-        )
-        as DartType;
+      type_parser.parse(text).single,
+      additionalTypes: additionalTypes,
+    ) as DartType;
   }
 
   /// Parses a list of types separated by commas.
@@ -263,9 +262,10 @@ class TypeParserEnvironment {
     String text, {
     Map<String, DartType Function()>? additionalTypes,
   }) {
-    return (parseType("(${text}) -> void", additionalTypes: additionalTypes)
-            as FunctionType)
-        .positionalParameters;
+    return (parseType(
+      "(${text}) -> void",
+      additionalTypes: additionalTypes,
+    ) as FunctionType).positionalParameters;
   }
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";
@@ -304,9 +304,8 @@ class TypeParserEnvironment {
 
   TypeParserEnvironment extendWithStructuralParameters(String? typeParameters) {
     if (typeParameters?.isEmpty ?? true) return this;
-    return extendToFunctionTypeParameterEnvironment(
-      typeParameters!,
-    ).environment;
+    return extendToFunctionTypeParameterEnvironment(typeParameters!)
+        .environment;
   }
 
   ParameterEnvironment extendToParameterEnvironment(String typeParameters) {
@@ -543,9 +542,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       ..addAll(parameters);
     {
       TypeParserEnvironment environment = parameterEnvironment.environment;
-      DartType onType =
-          node.onType.accept<Node, TypeParserEnvironment>(this, environment)
-              as DartType;
+      DartType onType = node.onType.accept<Node, TypeParserEnvironment>(
+        this,
+        environment,
+      ) as DartType;
       ext.onType = onType;
     }
     return ext;

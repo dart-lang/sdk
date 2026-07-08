@@ -23,6 +23,7 @@
 #include <unistd.h>        // NOLINT
 
 #include "platform/memory_sanitizer.h"
+#include "platform/signal_blocker.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/code_comments.h"
@@ -556,22 +557,23 @@ uintptr_t OS::CurrentRSS() {
   return current_rss_pages * getpagesize();
 }
 
-bool OS::SafeReadMemory(uintptr_t address,
+bool OS::SafeReadMemory(void* address,
                         uint8_t* buffer,
-                        intptr_t size_in_bytes,
+                        size_t size_in_bytes,
                         const char** error) {
-  int fd = open("/proc/self/mem", O_RDONLY | O_CLOEXEC);
+  ThreadSignalBlocker tsb(SIGPROF);
+  int fd = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+      open("/proc/self/mem", O_RDONLY | O_CLOEXEC));
   if (fd < 0) {
     *error = strerror(errno);
     return false;
   }
-  ssize_t bytes_read =
-      pread64(fd, buffer, size_in_bytes, static_cast<off64_t>(address));
-  close(fd);
+  ssize_t bytes_read = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
+      pread64(fd, buffer, size_in_bytes, reinterpret_cast<off64_t>(address)));
   if (bytes_read == -1) {
     *error = strerror(errno);
-    return false;
   }
+  close(fd);
   return bytes_read == static_cast<ssize_t>(size_in_bytes);
 }
 

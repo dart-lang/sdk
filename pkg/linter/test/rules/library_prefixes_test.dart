@@ -26,7 +26,7 @@ class LibraryPrefixesTest extends LintRuleTest {
   String get lintRule => LintNames.library_prefixes;
 
   test_camelCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async' as [!dartAsync!];
 ''');
   }
@@ -50,7 +50,7 @@ import 'dart:async' as _i1;
   }
 
   test_numberWithLeadingUnderscore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async' as [!_1!];
 ''');
   }
@@ -62,7 +62,7 @@ import 'dart:async' as _;
   }
 
   test_wildcard_preWildCards() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 

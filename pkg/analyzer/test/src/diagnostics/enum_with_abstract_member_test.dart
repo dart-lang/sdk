@@ -36,6 +36,34 @@ enum E {
 ''');
   }
 
+  test_method_hasEnumAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  void foo();
+//^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+
+augment enum E {}
+''');
+  }
+
+  test_method_hasEnumAugmentation_withMethodDeclaration() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+}
+
+augment enum E {
+  ;
+  void foo();
+//^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+''');
+  }
+
   test_setter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

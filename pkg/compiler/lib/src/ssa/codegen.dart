@@ -2647,7 +2647,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         definitionHasReceiver =
             (node.function.positionalParameters.isNotEmpty &&
                 isExtensionThisName(
-                  node.function.positionalParameters[0].name,
+                  node.function.positionalParameters[0].cosmeticName,
                 )) ||
             isExtensionMemberTearOff(node);
       }
@@ -3436,11 +3436,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     assert(node.staticChecks != StaticBoundsChecks.alwaysTrue);
 
     if (node.staticChecks == StaticBoundsChecks.alwaysFalse) {
-      _pushThrowWithHelper(
-        _commonElements.throwIndexOutOfRangeException,
-        [node.array, node.reportedIndex],
-        sourceInformation: node.sourceInformation,
-      );
+      _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException, [
+        node.array,
+        node.reportedIndex,
+      ], sourceInformation: node.sourceInformation);
       return;
     }
 
@@ -3518,11 +3517,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Block thenBody = js.Block.empty();
     js.Block oldContainer = currentContainer;
     currentContainer = thenBody;
-    _pushThrowWithHelper(
-      _commonElements.throwIndexOutOfRangeException,
-      [node.array, node.reportedIndex],
-      sourceInformation: node.sourceInformation,
-    );
+    _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException, [
+      node.array,
+      node.reportedIndex,
+    ], sourceInformation: node.sourceInformation);
     currentContainer = oldContainer;
     pushStatement(
       js.If.noElse(

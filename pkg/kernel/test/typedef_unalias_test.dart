@@ -6,6 +6,7 @@ library kernel.typedef_unalias_test;
 
 import 'package:kernel/ast.dart';
 import 'package:test/test.dart';
+
 import 'verify_test.dart' show TestHarness;
 
 void harnessTest(String name, void doTest(TestHarness harness)) {

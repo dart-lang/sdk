@@ -59,16 +59,16 @@ Extra constant evaluation status:
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:6:3 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:7:3 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> ListConstant(const <A>[const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"}, const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"}])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:19:28 -> InstanceConstant(const B{B.value: 0.0})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:20:28 -> InstanceConstant(const B{B.value: 0.0})
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:21:28 -> InstanceConstant(const B{B.value: 0.0})
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:26:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:28:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:25:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///enum_from_environment.dart:27:12 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
 Extra constant evaluation: evaluated: 17, effectively constant: 7
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///enum_from_environment.dart:
-- B. (from org-dartlang-testcase:///enum_from_environment.dart:18:9)
+- B. (from org-dartlang-testcase:///enum_from_environment.dart:17:9)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- A. (from org-dartlang-testcase:///enum_from_environment.dart:12:9)
+- A. (from org-dartlang-testcase:///enum_from_environment.dart:11:9)
 - _Enum. (from org-dartlang-sdk:///lib/core/enum.dart)

@@ -169,6 +169,24 @@ Future<TypeImportData?> createTypedSuggestionData(
   );
 }
 
+/// Return the cleaned dartdoc for [element] to be sent to the client.
+String? getCleanElementDocumentation(
+  Element element,
+  DartCompletionRequest request,
+  DocumentationPreference includeDocumentation,
+) {
+  if (includeDocumentation == DocumentationPreference.none) return null;
+  var docs = _getDocsFromComputer(element, request);
+
+  var doc = removeDartDocDelimiters(docs?.full);
+  var rawDoc = includeDocumentation == DocumentationPreference.full
+      ? doc
+      : includeDocumentation == DocumentationPreference.summary
+      ? getDartDocSummary(docs?.summary)
+      : null;
+  return cleanDartdoc(rawDoc);
+}
+
 // TODO(keertip): Move over completions for plugins and snippets to use
 // this function.
 lsp.CompletionItem? toLspCompletionItem(
@@ -182,10 +200,10 @@ lsp.CompletionItem? toLspCompletionItem(
   bool hasDefaultTextMode = false,
   required lsp.Range replacementRange,
   required lsp.Range insertionRange,
-  required DocumentationPreference includeDocumentation,
+  required String? cleanedDoc,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  lsp.CompletionItemResolutionInfo? resolutionData,
+  lsp.CompletionResolutionInfo? resolutionData,
   required DartCompletionRequest request,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
@@ -305,7 +323,6 @@ lsp.CompletionItem? toLspCompletionItem(
   List<String>? parameterNames;
 
   CompletionDefaultArgumentList? defaultArgumentList;
-  String? cleanedDoc;
   if (suggestion is ElementBasedSuggestion) {
     var element = (suggestion as ElementBasedSuggestion).element;
 
@@ -327,7 +344,6 @@ lsp.CompletionItem? toLspCompletionItem(
         namedParameters,
       );
     }
-    cleanedDoc = _getDocumentation(element, request, includeDocumentation);
   }
 
   var completion = suggestion.completion;
@@ -745,24 +761,6 @@ _ElementDocumentation? _getDocsFromComputer(
     return _ElementDocumentation(full: doc.full, summary: null);
   }
   return null;
-}
-
-/// If the [element] has a documentation comment, return it.
-String? _getDocumentation(
-  Element element,
-  DartCompletionRequest request,
-  DocumentationPreference includeDocumentation,
-) {
-  if (includeDocumentation == DocumentationPreference.none) return null;
-  var docs = _getDocsFromComputer(element, request);
-
-  var doc = removeDartDocDelimiters(docs?.full);
-  var rawDoc = includeDocumentation == DocumentationPreference.full
-      ? doc
-      : includeDocumentation == DocumentationPreference.summary
-      ? getDartDocSummary(docs?.summary)
-      : null;
-  return cleanDartdoc(rawDoc);
 }
 
 /// Additional details about a completion that may be formatted differently

@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:70:3: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
 // Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
-//     X extends Function(V), Y extends Z, Z extends T> {}
-//                                         ^
+//   Z extends T
+//   ^
 //
 import self as self;
 import "dart:core" as core;

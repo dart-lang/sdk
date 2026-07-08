@@ -17,6 +17,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
+import 'package:vm/target_os.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -152,13 +153,24 @@ then that is used instead.''',
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addOption(
         'target-sanitizer',
         help: 'Build with a specific target sanitizer.',
         allowed: Sanitizer.available().map((s) => s.name).toList(),
         defaultsTo: 'none',
+      )
+      ..addOption(
+        'target-os',
+        help: 'Compile to a specific target operating system.',
+        allowed: TargetOS.names,
+      )
+      ..addOption(
+        'target-arch',
+        help: 'Compile to a specific target architecture.',
+        allowed: Architecture.values.map((v) => v.name).toList(),
       )
       ..addOption(
         'root-package',
@@ -183,6 +195,31 @@ then that is used instead.''',
         !checkArtifactExists(targetDartAotRuntime) ||
         !checkArtifactExists(sdk.dart)) {
       return 255;
+    }
+
+    var genSnapshotBinary = sdk.genSnapshot;
+    var dartAotRuntimeBinary = targetDartAotRuntime;
+
+    final crossTarget = crossCompilationTarget(args);
+    if (crossTarget != null) {
+      if (!CompileSubcommandCommand.supportedTargetPlatforms.contains(
+        crossTarget,
+      )) {
+        stderr.writeln('Unsupported target platform $crossTarget.');
+        stderr.writeln(
+          'Supported target platforms: '
+          '${CompileSubcommandCommand.supportedTargetPlatforms.join(', ')}',
+        );
+        return crossCompileErrorExitCode;
+      }
+      if (sanitizer != Sanitizer.none) {
+        stderr.writeln('Sanitizers are not supported when cross-compiling.');
+        return 255;
+      }
+
+      final targetBinaries = await resolveTargetBinaries(crossTarget);
+      genSnapshotBinary = targetBinaries.genSnapshot;
+      dartAotRuntimeBinary = targetBinaries.dartAotRuntime;
     }
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
@@ -216,9 +253,16 @@ then that is used instead.''',
       return genericErrorExitCode;
     }
 
+    final targetOS = crossTarget?.os ?? OS.current;
+    final targetArch = crossTarget?.architecture ?? Architecture.current;
+    final String outputDirString;
+    if (args.wasParsed('output')) {
+      outputDirString = args.option('output')!;
+    } else {
+      outputDirString = path.join('build', 'cli', '${targetOS}_$targetArch');
+    }
     final outputUri = Uri.directory(
-      args.option('output')?.normalizeCanonicalizePath().makeFolder() ??
-          sourceUri.toFilePath().removeDotDart().makeFolder(),
+      outputDirString.normalizeCanonicalizePath().makeFolder(),
     );
     if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
       stderr.writeln("'dart build' refuses to delete your project.");
@@ -264,6 +308,9 @@ then that is used instead.''',
       depFile: depFile,
       sanitizer: sanitizer,
       runPackageName: args.option('root-package'),
+      target: crossTarget,
+      genSnapshotPath: genSnapshotBinary,
+      dartAotRuntimePath: dartAotRuntimeBinary,
     );
   }
 
@@ -281,7 +328,12 @@ then that is used instead.''',
     bool progressUpdatesOnStderr = false,
     String? depFile,
     String? runPackageName,
+    Target? target,
+    String? genSnapshotPath,
+    String? dartAotRuntimePath,
   }) async {
+    final resolvedTarget = target ?? Target.current;
+    final targetOS = resolvedTarget.os;
     if (executables.length >= 2) {
       if (recordUseEnabled) {
         // Multiple entry points can lead to multiple different tree-shakings.
@@ -370,6 +422,7 @@ then that is used instead.''',
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       progressUpdatesOnStderr: progressUpdatesOnStderr,
       sanitizer: sanitizer,
+      target: target,
     );
     final showProgress = verbosity != Verbosity.error.name;
     BuildResult? buildResult;
@@ -396,22 +449,20 @@ then that is used instead.''',
       for (final e in executables) {
         String? recordedUsagesPath;
         if (recordUseEnabled) {
-          final stableDirUri =
-              pubspecUri?.resolve('.dart_tool/native_assets/') ?? tempDir.uri;
-          final stableDir = Directory.fromUri(stableDirUri);
-          await stableDir.create(recursive: true);
-          recordedUsagesPath = stableDir.uri
-              .resolve('recorded_usages.json')
-              .toFilePath();
+          // Enable concurrently running `dart build cli`. Don't store file in
+          // .dart_tool/.
+          recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
         }
         final outputExeUri = binDirectory.uri.resolve(
           targetOS.executableFileName(e.name),
         );
         final generator = KernelGenerator(
-          genSnapshot: sdk.genSnapshot,
-          targetDartAotRuntime: sdk.dartAotRuntimeFor(
-            sanitizer: sanitizer.name,
-          ),
+          genSnapshot: genSnapshotPath ?? sdk.genSnapshot,
+          targetDartAotRuntime:
+              dartAotRuntimePath ??
+              sdk.dartAotRuntimeFor(
+                sanitizer: sanitizer.name,
+              ),
           kind: Kind.exe,
           sourceFile: e.sourceEntryPoint.toFilePath(),
           outputFile: outputExeUri.toFilePath(),
@@ -518,7 +569,6 @@ Use linkMode as dynamic library instead.""",
 extension on String {
   String normalizeCanonicalizePath() => path.canonicalize(path.normalize(this));
   String makeFolder() => endsWith('\\') || endsWith('/') ? this : '$this/';
-  String removeDotDart() => replaceFirst(RegExp(r'\.dart$'), '');
 }
 
 /// The executables to build in a `dart build cli` app bundle.

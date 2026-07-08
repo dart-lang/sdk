@@ -8,5 +8,5 @@ mixin class M1() {
 
 mixin class M2() {
   int v;
-  this: v = 0;
+  this : v = 0;
 }

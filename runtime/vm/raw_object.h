@@ -47,9 +47,12 @@ class CodeStatistics;
 class StackFrame;
 
 namespace module_snapshot {
+class CatchEntryMovesDeserializationCluster;
 class CodeDeserializationCluster;
+class CodeSourceMapDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
+class ExceptionHandlersDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
@@ -57,6 +60,7 @@ class InterfaceTypeDeserializationCluster;
 class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class PcDescriptorsDeserializationCluster;
 class RecordDeserializationCluster;
 class RecordTypeDeserializationCluster;
 class SetDeserializationCluster;
@@ -2242,41 +2246,53 @@ class UntaggedInstructionsSection : public UntaggedObject {
 
 class UntaggedPcDescriptors : public UntaggedObject {
  public:
-// The macro argument V is passed two arguments, the raw name of the enum value
-// and the initialization expression used within the enum definition.  The uses
-// of enum values inside the initialization expression are hardcoded currently,
-// so the second argument is useless outside the enum definition and should be
-// dropped by other users of this macro.
-#define FOR_EACH_RAW_PC_DESCRIPTOR(V)                                          \
+#define FOR_EACH_PC_DESCRIPTOR_KIND(V)                                         \
   /* Deoptimization continuation point. */                                     \
-  V(Deopt, 1)                                                                  \
+  V(Deopt)                                                                     \
   /* IC call. */                                                               \
-  V(IcCall, kDeopt << 1)                                                       \
+  V(IcCall)                                                                    \
   /* Call to a known target via stub. */                                       \
-  V(UnoptStaticCall, kIcCall << 1)                                             \
+  V(UnoptStaticCall)                                                           \
   /* Runtime call. */                                                          \
-  V(RuntimeCall, kUnoptStaticCall << 1)                                        \
+  V(RuntimeCall)                                                               \
   /* OSR entry point in unopt. code. */                                        \
-  V(OsrEntry, kRuntimeCall << 1)                                               \
+  V(OsrEntry)                                                                  \
   /* Call rewind target address. */                                            \
-  V(Rewind, kOsrEntry << 1)                                                    \
-  /* Target-word-size relocation. */                                           \
-  V(BSSRelocation, kRewind << 1)                                               \
-  V(Other, kBSSRelocation << 1)                                                \
-  V(AnyKind, -1)
+  V(Rewind)                                                                    \
+  V(Other)
 
-  enum Kind {
-#define ENUM_DEF(name, init) k##name = init,
-    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_DEF)
+  enum class KindBit {
+#define ENUM_DEF(name) k##name,
+    FOR_EACH_PC_DESCRIPTOR_KIND(ENUM_DEF)
 #undef ENUM_DEF
-        kLastKind = kOther,
   };
 
-  static const char* KindToCString(Kind k);
-  static bool ParseKind(const char* cstr, Kind* out);
+  enum Kind {
+#define ENUM_DEF(name) k##name = 1 << static_cast<int>(KindBit::k##name),
+    FOR_EACH_PC_DESCRIPTOR_KIND(ENUM_DEF)
+#undef ENUM_DEF
+        kLastKind = kOther,
+    kAnyKind = -1,
+  };
+
+  static constexpr const char* kKindNames[] = {
+#define NAME_DEF(name) #name,
+      FOR_EACH_PC_DESCRIPTOR_KIND(NAME_DEF)
+#undef NAME_DEF
+  };
 
   // Used to represent the absence of a yield index in PcDescriptors.
   static constexpr intptr_t kInvalidYieldIndex = -1;
+
+  static constexpr intptr_t kKindBitsPos = 0;
+  static constexpr intptr_t kKindBitsSize =
+      Utils::BitLength(Utils::ShiftForPowerOfTwo<int>(kLastKind));
+  static constexpr intptr_t kTryIndexBitsPos = kKindBitsPos + kKindBitsSize;
+  static constexpr intptr_t kTryIndexBitsSize = 10;
+  static constexpr intptr_t kYieldIndexBitsPos =
+      kTryIndexBitsPos + kTryIndexBitsSize;
+  static constexpr intptr_t kYieldIndexBitsSize =
+      kBitsPerInt32 - kYieldIndexBitsPos;
 
   class KindAndMetadata : AllStatic {
    public:
@@ -2304,13 +2320,11 @@ class UntaggedPcDescriptors : public UntaggedObject {
 
    private:
     using KindShiftBits =
-        BitField<uint32_t,
-                 intptr_t,
-                 0,
-                 Utils::BitLength(Utils::ShiftForPowerOfTwo<int>(kLastKind))>;
+        BitField<uint32_t, intptr_t, kKindBitsPos, kKindBitsSize>;
     using TryIndexBits =
-        BitField<uint32_t, intptr_t, KindShiftBits::kNextBit, 10>;
-    using YieldIndexBits = BitField<uint32_t, intptr_t, TryIndexBits::kNextBit>;
+        BitField<uint32_t, intptr_t, kTryIndexBitsPos, kTryIndexBitsSize>;
+    using YieldIndexBits =
+        BitField<uint32_t, intptr_t, kYieldIndexBitsPos, kYieldIndexBitsSize>;
   };
 
  private:
@@ -2328,6 +2342,7 @@ class UntaggedPcDescriptors : public UntaggedObject {
 
   friend class Object;
   friend class ImageWriter;
+  friend class module_snapshot::PcDescriptorsDeserializationCluster;
 };
 
 // CodeSourceMap encodes a mapping from code PC ranges to source token
@@ -2347,6 +2362,7 @@ class UntaggedCodeSourceMap : public UntaggedObject {
 
   friend class Object;
   friend class ImageWriter;
+  friend class module_snapshot::CodeSourceMapDeserializationCluster;
 };
 
 // RawCompressedStackMaps is a compressed representation of the stack maps
@@ -2597,6 +2613,7 @@ class UntaggedExceptionHandlers : public UntaggedObject {
   }
 
   friend class Object;
+  friend class module_snapshot::ExceptionHandlersDeserializationCluster;
 };
 
 class UntaggedContext : public UntaggedObject {
@@ -3410,6 +3427,7 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
   friend class UntaggedObjectPool;
+  friend class module_snapshot::CatchEntryMovesDeserializationCluster;
 };
 
 // All _*ArrayView/_ByteDataView classes share the same layout.
@@ -3686,8 +3704,9 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
-  bool isClosed_;
-  bool canBeClosed_;
+  Dart_NativeAssetsDlsymCallback dlsym_;
+  Dart_NativeAssetsDlcloseCallback dlclose_;
+  bool is_closed_;
 
   friend class DynamicLibrary;
 };

@@ -40,9 +40,21 @@ abstract class BaseFunction with Indexable, Exportable {
 
   /// Whether this function is pure and has no effect.
   ///
-  /// If marked as spure, we'll emit metadata in the
+  /// If marked as pure, we'll emit metadata in the
   /// `binaryen.removable.if.unused` custom section.
   bool isPure = false;
+
+  /// Whether this function is called from JS.
+  ///
+  /// If marked as isJSCalled, we'll emit metadata in the
+  /// `binaryen.js.called` custom section.
+  bool isJSCalled = false;
+
+  /// Inline hint for this function.
+  ///
+  /// If set, we'll emit metadata in the `binaryen.inline` custom section.
+  /// Value must be in range [0..127].
+  int? inlineHint;
 
   BaseFunction(
     this.enclosingModule,
@@ -116,6 +128,12 @@ class DefinedFunction extends BaseFunction implements Serializable {
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
     }
+    if (isJSCalled) {
+      p.writeln('(@binaryen.js.called)');
+    }
+    if (inlineHint != null) {
+      p.writeln('(@binaryen.inline $inlineHint)');
+    }
     p.write('(func ');
     p.writeFunctionReference(this);
     String? exportName;
@@ -186,6 +204,8 @@ class ImportedFunction extends BaseFunction implements Import {
   }
 
   void printTo(IrPrinter p) {
+    assert(!isJSCalled);
+    assert(inlineHint == null);
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
     }

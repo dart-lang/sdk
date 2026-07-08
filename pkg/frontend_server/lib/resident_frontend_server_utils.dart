@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:convert' show jsonDecode, jsonEncode, utf8;
 import 'dart:io'
     show Directory, File, FileSystemException, InternetAddress, Socket;
 
@@ -105,7 +105,7 @@ Future<Map<String, Object?>> sendAndReceiveResponse(
       residentCompilerInfo.port,
     );
     client.write(request);
-    final String data = new String.fromCharCodes(await client.first);
+    final String data = utf8.decode(await client.first);
     jsonResponse = (jsonDecode(data) as Map<String, Object?>);
   } catch (e) {
     jsonResponse = <String, Object?>{

@@ -366,7 +366,7 @@ class PropertyElementResolver with ScopeHelpers {
             readElementRequested,
             SharedTypeView(unpromotedType),
           );
-          flow.storeExpressionInfo(node, expressionInfo);
+          _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
           getType = wrappedPromotedType?.unwrapTypeView();
         }
         getType ??= unpromotedType;
@@ -600,12 +600,17 @@ class PropertyElementResolver with ScopeHelpers {
           isCascaded
               ? CascadePropertyTarget.singleton
                     as PropertyTarget<ExpressionImpl>
-              : ExpressionPropertyTarget(flow.getExpressionInfo(target)),
+              : ExpressionPropertyTarget(
+                  _resolver.flowAnalysis.getExpressionInfo(target),
+                ),
           propertyName.name,
           result.getter2,
           SharedTypeView(unpromotedType),
         );
-        flow.storeExpressionInfo(originalNode ?? node, expressionInfo);
+        _resolver.flowAnalysis.storeExpressionInfo(
+          originalNode ?? node,
+          expressionInfo,
+        );
         getType = wrappedPromotedType?.unwrapTypeView();
       }
       getType ??= unpromotedType;
@@ -1037,7 +1042,7 @@ class PropertyElementResolver with ScopeHelpers {
             readElement,
             SharedTypeView(unpromotedType),
           );
-          flow.storeExpressionInfo(node, expressionInfo);
+          _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
           getType = wrappedPromotedType?.unwrapTypeView();
         }
         getType ??= unpromotedType;

@@ -107,7 +107,6 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'expression_generator_helper.dart';
 import 'external_ast_helper.dart' as extern;
-import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 import 'kernel_variable_builder.dart';
@@ -122,11 +121,11 @@ abstract class BodyBuilder {
     required Token? beginInitializers,
   });
 
-  List<Initializer> buildInitializersUnfinished({
+  List<InternalInitializer> buildInitializersUnfinished({
     required Token? beginInitializers,
   });
 
-  BuildParameterInitializerResult buildParameterInitializer({
+  BuildParameterDefaultValueResult buildParameterDefaultValue({
     required Token initializerToken,
   });
 
@@ -171,7 +170,7 @@ abstract class BodyBuilder {
 
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<InternalVariable> extraKnownVariables,
+    required List<InternalVariableDeclaration> extraKnownVariableDeclarations,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -294,7 +293,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
-  List<Initializer> _initializers = [];
+  List<InternalInitializer> _initializers = [];
 
   bool inCatchClause = false;
 
@@ -302,7 +301,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   int functionNestingLevel = 0;
 
-  Statement? problemInLoopOrSwitch;
+  InternalStatement? problemInLoopOrSwitch;
 
   final LocalStack<LabelScope> _labelScopes;
 
@@ -337,7 +336,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// If the current member is an instance member of a non-extension
   /// declaration, and the closure context lowering experiment is enabled, this
   /// field contains the variable representing `this`.
-  ThisVariable? _internalThisVariable;
+  InternalThisVariable? _internalThisVariable;
 
   final List<TypeParameter>? thisTypeParameters;
 
@@ -370,7 +369,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.typeEnvironment,
     required ConstantContext constantContext,
     required this.extensionScope,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) : _context = context,
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
@@ -380,13 +379,13 @@ class BodyBuilderImpl extends StackListenerImpl
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        assignedVariables.declare(builder.variable.astVariable);
+        assignedVariables.declare(builder.variable);
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      assignedVariables.declare(thisVariable.astVariable);
+      assignedVariables.declare(thisVariable);
     }
     if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
       assignedVariables.declare(_internalThisVariable!);
@@ -605,8 +604,6 @@ class BodyBuilderImpl extends StackListenerImpl
     return _context.instanceTypeParameterAccessState;
   }
 
-  DartType get implicitTypeArgument => const ImplicitTypeArgument();
-
   void _enterLocalState({bool inLateLocalInitializer = false}) {
     _localInitializerState = _localInitializerState.prepend(
       inLateLocalInitializer,
@@ -623,17 +620,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // when [InferenceVisitorBase.flowAnalysis] will use
     // [InternalExpressionVariable] instead of [ExpressionVariable] (that is,
     // pass it for the `VariableDeclaration` type parameter of [FlowAnalysis]).
-    assignedVariables.write(variable.astVariable);
-  }
-
-  @override
-  InternalVariable createVariableDeclarationForValue(Expression expression) {
-    InternalVariable variable = intern.createSyntheticVariableForValue(
-      expression,
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-    );
-    assignedVariables.declare(variable.astVariable);
-    return variable;
+    assignedVariables.write(variable);
   }
 
   @override
@@ -712,33 +699,36 @@ class BodyBuilderImpl extends StackListenerImpl
     return list;
   }
 
-  Statement popBlock(int count, Token openBrace, Token? closeBrace) {
+  InternalStatement popBlock(int count, Token openBrace, Token? closeBrace) {
     return intern.createBlock(
-      const GrowableList<Statement>().popNonNullable(
+      const GrowableList<InternalStatement>().popNonNullable(
             stack,
             count,
-            dummyStatement,
+            dummyInternalStatement,
           ) ??
-          <Statement>[],
+          <InternalStatement>[],
       fileOffset: offsetForToken(openBrace),
       fileEndOffset: offsetForToken(closeBrace),
     );
   }
 
-  Statement? popStatementIfNotNull(Token? token) {
+  InternalStatement? popStatementIfNotNull(Token? token) {
     return token == null ? null : popStatement(token);
   }
 
-  Statement popStatement(Token token) {
+  InternalStatement popStatement(Token token) {
     Object? element = pop();
-    if (element is Statement) {
+    if (element is InternalStatement) {
       return intern.wrapVariables(element);
     } else {
       return _handleStatementNotStatement(element, token);
     }
   }
 
-  Statement _handleStatementNotStatement(Object? element, Token? token) {
+  InternalStatement _handleStatementNotStatement(
+    Object? element,
+    Token? token,
+  ) {
     if (element is ParserRecovery) {
       return intern.createBlock(
         [
@@ -764,17 +754,17 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  Statement popStatementNoWrap([Token? token]) {
+  InternalStatement popStatementNoWrap([Token? token]) {
     Object? element = pop();
-    if (element is Statement) {
+    if (element is InternalStatement) {
       return element;
     } else {
       return _handleStatementNotStatement(element, token);
     }
   }
 
-  Statement? popNullableStatement() {
-    Statement? statement = pop(NullValues.Block) as Statement?;
+  InternalStatement? popNullableStatement() {
+    InternalStatement? statement = pop(NullValues.Block) as InternalStatement?;
     if (statement != null) {
       statement = intern.wrapVariables(statement);
     }
@@ -796,13 +786,12 @@ class BodyBuilderImpl extends StackListenerImpl
         JumpTarget declaration,
       ) {
         if (outerSwitchScope == null) {
-          for (Statement statement in declaration.users) {
-            statement.parent!.replaceChild(
-              statement,
-              wrapInProblemStatement(
-                statement,
-                diag.labelNotFound.withArguments(label: name),
-              ),
+          for (InternalGotoStatement statement in declaration.users) {
+            statement.error = buildProblem(
+              message: diag.labelNotFound.withArguments(label: name),
+              fileUri: uri,
+              fileOffset: statement.fileOffset,
+              length: name.length,
             );
           }
         } else {
@@ -813,43 +802,51 @@ class BodyBuilderImpl extends StackListenerImpl
     _switchScopes.pop();
   }
 
-  void wrapVariableInitializerInError(
+  InvalidExpression? wrapVariableInitializerInError(
     InternalVariable variable,
+    Expression? initializer,
     List<LocatedMessage> context,
   ) {
     String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
     Message message = diag.duplicatedDeclaration.withArguments(name: name);
-    if (variable.initializer == null) {
-      variable.initializer = buildProblem(
+    if (initializer == null) {
+      return buildProblem(
         message: message,
         fileUri: uri,
         fileOffset: offset,
         length: name.length,
         context: context,
-      )..parent = variable;
+      );
     } else {
-      variable.initializer = problemReporting.wrapInLocatedProblem(
+      return problemReporting.wrapInLocatedProblem(
         compilerContext: compilerContext,
-        expression: variable.initializer!,
+        expression: initializer,
         message: message.withLocation(uri, offset, name.length),
         context: context,
-      )..parent = variable;
+      );
     }
   }
 
-  void declareVariable(InternalVariable variable, LocalScope scope) {
+  InvalidExpression? declareVariable(
+    InternalVariable variable,
+    LocalScope scope, [
+    Expression? initializer,
+  ]) {
     String name = variable.cosmeticName!;
     Builder? existing = scope.lookupLocalVariable(name);
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
-      wrapVariableInitializerInError(variable, <LocatedMessage>[
-        diag.duplicatedDeclarationCause
-            .withArguments(name: name)
-            .withLocation(uri, existing.fileOffset, name.length),
-      ]);
-      return;
+      return wrapVariableInitializerInError(
+        variable,
+        initializer,
+        <LocatedMessage>[
+          diag.duplicatedDeclarationCause
+              .withArguments(name: name)
+              .withLocation(uri, existing.fileOffset, name.length),
+        ],
+      );
     }
     if (isGuardScope(scope)) {
       (declaredInCurrentGuard ??= {}).add(variable);
@@ -879,6 +876,7 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
     }
+    return null;
   }
 
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
@@ -1082,7 +1080,7 @@ class BodyBuilderImpl extends StackListenerImpl
       assert(count == 0);
       push(NullValues.Block);
     } else {
-      Statement block = popBlock(count, openBrace, closeBrace);
+      InternalStatement block = popBlock(count, openBrace, closeBrace);
       exitLocalScope();
       push(block);
     }
@@ -1098,10 +1096,10 @@ class BodyBuilderImpl extends StackListenerImpl
       if (_context.formals != null) {
         for (FormalParameterBuilder formal in _context.formals!) {
           if (formal.isInitializingFormal) {
-            List<Initializer> initializers;
+            List<InternalInitializer> initializers;
             if (_context.isExternalConstructor) {
-              initializers = <Initializer>[
-                extern.createInvalidInitializer(
+              initializers = [
+                intern.createInvalidInitializer(
                   buildProblem(
                     message: diag.externalConstructorWithFieldInitializers,
                     fileUri: uri,
@@ -1184,18 +1182,18 @@ class BodyBuilderImpl extends StackListenerImpl
     inFieldInitializer = false;
     assert(!inInitializerLeftHandSide);
     Object? node = pop();
-    List<Initializer> initializers;
+    List<InternalInitializer> initializers;
 
     if (!_context.isConstructor || _context.isExternalConstructor) {
       // An error has been reported by the parser.
-      initializers = <Initializer>[];
-    } else if (node is Initializer) {
-      initializers = <Initializer>[node];
+      initializers = <InternalInitializer>[];
+    } else if (node is InternalInitializer) {
+      initializers = <InternalInitializer>[node];
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
     } else if (node is InternalConstructorInvocation) {
       // Coverage-ignore-block(suite): Not run.
-      initializers = <Initializer>[
+      initializers = [
         // TODO(jensj): Does this offset make sense?
         buildSuperInitializer(
           false,
@@ -1220,15 +1218,15 @@ class BodyBuilderImpl extends StackListenerImpl
           length: noLength,
         );
       }
-      initializers = <Initializer>[
-        extern.createInvalidInitializer(value as InvalidExpression),
+      initializers = [
+        intern.createInvalidInitializer(value as InvalidExpression),
       ];
     }
 
     _initializers.addAll(initializers);
   }
 
-  List<Initializer> parseInitializers(Token? token) {
+  List<InternalInitializer> parseInitializers(Token? token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1403,7 +1401,7 @@ class BodyBuilderImpl extends StackListenerImpl
         case_.charOffset,
         case_.charCount,
       );
-      Pattern pattern = toPattern(pop());
+      InternalPattern pattern = toPattern(pop());
       Expression expression = popForValue();
       push(
         new Condition(
@@ -1471,7 +1469,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     Object? value = pop();
-    if (value is Pattern) {
+    if (value is InternalPattern) {
       push(value);
     } else {
       push(toValue(value));
@@ -1612,10 +1610,17 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else {
       bool isNullAware = token.isA(TokenType.QUESTION_PERIOD_PERIOD);
-      InternalVariable variable = createVariableDeclarationForValue(expression);
+      InternalSyntheticVariable variable = intern.createSyntheticVariable(
+        isFinal: true,
+        fileOffset: expression.fileOffset,
+      );
+      assignedVariables.declare(variable);
       push(
-        new Cascade(variable, isNullAware: isNullAware)
-          ..fileOffset = expression.fileOffset,
+        new Cascade(
+          variable: variable,
+          receiver: expression,
+          isNullAware: isNullAware,
+        )..fileOffset = expression.fileOffset,
       );
       push(
         _createReadOnlyVariableAccess(
@@ -1692,7 +1697,7 @@ class BodyBuilderImpl extends StackListenerImpl
       "Expected to have scope kind ${LocalScopeKind.switchBlock}, "
       "but got ${_localScopes.previous.kind}.",
     );
-    if (value is Pattern) {
+    if (value is InternalPattern) {
       super.push(
         new ExpressionOrPatternGuardCase.patternGuard(
           caseKeyword.charOffset,
@@ -1877,7 +1882,8 @@ class BodyBuilderImpl extends StackListenerImpl
     if (scopeKind != LocalScopeKind.orPatternRight &&
         enclosingScopeIsPatternScope) {
       if (pattern is InternalPattern) {
-        for (InternalVariable variable in pattern.internalDeclaredVariables) {
+        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+          assert(!variable.hasInitializer);
           declareVariable(variable, _localScope);
         }
       }
@@ -1948,12 +1954,12 @@ class BodyBuilderImpl extends StackListenerImpl
         push(intern.createAndPattern(operatorToken.charOffset, left, right));
         break;
       case '||':
-        Map<String, InternalVariable> leftVariablesByName = {
-          for (InternalVariable leftVariable in left.internalDeclaredVariables)
+        Map<String, InternalDeclaredVariable> leftVariablesByName = {
+          for (InternalDeclaredVariable leftVariable in left.declaredVariables)
             leftVariable.cosmeticName!: leftVariable,
         };
-        for (InternalVariable rightVariable
-            in right.internalDeclaredVariables) {
+        for (InternalDeclaredVariable rightVariable
+            in right.declaredVariables) {
           if (!leftVariablesByName.containsKey(rightVariable.cosmeticName)) {
             addProblem(
               diag.missingVariablePattern.withArguments(
@@ -1964,12 +1970,12 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
         }
-        Map<String, InternalVariable> rightVariablesByName = {
-          for (InternalVariable rightVariable
-              in right.internalDeclaredVariables)
+        Map<String, InternalDeclaredVariable> rightVariablesByName = {
+          for (InternalDeclaredVariable rightVariable
+              in right.declaredVariables)
             rightVariable.cosmeticName!: rightVariable,
         };
-        for (InternalVariable leftVariable in left.internalDeclaredVariables) {
+        for (InternalDeclaredVariable leftVariable in left.declaredVariables) {
           if (!rightVariablesByName.containsKey(leftVariable.cosmeticName)) {
             addProblem(
               diag.missingVariablePattern.withArguments(
@@ -1980,19 +1986,20 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
         }
-        List<InternalVariable> jointVariables = [
-          for (InternalVariable leftVariable in left.internalDeclaredVariables)
+        List<InternalDeclaredVariable> jointVariables = [
+          for (InternalDeclaredVariable leftVariable in left.declaredVariables)
             intern.createSyntheticVariable(
-              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
               name: leftVariable.cosmeticName!,
               fileOffset: leftVariable.fileOffset,
+              isSynthesized: false,
               // TODO(johnniwinther): Should this be final if [leftVariable]
               //  is?
             ),
         ];
-        for (InternalVariable variable in jointVariables) {
+        for (InternalDeclaredVariable variable in jointVariables) {
+          assert(!variable.hasInitializer);
           declareVariable(variable, _localScope);
-          assignedVariables.declare(variable.astVariable);
+          assignedVariables.declare(variable);
         }
         push(
           intern.createOrPattern(
@@ -2497,7 +2504,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void registerVariableRead(InternalVariable variable) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
-      assignedVariables.read(variable.astVariable);
+      assignedVariables.read(variable);
     }
   }
 
@@ -2630,13 +2637,21 @@ class BodyBuilderImpl extends StackListenerImpl
           isThisExplicit: false,
         );
       } else {
-        // [name] is unresolved.
-        return new UnresolvedNameGenerator(
-          this,
-          nameToken,
-          memberName,
-          unresolvedReadKind: UnresolvedKind.Unknown,
-        );
+        // We're in an error state. In expression compilation there might be an
+        // out though.
+        lookupResult = _context.expressionEvaluationHelper
+            // Coverage-ignore(suite): Not run.
+            ?.additionalScopeLookup(name);
+
+        if (lookupResult == null) {
+          // [name] is unresolved.
+          return new UnresolvedNameGenerator(
+            this,
+            nameToken,
+            memberName,
+            unresolvedReadKind: UnresolvedKind.Unknown,
+          );
+        }
       }
     }
     Builder? getable = lookupResult.getable;
@@ -2679,6 +2694,15 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             variable,
           );
+        } else if (getable.isPrimaryConstructorParameter &&
+            inConstructorInitializer) {
+          return _createReadOnlyVariableAccess(
+            variable,
+            nameToken,
+            nameOffset,
+            name,
+            ReadOnlyAccessKind.PrimaryConstructorParameter,
+          );
         } else if (!getable.isAssignable ||
             (getable.isFinal && forStatementScope)) {
           return _createReadOnlyVariableAccess(
@@ -2686,11 +2710,9 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             nameOffset,
             name,
-            getable.isPrimaryConstructorParameter
-                ? ReadOnlyAccessKind.PrimaryConstructorParameter
-                : (getable.isConst
-                      ? ReadOnlyAccessKind.ConstVariable
-                      : ReadOnlyAccessKind.FinalVariable),
+            getable.isConst
+                ? ReadOnlyAccessKind.ConstVariable
+                : ReadOnlyAccessKind.FinalVariable,
           );
         } else {
           return new VariableUseGenerator(this, nameToken, variable);
@@ -3063,7 +3085,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {
-      pop() as StringLiteral;
+      pop() as InternalStringLiteral;
     }
   }
 
@@ -3081,7 +3103,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // Flatten string juxtapositions of string interpolation.
     for (int i = 0; i < parts.length; i++) {
       Expression part = parts[i];
-      if (part is StringConcatenation) {
+      if (part is InternalStringConcatenation) {
         if (expressions == null) {
           expressions = parts.sublist(0, i);
         }
@@ -3117,7 +3139,13 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      push(intern.createIntLiteral(offsetForToken(token), value, token.lexeme));
+      push(
+        intern.createIntLiteral(
+          fileOffset: offsetForToken(token),
+          value: value,
+          literal: token.lexeme,
+        ),
+      );
     }
   }
 
@@ -3148,7 +3176,13 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      push(intern.createIntLiteral(offsetForToken(token), value, token.lexeme));
+      push(
+        intern.createIntLiteral(
+          fileOffset: offsetForToken(token),
+          value: value,
+          literal: token.lexeme,
+        ),
+      );
     }
   }
 
@@ -3184,8 +3218,8 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       push(
         intern.createReturnStatement(
-          offsetForToken(beginToken),
-          expression,
+          fileOffset: offsetForToken(beginToken),
+          expression: expression,
           isArrow: !identical(beginToken.lexeme, "return"),
         ),
       );
@@ -3203,7 +3237,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalPattern pattern = toPattern(peek());
     createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-    for (InternalVariable variable in pattern.internalDeclaredVariables) {
+    for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+      assert(!variable.hasInitializer);
       declareVariable(variable, _localScope);
     }
   }
@@ -3221,7 +3256,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // [endThenStatement].
     assignedVariables.beginNode();
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
       LocalScope thenScope = _localScope.createNestedScope(
         kind: LocalScopeKind.statementLocalScope,
@@ -3235,8 +3270,9 @@ class BodyBuilderImpl extends StackListenerImpl
       // to enter the scope and declare all of the pattern variables.
       if (patternGuard != null) {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
-        for (InternalVariable variable in pattern.internalDeclaredVariables) {
+        InternalPattern pattern = patternGuard.pattern;
+        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+          assert(!variable.hasInitializer);
           declareVariable(variable, _localScope);
         }
         LocalScope thenScope = _localScope.createNestedScope(
@@ -3276,14 +3312,14 @@ class BodyBuilderImpl extends StackListenerImpl
         /* condition = */ ValueKinds.Condition,
       ]),
     );
-    Statement? elsePart = popStatementIfNotNull(elseToken);
+    InternalStatement? elsePart = popStatementIfNotNull(elseToken);
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
-    Statement thenPart = popStatement(ifToken);
+    InternalStatement thenPart = popStatement(ifToken);
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     Expression expression = condition.expression;
-    Statement node;
+    InternalStatement node;
     if (patternGuard != null) {
       node = intern.createIfCaseStatement(
         ifToken.charOffset,
@@ -3328,14 +3364,14 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      InternalVariableDeclaration node = peek() as InternalVariableDeclaration;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
 
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
       assignedVariables.storeInfo(
-        (node.variable as InternalVariable).astVariable,
+        node.variable.astVariable,
         assignedVariablesInfo!,
       );
     }
@@ -3386,19 +3422,29 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableDeclaration variableDeclaration;
-    InternalVariable internalVariable;
+    InternalVariableDeclaration variableDeclaration;
+    InternalDeclaredVariable internalVariable;
     if (isLate) {
+      assert(!isConst);
       internalVariable = intern.createLateVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         name: name,
         type: currentLocalVariableType,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
-        initializer: initializer,
+        forSyntheticToken: identifier.token.isSynthetic,
+        isImplicitlyTyped: currentLocalVariableType == null,
+        fileOffset: identifier.nameOffset,
+        fileEqualsOffset: offsetForToken(equalsToken),
+      );
+    } else if (isConst) {
+      internalVariable = intern.createConstVariable(
+        name: name,
+        type: currentLocalVariableType,
+        isFinal: isFinal,
+        isWildcard: isWildcard,
+        hasDeclaredInitializer: initializer != null,
         forSyntheticToken: identifier.token.isSynthetic,
         isImplicitlyTyped: currentLocalVariableType == null,
         fileOffset: identifier.nameOffset,
@@ -3406,16 +3452,13 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else {
       internalVariable = intern.createLocalVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         name: name,
         type: currentLocalVariableType,
         fileOffset: identifier.nameOffset,
         isFinal: isFinal,
-        isConst: isConst,
         isWildcard: isWildcard,
         isStaticLate: isFinal && initializer == null,
         hasDeclaredInitializer: initializer != null,
-        initializer: initializer,
         forSyntheticToken: identifier.token.isSynthetic,
         fileEqualsOffset: offsetForToken(equalsToken),
         isImplicitlyTyped: currentLocalVariableType == null,
@@ -3424,9 +3467,10 @@ class BodyBuilderImpl extends StackListenerImpl
 
     variableDeclaration = intern.createVariableDeclaration(
       internalVariable,
+      initializer: initializer,
       fileOffset: offsetForToken(equalsToken),
     );
-    assignedVariables.declare(internalVariable.astVariable);
+    assignedVariables.declare(internalVariable);
     push(variableDeclaration);
   }
 
@@ -3443,7 +3487,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (parameters != null) {
         Map<String, VariableBuilder> local = {};
         for (FormalParameterBuilder formal in parameters) {
-          assignedVariables.declare(formal.variable.astVariable);
+          assignedVariables.declare(formal.variable);
           local[formal.name] = formal;
         }
         _localScopes.push(
@@ -3512,7 +3556,8 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableDeclaration declaration = node as VariableDeclaration;
+    InternalVariableDeclaration declaration =
+        node as InternalVariableDeclaration;
     declaration.variable.fileOffset = declaration.fileOffset =
         nameToken.charOffset;
     push(declaration);
@@ -3522,7 +3567,14 @@ class BodyBuilderImpl extends StackListenerImpl
     // the scope.
     if (!(libraryFeatures.wildcardVariables.isEnabled &&
         declaration.variable.isWildcard)) {
-      declareVariable(declaration.variable as InternalVariable, _localScope);
+      InvalidExpression? error = declareVariable(
+        declaration.variable,
+        _localScope,
+        declaration.initializer,
+      );
+      if (error != null) {
+        declaration.updateInitializer(error);
+      }
     }
   }
 
@@ -3569,22 +3621,23 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableDeclaration declaration = node as VariableDeclaration;
+      InternalVariableDeclaration declaration =
+          node as InternalVariableDeclaration;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
           declaration.variable.addAnnotation(annotations[i]);
         }
-        _registerSingleTargetAnnotations(declaration.variable);
+        _registerSingleTargetAnnotations(declaration.variable.astVariable);
       }
       // TODO(johnniwinther): Should [VariableStatement] use offset from
       //  [endToken]?
       push(intern.createVariableStatement(declaration));
     } else {
-      List<VariableDeclaration>? variables =
-          const FixedNullableList<VariableDeclaration>().popNonNullable(
+      List<InternalVariableDeclaration>? variables =
+          const FixedNullableList<InternalVariableDeclaration>().popNonNullable(
             stack,
             count,
-            dummyVariableDeclaration,
+            dummyInternalVariableDeclaration,
           );
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
@@ -3595,12 +3648,12 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       if (annotations != null) {
-        VariableDeclaration first = variables.first;
+        InternalVariableDeclaration first = variables.first;
         for (int i = 0; i < annotations.length; i++) {
           first.variable.addAnnotation(annotations[i]);
         }
         _registerMultiTargetAnnotations(
-          variables.map((v) => v.variable).toList(),
+          variables.map((v) => v.variable.astVariable).toList(),
         );
       }
       push(intern.variablesDeclaration(variables, uri));
@@ -3641,7 +3694,7 @@ class BodyBuilderImpl extends StackListenerImpl
     BlockKind blockKind,
   ) {
     debugEvent("Block");
-    Statement block = popBlock(count, openBrace, closeBrace);
+    InternalStatement block = popBlock(count, openBrace, closeBrace);
     exitLocalScope();
     push(block);
     if (blockKind == BlockKind.tryStatement) {
@@ -3697,7 +3750,7 @@ class BodyBuilderImpl extends StackListenerImpl
     enterContinueTarget(charOffset);
   }
 
-  void exitLoopOrSwitch(Statement statement) {
+  void exitLoopOrSwitch(InternalStatement statement) {
     if (problemInLoopOrSwitch != null) {
       push(problemInLoopOrSwitch);
       problemInLoopOrSwitch = null;
@@ -3706,7 +3759,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
+  List<InternalVariableDeclaration>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3714,46 +3767,54 @@ class BodyBuilderImpl extends StackListenerImpl
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
-    if (variableOrExpression is VariableStatement) {
+    if (variableOrExpression is InternalVariableStatement) {
       // TODO(johnniwinther): Avoid parsing variable declarations initializers
       //  in for statements as statements.
-      VariableDeclaration variableDeclaration =
+      InternalVariableDeclaration variableDeclaration =
           variableOrExpression.declaration;
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableDeclaration.variable.isLate = false;
       return [variableDeclaration];
-    } else if (variableOrExpression is VariableDeclaration) {
+    } else if (variableOrExpression is InternalVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableOrExpression.variable.isLate = false;
       return [variableOrExpression];
     } else if (variableOrExpression is Expression) {
-      InternalVariable variable = intern.createSyntheticVariableForEffect(
-        variableOrExpression,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      InternalSyntheticVariable variable = intern.createSyntheticVariable(
+        isFinal: true,
+        fileOffset: variableOrExpression.fileOffset,
       );
-      return [intern.createVariableDeclaration(variable)];
-    } else if (variableOrExpression is ExpressionStatement) {
+      return [
+        intern.createVariableDeclaration(
+          variable,
+          initializer: variableOrExpression,
+        ),
+      ];
+    } else if (variableOrExpression is InternalExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
-      InternalVariable variable = intern.createSyntheticVariableForEffect(
-        variableOrExpression.expression,
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      Expression expression = variableOrExpression.expression;
+      InternalSyntheticVariable variable = intern.createSyntheticVariable(
+        isFinal: true,
+        fileOffset: expression.fileOffset,
       );
-      return [intern.createVariableDeclaration(variable)];
+      return [
+        intern.createVariableDeclaration(variable, initializer: expression),
+      ];
     } else if (intern.isVariablesDeclaration(variableOrExpression)) {
       return intern.variablesDeclarationExtractDeclarations(
         variableOrExpression,
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableDeclaration> variables = [];
+      List<InternalVariableDeclaration> variables = [];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
-    } else if (variableOrExpression is PatternVariableDeclaration) {
+    } else if (variableOrExpression is InternalPatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       return [];
     } else if (variableOrExpression is ParserRecovery) {
@@ -3792,8 +3853,8 @@ class BodyBuilderImpl extends StackListenerImpl
       // If the declaration is of the form `for (final x in ...)`, then we may
       // have erroneously set the `isStaticLate` flag, so un-set it.
       Object? declaration = peek();
-      if (declaration case VariableStatement(
-        declaration: VariableDeclaration(:VariableDeclarationImpl variable),
+      if (declaration case InternalVariableStatement(
+        declaration: InternalVariableDeclaration(:InternalVariable variable),
       )) {
         variable.isStaticLate = false;
       }
@@ -3826,7 +3887,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (pattern is InternalPattern) {
       pop(); // Metadata.
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
       LocalScope forScope = _localScope.createNestedScope(
@@ -3840,39 +3902,49 @@ class BodyBuilderImpl extends StackListenerImpl
       // We use intermediate variables to transfer values between the pattern
       // variables and the replacement internal variables. It allows to avoid
       // using the variables with the same name within the same block.
-      List<InternalVariable> intermediateVariables = [];
-      List<InternalVariable> internalVariables = [];
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      List<InternalVariableDeclaration> intermediateVariableDeclarations = [];
+      List<InternalVariableDeclaration> internalVariableDeclarations = [];
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
         variable.isFinal |= isFinal;
 
         // TODO(johnniwinther): Can we avoid creating synthetic variables here?
-        InternalVariable intermediateVariable = intern
-            .createSyntheticVariableForValue(
-              intern.createVariableGet(
-                variable,
-                fileOffset: variable.fileOffset,
-              ),
-              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        InternalDeclaredVariable intermediateVariable = intern
+            .createSyntheticVariable(
+              isFinal: true,
+              fileOffset: variable.fileOffset,
             );
-        intermediateVariables.add(intermediateVariable);
-
-        InternalVariable internalVariable = intern.createSyntheticVariable(
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-          name: variable.cosmeticName!,
-          initializer: intern.createVariableGet(
+        intermediateVariableDeclarations.add(
+          intern.createVariableDeclaration(
             intermediateVariable,
-            fileOffset: variable.fileOffset,
+            initializer: intern.createVariableGet(
+              variable,
+              fileOffset: variable.fileOffset,
+            ),
           ),
-          fileOffset: variable.fileOffset,
-          isFinal: isFinal,
         );
-        internalVariables.add(internalVariable);
+
+        InternalDeclaredVariable internalVariable = intern
+            .createSyntheticVariable(
+              name: variable.cosmeticName!,
+              fileOffset: variable.fileOffset,
+              isFinal: isFinal,
+              isSynthesized: false,
+            );
+        internalVariableDeclarations.add(
+          intern.createVariableDeclaration(
+            internalVariable,
+            initializer: intern.createVariableGet(
+              intermediateVariable,
+              fileOffset: variable.fileOffset,
+            ),
+          ),
+        );
 
         declareVariable(internalVariable, _localScope);
-        assignedVariables.declare(internalVariable.astVariable);
+        assignedVariables.declare(internalVariable);
       }
-      push(intermediateVariables);
-      push(internalVariables);
+      push(intermediateVariableDeclarations);
+      push(internalVariableDeclarations);
       push(
         intern.createPatternVariableDeclaration(
           offsetForToken(keyword),
@@ -3940,7 +4012,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement(forToken); // condition
+    InternalStatement conditionStatement = popStatement(forToken); // condition
 
     if (constantContext != ConstantContext.none) {
       pop(); // Pop variable or expression.
@@ -3969,15 +4041,12 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
-    List<VariableDeclaration>? intermediateVariables;
-    if (variableOrExpression is PatternVariableDeclaration) {
-      variables = (pop() as List<InternalVariable>)
-          .map(intern.createVariableDeclaration)
-          .toList(); // Internal variables.
-      intermediateVariables = (pop() as List<InternalVariable>)
-          .map(intern.createVariableDeclaration)
-          .toList();
+    List<InternalVariableDeclaration>? variables;
+    List<InternalVariableDeclaration>? intermediateVariables;
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
+      variables =
+          pop() as List<InternalVariableDeclaration>; // Internal variables.
+      intermediateVariables = pop() as List<InternalVariableDeclaration>;
     } else {
       variables = _buildForLoopVariableDeclarations(variableOrExpression)!;
     }
@@ -3985,14 +4054,14 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assignedVariables.pushNode(assignedVariablesNodeInfo);
     Expression? condition;
-    if (conditionStatement is ExpressionStatement) {
+    if (conditionStatement is InternalExpressionStatement) {
       condition = conditionStatement.expression;
     } else {
-      assert(conditionStatement is EmptyStatement);
+      assert(conditionStatement is InternalEmptyStatement);
     }
     if (entry is MapLiteralEntry) {
       TreeNode result;
-      if (variableOrExpression is PatternVariableDeclaration) {
+      if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForMapEntry(
           offsetForToken(forToken),
           patternVariableDeclaration: variableOrExpression,
@@ -4015,7 +4084,7 @@ class BodyBuilderImpl extends StackListenerImpl
       push(result);
     } else {
       TreeNode result;
-      if (variableOrExpression is PatternVariableDeclaration) {
+      if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForElement(
           offsetForToken(forToken),
           patternVariableDeclaration: variableOrExpression,
@@ -4054,7 +4123,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     debugEvent("ForStatement");
-    Statement body = popStatement(endToken);
+    InternalStatement body = popStatement(endToken);
 
     int updateExpressionCount = pop() as int;
     pop(); // Left separator.
@@ -4082,7 +4151,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement(forKeyword);
+    InternalStatement conditionStatement = popStatement(forKeyword);
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerPatternVariableAssignment],
@@ -4092,34 +4161,34 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
-    List<VariableDeclaration>? intermediateVariables;
-    if (variableOrExpression is PatternVariableDeclaration) {
-      variables = (pop() as List<InternalVariable>)
-          .map(intern.createVariableDeclaration)
-          .toList(); // Internal variables.
-      intermediateVariables = (pop() as List<InternalVariable>)
-          .map(intern.createVariableDeclaration)
-          .toList();
+    List<InternalVariableDeclaration>? variables;
+    List<InternalVariableDeclaration>? intermediateVariableDeclarations;
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
+      variables =
+          pop() as List<InternalVariableDeclaration>; // Internal variables.
+      intermediateVariableDeclarations =
+          pop() as List<InternalVariableDeclaration>;
     } else {
       variables = _buildForLoopVariableDeclarations(variableOrExpression);
     }
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
     Expression? condition;
-    if (conditionStatement is ExpressionStatement) {
+    if (conditionStatement is InternalExpressionStatement) {
       condition = conditionStatement.expression;
     } else {
-      assert(conditionStatement is EmptyStatement);
+      assert(conditionStatement is InternalEmptyStatement);
     }
-    Statement forStatement = intern.createForStatement(
+    InternalStatement forStatement = intern.createForStatement(
       offsetForToken(forKeyword),
       variables,
       condition,
@@ -4128,25 +4197,27 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     assignedVariables.storeInfo(forStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = forStatement;
       }
     }
-    Statement result = forStatement;
+    InternalStatement result = forStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, forStatement);
       result = labeledStatement;
     }
-    if (variableOrExpression is PatternVariableDeclaration) {
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
       result = intern.createBlock(
         fileOffset: result.fileOffset,
         fileEndOffset: result.fileOffset,
         [
           variableOrExpression,
-          for (VariableDeclaration intermediateVariable
-              in intermediateVariables!)
-            intern.createVariableStatement(intermediateVariable),
+          for (InternalVariableDeclaration intermediateVariableDeclaration
+              in intermediateVariableDeclarations!)
+            intern.createVariableStatement(intermediateVariableDeclaration),
           result,
         ],
       );
@@ -4246,7 +4317,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    DartType typeArgument;
+    DartType? typeArgument;
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
@@ -4263,11 +4334,9 @@ class BodyBuilderImpl extends StackListenerImpl
         );
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
-    } else {
-      typeArgument = implicitTypeArgument;
     }
 
-    ListLiteral node = intern.createListLiteral(
+    InternalExpression node = intern.createListLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBracket),
@@ -4495,7 +4564,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token leftBrace,
     List<dynamic>? setOrMapEntries,
   ) {
-    DartType typeArgument;
+    DartType? typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(
         typeArguments.single,
@@ -4503,8 +4572,6 @@ class BodyBuilderImpl extends StackListenerImpl
         allowPotentiallyConstantType: false,
       );
       typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
-    } else {
-      typeArgument = implicitTypeArgument;
     }
 
     List<Expression> expressions = <Expression>[];
@@ -4525,7 +4592,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
     }
 
-    SetLiteral node = intern.createSetLiteral(
+    InternalExpression node = intern.createSetLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBrace),
@@ -4731,7 +4798,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = boolFromToken(token);
-    push(intern.createBoolLiteral(offsetForToken(token), value));
+    push(intern.createBoolLiteral(value, fileOffset: offsetForToken(token)));
   }
 
   @override
@@ -4775,8 +4842,8 @@ class BodyBuilderImpl extends StackListenerImpl
     Token leftBrace,
     List<MapLiteralEntry> entries,
   ) {
-    DartType keyType;
-    DartType valueType;
+    DartType? keyType;
+    DartType? valueType;
     if (typeArguments != null) {
       if (typeArguments.length != 2) {
         keyType = const InvalidType();
@@ -4795,12 +4862,9 @@ class BodyBuilderImpl extends StackListenerImpl
         keyType = instantiateToBounds(keyType, coreTypes.objectClass);
         valueType = instantiateToBounds(valueType, coreTypes.objectClass);
       }
-    } else {
-      keyType = implicitTypeArgument;
-      valueType = implicitTypeArgument;
     }
 
-    MapLiteral node = intern.createMapLiteral(
+    InternalExpression node = intern.createMapLiteral(
       // TODO(johnniwinther): The file offset computed below will not be
       // correct if there are type arguments but no `const` keyword.
       offsetForToken(constKeyword ?? leftBrace),
@@ -5412,14 +5476,18 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? nameNode = pop();
     TypeBuilder? type = pop() as TypeBuilder?;
     Token? varOrFinalOrConst = pop(NullValues.Token) as Token?;
-    if (superKeyword != null &&
-        varOrFinalOrConst != null &&
-        varOrFinalOrConst.isA(Keyword.VAR)) {
-      handleRecoverableError(
-        diag.extraneousModifier.withArguments(lexeme: varOrFinalOrConst),
-        varOrFinalOrConst,
-        varOrFinalOrConst,
-      );
+    if (memberKind != MemberKind.PrimaryConstructor) {
+      // The parser reports a special error for declaring parameters, so we
+      // avoid emitting this error here for primary constructors.
+      if (superKeyword != null &&
+          varOrFinalOrConst != null &&
+          varOrFinalOrConst.isA(Keyword.VAR)) {
+        handleRecoverableError(
+          diag.extraneousModifier.withArguments(lexeme: varOrFinalOrConst),
+          varOrFinalOrConst,
+          varOrFinalOrConst,
+        );
+      }
     }
     Modifiers modifiers = pop() as Modifiers;
     if (inCatchClause) {
@@ -5432,15 +5500,15 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Identifier? name = nameNode as Identifier?;
 
-    ParameterBuilder? parameter;
+    FormalParameterBuilder? parameterBuilder;
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType &&
         memberKind != MemberKind.AnonymousMethod) {
-      parameter = _context.getFormalParameterByNameOffset(nameOffset);
+      parameterBuilder = _context.getFormalParameterByNameOffset(nameOffset);
 
-      if (parameter == null) {
+      if (parameterBuilder == null) {
         // This happens when the list of formals (originally) contains a
         // ParserRecovery - then the popped list becomes null.
         push(new ParserRecovery(nameToken.charOffset));
@@ -5464,96 +5532,106 @@ class BodyBuilderImpl extends StackListenerImpl
         );
         return;
       }
-      if (memberKind == MemberKind.Catch) {
-        parameter = new CatchParameterBuilder(
-          modifiers: modifiers,
-          type: type ?? const ImplicitTypeBuilder(),
-          name: parameterName,
-          fileOffset: nameOffset,
-          nameOffset: nameOffset,
-          fileUri: uri,
-          wildcardIndex: wildcardIndex,
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-        );
-      } else {
-        String? publicName = problemReporting.checkPublicName(
-          compilationUnit: libraryBuilder.compilationUnit,
-          kind: kind,
-          parameterName: parameterName,
-          nameToken: nameToken,
-          thisKeyword: thisKeyword,
-          isDeclaring: false,
-          libraryFeatures: libraryFeatures,
-          fileUri: uri,
-        );
-        parameter = new FormalParameterBuilder(
-          kind: kind,
-          modifiers: modifiers,
-          type: type ?? const ImplicitTypeBuilder(),
-          name: parameterName,
-          fileOffset: nameOffset,
-          nameOffset: nameOffset,
-          fileUri: uri,
-          hasImmediatelyDeclaredInitializer: initializerStart != null,
-          wildcardIndex: wildcardIndex,
-          publicName: publicName,
-          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-        );
-      }
-    }
-
-    InternalVariable functionParameter;
-    if (memberKind == MemberKind.Catch) {
-      functionParameter = (parameter as CatchParameterBuilder).build(
-        libraryBuilder,
-      );
-    } else {
-      functionParameter = (parameter as FormalParameterBuilder).build(
-        libraryBuilder,
-      );
-      Expression? initializer = name?.initializer;
-      if (initializer != null) {
-        if (_context.isRedirectingFactory) {
-          addProblem(
-            diag.defaultValueInRedirectingFactoryConstructor.withArguments(
-              redirectionTarget: _context.redirectingFactoryTargetName,
-            ),
-            initializer.fileOffset,
-            noLength,
+      switch (memberKind) {
+        case MemberKind.Catch:
+          CatchParameterBuilder builder = new CatchParameterBuilder(
+            modifiers: modifiers,
+            type: type ?? const ImplicitTypeBuilder(),
+            name: parameterName,
+            fileOffset: nameOffset,
+            nameOffset: nameOffset,
+            fileUri: uri,
+            wildcardIndex: wildcardIndex,
           );
-          functionParameter.isErroneouslyInitialized = true;
-        } else {
-          if (!parameter.initializerWasInferred) {
-            functionParameter.initializer = initializer
-              ..parent = functionParameter;
-          }
-        }
-      } else if (kind.isOptional) {
-        functionParameter.initializer ??= intern.createNullLiteral(noLocation)
-          ..parent = functionParameter;
-      }
-      if (annotations != null) {
-        functionParameter.clearAnnotations();
-        for (Expression annotation in annotations) {
-          functionParameter.addAnnotation(annotation);
-        }
-        // TODO(johnniwinther): This seems wrong. If we add the annotations, we
-        //  should infer them.
-        if (functionNestingLevel == 0) {
-          _registerSingleTargetAnnotations(functionParameter);
-        }
+          InternalCatchVariable catchVariable = builder.build(libraryBuilder);
+          push(builder);
+          assignedVariables.declare(catchVariable);
+          return;
+        case MemberKind.AnonymousMethod:
+          AnonymousMethodParameterBuilder builder =
+              new AnonymousMethodParameterBuilder(
+                modifiers: modifiers,
+                type: type ?? const ImplicitTypeBuilder(),
+                name: parameterName,
+                fileOffset: nameOffset,
+                nameOffset: nameOffset,
+                fileUri: uri,
+                wildcardIndex: wildcardIndex,
+                kind: kind,
+              );
+          InternalAnonymousMethodParameter anonymousMethodParameter = builder
+              .build(libraryBuilder);
+          push(builder);
+          assignedVariables.declare(anonymousMethodParameter);
+          return;
+        default:
+          String? publicName = problemReporting.checkPublicName(
+            compilationUnit: libraryBuilder.compilationUnit,
+            kind: kind,
+            parameterName: parameterName,
+            nameToken: nameToken,
+            thisKeyword: thisKeyword,
+            isDeclaring: false,
+            libraryFeatures: libraryFeatures,
+            fileUri: uri,
+          );
+          parameterBuilder = new FormalParameterBuilder(
+            kind: kind,
+            modifiers: modifiers,
+            type: type ?? const ImplicitTypeBuilder(),
+            name: parameterName,
+            fileOffset: nameOffset,
+            nameOffset: nameOffset,
+            fileUri: uri,
+            hasImmediatelyDeclaredDefaultValue: initializerStart != null,
+            wildcardIndex: wildcardIndex,
+            publicName: publicName,
+          );
       }
     }
 
-    push(parameter);
+    InternalFunctionParameter functionParameter = parameterBuilder.build(
+      libraryBuilder,
+    );
+    Expression? initializer = name?.initializer;
+    if (initializer != null) {
+      if (_context.isRedirectingFactory) {
+        addProblem(
+          diag.defaultValueInRedirectingFactoryConstructor.withArguments(
+            redirectionTarget: _context.redirectingFactoryTargetName,
+          ),
+          initializer.fileOffset,
+          noLength,
+        );
+        functionParameter.hasErroneousDefaultValue = true;
+      } else {
+        if (!parameterBuilder.defaultValueWasInferred) {
+          functionParameter.updateDefaultValue(initializer);
+        }
+      }
+    } else if (kind.isOptional) {
+      if (functionParameter.defaultValue == null) {
+        functionParameter.updateDefaultValue(
+          intern.createNullLiteral(noLocation),
+        );
+      }
+    }
+    if (annotations != null) {
+      functionParameter.clearAnnotations();
+      for (Expression annotation in annotations) {
+        functionParameter.addAnnotation(annotation);
+      }
+      // TODO(johnniwinther): This seems wrong. If we add the annotations, we
+      //  should infer them.
+      if (functionNestingLevel == 0) {
+        _registerSingleTargetAnnotations(functionParameter.astVariable);
+      }
+    }
+
+    push(parameterBuilder);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    // TODO(62401): Remove the cast when the flow analysis uses
-    // [InternalExpressionVariable]s.
-    assignedVariables.declare(
-      functionParameter.astVariable,
-      ignoreDuplicates: true,
-    );
+    assignedVariables.declare(functionParameter, ignoreDuplicates: true);
   }
 
   @override
@@ -5578,22 +5656,49 @@ class BodyBuilderImpl extends StackListenerImpl
         push(parameters);
       }
     } else {
-      List<ParameterBuilder>? parameters = inCatchClause
-          ? const FixedNullableList<CatchParameterBuilder>().popNonNullable(
-              stack,
-              count,
-              dummyCatchParameterBuilder,
-            )
-          : const FixedNullableList<FormalParameterBuilder>().popNonNullable(
-              stack,
-              count,
-              dummyFormalParameterBuilder,
-            );
+      List<ParameterBuilder>? parameters = _popParameterBuilders(
+        kind: kind,
+        count: count,
+        optionalsCount: 0,
+      );
       if (parameters == null) {
         push(new ParserRecovery(offsetForToken(beginToken)));
       } else {
         push(parameters);
       }
+    }
+  }
+
+  List<ParameterVariableBuilder>? _popParameterBuilders({
+    required MemberKind kind,
+    required int count,
+    required int optionalsCount,
+  }) {
+    switch (kind) {
+      case MemberKind.Catch:
+        return const FixedNullableList<CatchParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyCatchParameterBuilder,
+            );
+      case MemberKind.AnonymousMethod:
+        return const FixedNullableList<AnonymousMethodParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyAnonymousMethodParameterBuilder,
+            );
+      default:
+        return const FixedNullableList<FormalParameterBuilder>()
+            .popPaddedNonNullable(
+              stack,
+              count,
+              optionalsCount,
+              dummyFormalParameterBuilder,
+            );
     }
   }
 
@@ -5749,6 +5854,7 @@ class BodyBuilderImpl extends StackListenerImpl
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
                 ValueKinds.CatchParameterBuilder,
+                ValueKinds.AnonymousMethodParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count - 1,
@@ -5758,6 +5864,7 @@ class BodyBuilderImpl extends StackListenerImpl
               unionOfKinds([
                 ValueKinds.FormalParameterBuilder,
                 ValueKinds.CatchParameterBuilder,
+                ValueKinds.AnonymousMethodParameterBuilder,
                 ValueKinds.ParserRecovery,
               ]),
               count,
@@ -5773,38 +5880,41 @@ class BodyBuilderImpl extends StackListenerImpl
         count--;
         optionalsCount = optionals.length;
       }
-      List<ParameterVariableBuilder>? parameters = inCatchClause
-          ? const FixedNullableList<CatchParameterBuilder>()
-                .popPaddedNonNullable(
-                  stack,
-                  count,
-                  optionalsCount,
-                  dummyCatchParameterBuilder,
-                )
-          : const FixedNullableList<FormalParameterBuilder>()
-                .popPaddedNonNullable(
-                  stack,
-                  count,
-                  optionalsCount,
-                  dummyFormalParameterBuilder,
-                );
+
+      List<ParameterVariableBuilder>? parameters = _popParameterBuilders(
+        kind: kind,
+        count: count,
+        optionalsCount: optionalsCount,
+      );
+
       if (optionals != null && parameters != null) {
         parameters.setRange(count, count + optionalsCount, optionals);
       }
       assert(parameters?.isNotEmpty ?? true);
-      Parameters formals = inCatchClause
-          ? new CatchParameters(
-              parameters as List<CatchParameterBuilder>?,
-              offsetForToken(beginToken),
-              lengthOfSpan(beginToken, endToken),
-              uri,
-            )
-          : new FormalParameters(
-              parameters as List<FormalParameterBuilder>?,
-              offsetForToken(beginToken),
-              lengthOfSpan(beginToken, endToken),
-              uri,
-            );
+      Parameters formals;
+      switch (kind) {
+        case MemberKind.Catch:
+          formals = new CatchParameters(
+            parameters as List<CatchParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+        case MemberKind.AnonymousMethod:
+          formals = new AnonymousMethodParameters(
+            parameters as List<AnonymousMethodParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+        default:
+          formals = new FormalParameters(
+            parameters as List<FormalParameterBuilder>?,
+            offsetForToken(beginToken),
+            lengthOfSpan(beginToken, endToken),
+            uri,
+          );
+      }
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
@@ -5841,7 +5951,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     debugEvent("CatchBlock");
-    Statement body = pop() as Statement;
+    InternalStatement body = pop() as InternalStatement;
     inCatchBlock = pop() as bool;
     if (catchKeyword != null) {
       exitLocalScope();
@@ -5862,7 +5972,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     CatchParameterBuilder? exception;
     CatchParameterBuilder? stackTrace;
-    List<Statement>? compileTimeErrors;
+    List<InternalStatement>? compileTimeErrors;
     if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters!.parameters!.length;
       if (parameterCount > 0) {
@@ -5880,7 +5990,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (parameterCount != 0) {
           for (int i = 2; i < parameterCount; i++) {
             CatchParameterBuilder parameter = catchParameters.parameters![i];
-            compileTimeErrors ??= <Statement>[];
+            compileTimeErrors ??= <InternalStatement>[];
             compileTimeErrors.add(
               buildProblemStatement(
                 diag.catchSyntaxExtraParameters,
@@ -5928,37 +6038,38 @@ class BodyBuilderImpl extends StackListenerImpl
     Token? finallyKeyword,
     Token endToken,
   ) {
-    Statement? finallyBlock;
+    InternalStatement? finallyBlock;
     if (finallyKeyword != null) {
-      finallyBlock = pop() as Statement;
+      finallyBlock = pop() as InternalStatement;
     } else {
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack.prepend(
         assignedVariables.deferNode(),
       );
     }
-    List<Catch>? catchBlocks;
-    List<Statement>? compileTimeErrors;
+    List<InternalCatch>? catchBlocks;
+    List<InternalStatement>? compileTimeErrors;
     if (catchCount != 0) {
       List<Object?> catchBlocksAndErrors = const FixedNullableList<Object?>()
           .pop(stack, catchCount * 2)!;
-      catchBlocks = new List<Catch>.filled(
+      catchBlocks = new List<InternalCatch>.filled(
         catchCount,
-        dummyCatch,
+        dummyInternalCatch,
         growable: true,
       );
       for (int i = 0; i < catchCount; i++) {
-        catchBlocks[i] = catchBlocksAndErrors[i * 2] as Catch;
-        Statement? error = catchBlocksAndErrors[i * 2 + 1] as Statement?;
+        catchBlocks[i] = catchBlocksAndErrors[i * 2] as InternalCatch;
+        InternalStatement? error =
+            catchBlocksAndErrors[i * 2 + 1] as InternalStatement?;
         if (error != null) {
-          compileTimeErrors ??= <Statement>[];
+          compileTimeErrors ??= <InternalStatement>[];
           compileTimeErrors.add(error);
         }
       }
     }
-    Statement tryBlock = popStatement(tryKeyword);
+    InternalStatement tryBlock = popStatement(tryKeyword);
     int fileOffset = offsetForToken(tryKeyword);
-    Statement result = intern.createTryStatement(
+    InternalStatement result = intern.createTryStatement(
       fileOffset,
       tryBlock,
       catchBlocks,
@@ -6020,7 +6131,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
       );
     } else {
-      assert(receiver is Initializer);
+      assert(receiver is InternalInitializer);
       push(
         IndexedAccessGenerator.make(
           this,
@@ -6615,10 +6726,10 @@ class BodyBuilderImpl extends StackListenerImpl
         inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArgumentBuilders != null) {
-        if (receiver is StaticTearOff &&
+        if (receiver is InternalStaticTearOff &&
                 (receiver.target.isFactory ||
                     isTearOffLowering(receiver.target)) ||
-            receiver is ConstructorTearOff ||
+            receiver is InternalConstructorTearOff ||
             receiver is RedirectingFactoryTearOff) {
           return buildProblem(
             message: diag.constructorTearOffWithTypeArguments,
@@ -6644,6 +6755,7 @@ class BodyBuilderImpl extends StackListenerImpl
         null,
         arguments,
         isNullAware: false,
+        isImplicitThis: false,
       );
     } else {
       if (typeArgumentBuilders != null) {
@@ -7252,7 +7364,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assignedVariables.beginNode();
 
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null) {
       if (patternGuard.guard != null) {
         LocalScope thenScope = _localScope.createNestedScope(
@@ -7262,8 +7374,9 @@ class BodyBuilderImpl extends StackListenerImpl
         enterLocalScope(thenScope);
       } else {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
-        for (InternalVariable variable in pattern.internalDeclaredVariables) {
+        InternalPattern pattern = patternGuard.pattern;
+        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+          assert(!variable.hasInitializer);
           declareVariable(variable, _localScope);
         }
         LocalScope thenScope = _localScope.createNestedScope(
@@ -7328,7 +7441,7 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (entry is MapLiteralEntry) {
       if (patternGuard == null) {
@@ -7397,7 +7510,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Condition condition = pop() as Condition; // parenthesized expression
     Token ifToken = pop() as Token;
 
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (thenEntry is MapLiteralEntry) {
       if (elseEntry is MapLiteralEntry) {
@@ -7769,21 +7882,12 @@ class BodyBuilderImpl extends StackListenerImpl
       identifierName = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    InternalVariable variable = intern.createLocalVariable(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    InternalLocalFunctionVariable variable = intern.createLocalFunctionVariable(
       name: identifierName,
       type: null,
       forSyntheticToken: nameToken.isSynthetic,
-      isFinal: true,
-      isLocalFunction: true,
       isWildcard: isWildcard,
       fileOffset: name.nameOffset,
-    );
-    push(
-      intern.createFunctionDeclaration(
-        variable: variable,
-        fileOffset: beginToken.charOffset,
-      ),
     );
     if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
       // The local scope stack contains a type parameter scope for the local
@@ -7798,8 +7902,24 @@ class BodyBuilderImpl extends StackListenerImpl
       LocalScope scope = isFunctionExpression
           ? _localScope
           : _localScopes.previous;
-      declareVariable(variable, scope);
+      assert(!variable.hasInitializer);
+      InvalidExpression? error = declareVariable(variable, scope);
+      if (error != null) {
+        push(
+          intern.createExpressionStatement(
+            error,
+            fileOffset: beginToken.charOffset,
+          ),
+        );
+        return;
+      }
     }
+    push(
+      intern.createFunctionDeclaration(
+        variable: variable,
+        fileOffset: beginToken.charOffset,
+      ),
+    );
   }
 
   void enterFunction() {
@@ -7859,7 +7979,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
-    Statement body = popStatement(token);
+    InternalStatement body = popStatement(token);
     AsyncModifier asyncModifier = pop() as AsyncModifier;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
@@ -7906,26 +8026,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variable.type = function.computeFunctionType();
 
       declaration.function = function;
-      Statement statement;
-      if (variable.initializer != null) {
-        // This must have been a compile-time error.
-        assert(isErroneousNode(variable.initializer!));
-
-        statement = intern.createBlock(
-          fileOffset: declaration.fileOffset,
-          fileEndOffset: noLocation,
-          <Statement>[
-            intern.createExpressionStatement(
-              fileOffset: offsetForToken(token),
-              variable.initializer!,
-            ),
-            declaration,
-          ],
-        );
-        variable.initializer = null;
-      } else {
-        statement = declaration;
-      }
+      assert(!variable.hasInitializer);
       // This is matched by the call to [beginNode] in [enterFunction].
       assignedVariables.endNode(
         declaration,
@@ -7940,7 +8041,7 @@ class BodyBuilderImpl extends StackListenerImpl
             intern.createBlock(
               fileOffset: declaration.fileOffset,
               fileEndOffset: noLocation,
-              [statement],
+              [declaration],
             ),
             buildProblem(
               message: diag.namedFunctionExpression,
@@ -7954,8 +8055,16 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         );
       } else {
-        push(statement);
+        push(declaration);
       }
+    } else if (declaration is InternalExpressionStatement) {
+      // For duplicate local functions generate an [ExpressionStatement] holding
+      // the [InvalidExpression] for the error.
+      push(declaration);
+      assignedVariables.endNode(
+        declaration,
+        isClosureOrLateVariableInitializer: true,
+      );
     } else {
       unhandled(
         "${declaration.runtimeType}",
@@ -7990,7 +8099,7 @@ class BodyBuilderImpl extends StackListenerImpl
         /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
       ]),
     );
-    Statement body =
+    InternalStatement body =
         popNullableStatement() ??
         // In erroneous cases, there might not be function body. In such cases
         // we use an empty statement instead.
@@ -8054,24 +8163,25 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleImplicitFormalParameters(Token punctuation) {
     debugEvent("handleImplicitFormalParameters");
-    Expression receiver = toValue(peek());
     // If `variable` is captured in a nested function literal, dart2js
     // requires the variable to have a name. It is sufficient to use
     // `anonymous#this` because no user-written variable can have that name,
     // and we never have access to more than one of these variables. It does
     // not disrupt other backends that this name exists.
-    InternalVariable variable = intern.createSyntheticVariable(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
-      fileOffset: offsetForToken(punctuation),
-      name: "anonymous#this",
-      initializer: receiver,
-      isFinal: true,
-      isSynthesized: true,
-    );
+    InternalAnonymousMethodParameter variable = intern
+        .createAnonymousMethodParameter(
+          fileOffset: offsetForToken(punctuation),
+          name: "anonymous#this",
+          type: const DynamicType(),
+          isImplicitlyTyped: true,
+          isFinal: true,
+          isSynthesized: true,
+          isWildcard: false,
+        );
     _thisVariables.push(variable);
     _parameterlessAnonymousMethodDepth++;
 
-    assignedVariables.declare(variable.astVariable);
+    assignedVariables.declare(variable);
     push(NullValues.FormalParameters);
   }
 
@@ -8091,8 +8201,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ValueKinds.Generator,
         ]),
         /* formal parameters */ const UnionValueKind([
-          ValueKinds.FormalParameters,
-          ValueKinds.FormalListOrNull,
+          ValueKinds.AnonymousMethodParameters,
+          ValueKinds.AnonymousMethodParameterListOrNull,
         ]),
         /* receiver */ const UnionValueKind([
           ValueKinds.Expression,
@@ -8102,7 +8212,8 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     Object? body = pop();
-    Object? formals = pop(NullValues.FormalParameters);
+    AnonymousMethodParameters? formals =
+        pop(NullValues.FormalParameters) as AnonymousMethodParameters?;
     if (formals != null && _localScope.kind == LocalScopeKind.formals) {
       exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
     }
@@ -8113,35 +8224,31 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     Expression receiver;
-    InternalVariable variable;
+    InternalAnonymousMethodParameter variable;
     bool isImplicitlyTyped;
     int typeOffset;
 
-    if (formals is FormalParameters &&
-        formals.parameters?.length == 1 &&
-        formals.parameters![0].isRequiredPositional) {
-      receiver = popForValue();
-      FormalParameterBuilder formal = formals.parameters![0];
-
-      // Build the variable declaration.
-      variable = formal.build(libraryBuilder);
-      variable.initializer = receiver;
-      variable.initializer!.parent = variable;
-
-      isImplicitlyTyped = variable.isImplicitlyTyped;
-      typeOffset = formal.type.charOffset ?? variable.fileOffset;
-    } else if (formals == null) {
-      variable = _thisVariables.pop();
+    if (formals == null) {
+      variable = _thisVariables.pop() as InternalAnonymousMethodParameter;
       _parameterlessAnonymousMethodDepth--;
       receiver = popForValue();
       isImplicitlyTyped = true;
       typeOffset = variable.fileOffset;
+    } else if (formals.parameters?.length == 1 &&
+        formals.parameters![0].isRequiredPositional) {
+      receiver = popForValue();
+      AnonymousMethodParameterBuilder formal = formals.parameters![0];
+
+      // Build the variable declaration.
+      variable = formal.build(libraryBuilder);
+
+      isImplicitlyTyped = variable.isImplicitlyTyped;
+      typeOffset = formal.type.charOffset ?? variable.fileOffset;
     } else {
-      FormalParameters formalParameters = formals as FormalParameters;
       addProblem(
         diag.anonymousMethodWrongParameterList,
-        formalParameters.charOffset,
-        formalParameters.length,
+        formals.charOffset,
+        formals.length,
       );
       popForValue();
       Expression result = new InvalidExpression(
@@ -8155,7 +8262,7 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       return;
     }
-    int variableOffset = variable.initializer!.fileOffset;
+    int variableOffset = receiver.fileOffset;
 
     // Build the result expression.
     bool isNullAware = beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
@@ -8165,6 +8272,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (isExpression) {
       result = new AnonymousMethodExpression(
         variable,
+        receiver,
         bodyExpr!,
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
@@ -8172,9 +8280,10 @@ class BodyBuilderImpl extends StackListenerImpl
         typeOffset: typeOffset,
       )..fileOffset = variableOffset;
     } else {
-      Statement bodyStatement = body as Statement;
+      InternalStatement bodyStatement = body as InternalStatement;
       result = new AnonymousMethodBlock(
         variable,
+        receiver,
         bodyStatement,
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
@@ -8219,16 +8328,18 @@ class BodyBuilderImpl extends StackListenerImpl
       "Unexpected pattern in do statement: ${condition.patternGuard}.",
     );
     Expression expression = condition.expression;
-    Statement body = popStatement(doKeyword);
+    InternalStatement body = popStatement(doKeyword);
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement doStatement = intern.createDoStatement(
+    InternalStatement doStatement = intern.createDoStatement(
       offsetForToken(doKeyword),
       body,
       expression,
@@ -8236,13 +8347,15 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the [beginNode] call in [beginDoWhileStatement].
     assignedVariables.endNode(doStatement);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = doStatement;
       }
     }
-    Statement result = doStatement;
+    InternalStatement result = doStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, doStatement);
       result = labeledStatement;
     }
@@ -8295,8 +8408,9 @@ class BodyBuilderImpl extends StackListenerImpl
     if (pattern is InternalPattern) {
       pop(); // Metadata.
       bool isFinal = patternKeyword?.lexeme == 'final';
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
         variable.isFinal |= isFinal;
+        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
     }
@@ -8382,13 +8496,13 @@ class BodyBuilderImpl extends StackListenerImpl
     required Token inToken,
     required Object? lvalue,
   }) {
-    if (lvalue is VariableStatement) {
+    if (lvalue is InternalVariableStatement) {
       // TODO(johnniwinther): Avoid parsing variable declarations in
       //  for-in statements as statements.
-      VariableDeclaration declaration = lvalue.declaration;
+      InternalVariableDeclaration declaration = lvalue.declaration;
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      declaration.variable.initializer = null;
+      declaration.updateInitializer(null);
       declaration.variable.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
@@ -8409,11 +8523,11 @@ class BodyBuilderImpl extends StackListenerImpl
         variableDeclaration: declaration,
         error: error,
       );
-    } else if (lvalue is VariableDeclaration) {
+    } else if (lvalue is InternalVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
-      lvalue.variable.initializer = null;
+      lvalue.updateInitializer(null);
       lvalue.variable.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
@@ -8447,7 +8561,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ///     }
       ///
       return lvalue.buildForInElement(inOffset: inToken.offset);
-    } else if (lvalue is Pattern) {
+    } else if (lvalue is InternalPattern) {
       /// We are in the case where `lvalue` is a pattern:
       ///
       ///     for (pattern in expression) body
@@ -8524,7 +8638,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ]),
       ]),
     );
-    Statement body = popStatement(endToken);
+    InternalStatement body = popStatement(endToken);
 
     Token inKeyword = pop() as Token;
     Token forToken = pop() as Token;
@@ -8539,13 +8653,15 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement forInStatement = new InternalForInStatement(
+    InternalStatement forInStatement = new InternalForInStatement(
       _computeForInElement(
         forToken: forToken,
         inToken: inKeyword,
@@ -8560,13 +8676,15 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = forInStatement;
       }
     }
-    Statement result = forInStatement;
+    InternalStatement result = forInStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, forInStatement);
       result = labeledStatement;
     }
@@ -8605,7 +8723,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = popStatementNoWrap();
+    InternalStatement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
@@ -8617,19 +8735,21 @@ class BodyBuilderImpl extends StackListenerImpl
           uri,
         );
       }
-      if (statement is! LabeledStatement) {
+      if (statement is! InternalLabeledStatement) {
         statement = intern.createLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement, statement);
-      List<BreakStatementImpl>? continueStatements = target.continueTarget
+      List<InternalContinueStatement>? continueStatements = target
+          .continueTarget
           .resolveContinues(statement);
       if (continueStatements != null) {
-        for (BreakStatementImpl continueStatement in continueStatements) {
+        for (InternalContinueStatement continueStatement
+            in continueStatements) {
           continueStatement.targetStatement = statement;
-          Statement labelStatementBody = statement.body;
-          if (labelStatementBody is LoopStatement) {
-            Statement loopBody = labelStatementBody.body;
-            if (loopBody is LabeledStatement) {
+          InternalStatement labelStatementBody = statement.body;
+          if (labelStatementBody is InternalLoopStatement) {
+            InternalStatement loopBody = labelStatementBody.body;
+            if (loopBody is InternalLabeledStatement) {
               continueStatement.target = loopBody;
             } else {
               labelStatementBody.body = continueStatement.target =
@@ -8705,7 +8825,7 @@ class BodyBuilderImpl extends StackListenerImpl
         /* break target = */ ValueKinds.BreakTarget,
       ]),
     );
-    Statement body = popStatement(whileKeyword);
+    InternalStatement body = popStatement(whileKeyword);
     Condition condition = pop() as Condition;
     assert(
       condition.patternGuard == null,
@@ -8714,25 +8834,29 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<BreakStatementImpl>? continueStatements;
+    List<InternalContinueStatement>? continueStatements;
     if (continueTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(body);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        body,
+      );
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    Statement whileStatement = intern.createWhileStatement(
+    InternalStatement whileStatement = intern.createWhileStatement(
       offsetForToken(whileKeyword),
       expression,
       body,
     );
     if (continueStatements != null) {
-      for (BreakStatementImpl continueStatement in continueStatements) {
+      for (InternalContinueStatement continueStatement in continueStatements) {
         continueStatement.targetStatement = whileStatement;
       }
     }
-    Statement result = whileStatement;
+    InternalStatement result = whileStatement;
     if (breakTarget.hasUsers) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       breakTarget.resolveBreaks(labeledStatement, whileStatement);
       result = labeledStatement;
     }
@@ -8772,7 +8896,7 @@ class BodyBuilderImpl extends StackListenerImpl
     int fileOffset = offsetForToken(assertKeyword);
 
     /// Return a representation of an assert that appears as a statement.
-    AssertStatement createAssertStatement() {
+    InternalAssertStatement createAssertStatement() {
       // Compute start and end offsets for the condition expression.
       // This code is a temporary workaround because expressions don't carry
       // their start and end offsets currently.
@@ -8836,7 +8960,10 @@ class BodyBuilderImpl extends StackListenerImpl
 
       case Assert.Initializer:
         push(
-          intern.createAssertInitializer(fileOffset, createAssertStatement()),
+          intern.createAssertInitializer(
+            createAssertStatement(),
+            fileOffset: fileOffset,
+          ),
         );
         break;
     }
@@ -8953,27 +9080,27 @@ class BodyBuilderImpl extends StackListenerImpl
     push(containsPatterns);
     push(labels ?? NullValues.Labels);
 
-    List<InternalVariable>? jointPatternVariables;
-    List<InternalVariable>? jointPatternVariablesWithMismatchingFinality;
-    List<InternalVariable>? jointPatternVariablesNotInAll;
+    List<InternalDeclaredVariable>? jointPatternVariables;
+    List<InternalDeclaredVariable>?
+    jointPatternVariablesWithMismatchingFinality;
+    List<InternalDeclaredVariable>? jointPatternVariablesNotInAll;
     enterLocalScope(switchCaseScope);
     if (expressionCount > 1) {
       for (int i = 0; i < expressionOrPatterns.length; i++) {
         ExpressionOrPatternGuardCase expressionOrPattern =
             expressionOrPatterns[i];
-        PatternGuard? patternGuard = expressionOrPattern.patternGuard;
+        InternalPatternGuard? patternGuard = expressionOrPattern.patternGuard;
         if (patternGuard != null) {
-          InternalPattern pattern = patternGuard.pattern as InternalPattern;
+          InternalPattern pattern = patternGuard.pattern;
           if (jointPatternVariables == null) {
             jointPatternVariables = [
-              for (InternalVariable variable
-                  in pattern.internalDeclaredVariables)
+              for (InternalDeclaredVariable variable
+                  in pattern.declaredVariables)
                 intern.createSyntheticVariable(
-                  isClosureContextLoweringEnabled:
-                      isClosureContextLoweringEnabled,
                   name: variable.cosmeticName!,
                   isFinal: variable.isFinal,
                   fileOffset: variable.fileOffset,
+                  isSynthesized: false,
                 ),
             ];
             if (i != 0) {
@@ -8984,16 +9111,16 @@ class BodyBuilderImpl extends StackListenerImpl
               );
             }
           } else {
-            Map<String, InternalVariable> patternVariablesByName = {
-              for (InternalVariable variable
-                  in pattern.internalDeclaredVariables)
+            Map<String, InternalDeclaredVariable> patternVariablesByName = {
+              for (InternalDeclaredVariable variable
+                  in pattern.declaredVariables)
                 variable.cosmeticName!: variable,
             };
-            for (InternalVariable jointVariable in jointPatternVariables) {
+            for (InternalDeclaredVariable jointVariable
+                in jointPatternVariables) {
               String jointVariableName = jointVariable.cosmeticName!;
-              InternalVariable? patternVariable = patternVariablesByName.remove(
-                jointVariableName,
-              );
+              InternalDeclaredVariable? patternVariable = patternVariablesByName
+                  .remove(jointVariableName);
               if (patternVariable != null) {
                 if (patternVariable.isFinal != jointVariable.isFinal) {
                   (jointPatternVariablesWithMismatchingFinality ??= []).add(
@@ -9005,14 +9132,15 @@ class BodyBuilderImpl extends StackListenerImpl
               }
             }
             if (patternVariablesByName.isNotEmpty) {
-              for (InternalVariable variable in patternVariablesByName.values) {
-                InternalVariable jointVariable = intern.createSyntheticVariable(
-                  isClosureContextLoweringEnabled:
-                      isClosureContextLoweringEnabled,
-                  name: variable.cosmeticName!,
-                  isFinal: variable.isFinal,
-                  fileOffset: variable.fileOffset,
-                );
+              for (InternalDeclaredVariable variable
+                  in patternVariablesByName.values) {
+                InternalDeclaredVariable jointVariable = intern
+                    .createSyntheticVariable(
+                      name: variable.cosmeticName!,
+                      isFinal: variable.isFinal,
+                      fileOffset: variable.fileOffset,
+                      isSynthesized: false,
+                    );
                 (jointPatternVariablesNotInAll ??= []).add(jointVariable);
                 jointPatternVariables.add(jointVariable);
               }
@@ -9034,7 +9162,7 @@ class BodyBuilderImpl extends StackListenerImpl
           for (InternalVariable jointVariable in jointPatternVariables) {
             assert(_localScope.kind == LocalScopeKind.jointVariables);
             declareVariable(jointVariable, _localScope);
-            assignedVariables.declare(jointVariable.astVariable);
+            assignedVariables.declare(jointVariable);
           }
         }
       }
@@ -9061,9 +9189,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
     assert(
       checkState(beginToken, [
-        ValueKinds.InternalVariableListOrNull,
-        ValueKinds.InternalVariableListOrNull,
-        ValueKinds.InternalVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
         ValueKinds.LabelListOrNull,
         ValueKinds.Bool,
         ValueKinds.ExpressionOrPatternGuardCaseList,
@@ -9089,7 +9217,8 @@ class BodyBuilderImpl extends StackListenerImpl
     // makes the variables visible in the 'when' clause of the head.
     Object? pattern = peek();
     if (pattern is InternalPattern) {
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
     }
@@ -9128,7 +9257,8 @@ class BodyBuilderImpl extends StackListenerImpl
     // body of the case.
     Object? pattern = peek();
     if (pattern is InternalPattern) {
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
     }
@@ -9148,9 +9278,9 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(
       checkState(beginToken, [
         ...repeatedKind(ValueKinds.Statement, statementCount),
-        ValueKinds.InternalVariableListOrNull,
-        ValueKinds.InternalVariableListOrNull,
-        ValueKinds.InternalVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
+        ValueKinds.InternalDeclaredVariableListOrNull,
         ValueKinds.LabelListOrNull,
         ValueKinds.Bool,
         ValueKinds.ExpressionOrPatternGuardCaseList,
@@ -9160,14 +9290,15 @@ class BodyBuilderImpl extends StackListenerImpl
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
-    Statement block = popBlock(statementCount, beginToken, null);
+    InternalStatement block = popBlock(statementCount, beginToken, null);
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.switchCaseBody]);
-    List<InternalVariable>? jointPatternVariables =
-        pop() as List<InternalVariable>?;
-    List<InternalVariable>? jointPatternVariablesWithMismatchingFinality =
-        pop() as List<InternalVariable>?;
-    List<InternalVariable>? jointPatternVariablesNotInAll =
-        pop() as List<InternalVariable>?;
+    List<InternalDeclaredVariable>? jointPatternVariables =
+        pop() as List<InternalDeclaredVariable>?;
+    List<InternalDeclaredVariable>?
+    jointPatternVariablesWithMismatchingFinality =
+        pop() as List<InternalDeclaredVariable>?;
+    List<InternalDeclaredVariable>? jointPatternVariablesNotInAll =
+        pop() as List<InternalDeclaredVariable>?;
 
     // The current scope should be the scope of the body of the switch case
     // because we want to lookup the first use of the pattern variables
@@ -9183,12 +9314,12 @@ class BodyBuilderImpl extends StackListenerImpl
 
     bool hasDefaultOrLabels = defaultKeyword != null || labelCount > 0;
 
-    List<InternalVariable>? usedJointPatternVariables;
+    List<InternalDeclaredVariable>? usedJointPatternVariables;
     List<int>? jointVariableFirstUseOffsets;
     if (jointPatternVariables != null) {
       usedJointPatternVariables = [];
       Map<InternalVariable, int> firstUseOffsets = {};
-      for (InternalVariable variable in jointPatternVariables) {
+      for (InternalDeclaredVariable variable in jointPatternVariables) {
         if (usedNamesOffsets?[variable.cosmeticName!] case [int offset, ...]) {
           usedJointPatternVariables.add(variable);
           firstUseOffsets[variable] = offset;
@@ -9257,11 +9388,11 @@ class BodyBuilderImpl extends StackListenerImpl
         containsPatterns &&
         hasDefaultOrLabels &&
         usedNamesOffsets != null) {
-      PatternGuard? patternGuard =
+      InternalPatternGuard? patternGuard =
           expressionsOrPatternGuards.first.patternGuard;
       if (patternGuard != null) {
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
-        for (InternalVariable variable in pattern.internalDeclaredVariables) {
+        InternalPattern pattern = patternGuard.pattern;
+        for (InternalDeclaredVariable variable in pattern.declaredVariables) {
           String variableName = variable.cosmeticName!;
           if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
@@ -9280,7 +9411,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // Otherwise, we use pattern switch encoding to handle the erroneous case
       // of an unsupported use of patterns.
       List<int> caseOffsets = [];
-      List<PatternGuard> patternGuards = <PatternGuard>[];
+      List<InternalPatternGuard> patternGuards = [];
       for (ExpressionOrPatternGuardCase expressionOrPatternGuard
           in expressionsOrPatternGuards) {
         caseOffsets.add(expressionOrPatternGuard.caseOffset);
@@ -9302,14 +9433,8 @@ class BodyBuilderImpl extends StackListenerImpl
           patternGuards,
           block,
           isDefault: defaultKeyword != null,
-          hasLabel: labels != null,
-          jointVariables: [
-            if (usedJointPatternVariables != null)
-              // TODO(johnniwinther): Pass the variables directly when we have
-              // an internal node for pattern switch cases.
-              for (InternalVariable variable in usedJointPatternVariables)
-                variable.asVariableDeclaration,
-          ],
+          labels: labels,
+          jointVariables: usedJointPatternVariables,
           jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
         ),
       );
@@ -9325,14 +9450,15 @@ class BodyBuilderImpl extends StackListenerImpl
         expressionOffsets.add(expression.fileOffset);
       }
       push(
-        new SwitchCaseImpl(
-          caseOffsets,
-          expressions,
-          expressionOffsets,
-          block,
+        intern.createSwitchStatementCase(
+          caseOffsets: caseOffsets,
+          expressions: expressions,
+          expressionOffsets: expressionOffsets,
+          body: block,
           isDefault: defaultKeyword != null,
-          hasLabel: labels != null,
-        )..fileOffset = beginToken.charOffset,
+          labels: labels,
+          fileOffset: beginToken.charOffset,
+        ),
       );
     }
     push(labels ?? NullValues.Labels);
@@ -9350,15 +9476,13 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("SwitchStatement");
     assert(
       checkState(switchKeyword, [
-        /* labelUsers = */ ValueKinds.StatementListOrNullList,
         /* cases = */ ValueKinds.SwitchCaseList,
         /* containsPatterns */ ValueKinds.Bool,
         /* break target = */ ValueKinds.BreakTarget,
         /* expression = */ ValueKinds.Condition,
       ]),
     );
-    List<List<Statement>?> labelUsers = pop() as List<List<Statement>?>;
-    List<SwitchCase> cases = pop() as List<SwitchCase>;
+    List<InternalSwitchCase> cases = pop() as List<InternalSwitchCase>;
     bool containsPatterns = pop() as bool;
     JumpTarget target = exitBreakTarget()!;
     exitSwitchScope();
@@ -9369,43 +9493,45 @@ class BodyBuilderImpl extends StackListenerImpl
       "Unexpected pattern in switch statement: ${condition.patternGuard}.",
     );
     Expression expression = condition.expression;
-    Statement switchStatement;
+    InternalStatement switchStatement;
     if (containsPatterns || libraryFeatures.patterns.isEnabled) {
       // If patterns are enabled, we always use the pattern switch encoding.
       // Otherwise, we use pattern switch encoding to handle the erroneous case
       // of an unsupported use of patterns.
-      List<PatternSwitchCase> patternSwitchCases =
-          new List<PatternSwitchCase>.generate(cases.length, (int index) {
-            SwitchCase switchCase = cases[index];
-            PatternSwitchCase patternSwitchCase;
-            if (switchCase is PatternSwitchCase) {
-              patternSwitchCase = switchCase;
-            } else {
-              // Coverage-ignore-block(suite): Not run.
-              List<PatternGuard> patterns = new List<PatternGuard>.generate(
-                switchCase.expressions.length,
-                (int index) {
-                  return intern.createPatternGuard(
-                    switchCase.expressions[index].fileOffset,
-                    intern.createConstantPattern(switchCase.expressions[index]),
-                  );
-                },
-              );
-              patternSwitchCase = intern.createPatternSwitchCase(
-                switchCase.fileOffset,
-                (switchCase as SwitchCaseImpl).caseOffsets,
-                patterns,
-                switchCase.body,
-                isDefault: switchCase.isDefault,
-                hasLabel: switchCase.hasLabel,
-                jointVariables: [],
-                jointVariableFirstUseOffsets: null,
-              );
+      List<InternalPatternSwitchCase> patternSwitchCases =
+          new List<InternalPatternSwitchCase>.generate(cases.length, (
+            int index,
+          ) {
+            InternalSwitchCase switchCase = cases[index];
+            InternalPatternSwitchCase patternSwitchCase;
+            switch (switchCase) {
+              case InternalPatternSwitchCase():
+                patternSwitchCase = switchCase;
+              // Coverage-ignore(suite): Not run.
+              case InternalSwitchStatementCase():
+                List<InternalPatternGuard> patterns = new List.generate(
+                  switchCase.expressions.length,
+                  (int index) {
+                    return intern.createPatternGuard(
+                      switchCase.expressions[index].fileOffset,
+                      intern.createConstantPattern(
+                        switchCase.expressions[index],
+                      ),
+                    );
+                  },
+                );
+                patternSwitchCase = intern.createPatternSwitchCase(
+                  switchCase.fileOffset,
+                  switchCase.caseOffsets,
+                  patterns,
+                  switchCase.body,
+                  isDefault: switchCase.isDefault,
+                  labels: switchCase.labels,
+                  jointVariables: [],
+                  jointVariableFirstUseOffsets: null,
+                );
             }
-            List<Statement>? users = labelUsers[index];
-            if (users != null) {
-              patternSwitchCase.labelUsers.addAll(users);
-            }
+
             return patternSwitchCase;
           });
       switchStatement = intern.createPatternSwitchStatement(
@@ -9414,20 +9540,21 @@ class BodyBuilderImpl extends StackListenerImpl
         patternSwitchCases,
       );
     } else {
-      switchStatement = intern.createSwitchStatement(
-        expression,
-        cases,
-        fileOffset: switchKeyword.charOffset,
-      );
+      switchStatement = intern.createSwitchStatement(expression, [
+        for (InternalSwitchCase case_ in cases)
+          case_ as InternalSwitchStatementCase,
+      ], fileOffset: switchKeyword.charOffset);
     }
-    Statement result = switchStatement;
+    InternalStatement result = switchStatement;
     // We create a labeled statement enclosing the switch statement if it has
     // explicit break statements targeting it, or if the patterns feature is
     // enabled, in which case synthetic break statements might be inserted.
     // TODO(johnniwinther): Remove [LabeledStatement]s in inference visitor
     // when they have no target.
     if (target.hasUsers || libraryFeatures.patterns.isEnabled) {
-      LabeledStatement labeledStatement = intern.createLabeledStatement(result);
+      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
+        result,
+      );
       target.resolveBreaks(labeledStatement, switchStatement);
       result = labeledStatement;
     }
@@ -9451,7 +9578,8 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? pattern = pop();
     createAndEnterLocalScope(kind: LocalScopeKind.caseHead);
     if (pattern is InternalPattern) {
-      for (InternalVariable variable in pattern.internalDeclaredVariables) {
+      for (InternalDeclaredVariable variable in pattern.declaredVariables) {
+        assert(!variable.hasInitializer);
         declareVariable(variable, _localScope);
       }
     }
@@ -9486,7 +9614,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Object? value = pop();
     exitLocalScope();
-    PatternGuard patternGuard = intern.createPatternGuard(
+    InternalPatternGuard patternGuard = intern.createPatternGuard(
       arrow.charOffset,
       toPattern(value),
       guard,
@@ -9514,12 +9642,12 @@ class BodyBuilderImpl extends StackListenerImpl
         repeatedKind(ValueKinds.SwitchExpressionCase, caseCount),
       ),
     );
-    List<SwitchExpressionCase> cases = new List<SwitchExpressionCase>.filled(
+    List<InternalSwitchExpressionCase> cases = new List.filled(
       caseCount,
-      dummySwitchExpressionCase,
+      dummyInternalSwitchExpressionCase,
     );
     for (int i = caseCount - 1; i >= 0; i--) {
-      cases[i] = pop() as SwitchExpressionCase;
+      cases[i] = pop() as InternalSwitchExpressionCase;
     }
     push(cases);
   }
@@ -9534,7 +9662,8 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
 
-    List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
+    List<InternalSwitchExpressionCase> cases =
+        pop() as List<InternalSwitchExpressionCase>;
     Condition condition = pop() as Condition;
     assert(
       condition.patternGuard == null,
@@ -9568,60 +9697,49 @@ class BodyBuilderImpl extends StackListenerImpl
     ); // Exit the sentinel scope.
 
     bool containsPatterns = false;
-    List<SwitchCase> cases = new List<SwitchCase>.filled(
+    List<InternalSwitchCase> cases = new List.filled(
       caseCount,
-      dummySwitchCase,
-      growable: true,
-    );
-    List<List<Statement>?> caseLabelUsers = new List<List<Statement>?>.filled(
-      caseCount,
-      null,
+      dummyInternalSwitchCase,
       growable: true,
     );
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label>? labels = pop() as List<Label>?;
-      SwitchCase current = cases[i] = pop() as SwitchCase;
+      InternalSwitchCase current = cases[i] = pop() as InternalSwitchCase;
       if (labels != null) {
         for (Label label in labels) {
           JumpTarget? target = _switchScope!.lookupLabel(label.name);
           if (target != null) {
-            (caseLabelUsers[i] ??= <Statement>[]).addAll(target.users);
             target.resolveGotos(current);
           }
         }
       }
-      if (current is PatternSwitchCase) {
+      if (current is InternalPatternSwitchCase) {
         containsPatterns = true;
       }
     }
     for (int i = 0; i < caseCount - 1; i++) {
-      SwitchCase current = cases[i];
-      Block block = current.body as Block;
+      InternalSwitchCase current = cases[i];
+      InternalBlock block = current.body as InternalBlock;
       // [block] is a synthetic block that is added to handle variable
       // declarations in the switch case.
       TreeNode? lastNode = block.statements.isEmpty
           ? null
           : block.statements.last;
-      if (lastNode is Block) {
+      if (lastNode is InternalBlock) {
         // This is a non-synthetic block.
-        Block block = lastNode;
+        InternalBlock block = lastNode;
         lastNode = block.statements.isEmpty ? null : block.statements.last;
       }
-      if (lastNode is ExpressionStatement) {
-        ExpressionStatement statement = lastNode;
+      if (lastNode is InternalExpressionStatement) {
+        InternalExpressionStatement statement = lastNode;
         lastNode = statement.expression;
       }
     }
 
     push(containsPatterns);
     push(cases);
-    push(caseLabelUsers);
     assert(
-      checkState(beginToken, [
-        ValueKinds.StatementListOrNullList,
-        ValueKinds.SwitchCaseList,
-        ValueKinds.Bool,
-      ]),
+      checkState(beginToken, [ValueKinds.SwitchCaseList, ValueKinds.Bool]),
     );
   }
 
@@ -9659,20 +9777,20 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (target.functionNestingLevel != functionNestingLevel) {
       push(buildProblemTargetOutsideLocalFunction(name, breakKeyword));
     } else {
-      Statement statement = intern.createBreakStatement(
+      InternalBreakStatement statement = intern.createBreakStatement(
         offsetForToken(breakKeyword),
-        identifier,
+        identifier?.name,
       );
       target.addBreak(statement);
       push(statement);
     }
   }
 
-  Statement buildProblemTargetOutsideLocalFunction(
+  InternalStatement buildProblemTargetOutsideLocalFunction(
     String? name,
     Token keyword,
   ) {
-    Statement problem;
+    InternalStatement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
       Template<Message Function({required String label})> template = isBreak
@@ -9728,7 +9846,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = intern
+        InternalContinueSwitchStatement statement = intern
             .createContinueSwitchStatement(
               fileOffset: continueKeyword.charOffset,
             );
@@ -9759,9 +9877,9 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (target.functionNestingLevel != functionNestingLevel) {
       push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
-      Statement statement = intern.createContinueStatement(
+      InternalContinueStatement statement = intern.createContinueStatement(
         offsetForToken(continueKeyword),
-        identifier,
+        identifier?.name,
       );
       target.addContinue(statement);
       push(statement);
@@ -9944,7 +10062,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void handleInvalidStatement(Token token, Message message) {
-    Statement statement = pop() as Statement;
+    InternalStatement statement = pop() as InternalStatement;
     push(
       intern.createExpressionStatement(
         buildProblem(
@@ -10002,7 +10120,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  Statement buildProblemStatement(
+  InternalStatement buildProblemStatement(
     Message message,
     int charOffset, {
     List<LocatedMessage>? context,
@@ -10023,20 +10141,14 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  Statement wrapInProblemStatement(Statement statement, Message message) {
-    // TODO(askesc): Produce explicit error statement wrapping the original.
-    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return buildProblemStatement(message, statement.fileOffset);
-  }
-
-  Initializer buildDuplicatedInitializer(
+  InternalInitializer buildDuplicatedInitializer(
     SourcePropertyBuilder fieldBuilder,
     Expression value,
     String name,
     int offset,
     int previousInitializerOffset,
   ) {
-    return extern.createInvalidInitializer(
+    return intern.createInvalidInitializer(
       buildProblem(
         message: diag.constructorInitializeSameInstanceVariableSeveralTimes
             .withArguments(fieldName: name),
@@ -10057,7 +10169,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  List<Initializer> createFieldInitializer(
+  List<InternalInitializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     Expression expression, {
@@ -10081,8 +10193,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         );
       }
-      return <Initializer>[
-        extern.createInvalidInitializer(
+      return [
+        intern.createInvalidInitializer(
           LookupResult.createDuplicateExpression(
             result,
             context: libraryBuilder.loader.target.context,
@@ -10099,8 +10211,8 @@ class BodyBuilderImpl extends StackListenerImpl
       if (builder.isInvalidField) {
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             extern.createInvalidExpression(
               compilerContext
                   .format(
@@ -10120,7 +10232,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
-        return <Initializer>[
+        return [
           buildDuplicatedInitializer(
             builder,
             expression,
@@ -10132,8 +10244,8 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       initializedFields![name] = fieldNameOffset;
       if (builder.hasAbstractField) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.abstractFieldConstructorInitializer,
               fileUri: uri,
@@ -10143,8 +10255,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else if (builder.hasExternalField) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.externalFieldConstructorInitializer,
               fileUri: uri,
@@ -10154,8 +10266,8 @@ class BodyBuilderImpl extends StackListenerImpl
           ),
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
-        return <Initializer>[
-          extern.createInvalidInitializer(
+        return [
+          intern.createInvalidInitializer(
             buildProblem(
               message: diag.fieldAlreadyInitializedAtDeclaration.withArguments(
                 fieldName: name,
@@ -10184,7 +10296,7 @@ class BodyBuilderImpl extends StackListenerImpl
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             return [
-              extern.createInvalidInitializer(
+              intern.createInvalidInitializer(
                 buildProblem(
                   message: diag.initializingFormalTypeMismatch.withArguments(
                     parameterName: name,
@@ -10213,8 +10325,8 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
     } else {
-      return <Initializer>[
-        extern.createInvalidInitializer(
+      return [
+        intern.createInvalidInitializer(
           buildProblem(
             message: diag.initializerForStaticField.withArguments(
               fieldName: name,
@@ -10229,7 +10341,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Initializer buildSuperInitializer(
+  InternalInitializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
     ActualArguments arguments, [
@@ -10242,15 +10354,16 @@ class BodyBuilderImpl extends StackListenerImpl
         constructor.name.text.length,
       );
     }
-    return new InternalSuperInitializer(
-      constructor,
-      arguments,
+    return intern.createSuperInitializer(
+      target: constructor,
+      arguments: arguments,
       isSynthetic: isSynthetic,
-    )..fileOffset = charOffset;
+      fileOffset: charOffset,
+    );
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     Name name,
     ActualArguments arguments, {
     required int fileOffset,
@@ -10263,7 +10376,7 @@ class BodyBuilderImpl extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      return extern.createInvalidInitializer(
+      return intern.createInvalidInitializer(
         buildProblem(
           message: diag.constructorNotFound.withArguments(name: fullName),
           fileUri: uri,
@@ -10273,7 +10386,7 @@ class BodyBuilderImpl extends StackListenerImpl
         isRedirectingInitializer: true,
       );
     } else if (result.isInvalidLookup) {
-      return extern.createInvalidInitializer(
+      return intern.createInvalidInitializer(
         LookupResult.createDuplicateExpression(
           result,
           context: compilerContext,
@@ -10287,7 +10400,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       MemberBuilder builder = result.getable!;
       if (builder is SourceFactoryBuilder) {
-        return extern.createInvalidInitializer(
+        return intern.createInvalidInitializer(
           buildProblem(
             message: diag.redirectGenerativeToNonGenerativeConstructor,
             fileUri: uri,
@@ -10304,7 +10417,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_context.isConstructorCyclic(name.text)) {
           int length = name.text.length;
           if (length == 0) length = "this".length;
-          return extern.createInvalidInitializer(
+          return intern.createInvalidInitializer(
             buildProblem(
               message: diag.constructorCyclic,
               fileUri: uri,
@@ -10357,7 +10470,7 @@ class BodyBuilderImpl extends StackListenerImpl
         intern.createBlock(
           fileOffset: offsetForToken(token),
           fileEndOffset: noLocation,
-          <Statement>[
+          <InternalStatement>[
             buildProblemStatement(
               diag.expectedFunctionBody.withArguments(lexeme: token),
               token.charOffset,
@@ -10391,9 +10504,9 @@ class BodyBuilderImpl extends StackListenerImpl
             typeArguments,
           ),
         );
-      } else if (operand is StaticTearOff &&
+      } else if (operand is InternalStaticTearOff &&
               (operand.target.isFactory || isTearOffLowering(operand.target)) ||
-          operand is ConstructorTearOff ||
+          operand is InternalConstructorTearOff ||
           operand is RedirectingFactoryTearOff) {
         push(
           buildProblem(
@@ -10549,7 +10662,6 @@ class BodyBuilderImpl extends StackListenerImpl
     if (arguments == null) return expression;
     for (Argument argument in arguments.argumentList.reversed) {
       expression = intern.createLetForEffect(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         effect: argument.expression,
         // TODO(johnniwinther): Should we use `void` instead?
         effectType: coreTypes.objectRawType(Nullability.nullable),
@@ -10571,6 +10683,7 @@ class BodyBuilderImpl extends StackListenerImpl
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
+    bool isImplicitThis = false,
   }) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
@@ -10591,6 +10704,7 @@ class BodyBuilderImpl extends StackListenerImpl
       typeArguments,
       arguments,
       isNullAware: isNullAware,
+      isImplicitThis: isImplicitThis,
     );
   }
 
@@ -10765,13 +10879,14 @@ class BodyBuilderImpl extends StackListenerImpl
     PrefixBuilder prefix,
     int charOffset,
   ) {
-    InternalVariable check = intern.createSyntheticVariableForValue(
-      intern.checkLibraryIsLoaded(charOffset, prefix.dependency!),
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    return new DeferredCheck(
+      dependency: prefix.dependency!,
+      expression: expression,
+      fileOffset: charOffset,
     );
-    return new DeferredCheck(check, expression, fileOffset: charOffset);
   }
 
+  // Coverage-ignore(suite): Not run.
   bool isErroneousNode(TreeNode node) {
     return libraryBuilder.loader.handledErrors.isNotEmpty &&
         intern.isErroneousNode(node);
@@ -10879,7 +10994,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (field is InternalNamedPattern) {
         (fields ??= []).add(field);
       } else {
-        Pattern pattern = toPattern(field);
+        InternalPattern pattern = toPattern(field);
         if (pattern is! InternalInvalidPattern) {
           addProblem(
             diag.unnamedObjectPatternField,
@@ -11099,7 +11214,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(variable.lexeme != '_');
     TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
-    Pattern pattern;
+    InternalPattern pattern;
     if (inAssignmentPattern) {
       // Error has already been reported.
       pattern = intern.createInvalidPattern(
@@ -11110,8 +11225,7 @@ class BodyBuilderImpl extends StackListenerImpl
         declaredVariables: const [],
       );
     } else {
-      InternalVariable declaredVariable = intern.createSyntheticVariable(
-        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      InternalDeclaredVariable declaredVariable = intern.createLocalVariable(
         fileOffset: variable.charOffset,
         name: variable.lexeme,
         type: patternType,
@@ -11122,8 +11236,9 @@ class BodyBuilderImpl extends StackListenerImpl
         patternType,
         declaredVariable,
       );
+      assert(!declaredVariable.hasInitializer);
       declareVariable(declaredVariable, _localScope);
-      assignedVariables.declare(declaredVariable.astVariable);
+      assignedVariables.declare(declaredVariable);
     }
     push(pattern);
   }
@@ -11220,9 +11335,10 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression initializer = popForValue();
     InternalPattern pattern = toPattern(pop());
     bool isFinal = keyword.lexeme == 'final';
-    for (InternalVariable variable in pattern.internalDeclaredVariables) {
+    for (InternalDeclaredVariable variable in pattern.declaredVariables) {
       variable.isFinal = isFinal;
       variable.hasDeclaredInitializer = true;
+      assert(!variable.hasInitializer);
       declareVariable(variable, _localScope);
     }
     // TODO(johnniwinther,cstefantsova): Handle metadata.
@@ -11251,7 +11367,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     Expression expression = popForValue();
-    Pattern pattern = toPattern(pop());
+    InternalPattern pattern = toPattern(pop());
     push(
       intern.createPatternAssignment(equals.charOffset, pattern, expression),
     );
@@ -11360,18 +11476,18 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  List<Initializer> buildInitializersUnfinished({
+  List<InternalInitializer> buildInitializersUnfinished({
     required Token? beginInitializers,
   }) {
     return parseInitializers(beginInitializers);
   }
 
   @override
-  BuildParameterInitializerResult buildParameterInitializer({
+  BuildParameterDefaultValueResult buildParameterDefaultValue({
     required Token initializerToken,
   }) {
     Expression initializer = _parseInitializer(initializerToken);
-    return new BuildParameterInitializerResult(
+    return new BuildParameterDefaultValueResult(
       initializer,
       _takePendingAnnotations(),
     );
@@ -11480,7 +11596,7 @@ class BodyBuilderImpl extends StackListenerImpl
       BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
     );
     parser.parseFunctionBody(token, isExpression, allowAbstract);
-    Statement? body = pop() as Statement?;
+    InternalStatement? body = pop() as InternalStatement?;
     benchmarker
         // Coverage-ignore(suite): Not run.
         ?.endSubdivide();
@@ -11515,10 +11631,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (FormalParameterBuilder formal in formals) {
         // We pass `ignoreDuplicates: true` because the variable might have been
         // previously passed to `declare` in the `BodyBuilder` constructor.
-        assignedVariables.declare(
-          formal.variable.astVariable,
-          ignoreDuplicates: true,
-        );
+        assignedVariables.declare(formal.variable, ignoreDuplicates: true);
       }
     }
     token = parser.parseInitializersOpt(token);
@@ -11534,7 +11647,7 @@ class BodyBuilderImpl extends StackListenerImpl
       BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
     );
     parser.parseFunctionBody(token, isExpression, allowAbstract);
-    Statement? body = pop() as Statement?;
+    InternalStatement? body = pop() as InternalStatement?;
     benchmarker
         // Coverage-ignore(suite): Not run.
         ?.endSubdivide();
@@ -11654,7 +11767,7 @@ class BodyBuilderImpl extends StackListenerImpl
   // Coverage-ignore(suite): Not run.
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<InternalVariable> extraKnownVariables,
+    required List<InternalVariableDeclaration> extraKnownVariableDeclarations,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -11667,7 +11780,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (formals != null) {
       for (FormalParameterBuilder formalParameterBuilder in formals) {
-        assignedVariables.declare(formalParameterBuilder.variable.astVariable);
+        assignedVariables.declare(formalParameterBuilder.variable);
       }
     }
 
@@ -11686,14 +11799,22 @@ class BodyBuilderImpl extends StackListenerImpl
       ),
     );
 
-    if (extraKnownVariables.isNotEmpty) {
+    if (extraKnownVariableDeclarations.isNotEmpty) {
       LocalScope extraKnownVariablesScope = _localScope.createNestedScope(
         kind: LocalScopeKind.ifElement,
       );
       enterLocalScope(extraKnownVariablesScope);
-      for (InternalVariable extraVariable in extraKnownVariables) {
-        declareVariable(extraVariable, _localScope);
-        assignedVariables.declare(extraVariable.astVariable);
+      for (InternalVariableDeclaration extraVariableDeclaration
+          in extraKnownVariableDeclarations) {
+        InvalidExpression? error = declareVariable(
+          extraVariableDeclaration.variable,
+          _localScope,
+          extraVariableDeclaration.initializer,
+        );
+        if (error != null) {
+          extraVariableDeclaration.updateInitializer(error);
+        }
+        assignedVariables.declare(extraVariableDeclaration.variable);
       }
     }
 

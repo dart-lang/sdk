@@ -7,6 +7,7 @@
 library private4_test;
 
 import "package:expect/expect.dart";
+
 import 'other_library.dart';
 
 main() {

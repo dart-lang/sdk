@@ -146,7 +146,7 @@ class MessageHandler : public PortHandler {
   void PostMessage(std::unique_ptr<Message> message,
                    bool before_events = false) override;
 
-  bool is_scheduled() { return pool_ != nullptr; }
+  virtual void set_is_scheduled() {}
 
  private:
   template <typename GCVisitorType>

@@ -46,6 +46,155 @@ class _WebSocketOpcode {
   static const int RESERVED_F = 15;
 }
 
+enum _WebSocketTrafficDirection {
+  inbound('in'),
+  outbound('out');
+
+  const _WebSocketTrafficDirection(this.value);
+  final String value;
+}
+
+/// Emits WebSocket timeline events.
+/// [_enabled] checks whether WebSocket timeline logging is currently enabled.
+///
+/// Records lightweight frame and lifecycle metadata for WebSocket activity,
+/// including send, receive, ping, pong, close, and error events.
+///
+/// Uses [_connectionId] to correlate events for a given WebSocket connection and
+/// serialized payload contents to minimize profiling overhead and memory usage.
+class _WebSocketTimelineLogger {
+  static const String _connectionIdKey = 'connectionId';
+  static const String _directionKey = 'direction';
+  static const String _opcodeKey = 'opcode';
+  static const String _bytesKey = 'bytes';
+  static const String _closeCodeKey = 'closeCode';
+  static const String _reasonKey = 'reason';
+  static const String _errorKey = 'error';
+  static const String _filterKey = 'HTTP/websocket';
+
+  final int _connectionId;
+  final TimelineTask _timeline;
+  bool get _enabled => HttpClient.enableTimelineLogging;
+
+  _WebSocketTimelineLogger(this._connectionId)
+    : _timeline = TimelineTask(filterKey: _filterKey);
+
+  static final Set<TimelineTask> _activeConnectTimelines = {};
+
+  static TimelineTask? startConnect(Uri uri) {
+    if (!HttpClient.enableTimelineLogging) {
+      return null;
+    }
+
+    final timeline = TimelineTask(filterKey: _filterKey);
+
+    _activeConnectTimelines.add(timeline);
+
+    timeline.start('WebSocket.Connect', arguments: {'uri': uri.toString()});
+
+    return timeline;
+  }
+
+  static void finishConnect(
+    TimelineTask? timeline, {
+    Map<String, Object?>? arguments,
+  }) {
+    if (timeline == null) {
+      return;
+    }
+
+    if (!_activeConnectTimelines.remove(timeline)) {
+      return;
+    }
+
+    timeline.finish(arguments: arguments);
+  }
+
+  void logSend(int opcode, int bytes) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Send',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: _WebSocketTrafficDirection.outbound.value,
+        _opcodeKey: opcodeName(opcode),
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logReceive(int opcode, int bytes) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Receive',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: _WebSocketTrafficDirection.inbound.value,
+        _opcodeKey: opcodeName(opcode),
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logPing(int bytes, _WebSocketTrafficDirection direction) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Ping',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: direction.value,
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logPong(int bytes, _WebSocketTrafficDirection direction) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Pong',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: direction.value,
+        _bytesKey: bytes,
+      },
+    );
+  }
+
+  void logClose({
+    int? closeCode,
+    String? reason,
+    _WebSocketTrafficDirection? direction,
+  }) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Close',
+      arguments: {
+        _connectionIdKey: _connectionId,
+        _directionKey: ?direction?.value,
+        _closeCodeKey: ?closeCode,
+        _reasonKey: ?reason,
+      },
+    );
+  }
+
+  void logError(Object error) {
+    if (!_enabled) return;
+    _timeline.instant(
+      'WebSocket.Error',
+      arguments: {_connectionIdKey: _connectionId, _errorKey: error.toString()},
+    );
+  }
+
+  static String opcodeName(int opcode) => switch (opcode) {
+    _WebSocketOpcode.TEXT => 'text',
+    _WebSocketOpcode.BINARY => 'binary',
+    _WebSocketOpcode.CLOSE => 'close',
+    _WebSocketOpcode.PING => 'ping',
+    _WebSocketOpcode.PONG => 'pong',
+    _ => 'unknown',
+  };
+}
+
 class _EncodedString {
   final List<int> bytes;
   _EncodedString(this.bytes);
@@ -111,10 +260,12 @@ class _WebSocketProtocolTransformer
   final int _maxPayloadLength;
 
   final _WebSocketPerMessageDeflate? _deflate;
+  final _WebSocketTimelineLogger? _timelineLogger;
   _WebSocketProtocolTransformer([
     this._serverSide = false,
     this._deflate,
     this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
+    this._timelineLogger,
   ]);
 
   Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/> bind(
@@ -163,12 +314,16 @@ class _WebSocketProtocolTransformer
 
           _opcode = (byte & OPCODE);
 
-          if (_opcode != _WebSocketOpcode.CONTINUATION) {
-            if ((byte & RSV1) != 0) {
-              _compressed = true;
-            } else {
-              _compressed = false;
-            }
+          bool isMessageCompressed = (byte & RSV1) != 0;
+          if (isMessageCompressed &&
+              (_deflate == null ||
+                  _opcode == _WebSocketOpcode.CONTINUATION ||
+                  _isControlFrame())) {
+            throw WebSocketException("Protocol error");
+          }
+
+          if (_opcode != _WebSocketOpcode.CONTINUATION && !_isControlFrame()) {
+            _compressed = isMessageCompressed;
           }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
@@ -366,11 +521,12 @@ class _WebSocketProtocolTransformer
 
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
+          _timelineLogger?.logReceive(_WebSocketOpcode.TEXT, bytes.length);
           _eventSink!.add(utf8.decode(bytes));
-          break;
+
         case _WebSocketMessageType.BINARY:
+          _timelineLogger?.logReceive(_WebSocketOpcode.BINARY, bytes.length);
           _eventSink!.add(bytes);
-          break;
       }
       _currentMessageType = _WebSocketMessageType.NONE;
     }
@@ -407,16 +563,29 @@ class _WebSocketProtocolTransformer
           }
         }
         _state = CLOSED;
+        _timelineLogger?.logClose(
+          direction: _WebSocketTrafficDirection.inbound,
+          closeCode: closeCode,
+          reason: closeReason,
+        );
         _eventSink!.close();
         break;
 
       case _WebSocketOpcode.PING:
-        _eventSink!.add(_WebSocketPing(_payload.takeBytes()));
-        break;
+        var payload = _payload.takeBytes();
+        _timelineLogger?.logPing(
+          payload.length,
+          _WebSocketTrafficDirection.inbound,
+        );
+        _eventSink!.add(_WebSocketPing(payload));
 
       case _WebSocketOpcode.PONG:
-        _eventSink!.add(_WebSocketPong(_payload.takeBytes()));
-        break;
+        var payload = _payload.takeBytes();
+        _timelineLogger?.logPong(
+          payload.length,
+          _WebSocketTrafficDirection.inbound,
+        );
+        _eventSink!.add(_WebSocketPong(payload));
     }
     _prepareForNextFrame();
   }
@@ -449,8 +618,9 @@ class _WebSocketPong {
   _WebSocketPong([this.payload]);
 }
 
-typedef /*String|Future<String>*/ _ProtocolSelector =
-    Function(List<String> protocols);
+typedef /*String|Future<String>*/ _ProtocolSelector = Function(
+  List<String> protocols,
+);
 
 class _WebSocketTransformerImpl
     extends StreamTransformerBase<HttpRequest, WebSocket>
@@ -789,15 +959,25 @@ class _WebSocketOutgoingTransformer
 
   void add(message) {
     if (message is _WebSocketPong) {
+      webSocket._timelineLogger.logPong(
+        message.payload?.length ?? 0,
+        _WebSocketTrafficDirection.outbound,
+      );
       addFrame(_WebSocketOpcode.PONG, message.payload);
       return;
     }
     if (message is _WebSocketPing) {
+      webSocket._timelineLogger.logPing(
+        message.payload?.length ?? 0,
+        _WebSocketTrafficDirection.outbound,
+      );
       addFrame(_WebSocketOpcode.PING, message.payload);
       return;
     }
     List<int>? data;
     int opcode;
+    int payloadBytes = 0;
+
     if (message != null) {
       List<int> messageData;
       if (message is String) {
@@ -812,6 +992,7 @@ class _WebSocketOutgoingTransformer
       } else {
         throw ArgumentError(message);
       }
+      payloadBytes = messageData.length;
       var deflateHelper = _deflateHelper;
       if (deflateHelper != null) {
         messageData = deflateHelper.processOutgoingMessage(messageData);
@@ -820,6 +1001,7 @@ class _WebSocketOutgoingTransformer
     } else {
       opcode = _WebSocketOpcode.TEXT;
     }
+    webSocket._timelineLogger.logSend(opcode, payloadBytes);
     addFrame(opcode, data);
   }
 
@@ -840,6 +1022,11 @@ class _WebSocketOutgoingTransformer
         if (reason != null) ...utf8.encode(reason),
       ];
     }
+    webSocket._timelineLogger.logClose(
+      direction: _WebSocketTrafficDirection.outbound,
+      closeCode: code,
+      reason: reason,
+    );
     addFrame(_WebSocketOpcode.CLOSE, data);
     _eventSink!.close();
   }
@@ -1018,6 +1205,7 @@ class _WebSocketConsumer implements StreamConsumer {
             _closeCompleter.complete(webSocket);
           },
           onError: (Object error, StackTrace stackTrace) {
+            webSocket._timelineLogger.logError(error);
             _closed = true;
             _cancel();
             if (error is ArgumentError) {
@@ -1112,6 +1300,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Duration? _pingInterval;
   Timer? _pingTimer;
   late _WebSocketConsumer _consumer;
+  late final _WebSocketTimelineLogger _timelineLogger;
 
   int? _outCloseCode;
   String? _outCloseReason;
@@ -1142,6 +1331,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     String nonce = base64Encode(nonceData);
 
     final callerStackTrace = StackTrace.current;
+    final connectTimeline = _WebSocketTimelineLogger.startConnect(uri);
 
     uri = Uri(
       scheme: uri.isScheme("wss") ? "https" : "http",
@@ -1192,6 +1382,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             response.detachSocket().then((socket) {
               socket.destroy();
             });
+            _WebSocketTimelineLogger.finishConnect(
+              connectTimeline,
+              arguments: {'error': message, 'httpStatusCode': ?httpStatusCode},
+            );
             return Future<WebSocket>.error(
               WebSocketException(message, httpStatusCode),
               callerStackTrace,
@@ -1241,16 +1435,25 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             maxPayloadLength: maxPayloadLength,
           );
 
-          return response.detachSocket().then<WebSocket>(
-            (socket) => _WebSocketImpl._fromSocket(
+          return response.detachSocket().then<WebSocket>((socket) {
+            _WebSocketTimelineLogger.finishConnect(connectTimeline);
+            return _WebSocketImpl._fromSocket(
               socket,
               protocol,
               compression,
               false,
               deflate,
               maxPayloadLength,
-            ),
+            );
+          });
+        })
+        .catchError((Object error, StackTrace stackTrace) {
+          _WebSocketTimelineLogger.finishConnect(
+            connectTimeline,
+            arguments: {'error': error.toString()},
           );
+
+          return Future<WebSocket>.error(error, stackTrace);
         });
   }
 
@@ -1305,12 +1508,15 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _sink = _StreamSinkImpl(_consumer);
     _readyState = WebSocket.open;
     _deflate = deflate;
+    _timelineLogger = _WebSocketTimelineLogger(_serviceId);
 
     var transformer = _WebSocketProtocolTransformer(
       _serverSide,
       deflate,
       maxPayloadLength,
+      _timelineLogger,
     );
+
     var subscription = _subscription = transformer
         .bind(_socket)
         .listen(
@@ -1325,6 +1531,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             }
           },
           onError: (Object error, StackTrace stackTrace) {
+            _timelineLogger.logError(error);
             _closeTimer?.cancel();
             if (error is FormatException) {
               _close(WebSocketStatus.invalidFramePayloadData);

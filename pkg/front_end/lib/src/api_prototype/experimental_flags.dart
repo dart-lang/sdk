@@ -15,25 +15,19 @@ part 'experimental_flags_generated.dart';
 ///
 /// This are derived from an `allowed_experiments.json` file whose default is
 /// located in `sdk/lib/_internal/allowed_experiments.json`.
-class AllowedExperimentalFlags {
+class const AllowedExperimentalFlags({
   /// The set of experiments that are enabled for all SDK libraries other than
   /// for those which are specified in [sdkLibraryExperiments].
-  final Set<ExperimentalFlag> sdkDefaultExperiments;
+  final Set<ExperimentalFlag> sdkDefaultExperiments = const {},
 
   /// Mapping from individual SDK libraries, e.g. 'core', to the set of
   /// experiments that are enabled for this library.
-  final Map<String, Set<ExperimentalFlag>> sdkLibraryExperiments;
+  final Map<String, Set<ExperimentalFlag>> sdkLibraryExperiments = const {},
 
   /// Mapping from package names, e.g. 'path', to the set of experiments that
   /// are enabled for all files of this package.
-  final Map<String, Set<ExperimentalFlag>> packageExperiments;
-
-  const new({
-    this.sdkDefaultExperiments = const {},
-    this.sdkLibraryExperiments = const {},
-    this.packageExperiments = const {},
-  });
-
+  final Map<String, Set<ExperimentalFlag>> packageExperiments = const {},
+}) {
   /// Return the set of enabled experiments for the package with the [name],
   /// e.g. "path", possibly `null`.
   Set<ExperimentalFlag>? forPackage(String name) {
@@ -245,26 +239,25 @@ bool isExperimentEnabledInLibraryByVersion(
 }
 
 /// Common interface for the state of an experimental feature.
-abstract class ExperimentalFeature {
+abstract class ExperimentalFeature(
   /// The flag for the experimental feature.
-  final ExperimentalFlag flag;
-
-  new(this.flag);
-
+  final ExperimentalFlag flag,
+) {
   /// `true` if this feature is enabled.
   bool get isEnabled;
 }
 
 /// The global state of an experimental feature.
-class GlobalFeature extends ExperimentalFeature {
-  @override
-  final bool isEnabled;
-
-  new(ExperimentalFlag flag, this.isEnabled) : super(flag);
-}
+class GlobalFeature(super.flag, @override final bool isEnabled)
+    extends ExperimentalFeature;
 
 /// The state of an experimental feature within a specific library.
-class LibraryFeature extends ExperimentalFeature {
+class LibraryFeature(
+  super.flag,
+  this.isSupported,
+  this.enabledVersion,
+  @override final bool isEnabled,
+) extends ExperimentalFeature {
   /// `true` if this feature is supported in the library as defined by the
   /// default language version for its containing package/sdk.
   ///
@@ -273,36 +266,20 @@ class LibraryFeature extends ExperimentalFeature {
   /// containing package/sdk.
   final bool isSupported;
 
-  @override
-  final bool isEnabled;
-
   /// The minimum language version for enabling this feature in this library.
   final Version enabledVersion;
-
-  new(
-    ExperimentalFlag flag,
-    this.isSupported,
-    this.enabledVersion,
-    this.isEnabled,
-  ) : super(flag);
 }
 
-class LibraryExperimentalFeatures implements parser.ExperimentalFeatures {
-  final LibraryFeatures _libraryFeatures;
-
-  new(this._libraryFeatures);
-
+class LibraryExperimentalFeatures(final LibraryFeatures _libraryFeatures)
+    implements parser.ExperimentalFeatures {
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
     return _libraryFeatures.fromSharedExperimentalFlags(flag).isEnabled;
   }
 }
 
-class ExperimentalFeaturesFromVersion implements parser.ExperimentalFeatures {
-  final Version _version;
-
-  new(this._version);
-
+class ExperimentalFeaturesFromVersion(final Version _version)
+    implements parser.ExperimentalFeatures {
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
     return _version >=

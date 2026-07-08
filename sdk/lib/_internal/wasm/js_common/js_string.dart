@@ -20,15 +20,13 @@ abstract class StringUncheckedOperationsBase {
 extension StringUncheckedOperations on String {
   @pragma('wasm:prefer-inline')
   int codeUnitAtUnchecked(int index) =>
-      unsafeCast<StringUncheckedOperationsBase>(
-        this,
-      )._codeUnitAtUnchecked(index);
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._codeUnitAtUnchecked(index);
 
   @pragma('wasm:prefer-inline')
   String substringUnchecked(int start, int end) =>
-      unsafeCast<StringUncheckedOperationsBase>(
-        this,
-      )._substringUnchecked(start, end);
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._substringUnchecked(start, end);
 }
 
 final class JSStringImpl extends js.JSExternWrapper
@@ -240,6 +238,7 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @override
   @pragma('wasm:pure-function')
+  @pragma('wasm:prefer-inline')
   String operator +(String other) {
     return JSStringImpl.fromRefUnchecked(
       _jsStringConcatImport(

@@ -17,7 +17,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use a declaring parameter.';
 
 class UseDeclaringParameters extends AnalysisRule {
-  new() : super(name: LintNames.use_declaring_parameters, description: _desc);
+  new()
+    : super(
+        name: LintNames.use_declaring_parameters,
+        description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.useDeclaringParameters;

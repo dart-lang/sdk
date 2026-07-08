@@ -1708,9 +1708,7 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
   intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
                                  VirtualMemory::PageSize());
   const bool executable = false;
-  const bool compressed = false;
-  memory_ =
-      VirtualMemory::Allocate(size, executable, compressed, "dart-timeline");
+  memory_ = VirtualMemory::Allocate(size, executable, "dart-timeline");
   if (memory_ == nullptr) {
     OUT_OF_MEMORY();
   }

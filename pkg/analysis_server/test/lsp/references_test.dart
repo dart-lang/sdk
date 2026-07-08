@@ -72,6 +72,141 @@ void f() {
     await _checkRanges(mainContent, otherContent: otherContent);
   }
 
+  Future<void> test_constructor_inBody_default() async {
+    var content = '''
+class A^aa {
+  /*[0*/Aaa/*0]*/();
+}
+
+void f() {
+  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_factory_constructorName() async {
+    var content = '''
+class Aaa {
+  new _();
+  fa^ctory() => Aaa._();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.new/*0]*/();
+  Aaa/*[1*/.new/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_factoryNamed_constructorName() async {
+    var content = '''
+class Aaa {
+  new ();
+  factory na^med() => Aaa();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_named_constructorName() async {
+    var content = '''
+class Aaa {
+  Aaa.na^med();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_named_typeName() async {
+    var content = '''
+class A^aa {
+  /*[0*/Aaa/*0]*/.named();
+}
+
+void f() {
+  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/.named();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_new_constructorName() async {
+    var content = '''
+class Aaa {
+  ne^w();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.new/*0]*/();
+  Aaa/*[1*/.new/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_new_typeName() async {
+    var content = '''
+class A^aa {
+  new();
+}
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.new();
+  /*[2*/Aaa/*2]*/.new();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_newNamed_constructorName() async {
+    var content = '''
+class Aaa {
+  new na^med();
+}
+
+void f() {
+  Aaa value = Aaa/*[0*/.named/*0]*/();
+  Aaa/*[1*/.named/*1]*/();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_constructor_inBody_newNamed_typeName() async {
+    var content = '''
+class A^aa {
+  new named();
+}
+
+void f() {
+  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.named();
+  /*[2*/Aaa/*2]*/.named();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_constructor_primary_default() async {
     var content = '''
 class A^aa(int value);
@@ -154,141 +289,6 @@ class A({required int b}) {
 
 void f() {
   A(/*[2*/b/*2]*/: 1);
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_default() async {
-    var content = '''
-class A^aa {
-  /*[0*/Aaa/*0]*/();
-}
-
-void f() {
-  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_factory_constructorName() async {
-    var content = '''
-class Aaa {
-  new _();
-  fa^ctory() => Aaa._();
-}
-
-void f() {
-  Aaa value = Aaa/*[0*/.new/*0]*/();
-  Aaa/*[1*/.new/*1]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_factoryNamed_constructorName() async {
-    var content = '''
-class Aaa {
-  new ();
-  factory na^med() => Aaa();
-}
-
-void f() {
-  Aaa value = Aaa/*[0*/.named/*0]*/();
-  Aaa/*[1*/.named/*1]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_named_constructorName() async {
-    var content = '''
-class Aaa {
-  Aaa.na^med();
-}
-
-void f() {
-  Aaa value = Aaa/*[0*/.named/*0]*/();
-  Aaa/*[1*/.named/*1]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_named_typeName() async {
-    var content = '''
-class A^aa {
-  /*[0*/Aaa/*0]*/.named();
-}
-
-void f() {
-  /*[1*/Aaa/*1]*/? value = /*[2*/Aaa/*2]*/.named();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_new_constructorName() async {
-    var content = '''
-class Aaa {
-  ne^w();
-}
-
-void f() {
-  Aaa value = Aaa/*[0*/.new/*0]*/();
-  Aaa/*[1*/.new/*1]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_new_typeName() async {
-    var content = '''
-class A^aa {
-  new();
-}
-
-void f() {
-  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.new();
-  /*[2*/Aaa/*2]*/.new();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_newNamed_constructorName() async {
-    var content = '''
-class Aaa {
-  new na^med();
-}
-
-void f() {
-  Aaa value = Aaa/*[0*/.named/*0]*/();
-  Aaa/*[1*/.named/*1]*/();
-}
-''';
-
-    await _checkRanges(content);
-  }
-
-  Future<void> test_constructor_secondary_newNamed_typeName() async {
-    var content = '''
-class A^aa {
-  new named();
-}
-
-void f() {
-  /*[0*/Aaa/*0]*/? value = /*[1*/Aaa/*1]*/.named();
-  /*[2*/Aaa/*2]*/.named();
 }
 ''';
 
@@ -556,6 +556,55 @@ class A {
 
     var res = await getReferences(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
+  }
+
+  Future<void> test_operator_binary_minus() async {
+    var content = '''
+class A {
+  void operator ^-(A _) {}
+  void operator -() {} // Not checked, here to ensure it's excluded
+}
+
+void f(A a) {
+  a /*[0*/-/*0]*/ a;
+  a /*[1*/-/*1]*/ a;
+  -a;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_operator_binary_plus() async {
+    var content = '''
+class A {
+  void operator ^+(A _) {}
+}
+
+void f(A a) {
+  a /*[0*/+/*0]*/ a;
+  a /*[1*/+/*1]*/ a;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_operator_unary_minus() async {
+    var content = '''
+class A {
+  void operator ^-() {}
+  void operator -(A _) {} // Not checked, here to ensure it's excluded
+}
+
+void f(A a) {
+  /*[0*/-/*0]*/a;
+  /*[1*/-/*1]*/a;
+  a - a;
+}
+''';
+
+    await _checkRanges(content);
   }
 
   Future<void> test_pattern_object_withDeclaration() async {

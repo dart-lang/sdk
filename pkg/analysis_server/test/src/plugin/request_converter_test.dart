@@ -44,9 +44,8 @@ class RequestConverterTest extends ProtocolTestUtilities {
       server.AnalysisService.OUTLINE: ['c'],
       server.AnalysisService.OVERRIDES: ['d', 'e'],
     };
-    var result = server.AnalysisSetSubscriptionsParams(
-      serverSubscriptions,
-    ).asPluginProtocol;
+    var result = server.AnalysisSetSubscriptionsParams(serverSubscriptions)
+        .asPluginProtocol;
     var pluginSubscriptions = result.subscriptions;
     expect(pluginSubscriptions, hasLength(2));
     expect(
@@ -61,9 +60,8 @@ class RequestConverterTest extends ProtocolTestUtilities {
       'file1': AddContentOverlay('content1'),
       'file2': AddContentOverlay('content2'),
     };
-    var result = server.AnalysisUpdateContentParams(
-      serverFiles,
-    ).asPluginProtocol;
+    var result = server.AnalysisUpdateContentParams(serverFiles)
+        .asPluginProtocol;
     var pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));
     expect(pluginFiles['file1'], const TypeMatcher<AddContentOverlay>());

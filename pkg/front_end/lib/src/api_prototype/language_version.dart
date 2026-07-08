@@ -72,42 +72,29 @@ Future<VersionAndPackageUri> languageVersionForUri(
       int? major;
       int? minor;
       if (fileUri != null) {
-        Uint8List? rawBytes;
-        try {
-          FileSystem fileSystem = context.options.fileSystem;
-          rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
-        } on FileSystemException catch (_) {
-          rawBytes = null;
-        }
-        if (rawBytes != null) {
-          scan(
-            rawBytes,
-            includeComments: false,
-            languageVersionChanged:
-                (Scanner scanner, LanguageVersionToken version) {
-                  if (major != null || minor != null) return;
-                  major = version.major;
-                  minor = version.minor;
-                },
-          );
+        LanguageVersionToken? version =
+            await scanBytesForLanguageVersionAnnotation(
+              context.options.fileSystem,
+              fileUri,
+            );
+        if (version != null) {
+          major = version.major;
+          minor = version.minor;
         }
       }
 
       if (major != null && minor != null) {
         // Verify OK.
-        if (major! > currentSdkVersionMajor ||
+        if (major > currentSdkVersionMajor ||
             (major == currentSdkVersionMajor &&
-                minor! > currentSdkVersionMinor)) {
+                minor > currentSdkVersionMinor)) {
           major = null;
           minor = null;
         }
       }
       if (major != null && minor != null) {
         // The file decided. Return result.
-        return new VersionAndPackageUri(
-          new Version(major!, minor!),
-          packageUri,
-        );
+        return new VersionAndPackageUri(new Version(major, minor), packageUri);
       }
 
       // Check package.
@@ -116,19 +103,16 @@ Future<VersionAndPackageUri> languageVersionForUri(
           package.languageVersion is! InvalidLanguageVersion) {
         major = package.languageVersion!.major;
         minor = package.languageVersion!.minor;
-        if (major! > currentSdkVersionMajor ||
+        if (major > currentSdkVersionMajor ||
             (major == currentSdkVersionMajor &&
-                minor! > currentSdkVersionMinor)) {
+                minor > currentSdkVersionMinor)) {
           major = null;
           minor = null;
         }
       }
       if (major != null && minor != null) {
         // The package decided. Return result.
-        return new VersionAndPackageUri(
-          new Version(major!, minor!),
-          packageUri,
-        );
+        return new VersionAndPackageUri(new Version(major, minor), packageUri);
       }
 
       // Return default.
@@ -141,9 +125,30 @@ Future<VersionAndPackageUri> languageVersionForUri(
 }
 
 // Coverage-ignore(suite): Not run.
-class VersionAndPackageUri {
-  final Version version;
-  final Uri packageUri;
-
-  new(this.version, this.packageUri);
+Future<LanguageVersionToken?> scanBytesForLanguageVersionAnnotation(
+  FileSystem fileSystem,
+  Uri fileUri,
+) async {
+  Uint8List? rawBytes;
+  try {
+    rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
+  } on FileSystemException catch (_) {
+    rawBytes = null;
+  }
+  if (rawBytes != null) {
+    LanguageVersionToken? firstVersionSeen;
+    scan(
+      rawBytes,
+      includeComments: false,
+      languageVersionChanged: (Scanner scanner, LanguageVersionToken version) {
+        if (firstVersionSeen != null) return;
+        firstVersionSeen = version;
+      },
+    );
+    return firstVersionSeen;
+  }
+  return null;
 }
+
+// Coverage-ignore(suite): Not run.
+class VersionAndPackageUri(final Version version, final Uri packageUri);

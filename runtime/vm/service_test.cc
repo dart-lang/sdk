@@ -781,7 +781,7 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_LargeRead) {
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
 
   EXPECT_SUBSTRING("\"type\":\"NativeMemory\"", handler.msg());
-  EXPECT_SUBSTRING("\"bytes\":", handler.msg());
+  EXPECT_SUBSTRING("\"bytes\":\"000102030405", handler.msg());
 }
 
 ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_InvalidAddress) {
@@ -824,6 +824,8 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_InvalidAddress) {
   EXPECT_SUBSTRING("Input\\/output error", handler.msg());
 #elif defined(DART_HOST_OS_WINDOWS)
   EXPECT_SUBSTRING("error 299", handler.msg());
+#elif defined(DART_HOST_OS_MACOS)
+  EXPECT_SUBSTRING("invalid address", handler.msg());
 #endif
 }
 

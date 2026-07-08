@@ -14,5 +14,5 @@ typedef T<X> = void;
 abstract class C {
   final T<Null> v7;
 
-  C(): v7 = T(); // Error
+  C() : v7 = T(); // Error
 }

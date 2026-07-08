@@ -8,7 +8,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1362,41 +1361,35 @@ void f(int? a) {
   }
 
   test_getErrors() async {
-    addTestFile(r'''
+    var result = await getErrorsWithDiagnostics(testFile, r'''
 var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 var foo = 0;
 ''');
 
-    var result = await getTestErrors();
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.diagnostics, [
-      error(diag.undefinedIdentifier, 8, 1),
-    ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
   test_getErrors_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = getFile('$testPackageLibPath/b.dart');
+    await getErrorsWithDiagnostics(b, r'''
 /// @docImport 'a.dart';
 library;
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.diagnostics, []);
   }
 
   test_getErrors_library() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await getErrorsWithDiagnostics(a, r'''
 var a = 42
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: a.path);
-    assertErrorsInList(errorsResult.diagnostics, [
-      error(diag.expectedToken, 8, 2),
-    ]);
   }
 
   test_getErrors_part_hasLibrary() async {
@@ -1404,35 +1397,45 @@ var a = 42
 part 'b.dart';
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = getFile('$testPackageLibPath/b.dart');
+    await getErrorsWithDiagnostics(b, r'''
 part of 'a.dart';
 var a = 42
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-
-    var errorsResult = await fileResolver.getErrors2(path: b.path);
-    assertErrorsInList(errorsResult.diagnostics, [
-      error(diag.expectedToken, 26, 2),
-    ]);
   }
 
   test_getErrors_reuse() async {
-    addTestFile('var a = b;');
+    var unresolvedB = r'''
+var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+''';
+
+    var unresolvedC = r'''
+var a = c;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'c'.
+''';
+
+    addTestFileWithDiagnosticExpectations(unresolvedB);
 
     // No resolved files yet.
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedB);
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedB);
     _assertResolvedFiles([]);
 
     // Change the file, will be resolved again.
-    addTestFile('var a = c;');
+    addTestFileWithDiagnosticExpectations(unresolvedC);
     fileResolver.changeFiles([testFile.path]);
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(unresolvedC);
     _assertResolvedFiles([testFile]);
   }
 
@@ -1441,20 +1444,31 @@ var a = 42
 var a = 0;
 ''');
 
-    addTestFile(r'''
+    var testCodeWhenAIsInt = r'''
 import 'a.dart';
 var b = a.foo;
-''');
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+''';
+
+    var testCodeWhenAIsDouble = r'''
+import 'a.dart';
+var b = a.foo;
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'double'.
+''';
+
+    addTestFileWithDiagnosticExpectations(testCodeWhenAIsInt);
 
     // No resolved files yet.
     _assertResolvedFiles([]);
 
     // No cached, will resolve once.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsInt);
     _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsInt);
     _assertResolvedFiles([]);
 
     // Change the dependency.
@@ -1464,7 +1478,7 @@ var b = a.foo;
 var a = 4.2;
 ''');
     fileResolver.changeFiles([a.path]);
-    expect((await getTestErrors()).diagnostics, hasLength(1));
+    await assertTestErrorsWithDiagnostics(testCodeWhenAIsDouble);
     _assertResolvedFiles([testFile]);
   }
 
@@ -1789,12 +1803,15 @@ byteStore
   1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
-    var result = await getTestErrors();
+    var result = await fileResolver.getErrors2(path: testFile.path);
     expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
-    assertErrorsInList(result.diagnostics, [
-      error(diag.undefinedIdentifier, 8, 1),
-    ]);
+    assertDiagnosticsInCode(r'''
+var a = b;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+var foo = 0;
+''', result.diagnostics);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
 
     // We created the library element for the test file, using the reader.

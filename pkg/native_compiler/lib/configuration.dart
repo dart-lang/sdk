@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/flow_graph_checker.dart';
 import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/ssa_computation.dart';
 import 'package:cfg/passes/constant_propagation.dart';
 import 'package:cfg/passes/control_flow_optimizations.dart';
@@ -45,21 +47,16 @@ enum ImageFormat {
   static ImageFormat fromName(String name) => values.byName(name);
 }
 
-abstract base class Configuration {
-  final TargetCPU targetCPU;
-  final ImageFormat imageFormat;
-  final bool enableAsserts;
-  final bool useAstScopes;
-  final String outputLibraryName;
-
-  Configuration(
-    this.targetCPU,
-    this.imageFormat, {
-    required this.enableAsserts,
-    required this.useAstScopes,
-    required this.outputLibraryName,
-  });
-
+abstract base class Configuration(
+  final TargetCPU targetCPU,
+  final ImageFormat imageFormat, {
+  required final bool enableAsserts,
+  required final bool useAstScopes,
+  required final String outputLibraryName,
+  required final String? printFlowGraph,
+  required final bool printFlowGraphAfterEveryPass,
+  required final bool printRegisterAllocation,
+}) {
   VMOffsets get vmOffsets;
 
   ObjectLayout get objectLayout;
@@ -98,6 +95,9 @@ abstract base class Configuration {
   ImageWriter createImageWriter() => switch (imageFormat) {
     ImageFormat.macho => MachoImageWriter(targetCPU, outputLibraryName),
   };
+
+  bool printFlowGraphFor(CFunction function) =>
+      printFlowGraph != null && function.toString().contains(printFlowGraph!);
 }
 
 final class DevelopmentCompilerConfiguration extends Configuration {
@@ -107,6 +107,9 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     required super.enableAsserts,
     required super.useAstScopes,
     required super.outputLibraryName,
+    required super.printFlowGraph,
+    required super.printFlowGraphAfterEveryPass,
+    required super.printRegisterAllocation,
   });
 
   @override
@@ -139,6 +142,25 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     backEndState.stackFrame = createStackFrame(function);
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
     final constraints = createConstraints();
+
+    void Function(Pass)? afterPass;
+    if (printFlowGraphFor(function)) {
+      afterPass = (Pass pass) {
+        if ((printFlowGraphAfterEveryPass && pass is! FlowGraphChecker) ||
+            pass is CodeGenerator) {
+          var annotator = pass.errorContext.annotator;
+          if (printRegisterAllocation && pass is CodeGenerator) {
+            annotator = RegisterAllocationPrinter(
+              backEndState,
+              constraints,
+            ).print;
+          }
+          print('CFG IR of $function after ${pass.name}');
+          print(IrToText(pass.graph, annotator: annotator));
+        }
+      };
+    }
+
     return Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
@@ -151,6 +173,6 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
       createCodeGenerator(backEndState, functionRegistry),
-    ]);
+    ], afterPass: afterPass);
   }
 }

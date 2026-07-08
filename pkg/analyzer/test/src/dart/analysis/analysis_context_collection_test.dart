@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -22,6 +22,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../resolution/node_text_expectations.dart';
 
 main() {
@@ -119,6 +120,37 @@ linter:
     expect(
       analysisOptions.lintRules.map((e) => e.name),
       unorderedEquals(['unnecessary_parenthesis']),
+    );
+  }
+
+  @Deprecated('Tests compatibility for updateAnalysisOptions4.')
+  test_new_analysisOptions_updateAnalysisOptions4() {
+    var rootFolder = newFolder('/home/test');
+    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      includedPaths: [rootFolder.path],
+      sdkPath: sdkRoot.path,
+      updateAnalysisOptions4: ({required analysisOptions}) {
+        analysisOptions.warning = false;
+        analysisOptions.lint = true;
+        analysisOptions.contextFeatures = FeatureSet.latestLanguageVersion(
+          flags: ['variance'],
+        );
+      },
+      withFineDependencies: true,
+    );
+    var analysisContext = collection.contextFor(rootFolder.path);
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile)
+            as AnalysisOptionsImpl;
+
+    expect(analysisOptions.warning, isFalse);
+    expect(analysisOptions.lint, isTrue);
+    expect(
+      analysisOptions.contextFeatures.isEnabled(ExperimentalFeatures.variance),
+      isTrue,
     );
   }
 
@@ -384,8 +416,8 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions}) {
-        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['digit-separators', 'variance'],
         );
@@ -426,6 +458,7 @@ analysisOptions
       patterns
       primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals
@@ -468,8 +501,8 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions}) {
-        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['variance'],
         );
@@ -510,6 +543,7 @@ analysisOptions
       patterns
       primary-constructors
       private-named-parameters
+      record-use
       records
       sealed-class
       set-literals
@@ -1694,11 +1728,12 @@ workspaces
   ) {
     var actual = _getContextCollectionText(collection);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   /// Asserts the text of a context collection created for a single included
@@ -1707,8 +1742,8 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions,
+    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
+    configureAnalysisOptionsBuilder,
   }) {
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
@@ -1718,7 +1753,7 @@ workspaces
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
-      updateAnalysisOptions4: updateAnalysisOptions,
+      configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
       withFineDependencies: true,
     );
 

@@ -4,6 +4,6 @@
 
 class A<X extends A<X>> {}
 
-typedef AAlias<X> = Function<X1 extends A<X>> ();
+typedef AAlias<X> = Function<X1 extends A<X>>();
 
 main() {}

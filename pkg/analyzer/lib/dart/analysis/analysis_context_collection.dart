@@ -24,13 +24,11 @@ abstract class AnalysisContextCollection {
   /// [dispose] must be invoked after collection is finished being used.
   factory AnalysisContextCollection({
     required List<String> includedPaths,
-    List<String>? excludedPaths,
     ResourceProvider? resourceProvider,
     String? sdkPath,
   }) {
     return AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
-      excludedPaths: excludedPaths,
       resourceProvider: resourceProvider,
       sdkPath: sdkPath,
     );

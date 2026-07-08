@@ -15,6 +15,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'change_workspace_folders_test.dart';
 import 'request_helpers_mixin.dart';
 import 'server_abstract.dart';
@@ -36,7 +37,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   var isAnalysisOptionsSelector = TypeMatcher<TextDocumentFilterScheme>()
       .having(
-        (selector) => selector.pattern,
+        (selector) => selector.pattern.asString,
         'pattern',
         '**/analysis_options.yaml',
       );
@@ -48,7 +49,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   );
 
   var isPubspecSelector = TypeMatcher<TextDocumentFilterScheme>().having(
-    (selector) => selector.pattern,
+    (selector) => selector.pattern.asString,
     'pattern',
     '**/pubspec.yaml',
   );
@@ -547,8 +548,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync!.map(
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
+      (_) => throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
@@ -708,7 +708,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     var documentFilterSql = TextDocumentFilterScheme(
       scheme: 'file',
-      pattern: '**/*.sql',
+      pattern: .t1('**/*.sql'),
     );
     var documentFilterDart = TextDocumentFilterScheme(
       language: 'dart',
@@ -1002,8 +1002,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
     result.capabilities.textDocumentSync!.map(
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
+      (_) => throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
@@ -1114,36 +1113,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     }, 'ClientCapabilities.experimental.commands must be a List<String>?');
   }
 
-  Future<void> test_invalidExperimental_dartCodeAction() async {
-    await expectInvalidExperimentalParams(
-      {'dartCodeAction': 1},
-      'ClientCapabilities.experimental.dartCodeAction must be a Map<String, Object?>?',
-    );
-  }
-
-  Future<void>
-  test_invalidExperimental_dartCodeAction_commandParameterSupport() async {
-    await expectInvalidExperimentalParams(
-      {
-        'dartCodeAction': {'commandParameterSupport': 1},
-      },
-      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport must be a Map<String, Object?>?',
-    );
-  }
-
-  Future<void>
-  test_invalidExperimental_dartCodeAction_commandParameterSupport_supportedKinds() async {
-    await expectInvalidExperimentalParams(
-      {
-        'dartCodeAction': {
-          'commandParameterSupport': {'supportedKinds': 1},
-        },
-      },
-      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport.supportedKinds must be a List<String>?',
-    );
-  }
-
-  Future<void> test_invalidExperimental_snippetTextEdit() async {
+  Future<void> test_invalidExperimental_legacySnippetTextEdit() async {
     await expectInvalidExperimentalParams({
       'snippetTextEdit': 1,
     }, 'ClientCapabilities.experimental.snippetTextEdit must be a bool?');

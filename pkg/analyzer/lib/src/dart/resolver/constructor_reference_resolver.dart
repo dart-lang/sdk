@@ -97,9 +97,9 @@ class ConstructorReferenceResolver {
       definingLibrary: _resolver.definingLibrary,
     );
 
-    // If the constructor is generic, we'll have a ConstructorMember that
-    // substitutes in type arguments (possibly `dynamic`) from earlier in
-    // resolution.
+    // If the constructor is generic, we'll have a
+    // SubstitutedConstructorElementImpl that substitutes in type arguments
+    // (possibly `dynamic`) from earlier in resolution.
     //
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.

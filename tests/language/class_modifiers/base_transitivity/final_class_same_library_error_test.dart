@@ -162,12 +162,11 @@ base mixin class BaseMixinClassImplement implements FinalClass {}
 
 // Implementing by applying a mixin class.
 
-class SimpleMixinClassImplementApplied extends Object
-//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [error line 168, column 7, length 32]
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleMixinClassImplementApplied' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClassImplement' is 'base'.
-        with
-        BaseMixinClassImplement {}
+class SimpleMixinClassImplementApplied extends Object
+    with BaseMixinClassImplement {}
 
 interface class InterfaceMixinClassImplementApplied extends Object
         //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,12 +184,12 @@ interface class InterfaceImplementApplication = Object
         with
         _MixinOnObject
     implements FinalClass;
-class SimpleImplementApplication = Object
-//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+// [error line 191, column 7, length 26]
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
-        with
-        _MixinOnObject
+class SimpleImplementApplication = Object
+    with _MixinOnObject
     implements FinalClass;
 
 // Implementing with a mixin.

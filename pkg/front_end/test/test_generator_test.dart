@@ -135,9 +135,8 @@ class TestCompiler {
     final Uri sdkSummary = base.resolve("vm_platform.dill");
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     Uri platformUri = sdkRoot.resolve("vm_platform.dill");
-    final List<int> sdkSummaryData = new File.fromUri(
-      platformUri,
-    ).readAsBytesSync();
+    final List<int> sdkSummaryData = new File.fromUri(platformUri)
+        .readAsBytesSync();
     MemoryFileSystem fs = new MemoryFileSystem(base);
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 

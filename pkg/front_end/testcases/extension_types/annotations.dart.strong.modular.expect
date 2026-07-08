@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 @#C5
 extension type A(core::int i) {
+  @#C5
   abstract extension-type-member representation-field get i() → core::int;
   method m = self::A|m;
   method tearoff m = self::A|get#m;

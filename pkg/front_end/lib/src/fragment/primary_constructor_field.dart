@@ -199,7 +199,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,
@@ -340,6 +340,7 @@ class PrimaryConstructorFieldDeclaration
       _encoding = new PrimaryConstructorFieldEncoding(_fragment);
     }
 
+    Token? defaultValueToken = _fragment.takeDefaultValueToken();
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
       // A field with no type and initializer or an instance field without
@@ -353,7 +354,7 @@ class PrimaryConstructorFieldDeclaration
         name: _fragment.name,
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
-        token: _fragment.takeDefaultValueToken(),
+        token: defaultValueToken,
       );
       type.registerInferable(this);
     }
@@ -376,7 +377,6 @@ class PrimaryConstructorFieldDeclaration
   ) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
@@ -385,7 +385,6 @@ class PrimaryConstructorFieldDeclaration
   }) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureSetterTypes({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder? declarationBuilder,
@@ -394,7 +393,6 @@ class PrimaryConstructorFieldDeclaration
   }) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
     Set<ClassMember>? getterOverrideDependencies,
@@ -413,10 +411,9 @@ class PrimaryConstructorFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
-        isClosureContextLoweringEnabled:
-            classBuilder.libraryBuilder.loader.isClosureContextLoweringEnabled,
       );
     } else {
+      // Coverage-ignore-block(suite): Not run.
       type.build(
         builder.libraryBuilder,
         TypeUse.fieldType,

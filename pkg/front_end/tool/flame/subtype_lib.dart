@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
+
 import '../../test/simple_stats.dart';
 
 bool _collect = true;

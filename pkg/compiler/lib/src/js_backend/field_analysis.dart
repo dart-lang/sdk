@@ -97,42 +97,45 @@ class KFieldAnalysis {
           );
           if (constantValue != null && constantValue.isConstant) {
             initializerValue = Initializer.direct(constantValue);
-          } else if (value is ir.VariableGet) {
-            ir.Variable parameter = value.variable;
-            int position = constructor.function.positionalParameters.indexOf(
-              parameter,
-            );
-            if (position != -1) {
-              if (position >= constructor.function.requiredParameterCount) {
-                constantValue = _elementMap.getConstantValue(
-                  parameter.initializer,
-                  requireConstant: false,
-                  implicitNull: true,
-                );
-                if (constantValue != null && constantValue.isConstant) {
-                  initializerValue = Initializer.positional(
-                    position,
-                    constantValue,
-                  );
+          } else if (value case ir.VariableGet(
+            variable: ir.FunctionParameter parameter,
+          )) {
+            switch (parameter) {
+              case ir.PositionalParameter():
+                int position = constructor.function.positionalParameters
+                    .indexOf(parameter);
+                if (position != -1) {
+                  if (position >= constructor.function.requiredParameterCount) {
+                    constantValue = _elementMap.getConstantValue(
+                      parameter.defaultValue,
+                      requireConstant: false,
+                      implicitNull: true,
+                    );
+                    if (constantValue != null && constantValue.isConstant) {
+                      initializerValue = Initializer.positional(
+                        position,
+                        constantValue,
+                      );
+                    }
+                  }
                 }
-              }
-            } else {
-              position = constructor.function.namedParameters.indexOf(
-                parameter,
-              );
-              if (position != -1) {
-                constantValue = _elementMap.getConstantValue(
-                  parameter.initializer,
-                  requireConstant: false,
-                  implicitNull: true,
+              case ir.NamedParameter():
+                int position = constructor.function.namedParameters.indexOf(
+                  parameter,
                 );
-                if (constantValue != null && constantValue.isConstant) {
-                  initializerValue = Initializer.named(
-                    parameter.name,
-                    constantValue,
+                if (position != -1) {
+                  constantValue = _elementMap.getConstantValue(
+                    parameter.defaultValue,
+                    requireConstant: false,
+                    implicitNull: true,
                   );
+                  if (constantValue != null && constantValue.isConstant) {
+                    initializerValue = Initializer.named(
+                      parameter.parameterName,
+                      constantValue,
+                    );
+                  }
                 }
-              }
             }
           }
           data.initializers[constructorElement] = initializerValue;

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
+import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 // Needed to reset the global HTTP client after a test.
@@ -189,4 +191,70 @@ void main() {
       ]);
     });
   });
+
+  group('Analytics hang test', () {
+    test('close hangs but runner finishes quickly', () async {
+      final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+      final homeDirectory = fs.directory('/');
+      final fakeAnalytics = Analytics.fake(
+        tool: DashTool.dartTool,
+        homeDirectory: homeDirectory,
+        dartVersion: 'dartVersion',
+        fs: fs,
+      );
+
+      final hangingAnalytics = HangingAnalytics(fakeAnalytics);
+
+      final runner = DartdevRunner(
+        ['--no-analytics'],
+        analyticsOverride: hangingAnalytics,
+      );
+
+      final stopwatch = Stopwatch()..start();
+      final result = await runner.runCommand(runner.parse(['--no-analytics']));
+      stopwatch.stop();
+
+      expect(result, 0);
+      // The timeout is 250ms, so it should definitely finish in less
+      // than 1 second.
+      // If it hung, it would take much longer or never finish.
+      expect(stopwatch.elapsedMilliseconds, lessThan(1000));
+    });
+  });
+}
+
+class HangingAnalytics implements Analytics {
+  final FakeAnalytics _delegate;
+  final Completer<void> _closeCompleter = Completer<void>();
+
+  HangingAnalytics(this._delegate);
+
+  @override
+  Future<void> close({int delayDuration = 250}) => _closeCompleter.future;
+
+  @override
+  bool get shouldShowMessage => _delegate.shouldShowMessage;
+
+  @override
+  String get getConsentMessage => _delegate.getConsentMessage;
+
+  @override
+  void clientShowedMessage() => _delegate.clientShowedMessage();
+
+  @override
+  Future<void> setTelemetry(bool value) => _delegate.setTelemetry(value);
+
+  @override
+  bool get telemetryEnabled => _delegate.telemetryEnabled;
+
+  @override
+  Future<http.Response>? send(Event event) {
+    _delegate.send(event);
+    return null;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    super.noSuchMethod(invocation);
+  }
 }

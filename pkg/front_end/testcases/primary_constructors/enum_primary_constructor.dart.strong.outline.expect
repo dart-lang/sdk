@@ -2,26 +2,26 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:42:3: Error: Only redirecting factory constructors can be declared to be 'const'.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:49:3: Error: Only redirecting factory constructors can be declared to be 'const'.
 // Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.
 //   const factory fact(int? c) => E7(c); // Error
 //   ^^^^^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:62:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:69:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const new(this.c) {} // Error
 //   ^^^^^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:63:21: Error: A generative enum constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:70:21: Error: A generative enum constructor can't have a body.
 // Try removing the constructor body.
 //   new named(this.c) {} // Error
 //                     ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:43:36: Error: Enum factory constructors can't redirect to generative constructors.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:50:36: Error: Enum factory constructors can't redirect to generative constructors.
 //   const factory redirect(int? c) = E7; // Error
 //                                    ^
 //
-// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:54:30: Error: Enum factory constructors can't redirect to generative constructors.
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:61:30: Error: Enum factory constructors can't redirect to generative constructors.
 //   factory redirect(int? c) = E8; // Error
 //                              ^
 //
@@ -80,7 +80,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E6 a = const self::E6::•(0, "a", 0);
   final field core::int? b;
   static const field core::List<self::E6> values = const <self::E6>[self::E6::a];
-  const constructor •(core::int #index, core::String #name, final core::int? x) → self::E6
+  const constructor •(core::int #index, core::String #name, core::int? x) → self::E6
     : self::E6::b = x, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -102,7 +102,7 @@ class E7 extends core::_Enum /*isEnum*/  {
   static const factory fact(core::int? c) → self::E7
     ;
   static const factory redirect(core::int? c) → self::E7
-    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:43:36: Error: Enum factory constructors can't redirect to generative constructors.
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:50:36: Error: Enum factory constructors can't redirect to generative constructors.
   const factory redirect(int? c) = E7; // Error
                                    ^";
 }
@@ -122,7 +122,7 @@ class E8 extends core::_Enum /*isEnum*/  {
   static factory fact(core::int? c) → self::E8
     ;
   static factory redirect(core::int? c) → self::E8
-    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:54:30: Error: Enum factory constructors can't redirect to generative constructors.
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:61:30: Error: Enum factory constructors can't redirect to generative constructors.
   factory redirect(int? c) = E8; // Error
                              ^";
 }
@@ -143,25 +143,25 @@ class E9 extends core::_Enum /*isEnum*/  {
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:5:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:10:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:9:12 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:14:3 -> InstanceConstant(const E3{E3.b: null, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:13:12 -> ListConstant(const <E3>[const E3{E3.b: null, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:19:3 -> InstanceConstant(const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:18:12 -> ListConstant(const <E4>[const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:24:3 -> InstanceConstant(const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:23:6 -> ListConstant(const <E5>[const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:30:3 -> InstanceConstant(const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:29:6 -> ListConstant(const <E6>[const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:36:3 -> InstanceConstant(const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:37:5 -> InstanceConstant(const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:35:6 -> ListConstant(const <E7>[const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:47:3 -> InstanceConstant(const E8{E8.c: 0, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:48:5 -> InstanceConstant(const E8{E8.c: 1, _Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:46:6 -> ListConstant(const <E8>[const E8{E8.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E8{E8.c: 1, _Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:58:3 -> InstanceConstant(const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:59:5 -> InstanceConstant(const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:57:6 -> ListConstant(const <E9>[const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:9:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:8:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:13:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:12:12 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:17:3 -> InstanceConstant(const E3{E3.b: null, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:16:12 -> ListConstant(const <E3>[const E3{E3.b: null, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:23:3 -> InstanceConstant(const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:22:12 -> ListConstant(const <E4>[const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:29:3 -> InstanceConstant(const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:28:6 -> ListConstant(const <E5>[const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:36:3 -> InstanceConstant(const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:35:6 -> ListConstant(const <E6>[const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:43:3 -> InstanceConstant(const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:44:5 -> InstanceConstant(const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:42:6 -> ListConstant(const <E7>[const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:54:3 -> InstanceConstant(const E8{E8.c: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:55:5 -> InstanceConstant(const E8{E8.c: 1, _Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:53:6 -> ListConstant(const <E8>[const E8{E8.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E8{E8.c: 1, _Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:65:3 -> InstanceConstant(const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:66:5 -> InstanceConstant(const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:64:6 -> ListConstant(const <E9>[const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"}])
 Extra constant evaluation: evaluated: 79, effectively constant: 21

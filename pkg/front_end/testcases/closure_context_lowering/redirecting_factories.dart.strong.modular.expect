@@ -6,7 +6,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::A<self::A::X%>
     : super core::Object::•()/* scope=[
     #ctx1: not-captured VariableContext([
-      this-variable final this-variable;
+      this-variable final;
     ]),
   ] */
     ;
@@ -21,7 +21,7 @@ class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
   constructor •(positional-parameter x) → self::B<self::B::X%>
     : super self::A::•()/* scope=[
     #ctx3: not-captured VariableContext([
-      this-variable final this-variable;
+      this-variable final;
       positional-parameter x;
     ]),
   ] */
@@ -31,7 +31,7 @@ class C<Y extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::C<self::C::Y%>
     : super core::Object::•()/* scope=[
     #ctx4: not-captured VariableContext([
-      this-variable final this-variable;
+      this-variable final;
     ]),
   ] */
     ;
@@ -46,7 +46,7 @@ class D<Y extends core::Object? = dynamic> extends self::C<self::D::Y%> {
   constructor •({named-parameter required y}) → self::D<self::D::Y%>
     : super self::C::•()/* scope=[
     #ctx6: not-captured VariableContext([
-      this-variable final this-variable;
+      this-variable final;
       named-parameter required y;
     ]),
   ] */

@@ -2,3 +2,7 @@ class A {
   A(int y) : x = (() => y)();
   final int x;
 }
+
+class B extends A {
+  B(int z) : super(z) {}
+}

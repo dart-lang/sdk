@@ -74,7 +74,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_arrowBody_returnsState_passingArguments() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -94,7 +94,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_arrowBody_returnsState_passingArguments_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -114,7 +114,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_arrowBody_returnsState_withCascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -133,7 +133,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_arrowBody_returnsState_withCascade_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -152,7 +152,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_blockBodyWithSingleStatement_returnsInstanceField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -216,7 +216,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_blockBodyWithSingleStatement_returnsState_withCascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -237,7 +237,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_blockBodyWithSingleStatement_returnsState_withCascade_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -258,7 +258,7 @@ class MyState extends State<MyWidget> {
   }
 
   test_instantiateTopLevel_returnTopLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyStatefulBad extends StatefulWidget {
@@ -282,7 +282,7 @@ var global = MyState();
   }
 
   test_instantiateTopLevel_returnTopLevel_dotShorthand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 
 class MyStatefulBad extends StatefulWidget {

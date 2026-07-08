@@ -2,115 +2,115 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/none/equals.dart:115:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() == null;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:117:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() != null;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:117:34: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
 //   null == nonNullableClass.method();
 //                                  ^
 //
-// pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:119:34: Error: Too few positional arguments: 1 required, 0 given.
 //   null != nonNullableClass.method();
 //                                  ^
 //
-// pkg/front_end/testcases/none/equals.dart:134:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nonNullableClass == nullValue;
 //                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:136:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nonNullableClass != nullValue;
 //                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:139:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nullableClass == nullValue;
 //                    ^
 //
-// pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:141:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nullableClass != nullValue;
 //                    ^
 //
-// pkg/front_end/testcases/none/equals.dart:204:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() == nullValue;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:206:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() != nullValue;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:206:39: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
 //   nullValue == nonNullableClass.method();
 //                                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:208:39: Error: Too few positional arguments: 1 required, 0 given.
 //   nullValue != nonNullableClass.method();
 //                                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:233:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nonNullableClass == o;
 //                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:235:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nonNullableClass != o;
 //                       ^
 //
-// pkg/front_end/testcases/none/equals.dart:242:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nullableClass == o;
 //                    ^
 //
-// pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+// pkg/front_end/testcases/none/equals.dart:244:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
 //   nullableClass != o;
 //                    ^
 //
-// pkg/front_end/testcases/none/equals.dart:355:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() == nullTypedValue;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:357:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() != nullTypedValue;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:357:44: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
 //   nullTypedValue == nonNullableClass.method();
 //                                            ^
 //
-// pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:359:44: Error: Too few positional arguments: 1 required, 0 given.
 //   nullTypedValue != nonNullableClass.method();
 //                                            ^
 //
-// pkg/front_end/testcases/none/equals.dart:359:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() == o;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:361:26: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass.method() != o;
 //                          ^
 //
-// pkg/front_end/testcases/none/equals.dart:361:31: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
 //   o == nonNullableClass.method();
 //                               ^
 //
-// pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/equals.dart:363:31: Error: Too few positional arguments: 1 required, 0 given.
 //   o != nonNullableClass.method();
 //                               ^
 //
@@ -194,16 +194,16 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nullableTypeVariable2 == null);
   nullableTypeVariable2 == null;
   !(nullableTypeVariable2 == null);
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:115:26: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == null;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:116:26: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:117:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != null;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null);
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:117:34: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
   null == nonNullableClass.method();
                                  ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:118:34: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:119:34: Error: Too few positional arguments: 1 required, 0 given.
   null != nonNullableClass.method();
                                  ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null);
   core::print("EqualsNull (constant null)");
@@ -217,24 +217,24 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nullableObject == null);
   nullableObject == null;
   !(nullableObject == null);
-  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:134:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass == nullValue;
                       ^" in #C1 as{TypeError} self::Class<core::String>?;
-  !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:135:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:136:23: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass != nullValue;
                       ^" in #C1 as{TypeError} self::Class<core::String>?);
   nonNullableClass == null;
   !(nonNullableClass == null);
-  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:139:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass == nullValue;
                    ^" in #C1 as{TypeError} self::Class<core::String>?;
-  !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:140:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
+  !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:141:20: Error: The argument type 'Object?' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass != nullValue;
@@ -289,16 +289,16 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nullableTypeVariable2 == null);
   nullableTypeVariable2 == null;
   !(nullableTypeVariable2 == null);
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:204:26: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == nullValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:205:26: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:206:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != nullValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null);
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:206:39: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
   nullValue == nonNullableClass.method();
                                       ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:207:39: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:208:39: Error: Too few positional arguments: 1 required, 0 given.
   nullValue != nonNullableClass.method();
                                       ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} == null);
   core::print("EqualsCall");
@@ -322,12 +322,12 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} nullTypedValue);
   nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nonNullableClass;
   !(nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nonNullableClass);
-  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:233:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass == o;
                       ^" in o as{TypeError} self::Class<core::String>?;
-  !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:234:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  !(nonNullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:235:23: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nonNullableClass != o;
@@ -338,12 +338,12 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} nullTypedValue);
   nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nullableClass;
   !(nullTypedValue =={core::Object::==}{(core::Object) → core::bool} nullableClass);
-  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:242:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass == o;
                    ^" in o as{TypeError} self::Class<core::String>?;
-  !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:243:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
+  !(nullableClass =={self::Class::==}{(self::Class<core::String>) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:244:20: Error: The argument type 'Object' can't be assigned to the parameter type 'Class<String>?'.
  - 'Object' is from 'dart:core'.
  - 'Class' is from 'pkg/front_end/testcases/none/equals.dart'.
   nullableClass != o;
@@ -446,28 +446,28 @@ static method test<T1 extends core::Function, T2 extends (core::int) → core::i
   !(nullableTypeVariable2 =={core::Object::==}{(core::Object) → core::bool} o);
   o =={core::Object::==}{(core::Object) → core::bool} nullableTypeVariable2;
   !(o =={core::Object::==}{(core::Object) → core::bool} nullableTypeVariable2);
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:355:26: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == nullTypedValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} =={core::Object::==}{(core::Object) → core::bool} nullTypedValue;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:356:26: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:357:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != nullTypedValue;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} =={core::Object::==}{(core::Object) → core::bool} nullTypedValue);
-  nullTypedValue =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:357:44: Error: Too few positional arguments: 1 required, 0 given.
+  nullTypedValue =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
   nullTypedValue == nonNullableClass.method();
                                            ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type};
-  !(nullTypedValue =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:358:44: Error: Too few positional arguments: 1 required, 0 given.
+  !(nullTypedValue =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:359:44: Error: Too few positional arguments: 1 required, 0 given.
   nullTypedValue != nonNullableClass.method();
                                            ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
-  invalid-expression "pkg/front_end/testcases/none/equals.dart:359:26: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() == o;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} =={core::Object::==}{(core::Object) → core::bool} o;
-  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:360:26: Error: Too few positional arguments: 1 required, 0 given.
+  !(invalid-expression "pkg/front_end/testcases/none/equals.dart:361:26: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass.method() != o;
                          ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type} =={core::Object::==}{(core::Object) → core::bool} o);
-  o =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:361:31: Error: Too few positional arguments: 1 required, 0 given.
+  o =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
   o == nonNullableClass.method();
                               ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type};
-  !(o =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:362:31: Error: Too few positional arguments: 1 required, 0 given.
+  !(o =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/none/equals.dart:363:31: Error: Too few positional arguments: 1 required, 0 given.
   o != nonNullableClass.method();
                               ^" in nonNullableClass.{self::Class::method}{<inapplicable>}.(){() → invalid-type});
 }
@@ -482,8 +482,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: EqualsNull @ org-dartlang-testcase:///equals.dart:32:8 -> BoolConstant(true)
-Evaluated: Not @ org-dartlang-testcase:///equals.dart:33:8 -> BoolConstant(false)
-Evaluated: EqualsNull @ org-dartlang-testcase:///equals.dart:121:13 -> BoolConstant(true)
-Evaluated: Not @ org-dartlang-testcase:///equals.dart:122:13 -> BoolConstant(false)
+Evaluated: EqualsNull @ org-dartlang-testcase:///equals.dart:33:8 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///equals.dart:34:8 -> BoolConstant(false)
+Evaluated: EqualsNull @ org-dartlang-testcase:///equals.dart:122:13 -> BoolConstant(true)
+Evaluated: Not @ org-dartlang-testcase:///equals.dart:123:13 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 809, effectively constant: 4

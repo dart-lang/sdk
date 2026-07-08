@@ -5,6 +5,7 @@
 library firstClassLibrariestest;
 
 import "package:expect/expect.dart";
+
 import 'first_class_types_lib1.dart' as lib1;
 import 'first_class_types_lib2.dart' as lib2;
 

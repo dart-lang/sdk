@@ -9,29 +9,24 @@
 
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'fetch_all_types_lib.dart' as testee_lib;
 
-var tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) async {
-    final profile = await service.getAllocationProfile(isolateRef.id!);
-    for (var entry in profile.members!) {
-      if (entry.instancesCurrent == 0) continue;
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('fetch_all_types_lib.dart', args)
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final profile = await service.getAllocationProfile(isolateRef.id!);
+      for (var entry in profile.members!) {
+        if (entry.instancesCurrent == 0) continue;
 
-      final classRef = entry.classRef!;
-      print(classRef);
-      if (classRef.name == 'Sentinel') continue;
-      if (classRef.name == 'Null') continue;
-      final instanceSet =
-          await service.getInstances(isolateRef.id!, classRef.id!, 10);
-      for (var instance in instanceSet.instances!) {
-        await service.getObject(isolateRef.id!, instance.id!);
+        final classRef = entry.classRef!;
+        print(classRef);
+        if (classRef.name == 'Sentinel') continue;
+        if (classRef.name == 'Null') continue;
+        final instanceSet =
+            await service.getInstances(isolateRef.id!, classRef.id!, 10);
+        for (var instance in instanceSet.instances!) {
+          await service.getObject(isolateRef.id!, instance.id!);
+        }
       }
-    }
-  },
-];
-
-Future<void> main(args) => runIsolateTests(
-      args,
-      tests,
-      'fetch_all_types_test.dart',
-    );
+    }).run(testeeMain: testee_lib.main);

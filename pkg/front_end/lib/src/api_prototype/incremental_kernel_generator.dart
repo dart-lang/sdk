@@ -143,6 +143,7 @@ abstract class IncrementalKernelGenerator {
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
+    Set<String>? definitionsAddedByUser,
     String? className,
     String? methodName,
     int offset = -1,
@@ -161,18 +162,10 @@ bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
 }
 
-class IncrementalCompilerResult {
-  final Component component;
-  final ClassHierarchy classHierarchy;
-  final CoreTypes coreTypes;
-  final List<Component> loadedComponents;
-  final Set<Library>? neededDillLibraries;
-
-  new(
-    this.component, {
-    required this.classHierarchy,
-    required this.coreTypes,
-    this.neededDillLibraries,
-    this.loadedComponents = const [],
-  });
-}
+class IncrementalCompilerResult(
+  final Component component, {
+  required final ClassHierarchy classHierarchy,
+  required final CoreTypes coreTypes,
+  final Set<Library>? neededDillLibraries,
+  final List<Component> loadedComponents = const [],
+});

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../../base/local_scope.dart';
 import '../../builder/declaration_builders.dart';
@@ -59,7 +58,7 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  Variable? getTearOffParameter(int index) => null;
+  FunctionParameter? getTearOffParameter(int index) => null;
 
   @override
   void registerFunctionBody({
@@ -90,6 +89,6 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   void registerSuperCall() {
     // TODO(johnniwinther): This should be set on the member built from this
     // fragment and copied to the origin if necessary.
-    _builder.writeTarget!.transformerFlags |= TransformerFlag.superCalls;
+    _builder.writeTarget!.containsSuperCalls = true;
   }
 }

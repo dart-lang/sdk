@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object /*hasConstConstructor*/  {
   final field core::int _x;
   final field core::int _y;
-  const constructor •({required initializing-formal core::int x, required initializing-formal core::int y}) → self::C
+  const constructor •({required initializing-formal renamed-private-named-parameter core::int x, required initializing-formal renamed-private-named-parameter core::int y}) → self::C
     : self::C::_x = x, self::C::_y = y, super core::Object::•()
     ;
 }
@@ -15,5 +15,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_evaluation.dart:10:11 -> InstanceConstant(const C{C._x: 123, C._y: 456})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_evaluation.dart:11:11 -> InstanceConstant(const C{C._x: 123, C._y: 456})
 Extra constant evaluation: evaluated: 3, effectively constant: 1

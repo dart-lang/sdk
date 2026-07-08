@@ -6,24 +6,23 @@
 //
 // VMOptions=--experimental-shared-data
 
-import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 import 'threading_utils.dart';
 
 @pragma('vm:shared')
-late Mutex mutexCondvar;
+final mutexCondvar = Mutex();
 @pragma('vm:shared')
-late ConditionVariable condVar;
+final condVar = ConditionVariable();
 @pragma('vm:shared')
-bool greetingsReceived = false;
+final greetingsReceived = Uint8List(1);
 
 int threadMain(Pointer<Void> data) {
   final new_isolate = Isolate.create(debugName: "helper");
@@ -41,7 +40,7 @@ int threadMain(Pointer<Void> data) {
 
       Expect.equals("greetings!", e);
       mutexCondvar.runLocked(() {
-        greetingsReceived = true;
+        greetingsReceived[0] = 1;
         condVar.notify();
       });
       rp.close();
@@ -54,19 +53,20 @@ int threadMain(Pointer<Void> data) {
 
   // No response is expected until we start running event loop.
   mutexCondvar.runLocked(() => condVar.wait(mutexCondvar, /*timeout_ms=*/ 100));
-  Expect.isFalse(greetingsReceived);
+  Expect.equals(0, greetingsReceived[0]);
 
-  print('=== running event loop for $new_isolate');
+  new_isolate.runSync(() {
+    print('=== running event loop');
+  });
   new_isolate.runEventLoopSync();
   mutexCondvar.runLocked(() {
-    while (!greetingsReceived) {
+    while (greetingsReceived[0] == 0) {
       condVar.wait(mutexCondvar);
     }
   });
-  Expect.isTrue(greetingsReceived);
+  Expect.equals(1, greetingsReceived[0]);
   Expect.isTrue(new_isolate.isPinnedToCurrentThread);
 
-  print('=== shutting down');
   new_isolate.shutdownSync();
   return 0;
 }
@@ -78,9 +78,6 @@ main(List<String> args, SendPort? message) async {
   }
 
   asyncStart();
-
-  mutexCondvar = Mutex();
-  condVar = ConditionVariable();
 
   final threadInfo = ThreadInfo();
 
@@ -99,7 +96,7 @@ main(List<String> args, SendPort? message) async {
     threadInfo.ptr_data.cast<Void>(),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 
   asyncEnd();
 }

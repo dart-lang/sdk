@@ -19,7 +19,7 @@ class AvoidEmptyElseTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_empty_else;
 
   test_else_emptyStatement_hasElseIf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var x = 0;
   var y = 1;
@@ -34,7 +34,7 @@ void f() {
   }
 
   test_else_emptyStatement_noElseIf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var x = 0;
   var y = 1;

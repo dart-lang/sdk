@@ -38,8 +38,6 @@ final allowlistMessageCode = new Set<cfeCodes.Code>.from(<cfeCodes.Code>[
   // The following errors are not covered by unit tests in the SDK repo because
   // they are only seen today in the flutter-gallery benchmark (external to
   // this repo).
-  diag.invalidCastFunctionExpr,
-  diag.invalidCastTopLevelFunction,
   diag.undefinedGetter,
   diag.undefinedMethod,
 ]);

@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $Bar1 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))

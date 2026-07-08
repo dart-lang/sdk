@@ -6,8 +6,10 @@
 
 import "package:expect/expect.dart";
 
-abstract class S { }
-class C { }
+abstract class S {}
+
+class C {}
+
 class C implements S;
 //    ^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION

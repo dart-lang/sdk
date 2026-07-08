@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -570,9 +573,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     if (identicalArgumentInfo != null) {
       var leftOperandInfo = identicalArgumentInfo[0]!;
       var rightOperandInfo = identicalArgumentInfo[1]!;
-      flow?.storeExpressionInfo(
+      resolver.flowAnalysis.storeExpressionInfo(
         argumentList.parent as ExpressionImpl,
-        flow.equalityOperation_end(
+        flow?.equalityOperation_end(
           leftOperandInfo.expressionInfo,
           SharedTypeView(leftOperandInfo.staticType),
           rightOperandInfo.expressionInfo,
@@ -617,7 +620,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       if (flow != null) {
         identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
-          expressionInfo: flow.getExpressionInfo(expression),
+          expressionInfo: resolver.flowAnalysis.getExpressionInfo(expression),
           staticType: expression.typeOrThrow,
         );
       }
@@ -695,12 +698,16 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         if (flow != null) {
           identicalArgumentInfo?.add(
             _IdenticalArgumentInfo(
-              expressionInfo: flow.getExpressionInfo(rewritten),
+              expressionInfo: resolver.flowAnalysis.getExpressionInfo(
+                rewritten,
+              ),
               staticType: rewritten.typeOrThrow,
             ),
           );
           whyNotPromotedArguments.add(
-            flow.whyNotPromoted(flow.getExpressionInfo(rewritten)),
+            flow.whyNotPromoted(
+              resolver.flowAnalysis.getExpressionInfo(rewritten),
+            ),
           );
         }
         if (parameter != null) {
@@ -865,7 +872,7 @@ class _FunctionLiteralDependencies
 /// Information tracked by [InvocationInferrer] about an argument passed to the
 /// `identical` function in `dart:core`.
 class _IdenticalArgumentInfo {
-  /// The [ExpressionInfo] returned by [FlowAnalysis.getExpressionInfo] for
+  /// The [ExpressionInfo] returned by [FlowAnalysisHelper.getExpressionInfo] for
   /// the argument.
   final ExpressionInfo? expressionInfo;
 

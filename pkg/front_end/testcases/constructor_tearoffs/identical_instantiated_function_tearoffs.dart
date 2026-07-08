@@ -30,20 +30,28 @@ main() {
 
   expect(true, identical(implicitConstInstantiation, implicitInstantiation));
   expect(true, identical(implicitConstInstantiation, explicitInstantiation));
-  expect(true, identical(implicitConstInstantiation,
-      implicitConstInstantiation));
-  expect(true, identical(implicitConstInstantiation,
-      explicitConstInstantiation));
+  expect(
+    true,
+    identical(implicitConstInstantiation, implicitConstInstantiation),
+  );
+  expect(
+    true,
+    identical(implicitConstInstantiation, explicitConstInstantiation),
+  );
   expect(true, identical(implicitConstInstantiation, id<int>));
   expect(false, identical(implicitConstInstantiation, id<String>));
   expect(false, identical(implicitConstInstantiation, create<int>()));
 
   expect(true, identical(explicitConstInstantiation, implicitInstantiation));
   expect(true, identical(explicitConstInstantiation, explicitInstantiation));
-  expect(true, identical(explicitConstInstantiation,
-      implicitConstInstantiation));
-  expect(true, identical(explicitConstInstantiation,
-      explicitConstInstantiation));
+  expect(
+    true,
+    identical(explicitConstInstantiation, implicitConstInstantiation),
+  );
+  expect(
+    true,
+    identical(explicitConstInstantiation, explicitConstInstantiation),
+  );
   expect(true, identical(explicitConstInstantiation, id<int>));
   expect(false, identical(explicitConstInstantiation, id<String>));
   expect(false, identical(explicitConstInstantiation, create<int>()));

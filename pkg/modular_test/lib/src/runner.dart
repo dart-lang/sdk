@@ -18,8 +18,12 @@ Uri relativize(Uri uri, Uri base) {
   return Uri.parse(uri.path.substring(base.path.length));
 }
 
-Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
-    IOPipeline pipeline) async {
+Future<void> runSuite(
+  Uri suiteFolder,
+  String suiteName,
+  Options options,
+  IOPipeline pipeline,
+) async {
   var dir = Directory.fromUri(suiteFolder);
   var entries = (await dir.list(recursive: false).toList())
       .whereType<Directory>()
@@ -27,16 +31,18 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
       .toList();
 
   await generic.runSuite(
-      entries,
-      generic.RunnerOptions(
-          suiteName: suiteName,
-          configurationName: options.configurationName,
-          filter: options.filter,
-          logDir: options.outputDirectory,
-          shard: options.shard,
-          shards: options.shards,
-          verbose: options.verbose,
-          reproTemplate: '%executable %script --verbose --filter %name'));
+    entries,
+    generic.RunnerOptions(
+      suiteName: suiteName,
+      configurationName: options.configurationName,
+      filter: options.filter,
+      logDir: options.outputDirectory,
+      shard: options.shard,
+      shards: options.shards,
+      verbose: options.verbose,
+      reproTemplate: '%executable %script --verbose --filter %name',
+    ),
+  );
   await pipeline.cleanup();
 }
 
@@ -48,9 +54,9 @@ class _PipelineTest implements generic.Test {
   final IOPipeline pipeline;
 
   _PipelineTest(this.uri, Uri suiteFolder, this.options, this.pipeline)
-      // Use the name of the folder as the test name by trimming out the prefix
-      // from the suite and the trailing `/`.
-      : name = uri.path.substring(suiteFolder.path.length, uri.path.length - 1);
+    // Use the name of the folder as the test name by trimming out the prefix
+    // from the suite and the trailing `/`.
+    : name = uri.path.substring(suiteFolder.path.length, uri.path.length - 1);
 
   @override
   Future<void> run() async {
@@ -72,36 +78,56 @@ class Options {
 
   static Options parse(List<String> args) {
     var parser = ArgParser()
-      ..addFlag('verbose',
-          abbr: 'v',
-          defaultsTo: false,
-          help: 'print detailed information about the test and modular steps')
-      ..addFlag('show-skipped',
-          defaultsTo: false,
-          help: 'print the name of the tests skipped by the filtering option')
-      ..addFlag('use-sdk',
-          defaultsTo: false, help: 'whether to use snapshots from a built sdk')
-      ..addOption('filter',
-          help: 'only run tests containing this filter as a substring')
-      ..addOption('shards',
-          help: 'total number of shards a suite is going to be split into.',
-          defaultsTo: '1')
-      ..addOption('shard',
-          help: 'which shard this script is executing. This should be between 1'
-              ' and `shards`.')
-      ..addOption('output-directory',
-          help: 'location where to emit the jsonl result and log files')
-      ..addOption('named-configuration',
-          abbr: 'n',
-          help: 'configuration name to use for emitting jsonl result files.');
+      ..addFlag(
+        'verbose',
+        abbr: 'v',
+        defaultsTo: false,
+        help: 'print detailed information about the test and modular steps',
+      )
+      ..addFlag(
+        'show-skipped',
+        defaultsTo: false,
+        help: 'print the name of the tests skipped by the filtering option',
+      )
+      ..addFlag(
+        'use-sdk',
+        defaultsTo: false,
+        help: 'whether to use snapshots from a built sdk',
+      )
+      ..addOption(
+        'filter',
+        help: 'only run tests containing this filter as a substring',
+      )
+      ..addOption(
+        'shards',
+        help: 'total number of shards a suite is going to be split into.',
+        defaultsTo: '1',
+      )
+      ..addOption(
+        'shard',
+        help:
+            'which shard this script is executing. This should be between 1'
+            ' and `shards`.',
+      )
+      ..addOption(
+        'output-directory',
+        help: 'location where to emit the jsonl result and log files',
+      )
+      ..addOption(
+        'named-configuration',
+        abbr: 'n',
+        help: 'configuration name to use for emitting jsonl result files.',
+      );
     ArgResults argResults = parser.parse(args);
     int shards = int.tryParse(argResults['shards']) ?? 1;
     int shard = 1;
     if (shards > 1) {
       shard = int.tryParse(argResults['shard']) ?? 1;
       if (shard <= 0 || shard > shards) {
-        print('Error: shard should be between 1 and $shards,'
-            ' but got $shard');
+        print(
+          'Error: shard should be between 1 and $shards,'
+          ' but got $shard',
+        );
         exit(1);
       }
     }

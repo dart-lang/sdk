@@ -2,202 +2,202 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/various.dart:178:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/constants/various.dart:202:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const ClassWithNonEmptyConstConstructor() {
 //   ^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:92:14: Error: Not a constant expression.
 // const x1 = --x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:93:14: Error: Not a constant expression.
 // const x2 = ++x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:94:12: Error: Not a constant expression.
 // const x3 = x--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:95:12: Error: Not a constant expression.
 // const x4 = x++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:98:14: Error: Setter not found: 'y'.
 // const y1 = --y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:99:14: Error: Setter not found: 'y'.
 // const y2 = ++y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:100:12: Error: Setter not found: 'y'.
 // const y3 = y--;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:101:12: Error: Setter not found: 'y'.
 // const y4 = y++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:156:24: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:178:24: Error: Not a constant expression.
 // const function_const = () {};
 //                        ^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:220:14: Error: Can't access 'this' in a field initializer to read 'y'.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:221:14: Error: Not a constant expression.
 //   final z2 = x;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-// const bool.fromEnvironment("bar", defaultValue: null);
-//                                                 ^
+// pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+//   defaultValue: null,
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
-// const String.fromEnvironment("bar", defaultValue: null);
-//                                                   ^
+// pkg/front_end/testcases/general/constants/various.dart:28:17: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
+//   defaultValue: null,
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-// const bool.fromEnvironment("bar", defaultValue: null);
-//                                                 ^
+// pkg/front_end/testcases/general/constants/various.dart:41:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+//   defaultValue: null,
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
-// const int.fromEnvironment("bar", defaultValue: null);
-//                                                ^
+// pkg/front_end/testcases/general/constants/various.dart:52:17: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
+//   defaultValue: null,
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:115:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+// pkg/front_end/testcases/general/constants/various.dart:118:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:128:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:142:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
 //                                       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+// pkg/front_end/testcases/general/constants/various.dart:145:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 // Try adding an explicit super initializer with the required arguments.
 //   const ExtendsFoo2();
 //         ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:96:7: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
-// const AbstractClassWithConstructor();
-//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/constants/various.dart:112:11: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+//     const AbstractClassWithConstructor();
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:179:5: Error: Method invocation is not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:203:5: Error: Method invocation is not a constant expression.
 //     print("hello");
 //     ^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:100:10: Error: Field 'foo' should be initialized because its type 'Object' doesn't allow null.
+// pkg/front_end/testcases/general/constants/various.dart:116:10: Error: Field 'foo' should be initialized because its type 'Object' doesn't allow null.
 //  - 'Object' is from 'dart:core'.
 //   Object foo;
 //          ^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:103:10: Error: Field 'bar' should be initialized because its type 'Object' doesn't allow null.
+// pkg/front_end/testcases/general/constants/various.dart:119:10: Error: Field 'bar' should be initialized because its type 'Object' doesn't allow null.
 //  - 'Object' is from 'dart:core'.
 //   Object bar;
 //          ^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:124:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:138:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 // class ExtendsFoo1 extends Foo {
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:64:37: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:79:37: Error: Constant evaluation error:
 // const binaryOnDouble = willBeDouble << 2;
 //                                     ^
-// pkg/front_end/testcases/general/constants/various.dart:64:37: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
+// pkg/front_end/testcases/general/constants/various.dart:79:37: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
 // const binaryOnDouble = willBeDouble << 2;
 //                                     ^
-// pkg/front_end/testcases/general/constants/various.dart:64:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:79:7: Context: While analyzing:
 // const binaryOnDouble = willBeDouble << 2;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:66:44: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:81:44: Error: Constant evaluation error:
 // const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:66:44: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
+// pkg/front_end/testcases/general/constants/various.dart:81:44: Context: Binary operator '<<' on '42.42' requires operand of type 'int', but was of type 'double'.
 // const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:66:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:81:7: Context: While analyzing:
 // const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:68:41: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:83:41: Error: Constant evaluation error:
 // const binaryOnIntWithString = willBeInt << "hello";
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:68:41: Context: Binary operator '<<' on '42' requires operand of type 'num', but was of type 'String'.
+// pkg/front_end/testcases/general/constants/various.dart:83:41: Context: Binary operator '<<' on '42' requires operand of type 'num', but was of type 'String'.
 // const binaryOnIntWithString = willBeInt << "hello";
 //                                         ^
-// pkg/front_end/testcases/general/constants/various.dart:68:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:83:7: Context: While analyzing:
 // const binaryOnIntWithString = willBeInt << "hello";
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:72:44: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:88:44: Error: Constant evaluation error:
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:72:44: Context: Binary operator '+' on '"hello"' requires operand of type 'String', but was of type 'int'.
+// pkg/front_end/testcases/general/constants/various.dart:88:44: Context: Binary operator '+' on '"hello"' requires operand of type 'String', but was of type 'int'.
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //                                            ^
-// pkg/front_end/testcases/general/constants/various.dart:72:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:88:7: Context: While analyzing:
 // const binaryOnStringWithInt = willBeString + willBeInt;
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:73:50: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:89:50: Error: Constant evaluation error:
 // const binaryOnStringWithStringBad = willBeString - " world";
 //                                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:73:50: Context: The method '-' can't be invoked on '"hello"' in a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:89:50: Context: The method '-' can't be invoked on '"hello"' in a constant expression.
 // const binaryOnStringWithStringBad = willBeString - " world";
 //                                                  ^
-// pkg/front_end/testcases/general/constants/various.dart:73:7: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:89:7: Context: While analyzing:
 // const binaryOnStringWithStringBad = willBeString - " world";
 //       ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:144:62: Error: Constant evaluation error:
-// const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
-//                                                              ^
-// pkg/front_end/testcases/general/constants/various.dart:144:62: Context: Binary operator '==' requires receiver constant 'FooWithHashCodeField {x: 42, y: 5, hashCode: 1764}' of a type with primitive equality or type 'double', but was of type 'FooWithHashCodeField'.
+// pkg/front_end/testcases/general/constants/various.dart:166:27: Error: Constant evaluation error:
+//     fooWithHashCodeField1 == fooWithHashCodeField2;
+//                           ^
+// pkg/front_end/testcases/general/constants/various.dart:166:27: Context: Binary operator '==' requires receiver constant 'FooWithHashCodeField {x: 42, y: 5, hashCode: 1764}' of a type with primitive equality or type 'double', but was of type 'FooWithHashCodeField'.
 //  - 'FooWithHashCodeField' is from 'pkg/front_end/testcases/general/constants/various.dart'.
-// const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
-//                                                              ^
-// pkg/front_end/testcases/general/constants/various.dart:144:12: Context: While analyzing:
-// const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
+//     fooWithHashCodeField1 == fooWithHashCodeField2;
+//                           ^
+// pkg/front_end/testcases/general/constants/various.dart:165:12: Context: While analyzing:
+// const bool fooWithHashCodeFieldEqual =
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:151:26: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/constants/various.dart:173:26: Error: Constant evaluation error:
 // const int circularity1 = circularity2;
 //                          ^
-// pkg/front_end/testcases/general/constants/various.dart:151:26: Context: Constant expression depends on itself.
+// pkg/front_end/testcases/general/constants/various.dart:173:26: Context: Constant expression depends on itself.
 // const int circularity1 = circularity2;
 //                          ^
-// pkg/front_end/testcases/general/constants/various.dart:151:11: Context: While analyzing:
+// pkg/front_end/testcases/general/constants/various.dart:173:11: Context: While analyzing:
 // const int circularity1 = circularity2;
 //           ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:164:7: Error: Constant evaluation error:
-// const ConstClassWithFailingAssertWithEmptyMessage();
-//       ^
-// pkg/front_end/testcases/general/constants/various.dart:160:64: Context: This assertion failed with message: (empty)
+// pkg/front_end/testcases/general/constants/various.dart:186:11: Error: Constant evaluation error:
+//     const ConstClassWithFailingAssertWithEmptyMessage();
+//           ^
+// pkg/front_end/testcases/general/constants/various.dart:182:64: Context: This assertion failed with message: (empty)
 //   const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
 //                                                                ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:184:7: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/constants/various.dart:208:11: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-// const ClassWithNonEmptyConstConstructor();
-//       ^
+//     const ClassWithNonEmptyConstConstructor();
+//           ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:219:35: Error: Constant evaluation error:
-// const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
-//                                   ^
-// pkg/front_end/testcases/general/constants/various.dart:219:35: Context: Expected constant 'null' to be of type 'int Function(int)', but was of type 'Null'.
-// const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
-//                                   ^
-// pkg/front_end/testcases/general/constants/various.dart:218:25: Context: While analyzing:
-// const int Function(int) willBecomeNullToo =
+// pkg/front_end/testcases/general/constants/various.dart:243:5: Error: Constant evaluation error:
+//     ? id1
+//     ^
+// pkg/front_end/testcases/general/constants/various.dart:243:5: Context: Expected constant 'null' to be of type 'int Function(int)', but was of type 'Null'.
+//     ? id1
+//     ^
+// pkg/front_end/testcases/general/constants/various.dart:242:25: Context: While analyzing:
+// const int Function(int) willBecomeNullToo = const bool.fromEnvironment("foo")
 //                         ^
 //
 import self as self;
@@ -241,14 +241,14 @@ class FooWithHashCodeField extends core::Object /*hasConstConstructor*/  {
 }
 class ExtendsFoo1 extends self::Foo {
   synthetic constructor •() → self::ExtendsFoo1
-    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:124:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:138:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 class ExtendsFoo1 extends Foo {
       ^"
     ;
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:145:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
         ^"
@@ -267,7 +267,7 @@ class ClassWithTypeArguments<E extends core::Object? = dynamic, F extends core::
 class ClassWithNonEmptyConstConstructor extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::ClassWithNonEmptyConstConstructor
     : super core::Object::•() {
-    invalid-expression "pkg/front_end/testcases/general/constants/various.dart:179:5: Error: Method invocation is not a constant expression.
+    invalid-expression "pkg/front_end/testcases/general/constants/various.dart:203:5: Error: Method invocation is not a constant expression.
     print(\"hello\");
     ^^^^^";
   }
@@ -280,10 +280,10 @@ class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
 }
 class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
   final field core::int y = 1;
-  final field invalid-type z1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
+  final field invalid-type z1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:220:14: Error: Can't access 'this' in a field initializer to read 'y'.
   final z1 = y;
              ^";
-  final field invalid-type z2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
+  final field invalid-type z2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:221:14: Error: Not a constant expression.
   final z2 = x;
              ^";
   const constructor •() → self::ConstClassWithFinalFields2
@@ -292,67 +292,67 @@ class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
 }
 static const field core::bool barFromEnv = #C1;
 static const field core::bool hasBarEnv = #C1;
-static const field core::bool barFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool notBarFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool conditionalOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool nullAwareOnNullTrue = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool nullAwareOnNullFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool andOnFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool andOnFalse2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool andOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool andOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool orOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
-static const field core::bool orOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
+static const field core::bool barFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool notBarFromEnvOrNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool conditionalOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool nullAwareOnNullTrue = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool nullAwareOnNullFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool andOnFalse = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool andOnFalse2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool andOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool andOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool orOnNull = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
+static const field core::bool orOnNull2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
 static const field core::bool orOnNull3 = #C2;
-static const field core::bool orOnNull4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
+static const field core::bool orOnNull4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:10:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
 static const field core::String barFromEnvString = #C3;
-static const field core::String barFromEnvOrNullString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
-const String.fromEnvironment(\"bar\", defaultValue: null);
-                                                  ^";
+static const field core::String barFromEnvOrNullString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:28:17: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
+  defaultValue: null,
+                ^";
 static const field core::String barFromEnvOrActualString = #C4;
-static const field core::String nullFromEnvString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
-const String.fromEnvironment(\"bar\", defaultValue: null);
-                                                  ^";
+static const field core::String nullFromEnvString = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:28:17: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
+  defaultValue: null,
+                ^";
 static const field core::bool barFromEnvBool = #C1;
-static const field core::bool barFromEnvOrNullBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:33:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
-const bool.fromEnvironment(\"bar\", defaultValue: null);
-                                                ^";
+static const field core::bool barFromEnvOrNullBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:41:17: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
+  defaultValue: null,
+                ^";
 static const field core::bool barFromEnvOrActualBool = #C2;
-static const field core::bool nullFromEnvBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
-const String.fromEnvironment(\"bar\", defaultValue: null);
-                                                  ^";
+static const field core::bool nullFromEnvBool = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:28:17: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
+  defaultValue: null,
+                ^";
 static const field core::int barFromEnvInt = #C5;
-static const field core::int barFromEnvOrNullInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:40:48: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
-const int.fromEnvironment(\"bar\", defaultValue: null);
-                                               ^";
+static const field core::int barFromEnvOrNullInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:52:17: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
+  defaultValue: null,
+                ^";
 static const field core::int barFromEnvOrActualInt = #C6;
-static const field core::int nullFromEnvInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:25:51: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
-const String.fromEnvironment(\"bar\", defaultValue: null);
-                                                  ^";
+static const field core::int nullFromEnvInt = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:28:17: Error: The argument type 'Null' can't be assigned to the parameter type 'String'.
+  defaultValue: null,
+                ^";
 static const field core::bool bazFromEnv = #C1;
 static const field core::bool hasBazEnv = #C2;
 static const field core::int bazFromEnvAsInt = #C6;
@@ -376,37 +376,37 @@ static const field dynamic binaryOnStringWithStringOK = #C10;
 static const field dynamic binaryOnStringWithInt = invalid-expression "Binary operator '+' on '\"hello\"' requires operand of type 'String', but was of type 'int'.";
 static const field dynamic binaryOnStringWithStringBad = invalid-expression "The method '-' can't be invoked on '\"hello\"' in a constant expression.";
 static field core::int x = 1;
-static const field invalid-type x1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+static const field invalid-type x1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:92:14: Error: Not a constant expression.
 const x1 = --x;
              ^";
-static const field invalid-type x2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+static const field invalid-type x2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:93:14: Error: Not a constant expression.
 const x2 = ++x;
              ^";
-static const field invalid-type x3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+static const field invalid-type x3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:94:12: Error: Not a constant expression.
 const x3 = x--;
            ^";
-static const field invalid-type x4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+static const field invalid-type x4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:95:12: Error: Not a constant expression.
 const x4 = x++;
            ^";
 static const field core::int y = #C11;
-static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+static const field invalid-type y1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:98:14: Error: Setter not found: 'y'.
 const y1 = --y;
              ^";
-static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:99:14: Error: Setter not found: 'y'.
 const y2 = ++y;
              ^";
-static const field invalid-type y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+static const field invalid-type y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:100:12: Error: Setter not found: 'y'.
 const y3 = y--;
            ^";
-static const field invalid-type y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+static const field invalid-type y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:101:12: Error: Setter not found: 'y'.
 const y4 = y++;
            ^";
 static field self::AbstractClassWithConstructor abstractClassWithConstructor = invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.";
-static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:128:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:142:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
                                       ^^^^^^^^^^^";
-static const field self::ExtendsFoo2 extendsFoo2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+static const field self::ExtendsFoo2 extendsFoo2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:145:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
         ^";
@@ -427,7 +427,7 @@ static const field core::int circularity1 = invalid-expression "Constant express
 static const field core::int circularity2 = invalid-expression "Constant expression depends on itself.";
 static const field core::int circularity3 = invalid-expression "Constant expression depends on itself.";
 static const field core::int circularity4 = invalid-expression "Constant expression depends on itself.";
-static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:156:24: Error: Not a constant expression.
+static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:178:24: Error: Not a constant expression.
 const function_const = () {};
                        ^^";
 static field () → Null function_var = () → Null {};
@@ -436,7 +436,7 @@ static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic> class
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic> classWithTypeArguments2 = #C21;
 static const field core::bool classWithTypeArgumentsIdentical = #C1;
 static field self::ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor = invalid-expression "A const constructor can't have a body.";
-static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
+static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:220:14: Error: Can't access 'this' in a field initializer to read 'y'.
   final z1 = y;
              ^";
 static const field core::bool zeroPointZeroIdentical = #C2;
@@ -497,10 +497,10 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///various.dart:
-- ExtendsFoo2. (from org-dartlang-testcase:///various.dart:131:9)
-- Foo. (from org-dartlang-testcase:///various.dart:109:9)
+- ExtendsFoo2. (from org-dartlang-testcase:///various.dart:145:9)
+- Foo. (from org-dartlang-testcase:///various.dart:125:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- FooWithHashCodeField. (from org-dartlang-testcase:///various.dart:118:9)
-- ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:160:9)
-- ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:167:9)
-- ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:193:9)
+- FooWithHashCodeField. (from org-dartlang-testcase:///various.dart:132:9)
+- ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:182:9)
+- ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:189:9)
+- ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:217:9)

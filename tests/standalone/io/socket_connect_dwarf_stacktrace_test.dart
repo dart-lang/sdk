@@ -21,12 +21,13 @@ Future<List<String>> findFrames(
   RegExp re,
   StackTrace stackTrace,
 ) async {
-  final dwarfed = await Stream.value(
-    stackTrace.toString(),
-  ).transform(const LineSplitter()).toList();
-  return Stream.fromIterable(
-    dwarfed,
-  ).transform(DwarfStackTraceDecoder(dwarf)).where(re.hasMatch).toList();
+  final dwarfed = await Stream.value(stackTrace.toString())
+      .transform(const LineSplitter())
+      .toList();
+  return Stream.fromIterable(dwarfed)
+      .transform(DwarfStackTraceDecoder(dwarf))
+      .where(re.hasMatch)
+      .toList();
 }
 
 Future<void> main() async {

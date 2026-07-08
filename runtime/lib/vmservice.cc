@@ -99,6 +99,13 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(VMService_NotifyFinishedInitializing, 0, 0) {
+#ifndef PRODUCT
+  ServiceIsolate::NotifyFinishedInitializing();
+#endif
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(VMService_OnExit, 0, 0) {
 #ifndef PRODUCT
   if (FLAG_trace_service) {

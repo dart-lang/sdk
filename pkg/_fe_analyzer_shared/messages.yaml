@@ -2584,7 +2584,7 @@ nonRedirectingGenerativeConstructorWithPrimary:
 
     ```dart
     class C(final String f) {
-      [!C.c!](Object p) : f = p.toString();
+      [!new c!](Object p) : f = p.toString();
     }
     ```
 
@@ -2595,7 +2595,7 @@ nonRedirectingGenerativeConstructorWithPrimary:
 
     ```dart
     class C(final String f) {
-      C.c(Object p) : this(p.toString());
+      new c(Object p) : this(p.toString());
     }
     ```
 
@@ -2605,12 +2605,12 @@ nonRedirectingGenerativeConstructorWithPrimary:
 
     ```dart
     class C(final String f) {
-      factory C.c(Object p) => C(p.toString());
+      factory c(Object p) => C(p.toString());
     }
     ```
 
     Otherwise, remove the generative constructor or convert the primary
-    constructor into a generative secondary constructor.
+    constructor into a generative in-body constructor.
   script: |
     class C() {
       C.named();
@@ -2653,17 +2653,17 @@ primaryConstructorBodyWithoutDeclaration:
     }
     ```
 
-    If the constructor is intended to be a secondary constructor, then replace
+    If the constructor is intended to be an in-body constructor, then replace
     the `this` with either the class name or `new` and declare the parameters in
     the constructor declaration:
 
     ```dart
     class C {
-      C(int x) : assert(x > 0);
+      new(int x) : assert(x > 0);
     }
     ```
 
-    If the constructor isn't needed, then remove the body:
+    If the constructor isn't needed, then remove the primary constructor body:
 
     ```dart
     class C {}
@@ -2829,3 +2829,26 @@ extensionPrimaryConstructor:
   experiments: primary-constructors
   script: |
     extension E() on int {}
+
+initializingDeclaringParameter:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Declaring parameters can't be initializing."
+  correctionMessage: "Try removing the `this.` prefix or making the parameter non-declaring."
+  analyzerCode: initializingDeclaringParameter
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C(var this.x);
+
+superInitializingDeclaringParameter:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Declaring parameters can't be super parameters."
+  correctionMessage: "Try removing the `super.` prefix or making the parameter non-declaring."
+  analyzerCode: superInitializingDeclaringParameter
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class S(var x);
+    class C(var super.x) extends S;

@@ -10,6 +10,7 @@ import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
 _dart_root = get_path_info("../..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 if (dart_dynamic_modules) {
   _kernel_service_script = "pkg/dart2bytecode/bin/kernel_service.dart"
@@ -88,101 +89,54 @@ aot_snapshot("frontend_server_aot_product") {
 }
 
 template("kernel_service_dill") {
-  if (precompile_tools) {
-    action("kernel_service" + target_name + "_dill") {
-      if (defined(invoker.pool)) {
-        pool = invoker.pool
-      }
-
-      gen_kernel_tool = "//utils:gen_kernel.exe($host_toolchain)"
-      kernel_service_script = "../../$_kernel_service_script"
-
-      deps = [
-        "../../runtime/vm:vm_platform",
-        gen_kernel_tool,
-      ]
-      inputs = [
-        kernel_service_script,
-        "$root_out_dir/vm_platform.dill",
-      ]
-      output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
-      outputs = [ output ]
-      depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
-
-      scheme = "org-dartlang-kernel-service"
-
-      script = "$_dart_root/build/gn_run_binary.py"
-      args = [
-        "compiled_action",
-        rebase_path(
-            get_label_info(gen_kernel_tool, "root_out_dir") + "/gen_kernel.exe",
-            root_build_dir),
-      ]
-      args += invoker.extra_args
-      args += [
-        "--depfile=" + rebase_path(depfile, root_build_dir),
-
-        # Ensure the compiled kernel-service will use this SDK hash when
-        # consuming/producing kernel.
-        "-Dsdk_hash=$sdk_hash",
-        "--packages=" + scheme + ":///.dart_tool/package_config.json",
-        "--platform=" +
-            rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
-        "--filesystem-root=" + rebase_path("../../"),
-        "--filesystem-scheme=" + scheme,
-        "--no-aot",
-        "--no-embed-sources",
-        "--output=" + rebase_path(output, root_build_dir),
-        scheme + ":///$_kernel_service_script",
-      ]
+  action("kernel_service" + target_name + "_dill") {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    } else if (_is_dart) {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+    } else {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
-  } else {
-    prebuilt_dart_action("kernel_service" + target_name + "_dill") {
-      deps = [
-        "../../runtime/vm:kernel_platform_files($host_toolchain)",
-        "../../runtime/vm:vm_platform",
-      ]
-      kernel_service_script = "../../$_kernel_service_script"
-      gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
 
-      inputs = [
-        gen_kernel_script,
-        kernel_service_script,
-        "$root_out_dir/vm_platform.dill",
-      ]
-      output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
-      outputs = [ output ]
+    gen_kernel_tool =
+        "$_dart_root/utils:bootstrap_gen_kernel.exe($host_toolchain)"
+    kernel_service_script = "../../$_kernel_service_script"
 
-      depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
+    deps = [
+      "../../runtime/vm:vm_platform",
+      gen_kernel_tool,
+    ]
+    inputs = [
+      kernel_service_script,
+      "$root_out_dir/vm_platform.dill",
+    ]
+    output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
+    outputs = [ output ]
+    depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
 
-      vm_args = [
-        "--depfile=" + rebase_path(depfile, root_build_dir),
-        "--depfile_output_filename=" + rebase_path(output, root_build_dir),
+    scheme = "org-dartlang-kernel-service"
 
-        # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
-        # kernel.
-        "-Dsdk_hash=$sdk_hash",
-      ]
+    script = "$_dart_root/build/gn_run_binary.py"
+    args = [ rebase_path(get_label_info(gen_kernel_tool, "root_out_dir") +
+                             "/bootstrap_gen_kernel.exe",
+                         root_build_dir) ]
+    args += invoker.extra_args
+    args += [
+      "--depfile=" + rebase_path(depfile, root_build_dir),
 
-      script = gen_kernel_script
-      scheme = "org-dartlang-kernel-service"
-
-      args = invoker.extra_args + [
-               # Ensure the compiled kernel-service will use this SDK hash when
-               # consuming/producing kernel.
-               "-Dsdk_hash=$sdk_hash",
-
-               "--packages=" + scheme + ":///.dart_tool/package_config.json",
-               "--platform=" + rebase_path("$root_out_dir/vm_platform.dill",
-                                           root_build_dir),
-               "--filesystem-root=" + rebase_path("../../", root_build_dir),
-               "--filesystem-scheme=" + scheme,
-               "--no-aot",
-               "--no-embed-sources",
-               "--output=" + rebase_path(output, root_build_dir),
-             ]
-      args += [ scheme + ":///$_kernel_service_script" ]
-    }
+      # Ensure the compiled kernel-service will use this SDK hash when
+      # consuming/producing kernel.
+      "-Dsdk_hash=$sdk_hash",
+      "--packages=" + scheme + ":///.dart_tool/package_config.json",
+      "--platform=" +
+          rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
+      "--filesystem-root=" + rebase_path("../../", root_build_dir),
+      "--filesystem-scheme=" + scheme,
+      "--no-aot",
+      "--no-embed-sources",
+      "--output=" + rebase_path(output, root_build_dir),
+      scheme + ":///$_kernel_service_script",
+    ]
   }
 }
 

@@ -59,16 +59,17 @@ void buildTypeParametersAndFormals(
   if (declaredFormals != null) {
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
-      Variable parameter = formal.build(libraryBuilder).astVariable;
+      FunctionParameter parameter = formal.build(libraryBuilder).astVariable;
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {
           parameter.isCovariantByClass = true;
         }
       }
-      if (formal.isNamed) {
-        function.namedParameters.add(parameter);
-      } else {
-        function.positionalParameters.add(parameter);
+      switch (parameter) {
+        case PositionalParameter():
+          function.positionalParameters.add(parameter);
+        case NamedParameter():
+          function.namedParameters.add(parameter);
       }
       parameter.parent = function;
       if (formal.isRequiredPositional) {
@@ -76,7 +77,7 @@ void buildTypeParametersAndFormals(
       }
 
       // Required named parameters can't have default values.
-      if (formal.isRequiredNamed && formal.hasDeclaredInitializer) {
+      if (formal.isRequiredNamed && formal.hasDeclaredDefaultValue) {
         libraryBuilder.addProblem(
           diag.requiredNamedParameterHasDefaultValueError.withArguments(
             parameterName: formal.name,

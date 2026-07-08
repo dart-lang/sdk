@@ -121,6 +121,7 @@ class DartFixPromptManager {
     var processor = BulkFixProcessor(
       server.instrumentationService,
       workspace,
+      byteStore: server.byteStore,
       cancellationToken: token,
     );
 

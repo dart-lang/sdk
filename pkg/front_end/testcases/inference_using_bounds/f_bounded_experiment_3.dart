@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A<X extends A<X, Y>, Y> {}
+
 class B extends A<B, String> {}
+
 class C extends B {}
 
 foo<T extends A<T, S>, S>(T t) {}

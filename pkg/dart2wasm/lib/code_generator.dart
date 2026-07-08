@@ -284,14 +284,14 @@ abstract class AstCodeGenerator
 
     void setupParamLocal(
       DartType variableTypeToCheck,
-      Variable variable,
+      FunctionParameter variable,
       int index,
       Constant? defaultValue,
       bool isRequired,
     ) {
       final localIndex = implicitParams + index;
       w.Local local = paramLocals[localIndex];
-      final variableName = variable.name;
+      final variableName = variable.cosmeticName;
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
@@ -309,14 +309,13 @@ abstract class AstCodeGenerator
         // the argument, but the wasm type may be of object type). So we first
         // have to handle sentinel before we can downcast the value.
         b.local_get(local);
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstantBackendUse(
           ParameterInfo.defaultValueSentinel,
           local.type,
         );
         b.ref_eq();
         b.if_();
-        translateExpression(variable.initializer!, local.type);
+        translateExpression(variable.defaultValue!, local.type);
         b.local_set(local);
         b.end();
       }
@@ -355,26 +354,17 @@ abstract class AstCodeGenerator
           }
           b.local_get(operand);
           _generateArgumentTypeCheck(
-            variable.name!,
+            variable.cosmeticName!,
             operand.type as w.RefType,
             variableTypeToCheck,
           );
         }
       }
-      if (!isForwarder && !variable.isFinal) {
-        // We now have a precise local that can contain the values passed by
-        // callers, but the body may assign less precise types to this variable,
-        // so we may introduce another local variable that is less precise.
-        // => Binaryen will simplify the above downcast and this upcast.
-        final variableType = translator.translateTypeOfLocalVariable(variable);
-        if (!variableType.isSubtypeOf(local.type)) {
-          w.Local newLocal = addLocal(variableType);
-          b.local_get(local);
-          translator.convertType(b, local.type, newLocal.type);
-          b.local_set(newLocal);
-          local = newLocal;
-        }
-      }
+      local = _upcastParameterLocalIfNeeded(
+        variable,
+        local,
+        isForwarder: isForwarder,
+      );
 
       locals[variable] = local;
     }
@@ -396,8 +386,8 @@ abstract class AstCodeGenerator
       setupParamLocal(
         typeToCheck,
         param,
-        paramInfo.nameIndex[param.name]!,
-        paramInfo.named[param.name],
+        paramInfo.nameIndex[param.parameterName]!,
+        paramInfo.named[param.parameterName],
         param.isRequired,
       );
     }
@@ -412,7 +402,7 @@ abstract class AstCodeGenerator
               parameterType.classNode == translator.wasmExternRefClass)) {
         w.Local newLocal = addLocal(
           translateType(parameterType),
-          name: parameter.name,
+          name: parameter.cosmeticName,
         );
         b.local_get(local);
         translator.convertType(b, local.type, newLocal.type);
@@ -481,15 +471,40 @@ abstract class AstCodeGenerator
     for (TypeParameter typeParam in functionNode.typeParameters) {
       typeLocals[typeParam] = paramLocals[paramIndex++];
     }
-    for (Variable param in functionNode.positionalParameters) {
+    for (PositionalParameter param in functionNode.positionalParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
-    for (Variable param in functionNode.namedParameters) {
+    for (NamedParameter param in functionNode.namedParameters) {
       locals[param] = paramLocals[paramIndex++];
     }
 
     allocateContext(functionNode);
     captureParameters(functionNode);
+  }
+
+  w.Local _upcastParameterLocalIfNeeded(
+    Variable variable,
+    w.Local local, {
+    required bool isForwarder,
+  }) {
+    if (isForwarder || variable.isFinal) {
+      // The [variable]s [local] will never be written to.
+      return local;
+    }
+
+    // We now have a precise local that can contain the values passed by
+    // callers, but the body may assign less precise types to this variable,
+    // so we may introduce another local variable that is less precise.
+    // => Binaryen will simplify the above downcast and this upcast.
+    final variableType = translator.translateTypeOfLocalVariable(variable);
+    if (!variableType.isSubtypeOf(local.type)) {
+      w.Local newLocal = addLocal(variableType);
+      b.local_get(local);
+      translator.convertType(b, local.type, newLocal.type);
+      b.local_set(newLocal);
+      return newLocal;
+    }
+    return local;
   }
 
   /// Initialize locals containing `this` in constructors and instance members.
@@ -778,7 +793,7 @@ abstract class AstCodeGenerator
     if (capture == null || !capture.written) {
       // Variable is not captured, or never updated after initialization. Keep
       // the value in a local.
-      local = addLocal(type, name: node.name);
+      local = addLocal(type, name: node.cosmeticName);
       locals[node] = local;
     }
 
@@ -831,7 +846,7 @@ abstract class AstCodeGenerator
     if (capture == null || !capture.written) {
       // Variable is not captured, or never updated after initialization. Keep
       // the value in a local.
-      local = addLocal(type, name: node.name);
+      local = addLocal(type, name: node.cosmeticName);
       locals[node] = local;
     }
 
@@ -867,7 +882,7 @@ abstract class AstCodeGenerator
       final Location? location = node.location;
       final w.RefType stringRefType = translator.stringTypeNullable;
       if (location != null) {
-        instantiateConstant(
+        instantiateConstantBackendUse(
           StringConstant(location.file.toString()),
           stringRefType,
         );
@@ -879,7 +894,10 @@ abstract class AstCodeGenerator
           node.conditionStartOffset,
           node.conditionEndOffset,
         );
-        instantiateConstant(StringConstant(conditionString), stringRefType);
+        instantiateConstantBackendUse(
+          StringConstant(conditionString),
+          stringRefType,
+        );
       } else {
         b.ref_null(stringRefType.heapType);
         b.i64_const(0);
@@ -1487,6 +1505,7 @@ abstract class AstCodeGenerator
             switchInfo.compare(
               switchValueNonNullableLocal,
               () => translateExpression(exp, switchInfo.nonNullableType),
+              exp,
             );
             b.br_if(switchLabels[c]!);
           }
@@ -2720,7 +2739,7 @@ abstract class AstCodeGenerator
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
-    b.comment("Local call of ${decl.variable.name}");
+    b.comment("Local call of ${decl.variable.cosmeticName}");
     return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
@@ -2849,7 +2868,7 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      instantiateConstant(paramInfo.positional[i]!, type);
+      instantiateConstantBackendUse(paramInfo.positional[i]!, type);
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2872,7 +2891,7 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        instantiateConstant(paramInfo.named[name]!, type);
+        instantiateConstantBackendUse(paramInfo.named[name]!, type);
       }
     }
   }
@@ -3164,7 +3183,6 @@ abstract class AstCodeGenerator
     translateExpression(node.operand, boxedOperandType);
     return types.emitAsCheck(
       this,
-      node.isCovarianceCheck,
       node.type,
       operandType,
       boxedOperandType,
@@ -3295,7 +3313,6 @@ abstract class AstCodeGenerator
       // the optimized `as` checks.
       types.emitAsCheck(
         this,
-        false,
         testedAgainstType,
         translator.coreTypes.objectNullableRawType,
         argumentType,
@@ -3374,8 +3391,7 @@ abstract class AstCodeGenerator
     final printFunction = translator.functions.getFunction(
       translator.printToConsole.reference,
     );
-    translator.constants.instantiateConstant(
-      b,
+    instantiateConstantBackendUse(
       StringConstant(s),
       printFunction.type.inputs[0],
     );
@@ -3403,8 +3419,7 @@ abstract class AstCodeGenerator
     } else {
       b.ref_null(w.HeapType.none);
     }
-    translator.constants.instantiateConstant(
-      b,
+    instantiateConstantBackendUse(
       translator.symbols.methodSymbolFromName(member.name),
       translator.classInfo[translator.symbolClass]!.nonNullableType,
     );
@@ -3422,6 +3437,25 @@ abstract class AstCodeGenerator
       constant,
       expectedType,
       deferredModuleGuard: translator.moduleForConstant(constant),
+    );
+  }
+
+  /// Instantiates [constant] in place only known to the backend.
+  ///
+  /// If the backend / code generator uses a constant in a way that's not
+  /// encoded in the AST, then such a use wouldn't be known to the algorithm
+  /// that partitions the app into deferred modules.
+  ///
+  /// It should therefore not use a `deferredModuleGuard`.
+  void instantiateConstantBackendUse(
+    Constant constant,
+    w.ValueType expectedType,
+  ) {
+    translator.constants.instantiateConstant(
+      b,
+      constant,
+      expectedType,
+      deferredModuleGuard: null,
     );
   }
 }
@@ -3672,17 +3706,12 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
       typeLocals[typeParameter] = paramLocals[param++];
     }
     void setupParameter(Variable parameter) {
-      // The body may assign less precise types to the parameter variable than
-      // what the caller provides.
       w.Local local = paramLocals[param++];
-      if (translator.typeOfCheckedParameterVariable(parameter) !=
-          parameter.type) {
-        final newLocal = addLocal(translator.translateType(parameter.type));
-        b.local_get(local);
-        translator.convertType(b, local.type, newLocal.type);
-        b.local_set(newLocal);
-        local = newLocal;
-      }
+      local = _upcastParameterLocalIfNeeded(
+        parameter,
+        local,
+        isForwarder: false,
+      );
       locals[parameter] = local;
     }
 
@@ -3906,7 +3935,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
           final param = targetPositionalParams[i];
           b.local_get(paramValue);
           _generateArgumentTypeCheck(
-            param.name!,
+            param.cosmeticName!,
             translator.topType,
             param.type,
           );
@@ -3915,7 +3944,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       } else {
         // Default to use if the callee has the `i` parameter.
         final defaultFunctionValue = i < targetPositionalParams.length
-            ? (targetPositionalParams[i].initializer as ConstantExpression?)
+            ? (targetPositionalParams[i].defaultValue as ConstantExpression?)
                   ?.constant
             : null;
         // Default to use if callee doesn't have the `i` parameter.
@@ -3925,7 +3954,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = defaultFunctionValue ?? defaultValue!;
-        translator.constants.instantiateConstant(b, value, targetParamType);
+        instantiateConstantBackendUse(value, targetParamType);
       }
     }
 
@@ -3939,7 +3968,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
               i];
       final name = targetParamInfo.names[i];
       final namedParam = targetNamedParams.firstWhereOrNull(
-        (n) => n.name == name,
+        (n) => n.parameterName == name,
       );
       final callerIndex = callShape.named.indexOf(name);
       if (0 <= callerIndex) {
@@ -3958,7 +3987,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
       } else {
         // Default to use if callee has the `name` parameter.
         final defaultFunctionValue =
-            (namedParam?.initializer as ConstantExpression?)?.constant;
+            (namedParam?.defaultValue as ConstantExpression?)?.constant;
         // Default to use if callee doesn't have `name` parameter.
         final defaultValue = targetParamInfo.named[name];
         // The target wasm function corresponding to an instance method may have
@@ -3966,7 +3995,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        translator.constants.instantiateConstant(b, value, targetParamType);
+        instantiateConstantBackendUse(value, targetParamType);
       }
     }
 
@@ -4190,19 +4219,25 @@ abstract class ConstructorCodeGeneratorBase extends AstCodeGenerator {
   int _setupConstructorParameters(
     List<TypeParameter> typeParameters,
     List<Variable> parameters,
-    int parameterOffset,
-  ) {
+    int parameterOffset, {
+    bool isForwarder = false,
+  }) {
     for (int i = 0; i < typeParameters.length; i++) {
       typeLocals[typeParameters[i]] = paramLocals[parameterOffset++];
     }
 
     for (int i = 0; i < parameters.length; i++) {
       final variable = parameters[i];
-      final local = paramLocals[parameterOffset++];
-      final variableName = variable.name;
+      w.Local local = paramLocals[parameterOffset++];
+      final variableName = variable.cosmeticName;
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
+      local = _upcastParameterLocalIfNeeded(
+        variable,
+        local,
+        isForwarder: isForwarder,
+      );
       locals[variable] = local;
     }
     return parameterOffset;
@@ -4606,6 +4641,7 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
       member.enclosingClass.typeParameters,
       constructorInfo.allParameters,
       parameterOffset,
+      isForwarder: true,
     );
 
     w.FunctionType initializerMethodType = translator.signatureForDirectCall(
@@ -4792,10 +4828,15 @@ class ConstructorBodyCodeGenerator extends ConstructorCodeGeneratorBase {
       if (!locals.containsKey(variable)) {
         final fieldIndex = translator.fieldIndex[field]!;
         final wasmType = translator.translateTypeOfField(field);
-        final local = addLocal(wasmType);
+        w.Local local = addLocal(wasmType);
         b.local_get(preciseThisLocal!);
         b.struct_get(classInfo.struct, fieldIndex);
         b.local_set(local);
+        local = _upcastParameterLocalIfNeeded(
+          variable,
+          local,
+          isForwarder: false,
+        );
         locals[variable] = local;
       }
     });
@@ -5170,6 +5211,7 @@ class SwitchInfo {
   late final void Function(
     w.Local switchExprLocal,
     w.ValueType Function() pushCaseExpr,
+    Expression caseExpr,
   )
   compare;
 
@@ -5206,25 +5248,49 @@ class SwitchInfo {
                       e.constant is NullConstant)),
         );
 
+    bool isEqualityPrimitive(Expression e) =>
+        e is ConstantExpression &&
+            (e.constant is StringConstant || e.constant is SymbolConstant) ||
+        e is StringLiteral ||
+        e is SymbolLiteral;
+
     // Type objects should be compared using `==` rather than identity even
     // though the specification is not very clear about it. In language versions
     // >=3.0 CFE would desugar such switches to a sequence of `if` statements
     // using `==`, but for language versions <3.0 it would simply emit
     // `SwitchStatement` and expect back-end to handle types specially if
     // required. See #60375 for more details.
-    bool canInvokeTypeEquality() =>
+    bool shouldUseEquality(Expression caseExpr) =>
         translator.typeEnvironment.isSubtypeOf(
-          switchExprType,
-          translator.coreTypes.typeNullableRawType,
+          codeGen.dartTypeOf(caseExpr),
+          translator.coreTypes.typeNonNullableRawType,
         ) ||
-        node.cases
-            .expand((c) => c.expressions)
-            .any(
-              (e) => translator.typeEnvironment.isSubtypeOf(
-                codeGen.dartTypeOf(e),
-                translator.coreTypes.typeNonNullableRawType,
-              ),
-            );
+        isEqualityPrimitive(caseExpr);
+
+    void addTopTypeCompare() {
+      compare = (switchExprLocal, pushCaseExpr, caseExpr) {
+        if (shouldUseEquality(caseExpr)) {
+          // Virtual call to `Object.==` for primitive types.
+          codeGen._virtualCall(
+            node,
+            translator.coreTypes.objectEquals,
+            _VirtualCallKind.Call,
+            (functionType) {
+              pushCaseExpr();
+            },
+            (functionType, paramInfo) {
+              codeGen.b.local_get(switchExprLocal);
+            },
+            useUncheckedEntry: false,
+          );
+        } else {
+          // Use `identical` for non-primitive types.
+          codeGen.b.local_get(switchExprLocal);
+          pushCaseExpr();
+          codeGen.call(translator.coreTypes.identicalProcedure.reference);
+        }
+      };
+    }
 
     if (node.cases.every(
       (c) =>
@@ -5238,26 +5304,8 @@ class SwitchInfo {
       // default-only switch
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
-      compare = (switchExprLocal, pushCaseExpr) =>
+      compare = (switchExprLocal, pushCaseExpr, _) =>
           throw "Comparison in default-only switch";
-    } else if (canInvokeTypeEquality()) {
-      nonNullableType = translator.runtimeTypeType;
-      nullableType = translator.runtimeTypeTypeNullable;
-      compare = (switchExprLocal, pushCaseExpr) {
-        // Virtual call to `Type.==`.
-        codeGen._virtualCall(
-          node,
-          translator.coreTypes.objectEquals,
-          _VirtualCallKind.Call,
-          (functionType) {
-            codeGen.b.local_get(switchExprLocal);
-          },
-          (functionType, paramInfo) {
-            pushCaseExpr();
-          },
-          useUncheckedEntry: false,
-        );
-      };
     } else if (switchExprType is DynamicType) {
       // Per spec, compare with `<case expr> == <switch expr>`. For performance,
       // if we know that the cases all have the same type, we call the case
@@ -5277,21 +5325,7 @@ class SwitchInfo {
       } else if (check<StringLiteral, StringConstant>()) {
         equalsMember = translator.stringImplEquals;
       } else {
-        compare = (switchExprLocal, pushCaseExpr) {
-          // Virtual call to `Object.==`.
-          codeGen._virtualCall(
-            node,
-            codeGen.translator.coreTypes.objectEquals,
-            _VirtualCallKind.Call,
-            (functionType) {
-              codeGen.b.local_get(switchExprLocal);
-            },
-            (functionType, paramInfo) {
-              pushCaseExpr();
-            },
-            useUncheckedEntry: false,
-          );
-        };
+        addTopTypeCompare();
         _initializeSpecialCases(node);
         return;
       }
@@ -5318,7 +5352,7 @@ class SwitchInfo {
         codeGen.b.drop();
       };
 
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         final caseExprType = pushCaseExpr();
         translator.convertType(
           codeGen.b,
@@ -5340,7 +5374,7 @@ class SwitchInfo {
       nonNullableType = w.NumType.i32;
       nullableType =
           translator.classInfo[translator.boxedBoolClass]!.nullableType;
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.b.i32_eq();
@@ -5384,7 +5418,7 @@ class SwitchInfo {
       }
 
       // Provide a compare as a fallback in case the range is too sparse.
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.b.i64_eq();
@@ -5393,7 +5427,7 @@ class SwitchInfo {
       // String switch
       nonNullableType = translator.stringType;
       nullableType = translator.stringTypeNullable;
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.call(translator.stringImplEquals.reference);
@@ -5458,7 +5492,7 @@ class SwitchInfo {
       }
 
       // Set compare anyway for state machine handling
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.call(translator.coreTypes.identicalProcedure.reference);
@@ -5467,11 +5501,7 @@ class SwitchInfo {
       // Object identity switch
       nonNullableType = translator.topTypeNonNullable;
       nullableType = translator.topType;
-      compare = (switchExprLocal, pushCaseExpr) {
-        codeGen.b.local_get(switchExprLocal);
-        pushCaseExpr();
-        codeGen.call(translator.coreTypes.identicalProcedure.reference);
-      };
+      addTopTypeCompare();
     }
 
     _initializeSpecialCases(node);

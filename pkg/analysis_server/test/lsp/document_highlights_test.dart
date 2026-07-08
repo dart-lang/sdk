@@ -104,7 +104,7 @@ void f(A a, B b) {
     );
   }
 
-  Future<void> test_constructor_secondary_className() async {
+  Future<void> test_constructor_inBody_className() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -122,7 +122,7 @@ void f() {
 
   /// The factory keyword is considered the constructor when there's no
   /// constructor name.
-  Future<void> test_constructor_secondary_factory() async {
+  Future<void> test_constructor_inBody_factory() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -141,7 +141,7 @@ void f() {
 
   /// No matches for factory keyword when there is a constructor name.
   Future<void>
-  test_constructor_secondary_factory_withoutType_named_keyword() async {
+  test_constructor_inBody_factory_withoutType_named_keyword() async {
     await _testMarkedContent('''
 class Aaa {
   new _();
@@ -155,8 +155,7 @@ void f() {
   }
 
   /// Names match names.
-  Future<void>
-  test_constructor_secondary_factory_withoutType_named_name() async {
+  Future<void> test_constructor_inBody_factory_withoutType_named_name() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -174,7 +173,7 @@ void f() {
 
   /// No matches for factory keyword when there is a type name because the type
   /// name is considered the constructor.
-  Future<void> test_constructor_secondary_factory_withType_keyword() async {
+  Future<void> test_constructor_inBody_factory_withType_keyword() async {
     await _testMarkedContent('''
 class Aaa {
   new _();
@@ -188,7 +187,7 @@ void f() {
   }
 
   /// Type names match type names for invocation/declaration.
-  Future<void> test_constructor_secondary_factory_withType_typeName() async {
+  Future<void> test_constructor_inBody_factory_withType_typeName() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -204,7 +203,7 @@ void f() {
     );
   }
 
-  Future<void> test_constructor_secondary_new() async {
+  Future<void> test_constructor_inBody_new() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -221,8 +220,7 @@ void f() {
   }
 
   /// No matches for new keyword when there is a constructor name.
-  Future<void>
-  test_constructor_secondary_new_withoutType_named_keyword() async {
+  Future<void> test_constructor_inBody_new_withoutType_named_keyword() async {
     await _testMarkedContent('''
 class Aaa {
   n^ew named();
@@ -236,7 +234,7 @@ void f() {
 
   /// When `new` is used as the constructor identifier, it's a match for
   /// constructor invocations.
-  Future<void> test_constructor_secondary_new_withType_keyword() async {
+  Future<void> test_constructor_inBody_new_withType_keyword() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -254,7 +252,7 @@ void f() {
 
   /// When `new` is used as the constructor identifier, the type name is a
   /// match for the type name.
-  Future<void> test_constructor_secondary_new_withType_typeName() async {
+  Future<void> test_constructor_inBody_new_withType_typeName() async {
     await _testMarkedContent(
       '''
 class /*[0*/Aaa/*0]*/ {
@@ -270,7 +268,7 @@ void f() {
     );
   }
 
-  Future<void> test_constructor_secondary_newNamed() async {
+  Future<void> test_constructor_inBody_newNamed() async {
     await _testMarkedContent(
       '''
 class Aaa {
@@ -544,20 +542,7 @@ void f(/*[1*/E/*1]*/ e) {}
     );
   }
 
-  Future<void> test_extensionType_constructor_primary() async {
-    await _testMarkedContent(
-      '''
-extension type E./*[0*/named/*0]*/(int it) {}
-
-void f() {
-  E./*[1*/named/*1]*/(0);
-}
-''',
-      kinds: {0: .Write, 1: .Read},
-    );
-  }
-
-  Future<void> test_extensionType_constructor_secondary() async {
+  Future<void> test_extensionType_constructor_inBody() async {
     await _testMarkedContent(
       '''
 extension type E(int it) {
@@ -566,6 +551,19 @@ extension type E(int it) {
 
 void f() {
   E./*[1*/named/*1]*/();
+}
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
+  }
+
+  Future<void> test_extensionType_constructor_primary() async {
+    await _testMarkedContent(
+      '''
+extension type E./*[0*/named/*0]*/(int it) {}
+
+void f() {
+  E./*[1*/named/*1]*/(0);
 }
 ''',
       kinds: {0: .Write, 1: .Read},
@@ -2080,8 +2078,7 @@ void f() {
       expect(
         (allOfKind != null) != (kinds != null),
         isTrue,
-        reason:
-            "Exactly one of 'allOfKind' or 'kinds' must be provided if there are ranges",
+        reason: "Exactly one of 'allOfKind' or 'kinds' must be provided if there are ranges",
       );
 
       if (kinds != null && kinds.isNotEmpty) {

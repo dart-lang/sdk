@@ -156,10 +156,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           }
         }
 
-        builder.write(_targetClass.namePart.typeName.lexeme);
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+          if (constructorName != null && constructorName != 'new') {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
+        } else {
+          builder.write(_targetClass.namePart.typeName.lexeme);
+          if (constructorName != null && constructorName != 'new') {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
         writeParameters(true);
@@ -171,7 +179,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         builder.write('(');
         writeParameters(false);
         builder.write(');');
-      });
+      }, isNamed: constructorName != null && constructorName != 'new');
     });
   }
 
@@ -202,10 +210,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write(parameterName);
         }
 
-        builder.write(_targetClass.namePart.typeName.lexeme);
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+        if (isEnabled(Feature.primary_constructors)) {
+          builder.write('new');
+          if (constructorName != null && constructorName != 'new') {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
+        } else {
+          builder.write(_targetClass.namePart.typeName.lexeme);
+          if (constructorName != null && constructorName != 'new') {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
 
@@ -239,7 +255,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write('(');
         }
         builder.write(');');
-      });
+      }, isNamed: constructorName != null && constructorName != 'new');
     });
   }
 }

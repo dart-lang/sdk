@@ -20,8 +20,8 @@ method3d<T extends (int, String), S extends T>(S t) => t.a; // Error
 void method1<T>(T t) {
   if (t is (int, String)) t.$1; // Ok
   if (t is (int, String)) t.$2; // Ok
-  if (t is (int, String))  t.$3; // Error
-  if (t is (int, String))  t.a; // Error
+  if (t is (int, String)) t.$3; // Error
+  if (t is (int, String)) t.a; // Error
 
   if (t is (int, {String a})) t.$1; // Ok
   if (t is (int, {String a})) t.a; // Ok
@@ -32,8 +32,8 @@ void method1<T>(T t) {
 void method2(Object t) {
   if (t is (int, String)) t.$1; // Ok
   if (t is (int, String)) t.$2; // Ok
-  if (t is (int, String))  t.$3; // Error
-  if (t is (int, String))  t.a; // Error
+  if (t is (int, String)) t.$3; // Error
+  if (t is (int, String)) t.a; // Error
 
   if (t is (int, {String a})) t.$1; // Ok
   if (t is (int, {String a})) t.a; // Ok

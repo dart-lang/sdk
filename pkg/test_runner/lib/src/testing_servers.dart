@@ -133,7 +133,7 @@ class TestingServers {
     int port = 0,
     int crossOriginPort = 0,
   }) async {
-    _packageConfig = await loadPackageConfigUri(_packages);
+    _packageConfig = await loadPackageConfigUri(Uri.base.resolveUri(_packages));
 
     _server = await _startHttpServer(host, port: port);
     await _startHttpServer(

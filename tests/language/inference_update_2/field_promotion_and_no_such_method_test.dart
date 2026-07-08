@@ -107,6 +107,7 @@ class I {
 enum J implements I {
   j1,
   j2;
+
   // Implicitly implements _f6 as a getter that forwards to noSuchMethod
 
   @override

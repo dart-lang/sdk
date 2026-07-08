@@ -279,12 +279,7 @@ List<Combinator>? toCombinators(List<CombinatorBuilder>? combinatorBuilders) {
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
-final CombinatorBuilder dummyCombinator = new CombinatorBuilder(
-  false,
-  {},
-  -1,
-  dummyUri,
-);
+final CombinatorBuilder dummyCombinator = new CombinatorBuilder(false, {});
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
   dummyToken,
   dummyUri,
@@ -302,7 +297,16 @@ final CatchParameterBuilder dummyCatchParameterBuilder =
       fileOffset: -1,
       nameOffset: null,
       fileUri: dummyUri,
-      isClosureContextLoweringEnabled: false,
+    );
+final AnonymousMethodParameterBuilder dummyAnonymousMethodParameterBuilder =
+    new AnonymousMethodParameterBuilder(
+      modifiers: Modifiers.empty,
+      type: const ImplicitTypeBuilder(),
+      name: '',
+      fileOffset: -1,
+      nameOffset: null,
+      fileUri: dummyUri,
+      kind: FormalParameterKind.requiredPositional,
     );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
@@ -313,8 +317,7 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       fileOffset: -1,
       nameOffset: null,
       fileUri: dummyUri,
-      hasImmediatelyDeclaredInitializer: false,
-      isClosureContextLoweringEnabled: false,
+      hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(

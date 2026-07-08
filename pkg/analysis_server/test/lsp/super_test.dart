@@ -472,6 +472,38 @@ class C extends B {
     );
   }
 
+  Future<void> test_primaryConstructor_body_toInBody() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  [!A!]();
+}
+
+class B() extends A {
+  this {
+    ^
+  }
+}
+'''),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body_toInBody_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  A.[!named!]();
+}
+
+class B() extends A {
+  this : super.named() {
+    ^
+  }
+}
+'''),
+    );
+  }
+
   Future<void> test_primaryConstructor_body_toPrimary_named() async {
     await verifyGoToSuper(
       TestCode.parse('''
@@ -509,38 +541,6 @@ class [!A!]();
 
 class B() extends A {
   this {
-    ^
-  }
-}
-'''),
-    );
-  }
-
-  Future<void> test_primaryConstructor_body_toSecondary() async {
-    await verifyGoToSuper(
-      TestCode.parse('''
-class A {
-  [!A!]();
-}
-
-class B() extends A {
-  this {
-    ^
-  }
-}
-'''),
-    );
-  }
-
-  Future<void> test_primaryConstructor_body_toSecondary_named() async {
-    await verifyGoToSuper(
-      TestCode.parse('''
-class A {
-  A.[!named!]();
-}
-
-class B() extends A {
-  this : super.named() {
     ^
   }
 }
@@ -610,6 +610,20 @@ class B^.named() extends A {}
     );
   }
 
+  Future<void> test_primaryConstructor_declaration_toInBody_named() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A {
+  A.[!named!]();
+}
+
+class B(^) extends A {
+  this : super.named();
+}
+'''),
+    );
+  }
+
   Future<void> test_primaryConstructor_declaration_toPrimary_named() async {
     await verifyGoToSuper(
       TestCode.parse('''
@@ -641,20 +655,6 @@ class B^() extends A;
 class [!A!]();
 
 class B^() extends A;
-'''),
-    );
-  }
-
-  Future<void> test_primaryConstructor_declaration_toSecondary_named() async {
-    await verifyGoToSuper(
-      TestCode.parse('''
-class A {
-  A.[!named!]();
-}
-
-class B(^) extends A {
-  this : super.named();
-}
 '''),
     );
   }

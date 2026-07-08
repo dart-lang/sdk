@@ -109,9 +109,8 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
-DART_EXPORT uint8_t IsThreadInGenerated() {
-  return Dart_ExecuteInternalCommand("is-thread-in-generated", nullptr) !=
-                 nullptr
+DART_EXPORT uint8_t IsThreadInNative() {
+  return Dart_ExecuteInternalCommand("is-thread-in-native", nullptr) != nullptr
              ? 1
              : 0;
 }
@@ -1299,8 +1298,8 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   if (strcmp(name, "Dart_SetNativeInstanceField") == 0 && args_n == 3) {
     return reinterpret_cast<void*>(Dart_SetNativeInstanceField);
   }
-  if (strcmp(name, "IsThreadInGenerated") == 0 && args_n == 0) {
-    return reinterpret_cast<void*>(IsThreadInGenerated);
+  if (strcmp(name, "IsThreadInNative") == 0 && args_n == 0) {
+    return reinterpret_cast<void*>(IsThreadInNative);
   }
   if (strcmp(name, "ReturnIntPtr") == 0 && args_n == 1) {
     return reinterpret_cast<void*>(ReturnIntPtr);

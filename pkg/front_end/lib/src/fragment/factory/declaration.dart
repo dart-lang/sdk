@@ -338,7 +338,7 @@ class FactoryDeclarationImpl
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -374,7 +374,7 @@ class FactoryDeclarationImpl
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     _encoding.registerFunctionBody(
       body: body,
@@ -417,14 +417,14 @@ abstract class FactoryFragmentDeclaration {
   ///
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 
   DartType get returnTypeContext;

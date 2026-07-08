@@ -63,9 +63,8 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisUpdateContentParams({
-        'test.dart': AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({'test.dart': AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     expect(
       response,
@@ -176,9 +175,8 @@ void g() {
 
     // Add `b.dart` overlay, analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        b.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({b.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     expect(filesErrors[a], isEmpty);
@@ -186,9 +184,8 @@ void g() {
 
     // Add `b.dart` overlay, analyzed.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        b.path: RemoveContentOverlay(),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({b.path: RemoveContentOverlay()})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     expect(filesErrors[a], isEmpty);

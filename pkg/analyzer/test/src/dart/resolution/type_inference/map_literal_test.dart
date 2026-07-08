@@ -41,6 +41,136 @@ Map<int, int> a = {1 : 2};
     assertType(result.findNode.setOrMapLiteral('{'), 'Map<int, int>');
   }
 
+  test_context_noTypeArgs_expression() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>() => throw 0;
+
+Map<String, int> a = {f()};
+//                    ^^^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
+
+    var node = result.findNode.singleSetOrMapLiteral;
+    assertResolvedNodeText(node, r'''
+SetOrMapLiteral
+  leftBracket: {
+  elements
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+        element: <testLibrary>::@function::f
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: String Function()
+      staticType: String
+      typeArgumentTypes
+        String
+  rightBracket: }
+  isMap: true
+  staticType: Map<String, int>
+''');
+  }
+
+  test_context_noTypeArgs_expression_dotShorthand() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E { one }
+
+Map<E, String> a = {.one};
+//                  ^^^^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
+
+    var node = result.findNode.singleSetOrMapLiteral;
+    assertResolvedNodeText(node, r'''
+SetOrMapLiteral
+  leftBracket: {
+  elements
+    DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: one
+        element: <testLibrary>::@enum::E::@getter::one
+        staticType: E
+      isDotShorthand: true
+      staticType: E
+  rightBracket: }
+  isMap: true
+  staticType: Map<E, String>
+''');
+  }
+
+  test_context_noTypeArgs_expression_dotShorthand_missingIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E { one }
+
+Map<E, String> a = {.};
+//                  ^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+//                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.dotShorthandUndefinedGetter][column 22][length 0] The static getter '' isn't defined for the context type 'E'.
+''');
+
+    var node = result.findNode.singleSetOrMapLiteral;
+    assertResolvedNodeText(node, r'''
+SetOrMapLiteral
+  leftBracket: {
+  elements
+    DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: <empty> <synthetic>
+        element: <null>
+        staticType: InvalidType
+      isDotShorthand: true
+      staticType: InvalidType
+  rightBracket: }
+  isMap: true
+  staticType: Map<E, String>
+''');
+  }
+
+  test_context_noTypeArgs_if_expression() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>() => throw 0;
+
+Map<String, int> a = {if (true) f()};
+//                              ^^^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
+
+    var node = result.findNode.singleSetOrMapLiteral;
+    assertResolvedNodeText(node, r'''
+SetOrMapLiteral
+  leftBracket: {
+  elements
+    IfElement
+      ifKeyword: if
+      leftParenthesis: (
+      expression: BooleanLiteral
+        literal: true
+        staticType: bool
+      rightParenthesis: )
+      thenElement: MethodInvocation
+        methodName: SimpleIdentifier
+          token: f
+          element: <testLibrary>::@function::f
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: String Function()
+        staticType: String
+        typeArgumentTypes
+          String
+  rightBracket: }
+  isMap: true
+  staticType: Map<String, int>
+''');
+  }
+
   test_context_noTypeArgs_noElements_futureOr() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
@@ -127,7 +257,7 @@ MethodInvocation
     arguments
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::t
           substitution: {T: Map<int, double>?}
         staticType: Null

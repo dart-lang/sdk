@@ -21,7 +21,7 @@ class UnnecessaryUnawaitedTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_unawaited;
 
   test_binaryOperator_annotated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {
@@ -47,7 +47,7 @@ class C {
   }
 
   test_function_annotated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f() {
@@ -69,7 +69,7 @@ Future<void> f2() => Future.value();
   }
 
   test_method_annotated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {
@@ -95,7 +95,7 @@ class C {
   }
 
   test_topLevelVariable_annotated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f() {
@@ -117,7 +117,7 @@ Future<void> f2 = Future.value();
   }
 
   test_unaryOperator_annotated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 import 'package:meta/meta.dart';
 void f(C c) {

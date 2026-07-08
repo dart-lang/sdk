@@ -22,14 +22,14 @@ List<LocatedMessage> verifyComponent(
   CfeVerificationErrorListener listener = new CfeVerificationErrorListener(
     context,
   );
-  VerifyingVisitor verifier = new VerifyingVisitor(
+  VerifyingVisitor.check(
     context.options.target,
     stage,
+    component,
     skipPlatform: skipPlatform,
     librarySkipFilter: librarySkipFilter,
     listener: listener,
   );
-  component.accept(verifier);
   return listener.errors;
 }
 
@@ -78,12 +78,27 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
   }
 }
 
-void verifyGetStaticType(
+List<LocatedMessage> verifyGetStaticType(
   TypeEnvironment env,
   Component component, {
   bool skipPlatform = false,
 }) {
-  component.accept(new CfeVerifyGetStaticType(env, skipPlatform));
+  CfeVerifyGetStaticType visitor = new CfeVerifyGetStaticType(
+    env,
+    skipPlatform,
+  );
+  component.accept(visitor);
+  return [
+    for (StaticTypeError error in visitor.errors)
+      // Coverage-ignore(suite): Not run.
+      diag.internalProblemVerificationError
+          .withArguments(details: error.message)
+          .withLocation(
+            error.context.location!.file,
+            error.context.fileOffset,
+            noLength,
+          ),
+  ];
 }
 
 class CfeVerifyGetStaticType extends VerifyGetStaticType {

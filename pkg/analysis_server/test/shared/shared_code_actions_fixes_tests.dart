@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
@@ -193,7 +194,7 @@ Future foo;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
-      title: 'Remove unused import',
+      title: DartFixKind.removeUnusedImport.message,
     );
   }
 
@@ -217,7 +218,7 @@ Future foo;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
-      title: 'Remove unused import',
+      title: DartFixKind.removeUnusedImport.message,
     );
   }
 
@@ -234,7 +235,7 @@ void f(String a) => print(a);
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
     );
   }
 
@@ -253,7 +254,7 @@ void f(String a) => print(a);
       content,
       expectedContent,
       command: Commands.applyCodeAction,
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
     );
   }
 
@@ -315,7 +316,7 @@ void f(String a) {
     var action = await expectCodeActionLiteral(
       content,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
 
     await executeCommand(action.command!);
@@ -354,7 +355,7 @@ void f(String a) {
     await expectNoAction(
       content,
       kind: CodeActionKind('quickfix'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
   }
 
@@ -410,7 +411,7 @@ void f(String a) {
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
-      title: "Remove '!'s in file",
+      title: DartFixKind.removeNonNullAssertionMulti.message,
     );
   }
 
@@ -583,7 +584,7 @@ void f() {
     );
     var removeNnaAction = findCodeActionLiteral(
       codeActions,
-      title: "Remove the '!'",
+      title: DartFixKind.removeNonNullAssertion.message,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
     )!;
 
@@ -667,7 +668,7 @@ ProcessInfo b;
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.organize.imports'),
-      title: 'Organize Imports',
+      title: DartFixKind.organizeImports.message,
     );
   }
 
@@ -719,7 +720,7 @@ name: class^
   }
 
   Future<void> test_snippets() async {
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
 
     const content = '''
 abstract class A {
@@ -767,7 +768,7 @@ class A {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -800,7 +801,7 @@ class B extends A {
 }
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -828,7 +829,7 @@ void f() {
 useFunction(int g(a, b)) {}
 ''';
 
-    setSnippetTextEditSupport();
+    setLegacySnippetTextEditSupport();
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -842,7 +843,7 @@ useFunction(int g(a, b)) {}
   /// workspace/applyEdit) so even if enabled, they should not be returned.
   Future<void> test_snippets_unsupportedForCommands() async {
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    setSnippetTextEditSupport(); // will be ignored
+    setLegacySnippetTextEditSupport(); // will be ignored
 
     const content = '''
 abstract class A {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -283,19 +282,18 @@ class A {
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
+  @SkippedTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_asExpression() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 final f = v as Object;
+//        ^
+// [diag.assignmentOfDoNotStore] 'v' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
 
 @doNotStore
 String get v => '';
-''',
-      [error(diag.assignmentOfDoNotStore, 44, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_assignment_field() async {
@@ -369,19 +367,18 @@ class A {
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
+  @SkippedTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_cascadeExpression_target() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 final f = v..runtimeType;
+//        ^
+// [diag.assignmentOfDoNotStore] 'v' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
 
 @doNotStore
 String get v => '';
-''',
-      [error(diag.assignmentOfDoNotStore, 44, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_conditionalExpression() async {
@@ -401,21 +398,20 @@ String get v => '';
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
+  @SkippedTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_dotShorthandPropertyAccess() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 final A f = .v;
+//            ^
+// [diag.assignmentOfDoNotStore] 'v' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
 
 class A {
   @doNotStore
   static A get v => A();
 }
-''',
-      [error(diag.assignmentOfDoNotStore, 47, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_forElement() async {
@@ -531,19 +527,18 @@ String get v => '';
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
+  @SkippedTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_nullAssert() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 final f = v!;
+//        ^
+// [diag.assignmentOfDoNotStore] 'v' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
 
 @doNotStore
 String? get v => '';
-''',
-      [error(diag.assignmentOfDoNotStore, 44, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_nullAwareElement() async {
@@ -612,22 +607,21 @@ List<String> get v => [];
 ''');
   }
 
-  @FailingTest(reason: 'Not yet implemented')
+  @SkippedTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_switchExpression_caseBody() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 final f = switch (1 == 2) {
   true => v,
+//        ^
+// [diag.assignmentOfDoNotStore] 'v' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
   false => '',
 };
 
 @doNotStore
 String? get v => '';
-''',
-      [error(diag.assignmentOfDoNotStore, 72, 1)],
-    );
+''');
   }
 
   test_topLevelVariable_switchExpression_condition() async {

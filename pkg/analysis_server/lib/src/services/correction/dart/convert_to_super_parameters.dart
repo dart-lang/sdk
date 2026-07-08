@@ -316,7 +316,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   _ConstructorData? _findConstructor() {
     var node = this.node;
     if (node is ConstructorDeclaration) {
-      return _SecondaryConstructorData(node);
+      return _InBodyConstructorData(node);
     } else if (node is PrimaryConstructorDeclaration) {
       return _PrimaryConstructorData(node, node.body);
     } else if (node is PrimaryConstructorBody) {
@@ -332,13 +332,13 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorDeclaration) {
-        return _SecondaryConstructorData(parent);
+        return _InBodyConstructorData(parent);
       } else if (parent is PrimaryConstructorDeclaration) {
         return _PrimaryConstructorData(parent, parent.body);
       } else if (parent is ConstructorName) {
         var grandparent = parent.parent;
         if (grandparent is ConstructorDeclaration) {
-          return _SecondaryConstructorData(grandparent);
+          return _InBodyConstructorData(grandparent);
         }
       }
     }
@@ -480,6 +480,23 @@ abstract class _ConstructorData {
   }
 }
 
+/// Information about an in-body constructor.
+class _InBodyConstructorData extends _ConstructorData {
+  final ConstructorDeclaration declaration;
+
+  new(this.declaration);
+
+  @override
+  FunctionBody? get body => declaration.body;
+
+  @override
+  NodeList<ConstructorInitializer>? get initializers =>
+      declaration.initializers;
+
+  @override
+  FormalParameterList get parameters => declaration.parameters;
+}
+
 /// Information about a single parameter.
 class _Parameter {
   final FormalParameter parameter;
@@ -563,23 +580,6 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
       foundParameters.add(element);
     }
   }
-}
-
-/// Information about a secondary constructor.
-class _SecondaryConstructorData extends _ConstructorData {
-  final ConstructorDeclaration declaration;
-
-  new(this.declaration);
-
-  @override
-  FunctionBody? get body => declaration.body;
-
-  @override
-  NodeList<ConstructorInitializer>? get initializers =>
-      declaration.initializers;
-
-  @override
-  FormalParameterList get parameters => declaration.parameters;
 }
 
 /// Information about the ranges of text that need to be removed in order to

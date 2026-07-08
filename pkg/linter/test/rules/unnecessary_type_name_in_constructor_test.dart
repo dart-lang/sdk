@@ -18,7 +18,7 @@ class UnnecessaryTypeNameInConstructorTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_type_name_in_constructor;
 
   test_factory_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   factory [!C!].name() => C._();
   new _();
@@ -27,7 +27,7 @@ class C {
   }
 
   test_factory_unnamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   factory [!C!]() => C._();
   new _();
@@ -36,7 +36,7 @@ class C {
   }
 
   test_generative_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!C!].name();
 }
@@ -44,7 +44,7 @@ class C {
   }
 
   test_generative_unnamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!C!]();
 }
@@ -52,7 +52,7 @@ class C {
   }
 
   test_generative_unnamed_explicitNew() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!C!].new();
 }

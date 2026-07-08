@@ -11,9 +11,9 @@ const int bytecodeFormatVersion = 3;
 
 enum Opcode {
   kTrap,
-  kUnused00,
 
   // Prologue and stack management.
+  kDup,
   kEntry,
   kEntry_Wide,
   kEntryOptional,
@@ -780,6 +780,11 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kRecordCoverage: const Format(Encoding.kAE, const [
     Operand.imm,
     Operand.imm,
+    Operand.none,
+  ]),
+  Opcode.kDup: const Format(Encoding.k0, const [
+    Operand.none,
+    Operand.none,
     Operand.none,
   ]),
 };

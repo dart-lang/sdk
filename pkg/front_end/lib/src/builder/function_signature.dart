@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
-typedef ParameterInfo = ({DartType type, bool hasDeclaredInitializer});
+typedef ParameterInfo = ({DartType type, bool hasDeclaredDefaultValue});
 
 abstract class FunctionSignature {
   FunctionType get functionType;
@@ -28,10 +28,10 @@ class FunctionNodeSignature implements FunctionSignature {
   @override
   Map<String, ParameterInfo> get namedParameters {
     Map<String, ParameterInfo> map = {};
-    for (Variable formal in _function.namedParameters) {
-      map[formal.name!] = (
+    for (NamedParameter formal in _function.namedParameters) {
+      map[formal.parameterName] = (
         type: formal.type,
-        hasDeclaredInitializer: formal.hasDeclaredInitializer,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
       );
     }
     return map;
@@ -40,10 +40,10 @@ class FunctionNodeSignature implements FunctionSignature {
   @override
   List<ParameterInfo> get positionalParameters {
     List<ParameterInfo> list = [];
-    for (Variable formal in _function.positionalParameters) {
+    for (PositionalParameter formal in _function.positionalParameters) {
       list.add((
         type: formal.type,
-        hasDeclaredInitializer: formal.hasDeclaredInitializer,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
       ));
     }
     return list;

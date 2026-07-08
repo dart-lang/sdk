@@ -401,7 +401,7 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:25) (offset:32)
@@ -1010,7 +1010,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:42) (firstTokenOffset:37) (offset:42)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:42) (firstTokenOffset:37) (offset:42)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:46) (firstTokenOffset:44) (offset:46)
@@ -1763,11 +1763,11 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F3 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@getter::f
               inducingVariable: #F2
           setters
-            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+            #F4 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@setter::f
               inducingVariable: #F2
               formalParameters
@@ -2693,7 +2693,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:30) (firstTokenOffset:28) (offset:30)
@@ -2739,12 +2739,12 @@ library
             #F3 R (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E0 R
       functions
-        #F4 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+        #F4 isComplete isOriginDeclaration isStatic f1 (nameOffset:65) (firstTokenOffset:60) (offset:65)
           element: <testLibrary>::@function::f1
           formalParameters
             #F5 requiredPositional isOriginDeclaration a (nameOffset:71) (firstTokenOffset:68) (offset:71)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F6 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:82) (firstTokenOffset:77) (offset:82)
+        #F6 isComplete isOriginDeclaration isStatic f2 (nameOffset:82) (firstTokenOffset:77) (offset:82)
           element: <testLibrary>::@function::f2
           formalParameters
             #F7 requiredPositional isOriginDeclaration a (nameOffset:93) (firstTokenOffset:85) (offset:93)
@@ -2810,12 +2810,12 @@ library
             #F4 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
       functions
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:59) (firstTokenOffset:54) (offset:59)
+        #F5 isComplete isOriginDeclaration isStatic f1 (nameOffset:59) (firstTokenOffset:54) (offset:59)
           element: <testLibrary>::@function::f1
           formalParameters
             #F6 requiredPositional isOriginDeclaration a (nameOffset:65) (firstTokenOffset:62) (offset:65)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F7 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:76) (firstTokenOffset:71) (offset:76)
+        #F7 isComplete isOriginDeclaration isStatic f2 (nameOffset:76) (firstTokenOffset:71) (offset:76)
           element: <testLibrary>::@function::f2
           formalParameters
             #F8 requiredPositional isOriginDeclaration a (nameOffset:95) (firstTokenOffset:79) (offset:95)
@@ -2882,12 +2882,12 @@ library
             #F3 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
       functions
-        #F4 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:49) (firstTokenOffset:44) (offset:49)
+        #F4 isComplete isOriginDeclaration isStatic f1 (nameOffset:49) (firstTokenOffset:44) (offset:49)
           element: <testLibrary>::@function::f1
           formalParameters
             #F5 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:52) (offset:55)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F6 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:66) (firstTokenOffset:61) (offset:66)
+        #F6 isComplete isOriginDeclaration isStatic f2 (nameOffset:66) (firstTokenOffset:61) (offset:66)
           element: <testLibrary>::@function::f2
           formalParameters
             #F7 requiredPositional isOriginDeclaration a (nameOffset:77) (firstTokenOffset:69) (offset:77)
@@ -2949,7 +2949,7 @@ library
             #F3 U (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E1 U
       functions
-        #F4 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: <testLibrary>::@function::f
           formalParameters
             #F5 requiredPositional isOriginDeclaration a (nameOffset:48) (firstTokenOffset:33) (offset:48)
@@ -2999,7 +2999,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           typeParameters
             #F4 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
@@ -3049,7 +3049,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
@@ -3898,7 +3898,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   typeAliases
@@ -3967,7 +3967,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   typeAliases
@@ -4131,7 +4131,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int?}
   typeAliases
@@ -4254,7 +4254,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:30) (firstTokenOffset:28) (offset:30)
@@ -4294,7 +4294,7 @@ library
         #F1 A (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:38) (firstTokenOffset:33) (offset:38)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:40) (offset:42)
@@ -4332,7 +4332,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:22) (firstTokenOffset:17) (offset:22)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:22) (firstTokenOffset:17) (offset:22)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:26) (firstTokenOffset:24) (offset:26)
@@ -4370,7 +4370,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
@@ -4411,7 +4411,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:33) (firstTokenOffset:28) (offset:33)
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:33) (firstTokenOffset:28) (offset:33)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 requiredPositional isOriginDeclaration a (nameOffset:45) (firstTokenOffset:35) (offset:45)
@@ -4454,7 +4454,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:24) (firstTokenOffset:19) (offset:24)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:26) (offset:28)
@@ -4492,7 +4492,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:25) (firstTokenOffset:20) (offset:25)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:25) (firstTokenOffset:20) (offset:25)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:29) (firstTokenOffset:27) (offset:29)
@@ -4536,22 +4536,22 @@ library
         #F2 A2 (nameOffset:29) (firstTokenOffset:21) (offset:29)
           element: <testLibrary>::@typeAlias::A2
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:48) (firstTokenOffset:43) (offset:48)
           element: <testLibrary>::@function::f1
           formalParameters
             #F4 requiredPositional isOriginDeclaration a (nameOffset:54) (firstTokenOffset:51) (offset:54)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:65) (firstTokenOffset:60) (offset:65)
           element: <testLibrary>::@function::f2
           formalParameters
             #F6 requiredPositional isOriginDeclaration a (nameOffset:72) (firstTokenOffset:68) (offset:72)
               element: <testLibrary>::@function::f2::@formalParameter::a
-        #F7 isCompleteDeclaration isOriginDeclaration isStatic f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
+        #F7 isComplete isOriginDeclaration isStatic f3 (nameOffset:83) (firstTokenOffset:78) (offset:83)
           element: <testLibrary>::@function::f3
           formalParameters
             #F8 requiredPositional isOriginDeclaration a (nameOffset:89) (firstTokenOffset:86) (offset:89)
               element: <testLibrary>::@function::f3::@formalParameter::a
-        #F9 isCompleteDeclaration isOriginDeclaration isStatic f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
+        #F9 isComplete isOriginDeclaration isStatic f4 (nameOffset:100) (firstTokenOffset:95) (offset:100)
           element: <testLibrary>::@function::f4
           formalParameters
             #F10 requiredPositional isOriginDeclaration a (nameOffset:107) (firstTokenOffset:103) (offset:107)
@@ -4626,12 +4626,12 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f1
           formalParameters
             #F4 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:39) (firstTokenOffset:34) (offset:39)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:39) (firstTokenOffset:34) (offset:39)
           element: <testLibrary>::@function::f2
           formalParameters
             #F6 requiredPositional isOriginDeclaration a (nameOffset:49) (firstTokenOffset:42) (offset:49)
@@ -4690,17 +4690,17 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 isCompleteDeclaration isOriginDeclaration isStatic f1 (nameOffset:24) (firstTokenOffset:19) (offset:24)
+        #F3 isComplete isOriginDeclaration isStatic f1 (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f1
           formalParameters
             #F4 requiredPositional isOriginDeclaration a (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 isCompleteDeclaration isOriginDeclaration isStatic f2 (nameOffset:40) (firstTokenOffset:35) (offset:40)
+        #F5 isComplete isOriginDeclaration isStatic f2 (nameOffset:40) (firstTokenOffset:35) (offset:40)
           element: <testLibrary>::@function::f2
           formalParameters
             #F6 requiredPositional isOriginDeclaration a (nameOffset:50) (firstTokenOffset:43) (offset:50)
               element: <testLibrary>::@function::f2::@formalParameter::a
-        #F7 isCompleteDeclaration isOriginDeclaration isStatic f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F7 isComplete isOriginDeclaration isStatic f3 (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: <testLibrary>::@function::f3
           formalParameters
             #F8 requiredPositional isOriginDeclaration a (nameOffset:72) (firstTokenOffset:64) (offset:72)
@@ -4766,7 +4766,7 @@ library
         #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
             #F3 requiredPositional isOriginDeclaration a (nameOffset:27) (firstTokenOffset:25) (offset:27)
@@ -4823,9 +4823,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
-        #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
+        #F2 hasImplicitReturnType isComplete isOriginDeclaration isStatic g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
     isOriginDeclaration isStatic f

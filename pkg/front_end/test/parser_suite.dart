@@ -701,8 +701,7 @@ extension on TestDescription {
   Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
     Context context,
   ) {
-    return computeFolderOptions(
-      context,
-    ).computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
+    return computeFolderOptions(context)
+        .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   }
 }

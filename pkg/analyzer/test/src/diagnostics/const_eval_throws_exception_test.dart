@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -224,7 +221,19 @@ const C = 5 + D;
 
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    var other = newFile('$testPackageLibPath/other.dart', '''
+    var other = getFile('$testPackageLibPath/other.dart');
+
+    await resolveFilesWithDiagnostics({
+      testFile: r'''
+import 'other.dart';
+
+void main() {
+  const foo = Foo(1);
+  const bar = Bar.some();
+  print("$foo, $bar");
+}
+''',
+      other: r'''
 class Foo {
   final double value;
 
@@ -237,23 +246,17 @@ class Bar {
   const Bar(this.value);
 
   const Bar.some() : this(const Foo(1));
-}''');
-    await resolveTestCodeWithDiagnostics(r'''
-import 'other.dart';
-
-void main() {
-  const foo = Foo(1);
-  const bar = Bar.some();
-  print("$foo, $bar");
 }
-''');
-    var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.diagnostics, isEmpty);
+''',
+    });
   }
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    var other = newFile('$testPackageLibPath/other.dart', '''
+    var other = getFile('$testPackageLibPath/other.dart');
+
+    await resolveFilesWithDiagnostics({
+      other: r'''
 class Foo {
   final double value;
 
@@ -266,8 +269,9 @@ class Bar {
   const Bar(this.value);
 
   const Bar.some() : this(const Foo(1));
-}''');
-    await resolveTestCodeWithDiagnostics(r'''
+}
+''',
+      testFile: r'''
 import 'other.dart';
 
 void main() {
@@ -275,20 +279,24 @@ void main() {
   const bar = Bar.some();
   print("$foo, $bar");
 }
-''');
-    var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.diagnostics, isEmpty);
+''',
+    });
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    var other = newFile('$testPackageLibPath/other.dart', '''
+    var other = getFile('$testPackageLibPath/other.dart');
+
+    await resolveFilesWithDiagnostics({
+      other: r'''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
     : assert(m != null);
+//             ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullTrue] The operand can't be 'null', so the condition is always 'true'.
 }
-''');
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'other.dart';
 
 main() {
@@ -296,11 +304,8 @@ main() {
 //    ^
 // [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
 }
-''');
-    var otherFileResult = await resolveFile(other);
-    assertErrorsInList(otherFileResult.diagnostics, [
-      error(diag.unnecessaryNullComparisonNeverNullTrue, 97, 7),
-    ]);
+''',
+    });
   }
 
   test_enum_constructor_initializer_asExpression() async {

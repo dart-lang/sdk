@@ -36,10 +36,10 @@ class GnWorkspace extends Workspace {
   GnWorkspace._(this.provider, this.root, this.buildGnFile, this.packages);
 
   // TODO(scheglov): Finish switching to [packages].
-  Map<String, List<Folder>> get packageMap {
-    var packageMap = <String, List<Folder>>{};
+  Map<String, Folder> get packageMap {
+    var packageMap = <String, Folder>{};
     for (var package in packages.packages) {
-      packageMap[package.name] = [package.libFolder];
+      packageMap[package.name] = package.libFolder;
     }
     return packageMap;
   }
@@ -90,7 +90,7 @@ class GnWorkspace extends Workspace {
         return null;
       }
 
-      if (folder.getChildAssumingFile(file_paths.buildGn).exists) {
+      if (folder.getFile(file_paths.buildGn).exists) {
         return GnWorkspacePackage(folder, this);
       }
     }
@@ -107,7 +107,7 @@ class GnWorkspace extends Workspace {
     var provider = buildGnFile.provider;
 
     for (var folder in buildGnFile.parent.withAncestors) {
-      if (folder.getChildAssumingFolder(_jiriRootName).exists) {
+      if (folder.getFolder(_jiriRootName).exists) {
         // Found the .jiri_root file, must be a non-git workspace.
         String root = folder.path;
 
@@ -156,7 +156,7 @@ class GnWorkspace extends Workspace {
     if (outDirectory == null) {
       return const <File>[];
     }
-    Folder genDir = outDirectory.getChildAssumingFolder(
+    Folder genDir = outDirectory.getFolder(
       pathContext.join('dartlang', 'gen', sourceDirectory),
     );
     if (!genDir.exists) {
@@ -243,11 +243,9 @@ class GnWorkspacePackage extends WorkspacePackageImpl {
   bool sourceIsInPublicApi(Source source) {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    var libFolder = root.getChildAssumingFolder('lib');
+    var libFolder = root.getFolder('lib');
     if (libFolder.contains(filePath)) {
-      var libSrcFolder = root
-          .getChildAssumingFolder('lib')
-          .getChildAssumingFolder('src');
+      var libSrcFolder = root.getFolder('lib').getFolder('src');
       return !libSrcFolder.contains(filePath);
     }
     return false;

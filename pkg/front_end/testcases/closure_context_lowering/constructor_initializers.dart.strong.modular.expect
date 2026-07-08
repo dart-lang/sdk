@@ -7,11 +7,22 @@ class A extends core::Object {
   constructor •(positional-parameter y) → self::A
     : self::A::x = (() /* #ctx1 */ → core::int => y)(){() → core::int}, super core::Object::•()/* scope=[
     #ctx2: not-captured VariableContext([
-      this-variable final this-variable;
+      this-variable final;
     ]),
     #ctx1: direct-captured VariableContext([
       positional-parameter y;
     ]),
   ] */
     ;
+}
+class B extends self::A {
+  constructor •(positional-parameter z) → self::B
+    : super self::A::•(z)/* scope=[
+    #ctx3: not-captured VariableContext([
+      this-variable final;
+      positional-parameter z;
+    ]),
+  ] */ {
+    z = 0;
+  }
 }

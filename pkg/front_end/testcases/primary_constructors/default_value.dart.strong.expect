@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+final class AsciiCodec extends core::Object /*hasConstConstructor*/  {
+  final field core::bool _allowInvalid;
+  const constructor •({final initializing-formal renamed-private-named-parameter core::bool allowInvalid = #C1}) → self::AsciiCodec
+    : self::AsciiCodec::_allowInvalid = allowInvalid, super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = false
+}

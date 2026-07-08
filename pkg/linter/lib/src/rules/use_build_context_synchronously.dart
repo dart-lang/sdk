@@ -782,9 +782,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
           // Check for asynchrony in the statements that _follow_ [reference],
           // as they may lead to an async gap before we loop back to
           // [reference].
-          return _inOrderAsyncStateGuardable(
-            statements.skip(index + 1),
-          )?.asynchronousOrNull;
+          return _inOrderAsyncStateGuardable(statements.skip(index + 1))
+              ?.asynchronousOrNull;
         }
         return null;
       }

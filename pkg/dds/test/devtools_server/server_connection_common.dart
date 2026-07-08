@@ -3,10 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:browser_launcher/browser_launcher.dart';
-import 'package:devtools_shared/devtools_test_utils.dart' hide Chrome;
+import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:test/test.dart';
 
 import 'utils/server_driver.dart';
@@ -86,21 +84,7 @@ void runTest({required bool useVmService}) {
       // Spawn our own Chrome process so we can terminate it.
       final devToolsUri =
           'http://${event['params']['host']}:${event['params']['port']}';
-
-      // Create a temporary directory for an isolated user profile.
-      final tempDir = Directory.systemTemp.createTempSync('devtools_chrome_profile');
-
-      final chromeProcess = await Chrome.start([devToolsUri], args: [
-        '--user-data-dir=${tempDir.path}', // Ensures process isolation
-        '--no-first-run',                  // Prevents welcome dialogs
-        '--no-default-browser-check',      // Prevents default browser prompts
-        if (useChromeHeadless && headlessModeIsSupported) ...[
-          '--headless',
-          '--disable-gpu',
-          '--no-sandbox',
-        ],
-        if (Platform.isMacOS) '--use-mock-keychain',
-      ]);
+      final chromeProcess = await testController.launchChrome(devToolsUri);
 
       final stdoutSub =
           chromeProcess.stdout.transform(utf8.decoder).listen((e) {
@@ -121,7 +105,6 @@ void runTest({required bool useVmService}) {
         print('Killing Chrome...');
         chromeProcess.kill();
         await chromeProcess.exitCode;
-        await Future.wait([stdoutSub.cancel(), stderrSub.cancel()]);
 
         // Await a long delay to wait for the SSE client to close.
         print('Delaying to wait for SSE connection to cleanup...');
@@ -133,12 +116,8 @@ void runTest({required bool useVmService}) {
 
         print('Done!');
       } finally {
-        // Clean up the temporary profile directory.
-        try {
-          await tempDir.delete(recursive: true);
-        } catch (_) {
-          // Ignore cleanup errors since the OS temp dir is eventually cleaned up.
-        }
+        chromeProcess.kill();
+        await Future.wait([stdoutSub.cancel(), stderrSub.cancel()]);
       }
     }, timeout: const Timeout.factor(20));
   });

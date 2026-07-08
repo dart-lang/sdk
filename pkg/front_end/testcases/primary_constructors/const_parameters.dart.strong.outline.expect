@@ -29,28 +29,28 @@ class C0 extends core::Object /*hasConstConstructor*/  {
 class C1 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
-  const constructor •(final core::int c, final dynamic d) → self::C1
+  const constructor •(core::int c, dynamic d) → self::C1
     : self::C1::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C1::b = c, super core::Object::•()
     ;
 }
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
-  const constructor •(final core::int c, final dynamic d) → self::C2
+  const constructor •(core::int c, dynamic d) → self::C2
     : self::C2::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C2::b = c, super core::Object::•()
     ;
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
-  const constructor •(final core::int c, final dynamic d) → self::C3
+  const constructor •(core::int c, dynamic d) → self::C3
     : self::C3::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C3::b = c, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int b;
-  const constructor •(final core::int c, final dynamic d) → self::C4
+  const constructor •(core::int c, dynamic d) → self::C4
     : self::C4::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C4::b = c, invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:10: Error: 'a' is a final instance variable that was initialized at the declaration.
   this : a = d.length, b = c;
          ^", invalid-initializer "pkg/front_end/testcases/primary_constructors/const_parameters.dart:34:24: Error: 'b' is a final instance variable that was initialized at the declaration.
@@ -62,7 +62,7 @@ class C5 extends core::Object /*hasConstConstructor*/  {
   field core::int a;
   field core::int b;
   field core::int? _;
-  const constructor •(final core::int c, final dynamic d) → self::C5
+  const constructor •(core::int c, dynamic d) → self::C5
     : self::C5::a = d{dynamic}.length as{TypeError,ForDynamic} core::int, self::C5::b = c, super core::Object::•()
     ;
 }
@@ -70,7 +70,7 @@ class C6 extends core::Object /*hasConstConstructor*/  {
   field dynamic a;
   field core::int b;
   field dynamic _;
-  const constructor •(final core::int c, final dynamic d) → self::C6
+  const constructor •(core::int c, dynamic d) → self::C6
     : self::C6::a = d{dynamic}.length, self::C6::b = c, super core::Object::•()
     ;
 }

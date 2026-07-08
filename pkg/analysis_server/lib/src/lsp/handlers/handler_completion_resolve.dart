@@ -45,7 +45,7 @@ class CompletionResolveHandler
 
     var resolutionInfo = params.data;
 
-    if (resolutionInfo is DartCompletionResolutionInfo) {
+    if (resolutionInfo is DartCompletionMergedResolutionInfo) {
       return resolveDartCompletion(capabilities, params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
@@ -57,12 +57,18 @@ class CompletionResolveHandler
   Future<ErrorOr<CompletionItem>> resolveDartCompletion(
     LspClientCapabilities clientCapabilities,
     CompletionItem item,
-    DartCompletionResolutionInfo data,
+    DartCompletionMergedResolutionInfo data,
     CancellationToken token,
   ) async {
     var file = data.file;
-    var importUris = data.importUris.map(Uri.parse).toList();
+    var importUris = data.importUris?.map(Uri.parse).toList() ?? [];
     var elementReference = data.ref;
+
+    // We only need to continue if we need to handle import statements, or fetch
+    // docs. If we have no import URIs and already had docs, return early.
+    if (importUris.isEmpty && item.documentation != null) {
+      return success(item);
+    }
 
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
@@ -97,17 +103,27 @@ class CompletionResolveHandler
         }
 
         var builder = ChangeBuilder(session: session);
-        await builder.addDartFileEdit(file, (builder) {
-          for (var uri in importUris) {
-            builder.importLibraryElement(uri, showName: showName);
-          }
-        });
+        if (importUris.isNotEmpty) {
+          await builder.addDartFileEdit(file, (builder) {
+            for (var uri in importUris) {
+              builder.importLibraryElement(uri, showName: showName);
+            }
+          });
+        }
 
         if (token.isCancellationRequested) {
           return cancelled(token);
         }
 
         var changes = builder.sourceChange;
+        // This is an unexpected case, but it shouldn't cause failures so only
+        // flag it in an assert for during tests.
+        assert(
+          importUris.isEmpty || changes.edits.isNotEmpty,
+          'completionItem/resolve was provided import URIs that did not result '
+          'in edits. This may indicate that completion items included '
+          'unnecessary imports.',
+        );
         var thisFilesChanges = changes.edits
             .where((e) => e.file == file)
             .toList();
@@ -185,9 +201,9 @@ class CompletionResolveHandler
             textEdit: item.textEdit,
             additionalTextEdits: thisFilesChanges
                 .expand(
-                  (change) => sortSourceEditsForLsp(
-                    change.edits,
-                  ).map((edit) => toTextEdit(result.lineInfo, edit)),
+                  (change) =>
+                      sortSourceEditsForLsp(change.edits)
+                          .map((edit) => toTextEdit(result.lineInfo, edit)),
                 )
                 .toList(),
             commitCharacters: item.commitCharacters,

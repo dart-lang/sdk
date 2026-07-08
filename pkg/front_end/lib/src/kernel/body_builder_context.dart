@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/local_scope.dart';
@@ -27,7 +26,9 @@ import '../source/source_type_alias_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart' show ConstructorContext;
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
+import 'expression_compilation_data.dart';
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 
@@ -74,6 +75,10 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.memberNameLength');
   }
 
+  /// Returns the [ExpressionEvaluationHelper] allowing for extra scope lookups
+  /// in case an error would otherwise be issued.
+  ExpressionEvaluationHelper? get expressionEvaluationHelper => null;
+
   /// Looks up the member by the given [name] in the superclass of the enclosing
   /// class.
   ///
@@ -99,7 +104,7 @@ abstract class BodyBuilderContext {
   /// Creates an [Initializer] for a redirecting initializer call to
   /// [constructorBuilder] with the given [arguments] from within a constructor
   /// in the same class.
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
@@ -292,7 +297,7 @@ abstract class BodyBuilderContext {
   /// Returns the [Variable] for the [index]th formal parameter
   /// declared in the constructor, factory, or method tear-off currently being
   /// built.
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     throw new UnsupportedError('${runtimeType}.getTearOffParameter');
   }
 
@@ -386,7 +391,7 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers that the constructor has no body.
-  void registerNoBodyConstructor() {
+  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
     throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 
@@ -401,7 +406,7 @@ abstract class BodyBuilderContext {
   /// Declarations with synthesized `this`, such as extensions and extension
   /// types, don't have an internal [ThisVariable] because `this` is desugared
   /// as a parameter in that case.
-  ThisVariable? createInternalThisVariable() {
+  InternalThisVariable? createInternalThisVariable() {
     return thisType != null && isDeclarationInstanceContext
         ? intern.createThisVariable(
             type: thisType!,
@@ -462,7 +467,7 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupConstructor');
   }
 
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
@@ -570,15 +575,16 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
-    return new InternalRedirectingInitializer(
-      constructorBuilder.invokeTarget as Constructor,
-      arguments,
-    )..fileOffset = fileOffset;
+    return intern.createRedirectingInitializer(
+      target: constructorBuilder.invokeTarget as Constructor,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -673,15 +679,16 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   }
 
   @override
-  Initializer buildRedirectingInitializer(
+  InternalInitializer buildRedirectingInitializer(
     MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
-    return new ExtensionTypeRedirectingInitializer(
-      constructorBuilder.invokeTarget as Procedure,
-      arguments,
-    )..fileOffset = fileOffset;
+    return intern.createExtensionTypeRedirectingInitializer(
+      target: constructorBuilder.invokeTarget as Procedure,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -804,13 +811,17 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
 
 // Coverage-ignore(suite): Not run.
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
-  final Procedure _procedure;
+  final ExpressionCompilationData _expressionCompilationData;
+
+  @override
+  final ExpressionEvaluationHelper expressionEvaluationHelper;
 
   new(
-    this._procedure,
+    this._expressionCompilationData,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
     required bool isDeclarationInstanceMember,
+    required this.expressionEvaluationHelper,
   }) : super(
          libraryBuilder,
          declarationBuilder,
@@ -818,10 +829,10 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
        );
 
   @override
-  int get memberNameOffset => _procedure.fileOffset;
+  int get memberNameOffset => _expressionCompilationData.fileOffset;
 
   @override
   void registerSuperCall() {
-    _procedure.transformerFlags |= TransformerFlag.superCalls;
+    _expressionCompilationData.containsSuperCalls = true;
   }
 }

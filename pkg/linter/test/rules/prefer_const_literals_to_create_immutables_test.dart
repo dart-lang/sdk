@@ -41,7 +41,7 @@ int e() => 7;
   }
 
   test_extensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 
 @immutable
@@ -76,7 +76,7 @@ var x = C(const [
   }
 
   test_listLiteral_nested_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -89,7 +89,7 @@ var x = C(/*[0*/[
   }
 
   test_listLiteral_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -100,7 +100,7 @@ var x = C([![]!]);
   }
 
   test_listLiteral_noConst_instantiationAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @Immutable('')
 class C {
@@ -145,7 +145,7 @@ var x = C(((const {})));
   }
 
   test_mapLiteral_inParens_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -156,7 +156,7 @@ var x = C((([!{}!])));
   }
 
   test_mapLiteral_intToDouble_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -167,7 +167,7 @@ var x = C([!{1: 1.0}!]);
   }
 
   test_mapLiteral_intToInstantiation_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -178,7 +178,7 @@ var x = C([!{1: const C(null)}!]);
   }
 
   test_mapLiteral_intToInt_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -189,7 +189,7 @@ var x = C([!{1: 1}!]);
   }
 
   test_mapLiteral_intToNull_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -200,7 +200,7 @@ var x = C([!{1: null}!]);
   }
 
   test_mapLiteral_intToString_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -211,7 +211,7 @@ var x = C([!{1: ''}!]);
   }
 
   test_mapLiteral_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -244,7 +244,7 @@ final k = K(
   }
 
   test_namedParameter_noConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {

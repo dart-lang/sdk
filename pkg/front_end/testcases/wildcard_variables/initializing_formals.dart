@@ -28,9 +28,9 @@ class B {
 class C extends B {
   final int z;
   C(super.x, super._, super._, this.z)
-      : assert(x > 0),
-        assert(_ >= 0) // Error: no `_` in scope.
-  {
+    : assert(x > 0),
+      assert(_ >= 0) // Error: no `_` in scope.
+      {
     print(_); // OK, means `this._` and refers to `A._`.
   }
 }

@@ -53,6 +53,7 @@ namespace dart {
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \
   V(NullCastError)                                                             \
+  V(TypeError)                                                                 \
   V(ArgumentNullError)                                                         \
   V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \

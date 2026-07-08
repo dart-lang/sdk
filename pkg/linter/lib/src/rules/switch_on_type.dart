@@ -43,9 +43,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  /// The node where the lint will be reported.
-  late AstNode node;
-
   new(this.rule, this.context);
 
   /// A reference to the [Type] type.
@@ -59,14 +56,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    this.node = node.expression;
-    _processExpression(node.expression);
+    _processExpression(node.expression, errorNode: node.expression);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    this.node = node.expression;
-    _processExpression(node.expression);
+    _processExpression(node.expression, errorNode: node.expression);
   }
 
   /// Returns `true` if the [type] is assignable to [Type].
@@ -78,33 +73,41 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Processes the [expression] of a [SwitchStatement] or [SwitchExpression].
   ///
   /// Returns `true` if the lint was reportred and `false` otherwise.
-  bool _processExpression(Expression expression) {
+  bool _processExpression(
+    Expression expression, {
+    required Expression errorNode,
+  }) {
     if (expression case StringInterpolation(:var elements)) {
-      return _processInterpolation(elements);
+      return _processInterpolation(elements, errorNode: errorNode);
     }
     if (expression case ConditionalExpression(
       :var thenExpression,
       :var elseExpression,
     )) {
-      return _processExpression(thenExpression) ||
-          _processExpression(elseExpression);
+      return _processExpression(thenExpression, errorNode: errorNode) ||
+          _processExpression(elseExpression, errorNode: errorNode);
     }
+
     if (expression case SwitchExpression(:var cases)) {
       for (var caseClause in cases) {
-        if (_processExpression(caseClause.expression)) {
+        if (_processExpression(caseClause.expression, errorNode: errorNode)) {
           return true;
         }
       }
       return false;
     }
-    if (expression case BinaryExpression(
-      :var leftOperand,
-      :var rightOperand,
-      :var operator,
-    ) when operator.lexeme == TokenType.PLUS.lexeme) {
-      return _processExpression(leftOperand) ||
-          _processExpression(rightOperand);
+
+    if (expression
+        case BinaryExpression(
+          :var leftOperand,
+          :var rightOperand,
+          :var operator,
+        )
+        when operator.lexeme == TokenType.PLUS.lexeme) {
+      return _processExpression(leftOperand, errorNode: errorNode) ||
+          _processExpression(rightOperand, errorNode: errorNode);
     }
+
     var type = switch (expression) {
       PrefixedIdentifier(:var identifier) => identifier.staticType,
       PropertyAccess(:var propertyName) => propertyName.staticType,
@@ -114,19 +117,27 @@ class _Visitor extends SimpleAstVisitor<void> {
         methodName.element.isToStringMethod ? realTarget.staticType : null,
       _ => null,
     };
-    return _reportIfAssignableToType(type);
+
+    if (_isAssignableToType(type)) {
+      rule.reportAtNode(errorNode);
+      return true;
+    }
+    return false;
   }
 
   /// Processes the [elements] of an [InterpolationExpression].
   ///
   /// Returns `true` if the lint was reported and `false` otherwise.
-  bool _processInterpolation(NodeList<InterpolationElement> elements) {
+  bool _processInterpolation(
+    NodeList<InterpolationElement> elements, {
+    required Expression errorNode,
+  }) {
     for (var element in elements) {
       switch (element) {
         case InterpolationExpression(:var expression):
-          var reported = _processExpression(expression);
+          var reported = _processExpression(expression, errorNode: errorNode);
 
-          // This return is necessary to avoid multiple reporting of the lint
+          // This return is necessary to avoid reporting multiple times.
           if (reported) {
             return true;
           }
@@ -135,18 +146,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     return false;
-  }
-
-  /// Reports the lint if the [type] is assignable to [Type].
-  ///
-  /// Returns `true` if the lint was reported and `false` otherwise.
-  bool _reportIfAssignableToType(DartType? type) {
-    var reported = false;
-    if (_isAssignableToType(type)) {
-      rule.reportAtNode(node);
-      reported = true;
-    }
-    return reported;
   }
 }
 

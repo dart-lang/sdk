@@ -44,7 +44,7 @@ class C3 = core::Object with self::M3 {
 }
 mixin class M4 extends core::Object {
   final field core::int id;
-  constructor •(final core::int x) → self::M4
+  constructor •(core::int x) → self::M4
     : self::M4::id = x, super core::Object::•()
     ;
 }

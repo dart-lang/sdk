@@ -131,17 +131,17 @@ abstract class C implements List<num> {
   }
 
   test_contains_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num>[].contains([!'1'!]);''');
   }
 
   test_contains_unrelated_cascade() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num>[]..contains([!'1'!]);''');
   }
 
   test_contains_unrelated_differentEnums() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <E1>[].contains([!E2.c!]);
 enum E1 { a, b }
 enum E2 { c, d }
@@ -149,7 +149,7 @@ enum E2 { c, d }
   }
 
   test_contains_unrelated_differentProtobufEnums() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 import 'package:protobuf/src/protobuf/protobuf_enum.dart';
 var x = <E1>[].contains([!E2()!]);
 class E1 extends ProtobufEnum {}
@@ -158,7 +158,7 @@ class E2 extends ProtobufEnum {}
   }
 
   test_contains_unrelated_implicitTarget() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 abstract class C implements List<num> {
   void f() {
     contains([!'1'!]);
@@ -168,11 +168,11 @@ abstract class C implements List<num> {
   }
 
   test_contains_unrelated_null() async {
-    await assertDiagnosticsFromMarkdown('var x = <num>[].contains([!null!]);');
+    await assertDiagnosticsFromMarkup('var x = <num>[].contains([!null!]);');
   }
 
   test_contains_unrelated_null_generic() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 bool f<T extends Object>() {
   return <T>[].contains([!null!]);
 }
@@ -180,19 +180,19 @@ bool f<T extends Object>() {
   }
 
   test_contains_unrelated_recordAndNonRecord() async {
-    await assertDiagnosticsFromMarkdown(
+    await assertDiagnosticsFromMarkup(
       "var x = <(int, int)>[].contains([!'hi'!]);",
     );
   }
 
   test_contains_unrelated_records() async {
-    await assertDiagnosticsFromMarkdown(
+    await assertDiagnosticsFromMarkup(
       "var x = <(int, int)>[].contains([!('hi', 'hey')!]);",
     );
   }
 
   test_contains_unrelated_subclassOfList() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 abstract class C implements List<num> {}
 void f(C c) {
   c.contains([!'1'!]);
@@ -201,7 +201,7 @@ void f(C c) {
   }
 
   test_contains_unrelated_thisTarget() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 abstract class C implements List<num> {
   void f() {
     this.contains([!'1'!]);
@@ -221,7 +221,7 @@ class CollectionMethodsUnrelatedTypeListTest extends LintRuleTest {
   }
 
   test_remove_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num>[].remove([!'1'!]);''');
   }
 }
@@ -236,7 +236,7 @@ class CollectionMethodsUnrelatedTypeMapTest extends LintRuleTest {
   }
 
   test_containsKey_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num, String>{}.containsKey([!'1'!]);''');
   }
 
@@ -245,7 +245,7 @@ var x = <num, String>{}.containsKey([!'1'!]);''');
   }
 
   test_containsValue_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <String, num>{}.containsValue([!'1'!]);''');
   }
 
@@ -254,7 +254,7 @@ var x = <String, num>{}.containsValue([!'1'!]);''');
   }
 
   test_index_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num, String>{}[[!'1'!]];''');
   }
 
@@ -263,7 +263,7 @@ var x = <num, String>{}[[!'1'!]];''');
   }
 
   test_remove_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num, String>{}.remove([!'1'!]);''');
   }
 }
@@ -283,7 +283,7 @@ void f(Queue<num> queue) {
   }
 
   test_remove_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 import 'dart:collection';
 void f(Queue<num> queue) {
   queue.remove([!'1'!]);
@@ -308,7 +308,7 @@ extension type E2(int value) {}
   }
 
   test_contains_extensionType_different_unrelatedRepresentationType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void m(Set<E1> s, E2 e) {
   s.contains([!e!]);
 }
@@ -340,7 +340,7 @@ extension type E(int value) {}
   }
 
   test_lookup_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num>{}.lookup([!'1'!]);''');
   }
 
@@ -349,7 +349,7 @@ var x = <num>{}.lookup([!'1'!]);''');
   }
 
   test_remove_unrelated() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var x = <num>{}.remove([!'1'!]);''');
   }
 }

@@ -9,23 +9,31 @@ class Class {
   static late final int lateStaticField2;
 
   static staticMethod() {
-    throws(() => lateStaticField2,
-        'Read value from uninitialized Class.lateStaticField2');
+    throws(
+      () => lateStaticField2,
+      'Read value from uninitialized Class.lateStaticField2',
+    );
     lateStaticField2 = 42;
     expect(42, lateStaticField2);
-    throws(() => lateStaticField2 = 43,
-        'Write value to initialized Class.lateStaticField2');
+    throws(
+      () => lateStaticField2 = 43,
+      'Write value to initialized Class.lateStaticField2',
+    );
   }
 
   late final int lateInstanceField;
 
   instanceMethod() {
-    throws(() => lateInstanceField,
-        'Read value from uninitialized Class.lateInstanceField');
+    throws(
+      () => lateInstanceField,
+      'Read value from uninitialized Class.lateInstanceField',
+    );
     lateInstanceField = 16;
     expect(16, lateInstanceField);
-    throws(() => lateInstanceField = 17,
-        'Write value to initialized Class.lateInstanceField');
+    throws(
+      () => lateInstanceField = 17,
+      'Write value to initialized Class.lateInstanceField',
+    );
   }
 }
 
@@ -34,39 +42,55 @@ extension Extension on Class {
   static late final int lateExtensionField2;
 
   static staticMethod() {
-    throws(() => lateExtensionField2,
-        'Read value from uninitialized Class.lateExtensionField2');
+    throws(
+      () => lateExtensionField2,
+      'Read value from uninitialized Class.lateExtensionField2',
+    );
     lateExtensionField2 = 42;
     expect(42, lateExtensionField2);
-    throws(() => lateExtensionField2 = 43,
-        'Write value to initialized Class.lateExtensionField2');
+    throws(
+      () => lateExtensionField2 = 43,
+      'Write value to initialized Class.lateExtensionField2',
+    );
   }
 }
 
 main() {
-  throws(() => lateTopLevelField,
-      'Read value from uninitialized lateTopLevelField');
+  throws(
+    () => lateTopLevelField,
+    'Read value from uninitialized lateTopLevelField',
+  );
   lateTopLevelField = 123;
   expect(123, lateTopLevelField);
-  throws(() => lateTopLevelField = 124,
-      'Write value to initialized lateTopLevelField');
+  throws(
+    () => lateTopLevelField = 124,
+    'Write value to initialized lateTopLevelField',
+  );
 
-  throws(() => Class.lateStaticField1,
-      'Read value from uninitialized Class.lateStaticField1');
+  throws(
+    () => Class.lateStaticField1,
+    'Read value from uninitialized Class.lateStaticField1',
+  );
   Class.lateStaticField1 = 87;
   expect(87, Class.lateStaticField1);
-  throws(() => Class.lateStaticField1 = 88,
-      'Write value to initialized Class.lateStaticField1');
+  throws(
+    () => Class.lateStaticField1 = 88,
+    'Write value to initialized Class.lateStaticField1',
+  );
 
   Class.staticMethod();
   new Class().instanceMethod();
 
-  throws(() => Extension.lateExtensionField1,
-      'Read value from uninitialized Extension.lateExtensionField1');
+  throws(
+    () => Extension.lateExtensionField1,
+    'Read value from uninitialized Extension.lateExtensionField1',
+  );
   Extension.lateExtensionField1 = 87;
   expect(87, Extension.lateExtensionField1);
-  throws(() => Extension.lateExtensionField1 = 88,
-      'Write value to initialized Extension.lateExtensionField1');
+  throws(
+    () => Extension.lateExtensionField1 = 88,
+    'Write value to initialized Extension.lateExtensionField1',
+  );
 
   Extension.staticMethod();
 }

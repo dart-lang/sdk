@@ -8,11 +8,7 @@ import 'package:kernel/util/graph.dart' show Graph;
 
 import 'uris.dart' show getPartUri;
 
-class LibraryGraph implements Graph<Uri> {
-  final Map<Uri, Library> libraries;
-
-  new(this.libraries);
-
+class LibraryGraph(final Map<Uri, Library> libraries) implements Graph<Uri> {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Uri> get vertices => libraries.keys;

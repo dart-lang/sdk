@@ -254,6 +254,62 @@ void f(List<int> values) {
     return _test_prepare(content, 'value');
   }
 
+  Future<void> test_rename_annotation_class() async {
+    const content = '''
+@Foo^()
+class const Foo();
+''';
+    const expectedContent = '''
+@NewName()
+class const NewName();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_class_prefixed() async {
+    const content = '''
+import '' as self;
+@self.Foo^()
+class const Foo();
+''';
+    const expectedContent = '''
+import '' as self;
+@self.NewName()
+class const NewName();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_typedef() async {
+    const content = '''
+typedef Bar = Foo;
+@Bar^()
+class const Foo();
+''';
+    const expectedContent = '''
+typedef NewName = Foo;
+@NewName()
+class const Foo();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_typedef_prefixed() async {
+    const content = '''
+import '' as self;
+typedef Bar = Foo;
+@self.Bar^()
+class const Foo();
+''';
+    const expectedContent = '''
+import '' as self;
+typedef NewName = Foo;
+@self.NewName()
+class const Foo();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
   Future<void> test_rename_class() {
     const content = '''
 class MyClass {}

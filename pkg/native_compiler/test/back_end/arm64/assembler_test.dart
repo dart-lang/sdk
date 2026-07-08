@@ -13,6 +13,7 @@ import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
+
 import 'disassembler.dart' show Disassembler;
 
 void main() {
@@ -26,7 +27,7 @@ void main() {
   late Arm64Assembler asm;
 
   setUp(() {
-    asm = Arm64Assembler(vmOffsets, objectLayout);
+    asm = Arm64Assembler(vmOffsets, null, objectLayout);
   });
 
   void expectDisassembly(String expected) {
@@ -1694,6 +1695,66 @@ void main() {
       });
       expectThrows(() {
         asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
+      });
+    });
+
+    test('fadd', () {
+      asm.fadd(V0, V1, V2);
+      asm.fadd(V31, V30, V29);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'faddd v0, v1, v2\n'
+        'faddd v31, v30, v29\n',
+      );
+    });
+
+    test('fsub', () {
+      asm.fsub(V0, V1, V2);
+      asm.fsub(V31, V30, V29);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fsubd v0, v1, v2\n'
+        'fsubd v31, v30, v29\n',
+      );
+    });
+
+    test('fmul', () {
+      asm.fmul(V0, V1, V2);
+      asm.fmul(V31, V30, V29);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fmuld v0, v1, v2\n'
+        'fmuld v31, v30, v29\n',
+      );
+    });
+
+    test('fdiv', () {
+      asm.fdiv(V0, V1, V2);
+      asm.fdiv(V31, V30, V29);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fdivd v0, v1, v2\n'
+        'fdivd v31, v30, v29\n',
+      );
+    });
+
+    test('fcmp', () {
+      asm.fcmp(V0, V1);
+      asm.fcmp(V31, V30);
+      asm.fcmp(V0, Immediate(0));
+      asm.fcmp(V5, Immediate(0));
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcmpd v0, v1\n'
+        'fcmpd v31, v30\n'
+        'fcmpd v0, #0.0\n'
+        'fcmpd v5, #0.0\n',
+      );
+      expectThrows(() {
+        asm.fcmp(V0, Immediate(1));
+      });
+      expectThrows(() {
+        asm.fcmp(V0, R0);
       });
     });
   });

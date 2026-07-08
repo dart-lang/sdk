@@ -11,9 +11,12 @@ import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 
+import 'package:dds/dds.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:stream_channel/stream_channel.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'src/dart_runtime_service_vm_rpcs.dart';
 import 'src/native_bindings.dart';
@@ -109,7 +112,43 @@ class DartRuntimeServiceVMBackend
   ]);
 
   @override
-  OptionalHandler get httpHandler => _devFs.handlePutStreamRequest;
+  OptionalHandler get httpHandler => (shelf.Request request) {
+    // If the request is a GET request to the root path, redirect to DevTools.
+    if (request.method == 'GET' &&
+        (request.url.pathSegments.isEmpty ||
+            (request.url.pathSegments.length == 1 &&
+                request.url.pathSegments[0].isEmpty))) {
+      final ddsUri =
+          _ddsManager.uri ?? frontend.clientConnectionController.redirectUri;
+      if (ddsUri != null) {
+        final devToolsUri = ddsUri.replace(
+          pathSegments: [
+            ...ddsUri.pathSegments.where((s) => s.isNotEmpty),
+            'devtools',
+            '',
+          ],
+        );
+        final ddsWsUri = ddsUri.replace(
+          scheme: ddsUri.scheme == 'https' ? 'wss' : 'ws',
+          pathSegments: [
+            ...ddsUri.pathSegments.where((s) => s.isNotEmpty),
+            'ws',
+          ],
+        );
+        final redirectUri = devToolsUri.replace(
+          queryParameters: {
+            ...request.url.queryParameters,
+            'uri': ddsWsUri.toString(),
+          },
+        );
+        _logger.info(
+          'Redirecting root GET request to DevTools at $redirectUri',
+        );
+        return shelf.Response.found(redirectUri.toString());
+      }
+    }
+    return _devFs.handlePutStreamRequest(request);
+  };
 
   @override
   VmClientManager clientManagerBuilder() =>
@@ -140,14 +179,16 @@ class DartRuntimeServiceVMBackend
   Future<void> shutdown() async {
     _logger.info('Shutting down...');
     await _ddsManager.shutdown();
+    await isolateManager.shutdown();
     await Future.wait([
       _sigquitSubscription?.cancel() ?? Future<void>.value(),
       _nativeRpcClientStreamChannelController.local.sink.close(),
       _devFs.cleanup(),
     ]);
     isolateControlPort.close();
-    _nativeBindings.onExit();
+    _nativeBindings.shutdown();
     _logger.info('Shutdown.');
+    _nativeBindings.onExit();
   }
 
   @override
@@ -168,8 +209,15 @@ class DartRuntimeServiceVMBackend
     required Uri wsUri,
   }) async {
     if (_ddsManager.launchOnStart) {
-      await _ddsManager.start(vmServiceUri: httpUri);
-      httpUri = await _ddsManager.ddsConnected;
+      try {
+        await _ddsManager.start(vmServiceUri: httpUri);
+        httpUri = await _ddsManager.ddsConnected;
+      } on DartDevelopmentServiceException catch (e) {
+        stderr.writeln('Could not start the VM service: ${e.message}');
+      }
+    }
+    if (!httpUri.path.endsWith('/')) {
+      httpUri = httpUri.replace(path: '${httpUri.path}/');
     }
     frontend.printServiceOutput('The Dart VM service is listening on $httpUri');
     final devToolsUri = _ddsManager.devToolsUri;
@@ -215,6 +263,11 @@ class DartRuntimeServiceVMBackend
     required String streamId,
     required Map<String, Object?> params,
   }) {
+    // The Service stream is implemented completely in Dart code. Don't try and
+    // subscribe to a native service stream.
+    if (streamId == EventStreams.kService) {
+      return true;
+    }
     var includePrivates = false;
     if (params case {'includePrivates': final bool value}) {
       includePrivates = value;
@@ -227,6 +280,11 @@ class DartRuntimeServiceVMBackend
 
   @override
   void onStreamCancel({required String streamId}) {
+    // The Service stream is implemented completely in Dart code. Don't try and
+    // cancel a subscription to a native service stream.
+    if (streamId == EventStreams.kService) {
+      return;
+    }
     _nativeBindings.streamCancel(streamId: streamId);
   }
 
@@ -259,7 +317,9 @@ class DartRuntimeServiceVMBackend
   ///     Service.toggleWebServer())
   ///   - Isolate startup and shutdown notifications
   void _vmMessageHandler(List<Object?> message) {
-    _logger.fine('VM message: $message');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('VM message: $message');
+    }
     switch (message) {
       case [final String streamId, final Object event]:
         // This is an event.

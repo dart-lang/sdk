@@ -327,7 +327,7 @@ class PluginManager {
     @visibleForTesting bool builtAsAot = _builtAsAot,
   }) {
     var pluginFolder = _resourceProvider.getFolder(pluginPath);
-    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
@@ -359,9 +359,7 @@ class PluginManager {
 
     var parentFolder = pluginStateFolder(pluginPath);
     if (parentFolder.exists) {
-      var executionFolder = parentFolder.getChildAssumingFolder(
-        pluginFolder.shortName,
-      );
+      var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
       return _computeFiles(
         executionFolder,
         builtAsAot: builtAsAot,
@@ -399,7 +397,7 @@ class PluginManager {
       throw PluginException('No state location, so plugin could not be copied');
     }
     var stateName = _uniqueDirectoryName(pluginPath);
-    return stateFolder.getChildAssumingFolder(stateName);
+    return stateFolder.getFolder(stateName);
   }
 
   /// The path to the "plugin state" folder for a plugin at [pluginPath].
@@ -568,8 +566,8 @@ class PluginManager {
     );
 
     var stopwatch = Stopwatch()..start();
-    var depfile = entrypoint.parent.getChildAssumingFile('depfile.txt');
-    var aotSnapshotFile = entrypoint.parent.getChildAssumingFile('plugin.aot');
+    var depfile = entrypoint.parent.getFile('depfile.txt');
+    var aotSnapshotFile = entrypoint.parent.getFile('plugin.aot');
     if (aotSnapshotFile.exists) {
       try {
         // Delete any existing AOT snapshot. On MacOS, sometimes this file
@@ -646,9 +644,7 @@ class PluginManager {
       throw PluginException(exceptionReason);
     }
 
-    return pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.aot');
+    return pluginFolder.getFolder('bin').getFile('plugin.aot');
   }
 
   /// Computes the plugin files, given that the plugin should exist in
@@ -661,15 +657,13 @@ class PluginManager {
     String? pubCommand,
     Workspace? workspace,
   }) {
-    var pluginFile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.dart');
+    var pluginFile = pluginFolder.getFolder('bin').getFile('plugin.dart');
     if (!pluginFile.exists) {
       throw PluginException("File '${pluginFile.path}' does not exist.");
     }
     File? packageConfigFile = pluginFolder
-        .getChildAssumingFolder(file_paths.dotDartTool)
-        .getChildAssumingFile(file_paths.packageConfigJson);
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
       var pubResult = _runPubCommand(
@@ -756,11 +750,9 @@ class PluginManager {
     var pluginPath = pluginFolder.path;
     var stateFolder = _resourceProvider.getStateLocation('.plugin_manager')!;
     var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
-    var packageConfigFile = stateFolder.getChildAssumingFile(stateName);
+    var packageConfigFile = stateFolder.getFile(stateName);
     if (!packageConfigFile.exists) {
-      var pluginPubspec = pluginFolder.getChildAssumingFile(
-        file_paths.pubspecYaml,
-      );
+      var pluginPubspec = pluginFolder.getFile(file_paths.pubspecYaml);
       if (!pluginPubspec.exists) {
         return null;
       }
@@ -784,9 +776,7 @@ class PluginManager {
                     .parent
                     .parent;
                 packages.add(_Package(packageName, packageRoot));
-                pubspecFiles.add(
-                  packageRoot.getChildAssumingFile(file_paths.pubspecYaml),
-                );
+                pubspecFiles.add(packageRoot.getFile(file_paths.pubspecYaml));
               }
             }
           }
@@ -827,19 +817,15 @@ class PluginManager {
     required File pluginFile,
     required Folder pluginFolder,
   }) {
-    var aotSnapshotFile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('plugin.aot');
+    var aotSnapshotFile = pluginFolder.getFolder('bin').getFile('plugin.aot');
     if (!aotSnapshotFile.exists) return null;
     var snapshotModificationStamp = aotSnapshotFile.modificationStamp;
 
     if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
-    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
 
-    var depfile = pluginFolder
-        .getChildAssumingFolder('bin')
-        .getChildAssumingFile('depfile.txt');
+    var depfile = pluginFolder.getFolder('bin').getFile('depfile.txt');
     if (!depfile.exists) return null;
 
     var content = depfile.readAsStringSync();

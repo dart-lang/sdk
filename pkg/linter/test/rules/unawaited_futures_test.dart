@@ -22,7 +22,7 @@ class UnawaitedFuturesTest extends LintRuleTest {
   String get lintRule => LintNames.unawaited_futures;
 
   test_binaryExpression_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C a, C b) async {
   [!a + b!];
 }
@@ -76,7 +76,7 @@ Future<int> g() => Future.value(0);
 
   test_functionCall_classImplementsFuture() async {
     // https://github.com/dart-lang/linter/issues/2211
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Future2 p) async {
   [!g!](p);
 }
@@ -96,7 +96,7 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   '${[!g!]()}';
 }
@@ -116,7 +116,7 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited_classImplementsFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   '${[!g!]()}';
 }
@@ -127,7 +127,7 @@ external Future2<int> f2;
   }
 
   test_functionCall_nullableFuture_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   [!g!]();
 }
@@ -145,7 +145,7 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   [!g!]();
 }
@@ -179,7 +179,7 @@ abstract class C {
   }
 
   test_functionCallInCascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() async {
   C()..[!doAsync!]();
 }
@@ -255,7 +255,7 @@ class C {
   }
 
   test_instanceProperty_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) async {
   c.[!p!];
 }
@@ -305,7 +305,7 @@ class D extends C {
   }
 
   test_parameter_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Future<int> p) async {
   [!p!];
 }
@@ -326,7 +326,7 @@ void f(Td p) async {
   }
 
   test_prefixExpression_unawaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C a) async {
   [!-a!];
 }

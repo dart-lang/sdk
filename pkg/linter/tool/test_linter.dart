@@ -60,10 +60,10 @@ class TestLinter implements DiagnosticListener {
       resourceProvider: _resourceProvider,
       sdkPath: _dartSdkPath,
       includedPaths: filePaths,
-      updateAnalysisOptions4: ({required analysisOptions}) {
-        analysisOptions.lint = true;
-        analysisOptions.warning = false;
-        analysisOptions.lintRules = _rules;
+      configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
+        analysisOptionsBuilder.lint = true;
+        analysisOptionsBuilder.warning = false;
+        analysisOptionsBuilder.lintRules = _rules;
       },
       enableLintRuleTiming: true,
       withFineDependencies: true,

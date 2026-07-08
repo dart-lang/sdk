@@ -19,13 +19,15 @@ class F extends C<int> with M {}
 
 main() {
   Expect.stringEquals(
-      // TODO(ahe): This is wrong, it should be "a: 0, b: Object" or an error.
-      "a: 0, b: T",
-      new C<Object>().trace);
+    // TODO(ahe): This is wrong, it should be "a: 0, b: Object" or an error.
+    "a: 0, b: T",
+    new C<Object>().trace,
+  );
   Expect.stringEquals(
-      // TODO(ahe): This is wrong, it should be "a: 0, b: Object" or an error.
-      "a: 0, b: T",
-      new C().trace);
+    // TODO(ahe): This is wrong, it should be "a: 0, b: Object" or an error.
+    "a: 0, b: T",
+    new C().trace,
+  );
   Expect.stringEquals("a: 0, b: String", new D().trace);
   Expect.stringEquals("a: 0, b: String", new E().trace);
   Expect.stringEquals("a: 0, b: int", new F().trace);

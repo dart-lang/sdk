@@ -89,7 +89,8 @@ class TimedProgressPrinter extends EventListener {
       Terminal.print('$_numCompleted out of $_numTests completed');
     }
     Terminal.print(
-        "Tests running for ${(interval * timer.tick).inMinutes} minutes");
+      "Tests running for ${(interval * timer.tick).inMinutes} minutes",
+    );
   }
 
   @override
@@ -116,7 +117,8 @@ class IgnoredTestMonitor extends EventListener {
       countIgnored++;
       if (countIgnored > maxIgnored) {
         Terminal.print(
-            "\nMore than $maxIgnored tests were ignored due to flakes in");
+          "\nMore than $maxIgnored tests were ignored due to flakes in",
+        );
         Terminal.print("the test infrastructure. Notify dart-engprod@.");
         Terminal.print("Output of the last ignored test was:");
         Terminal.print(_buildFailureOutput(test));
@@ -199,8 +201,9 @@ class UnexpectedCrashLogger extends EventListener {
       }
 
       final kernelServiceBaseName = 'kernel-service.dart.snapshot';
-      final kernelService =
-          File('${binFile.parent.path}/$kernelServiceBaseName');
+      final kernelService = File(
+        '${binFile.parent.path}/$kernelServiceBaseName',
+      );
       if (kernelService.existsSync()) {
         final archived = "binary.${mode}_${arch}_$kernelServiceBaseName";
         binaries.add(archived);
@@ -214,10 +217,12 @@ class UnexpectedCrashLogger extends EventListener {
         // We have found and copied the binary.
         RandomAccessFile? unexpectedCrashesFile;
         try {
-          unexpectedCrashesFile =
-              File('unexpected-crashes').openSync(mode: FileMode.append);
+          unexpectedCrashesFile = File(
+            'unexpected-crashes',
+          ).openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
-              "${test.displayName},$pid,${binaries.join(',')}\n");
+            "${test.displayName},$pid,${binaries.join(',')}\n",
+          );
         } catch (e) {
           Terminal.print('Failed to add crash to unexpected-crashes list: $e');
         } finally {
@@ -278,13 +283,17 @@ class TimingPrinter extends EventListener {
       var command = commandOutput.command;
       var testCases = _commandToTestCases[command]!;
 
-      var testCasesDescription = testCases.map((testCase) {
-        return "${testCase.configurationString}/${testCase.displayName}";
-      }).join(', ');
+      var testCasesDescription = testCases
+          .map((testCase) {
+            return "${testCase.configurationString}/${testCase.displayName}";
+          })
+          .join(', ');
 
-      Terminal.print('${commandOutput.time} - '
-          '${command.displayName} - '
-          '$testCasesDescription');
+      Terminal.print(
+        '${commandOutput.time} - '
+        '${command.displayName} - '
+        '$testCasesDescription',
+      );
     }
   }
 }
@@ -303,8 +312,9 @@ class SkippedCompilationsPrinter extends EventListener {
   void allDone() {
     if (_skippedCompilations > 0) {
       Terminal.print(
-          '\n$_skippedCompilations compilations were skipped because '
-          'the previous output was already up to date.\n');
+        '\n$_skippedCompilations compilations were skipped because '
+        'the previous output was already up to date.\n',
+      );
     }
   }
 }
@@ -424,7 +434,10 @@ abstract class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
   static EventListener? fromProgress(
-      Progress progress, DateTime startTime, Formatter formatter) {
+    Progress progress,
+    DateTime startTime,
+    Formatter formatter,
+  ) {
     switch (progress) {
       case Progress.color:
       case Progress.compact:
@@ -481,7 +494,8 @@ class CompactProgressIndicator extends CompactIndicator {
     var passedPadded = _passedTests.toString().padLeft(5);
     var failedPadded = _failedTests.toString().padLeft(5);
     var elapsed = DateTime.now().difference(_startTime);
-    var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
+    var progressLine =
+        '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
     Terminal.writeLine(progressLine);
@@ -503,7 +517,8 @@ class LineProgressIndicator extends ProgressIndicator {
       status = 'fail';
     }
     Terminal.print(
-        'Done ${test.configurationString} ${test.displayName}: $status');
+      'Done ${test.configurationString} ${test.displayName}: $status',
+    );
   }
 }
 
@@ -574,8 +589,10 @@ class OutputWriter {
   }
 }
 
-List<String> _buildFailureOutput(TestCase test,
-    [Formatter formatter = Formatter.normal]) {
+List<String> _buildFailureOutput(
+  TestCase test, [
+  Formatter formatter = Formatter.normal,
+]) {
   var lines = <String>[];
   var output = OutputWriter(formatter, lines);
   _writeFailureStatus(test, formatter, output);
@@ -594,10 +611,14 @@ List<String> _buildFailureLog(TestCase test) {
 }
 
 void _writeFailureStatus(
-    TestCase test, Formatter formatter, OutputWriter output) {
+  TestCase test,
+  Formatter formatter,
+  OutputWriter output,
+) {
   output.write('');
-  output.write(formatter
-      .failed('FAILED: ${test.configurationString} ${test.displayName}'));
+  output.write(
+    formatter.failed('FAILED: ${test.configurationString} ${test.displayName}'),
+  );
 
   output.write('Expected: ${test.realExpected}');
   output.write('Actual: ${test.result}');
@@ -618,7 +639,10 @@ void _writeFailureStatus(
 }
 
 void _writeFailureOutput(
-    TestCase test, Formatter formatter, OutputWriter output) {
+  TestCase test,
+  Formatter formatter,
+  OutputWriter output,
+) {
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
@@ -632,7 +656,10 @@ void _writeFailureOutput(
 }
 
 void _writeFailureReproductionCommands(
-    TestCase test, Formatter formatter, OutputWriter output) {
+  TestCase test,
+  Formatter formatter,
+  OutputWriter output,
+) {
   final ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (test.configuration.runtime.isBrowser && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
@@ -681,8 +708,10 @@ class ResultWriter extends EventListener {
     var index = name.indexOf('/');
     var suite = name.substring(0, index);
     var testName = name.substring(index + 1);
-    var time = test.commandOutputs.values
-        .fold<Duration>(Duration.zero, (d, o) => d + o.time);
+    var time = test.commandOutputs.values.fold<Duration>(
+      Duration.zero,
+      (d, o) => d + o.time,
+    );
     var experiments = test.experiments;
     var record = {
       "name": name,
@@ -701,7 +730,7 @@ class ResultWriter extends EventListener {
         'name': name,
         'configuration': record['configuration'],
         'result': record['result'],
-        'log': newlineTerminated(_buildFailureLog(test))
+        'log': newlineTerminated(_buildFailureLog(test)),
       };
       _logs.add(log);
     }
@@ -715,7 +744,8 @@ class ResultWriter extends EventListener {
 
   void writeOutputFile(List<Map> results, String fileName) {
     var path = Uri.directory(_outputDirectory).resolve(fileName);
-    File.fromUri(path)
-        .writeAsStringSync(newlineTerminated(results.map(jsonEncode)));
+    File.fromUri(
+      path,
+    ).writeAsStringSync(newlineTerminated(results.map(jsonEncode)));
   }
 }

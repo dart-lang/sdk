@@ -392,6 +392,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes the operand expression.
   AwaitExpressionResult analyzeAwaitExpression(
+    Expression node,
     Expression operand,
     SharedTypeSchemaView schema,
   ) {
@@ -426,6 +427,8 @@ mixin TypeAnalyzer<
       isVoidAllowed: false,
     );
     // Stack: (operand)
+
+    flow.suspension(node);
 
     // Let T_1 be the static type of m_1.
     SharedTypeView t1 = m1.type;
@@ -671,12 +674,17 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
@@ -688,6 +696,7 @@ mixin TypeAnalyzer<
       node,
       schema,
       isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
     );
     // Stack: (Expression)
     if (operations.isBottomType(result.type)) {
@@ -1587,6 +1596,9 @@ mixin TypeAnalyzer<
       rhs,
       patternSchema,
       isVoidAllowed: true,
+      // The expression is assigned to the pattern, and so the coercion needs to
+      // be performed.
+      needsCoercion: true,
     );
     SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
@@ -1722,6 +1734,9 @@ mixin TypeAnalyzer<
       initializer,
       patternSchema,
       isVoidAllowed: true,
+      // The initializer expression is assigned to the pattern, and so the
+      // coercion needs to be performed.
+      needsCoercion: true,
     );
     SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
@@ -1950,6 +1965,10 @@ mixin TypeAnalyzer<
       operand,
       operandSchema,
       isVoidAllowed: true,
+      // The constant expressions in relational patterns are considered to be
+      // passed into the corresponding operator, and so the coercion needs to be
+      // performed.
+      needsCoercion: true,
     );
     SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
@@ -2422,6 +2441,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes the operand expression.
   YieldStatementResult analyzeYieldStatement(
+    Statement node,
     Expression operand, {
     required bool isYieldStar,
   }) {
@@ -2453,6 +2473,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
+    flow.suspension(node);
     return new YieldStatementResult(operandType: operandResult.type);
   }
 
@@ -2475,11 +2496,16 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   });
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
@@ -3166,6 +3192,8 @@ class TypeAnalyzerOptions {
 
   final bool inferenceUpdate4Enabled;
 
+  final bool thisPromotionEnabled;
+
   final bool soundFlowAnalysisEnabled;
 
   TypeAnalyzerOptions({
@@ -3174,6 +3202,7 @@ class TypeAnalyzerOptions {
     required this.respectImplicitlyTypedVarInitializers,
     required this.fieldPromotionEnabled,
     required this.inferenceUpdate4Enabled,
+    required this.thisPromotionEnabled,
     required this.soundFlowAnalysisEnabled,
   });
 }

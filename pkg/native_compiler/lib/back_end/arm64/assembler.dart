@@ -96,6 +96,10 @@ const Register heapBitsReg = R28;
 /// Dart null object.
 const Register nullReg = R22;
 
+/// Exception handler parameter registers.
+const Register exceptionObjectReg = R0;
+const Register stackTraceObjectReg = R1;
+
 const Set<Register> allRegisters = {
   R0,
   R1,
@@ -260,49 +264,38 @@ enum Extend {
 enum Shift { LSL, LSR, ASR, ROR }
 
 /// reg (LSL|LSR|ASR) #imm operand.
-class ShiftedRegOperand implements Operand {
-  final Register reg;
-  final Shift shift;
-  final int shiftAmount;
-  const ShiftedRegOperand(this.reg, this.shift, this.shiftAmount);
-}
+class const ShiftedRegOperand(
+  final Register reg,
+  final Shift shift,
+  final int shiftAmount,
+) implements Operand;
 
 /// reg (U|S)XT(B|H|W|X) #imm operand.
-class ExtRegOperand implements Operand {
-  final Register reg;
-  final Extend ext;
-  final int shiftAmount;
-  const ExtRegOperand(this.reg, this.ext, [this.shiftAmount = 0])
-    : assert(0 <= shiftAmount && shiftAmount <= 4);
+class const ExtRegOperand(
+  final Register reg,
+  final Extend ext, [
+  final int shiftAmount = 0,
+]) implements Operand {
+  this : assert(0 <= shiftAmount && shiftAmount <= 4);
 }
 
 /// [base + reg LSL #imm] address operand.
-class RegRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final int shift;
-  RegRegAddress(this.base, this.reg, this.shift);
-}
+class RegRegAddress(final Register base, final Register reg, final int shift)
+    implements Address;
 
 /// [base + reg (S|U)XTW {imm}] address operand.
-class RegExtRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final Extend ext;
-  final bool scaled;
-  RegExtRegAddress(this.base, this.reg, this.ext, {this.scaled = false});
-}
+class RegExtRegAddress(
+  final Register base,
+  final Register reg,
+  final Extend ext, {
+  final bool scaled = false,
+}) implements Address;
 
-class WritebackRegOffsetAddress implements Address {
-  final Register base;
-  final int offset;
-  final bool isPostIndexed;
-  WritebackRegOffsetAddress(
-    this.base,
-    this.offset, {
-    required this.isPostIndexed,
-  });
-}
+class WritebackRegOffsetAddress(
+  final Register base,
+  final int offset, {
+  required final bool isPostIndexed,
+}) implements Address;
 
 // Bits to simplify encoding of the instructions.
 const int B0 = (1 << 0);
@@ -352,7 +345,10 @@ const int B31 = (1 << 31);
 final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   final ObjectLayout objectLayout;
 
-  Arm64Assembler(super.vmOffsets, this.objectLayout);
+  Arm64Assembler(super.vmOffsets, super.addCallSiteMetadata, this.objectLayout);
+
+  @override
+  int get currentPcOffset => length << 2;
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -783,6 +779,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   @override
@@ -795,6 +792,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -802,6 +800,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, vmStub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -1979,6 +1978,104 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         throw 'Unexpect operand ${o.runtimeType}';
     }
   }
+
+  void fadd(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B13, rd, rn, rm, sz);
+  }
+
+  void fsub(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12 | B13, rd, rn, rm, sz);
+  }
+
+  void fmul(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(0, rd, rn, rm, sz);
+  }
+
+  void fdiv(
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPBinary(B12, rd, rn, rm, sz);
+  }
+
+  void _emitFPBinary(
+    int opcode,
+    FPRegister rd,
+    FPRegister rn,
+    FPRegister rm,
+    OperandSize sz,
+  ) {
+    assert(sz.is16or32or64);
+    emit(
+      B11 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd |
+          rn.encodingRn |
+          rm.encodingRm |
+          (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+    );
+  }
+
+  void fcmp(FPRegister rn, Operand o, [OperandSize sz = OperandSize.s64]) {
+    _emitFPCompare(0, rn, o, sz);
+  }
+
+  void _emitFPCompare(int opcode, FPRegister rn, Operand o, OperandSize sz) {
+    assert(sz.is16or32or64);
+    switch (o) {
+      case FPRegister():
+        emit(
+          B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              o.encodingRm |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+      case Immediate(value: 0):
+        emit(
+          B3 |
+              B13 |
+              B21 |
+              B25 |
+              B26 |
+              B27 |
+              B28 |
+              opcode |
+              rn.encodingRn |
+              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+        );
+
+      default:
+        throw 'Unexpect operand ${o.runtimeType} $o';
+    }
+  }
 }
 
 bool _isUint(int numBits, int value) => (value >>> numBits) == 0;
@@ -2010,6 +2107,7 @@ extension on FPRegister {
   int get encodingRd => index;
   int get encodingRt => index;
   int get encodingRn => index << 5;
+  int get encodingRm => index << 16;
 }
 
 extension on Immediate {

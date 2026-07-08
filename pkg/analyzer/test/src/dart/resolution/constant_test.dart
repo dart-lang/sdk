@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,7 +39,9 @@ const a = const A();
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
     expect(p.isConstantEvaluated, isTrue);
-    expect(p.computeConstantValue()!.isNull, isTrue);
+    assertDartObjectText(p.computeConstantValue(), r'''
+Null null
+''');
   }
 
   test_constFactoryRedirection_super() async {
@@ -66,7 +66,19 @@ main() {}
 
     var node = result.findNode.annotation('@I');
     var value = node.elementAnnotation!.computeConstantValue()!;
-    expect(value.getField('(super)')!.getField('f')!.toIntValue(), 42);
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    f: int 42
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::I::@constructor::new
+    positionalArguments
+      0: int 42
+''');
   }
 
   test_constList_withNullAwareElement() async {
@@ -189,7 +201,7 @@ C<double Function(int)>
         typeArguments
           double
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: double Function(int)}
   variable: <testLibrary>::@topLevelVariable::v
@@ -212,7 +224,10 @@ import 'a.dart';
 
     var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
@@ -231,7 +246,10 @@ import 'a.dart';
 
     var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
@@ -252,7 +270,10 @@ import 'a.dart';
 
     var import_ = result.findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: package:test/a.dart::@topLevelVariable::a
+''');
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
@@ -281,10 +302,18 @@ class B extends A {
     });
     var aResult = results[a]!;
 
-    var bElement = aResult.findElement.field('b') as FieldElementImpl;
-    var bValue = bElement.evaluationResult as DartObjectImpl;
-    var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
-    expect(superFields!.getField('f1')!.toBoolValue(), false);
+    var bElement = aResult.findElement.field('b');
+    assertDartObjectText(bElement.computeConstantValue(), r'''
+B
+  (super): A
+    f1: bool false
+    f2: bool false
+    constructorInvocation
+      constructor: package:test/a.dart::@class::A::@constructor::new
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+  variable: package:test/a.dart::@class::A::@field::b
+''');
   }
 
   test_local_prefixedIdentifier_staticField_extension() async {
@@ -296,6 +325,9 @@ extension E on int {
 }
 ''');
     var a = result.findElement.topVar('a');
-    expect(a.computeConstantValue()!.toIntValue(), 42);
+    assertDartObjectText(a.computeConstantValue(), r'''
+int 42
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 }

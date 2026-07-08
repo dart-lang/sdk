@@ -97,7 +97,7 @@ external double intBitsToDouble(int value);
 /// Bounds checks are disabled with `--omit-bounds-checks`, which is implied by
 /// `-O4`.
 ///
-/// Reads of this variable are evaluated before the TFA by the constant
+/// Reads of this variable are evaluated before TFA by the constant
 /// evaluator, and its value depends on `--omit-bounds-checks`.
 external bool get checkBounds;
 
@@ -106,9 +106,18 @@ external bool get checkBounds;
 /// If minification is on we do not retain specific error message details (e.g.
 /// omit the index in index errors).
 ///
-/// Reads of this variable are evaluated before the TFA by the constant
+/// Reads of this variable are evaluated before TFA by the constant
 /// evaluator, and its value depends on `--minify`.
 external bool get minify;
+
+/// Whether to omit error details.
+///
+/// If true, we do not retain specific error message details (e.g.
+/// omit the index in index errors).
+///
+/// Reads of this variable are evaluated before TFA by the constant
+/// evaluator, and its value depends on `--omit-error-details`.
+external bool get omitErrorDetails;
 
 /// Whether deferred loading is enabled.
 ///

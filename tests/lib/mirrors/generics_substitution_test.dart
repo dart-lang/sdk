@@ -5,6 +5,7 @@
 library test.generics_substitution;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 class SuperGeneric<R, S> {

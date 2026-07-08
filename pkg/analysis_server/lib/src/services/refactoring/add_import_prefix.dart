@@ -4,7 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Keyword;
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/extensions/selection.dart';
@@ -13,11 +16,12 @@ import 'package:analyzer/source/source.dart' show Source;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 
 /// The refactoring that adds a prefix to an import directive.
-class AddImportPrefix extends RefactoringProducer {
+class AddImportPrefix extends ParameterizedRefactoringProducer {
   static const String commandName = 'dart.refactor_add.import_prefix';
 
   static const String constTitle = 'Add a prefix to the import';
@@ -33,13 +37,50 @@ class AddImportPrefix extends RefactoringProducer {
   CodeActionKind get kind => DartCodeActionKind.refactorAdd;
 
   @override
+  /// This refactor supports input using the new system (see
+  /// [buildInteractiveForm]) but not using the old one, so there are no
+  /// parameters.
+  List<CommandParameter> get parameters => [];
+
+  @override
   String get title => constTitle;
+
+  /// Builds the [InteractiveForm] to collect input for this refactor.
+  @override
+  ErrorOr<InteractiveForm> buildInteractiveForm() {
+    var element = selection?.importDirective(mustNotHavePrefix: true);
+    if (element == null) {
+      // We shouldn't have gotten here if the selection was not valid for this
+      // refactor, but return a useful error to aid debugging if so.
+      return error(
+        ErrorCodes.InvalidParams,
+        'The selection is not valid for adding an import prefix',
+      );
+    }
+
+    var nameField = ValidatableFormField(
+      id: 'name',
+      description: 'Import Prefix',
+      required: true,
+      defaultValue: _computeName(element),
+      type: FormFieldTypeString(),
+      validate: wrapRefactorValidationFunction(validateImportPrefixName),
+    );
+
+    return success(createForm([nameField]));
+  }
 
   @override
   Future<ComputeStatus> compute(
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
+    // Handle optional name in the arguments (if Interactive Forms were used).
+    var prefixName = switch (commandArguments) {
+      [String name] => name,
+      _ => null,
+    };
+
     var element = selection?.importDirective(mustNotHavePrefix: true);
     if (element == null) {
       // This should never happen because `isAvailable` would have returned
@@ -51,7 +92,8 @@ class AddImportPrefix extends RefactoringProducer {
     if (refactoring == null) {
       return ComputeStatusFailure();
     }
-    refactoring.newName = _computeName(element);
+    prefixName ??= _computeName(element);
+    refactoring.newName = prefixName;
     var status = await refactoring.checkAllConditions();
     if (status.hasError) {
       return ComputeStatusFailure();

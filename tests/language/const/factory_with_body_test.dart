@@ -7,10 +7,12 @@
 class ConstFactoryWithBody {
   const ConstFactoryWithBody();
 
-  const factory ConstFactoryWithBody.one() { return ConstFactoryWithBody(); }
-//^^^^^
-// [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
-// [cfe] Only redirecting factory constructors can be declared to be 'const'.
+  const factory ConstFactoryWithBody.one() {
+    // [error line 10, column 3, length 5]
+    // [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
+    // [cfe] Only redirecting factory constructors can be declared to be 'const'.
+    return ConstFactoryWithBody();
+  }
 }
 
 main() {

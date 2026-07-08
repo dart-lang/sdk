@@ -460,11 +460,8 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
-      if (message case [
-        int opcode,
-        List<int> messageBytes,
-        SendPort replyPort,
-      ] when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+      if (message case [int opcode, List<int> messageBytes, SendPort replyPort]
+          when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
         _handleNativeRpcCall(messageBytes, replyPort);
         return;
       }
@@ -675,14 +672,11 @@ class VMService extends MessageRouter {
   }
 
   Future<String> _getSupportedProtocols(Message message) async {
-    final payload =
-        json.decode(
-              utf8.decode(
-                (await Message.forMethod('getVersion').sendToVM()).payload
-                    as List<int>,
-              ),
-            )
-            as Map<String, dynamic>;
+    final payload = json.decode(
+      utf8.decode(
+        (await Message.forMethod('getVersion').sendToVM()).payload as List<int>,
+      ),
+    ) as Map<String, dynamic>;
     final version = payload['result'] as Map<String, dynamic>;
     final protocols = {
       'type': 'ProtocolList',
@@ -817,6 +811,9 @@ external void onStart();
 /// Notify the VM that the service is no longer running.
 @pragma("vm:external-name", "VMService_OnExit")
 external void onExit();
+
+@pragma("vm:external-name", "VMService_NotifyFinishedInitializing")
+external void notifyFinishedInitializing();
 
 @pragma("vm:external-name", "VMService_OnServerAddressChange")
 external void onServerAddressChange(String? address);

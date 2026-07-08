@@ -10,11 +10,9 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeatures, ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-import 'package:front_end/src/base/name_space.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:front_end/src/type_inference/inference_results.dart';
-import 'package:front_end/src/type_inference/object_access_target.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show LanguageVersionToken;
+
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -43,6 +41,7 @@ import 'package:kernel/kernel.dart'
         LibraryPart,
         Name,
         NamedNode,
+        NamedParameter,
         Node,
         Nullability,
         Procedure,
@@ -56,13 +55,16 @@ import 'package:kernel/kernel.dart'
         TypeParameterType,
         Variable,
         VisitorDefault,
-        VisitorVoidMixin;
+        VisitorVoidMixin,
+        Version,
+        PositionalParameter;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:package_config/package_config.dart' show Package, PackageConfig;
+import 'package:package_config/package_config.dart'
+    show Package, PackageConfig, LanguageVersion;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
@@ -71,6 +73,8 @@ import '../api_prototype/incremental_kernel_generator.dart'
         IncrementalCompilerResult,
         IncrementalKernelGenerator,
         isLegalIdentifier;
+import '../api_prototype/language_version.dart'
+    show Version, scanBytesForLanguageVersionAnnotation;
 import '../api_prototype/lowering_predicates.dart'
     show
         isExtensionThisName,
@@ -83,17 +87,25 @@ import '../builder/compilation_unit.dart'
     show CompilationUnit, SourceCompilationUnit;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
+import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart' show LibraryBuilder;
 import '../builder/member_builder.dart' show MemberBuilder;
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_loader.dart' show DillLoader;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
+import '../kernel/expression_compilation_data.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart'
-    show InternalVariableGet, InternalVariableSet, InternalVariable;
+    show
+        InternalVariableGet,
+        InternalVariableSet,
+        InternalVariable,
+        InternalVariableDeclaration;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
@@ -101,11 +113,18 @@ import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import '../source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart';
-import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper, OverwrittenInterfaceMember;
+import '../type_inference/inference_results.dart'
+    show ExpressionInferenceResult;
+import '../type_inference/object_access_target.dart'
+    show
+        ObjectAccessTarget,
+        ObjectAccessTargetKind,
+        ExpressionEvaluationParameterTarget;
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
+import '../util/expression_evaluation_helpers.dart'
+    show ExpressionEvaluationHelper, OverwrittenInterfaceMember;
 import '../util/textual_outline.dart' show textualOutline;
 import 'builder_graph.dart' show BuilderGraph;
 import 'combinator.dart' show CombinatorBuilder;
@@ -113,7 +132,11 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'messages.dart';
+import 'lookup_result.dart' show LookupResult;
+import 'messages.dart'
+    show DiagnosticMessageFromJson, Message, ProblemReporting;
+import 'name_space.dart' show NameSpace, areNameSpacesEquivalent;
+import 'processed_options.dart' show ProcessedOptions;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show getPartUri;
@@ -128,6 +151,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final bool outlineOnly;
 
   Set<Uri?> _invalidatedUris = new Set<Uri?>();
+  bool _invalidatedBecauseOfPackageUpdate = false;
 
   DillTarget? _dillLoadedData;
   List<DillLibraryBuilder>? _platformBuilders;
@@ -1412,8 +1436,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         benchmarker: _benchmarker,
       );
       int bytesLength = await _initializationStrategy.initialize(
+        this,
         dillLoadedData,
         uriTranslator,
+        _currentPackagesMap!,
         context,
         data,
         _componentProblems,
@@ -1852,6 +1878,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
+    Set<String>? definitionsAddedByUser,
     String? className,
     String? methodName,
     int offset = TreeNode.noOffset,
@@ -1863,6 +1890,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Map<String, DartType> usedDefinitions = new Map<String, DartType>.of(
       inputDefinitions,
     );
+    final Set<String> renamedPrivateNamedParameter = {};
 
     return await context.runInContext((_) async {
       CompilationUnit? compilationUnit = lastGoodKernelTarget!.loader
@@ -1874,9 +1902,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return null;
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
-      List<InternalVariable> extraKnownVariables = [];
+      List<InternalVariableDeclaration> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
+      Set<String> removedDefinitionNames = {};
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1930,7 +1959,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // currently null. This can also mean that the VM can't send over the
           // information - this for instance happens for function types.
           for (MapEntry<String, Variable> def in foundScope.variables.entries) {
+            if (definitionsAddedByUser != null &&
+                definitionsAddedByUser.contains(def.key)) {
+              // Don't try to overwrite types of "fake" definitions added by
+              // the user - even if it shadows real variables.
+              continue;
+            }
+
             DartType? existingType = usedDefinitions[def.key];
+
+            if (existingType != null &&
+                def.value is NamedParameter &&
+                (def.value as NamedParameter).isRenamedPrivateNamedParameter) {
+              // We have to rename this for correct scope lookups.
+              renamedPrivateNamedParameter.add(def.key);
+            }
+
             if (existingType == null) {
               // We found a variable, but we weren't told about it.
               // For now we'll only do something special if it's a const
@@ -1939,14 +1983,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   def.value.isConst &&
                   def.value.initializer is ConstantExpression) {
                 extraKnownVariables.add(
-                  intern.createLocalVariable(
-                    isClosureContextLoweringEnabled: lastGoodKernelTarget
-                        .loader
-                        .isClosureContextLoweringEnabled,
-                    name: def.key,
-                    type: substitution.substituteType(def.value.type),
-                    isConst: true,
-                    hasDeclaredInitializer: true,
+                  intern.createVariableDeclaration(
+                    intern.createConstVariable(
+                      name: def.key,
+                      type: substitution.substituteType(def.value.type),
+                      hasDeclaredInitializer: true,
+                      fileOffset: def.value.fileOffset,
+                    ),
                     initializer: def.value.initializer,
                     fileOffset: def.value.fileOffset,
                   ),
@@ -1962,13 +2005,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // captured? Either way there's something shadowing any fields
                 // etc.
                 extraKnownVariables.add(
-                  intern.createLocalVariable(
-                    isClosureContextLoweringEnabled: lastGoodKernelTarget
-                        .loader
-                        .isClosureContextLoweringEnabled,
-                    name: def.key,
-                    type: substitution.substituteType(def.value.type),
-                    isConst: false,
+                  intern.createVariableDeclaration(
+                    intern.createLocalVariable(
+                      name: def.key,
+                      type: substitution.substituteType(def.value.type),
+                      fileOffset: def.value.fileOffset,
+                    ),
+                    initializer: null,
                     fileOffset: def.value.fileOffset,
                   ),
                 );
@@ -1996,6 +2039,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 usedType = usedType.toNonNull();
               }
               usedDefinitions[def.key] = usedType;
+            }
+          }
+
+          for (String name in usedDefinitions.keys) {
+            if (definitionsAddedByUser != null &&
+                definitionsAddedByUser.contains(name)) {
+              // Don't remove user-provided "fake" definitions.
+              continue;
+            }
+            if (!foundScope.variables.containsKey(name)) {
+              removedDefinitionNames.add(name);
             }
           }
         }
@@ -2055,11 +2109,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
-                List<Variable>? positionals =
+                List<PositionalParameter>? positionals =
                     subBuilder.invokeTarget?.function?.positionalParameters;
                 if (positionals != null &&
                     positionals.isNotEmpty &&
-                    isExtensionThisName(positionals.first.name) &&
+                    isExtensionThisName(positionals.first.cosmeticName) &&
                     usedDefinitions.containsKey(syntheticThisName)) {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly
@@ -2173,16 +2227,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             combinators.add(
               combinator.isShow
-                  ? new CombinatorBuilder.show(
-                      combinator.names,
-                      combinator.fileOffset,
-                      libraryBuilder.fileUri,
-                    )
-                  : new CombinatorBuilder.hide(
-                      combinator.names,
-                      combinator.fileOffset,
-                      libraryBuilder.fileUri,
-                    ),
+                  ? new CombinatorBuilder.show(combinator.names)
+                  : new CombinatorBuilder.hide(combinator.names),
             );
           }
 
@@ -2228,34 +2274,49 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      InternalVariable? extensionThis;
+      // Prepare for having a different set of parameters for compiling vs in
+      // the output (for when the VM tells us about a variable we don't actually
+      // have).
+      PositionalParameter? extensionThis;
+      List<PositionalParameter> positionalParametersUsedForCompiling = [];
+      Map<String, PositionalParameter> extraParametersIfNotShadowing = {};
+      List<PositionalParameter> allPositionalParameters = [];
+      for (MapEntry<String, DartType> def in usedDefinitions.entries) {
+        String name = def.key;
+        if (renamedPrivateNamedParameter.contains(name)) {
+          // We rename it here so scopes will be correct.
+          name = "_$name";
+        }
+        DartType type = def.value;
+        PositionalParameter variable = extern.createPositionalParameter(
+          cosmeticName: name,
+          type: type,
+          fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+        );
+        allPositionalParameters.add(variable);
 
-      // TODO: pass variable declarations instead of
-      // parameter names for proper location detection.
-      // https://github.com/dart-lang/sdk/issues/44158
-      FunctionNode parameters = new FunctionNode(
-        null,
-        typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries.map<Variable>((
-          MapEntry<String, DartType> def,
-        ) {
-          InternalVariable variable = intern.createPositionalParameter(
-            isClosureContextLoweringEnabled:
-                lastGoodKernelTarget.loader.isClosureContextLoweringEnabled,
-            cosmeticName: def.key,
-            type: def.value,
-            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-          );
+        if (!identical(name, def.key)) {
+          // Include under the public name too.
+          extraParametersIfNotShadowing[def.key] = variable;
+        }
 
-          if (isExtensionOrExtensionTypeInstanceMember &&
-              isExtensionThisName(def.key) &&
-              extensionThis == null) {
-            // The `#this` variable is special.
-            extensionThis = variable..isLowered = true;
-          }
-          return variable.astVariable;
-        }).toList(),
-      );
+        // If the VM tells us we have #this --- let's assume we do even if we
+        // didn't find it.
+        if (isExtensionOrExtensionTypeInstanceMember &&
+            isExtensionThisName(name) &&
+            extensionThis == null) {
+          // The `#this` variable is special.
+          extensionThis = variable..isLowered = true;
+          positionalParametersUsedForCompiling.add(variable);
+        } else if (!removedDefinitionNames.contains(name)) {
+          // If this definition hasn't been removed we use it for compiling.
+          positionalParametersUsedForCompiling.add(variable);
+        } else {
+          // Pass the variables not in scope so that we can compile using
+          // these if we would have otherwise created a compile time error.
+          extraParametersIfNotShadowing[name] = variable;
+        }
+      }
 
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
@@ -2270,38 +2331,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       );
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
 
-      Procedure procedure = new Procedure(
-        new Name(syntheticProcedureName),
-        ProcedureKind.Method,
-        parameters,
-        isStatic: isStatic,
-        fileUri: debugLibrary.fileUri,
-      );
-
       ClassHierarchy hierarchy = lastGoodKernelTarget.loader.hierarchy;
-
       ExpressionEvaluationHelper expressionEvaluationHelper =
           new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
+
+      ExpressionCompilationData expressionCompilationData =
+          new ExpressionCompilationData(
+            fileOffset: TreeNode.noOffset,
+            typeParameters: typeDefinitions,
+            positionalParameters: positionalParametersUsedForCompiling,
+            extraParametersIfNotShadowing: extraParametersIfNotShadowing,
+            extraKnownVariables: extraKnownVariables,
+          );
 
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
             debugLibrary,
             className ?? extensionName,
             (className != null && !isStatic) || extensionThis != null,
-            procedure,
+            expressionCompilationData,
             extensionThis,
-            extraKnownVariables,
             expressionEvaluationHelper,
           );
-
-      parameters.body = new ReturnStatement(compiledExpression)
-        ..parent = parameters;
-
-      procedure.fileUri = debugLibrary.fileUri;
-      procedure.parent = cls ?? libraryBuilder.library;
-
       lastGoodKernelTarget.uriToSource.remove(debugExprUri);
       lastGoodKernelTarget.loader.sourceBytes.remove(debugExprUri);
+
+      Procedure procedure = new Procedure(
+        new Name(syntheticProcedureName),
+        ProcedureKind.Method,
+        new FunctionNode(
+          new ReturnStatement(compiledExpression),
+          typeParameters: typeDefinitions,
+          positionalParameters: allPositionalParameters,
+        ),
+        isStatic: isStatic,
+        fileUri: debugLibrary.fileUri,
+        containsSuperCalls: expressionCompilationData.containsSuperCalls,
+      );
+      procedure.parent = cls ?? libraryBuilder.library;
 
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);
@@ -2368,7 +2435,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (lastGoodKernelTarget == null && _userBuilders == null) {
       return new ReusageResult.reusedLibrariesOnly(reusedLibraries);
     }
-    bool invalidatedBecauseOfPackageUpdate = false;
+    bool invalidatedBecauseOfPackageUpdate = _invalidatedBecauseOfPackageUpdate;
+    _invalidatedBecauseOfPackageUpdate = false;
     Set<DillLibraryBuilder> directlyInvalidated = {};
     Set<DillLibraryBuilder> notReusedLibraries = {};
 
@@ -2563,15 +2631,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final Set<InternalVariable> knownButUnavailable = {};
   final ClassHierarchy hierarchy;
+  final Map<String, FormalParameterBuilder> extraParametersIfNotShadowing = {};
 
-  new(List<InternalVariable> extraKnown, this.hierarchy) {
-    for (InternalVariable variable in extraKnown) {
-      if (variable.isConst) {
+  new(List<InternalVariableDeclaration> extraKnown, this.hierarchy) {
+    for (InternalVariableDeclaration declaration in extraKnown) {
+      if (declaration.variable.isConst) {
         // We allow const variables - these are inlined (we check
         // `alwaysInlineConstants` in `compileExpression`).
         continue;
       }
-      knownButUnavailable.add(variable);
+      knownButUnavailable.add(declaration.variable);
     }
   }
 
@@ -2644,9 +2713,22 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     required DartType receiverType,
     required Name name,
     required bool setter,
+    bool? isImplicitThis,
   }) {
     // On a missing target, rewrite to a dynamic target instead.
     if (target.kind == ObjectAccessTargetKind.missing) {
+      if (isImplicitThis ?? false) {
+        FormalParameterBuilder? registered =
+            extraParametersIfNotShadowing[name.text];
+        if (registered != null) {
+          return new OverwrittenInterfaceMember(
+            target: new ExpressionEvaluationParameterTarget(
+              registered.variable.astVariable,
+            ),
+            name: name,
+          );
+        }
+      }
       // On a private name, try to find a descendant of receiverType
       // that has the name.
       ClassHierarchy hierarchy = this.hierarchy;
@@ -2704,6 +2786,19 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
       );
     }
     return null;
+  }
+
+  @override
+  void registerAdditionalScopeLookupResult(
+    String name,
+    FormalParameterBuilder result,
+  ) {
+    extraParametersIfNotShadowing[name] = result;
+  }
+
+  @override
+  LookupResult? additionalScopeLookup(String name) {
+    return extraParametersIfNotShadowing[name];
   }
 }
 
@@ -2851,8 +2946,10 @@ abstract class _InitializationStrategy {
   bool get initializedIncrementalSerializerForTesting => false;
 
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2867,8 +2964,10 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   @override
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2931,8 +3030,10 @@ class _InitializationFromComponent extends _InitializationStrategy {
 
   @override
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2989,8 +3090,10 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   @override
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -3007,9 +3110,11 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     );
     try {
       bytesLength += await _initializeFromDill(
+        incrementalCompiler,
         dillLoadedData,
         initializeFromDillUri,
         uriTranslator,
+        currentPackagesMap,
         context,
         data,
         componentProblems,
@@ -3084,9 +3189,11 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   // This procedure will try to load the dill file and will crash if it cannot.
   Future<int> _initializeFromDill(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     Uri initializeFromDillUri,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems _componentProblems,
@@ -3114,18 +3221,77 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               createView: true,
             )!;
 
+        List<Uri>? invalidateUrisBecauseOfLanguageVersionChange;
+
+        late Version defaultSdkVersion =
+            KernelTarget.calculateCurrentSdkVersion(context.options);
+
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
         for (Library lib in data.component!.libraries) {
-          if (lib.importUri.isScheme("package") &&
-              uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
-            // Package has been removed or updated.
-            // This library should be thrown away.
-            // Everything that depends on it should be thrown away.
-            // TODO(jensj): Anything that doesn't depend on it can be kept.
-            // For now just don't initialize from this dill.
-            throw const PackageChangedError();
+          if (lib.importUri.isScheme("package")) {
+            if (uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
+              // Package has been removed or updated.
+              // This library should be thrown away.
+              // Everything that depends on it should be thrown away.
+              // TODO(jensj): Anything that doesn't depend on it can be kept.
+              // For now just don't initialize from this dill.
+              throw const PackageChangedError();
+            }
+
+            // Find out if the language version has changed.
+            String path = lib.importUri.path;
+            int firstSlash = path.indexOf('/');
+            String packageName = path.substring(0, firstSlash);
+            Package? currentPackage = currentPackagesMap[packageName];
+            if (currentPackage == null) {
+              // This shouldn't happen as we checked the uri above.
+              throw const PackageChangedError();
+            }
+            LanguageVersion? usedPackageVersion =
+                currentPackage.languageVersion;
+            bool languageVersionChanged = false;
+            if (usedPackageVersion != null) {
+              if (lib.languageVersion.major != usedPackageVersion.major ||
+                  lib.languageVersion.minor != usedPackageVersion.minor) {
+                languageVersionChanged = true;
+              }
+            } else {
+              if (lib.languageVersion.major != defaultSdkVersion.major ||
+                  lib.languageVersion.minor != defaultSdkVersion.minor) {
+                languageVersionChanged = true;
+              }
+            }
+            if (languageVersionChanged) {
+              // Package language version can have been overwritten by @dart
+              // annotation which wouldn't by itself constitute a change.
+              LanguageVersionToken? annotationVersion =
+                  await scanBytesForLanguageVersionAnnotation(
+                    context.options.fileSystem,
+                    lib.fileUri,
+                  );
+              if (annotationVersion != null) {
+                if (lib.languageVersion.major == annotationVersion.major &&
+                    lib.languageVersion.minor == annotationVersion.minor) {
+                  languageVersionChanged = false;
+                }
+              }
+            }
+            if (languageVersionChanged) {
+              (invalidateUrisBecauseOfLanguageVersionChange ??= []).add(
+                lib.importUri,
+              );
+            }
+          }
+        }
+
+        // We loaded and checked the dill file. If we found any urls that need
+        // invalidation do that now.
+        if (invalidateUrisBecauseOfLanguageVersionChange != null) {
+          incrementalCompiler._invalidatedBecauseOfPackageUpdate = true;
+          for (Uri uri in invalidateUrisBecauseOfLanguageVersionChange) {
+            incrementalCompiler.invalidate(uri);
           }
         }
 

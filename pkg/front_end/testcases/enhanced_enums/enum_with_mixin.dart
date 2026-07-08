@@ -13,6 +13,4 @@ enum SomeEnum with HasSomeField {
   String get someField => 'field';
 }
 
-enum NormalEnum {
-  value;
-}
+enum NormalEnum { value }

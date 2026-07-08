@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 
 var latin1Strings = ["pure ascii", "blåbærgrød", "\x00 edge cases \xff"];

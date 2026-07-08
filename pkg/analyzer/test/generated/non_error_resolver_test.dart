@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -670,9 +669,9 @@ f() {
 
   test_castFrom() async {
     // This test exercises a corner case of legacy erasure: due to the type
-    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
-    // a synthetic `ParameterMember` that belongs to no library.  We need to
-    // make sure this doesn't lead to a crash.
+    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up
+    // with a synthetic `SubstitutedFormalParameterElementImpl` that belongs to
+    // no library. We need to make sure this doesn't lead to a crash.
     await resolveTestCodeWithDiagnostics('''
 class C {}
 
@@ -2682,18 +2681,20 @@ class A {
 ''');
   }
 
-  @failingTest
   test_null_callOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   null + 5;
+//     ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
   null == 5;
+//^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
   null[0];
+//    ^
+// [diag.invalidUseOfNullValue] An expression whose value is always 'null' can't be dereferenced.
 }
-''',
-      [error(diag.undefinedMethod, 0, 0), error(diag.undefinedMethod, 0, 0)],
-    );
+''');
   }
 
   test_optionalNew_rewrite() async {

@@ -39,6 +39,7 @@ typedef TestingClass$_HttpHeaders = _HttpHeaders;
 typedef TestingClass$_HttpParser = _HttpParser;
 typedef TestingClass$_HttpRequest = _HttpRequest;
 typedef TestingClass$_SHA1 = _SHA1;
+typedef TestingClass$_WebSocketPerMessageDeflate = _WebSocketPerMessageDeflate;
 typedef TestingClass$_WebSocketProtocolTransformer =
     _WebSocketProtocolTransformer;
 typedef TestingClass$_WebSocketImpl = _WebSocketImpl;

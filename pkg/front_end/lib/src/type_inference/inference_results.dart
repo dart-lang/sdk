@@ -2,26 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../kernel/external_ast_helper.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/internal_ast.dart';
 import '../source/check_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
 /// The result of a statement inference.
-class StatementInferenceResult {
-  const new();
-
+abstract class StatementInferenceResult {
   factory single(Statement statement) = SingleStatementInferenceResult;
 
   factory multiple(int fileOffset, List<Statement> statements) {
-    if (statements.length == 0) {
-      return const StatementInferenceResult();
-    } else if (statements.length == 1) {
+    if (statements.length == 1) {
       // Coverage-ignore-block(suite): Not run.
       return new SingleStatementInferenceResult(statements.single);
     } else {
@@ -29,19 +27,11 @@ class StatementInferenceResult {
     }
   }
 
-  bool get hasChanged => false;
+  Statement get statement;
 
-  // Coverage-ignore(suite): Not run.
-  Statement get statement =>
-      throw new UnsupportedError('StatementInferenceResult.statement');
+  int get statementCount;
 
-  // Coverage-ignore(suite): Not run.
-  int get statementCount =>
-      throw new UnsupportedError('StatementInferenceResult.statementCount');
-
-  // Coverage-ignore(suite): Not run.
-  List<Statement> get statements =>
-      throw new UnsupportedError('StatementInferenceResult.statements');
+  List<Statement> get statements;
 }
 
 class SingleStatementInferenceResult implements StatementInferenceResult {
@@ -49,9 +39,6 @@ class SingleStatementInferenceResult implements StatementInferenceResult {
   final Statement statement;
 
   new(this.statement);
-
-  @override
-  bool get hasChanged => true;
 
   @override
   int get statementCount => 1;
@@ -79,15 +66,12 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
       );
 
   @override
-  bool get hasChanged => true;
-
-  @override
   // Coverage-ignore(suite): Not run.
   Statement get statement {
     if (statements.length == 1) {
       return statements.single;
     } else {
-      return new Block(statements)..fileOffset = fileOffset;
+      return extern.createBlock(statements, fileOffset: fileOffset);
     }
   }
 
@@ -95,8 +79,9 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   int get statementCount => statements.length;
 }
 
-class VariableDeclarationInferenceResult {
-  const new();
+sealed class VariableDeclarationInferenceResult {
+  factory direct(VariableDeclaration declaration) =
+      DirectVariableDeclarationInferenceResult;
 
   factory effect([Expression? expression]) =
       EffectVariableDeclarationInferenceResult;
@@ -107,10 +92,23 @@ class VariableDeclarationInferenceResult {
     required int fileOffset,
   }) = LateVariableDeclarationInferenceResult;
 
-  bool get hasChanged => false;
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  });
+}
 
-  StatementInferenceResult toStatementInferenceResult() =>
-      const StatementInferenceResult();
+class DirectVariableDeclarationInferenceResult
+    implements VariableDeclarationInferenceResult {
+  final VariableDeclaration declaration;
+
+  new(this.declaration);
+
+  @override
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.single(
+    createVariableStatement(declaration, fileOffset: fileOffset),
+  );
 }
 
 class EffectVariableDeclarationInferenceResult
@@ -120,16 +118,13 @@ class EffectVariableDeclarationInferenceResult
   new([this.expression]);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasChanged => true;
-
-  @override
-  StatementInferenceResult toStatementInferenceResult() =>
-      new StatementInferenceResult.single(
-        expression != null
-            ? createExpressionStatement(expression!)
-            : createEmptyStatement(),
-      );
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.single(
+    expression != null
+        ? createExpressionStatement(expression!, fileOffset: fileOffset)
+        : createEmptyStatement(fileOffset: fileOffset),
+  );
 }
 
 class LateVariableDeclarationInferenceResult
@@ -145,16 +140,13 @@ class LateVariableDeclarationInferenceResult
   });
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasChanged => true;
-
-  @override
-  StatementInferenceResult toStatementInferenceResult() =>
-      new StatementInferenceResult.multiple(fileOffset, [
-        for (VariableDeclaration variableDeclaration in variableDeclarations)
-          createVariableStatement(variableDeclaration),
-        ...functionDeclarations,
-      ]);
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.multiple(fileOffset, [
+    for (VariableDeclaration variableDeclaration in variableDeclarations)
+      createVariableStatement(variableDeclaration),
+    ...functionDeclarations,
+  ]);
 }
 
 /// Tells the inferred type and how the code should be transformed.
@@ -178,6 +170,9 @@ abstract class InvocationInferenceResult {
   /// The named arguments.
   List<NamedExpression> get named;
 
+  /// The flow analysis expression info for the invocation expression.
+  ExpressionInfo? get expressionInfo;
+
   /// Applies the result of the inference to the expression being inferred.
   ///
   /// A successful result leaves [expression] intact, and an error detected
@@ -197,11 +192,14 @@ abstract class InvocationInferenceResult {
 
   static Expression _insertHoistedExpressions(
     Expression expression,
-    List<Variable> hoistedExpressions,
+    List<SyntheticVariable> hoistedExpressions,
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(hoistedExpressions[index], expression);
+        expression = createLet(
+          variable: hoistedExpressions[index],
+          body: expression,
+        );
       }
     }
     return expression;
@@ -222,13 +220,16 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   @override
   final List<DartType> typeArguments;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   @override
   final List<Expression> positional;
 
   @override
   final List<NamedExpression> named;
+
+  @override
+  final ExpressionInfo? expressionInfo;
 
   final DartType? inferredReceiverType;
 
@@ -238,6 +239,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     required this.typeArguments,
     required this.positional,
     required this.named,
+    required this.expressionInfo,
     required this.hoistedArguments,
     this.inferredReceiverType,
   });
@@ -247,7 +249,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else if (expression is RedirectingFactoryInvocation) {
@@ -279,15 +281,15 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return expression;
       } else if (expression is InstanceInvocation) {
         if (!isPureExpression(expression.receiver)) {
-          Variable receiver = createVariable(
+          SyntheticVariable receiver = createVariable(
             expression.receiver,
             inferredReceiverType ?? const DynamicType(),
           );
           expression.receiver = createVariableGet(receiver)
             ..parent = expression;
           return createLet(
-            receiver,
-            InvocationInferenceResult._insertHoistedExpressions(
+            variable: receiver,
+            body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
               hoistedArguments,
             ),
@@ -307,7 +309,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         if (extensionReceiverType != null) {
           Expression receiver = expression.arguments.positional.first;
           if (!isPureExpression(receiver)) {
-            Variable receiverVariable = createVariable(
+            SyntheticVariable receiverVariable = createVariable(
               receiver,
               extensionReceiverType,
             );
@@ -315,8 +317,8 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
               receiverVariable,
             )..parent = expression;
             return createLet(
-              receiverVariable,
-              InvocationInferenceResult._insertHoistedExpressions(
+              variable: receiverVariable,
+              body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
                 hoistedArguments,
               ),
@@ -366,7 +368,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final bool isInapplicable;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   @override
   final List<Expression> positional;
@@ -383,6 +385,10 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     required this.positional,
     required this.named,
   });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionInfo? get expressionInfo => null;
 
   @override
   DartType get inferredType => const InvalidType();
@@ -403,7 +409,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
       expression: expression,
       message: message,
     );
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
@@ -456,7 +462,7 @@ class SuccessfulInitializerInvocationInferenceResult
   @override
   final Initializer initializer;
 
-  final List<Variable>? hoistedArguments;
+  final List<SyntheticVariable>? hoistedArguments;
 
   new({required this.initializer, required this.hoistedArguments});
 
@@ -470,9 +476,9 @@ class SuccessfulInitializerInvocationInferenceResult
 
   @override
   void addHoistedArguments(List<Initializer> initializers) {
-    List<Variable>? hoistedArguments = this.hoistedArguments;
+    List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
-      for (Variable hoistedArgument in hoistedArguments) {
+      for (SyntheticVariable hoistedArgument in hoistedArguments) {
         initializers.add(
           new LocalInitializer(hoistedArgument)
             ..fileOffset = hoistedArgument.fileOffset,
@@ -548,14 +554,21 @@ class ExpressionInferenceResult {
 /// A guard used for creating null-shorting null-aware actions.
 class NullAwareGuard {
   /// The variable used to guard the null-aware action.
-  final Variable _nullAwareVariable;
+  final SyntheticVariable _nullAwareVariable;
+
+  final Expression? _nullableExpression;
 
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
   final InferenceVisitorBase _inferrer;
 
-  new(this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
+  new(
+    this._nullAwareVariable,
+    this._nullAwareFileOffset,
+    this._inferrer, {
+    this._nullableExpression,
+  });
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -609,18 +622,23 @@ class NullAwareGuard {
     // for non-nullable receivers in cascades.
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
-        ? new NullLiteral()
+        ? extern.createNullLiteral(fileOffset: TreeNode.noOffset)
         : createVariableGet(_nullAwareVariable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
-    ConditionalExpression condition = new ConditionalExpression(
+    ConditionalExpression condition = extern.createConditionalExpression(
       equalsNull,
       typeSafeIfNullBranch,
       nullAwareAction,
-      inferredType,
-    )..fileOffset = _nullAwareFileOffset;
-    return new Let(_nullAwareVariable, condition)
-      ..fileOffset = _nullAwareFileOffset;
+      staticType: inferredType,
+      fileOffset: _nullAwareFileOffset,
+    );
+    return extern.createLet(
+      variable: _nullAwareVariable,
+      value: _nullableExpression,
+      body: condition,
+      fileOffset: _nullAwareFileOffset,
+    );
   }
 
   @override

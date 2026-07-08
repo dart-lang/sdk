@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
@@ -67,6 +69,26 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     newFile(testFile.path, content);
   }
 
+  void addTestFileWithDiagnosticExpectations(String code) {
+    var cleanCode = removeDiagnosticExpectations(code);
+    addTestFile(cleanCode);
+  }
+
+  void assertDiagnosticsInCode(String code, List<Diagnostic> diagnostics) {
+    var cleanCode = removeDiagnosticExpectations(code);
+    var actual = updateExpectedDiagnostics(
+      content: cleanCode,
+      actualDiagnostics: diagnostics,
+    );
+    if (actual != code) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
+      fail('See the difference above.');
+    }
+  }
+
   void assertStateString(String expected) {
     var buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
@@ -83,9 +105,16 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
+  }
+
+  Future<void> assertTestErrorsWithDiagnostics(String code) async {
+    var result = await fileResolver.getErrors2(path: testFile.path);
+    assertDiagnosticsInCode(code, result.diagnostics);
   }
 
   /// Create a new [FileResolver] into [fileResolver].
@@ -110,8 +139,11 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     );
   }
 
-  Future<ErrorsResult> getTestErrors() {
-    return fileResolver.getErrors2(path: testFile.path);
+  Future<ErrorsResult> getErrorsWithDiagnostics(File file, String code) async {
+    modifyFile2(file, removeDiagnosticExpectations(code));
+    var result = await fileResolver.getErrors2(path: file.path);
+    assertDiagnosticsInCode(code, result.diagnostics);
+    return result;
   }
 
   @override

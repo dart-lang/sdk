@@ -49,7 +49,7 @@ void main() {
 
   ConstructorExt? ctorExtNullable = .new(x);
   ConstructorExt? ctorExtNullable1 = .regular(x);
-  ConstructorExt? ctorExtNullable2= .named(x: x);
+  ConstructorExt? ctorExtNullable2 = .named(x: x);
   ConstructorExt? ctorExtNullable3 = .optional(x);
   ConstructorExt? ctorExtNullable4 = .constRegular(x);
   ConstructorExt? ctorExtNullable5 = .constNamed(x: x);

@@ -71,7 +71,7 @@ enum E11 {
 }
 
 enum E12 {
-  hashCode // Error.
+  hashCode, // Error.
 }
 
 abstract class I13 {

@@ -190,9 +190,9 @@ class _FileStream extends Stream<List<int>> {
     if (openedFile != null) {
       onOpenFile(openedFile);
     } else if (path != null) {
-      new File(
-        path,
-      ).open(mode: FileMode.read).then(onOpenFile, onError: openFailed);
+      new File(path)
+          .open(mode: FileMode.read)
+          .then(onOpenFile, onError: openFailed);
     } else {
       try {
         onOpenFile(_File._openStdioSync(0));
@@ -464,24 +464,24 @@ class _File extends FileSystemEntity implements File {
       _rawPath,
     ]).then((response) {
       _checkForErrorResponse(response, "Cannot retrieve access time", path);
-      return DateTime.fromMillisecondsSinceEpoch(response as int);
+      return DateTime.fromMicrosecondsSinceEpoch(response as int);
     });
   }
 
   external static _lastAccessed(_Namespace namespace, Uint8List rawPath);
 
   DateTime lastAccessedSync() {
-    var ms = _lastAccessed(_Namespace._namespace, _rawPath);
-    throwIfError(ms, "Cannot retrieve access time", path);
-    return new DateTime.fromMillisecondsSinceEpoch(ms);
+    var micros = _lastAccessed(_Namespace._namespace, _rawPath);
+    throwIfError(micros, "Cannot retrieve access time", path);
+    return new DateTime.fromMicrosecondsSinceEpoch(micros);
   }
 
   Future setLastAccessed(DateTime time) {
-    int millis = time.millisecondsSinceEpoch;
+    int micros = time.microsecondsSinceEpoch;
     return _dispatchWithNamespace(_IOService.fileSetLastAccessed, [
       null,
       _rawPath,
-      millis,
+      micros,
     ]).then((response) {
       _checkForErrorResponse(response, "Cannot set access time", path);
       return null;
@@ -491,12 +491,12 @@ class _File extends FileSystemEntity implements File {
   external static _setLastAccessed(
     _Namespace namespace,
     Uint8List rawPath,
-    int millis,
+    int micros,
   );
 
   void setLastAccessedSync(DateTime time) {
-    int millis = time.millisecondsSinceEpoch;
-    var result = _setLastAccessed(_Namespace._namespace, _rawPath, millis);
+    int micros = time.microsecondsSinceEpoch;
+    var result = _setLastAccessed(_Namespace._namespace, _rawPath, micros);
     if (result is OSError) {
       throw new FileSystemException(
         "Failed to set file access time",
@@ -516,24 +516,24 @@ class _File extends FileSystemEntity implements File {
         "Cannot retrieve modification time",
         path,
       );
-      return DateTime.fromMillisecondsSinceEpoch(response as int);
+      return DateTime.fromMicrosecondsSinceEpoch(response as int);
     });
   }
 
   external static _lastModified(_Namespace namespace, Uint8List rawPath);
 
   DateTime lastModifiedSync() {
-    var ms = _lastModified(_Namespace._namespace, _rawPath);
-    throwIfError(ms, "Cannot retrieve modification time", path);
-    return new DateTime.fromMillisecondsSinceEpoch(ms);
+    var micros = _lastModified(_Namespace._namespace, _rawPath);
+    throwIfError(micros, "Cannot retrieve modification time", path);
+    return new DateTime.fromMicrosecondsSinceEpoch(micros);
   }
 
   Future setLastModified(DateTime time) {
-    int millis = time.millisecondsSinceEpoch;
+    int micros = time.microsecondsSinceEpoch;
     return _dispatchWithNamespace(_IOService.fileSetLastModified, [
       null,
       _rawPath,
-      millis,
+      micros,
     ]).then((response) {
       _checkForErrorResponse(response, "Cannot set modification time", path);
       return null;
@@ -543,12 +543,12 @@ class _File extends FileSystemEntity implements File {
   external static _setLastModified(
     _Namespace namespace,
     Uint8List rawPath,
-    int millis,
+    int micros,
   );
 
   void setLastModifiedSync(DateTime time) {
-    int millis = time.millisecondsSinceEpoch;
-    var result = _setLastModified(_Namespace._namespace, _rawPath, millis);
+    int micros = time.microsecondsSinceEpoch;
+    var result = _setLastModified(_Namespace._namespace, _rawPath, micros);
     if (result is OSError) {
       throw new FileSystemException(
         "Failed to set file modification time",

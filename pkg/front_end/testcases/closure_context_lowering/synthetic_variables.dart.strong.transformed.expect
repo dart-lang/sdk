@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(positional-parameter list) → dynamic/* scope=[
+  #ctx1: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx2: not-captured VariableContext([
+    local-variable s;
+  ]),
+] */ {
+  s := "";
+  {
+    :sync-for-iterator := list.{core::Iterable::iterator}{core::Iterator<core::String>};
+    for /* scope=[
+      #ctx3: not-captured VariableContext([
+        synthetic-variable synthesized :sync-for-iterator;
+      ]),
+    ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
+      #ctx4: not-captured VariableContext([
+        synthetic-variable final #t1;
+      ]),
+    ] */ {
+      #t1 := :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        s = #t1;
+        if(s.{core::String::isNotEmpty}{core::bool}) {
+          return s;
+        }
+      }
+    }
+  }
+  return s;
+}

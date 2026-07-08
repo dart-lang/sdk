@@ -16,41 +16,24 @@ void main() {
   // Class
   var integerList = <Integer>[.one, .two, .one];
   var integerSet = <Integer>{.one, .two};
-  var integerMap = <Integer, Integer>{
-    .one: .two,
-    .two: .two,
-  };
+  var integerMap = <Integer, Integer>{.one: .two, .two: .two};
   var integerMap2 = <Integer, (Integer, Integer)>{
     .one: (.one, .two),
     .two: (.two, .two),
   };
 
   // Extension type
-  var integerExtList = <IntegerExt>[
-    .one,
-    .two,
-    .one,
-  ];
+  var integerExtList = <IntegerExt>[.one, .two, .one];
   var integerExtSet = <IntegerExt>{.one, .two};
-  var integerExtMap = <IntegerExt, IntegerExt>{
-    .one: .two,
-    .two: .two,
-  };
+  var integerExtMap = <IntegerExt, IntegerExt>{.one: .two, .two: .two};
   var integerExtMap2 = <IntegerExt, (IntegerExt, IntegerExt)>{
     .one: (.one, .two),
     .two: (.two, .two),
   };
 
   // Mixin
-  var integerMixinList = <IntegerMixin>[
-    .mixinOne,
-    .mixinTwo,
-    .mixinOne,
-  ];
-  var integerMixinSet = <IntegerMixin>{
-    .mixinOne,
-    .mixinTwo,
-  };
+  var integerMixinList = <IntegerMixin>[.mixinOne, .mixinTwo, .mixinOne];
+  var integerMixinSet = <IntegerMixin>{.mixinOne, .mixinTwo};
   var integerMixinMap = <IntegerMixin, IntegerMixin>{
     .mixinOne: .mixinTwo,
     .mixinTwo: .mixinTwo,

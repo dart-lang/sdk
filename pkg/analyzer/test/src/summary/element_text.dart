@@ -52,6 +52,7 @@ class ElementTextConfiguration {
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
   bool withConstructors = true;
+  bool withDefaultType = false;
   bool withDisplayName = false;
   bool withExportScope = false;
   bool withFunctionTypeParameters = false;
@@ -675,18 +676,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
-      _writeElementList(
-        'typeParameters',
-        e,
-        e.typeParameters,
-        _writeTypeParameterElement,
-      );
-      _writeElementList(
-        'formalParameters',
-        e,
-        e.formalParameters,
-        _writeFormalParameterElement,
-      );
       _writeVariableElementConstantInitializer(e);
 
       switch (e) {
@@ -735,18 +724,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
-      _writeFragmentList(
-        'typeParameters',
-        f,
-        f.typeParameters,
-        _writeTypeParameterFragment,
-      );
-      _writeFragmentList(
-        'parameters',
-        f,
-        f.formalParameters,
-        _writeFormalParameterFragment,
-      );
       _writeVariableFragmentInitializer(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
@@ -1740,10 +1717,12 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeType('bound', bound);
       }
 
-      // var defaultType = e.defaultType;
-      // if (defaultType != null) {
-      //   _writeType('defaultType', defaultType);
-      // }
+      if (configuration.withDefaultType) {
+        var defaultType = (e as TypeParameterElementImpl).defaultType;
+        if (defaultType != null) {
+          _writeType('defaultType', defaultType);
+        }
+      }
 
       _writeMetadata(e.metadata);
     });

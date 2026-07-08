@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/transformations/flags.dart';
 
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -29,7 +28,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
       );
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
 
@@ -71,7 +70,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   @override
   // Coverage-ignore(suite): Not run.
   void registerSuperCall() {
-    _member.transformerFlags |= TransformerFlag.superCalls;
+    _member.containsSuperCalls = true;
   }
 
   @override

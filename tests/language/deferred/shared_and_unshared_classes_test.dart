@@ -7,8 +7,10 @@
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import "shared_and_unshared_classes_lib1.dart" deferred as lib1;
 import "shared_and_unshared_classes_lib2.dart" deferred as lib2;
+
 import "dart:async";
 
 void main() {

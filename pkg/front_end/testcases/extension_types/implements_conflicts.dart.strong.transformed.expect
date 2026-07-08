@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:67:12: Error: The setter conflicts with declaration 'method4'.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:64:12: Error: The setter conflicts with declaration 'method4'.
 //   void set method4(int value) {} /* Error */
 //            ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:66:8: Context: Conflicting declaration 'method4'.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:63:8: Context: Conflicting declaration 'method4'.
 //   void method4() {} /* Error */
 //        ^^^^^^^
 //
@@ -13,10 +13,10 @@ library;
 // Try declaring a member 'method1' in 'ExtensionType1a' to resolve the conflict.
 // extension type ExtensionType1a(ClassA c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:11:8: Context: This is the inherited extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:10:8: Context: This is the inherited extension type member.
 //   void method1() {
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:7:8: Context: This is the inherited non-extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:6:8: Context: This is the inherited non-extension type member.
 //   void method1() {}
 //        ^^^^^^^
 //
@@ -24,13 +24,13 @@ library;
 // Try declaring a member 'method1' in 'ExtensionType2a' to resolve the conflict.
 // extension type ExtensionType2a(ClassC c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:11:8: Context: This is one of the inherited extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:10:8: Context: This is one of the inherited extension type members.
 //   void method1() {
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:25:8: Context: This is one of the inherited extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:24:8: Context: This is one of the inherited extension type members.
 //   void method1() {
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:31:8: Context: This is the inherited non-extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:30:8: Context: This is the inherited non-extension type member.
 //   void method1() {}
 //        ^^^^^^^
 //
@@ -38,13 +38,13 @@ library;
 // Try declaring a member 'method1' in 'ExtensionType3a' to resolve the conflict.
 // extension type ExtensionType3a(ClassC c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:11:8: Context: This is the inherited extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:10:8: Context: This is the inherited extension type member.
 //   void method1() {
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:7:8: Context: This is one of the inherited non-extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:6:8: Context: This is one of the inherited non-extension type members.
 //   void method1() {}
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:21:8: Context: This is one of the inherited non-extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:20:8: Context: This is one of the inherited non-extension type members.
 //   void method1() {}
 //        ^^^^^^^
 //
@@ -52,30 +52,30 @@ library;
 // Try declaring a member 'method1' in 'ExtensionType4a' to resolve the conflict.
 // extension type ExtensionType4a(ClassC c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:11:8: Context: This is one of the inherited extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:10:8: Context: This is one of the inherited extension type members.
 //   void method1() {
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:25:8: Context: This is one of the inherited extension type members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:24:8: Context: This is one of the inherited extension type members.
 //   void method1() {
 //        ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:70:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:67:16: Error: Can't inherit members that conflict with each other.
 // extension type ExtensionType9a(ClassJK n) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:75:8: Context: This is one inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:76:8: Context: This is one inherited member.
 //   void method4() {}
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:79:12: Context: This is the other inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:80:12: Context: This is the other inherited member.
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:79:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:76:16: Error: Can't inherit members that conflict with each other.
 // extension type ExtensionType10a(ClassJK i) /* Error */
 //                ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:85:8: Context: This is one inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:86:8: Context: This is one inherited member.
 //   void method4() {}
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:89:12: Context: This is the other inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:90:12: Context: This is the other inherited member.
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
@@ -83,21 +83,21 @@ library;
 // Try adding a declaration of 'method2' to 'ExtensionType6a'.
 // extension type ExtensionType6a(ClassF c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:45:5: Context: This is one of the inherited members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:46:5: Context: This is one of the inherited members.
 //   A method2() => new A();
 //     ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:49:5: Context: This is one of the inherited members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:50:5: Context: This is one of the inherited members.
 //   B method2() => new B();
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:50:16: Error: Extension type 'ExtensionType7a' inherits multiple members named 'method2' with incompatible signatures.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:49:16: Error: Extension type 'ExtensionType7a' inherits multiple members named 'method2' with incompatible signatures.
 // Try adding a declaration of 'method2' to 'ExtensionType7a'.
 // extension type ExtensionType7a(ClassF c) /* Error */
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:45:5: Context: This is one of the inherited members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:46:5: Context: This is one of the inherited members.
 //   A method2() => new A();
 //     ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:49:5: Context: This is one of the inherited members.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:50:5: Context: This is one of the inherited members.
 //   B method2() => new B();
 //     ^^^^^^^
 //
@@ -570,24 +570,24 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:82:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:83:16: Error: Can't inherit members that conflict with each other.
 // abstract class ClassJK implements ClassJ, ClassK {}
 //                ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:75:8: Context: This is one inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:76:8: Context: This is one inherited member.
 //   void method4() {}
 //        ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:79:12: Context: This is the other inherited member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:80:12: Context: This is the other inherited member.
 //   void set method4(int value) {}
 //            ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:120:16: Error: The extension type 'ExtensionTypeLN' can't inherit the member 'property' as both an extension type member and a non-extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:121:16: Error: The extension type 'ExtensionTypeLN' can't inherit the member 'property' as both an extension type member and a non-extension type member.
 // Try declaring a member 'property' in 'ExtensionTypeLN' to resolve the conflict.
 // extension type ExtensionTypeLN(ClassLN i) implements ClassLN, ExtensionTypeN {}
 //                ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:117:12: Context: This is the inherited extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:118:12: Context: This is the inherited extension type member.
 //   void set property(int value) {}
 //            ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:111:12: Context: This is the inherited non-extension type member.
+// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:112:12: Context: This is the inherited non-extension type member.
 //   void set property(int value) {}
 //            ^^^^^^^^
 //
@@ -917,6 +917,6 @@ static extension-type-member method ExtensionTypeLN|constructor#(initializing-fo
 
 
 Extra constant evaluation status:
-Evaluated: RecordLiteral @ org-dartlang-testcase:///implements_conflicts_lib.dart:61:35 -> RecordConstant(const (0, 0))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///implements_conflicts_lib.dart:65:35 -> RecordConstant(const (0, 0))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///implements_conflicts_lib.dart:62:35 -> RecordConstant(const (0, 0))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///implements_conflicts_lib.dart:66:35 -> RecordConstant(const (0, 0))
 Extra constant evaluation: evaluated: 243, effectively constant: 2

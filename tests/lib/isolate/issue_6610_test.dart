@@ -17,6 +17,7 @@ library spawn_tests;
 
 import "dart:io";
 import 'dart:isolate';
+
 import 'package:expect/expect.dart';
 
 void main() {

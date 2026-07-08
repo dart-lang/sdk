@@ -38,7 +38,6 @@ class GenUtil {
     final provider = PhysicalResourceProvider.INSTANCE;
     final collection = AnalysisContextCollectionImpl(
       includedPaths: <String>[packageRoot],
-      excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
       resourceProvider: provider,
       sdkPath: sdkPath,
     );

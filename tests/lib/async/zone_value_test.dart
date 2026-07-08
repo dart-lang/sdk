@@ -4,26 +4,28 @@
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import 'dart:async';
 
-main() {
-  // Unique object.
-  var baz = new Mimic(new Object());
-  // Not so unique object that thinks it's the same as baz.
-  var mimic = new Mimic(baz.original);
+void main() {
+  Expect.identical(Zone.root, Zone.current); // Sanity check.
 
-  // runGuarded calls run, captures the synchronous error (if any) and
-  // gives that one to handleUncaughtError.
+  // Distinct objects only equal to each other.
+  var wrap = Wrap(Object());
+  var wrap2 = Wrap(wrap.id);
 
-  Expect.identical(Zone.root, Zone.current);
+  Expect.equals(wrap, wrap2);
+  Expect.equals(wrap2, wrap);
 
   // Create a map with various key types.
-  Map zoneValues = new Map();
-  zoneValues[#foo] = 499;
-  zoneValues["bar"] = [];
-  zoneValues[baz] = "baz";
-  zoneValues[0] = "zero!";
-  zoneValues[null] = baz;
+  var barList = <Object?>[];
+  var zoneValues = <Object?, Object?>{
+    #foo: 499,
+    "bar": barList,
+    wrap: "wrap",
+    0: "zero!",
+    null: "nullKey",
+  };
 
   Zone forked = Zone.current.fork(zoneValues: zoneValues);
 
@@ -31,118 +33,125 @@ main() {
   Expect.identical(Zone.root, Zone.current);
   Expect.isNull(Zone.current[#foo]);
   Expect.isNull(Zone.current["bar"]);
-  Expect.isNull(Zone.current[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.isNull(Zone.current[wrap]);
+  Expect.isNull(Zone.current[wrap2]);
   Expect.isNull(Zone.current[0]);
   Expect.isNull(Zone.current[null]);
-  Expect.isNull(Zone.current["qux"]);
+  Expect.isNull(Zone.current["qux"]); // Not key in zoneValues at all.
 
   // Changing the original map has no effect after the zone is created.
   zoneValues[#foo] = -1;
 
   // Values are available directly on the zone.
   Expect.equals(499, forked[#foo]);
-  Expect.listEquals([], forked["bar"]);
-  Expect.equals("baz", forked[baz]);
-  Expect.equals("baz", forked[mimic]);
+  Expect.identical(barList, forked["bar"]);
+  Expect.equals("wrap", forked[wrap]);
+  Expect.equals("wrap", forked[wrap2]); // Because wrap == wrap2.
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
-  Expect.equals(baz, forked[null]);
-  Expect.isNull(forked["qux"]);
+  Expect.equals("nullKey", forked[null]);
+  Expect.isNull(forked["qux"]); // Wasn't added as key.
 
   forked.run(() {
+    // Changing zone doesn't change what the zone does.
     Expect.identical(forked, Zone.current); // Sanity check.
     // Values are present on current when inside zone.
     Expect.equals(499, Zone.current[#foo]);
-    Expect.listEquals([], Zone.current["bar"]);
-    Expect.equals("baz", Zone.current[baz]);
-    Expect.equals("baz", Zone.current[mimic]);
+    Expect.identical(barList, Zone.current["bar"]);
+    Expect.equals("wrap", Zone.current[wrap]);
+    Expect.equals("wrap", Zone.current[wrap2]);
     Expect.equals("zero!", Zone.current[0]);
     Expect.equals("zero!", Zone.current[0.0]); // Lookup uses equality.
     Expect.equals("zero!", Zone.current[-0.0]);
-    Expect.equals(baz, Zone.current[null]);
+    Expect.equals("nullKey", Zone.current[null]);
     Expect.isNull(Zone.current["qux"]);
+
+    // And doesn't change what the root zone does.
+    Expect.isNull(Zone.root[#foo]);
+    Expect.isNull(Zone.root["bar"]);
+    Expect.isNull(Zone.root[wrap]);
+    Expect.isNull(Zone.root[wrap2]);
+    Expect.isNull(Zone.root[0]);
+    Expect.isNull(Zone.root[null]);
+    Expect.isNull(Zone.root["qux"]);
   });
 
   // Values are still not present when not inside the zone.
   Expect.identical(Zone.root, Zone.current);
   Expect.isNull(Zone.current[#foo]);
   Expect.isNull(Zone.current["bar"]);
-  Expect.isNull(Zone.current[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.isNull(Zone.current[wrap]);
+  Expect.isNull(Zone.current[wrap2]);
   Expect.isNull(Zone.current[0]);
   Expect.isNull(Zone.current[null]);
   Expect.isNull(Zone.current["qux"]);
 
   // Modifying the stored values work as expected.
-  zoneValues["bar"].add(42);
+  barList.add(42); // Updates the list stored in the zone.
+  Expect.listEquals([42], forked["bar"]);
+  Expect.identical(barList, forked["bar"]);
 
   forked.run(() {
-    Expect.identical(forked, Zone.current); // Sanity check.
-    // Values are still there when inside the zone. The list was modified.
-    Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([42], Zone.current["bar"]);
-    Expect.equals("baz", Zone.current[baz]);
-    Expect.equals("baz", Zone.current[mimic]);
-    Expect.equals("zero!", Zone.current[0]);
-    Expect.equals(baz, Zone.current[null]);
-    Expect.isNull(Zone.current["qux"]);
+    Expect.identical(zoneValues["bar"], Zone.current["bar"]);
   });
 
   // Creating a further nested zone with new values allows keeping, overriding,
   // and shadowing existing values from the outer zone.
-  zoneValues = new Map();
-  zoneValues[#foo] = -499; //     Values can be overridden.
-  zoneValues["bar"] = null; //    Values can be changed to null.
-  zoneValues["qux"] = 99; //      Values can be added
-  // Overriding with equal, but not identical, key is possible.
-  zoneValues[mimic] = "floo";
-  zoneValues[0.0] = "zero!ZERO!";
+  var newZoneValues = <Object?, Object?>{
+    #foo: -499, //     Values can be overridden.
+    "qux": 99, //      Values can be added
+    // Keys shadow everything they are equal to.
+    wrap2: "wrap2",
+    0.0: null, //    Values can be changed to null.
+    // Not shadowing the `null` key.
+  };
 
-  Zone forkedChild = forked.fork(zoneValues: zoneValues);
+  Zone forkedChild = forked.fork(zoneValues: newZoneValues);
 
   // New values available on zone.
   Expect.equals(-499, forkedChild[#foo]); //         Overridden.
-  Expect.isNull(forkedChild["bar"]); //              Overridden to null.
-  Expect.equals("floo", forkedChild[baz]); //        Overridden by mimic.
-  Expect.equals("floo", forkedChild[mimic]); //      Now recognizes mimic.
-  Expect.equals("zero!ZERO!", forkedChild[0]); //    Overridden by 0.0.
-  Expect.equals("zero!ZERO!", forkedChild[0.0]); // Overriding 0.
-  Expect.equals(baz, forkedChild[null]); //          Inherited.
+  Expect.isNull(forkedChild[0]); //                  Overridden to null.
+  Expect.isNull(forkedChild[0.0]); //                Overridden to null.
+  Expect.isNull(forkedChild[-0.0]); //               Overridden to null.
+  Expect.equals("wrap2", forkedChild[wrap]); //      Overridden by equal.
+  Expect.equals("wrap2", forkedChild[wrap2]); //     Overridden by equal.
+  Expect.equals("nullKey", forkedChild[null]); //    Inherited.
+  Expect.identical(zoneValues["bar"], forkedChild["bar"]); // Inherited.
   Expect.equals(99, forkedChild["qux"]); //          Added.
 
   forkedChild.run(() {
     Expect.identical(forkedChild, Zone.current); // Sanity check.
+    Expect.identical(forked, forkedChild.parent);
     // New values available on current zone when the zone is current.
-    Expect.equals(-499, Zone.current[#foo]); //         Overridden.
-    Expect.isNull(Zone.current["bar"]); //              Overridden to null.
-    Expect.equals("floo", Zone.current[baz]); //        Overridden by mimic.
-    Expect.equals("floo", Zone.current[mimic]); //      Now recognizes mimic.
-    Expect.equals("zero!ZERO!", Zone.current[0]); //    Overridden by 0.0.
-    Expect.equals("zero!ZERO!", Zone.current[0.0]); // Overriding 0.
-    Expect.equals(baz, Zone.current[null]); //          Inherited.
-    Expect.equals(99, Zone.current["qux"]); //          Added.
+    Expect.equals(-499, Zone.current[#foo]);
+    Expect.isNull(Zone.current[0]);
+    Expect.isNull(Zone.current[0.0]);
+    Expect.isNull(Zone.current[-0.0]);
+    Expect.equals("wrap2", Zone.current[wrap]);
+    Expect.equals("wrap2", Zone.current[wrap2]);
+    Expect.equals("nullKey", Zone.current[null]);
+    Expect.identical(zoneValues["bar"], Zone.current["bar"]);
+    Expect.equals(99, Zone.current["qux"]);
   });
 
   // Parent zone values are unchanged.
   Expect.equals(499, forked[#foo]);
-  Expect.listEquals([42], forked["bar"]);
-  Expect.equals("baz", forked[baz]);
-  Expect.equals("baz", forked[mimic]);
+  Expect.identical(barList, forked["bar"]);
+  Expect.equals("wrap", forked[wrap]);
+  Expect.equals("wrap", forked[wrap2]);
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
-  Expect.equals(baz, forked[null]);
+  Expect.equals("nullKey", forked[null]);
   Expect.isNull(forked["qux"]);
 }
 
-// Class of objects that consider themselves equal to their originals.
-// Sees through mimicry.
-class Mimic {
-  final Object original;
-  Mimic(this.original);
-  int get hashCode => original.hashCode;
-  bool operator ==(Object other) =>
-      (other is Mimic) ? this == other.original : original == other;
+// Objects equal to other wraps with the same ID.
+class Wrap {
+  final Object id;
+  Wrap(this.id);
+  int get hashCode => id.hashCode;
+  bool operator ==(Object other) => (other is Wrap) && id == other.id;
 }

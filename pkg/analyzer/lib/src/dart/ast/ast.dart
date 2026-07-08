@@ -6905,6 +6905,13 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
 
+  /// Whether this constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A constructor declaration is complete if it is external, has a body, has a
+  /// redirection or initializer list, or has a field or super formal parameter.
+  bool get isComplete;
+
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
   Token? get name;
@@ -7087,7 +7094,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     return parameters.beginToken;
   }
 
-  bool get isCompleteDeclaration {
+  @override
+  bool get isComplete {
     if (externalKeyword != null) return true;
     if (body is! EmptyFunctionBody) return true;
     if (redirectedConstructor != null || initializers.isNotEmpty) return true;
@@ -11150,12 +11158,13 @@ sealed class ExpressionImpl extends AstNodeImpl
     ResolverVisitor resolver,
     CollectionLiteralContext? context,
   ) {
-    resolver.analyzeExpression(
-      this,
-      SharedTypeSchemaView(
-        context?.elementType ?? UnknownInferredType.instance,
-      ),
-    );
+    var contextType = context?.elementType;
+
+    // While typing `{key^}` in a `Map<K, V>` context, recover by using `K`.
+    contextType ??= context?.keyType;
+
+    contextType ??= UnknownInferredType.instance;
+    resolver.analyzeExpression(this, SharedTypeSchemaView(contextType));
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]
@@ -13863,6 +13872,10 @@ sealed class FormalParameterImpl extends AstNodeImpl
   /// [Feature.primary_constructors] is not enabled.
   Scope? scope;
 
+  /// The type explicitly written on this parameter fragment, or `null` if the
+  /// parameter has an implicit type.
+  TypeImpl? explicitFragmentType;
+
   FormalParameterImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
@@ -15213,6 +15226,11 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
   /// The function expression being wrapped.
   FunctionExpression get functionExpression;
 
+  /// Whether this function declaration is complete for augmentation purposes.
+  ///
+  /// A function declaration is complete if it is external or has a body.
+  bool get isComplete;
+
   /// Whether this function declares a getter.
   bool get isGetter;
 
@@ -15317,7 +15335,8 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     _functionExpression = _becomeParentOf(functionExpression);
   }
 
-  bool get isCompleteDeclaration {
+  @override
+  bool get isComplete {
     return externalKeyword != null ||
         functionExpression.body is! EmptyFunctionBody;
   }
@@ -21907,7 +21926,13 @@ abstract final class MethodDeclaration implements ClassMember {
   Token? get externalKeyword;
 
   /// Whether this method is declared to be an abstract method.
+  @Deprecated('Use isComplete instead')
   bool get isAbstract;
+
+  /// Whether this method declaration is complete for augmentation purposes.
+  ///
+  /// A method declaration is complete if it is external or has a body.
+  bool get isComplete;
 
   /// Whether this method declares a getter.
   bool get isGetter;
@@ -22066,6 +22091,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     return name;
   }
 
+  @Deprecated('Use isComplete instead')
   @override
   bool get isAbstract {
     var body = this.body;
@@ -22073,7 +22099,8 @@ final class MethodDeclarationImpl extends ClassMemberImpl
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
   }
 
-  bool get isCompleteDeclaration {
+  @override
+  bool get isComplete {
     return externalKeyword != null || body is! EmptyFunctionBody;
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unnecessary_type_name_in_constructor
-
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
@@ -32,7 +30,7 @@ abstract class ParserAstNode {
   List<ParserAstNode>? children;
   ParserAstNode? parent;
 
-  ParserAstNode(this.what, this.type);
+  new(this.what, this.type);
 
   R accept<R>(ParserAstVisitor<R> v);
 
@@ -4090,8 +4088,7 @@ abstract class AbstractParserAstListener implements Listener {
 class ArgumentsBegin extends ParserAstNode {
   final Token token;
 
-  ArgumentsBegin(ParserAstType type, {required this.token})
-    : super("Arguments", type);
+  new(ParserAstType type, {required this.token}) : super("Arguments", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -4108,7 +4105,7 @@ class ArgumentsEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ArgumentsEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -4134,7 +4131,7 @@ class ObjectPatternFieldsHandle extends ParserAstNode
   @override
   final Token endToken;
 
-  ObjectPatternFieldsHandle(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -4156,7 +4153,7 @@ class AsyncModifierHandle extends ParserAstNode {
   final Token? asyncToken;
   final Token? starToken;
 
-  AsyncModifierHandle(ParserAstType type, {this.asyncToken, this.starToken})
+  new(ParserAstType type, {this.asyncToken, this.starToken})
     : super("AsyncModifier", type);
 
   @override
@@ -4172,7 +4169,7 @@ class AsyncModifierHandle extends ParserAstNode {
 class AwaitExpressionBegin extends ParserAstNode {
   final Token token;
 
-  AwaitExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("AwaitExpression", type);
 
   @override
@@ -4189,11 +4186,8 @@ class AwaitExpressionEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  AwaitExpressionEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("AwaitExpression", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("AwaitExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4213,7 +4207,7 @@ class InvalidAwaitExpressionEnd extends ParserAstNode
   final Token endToken;
   final MessageCode errorCode;
 
-  InvalidAwaitExpressionEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     required this.endToken,
@@ -4235,7 +4229,7 @@ class BlockBegin extends ParserAstNode {
   final Token token;
   final BlockKind blockKind;
 
-  BlockBegin(ParserAstType type, {required this.token, required this.blockKind})
+  new(ParserAstType type, {required this.token, required this.blockKind})
     : super("Block", type);
 
   @override
@@ -4256,7 +4250,7 @@ class BlockEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   final Token endToken;
   final BlockKind blockKind;
 
-  BlockEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -4279,7 +4273,7 @@ class BlockEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
 class InvalidTopLevelBlockHandle extends ParserAstNode {
   final Token token;
 
-  InvalidTopLevelBlockHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InvalidTopLevelBlock", type);
 
   @override
@@ -4292,8 +4286,7 @@ class InvalidTopLevelBlockHandle extends ParserAstNode {
 class CascadeBegin extends ParserAstNode {
   final Token token;
 
-  CascadeBegin(ParserAstType type, {required this.token})
-    : super("Cascade", type);
+  new(ParserAstType type, {required this.token}) : super("Cascade", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -4303,7 +4296,7 @@ class CascadeBegin extends ParserAstNode {
 }
 
 class CascadeEnd extends ParserAstNode {
-  CascadeEnd(ParserAstType type) : super("Cascade", type);
+  new(ParserAstType type) : super("Cascade", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -4315,7 +4308,7 @@ class CascadeEnd extends ParserAstNode {
 class CaseExpressionBegin extends ParserAstNode {
   final Token caseKeyword;
 
-  CaseExpressionBegin(ParserAstType type, {required this.caseKeyword})
+  new(ParserAstType type, {required this.caseKeyword})
     : super("CaseExpression", type);
 
   @override
@@ -4330,7 +4323,7 @@ class CaseExpressionEnd extends ParserAstNode {
   final Token? when;
   final Token colon;
 
-  CaseExpressionEnd(
+  new(
     ParserAstType type, {
     required this.caseKeyword,
     this.when,
@@ -4352,11 +4345,8 @@ class ClassOrMixinOrExtensionBodyBegin extends ParserAstNode {
   final DeclarationKind kind;
   final Token token;
 
-  ClassOrMixinOrExtensionBodyBegin(
-    ParserAstType type, {
-    required this.kind,
-    required this.token,
-  }) : super("ClassOrMixinOrExtensionBody", type);
+  new(ParserAstType type, {required this.kind, required this.token})
+    : super("ClassOrMixinOrExtensionBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4378,7 +4368,7 @@ class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ClassOrMixinOrExtensionBodyEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     required this.memberCount,
@@ -4402,10 +4392,8 @@ class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode
 class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
   final Token token;
 
-  ClassOrMixinOrNamedMixinApplicationPreludeBegin(
-    ParserAstType type, {
-    required this.token,
-  }) : super("ClassOrMixinOrNamedMixinApplicationPrelude", type);
+  new(ParserAstType type, {required this.token})
+    : super("ClassOrMixinOrNamedMixinApplicationPrelude", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -4426,7 +4414,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? mixinToken;
   final Token name;
 
-  ClassDeclarationBegin(
+  new(
     ParserAstType type, {
     required this.begin,
     this.abstractToken,
@@ -4460,11 +4448,8 @@ class ClassExtendsHandle extends ParserAstNode {
   final Token? extendsKeyword;
   final int typeCount;
 
-  ClassExtendsHandle(
-    ParserAstType type, {
-    this.extendsKeyword,
-    required this.typeCount,
-  }) : super("ClassExtends", type);
+  new(ParserAstType type, {this.extendsKeyword, required this.typeCount})
+    : super("ClassExtends", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4480,7 +4465,7 @@ class ImplementsHandle extends ParserAstNode {
   final Token? implementsKeyword;
   final int interfacesCount;
 
-  ImplementsHandle(
+  new(
     ParserAstType type, {
     this.implementsKeyword,
     required this.interfacesCount,
@@ -4501,7 +4486,7 @@ class ClassHeaderHandle extends ParserAstNode {
   final Token classKeyword;
   final Token? nativeToken;
 
-  ClassHeaderHandle(
+  new(
     ParserAstType type, {
     required this.begin,
     required this.classKeyword,
@@ -4522,7 +4507,7 @@ class ClassHeaderHandle extends ParserAstNode {
 class RecoverDeclarationHeaderHandle extends ParserAstNode {
   final DeclarationHeaderKind kind;
 
-  RecoverDeclarationHeaderHandle(ParserAstType type, {required this.kind})
+  new(ParserAstType type, {required this.kind})
     : super("RecoverDeclarationHeader", type);
 
   @override
@@ -4540,11 +4525,8 @@ class ClassDeclarationEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ClassDeclarationEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ClassDeclaration", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("ClassDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4559,7 +4541,7 @@ class ClassDeclarationEnd extends ParserAstNode
 class NoClassBodyHandle extends ParserAstNode {
   final Token semicolonToken;
 
-  NoClassBodyHandle(ParserAstType type, {required this.semicolonToken})
+  new(ParserAstType type, {required this.semicolonToken})
     : super("NoClassBody", type);
 
   @override
@@ -4574,7 +4556,7 @@ class NoClassBodyHandle extends ParserAstNode {
 class NoExtensionTypeBodyHandle extends ParserAstNode {
   final Token semicolonToken;
 
-  NoExtensionTypeBodyHandle(ParserAstType type, {required this.semicolonToken})
+  new(ParserAstType type, {required this.semicolonToken})
     : super("NoExtensionTypeBody", type);
 
   @override
@@ -4593,7 +4575,7 @@ class MixinDeclarationBegin extends ParserAstNode {
   final Token mixinKeyword;
   final Token name;
 
-  MixinDeclarationBegin(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.augmentToken,
@@ -4619,7 +4601,7 @@ class MixinOnHandle extends ParserAstNode {
   final Token? onKeyword;
   final int typeCount;
 
-  MixinOnHandle(ParserAstType type, {this.onKeyword, required this.typeCount})
+  new(ParserAstType type, {this.onKeyword, required this.typeCount})
     : super("MixinOn", type);
 
   @override
@@ -4635,7 +4617,7 @@ class MixinOnHandle extends ParserAstNode {
 class MixinHeaderHandle extends ParserAstNode {
   final Token mixinKeyword;
 
-  MixinHeaderHandle(ParserAstType type, {required this.mixinKeyword})
+  new(ParserAstType type, {required this.mixinKeyword})
     : super("MixinHeader", type);
 
   @override
@@ -4648,8 +4630,7 @@ class MixinHeaderHandle extends ParserAstNode {
 }
 
 class RecoverMixinHeaderHandle extends ParserAstNode {
-  RecoverMixinHeaderHandle(ParserAstType type)
-    : super("RecoverMixinHeader", type);
+  new(ParserAstType type) : super("RecoverMixinHeader", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -4661,7 +4642,7 @@ class RecoverMixinHeaderHandle extends ParserAstNode {
 class NoMixinBodyHandle extends ParserAstNode {
   final Token semicolonToken;
 
-  NoMixinBodyHandle(ParserAstType type, {required this.semicolonToken})
+  new(ParserAstType type, {required this.semicolonToken})
     : super("NoMixinBody", type);
 
   @override
@@ -4680,11 +4661,8 @@ class MixinDeclarationEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  MixinDeclarationEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("MixinDeclaration", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("MixinDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4699,10 +4677,8 @@ class MixinDeclarationEnd extends ParserAstNode
 class UncategorizedTopLevelDeclarationBegin extends ParserAstNode {
   final Token token;
 
-  UncategorizedTopLevelDeclarationBegin(
-    ParserAstType type, {
-    required this.token,
-  }) : super("UncategorizedTopLevelDeclaration", type);
+  new(ParserAstType type, {required this.token})
+    : super("UncategorizedTopLevelDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -4715,10 +4691,8 @@ class UncategorizedTopLevelDeclarationBegin extends ParserAstNode {
 class ExtensionDeclarationPreludeBegin extends ParserAstNode {
   final Token extensionKeyword;
 
-  ExtensionDeclarationPreludeBegin(
-    ParserAstType type, {
-    required this.extensionKeyword,
-  }) : super("ExtensionDeclarationPrelude", type);
+  new(ParserAstType type, {required this.extensionKeyword})
+    : super("ExtensionDeclarationPrelude", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4735,7 +4709,7 @@ class ExtensionDeclarationBegin extends ParserAstNode {
   final Token extensionKeyword;
   final Token? name;
 
-  ExtensionDeclarationBegin(
+  new(
     ParserAstType type, {
     this.augmentToken,
     required this.extensionKeyword,
@@ -4762,7 +4736,7 @@ class ExtensionDeclarationEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ExtensionDeclarationEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     required this.extensionKeyword,
@@ -4785,7 +4759,7 @@ class ExtensionDeclarationEnd extends ParserAstNode
 class NoExtensionBodyHandle extends ParserAstNode {
   final Token semicolonToken;
 
-  NoExtensionBodyHandle(ParserAstType type, {required this.semicolonToken})
+  new(ParserAstType type, {required this.semicolonToken})
     : super("NoExtensionBody", type);
 
   @override
@@ -4802,7 +4776,7 @@ class ExtensionTypeDeclarationBegin extends ParserAstNode {
   final Token extensionKeyword;
   final Token name;
 
-  ExtensionTypeDeclarationBegin(
+  new(
     ParserAstType type, {
     this.augmentKeyword,
     required this.extensionKeyword,
@@ -4831,7 +4805,7 @@ class ExtensionTypeDeclarationEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ExtensionTypeDeclarationEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.augmentToken,
@@ -4857,7 +4831,7 @@ class ExtensionTypeDeclarationEnd extends ParserAstNode
 class PrimaryConstructorBegin extends ParserAstNode {
   final Token beginToken;
 
-  PrimaryConstructorBegin(ParserAstType type, {required this.beginToken})
+  new(ParserAstType type, {required this.beginToken})
     : super("PrimaryConstructor", type);
 
   @override
@@ -4877,7 +4851,7 @@ class PrimaryConstructorEnd extends ParserAstNode
   final Token? constKeyword;
   final bool hasConstructorName;
 
-  PrimaryConstructorEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     required this.beginToken,
@@ -4904,7 +4878,7 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
   final Token token;
   final Token? constKeyword;
 
-  NoPrimaryConstructorHandle(
+  new(
     ParserAstType type, {
     required this.kind,
     required this.token,
@@ -4925,7 +4899,7 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
 class PrimaryConstructorBodyBegin extends ParserAstNode {
   final Token token;
 
-  PrimaryConstructorBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("PrimaryConstructorBody", type);
 
   @override
@@ -4944,7 +4918,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  PrimaryConstructorBodyEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.beginInitializers,
@@ -4965,8 +4939,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
 class CombinatorsBegin extends ParserAstNode {
   final Token token;
 
-  CombinatorsBegin(ParserAstType type, {required this.token})
-    : super("Combinators", type);
+  new(ParserAstType type, {required this.token}) : super("Combinators", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -4978,8 +4951,7 @@ class CombinatorsBegin extends ParserAstNode {
 class CombinatorsEnd extends ParserAstNode {
   final int count;
 
-  CombinatorsEnd(ParserAstType type, {required this.count})
-    : super("Combinators", type);
+  new(ParserAstType type, {required this.count}) : super("Combinators", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"count": count};
@@ -4991,7 +4963,7 @@ class CombinatorsEnd extends ParserAstNode {
 class CompilationUnitBegin extends ParserAstNode {
   final Token token;
 
-  CompilationUnitBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("CompilationUnit", type);
 
   @override
@@ -5002,7 +4974,7 @@ class CompilationUnitBegin extends ParserAstNode {
 }
 
 class DirectivesOnlyHandle extends ParserAstNode {
-  DirectivesOnlyHandle(ParserAstType type) : super("DirectivesOnly", type);
+  new(ParserAstType type) : super("DirectivesOnly", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -5015,11 +4987,8 @@ class CompilationUnitEnd extends ParserAstNode {
   final int count;
   final Token token;
 
-  CompilationUnitEnd(
-    ParserAstType type, {
-    required this.count,
-    required this.token,
-  }) : super("CompilationUnit", type);
+  new(ParserAstType type, {required this.count, required this.token})
+    : super("CompilationUnit", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5034,8 +5003,7 @@ class CompilationUnitEnd extends ParserAstNode {
 class ConstLiteralBegin extends ParserAstNode {
   final Token token;
 
-  ConstLiteralBegin(ParserAstType type, {required this.token})
-    : super("ConstLiteral", type);
+  new(ParserAstType type, {required this.token}) : super("ConstLiteral", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -5047,7 +5015,7 @@ class ConstLiteralBegin extends ParserAstNode {
 class ConstLiteralEnd extends ParserAstNode {
   final Token endToken;
 
-  ConstLiteralEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("ConstLiteral", type);
 
   @override
@@ -5060,7 +5028,7 @@ class ConstLiteralEnd extends ParserAstNode {
 class ConstructorReferenceBegin extends ParserAstNode {
   final Token start;
 
-  ConstructorReferenceBegin(ParserAstType type, {required this.start})
+  new(ParserAstType type, {required this.start})
     : super("ConstructorReference", type);
 
   @override
@@ -5076,7 +5044,7 @@ class ConstructorReferenceEnd extends ParserAstNode {
   final Token endToken;
   final ConstructorReferenceContext constructorReferenceContext;
 
-  ConstructorReferenceEnd(
+  new(
     ParserAstType type, {
     required this.start,
     this.periodBeforeName,
@@ -5099,7 +5067,7 @@ class ConstructorReferenceEnd extends ParserAstNode {
 class DoWhileStatementBegin extends ParserAstNode {
   final Token token;
 
-  DoWhileStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("DoWhileStatement", type);
 
   @override
@@ -5114,7 +5082,7 @@ class DoWhileStatementEnd extends ParserAstNode {
   final Token whileKeyword;
   final Token endToken;
 
-  DoWhileStatementEnd(
+  new(
     ParserAstType type, {
     required this.doKeyword,
     required this.whileKeyword,
@@ -5135,7 +5103,7 @@ class DoWhileStatementEnd extends ParserAstNode {
 class DoWhileStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  DoWhileStatementBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("DoWhileStatementBody", type);
 
   @override
@@ -5148,7 +5116,7 @@ class DoWhileStatementBodyBegin extends ParserAstNode {
 class DoWhileStatementBodyEnd extends ParserAstNode {
   final Token token;
 
-  DoWhileStatementBodyEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("DoWhileStatementBody", type);
 
   @override
@@ -5161,7 +5129,7 @@ class DoWhileStatementBodyEnd extends ParserAstNode {
 class WhileStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  WhileStatementBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("WhileStatementBody", type);
 
   @override
@@ -5174,7 +5142,7 @@ class WhileStatementBodyBegin extends ParserAstNode {
 class WhileStatementBodyEnd extends ParserAstNode {
   final Token endToken;
 
-  WhileStatementBodyEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("WhileStatementBody", type);
 
   @override
@@ -5187,7 +5155,7 @@ class WhileStatementBodyEnd extends ParserAstNode {
 class EnumDeclarationPreludeBegin extends ParserAstNode {
   final Token enumKeyword;
 
-  EnumDeclarationPreludeBegin(ParserAstType type, {required this.enumKeyword})
+  new(ParserAstType type, {required this.enumKeyword})
     : super("EnumDeclarationPrelude", type);
 
   @override
@@ -5204,7 +5172,7 @@ class EnumDeclarationBegin extends ParserAstNode {
   final Token enumKeyword;
   final Token name;
 
-  EnumDeclarationBegin(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.augmentToken,
@@ -5234,7 +5202,7 @@ class EnumDeclarationEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  EnumDeclarationEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     required this.enumKeyword,
@@ -5260,7 +5228,7 @@ class EnumElementsHandle extends ParserAstNode {
   final Token elementsEndToken;
   final int elementsCount;
 
-  EnumElementsHandle(
+  new(
     ParserAstType type, {
     required this.elementsEndToken,
     required this.elementsCount,
@@ -5281,7 +5249,7 @@ class EnumHeaderHandle extends ParserAstNode {
   final Token enumKeyword;
   final Token leftBrace;
 
-  EnumHeaderHandle(
+  new(
     ParserAstType type, {
     this.augmentToken,
     required this.enumKeyword,
@@ -5302,8 +5270,7 @@ class EnumHeaderHandle extends ParserAstNode {
 class EnumBodyBegin extends ParserAstNode {
   final Token token;
 
-  EnumBodyBegin(ParserAstType type, {required this.token})
-    : super("EnumBody", type);
+  new(ParserAstType type, {required this.token}) : super("EnumBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -5319,11 +5286,8 @@ class EnumBodyEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  EnumBodyEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("EnumBody", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("EnumBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5338,7 +5302,7 @@ class EnumBodyEnd extends ParserAstNode
 class NoEnumBodyHandle extends ParserAstNode {
   final Token semicolonToken;
 
-  NoEnumBodyHandle(ParserAstType type, {required this.semicolonToken})
+  new(ParserAstType type, {required this.semicolonToken})
     : super("NoEnumBody", type);
 
   @override
@@ -5354,11 +5318,8 @@ class EnumElementHandle extends ParserAstNode {
   final Token beginToken;
   final Token? augmentToken;
 
-  EnumElementHandle(
-    ParserAstType type, {
-    required this.beginToken,
-    this.augmentToken,
-  }) : super("EnumElement", type);
+  new(ParserAstType type, {required this.beginToken, this.augmentToken})
+    : super("EnumElement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5373,8 +5334,7 @@ class EnumElementHandle extends ParserAstNode {
 class ExportBegin extends ParserAstNode {
   final Token token;
 
-  ExportBegin(ParserAstType type, {required this.token})
-    : super("Export", type);
+  new(ParserAstType type, {required this.token}) : super("Export", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -5387,7 +5347,7 @@ class ExportEnd extends ParserAstNode {
   final Token exportKeyword;
   final Token semicolon;
 
-  ExportEnd(
+  new(
     ParserAstType type, {
     required this.exportKeyword,
     required this.semicolon,
@@ -5407,11 +5367,8 @@ class ExtraneousExpressionHandle extends ParserAstNode {
   final Token token;
   final Message message;
 
-  ExtraneousExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.message,
-  }) : super("ExtraneousExpression", type);
+  new(ParserAstType type, {required this.token, required this.message})
+    : super("ExtraneousExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5430,11 +5387,8 @@ class ExpressionStatementHandle extends ParserAstNode
   @override
   final Token endToken;
 
-  ExpressionStatementHandle(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ExpressionStatement", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("ExpressionStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5453,7 +5407,7 @@ class FactoryBegin extends ParserAstNode {
   final Token? externalToken;
   final Token? constToken;
 
-  FactoryBegin(
+  new(
     ParserAstType type, {
     required this.declarationKind,
     required this.lastConsumed,
@@ -5484,7 +5438,7 @@ class FactoryEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  FactoryEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     required this.beginToken,
@@ -5511,7 +5465,7 @@ class FormalParameterBegin extends ParserAstNode {
   final Token? covariantToken;
   final Token? varFinalOrConst;
 
-  FormalParameterBegin(
+  new(
     ParserAstType type, {
     required this.token,
     required this.kind,
@@ -5544,7 +5498,7 @@ class FormalParameterEnd extends ParserAstNode {
   final FormalParameterKind kind;
   final MemberKind memberKind;
 
-  FormalParameterEnd(
+  new(
     ParserAstType type, {
     this.varOrFinal,
     this.thisKeyword,
@@ -5578,11 +5532,8 @@ class NoFormalParametersHandle extends ParserAstNode {
   final Token token;
   final MemberKind kind;
 
-  NoFormalParametersHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.kind,
-  }) : super("NoFormalParameters", type);
+  new(ParserAstType type, {required this.token, required this.kind})
+    : super("NoFormalParameters", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5598,11 +5549,8 @@ class FormalParametersBegin extends ParserAstNode {
   final Token token;
   final MemberKind kind;
 
-  FormalParametersBegin(
-    ParserAstType type, {
-    required this.token,
-    required this.kind,
-  }) : super("FormalParameters", type);
+  new(ParserAstType type, {required this.token, required this.kind})
+    : super("FormalParameters", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5623,7 +5571,7 @@ class FormalParametersEnd extends ParserAstNode
   final Token endToken;
   final MemberKind kind;
 
-  FormalParametersEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -5658,7 +5606,7 @@ class FieldsEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   @override
   final Token endToken;
 
-  FieldsEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     this.abstractToken,
@@ -5695,7 +5643,7 @@ class FieldsEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
 class ForInitializerEmptyStatementHandle extends ParserAstNode {
   final Token token;
 
-  ForInitializerEmptyStatementHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForInitializerEmptyStatement", type);
 
   @override
@@ -5710,11 +5658,8 @@ class ForInitializerExpressionStatementHandle extends ParserAstNode {
   final Token token;
   final bool forIn;
 
-  ForInitializerExpressionStatementHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.forIn,
-  }) : super("ForInitializerExpressionStatement", type);
+  new(ParserAstType type, {required this.token, required this.forIn})
+    : super("ForInitializerExpressionStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5731,11 +5676,8 @@ class ForInitializerLocalVariableDeclarationHandle extends ParserAstNode {
   final Token token;
   final bool forIn;
 
-  ForInitializerLocalVariableDeclarationHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.forIn,
-  }) : super("ForInitializerLocalVariableDeclaration", type);
+  new(ParserAstType type, {required this.token, required this.forIn})
+    : super("ForInitializerLocalVariableDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5752,11 +5694,8 @@ class ForInitializerPatternVariableAssignmentHandle extends ParserAstNode {
   final Token keyword;
   final Token equals;
 
-  ForInitializerPatternVariableAssignmentHandle(
-    ParserAstType type, {
-    required this.keyword,
-    required this.equals,
-  }) : super("ForInitializerPatternVariableAssignment", type);
+  new(ParserAstType type, {required this.keyword, required this.equals})
+    : super("ForInitializerPatternVariableAssignment", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5772,8 +5711,7 @@ class ForInitializerPatternVariableAssignmentHandle extends ParserAstNode {
 class ForStatementBegin extends ParserAstNode {
   final Token token;
 
-  ForStatementBegin(ParserAstType type, {required this.token})
-    : super("ForStatement", type);
+  new(ParserAstType type, {required this.token}) : super("ForStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -5789,7 +5727,7 @@ class ForLoopPartsHandle extends ParserAstNode {
   final Token rightSeparator;
   final int updateExpressionCount;
 
-  ForLoopPartsHandle(
+  new(
     ParserAstType type, {
     required this.forKeyword,
     required this.leftParen,
@@ -5814,7 +5752,7 @@ class ForLoopPartsHandle extends ParserAstNode {
 class ForStatementEnd extends ParserAstNode {
   final Token endToken;
 
-  ForStatementEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("ForStatement", type);
 
   @override
@@ -5827,7 +5765,7 @@ class ForStatementEnd extends ParserAstNode {
 class ForStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  ForStatementBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForStatementBody", type);
 
   @override
@@ -5840,7 +5778,7 @@ class ForStatementBodyBegin extends ParserAstNode {
 class ForStatementBodyEnd extends ParserAstNode {
   final Token endToken;
 
-  ForStatementBodyEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("ForStatementBody", type);
 
   @override
@@ -5857,7 +5795,7 @@ class ForInLoopPartsHandle extends ParserAstNode {
   final Token? patternKeyword;
   final Token inKeyword;
 
-  ForInLoopPartsHandle(
+  new(
     ParserAstType type, {
     this.awaitToken,
     required this.forToken,
@@ -5882,7 +5820,7 @@ class ForInLoopPartsHandle extends ParserAstNode {
 class ForInEnd extends ParserAstNode {
   final Token endToken;
 
-  ForInEnd(ParserAstType type, {required this.endToken}) : super("ForIn", type);
+  new(ParserAstType type, {required this.endToken}) : super("ForIn", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"endToken": endToken};
@@ -5894,7 +5832,7 @@ class ForInEnd extends ParserAstNode {
 class ForInExpressionBegin extends ParserAstNode {
   final Token token;
 
-  ForInExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForInExpression", type);
 
   @override
@@ -5907,7 +5845,7 @@ class ForInExpressionBegin extends ParserAstNode {
 class ForInExpressionEnd extends ParserAstNode {
   final Token token;
 
-  ForInExpressionEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForInExpression", type);
 
   @override
@@ -5920,8 +5858,7 @@ class ForInExpressionEnd extends ParserAstNode {
 class ForInBodyBegin extends ParserAstNode {
   final Token token;
 
-  ForInBodyBegin(ParserAstType type, {required this.token})
-    : super("ForInBody", type);
+  new(ParserAstType type, {required this.token}) : super("ForInBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -5933,8 +5870,7 @@ class ForInBodyBegin extends ParserAstNode {
 class ForInBodyEnd extends ParserAstNode {
   final Token endToken;
 
-  ForInBodyEnd(ParserAstType type, {required this.endToken})
-    : super("ForInBody", type);
+  new(ParserAstType type, {required this.endToken}) : super("ForInBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"endToken": endToken};
@@ -5946,7 +5882,7 @@ class ForInBodyEnd extends ParserAstNode {
 class NamedFunctionExpressionBegin extends ParserAstNode {
   final Token token;
 
-  NamedFunctionExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NamedFunctionExpression", type);
 
   @override
@@ -5960,7 +5896,7 @@ class NamedFunctionExpressionBegin extends ParserAstNode {
 class NamedFunctionExpressionEnd extends ParserAstNode {
   final Token endToken;
 
-  NamedFunctionExpressionEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("NamedFunctionExpression", type);
 
   @override
@@ -5973,7 +5909,7 @@ class NamedFunctionExpressionEnd extends ParserAstNode {
 class LocalFunctionDeclarationBegin extends ParserAstNode {
   final Token token;
 
-  LocalFunctionDeclarationBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("LocalFunctionDeclaration", type);
 
   @override
@@ -5987,7 +5923,7 @@ class LocalFunctionDeclarationBegin extends ParserAstNode {
 class LocalFunctionDeclarationEnd extends ParserAstNode {
   final Token endToken;
 
-  LocalFunctionDeclarationEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("LocalFunctionDeclaration", type);
 
   @override
@@ -6001,7 +5937,7 @@ class LocalFunctionDeclarationEnd extends ParserAstNode {
 class BlockFunctionBodyBegin extends ParserAstNode {
   final Token token;
 
-  BlockFunctionBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("BlockFunctionBody", type);
 
   @override
@@ -6019,7 +5955,7 @@ class BlockFunctionBodyEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  BlockFunctionBodyEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -6040,7 +5976,7 @@ class BlockFunctionBodyEnd extends ParserAstNode
 class NoFunctionBodyHandle extends ParserAstNode {
   final Token token;
 
-  NoFunctionBodyHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NoFunctionBody", type);
 
   @override
@@ -6058,7 +5994,7 @@ class FunctionBodySkippedHandle extends ParserAstNode
   final Token endToken;
   final bool isExpressionBody;
 
-  FunctionBodySkippedHandle(
+  new(
     ParserAstType type, {
     required this.beginToken,
     required this.endToken,
@@ -6079,8 +6015,7 @@ class FunctionBodySkippedHandle extends ParserAstNode
 class FunctionNameBegin extends ParserAstNode {
   final Token token;
 
-  FunctionNameBegin(ParserAstType type, {required this.token})
-    : super("FunctionName", type);
+  new(ParserAstType type, {required this.token}) : super("FunctionName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6094,7 +6029,7 @@ class FunctionNameEnd extends ParserAstNode {
   final Token token;
   final bool isFunctionExpression;
 
-  FunctionNameEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     required this.token,
@@ -6115,8 +6050,7 @@ class FunctionNameEnd extends ParserAstNode {
 class TypedefBegin extends ParserAstNode {
   final Token token;
 
-  TypedefBegin(ParserAstType type, {required this.token})
-    : super("Typedef", type);
+  new(ParserAstType type, {required this.token}) : super("Typedef", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6131,7 +6065,7 @@ class TypedefEnd extends ParserAstNode {
   final Token? equals;
   final Token endToken;
 
-  TypedefEnd(
+  new(
     ParserAstType type, {
     this.augmentToken,
     required this.typedefKeyword,
@@ -6154,7 +6088,7 @@ class TypedefEnd extends ParserAstNode {
 class ClassWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  ClassWithClauseHandle(ParserAstType type, {required this.withKeyword})
+  new(ParserAstType type, {required this.withKeyword})
     : super("ClassWithClause", type);
 
   @override
@@ -6165,8 +6099,7 @@ class ClassWithClauseHandle extends ParserAstNode {
 }
 
 class ClassNoWithClauseHandle extends ParserAstNode {
-  ClassNoWithClauseHandle(ParserAstType type)
-    : super("ClassNoWithClause", type);
+  new(ParserAstType type) : super("ClassNoWithClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -6178,7 +6111,7 @@ class ClassNoWithClauseHandle extends ParserAstNode {
 class EnumWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  EnumWithClauseHandle(ParserAstType type, {required this.withKeyword})
+  new(ParserAstType type, {required this.withKeyword})
     : super("EnumWithClause", type);
 
   @override
@@ -6189,7 +6122,7 @@ class EnumWithClauseHandle extends ParserAstNode {
 }
 
 class EnumNoWithClauseHandle extends ParserAstNode {
-  EnumNoWithClauseHandle(ParserAstType type) : super("EnumNoWithClause", type);
+  new(ParserAstType type) : super("EnumNoWithClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -6201,7 +6134,7 @@ class EnumNoWithClauseHandle extends ParserAstNode {
 class MixinWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  MixinWithClauseHandle(ParserAstType type, {required this.withKeyword})
+  new(ParserAstType type, {required this.withKeyword})
     : super("MixinWithClause", type);
 
   @override
@@ -6222,7 +6155,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? mixinToken;
   final Token name;
 
-  NamedMixinApplicationBegin(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.abstractToken,
@@ -6255,10 +6188,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
 class NamedMixinApplicationWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  NamedMixinApplicationWithClauseHandle(
-    ParserAstType type, {
-    required this.withKeyword,
-  }) : super("NamedMixinApplicationWithClause", type);
+  new(ParserAstType type, {required this.withKeyword})
+    : super("NamedMixinApplicationWithClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"withKeyword": withKeyword};
@@ -6275,7 +6206,7 @@ class NamedMixinApplicationEnd extends ParserAstNode {
   final Token? implementsKeyword;
   final Token endToken;
 
-  NamedMixinApplicationEnd(
+  new(
     ParserAstType type, {
     required this.begin,
     required this.classKeyword,
@@ -6300,8 +6231,7 @@ class NamedMixinApplicationEnd extends ParserAstNode {
 class HideBegin extends ParserAstNode {
   final Token hideKeyword;
 
-  HideBegin(ParserAstType type, {required this.hideKeyword})
-    : super("Hide", type);
+  new(ParserAstType type, {required this.hideKeyword}) : super("Hide", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"hideKeyword": hideKeyword};
@@ -6313,8 +6243,7 @@ class HideBegin extends ParserAstNode {
 class HideEnd extends ParserAstNode {
   final Token hideKeyword;
 
-  HideEnd(ParserAstType type, {required this.hideKeyword})
-    : super("Hide", type);
+  new(ParserAstType type, {required this.hideKeyword}) : super("Hide", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"hideKeyword": hideKeyword};
@@ -6326,7 +6255,7 @@ class HideEnd extends ParserAstNode {
 class IdentifierListHandle extends ParserAstNode {
   final int count;
 
-  IdentifierListHandle(ParserAstType type, {required this.count})
+  new(ParserAstType type, {required this.count})
     : super("IdentifierList", type);
 
   @override
@@ -6339,8 +6268,7 @@ class IdentifierListHandle extends ParserAstNode {
 class TypeListBegin extends ParserAstNode {
   final Token token;
 
-  TypeListBegin(ParserAstType type, {required this.token})
-    : super("TypeList", type);
+  new(ParserAstType type, {required this.token}) : super("TypeList", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6352,8 +6280,7 @@ class TypeListBegin extends ParserAstNode {
 class TypeListEnd extends ParserAstNode {
   final int count;
 
-  TypeListEnd(ParserAstType type, {required this.count})
-    : super("TypeList", type);
+  new(ParserAstType type, {required this.count}) : super("TypeList", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"count": count};
@@ -6365,8 +6292,7 @@ class TypeListEnd extends ParserAstNode {
 class IfStatementBegin extends ParserAstNode {
   final Token token;
 
-  IfStatementBegin(ParserAstType type, {required this.token})
-    : super("IfStatement", type);
+  new(ParserAstType type, {required this.token}) : super("IfStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6380,7 +6306,7 @@ class IfStatementEnd extends ParserAstNode {
   final Token? elseToken;
   final Token endToken;
 
-  IfStatementEnd(
+  new(
     ParserAstType type, {
     required this.ifToken,
     this.elseToken,
@@ -6401,8 +6327,7 @@ class IfStatementEnd extends ParserAstNode {
 class ThenStatementBegin extends ParserAstNode {
   final Token token;
 
-  ThenStatementBegin(ParserAstType type, {required this.token})
-    : super("ThenStatement", type);
+  new(ParserAstType type, {required this.token}) : super("ThenStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6418,11 +6343,8 @@ class ThenStatementEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ThenStatementEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ThenStatement", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("ThenStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6437,8 +6359,7 @@ class ThenStatementEnd extends ParserAstNode
 class ElseStatementBegin extends ParserAstNode {
   final Token token;
 
-  ElseStatementBegin(ParserAstType type, {required this.token})
-    : super("ElseStatement", type);
+  new(ParserAstType type, {required this.token}) : super("ElseStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6454,11 +6375,8 @@ class ElseStatementEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ElseStatementEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ElseStatement", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("ElseStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6473,7 +6391,7 @@ class ElseStatementEnd extends ParserAstNode
 class ImportBegin extends ParserAstNode {
   final Token importKeyword;
 
-  ImportBegin(ParserAstType type, {required this.importKeyword})
+  new(ParserAstType type, {required this.importKeyword})
     : super("Import", type);
 
   @override
@@ -6489,7 +6407,7 @@ class ImportPrefixHandle extends ParserAstNode {
   final Token? deferredKeyword;
   final Token? asKeyword;
 
-  ImportPrefixHandle(ParserAstType type, {this.deferredKeyword, this.asKeyword})
+  new(ParserAstType type, {this.deferredKeyword, this.asKeyword})
     : super("ImportPrefix", type);
 
   @override
@@ -6506,7 +6424,7 @@ class ImportEnd extends ParserAstNode {
   final Token importKeyword;
   final Token? semicolon;
 
-  ImportEnd(ParserAstType type, {required this.importKeyword, this.semicolon})
+  new(ParserAstType type, {required this.importKeyword, this.semicolon})
     : super("Import", type);
 
   @override
@@ -6522,8 +6440,7 @@ class ImportEnd extends ParserAstNode {
 class RecoverImportHandle extends ParserAstNode {
   final Token? semicolon;
 
-  RecoverImportHandle(ParserAstType type, {this.semicolon})
-    : super("RecoverImport", type);
+  new(ParserAstType type, {this.semicolon}) : super("RecoverImport", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"semicolon": semicolon};
@@ -6535,7 +6452,7 @@ class RecoverImportHandle extends ParserAstNode {
 class ConditionalUrisBegin extends ParserAstNode {
   final Token token;
 
-  ConditionalUrisBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ConditionalUris", type);
 
   @override
@@ -6548,7 +6465,7 @@ class ConditionalUrisBegin extends ParserAstNode {
 class ConditionalUrisEnd extends ParserAstNode {
   final int count;
 
-  ConditionalUrisEnd(ParserAstType type, {required this.count})
+  new(ParserAstType type, {required this.count})
     : super("ConditionalUris", type);
 
   @override
@@ -6561,7 +6478,7 @@ class ConditionalUrisEnd extends ParserAstNode {
 class ConditionalUriBegin extends ParserAstNode {
   final Token ifKeyword;
 
-  ConditionalUriBegin(ParserAstType type, {required this.ifKeyword})
+  new(ParserAstType type, {required this.ifKeyword})
     : super("ConditionalUri", type);
 
   @override
@@ -6576,7 +6493,7 @@ class ConditionalUriEnd extends ParserAstNode {
   final Token leftParen;
   final Token? equalSign;
 
-  ConditionalUriEnd(
+  new(
     ParserAstType type, {
     required this.ifKeyword,
     required this.leftParen,
@@ -6598,11 +6515,8 @@ class DottedNameHandle extends ParserAstNode {
   final int count;
   final Token firstIdentifier;
 
-  DottedNameHandle(
-    ParserAstType type, {
-    required this.count,
-    required this.firstIdentifier,
-  }) : super("DottedName", type);
+  new(ParserAstType type, {required this.count, required this.firstIdentifier})
+    : super("DottedName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6617,7 +6531,7 @@ class DottedNameHandle extends ParserAstNode {
 class ImplicitCreationExpressionBegin extends ParserAstNode {
   final Token token;
 
-  ImplicitCreationExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ImplicitCreationExpression", type);
 
   @override
@@ -6632,11 +6546,8 @@ class ImplicitCreationExpressionEnd extends ParserAstNode {
   final Token token;
   final Token openAngleBracket;
 
-  ImplicitCreationExpressionEnd(
-    ParserAstType type, {
-    required this.token,
-    required this.openAngleBracket,
-  }) : super("ImplicitCreationExpression", type);
+  new(ParserAstType type, {required this.token, required this.openAngleBracket})
+    : super("ImplicitCreationExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6652,7 +6563,7 @@ class ImplicitCreationExpressionEnd extends ParserAstNode {
 class InitializedIdentifierBegin extends ParserAstNode {
   final Token token;
 
-  InitializedIdentifierBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InitializedIdentifier", type);
 
   @override
@@ -6665,7 +6576,7 @@ class InitializedIdentifierBegin extends ParserAstNode {
 class InitializedIdentifierEnd extends ParserAstNode {
   final Token nameToken;
 
-  InitializedIdentifierEnd(ParserAstType type, {required this.nameToken})
+  new(ParserAstType type, {required this.nameToken})
     : super("InitializedIdentifier", type);
 
   @override
@@ -6678,7 +6589,7 @@ class InitializedIdentifierEnd extends ParserAstNode {
 class FieldInitializerBegin extends ParserAstNode {
   final Token token;
 
-  FieldInitializerBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("FieldInitializer", type);
 
   @override
@@ -6692,11 +6603,8 @@ class FieldInitializerEnd extends ParserAstNode {
   final Token assignment;
   final Token endToken;
 
-  FieldInitializerEnd(
-    ParserAstType type, {
-    required this.assignment,
-    required this.endToken,
-  }) : super("FieldInitializer", type);
+  new(ParserAstType type, {required this.assignment, required this.endToken})
+    : super("FieldInitializer", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6711,7 +6619,7 @@ class FieldInitializerEnd extends ParserAstNode {
 class NoFieldInitializerHandle extends ParserAstNode {
   final Token token;
 
-  NoFieldInitializerHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NoFieldInitializer", type);
 
   @override
@@ -6724,7 +6632,7 @@ class NoFieldInitializerHandle extends ParserAstNode {
 class VariableInitializerBegin extends ParserAstNode {
   final Token token;
 
-  VariableInitializerBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("VariableInitializer", type);
 
   @override
@@ -6737,7 +6645,7 @@ class VariableInitializerBegin extends ParserAstNode {
 class VariableInitializerEnd extends ParserAstNode {
   final Token assignmentOperator;
 
-  VariableInitializerEnd(ParserAstType type, {required this.assignmentOperator})
+  new(ParserAstType type, {required this.assignmentOperator})
     : super("VariableInitializer", type);
 
   @override
@@ -6752,7 +6660,7 @@ class VariableInitializerEnd extends ParserAstNode {
 class NoVariableInitializerHandle extends ParserAstNode {
   final Token token;
 
-  NoVariableInitializerHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NoVariableInitializer", type);
 
   @override
@@ -6766,8 +6674,7 @@ class NoVariableInitializerHandle extends ParserAstNode {
 class InitializerBegin extends ParserAstNode {
   final Token token;
 
-  InitializerBegin(ParserAstType type, {required this.token})
-    : super("Initializer", type);
+  new(ParserAstType type, {required this.token}) : super("Initializer", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6779,7 +6686,7 @@ class InitializerBegin extends ParserAstNode {
 class InitializerEnd extends ParserAstNode {
   final Token endToken;
 
-  InitializerEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("Initializer", type);
 
   @override
@@ -6792,8 +6699,7 @@ class InitializerEnd extends ParserAstNode {
 class InitializersBegin extends ParserAstNode {
   final Token token;
 
-  InitializersBegin(ParserAstType type, {required this.token})
-    : super("Initializers", type);
+  new(ParserAstType type, {required this.token}) : super("Initializers", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6810,7 +6716,7 @@ class InitializersEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  InitializersEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -6829,7 +6735,7 @@ class InitializersEnd extends ParserAstNode
 }
 
 class NoInitializersHandle extends ParserAstNode {
-  NoInitializersHandle(ParserAstType type) : super("NoInitializers", type);
+  new(ParserAstType type) : super("NoInitializers", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -6841,7 +6747,7 @@ class NoInitializersHandle extends ParserAstNode {
 class InvalidExpressionHandle extends ParserAstNode {
   final Token token;
 
-  InvalidExpressionHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InvalidExpression", type);
 
   @override
@@ -6854,7 +6760,7 @@ class InvalidExpressionHandle extends ParserAstNode {
 class InvalidFunctionBodyHandle extends ParserAstNode {
   final Token token;
 
-  InvalidFunctionBodyHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InvalidFunctionBody", type);
 
   @override
@@ -6867,7 +6773,7 @@ class InvalidFunctionBodyHandle extends ParserAstNode {
 class InvalidTypeReferenceHandle extends ParserAstNode {
   final Token token;
 
-  InvalidTypeReferenceHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InvalidTypeReference", type);
 
   @override
@@ -6880,7 +6786,7 @@ class InvalidTypeReferenceHandle extends ParserAstNode {
 class LabelHandle extends ParserAstNode {
   final Token token;
 
-  LabelHandle(ParserAstType type, {required this.token}) : super("Label", type);
+  new(ParserAstType type, {required this.token}) : super("Label", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6893,11 +6799,8 @@ class LabeledStatementBegin extends ParserAstNode {
   final Token token;
   final int labelCount;
 
-  LabeledStatementBegin(
-    ParserAstType type, {
-    required this.token,
-    required this.labelCount,
-  }) : super("LabeledStatement", type);
+  new(ParserAstType type, {required this.token, required this.labelCount})
+    : super("LabeledStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6912,7 +6815,7 @@ class LabeledStatementBegin extends ParserAstNode {
 class LabeledStatementEnd extends ParserAstNode {
   final int labelCount;
 
-  LabeledStatementEnd(ParserAstType type, {required this.labelCount})
+  new(ParserAstType type, {required this.labelCount})
     : super("LabeledStatement", type);
 
   @override
@@ -6926,7 +6829,7 @@ class LibraryAugmentationBegin extends ParserAstNode {
   final Token augmentKeyword;
   final Token libraryKeyword;
 
-  LibraryAugmentationBegin(
+  new(
     ParserAstType type, {
     required this.augmentKeyword,
     required this.libraryKeyword,
@@ -6947,7 +6850,7 @@ class LibraryAugmentationEnd extends ParserAstNode {
   final Token libraryKeyword;
   final Token semicolon;
 
-  LibraryAugmentationEnd(
+  new(
     ParserAstType type, {
     required this.augmentKeyword,
     required this.libraryKeyword,
@@ -6968,8 +6871,7 @@ class LibraryAugmentationEnd extends ParserAstNode {
 class LibraryNameBegin extends ParserAstNode {
   final Token token;
 
-  LibraryNameBegin(ParserAstType type, {required this.token})
-    : super("LibraryName", type);
+  new(ParserAstType type, {required this.token}) : super("LibraryName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -6983,7 +6885,7 @@ class LibraryNameEnd extends ParserAstNode {
   final Token semicolon;
   final bool hasName;
 
-  LibraryNameEnd(
+  new(
     ParserAstType type, {
     required this.libraryKeyword,
     required this.semicolon,
@@ -7007,7 +6909,7 @@ class LiteralMapEntryHandle extends ParserAstNode {
   final Token? nullAwareKeyToken;
   final Token? nullAwareValueToken;
 
-  LiteralMapEntryHandle(
+  new(
     ParserAstType type, {
     required this.colon,
     required this.endToken,
@@ -7031,11 +6933,8 @@ class MapPatternEntryHandle extends ParserAstNode {
   final Token colon;
   final Token endToken;
 
-  MapPatternEntryHandle(
-    ParserAstType type, {
-    required this.colon,
-    required this.endToken,
-  }) : super("MapPatternEntry", type);
+  new(ParserAstType type, {required this.colon, required this.endToken})
+    : super("MapPatternEntry", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7050,8 +6949,7 @@ class MapPatternEntryHandle extends ParserAstNode {
 class LiteralStringBegin extends ParserAstNode {
   final Token token;
 
-  LiteralStringBegin(ParserAstType type, {required this.token})
-    : super("LiteralString", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralString", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7064,11 +6962,8 @@ class InterpolationExpressionHandle extends ParserAstNode {
   final Token leftBracket;
   final Token? rightBracket;
 
-  InterpolationExpressionHandle(
-    ParserAstType type, {
-    required this.leftBracket,
-    this.rightBracket,
-  }) : super("InterpolationExpression", type);
+  new(ParserAstType type, {required this.leftBracket, this.rightBracket})
+    : super("InterpolationExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7085,7 +6980,7 @@ class LiteralStringEnd extends ParserAstNode {
   final int interpolationCount;
   final Token endToken;
 
-  LiteralStringEnd(
+  new(
     ParserAstType type, {
     required this.interpolationCount,
     required this.endToken,
@@ -7105,7 +7000,7 @@ class AdjacentStringLiteralsHandle extends ParserAstNode {
   final Token startToken;
   final int literalCount;
 
-  AdjacentStringLiteralsHandle(
+  new(
     ParserAstType type, {
     required this.startToken,
     required this.literalCount,
@@ -7123,7 +7018,7 @@ class AdjacentStringLiteralsHandle extends ParserAstNode {
 }
 
 class MemberBegin extends ParserAstNode {
-  MemberBegin(ParserAstType type) : super("Member", type);
+  new(ParserAstType type) : super("Member", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -7135,7 +7030,7 @@ class MemberBegin extends ParserAstNode {
 class InvalidMemberHandle extends ParserAstNode {
   final Token endToken;
 
-  InvalidMemberHandle(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("InvalidMember", type);
 
   @override
@@ -7146,7 +7041,7 @@ class InvalidMemberHandle extends ParserAstNode {
 }
 
 class MemberEnd extends ParserAstNode {
-  MemberEnd(ParserAstType type) : super("Member", type);
+  new(ParserAstType type) : super("Member", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -7166,7 +7061,7 @@ class MethodBegin extends ParserAstNode {
   final Token name;
   final String? enclosingDeclarationName;
 
-  MethodBegin(
+  new(
     ParserAstType type, {
     required this.declarationKind,
     this.augmentToken,
@@ -7206,7 +7101,7 @@ class MethodEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   @override
   final Token endToken;
 
-  MethodEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     this.getOrSet,
@@ -7242,7 +7137,7 @@ class ConstructorBegin extends ParserAstNode {
   final Token name;
   final String? enclosingDeclarationName;
 
-  ConstructorBegin(
+  new(
     ParserAstType type, {
     required this.declarationKind,
     this.augmentToken,
@@ -7285,7 +7180,7 @@ class ConstructorEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ConstructorEnd(
+  new(
     ParserAstType type, {
     required this.kind,
     required this.beginToken,
@@ -7312,8 +7207,7 @@ class ConstructorEnd extends ParserAstNode
 class MetadataStarBegin extends ParserAstNode {
   final Token token;
 
-  MetadataStarBegin(ParserAstType type, {required this.token})
-    : super("MetadataStar", type);
+  new(ParserAstType type, {required this.token}) : super("MetadataStar", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7325,8 +7219,7 @@ class MetadataStarBegin extends ParserAstNode {
 class MetadataStarEnd extends ParserAstNode {
   final int count;
 
-  MetadataStarEnd(ParserAstType type, {required this.count})
-    : super("MetadataStar", type);
+  new(ParserAstType type, {required this.count}) : super("MetadataStar", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"count": count};
@@ -7338,8 +7231,7 @@ class MetadataStarEnd extends ParserAstNode {
 class MetadataBegin extends ParserAstNode {
   final Token token;
 
-  MetadataBegin(ParserAstType type, {required this.token})
-    : super("Metadata", type);
+  new(ParserAstType type, {required this.token}) : super("Metadata", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7356,7 +7248,7 @@ class MetadataEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  MetadataEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.periodBeforeName,
@@ -7377,7 +7269,7 @@ class MetadataEnd extends ParserAstNode
 class OptionalFormalParametersBegin extends ParserAstNode {
   final Token token;
 
-  OptionalFormalParametersBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("OptionalFormalParameters", type);
 
   @override
@@ -7397,7 +7289,7 @@ class OptionalFormalParametersEnd extends ParserAstNode
   final Token endToken;
   final MemberKind kind;
 
-  OptionalFormalParametersEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -7421,7 +7313,7 @@ class OptionalFormalParametersEnd extends ParserAstNode
 class PartBegin extends ParserAstNode {
   final Token token;
 
-  PartBegin(ParserAstType type, {required this.token}) : super("Part", type);
+  new(ParserAstType type, {required this.token}) : super("Part", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7434,11 +7326,8 @@ class PartEnd extends ParserAstNode {
   final Token partKeyword;
   final Token semicolon;
 
-  PartEnd(
-    ParserAstType type, {
-    required this.partKeyword,
-    required this.semicolon,
-  }) : super("Part", type);
+  new(ParserAstType type, {required this.partKeyword, required this.semicolon})
+    : super("Part", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7453,8 +7342,7 @@ class PartEnd extends ParserAstNode {
 class PartOfBegin extends ParserAstNode {
   final Token token;
 
-  PartOfBegin(ParserAstType type, {required this.token})
-    : super("PartOf", type);
+  new(ParserAstType type, {required this.token}) : super("PartOf", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7469,7 +7357,7 @@ class PartOfEnd extends ParserAstNode {
   final Token semicolon;
   final bool hasName;
 
-  PartOfEnd(
+  new(
     ParserAstType type, {
     required this.partKeyword,
     required this.ofKeyword,
@@ -7492,7 +7380,7 @@ class PartOfEnd extends ParserAstNode {
 class RedirectingFactoryBodyBegin extends ParserAstNode {
   final Token token;
 
-  RedirectingFactoryBodyBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("RedirectingFactoryBody", type);
 
   @override
@@ -7510,11 +7398,8 @@ class RedirectingFactoryBodyEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  RedirectingFactoryBodyEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("RedirectingFactoryBody", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("RedirectingFactoryBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7529,7 +7414,7 @@ class RedirectingFactoryBodyEnd extends ParserAstNode
 class ReturnStatementBegin extends ParserAstNode {
   final Token token;
 
-  ReturnStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ReturnStatement", type);
 
   @override
@@ -7543,11 +7428,8 @@ class NativeFunctionBodyHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  NativeFunctionBodyHandle(
-    ParserAstType type, {
-    required this.nativeToken,
-    required this.semicolon,
-  }) : super("NativeFunctionBody", type);
+  new(ParserAstType type, {required this.nativeToken, required this.semicolon})
+    : super("NativeFunctionBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7563,11 +7445,8 @@ class NativeFunctionBodyIgnoredHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  NativeFunctionBodyIgnoredHandle(
-    ParserAstType type, {
-    required this.nativeToken,
-    required this.semicolon,
-  }) : super("NativeFunctionBodyIgnored", type);
+  new(ParserAstType type, {required this.nativeToken, required this.semicolon})
+    : super("NativeFunctionBodyIgnored", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7584,11 +7463,8 @@ class NativeFunctionBodySkippedHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  NativeFunctionBodySkippedHandle(
-    ParserAstType type, {
-    required this.nativeToken,
-    required this.semicolon,
-  }) : super("NativeFunctionBodySkipped", type);
+  new(ParserAstType type, {required this.nativeToken, required this.semicolon})
+    : super("NativeFunctionBodySkipped", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7604,7 +7480,7 @@ class NativeFunctionBodySkippedHandle extends ParserAstNode {
 class EmptyFunctionBodyHandle extends ParserAstNode {
   final Token semicolon;
 
-  EmptyFunctionBodyHandle(ParserAstType type, {required this.semicolon})
+  new(ParserAstType type, {required this.semicolon})
     : super("EmptyFunctionBody", type);
 
   @override
@@ -7618,11 +7494,8 @@ class ExpressionFunctionBodyHandle extends ParserAstNode {
   final Token arrowToken;
   final Token? endToken;
 
-  ExpressionFunctionBodyHandle(
-    ParserAstType type, {
-    required this.arrowToken,
-    this.endToken,
-  }) : super("ExpressionFunctionBody", type);
+  new(ParserAstType type, {required this.arrowToken, this.endToken})
+    : super("ExpressionFunctionBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7643,7 +7516,7 @@ class ReturnStatementEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ReturnStatementEnd(
+  new(
     ParserAstType type, {
     required this.hasExpression,
     required this.beginToken,
@@ -7668,11 +7541,8 @@ class SendHandle extends ParserAstNode
   @override
   final Token endToken;
 
-  SendHandle(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("Send", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("Send", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7687,8 +7557,7 @@ class SendHandle extends ParserAstNode
 class ShowBegin extends ParserAstNode {
   final Token showKeyword;
 
-  ShowBegin(ParserAstType type, {required this.showKeyword})
-    : super("Show", type);
+  new(ParserAstType type, {required this.showKeyword}) : super("Show", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"showKeyword": showKeyword};
@@ -7700,8 +7569,7 @@ class ShowBegin extends ParserAstNode {
 class ShowEnd extends ParserAstNode {
   final Token showKeyword;
 
-  ShowEnd(ParserAstType type, {required this.showKeyword})
-    : super("Show", type);
+  new(ParserAstType type, {required this.showKeyword}) : super("Show", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"showKeyword": showKeyword};
@@ -7713,7 +7581,7 @@ class ShowEnd extends ParserAstNode {
 class SwitchStatementBegin extends ParserAstNode {
   final Token token;
 
-  SwitchStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchStatement", type);
 
   @override
@@ -7727,11 +7595,8 @@ class SwitchStatementEnd extends ParserAstNode {
   final Token switchKeyword;
   final Token endToken;
 
-  SwitchStatementEnd(
-    ParserAstType type, {
-    required this.switchKeyword,
-    required this.endToken,
-  }) : super("SwitchStatement", type);
+  new(ParserAstType type, {required this.switchKeyword, required this.endToken})
+    : super("SwitchStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7746,7 +7611,7 @@ class SwitchStatementEnd extends ParserAstNode {
 class SwitchExpressionBegin extends ParserAstNode {
   final Token token;
 
-  SwitchExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchExpression", type);
 
   @override
@@ -7760,11 +7625,8 @@ class SwitchExpressionEnd extends ParserAstNode {
   final Token switchKeyword;
   final Token endToken;
 
-  SwitchExpressionEnd(
-    ParserAstType type, {
-    required this.switchKeyword,
-    required this.endToken,
-  }) : super("SwitchExpression", type);
+  new(ParserAstType type, {required this.switchKeyword, required this.endToken})
+    : super("SwitchExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7779,8 +7641,7 @@ class SwitchExpressionEnd extends ParserAstNode {
 class SwitchBlockBegin extends ParserAstNode {
   final Token token;
 
-  SwitchBlockBegin(ParserAstType type, {required this.token})
-    : super("SwitchBlock", type);
+  new(ParserAstType type, {required this.token}) : super("SwitchBlock", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7797,7 +7658,7 @@ class SwitchBlockEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  SwitchBlockEnd(
+  new(
     ParserAstType type, {
     required this.caseCount,
     required this.beginToken,
@@ -7818,7 +7679,7 @@ class SwitchBlockEnd extends ParserAstNode
 class SwitchExpressionBlockBegin extends ParserAstNode {
   final Token token;
 
-  SwitchExpressionBlockBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchExpressionBlock", type);
 
   @override
@@ -7836,7 +7697,7 @@ class SwitchExpressionBlockEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  SwitchExpressionBlockEnd(
+  new(
     ParserAstType type, {
     required this.caseCount,
     required this.beginToken,
@@ -7857,8 +7718,7 @@ class SwitchExpressionBlockEnd extends ParserAstNode
 class LiteralSymbolBegin extends ParserAstNode {
   final Token token;
 
-  LiteralSymbolBegin(ParserAstType type, {required this.token})
-    : super("LiteralSymbol", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralSymbol", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -7871,7 +7731,7 @@ class LiteralSymbolEnd extends ParserAstNode {
   final Token hashToken;
   final int identifierCount;
 
-  LiteralSymbolEnd(
+  new(
     ParserAstType type, {
     required this.hashToken,
     required this.identifierCount,
@@ -7891,11 +7751,8 @@ class ThrowExpressionHandle extends ParserAstNode {
   final Token throwToken;
   final Token endToken;
 
-  ThrowExpressionHandle(
-    ParserAstType type, {
-    required this.throwToken,
-    required this.endToken,
-  }) : super("ThrowExpression", type);
+  new(ParserAstType type, {required this.throwToken, required this.endToken})
+    : super("ThrowExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7910,7 +7767,7 @@ class ThrowExpressionHandle extends ParserAstNode {
 class RethrowStatementBegin extends ParserAstNode {
   final Token token;
 
-  RethrowStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("RethrowStatement", type);
 
   @override
@@ -7924,11 +7781,8 @@ class RethrowStatementEnd extends ParserAstNode {
   final Token rethrowToken;
   final Token endToken;
 
-  RethrowStatementEnd(
-    ParserAstType type, {
-    required this.rethrowToken,
-    required this.endToken,
-  }) : super("RethrowStatement", type);
+  new(ParserAstType type, {required this.rethrowToken, required this.endToken})
+    : super("RethrowStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7943,7 +7797,7 @@ class RethrowStatementEnd extends ParserAstNode {
 class TopLevelDeclarationEnd extends ParserAstNode {
   final Token endToken;
 
-  TopLevelDeclarationEnd(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("TopLevelDeclaration", type);
 
   @override
@@ -7956,7 +7810,7 @@ class TopLevelDeclarationEnd extends ParserAstNode {
 class InvalidTopLevelDeclarationHandle extends ParserAstNode {
   final Token endToken;
 
-  InvalidTopLevelDeclarationHandle(ParserAstType type, {required this.endToken})
+  new(ParserAstType type, {required this.endToken})
     : super("InvalidTopLevelDeclaration", type);
 
   @override
@@ -7970,7 +7824,7 @@ class InvalidTopLevelDeclarationHandle extends ParserAstNode {
 class TopLevelMemberBegin extends ParserAstNode {
   final Token token;
 
-  TopLevelMemberBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("TopLevelMember", type);
 
   @override
@@ -7991,7 +7845,7 @@ class FieldsBegin extends ParserAstNode {
   final Token? varFinalOrConst;
   final Token lastConsumed;
 
-  FieldsBegin(
+  new(
     ParserAstType type, {
     required this.declarationKind,
     this.augmentToken,
@@ -8036,7 +7890,7 @@ class TopLevelFieldsEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  TopLevelFieldsEnd(
+  new(
     ParserAstType type, {
     this.augmentToken,
     this.abstractToken,
@@ -8073,7 +7927,7 @@ class TopLevelMethodBegin extends ParserAstNode {
   final Token? augmentToken;
   final Token? externalToken;
 
-  TopLevelMethodBegin(
+  new(
     ParserAstType type, {
     required this.lastConsumed,
     this.augmentToken,
@@ -8099,7 +7953,7 @@ class TopLevelMethodEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  TopLevelMethodEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.getOrSet,
@@ -8120,8 +7974,7 @@ class TopLevelMethodEnd extends ParserAstNode
 class TryStatementBegin extends ParserAstNode {
   final Token token;
 
-  TryStatementBegin(ParserAstType type, {required this.token})
-    : super("TryStatement", type);
+  new(ParserAstType type, {required this.token}) : super("TryStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8133,8 +7986,7 @@ class TryStatementBegin extends ParserAstNode {
 class CatchClauseBegin extends ParserAstNode {
   final Token token;
 
-  CatchClauseBegin(ParserAstType type, {required this.token})
-    : super("CatchClause", type);
+  new(ParserAstType type, {required this.token}) : super("CatchClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8146,8 +7998,7 @@ class CatchClauseBegin extends ParserAstNode {
 class CatchClauseEnd extends ParserAstNode {
   final Token token;
 
-  CatchClauseEnd(ParserAstType type, {required this.token})
-    : super("CatchClause", type);
+  new(ParserAstType type, {required this.token}) : super("CatchClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8161,12 +8012,8 @@ class CatchBlockHandle extends ParserAstNode {
   final Token? catchKeyword;
   final Token? comma;
 
-  CatchBlockHandle(
-    ParserAstType type, {
-    this.onKeyword,
-    this.catchKeyword,
-    this.comma,
-  }) : super("CatchBlock", type);
+  new(ParserAstType type, {this.onKeyword, this.catchKeyword, this.comma})
+    : super("CatchBlock", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8182,7 +8029,7 @@ class CatchBlockHandle extends ParserAstNode {
 class FinallyBlockHandle extends ParserAstNode {
   final Token finallyKeyword;
 
-  FinallyBlockHandle(ParserAstType type, {required this.finallyKeyword})
+  new(ParserAstType type, {required this.finallyKeyword})
     : super("FinallyBlock", type);
 
   @override
@@ -8200,7 +8047,7 @@ class TryStatementEnd extends ParserAstNode {
   final Token? finallyKeyword;
   final Token endToken;
 
-  TryStatementEnd(
+  new(
     ParserAstType type, {
     required this.catchCount,
     required this.tryKeyword,
@@ -8224,7 +8071,7 @@ class TypeHandle extends ParserAstNode {
   final Token beginToken;
   final Token? questionMark;
 
-  TypeHandle(ParserAstType type, {required this.beginToken, this.questionMark})
+  new(ParserAstType type, {required this.beginToken, this.questionMark})
     : super("Type", type);
 
   @override
@@ -8240,7 +8087,7 @@ class TypeHandle extends ParserAstNode {
 class NonNullAssertExpressionHandle extends ParserAstNode {
   final Token bang;
 
-  NonNullAssertExpressionHandle(ParserAstType type, {required this.bang})
+  new(ParserAstType type, {required this.bang})
     : super("NonNullAssertExpression", type);
 
   @override
@@ -8254,7 +8101,7 @@ class NonNullAssertExpressionHandle extends ParserAstNode {
 class NullAssertPatternHandle extends ParserAstNode {
   final Token bang;
 
-  NullAssertPatternHandle(ParserAstType type, {required this.bang})
+  new(ParserAstType type, {required this.bang})
     : super("NullAssertPattern", type);
 
   @override
@@ -8267,7 +8114,7 @@ class NullAssertPatternHandle extends ParserAstNode {
 class NullCheckPatternHandle extends ParserAstNode {
   final Token question;
 
-  NullCheckPatternHandle(ParserAstType type, {required this.question})
+  new(ParserAstType type, {required this.question})
     : super("NullCheckPattern", type);
 
   @override
@@ -8280,7 +8127,7 @@ class NullCheckPatternHandle extends ParserAstNode {
 class AssignedVariablePatternHandle extends ParserAstNode {
   final Token variable;
 
-  AssignedVariablePatternHandle(ParserAstType type, {required this.variable})
+  new(ParserAstType type, {required this.variable})
     : super("AssignedVariablePattern", type);
 
   @override
@@ -8296,7 +8143,7 @@ class DeclaredVariablePatternHandle extends ParserAstNode {
   final Token variable;
   final bool inAssignmentPattern;
 
-  DeclaredVariablePatternHandle(
+  new(
     ParserAstType type, {
     this.keyword,
     required this.variable,
@@ -8319,11 +8166,8 @@ class WildcardPatternHandle extends ParserAstNode {
   final Token? keyword;
   final Token wildcard;
 
-  WildcardPatternHandle(
-    ParserAstType type, {
-    this.keyword,
-    required this.wildcard,
-  }) : super("WildcardPattern", type);
+  new(ParserAstType type, {this.keyword, required this.wildcard})
+    : super("WildcardPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8338,8 +8182,7 @@ class WildcardPatternHandle extends ParserAstNode {
 class NoNameHandle extends ParserAstNode {
   final Token token;
 
-  NoNameHandle(ParserAstType type, {required this.token})
-    : super("NoName", type);
+  new(ParserAstType type, {required this.token}) : super("NoName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8351,7 +8194,7 @@ class NoNameHandle extends ParserAstNode {
 class RecordTypeBegin extends ParserAstNode {
   final Token leftBracket;
 
-  RecordTypeBegin(ParserAstType type, {required this.leftBracket})
+  new(ParserAstType type, {required this.leftBracket})
     : super("RecordType", type);
 
   @override
@@ -8367,7 +8210,7 @@ class RecordTypeEnd extends ParserAstNode {
   final int count;
   final bool hasNamedFields;
 
-  RecordTypeEnd(
+  new(
     ParserAstType type, {
     required this.leftBracket,
     this.questionMark,
@@ -8388,7 +8231,7 @@ class RecordTypeEnd extends ParserAstNode {
 }
 
 class RecordTypeEntryBegin extends ParserAstNode {
-  RecordTypeEntryBegin(ParserAstType type) : super("RecordTypeEntry", type);
+  new(ParserAstType type) : super("RecordTypeEntry", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -8398,7 +8241,7 @@ class RecordTypeEntryBegin extends ParserAstNode {
 }
 
 class RecordTypeEntryEnd extends ParserAstNode {
-  RecordTypeEntryEnd(ParserAstType type) : super("RecordTypeEntry", type);
+  new(ParserAstType type) : super("RecordTypeEntry", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -8410,7 +8253,7 @@ class RecordTypeEntryEnd extends ParserAstNode {
 class RecordTypeNamedFieldsBegin extends ParserAstNode {
   final Token leftBracket;
 
-  RecordTypeNamedFieldsBegin(ParserAstType type, {required this.leftBracket})
+  new(ParserAstType type, {required this.leftBracket})
     : super("RecordTypeNamedFields", type);
 
   @override
@@ -8424,11 +8267,8 @@ class RecordTypeNamedFieldsEnd extends ParserAstNode {
   final int count;
   final Token leftBracket;
 
-  RecordTypeNamedFieldsEnd(
-    ParserAstType type, {
-    required this.count,
-    required this.leftBracket,
-  }) : super("RecordTypeNamedFields", type);
+  new(ParserAstType type, {required this.count, required this.leftBracket})
+    : super("RecordTypeNamedFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8443,7 +8283,7 @@ class RecordTypeNamedFieldsEnd extends ParserAstNode {
 class FunctionTypeBegin extends ParserAstNode {
   final Token beginToken;
 
-  FunctionTypeBegin(ParserAstType type, {required this.beginToken})
+  new(ParserAstType type, {required this.beginToken})
     : super("FunctionType", type);
 
   @override
@@ -8457,11 +8297,8 @@ class FunctionTypeEnd extends ParserAstNode {
   final Token functionToken;
   final Token? questionMark;
 
-  FunctionTypeEnd(
-    ParserAstType type, {
-    required this.functionToken,
-    this.questionMark,
-  }) : super("FunctionType", type);
+  new(ParserAstType type, {required this.functionToken, this.questionMark})
+    : super("FunctionType", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8476,8 +8313,7 @@ class FunctionTypeEnd extends ParserAstNode {
 class TypeArgumentsBegin extends ParserAstNode {
   final Token token;
 
-  TypeArgumentsBegin(ParserAstType type, {required this.token})
-    : super("TypeArguments", type);
+  new(ParserAstType type, {required this.token}) : super("TypeArguments", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8494,7 +8330,7 @@ class TypeArgumentsEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  TypeArgumentsEnd(
+  new(
     ParserAstType type, {
     required this.count,
     required this.beginToken,
@@ -8515,7 +8351,7 @@ class TypeArgumentsEnd extends ParserAstNode
 class InvalidTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  InvalidTypeArgumentsHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("InvalidTypeArguments", type);
 
   @override
@@ -8528,7 +8364,7 @@ class InvalidTypeArgumentsHandle extends ParserAstNode {
 class NoTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  NoTypeArgumentsHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NoTypeArguments", type);
 
   @override
@@ -8541,8 +8377,7 @@ class NoTypeArgumentsHandle extends ParserAstNode {
 class TypeVariableBegin extends ParserAstNode {
   final Token token;
 
-  TypeVariableBegin(ParserAstType type, {required this.token})
-    : super("TypeVariable", type);
+  new(ParserAstType type, {required this.token}) : super("TypeVariable", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8555,11 +8390,8 @@ class TypeVariablesDefinedHandle extends ParserAstNode {
   final Token token;
   final int count;
 
-  TypeVariablesDefinedHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.count,
-  }) : super("TypeVariablesDefined", type);
+  new(ParserAstType type, {required this.token, required this.count})
+    : super("TypeVariablesDefined", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8577,7 +8409,7 @@ class TypeVariableEnd extends ParserAstNode {
   final Token? extendsOrSuper;
   final Token? variance;
 
-  TypeVariableEnd(
+  new(
     ParserAstType type, {
     required this.token,
     required this.index,
@@ -8600,8 +8432,7 @@ class TypeVariableEnd extends ParserAstNode {
 class TypeVariablesBegin extends ParserAstNode {
   final Token token;
 
-  TypeVariablesBegin(ParserAstType type, {required this.token})
-    : super("TypeVariables", type);
+  new(ParserAstType type, {required this.token}) : super("TypeVariables", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8617,11 +8448,8 @@ class TypeVariablesEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  TypeVariablesEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("TypeVariables", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("TypeVariables", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8636,7 +8464,7 @@ class TypeVariablesEnd extends ParserAstNode
 class FunctionExpressionBegin extends ParserAstNode {
   final Token token;
 
-  FunctionExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("FunctionExpression", type);
 
   @override
@@ -8653,11 +8481,8 @@ class FunctionExpressionEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  FunctionExpressionEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.endToken,
-  }) : super("FunctionExpression", type);
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("FunctionExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8674,7 +8499,7 @@ class VariablesDeclarationBegin extends ParserAstNode {
   final Token? lateToken;
   final Token? varFinalOrConst;
 
-  VariablesDeclarationBegin(
+  new(
     ParserAstType type, {
     required this.token,
     this.lateToken,
@@ -8696,11 +8521,8 @@ class VariablesDeclarationEnd extends ParserAstNode {
   final int count;
   final Token? endToken;
 
-  VariablesDeclarationEnd(
-    ParserAstType type, {
-    required this.count,
-    this.endToken,
-  }) : super("VariablesDeclaration", type);
+  new(ParserAstType type, {required this.count, this.endToken})
+    : super("VariablesDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8715,7 +8537,7 @@ class VariablesDeclarationEnd extends ParserAstNode {
 class WhileStatementBegin extends ParserAstNode {
   final Token token;
 
-  WhileStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("WhileStatement", type);
 
   @override
@@ -8729,11 +8551,8 @@ class WhileStatementEnd extends ParserAstNode {
   final Token whileKeyword;
   final Token endToken;
 
-  WhileStatementEnd(
-    ParserAstType type, {
-    required this.whileKeyword,
-    required this.endToken,
-  }) : super("WhileStatement", type);
+  new(ParserAstType type, {required this.whileKeyword, required this.endToken})
+    : super("WhileStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8748,7 +8567,7 @@ class WhileStatementEnd extends ParserAstNode {
 class AsOperatorTypeBegin extends ParserAstNode {
   final Token operator;
 
-  AsOperatorTypeBegin(ParserAstType type, {required this.operator})
+  new(ParserAstType type, {required this.operator})
     : super("AsOperatorType", type);
 
   @override
@@ -8761,7 +8580,7 @@ class AsOperatorTypeBegin extends ParserAstNode {
 class AsOperatorTypeEnd extends ParserAstNode {
   final Token operator;
 
-  AsOperatorTypeEnd(ParserAstType type, {required this.operator})
+  new(ParserAstType type, {required this.operator})
     : super("AsOperatorType", type);
 
   @override
@@ -8774,8 +8593,7 @@ class AsOperatorTypeEnd extends ParserAstNode {
 class AsOperatorHandle extends ParserAstNode {
   final Token operator;
 
-  AsOperatorHandle(ParserAstType type, {required this.operator})
-    : super("AsOperator", type);
+  new(ParserAstType type, {required this.operator}) : super("AsOperator", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"operator": operator};
@@ -8787,7 +8605,7 @@ class AsOperatorHandle extends ParserAstNode {
 class CastPatternHandle extends ParserAstNode {
   final Token operator;
 
-  CastPatternHandle(ParserAstType type, {required this.operator})
+  new(ParserAstType type, {required this.operator})
     : super("CastPattern", type);
 
   @override
@@ -8801,11 +8619,8 @@ class AssignmentExpressionHandle extends ParserAstNode {
   final Token token;
   final Token endToken;
 
-  AssignmentExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.endToken,
-  }) : super("AssignmentExpression", type);
+  new(ParserAstType type, {required this.token, required this.endToken})
+    : super("AssignmentExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8820,7 +8635,7 @@ class AssignmentExpressionHandle extends ParserAstNode {
 class AnonymousMethodInvocationBegin extends ParserAstNode {
   final Token token;
 
-  AnonymousMethodInvocationBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("AnonymousMethodInvocation", type);
 
   @override
@@ -8840,7 +8655,7 @@ class AnonymousMethodInvocationEnd extends ParserAstNode
   final Token endToken;
   final bool isExpression;
 
-  AnonymousMethodInvocationEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.functionDefinition,
@@ -8864,7 +8679,7 @@ class AnonymousMethodInvocationEnd extends ParserAstNode
 class ImplicitFormalParametersHandle extends ParserAstNode {
   final Token token;
 
-  ImplicitFormalParametersHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ImplicitFormalParameters", type);
 
   @override
@@ -8878,7 +8693,7 @@ class ImplicitFormalParametersHandle extends ParserAstNode {
 class BinaryExpressionBegin extends ParserAstNode {
   final Token token;
 
-  BinaryExpressionBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("BinaryExpression", type);
 
   @override
@@ -8892,11 +8707,8 @@ class BinaryExpressionEnd extends ParserAstNode {
   final Token token;
   final Token endToken;
 
-  BinaryExpressionEnd(
-    ParserAstType type, {
-    required this.token,
-    required this.endToken,
-  }) : super("BinaryExpression", type);
+  new(ParserAstType type, {required this.token, required this.endToken})
+    : super("BinaryExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -8911,8 +8723,7 @@ class BinaryExpressionEnd extends ParserAstNode {
 class BinaryPatternBegin extends ParserAstNode {
   final Token token;
 
-  BinaryPatternBegin(ParserAstType type, {required this.token})
-    : super("BinaryPattern", type);
+  new(ParserAstType type, {required this.token}) : super("BinaryPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -8924,7 +8735,7 @@ class BinaryPatternBegin extends ParserAstNode {
 class BinaryPatternEnd extends ParserAstNode {
   final Token operatorToken;
 
-  BinaryPatternEnd(ParserAstType type, {required this.operatorToken})
+  new(ParserAstType type, {required this.operatorToken})
     : super("BinaryPattern", type);
 
   @override
@@ -8941,7 +8752,7 @@ class DotAccessHandle extends ParserAstNode {
   final Token endToken;
   final bool isNullAware;
 
-  DotAccessHandle(
+  new(
     ParserAstType type, {
     required this.token,
     required this.endToken,
@@ -8964,7 +8775,7 @@ class CascadeAccessHandle extends ParserAstNode {
   final Token endToken;
   final bool isNullAware;
 
-  CascadeAccessHandle(
+  new(
     ParserAstType type, {
     required this.token,
     required this.endToken,
@@ -8985,7 +8796,7 @@ class CascadeAccessHandle extends ParserAstNode {
 class ConditionalExpressionBegin extends ParserAstNode {
   final Token question;
 
-  ConditionalExpressionBegin(ParserAstType type, {required this.question})
+  new(ParserAstType type, {required this.question})
     : super("ConditionalExpression", type);
 
   @override
@@ -8996,8 +8807,7 @@ class ConditionalExpressionBegin extends ParserAstNode {
 }
 
 class ConditionalExpressionColonHandle extends ParserAstNode {
-  ConditionalExpressionColonHandle(ParserAstType type)
-    : super("ConditionalExpressionColon", type);
+  new(ParserAstType type) : super("ConditionalExpressionColon", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -9012,7 +8822,7 @@ class ConditionalExpressionEnd extends ParserAstNode {
   final Token colon;
   final Token endToken;
 
-  ConditionalExpressionEnd(
+  new(
     ParserAstType type, {
     required this.question,
     required this.colon,
@@ -9033,7 +8843,7 @@ class ConditionalExpressionEnd extends ParserAstNode {
 class ConstExpressionBegin extends ParserAstNode {
   final Token constKeyword;
 
-  ConstExpressionBegin(ParserAstType type, {required this.constKeyword})
+  new(ParserAstType type, {required this.constKeyword})
     : super("ConstExpression", type);
 
   @override
@@ -9048,7 +8858,7 @@ class ConstExpressionBegin extends ParserAstNode {
 class ConstExpressionEnd extends ParserAstNode {
   final Token token;
 
-  ConstExpressionEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ConstExpression", type);
 
   @override
@@ -9061,7 +8871,7 @@ class ConstExpressionEnd extends ParserAstNode {
 class ConstFactoryHandle extends ParserAstNode {
   final Token constKeyword;
 
-  ConstFactoryHandle(ParserAstType type, {required this.constKeyword})
+  new(ParserAstType type, {required this.constKeyword})
     : super("ConstFactory", type);
 
   @override
@@ -9077,11 +8887,8 @@ class ForControlFlowBegin extends ParserAstNode {
   final Token? awaitToken;
   final Token forToken;
 
-  ForControlFlowBegin(
-    ParserAstType type, {
-    this.awaitToken,
-    required this.forToken,
-  }) : super("ForControlFlow", type);
+  new(ParserAstType type, {this.awaitToken, required this.forToken})
+    : super("ForControlFlow", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9096,7 +8903,7 @@ class ForControlFlowBegin extends ParserAstNode {
 class ForControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  ForControlFlowEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForControlFlow", type);
 
   @override
@@ -9109,7 +8916,7 @@ class ForControlFlowEnd extends ParserAstNode {
 class ForInControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  ForInControlFlowEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ForInControlFlow", type);
 
   @override
@@ -9122,7 +8929,7 @@ class ForInControlFlowEnd extends ParserAstNode {
 class IfControlFlowBegin extends ParserAstNode {
   final Token ifToken;
 
-  IfControlFlowBegin(ParserAstType type, {required this.ifToken})
+  new(ParserAstType type, {required this.ifToken})
     : super("IfControlFlow", type);
 
   @override
@@ -9135,7 +8942,7 @@ class IfControlFlowBegin extends ParserAstNode {
 class ThenControlFlowHandle extends ParserAstNode {
   final Token token;
 
-  ThenControlFlowHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ThenControlFlow", type);
 
   @override
@@ -9148,7 +8955,7 @@ class ThenControlFlowHandle extends ParserAstNode {
 class ElseControlFlowHandle extends ParserAstNode {
   final Token elseToken;
 
-  ElseControlFlowHandle(ParserAstType type, {required this.elseToken})
+  new(ParserAstType type, {required this.elseToken})
     : super("ElseControlFlow", type);
 
   @override
@@ -9161,8 +8968,7 @@ class ElseControlFlowHandle extends ParserAstNode {
 class IfControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  IfControlFlowEnd(ParserAstType type, {required this.token})
-    : super("IfControlFlow", type);
+  new(ParserAstType type, {required this.token}) : super("IfControlFlow", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9174,7 +8980,7 @@ class IfControlFlowEnd extends ParserAstNode {
 class IfElseControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  IfElseControlFlowEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("IfElseControlFlow", type);
 
   @override
@@ -9187,7 +8993,7 @@ class IfElseControlFlowEnd extends ParserAstNode {
 class SpreadExpressionHandle extends ParserAstNode {
   final Token spreadToken;
 
-  SpreadExpressionHandle(ParserAstType type, {required this.spreadToken})
+  new(ParserAstType type, {required this.spreadToken})
     : super("SpreadExpression", type);
 
   @override
@@ -9200,7 +9006,7 @@ class SpreadExpressionHandle extends ParserAstNode {
 class NullAwareElementHandle extends ParserAstNode {
   final Token nullAwareToken;
 
-  NullAwareElementHandle(ParserAstType type, {required this.nullAwareToken})
+  new(ParserAstType type, {required this.nullAwareToken})
     : super("NullAwareElement", type);
 
   @override
@@ -9216,11 +9022,8 @@ class RestPatternHandle extends ParserAstNode {
   final Token dots;
   final bool hasSubPattern;
 
-  RestPatternHandle(
-    ParserAstType type, {
-    required this.dots,
-    required this.hasSubPattern,
-  }) : super("RestPattern", type);
+  new(ParserAstType type, {required this.dots, required this.hasSubPattern})
+    : super("RestPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9235,7 +9038,7 @@ class RestPatternHandle extends ParserAstNode {
 class FunctionTypedFormalParameterBegin extends ParserAstNode {
   final Token token;
 
-  FunctionTypedFormalParameterBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("FunctionTypedFormalParameter", type);
 
   @override
@@ -9250,11 +9053,8 @@ class FunctionTypedFormalParameterEnd extends ParserAstNode {
   final Token nameToken;
   final Token? question;
 
-  FunctionTypedFormalParameterEnd(
-    ParserAstType type, {
-    required this.nameToken,
-    this.question,
-  }) : super("FunctionTypedFormalParameter", type);
+  new(ParserAstType type, {required this.nameToken, this.question})
+    : super("FunctionTypedFormalParameter", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9271,11 +9071,8 @@ class IdentifierHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  IdentifierHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.context,
-  }) : super("Identifier", type);
+  new(ParserAstType type, {required this.token, required this.context})
+    : super("Identifier", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9292,7 +9089,7 @@ class IndexedExpressionHandle extends ParserAstNode {
   final Token openSquareBracket;
   final Token closeSquareBracket;
 
-  IndexedExpressionHandle(
+  new(
     ParserAstType type, {
     this.question,
     required this.openSquareBracket,
@@ -9313,7 +9110,7 @@ class IndexedExpressionHandle extends ParserAstNode {
 class IsOperatorTypeBegin extends ParserAstNode {
   final Token operator;
 
-  IsOperatorTypeBegin(ParserAstType type, {required this.operator})
+  new(ParserAstType type, {required this.operator})
     : super("IsOperatorType", type);
 
   @override
@@ -9326,7 +9123,7 @@ class IsOperatorTypeBegin extends ParserAstNode {
 class IsOperatorTypeEnd extends ParserAstNode {
   final Token operator;
 
-  IsOperatorTypeEnd(ParserAstType type, {required this.operator})
+  new(ParserAstType type, {required this.operator})
     : super("IsOperatorType", type);
 
   @override
@@ -9340,7 +9137,7 @@ class IsOperatorHandle extends ParserAstNode {
   final Token isOperator;
   final Token? not;
 
-  IsOperatorHandle(ParserAstType type, {required this.isOperator, this.not})
+  new(ParserAstType type, {required this.isOperator, this.not})
     : super("IsOperator", type);
 
   @override
@@ -9356,8 +9153,7 @@ class IsOperatorHandle extends ParserAstNode {
 class LiteralBoolHandle extends ParserAstNode {
   final Token token;
 
-  LiteralBoolHandle(ParserAstType type, {required this.token})
-    : super("LiteralBool", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralBool", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9371,7 +9167,7 @@ class BreakStatementHandle extends ParserAstNode {
   final Token breakKeyword;
   final Token endToken;
 
-  BreakStatementHandle(
+  new(
     ParserAstType type, {
     required this.hasTarget,
     required this.breakKeyword,
@@ -9394,7 +9190,7 @@ class ContinueStatementHandle extends ParserAstNode {
   final Token continueKeyword;
   final Token endToken;
 
-  ContinueStatementHandle(
+  new(
     ParserAstType type, {
     required this.hasTarget,
     required this.continueKeyword,
@@ -9415,7 +9211,7 @@ class ContinueStatementHandle extends ParserAstNode {
 class EmptyStatementHandle extends ParserAstNode {
   final Token token;
 
-  EmptyStatementHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("EmptyStatement", type);
 
   @override
@@ -9429,11 +9225,8 @@ class AssertBegin extends ParserAstNode {
   final Token assertKeyword;
   final Assert kind;
 
-  AssertBegin(
-    ParserAstType type, {
-    required this.assertKeyword,
-    required this.kind,
-  }) : super("Assert", type);
+  new(ParserAstType type, {required this.assertKeyword, required this.kind})
+    : super("Assert", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9452,7 +9245,7 @@ class AssertEnd extends ParserAstNode {
   final Token? commaToken;
   final Token endToken;
 
-  AssertEnd(
+  new(
     ParserAstType type, {
     required this.assertKeyword,
     required this.kind,
@@ -9477,8 +9270,7 @@ class AssertEnd extends ParserAstNode {
 class LiteralDoubleHandle extends ParserAstNode {
   final Token token;
 
-  LiteralDoubleHandle(ParserAstType type, {required this.token})
-    : super("LiteralDouble", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralDouble", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9490,7 +9282,7 @@ class LiteralDoubleHandle extends ParserAstNode {
 class LiteralDoubleWithSeparatorsHandle extends ParserAstNode {
   final Token token;
 
-  LiteralDoubleWithSeparatorsHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("LiteralDoubleWithSeparators", type);
 
   @override
@@ -9504,8 +9296,7 @@ class LiteralDoubleWithSeparatorsHandle extends ParserAstNode {
 class LiteralIntHandle extends ParserAstNode {
   final Token token;
 
-  LiteralIntHandle(ParserAstType type, {required this.token})
-    : super("LiteralInt", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralInt", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9517,7 +9308,7 @@ class LiteralIntHandle extends ParserAstNode {
 class LiteralIntWithSeparatorsHandle extends ParserAstNode {
   final Token token;
 
-  LiteralIntWithSeparatorsHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("LiteralIntWithSeparators", type);
 
   @override
@@ -9534,7 +9325,7 @@ class LiteralListHandle extends ParserAstNode {
   final Token? constKeyword;
   final Token rightBracket;
 
-  LiteralListHandle(
+  new(
     ParserAstType type, {
     required this.count,
     required this.leftBracket,
@@ -9559,7 +9350,7 @@ class ListPatternHandle extends ParserAstNode {
   final Token leftBracket;
   final Token rightBracket;
 
-  ListPatternHandle(
+  new(
     ParserAstType type, {
     required this.count,
     required this.leftBracket,
@@ -9584,7 +9375,7 @@ class LiteralSetOrMapHandle extends ParserAstNode {
   final Token rightBrace;
   final bool hasSetEntry;
 
-  LiteralSetOrMapHandle(
+  new(
     ParserAstType type, {
     required this.count,
     required this.leftBrace,
@@ -9611,7 +9402,7 @@ class MapPatternHandle extends ParserAstNode {
   final Token leftBrace;
   final Token rightBrace;
 
-  MapPatternHandle(
+  new(
     ParserAstType type, {
     required this.count,
     required this.leftBrace,
@@ -9632,8 +9423,7 @@ class MapPatternHandle extends ParserAstNode {
 class LiteralNullHandle extends ParserAstNode {
   final Token token;
 
-  LiteralNullHandle(ParserAstType type, {required this.token})
-    : super("LiteralNull", type);
+  new(ParserAstType type, {required this.token}) : super("LiteralNull", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9646,11 +9436,8 @@ class NativeClauseHandle extends ParserAstNode {
   final Token nativeToken;
   final bool hasName;
 
-  NativeClauseHandle(
-    ParserAstType type, {
-    required this.nativeToken,
-    required this.hasName,
-  }) : super("NativeClause", type);
+  new(ParserAstType type, {required this.nativeToken, required this.hasName})
+    : super("NativeClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9665,8 +9452,7 @@ class NativeClauseHandle extends ParserAstNode {
 class NamedArgumentHandle extends ParserAstNode {
   final Token colon;
 
-  NamedArgumentHandle(ParserAstType type, {required this.colon})
-    : super("NamedArgument", type);
+  new(ParserAstType type, {required this.colon}) : super("NamedArgument", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"colon": colon};
@@ -9678,7 +9464,7 @@ class NamedArgumentHandle extends ParserAstNode {
 class PositionalArgumentHandle extends ParserAstNode {
   final Token token;
 
-  PositionalArgumentHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("PositionalArgument", type);
 
   @override
@@ -9691,8 +9477,7 @@ class PositionalArgumentHandle extends ParserAstNode {
 class PatternFieldHandle extends ParserAstNode {
   final Token? colon;
 
-  PatternFieldHandle(ParserAstType type, {this.colon})
-    : super("PatternField", type);
+  new(ParserAstType type, {this.colon}) : super("PatternField", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"colon": colon};
@@ -9704,7 +9489,7 @@ class PatternFieldHandle extends ParserAstNode {
 class NamedRecordFieldHandle extends ParserAstNode {
   final Token colon;
 
-  NamedRecordFieldHandle(ParserAstType type, {required this.colon})
+  new(ParserAstType type, {required this.colon})
     : super("NamedRecordField", type);
 
   @override
@@ -9717,7 +9502,7 @@ class NamedRecordFieldHandle extends ParserAstNode {
 class PositionalRecordFieldHandle extends ParserAstNode {
   final Token token;
 
-  PositionalRecordFieldHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("PositionalRecordField", type);
 
   @override
@@ -9731,8 +9516,7 @@ class PositionalRecordFieldHandle extends ParserAstNode {
 class NewExpressionBegin extends ParserAstNode {
   final Token token;
 
-  NewExpressionBegin(ParserAstType type, {required this.token})
-    : super("NewExpression", type);
+  new(ParserAstType type, {required this.token}) : super("NewExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9744,8 +9528,7 @@ class NewExpressionBegin extends ParserAstNode {
 class NewExpressionEnd extends ParserAstNode {
   final Token token;
 
-  NewExpressionEnd(ParserAstType type, {required this.token})
-    : super("NewExpression", type);
+  new(ParserAstType type, {required this.token}) : super("NewExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9757,8 +9540,7 @@ class NewExpressionEnd extends ParserAstNode {
 class NoArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  NoArgumentsHandle(ParserAstType type, {required this.token})
-    : super("NoArguments", type);
+  new(ParserAstType type, {required this.token}) : super("NoArguments", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9771,10 +9553,8 @@ class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
     extends ParserAstNode {
   final Token token;
 
-  NoConstructorReferenceContinuationAfterTypeArgumentsHandle(
-    ParserAstType type, {
-    required this.token,
-  }) : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
+  new(ParserAstType type, {required this.token})
+    : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9788,7 +9568,7 @@ class NoIdentifierHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext identifierContext;
 
-  NoIdentifierHandle(
+  new(
     ParserAstType type, {
     required this.token,
     required this.identifierContext,
@@ -9807,10 +9587,8 @@ class NoIdentifierHandle extends ParserAstNode {
 class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
   final Token token;
 
-  NoTypeNameInConstructorReferenceHandle(
-    ParserAstType type, {
-    required this.token,
-  }) : super("NoTypeNameInConstructorReference", type);
+  new(ParserAstType type, {required this.token})
+    : super("NoTypeNameInConstructorReference", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9823,8 +9601,7 @@ class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
 class NoTypeHandle extends ParserAstNode {
   final Token lastConsumed;
 
-  NoTypeHandle(ParserAstType type, {required this.lastConsumed})
-    : super("NoType", type);
+  new(ParserAstType type, {required this.lastConsumed}) : super("NoType", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9838,7 +9615,7 @@ class NoTypeHandle extends ParserAstNode {
 class NoTypeVariablesHandle extends ParserAstNode {
   final Token token;
 
-  NoTypeVariablesHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NoTypeVariables", type);
 
   @override
@@ -9851,8 +9628,7 @@ class NoTypeVariablesHandle extends ParserAstNode {
 class OperatorHandle extends ParserAstNode {
   final Token token;
 
-  OperatorHandle(ParserAstType type, {required this.token})
-    : super("Operator", type);
+  new(ParserAstType type, {required this.token}) : super("Operator", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9864,7 +9640,7 @@ class OperatorHandle extends ParserAstNode {
 class SwitchCaseNoWhenClauseHandle extends ParserAstNode {
   final Token token;
 
-  SwitchCaseNoWhenClauseHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchCaseNoWhenClause", type);
 
   @override
@@ -9878,7 +9654,7 @@ class SwitchCaseNoWhenClauseHandle extends ParserAstNode {
 class SwitchExpressionCasePatternHandle extends ParserAstNode {
   final Token token;
 
-  SwitchExpressionCasePatternHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchExpressionCasePattern", type);
 
   @override
@@ -9892,8 +9668,7 @@ class SwitchExpressionCasePatternHandle extends ParserAstNode {
 class SymbolVoidHandle extends ParserAstNode {
   final Token token;
 
-  SymbolVoidHandle(ParserAstType type, {required this.token})
-    : super("SymbolVoid", type);
+  new(ParserAstType type, {required this.token}) : super("SymbolVoid", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9906,11 +9681,8 @@ class OperatorNameHandle extends ParserAstNode {
   final Token operatorKeyword;
   final Token token;
 
-  OperatorNameHandle(
-    ParserAstType type, {
-    required this.operatorKeyword,
-    required this.token,
-  }) : super("OperatorName", type);
+  new(ParserAstType type, {required this.operatorKeyword, required this.token})
+    : super("OperatorName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9926,11 +9698,8 @@ class InvalidOperatorNameHandle extends ParserAstNode {
   final Token operatorKeyword;
   final Token token;
 
-  InvalidOperatorNameHandle(
-    ParserAstType type, {
-    required this.operatorKeyword,
-    required this.token,
-  }) : super("InvalidOperatorName", type);
+  new(ParserAstType type, {required this.operatorKeyword, required this.token})
+    : super("InvalidOperatorName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9947,12 +9716,8 @@ class ParenthesizedConditionHandle extends ParserAstNode {
   final Token? case_;
   final Token? when;
 
-  ParenthesizedConditionHandle(
-    ParserAstType type, {
-    required this.token,
-    this.case_,
-    this.when,
-  }) : super("ParenthesizedCondition", type);
+  new(ParserAstType type, {required this.token, this.case_, this.when})
+    : super("ParenthesizedCondition", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -9969,8 +9734,7 @@ class ParenthesizedConditionHandle extends ParserAstNode {
 class PatternBegin extends ParserAstNode {
   final Token token;
 
-  PatternBegin(ParserAstType type, {required this.token})
-    : super("Pattern", type);
+  new(ParserAstType type, {required this.token}) : super("Pattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -9982,8 +9746,7 @@ class PatternBegin extends ParserAstNode {
 class PatternGuardBegin extends ParserAstNode {
   final Token when;
 
-  PatternGuardBegin(ParserAstType type, {required this.when})
-    : super("PatternGuard", type);
+  new(ParserAstType type, {required this.when}) : super("PatternGuard", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"when": when};
@@ -9995,10 +9758,8 @@ class PatternGuardBegin extends ParserAstNode {
 class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
   final Token token;
 
-  ParenthesizedExpressionOrRecordLiteralBegin(
-    ParserAstType type, {
-    required this.token,
-  }) : super("ParenthesizedExpressionOrRecordLiteral", type);
+  new(ParserAstType type, {required this.token})
+    : super("ParenthesizedExpressionOrRecordLiteral", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10011,7 +9772,7 @@ class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
 class SwitchCaseWhenClauseBegin extends ParserAstNode {
   final Token when;
 
-  SwitchCaseWhenClauseBegin(ParserAstType type, {required this.when})
+  new(ParserAstType type, {required this.when})
     : super("SwitchCaseWhenClause", type);
 
   @override
@@ -10026,7 +9787,7 @@ class RecordLiteralEnd extends ParserAstNode {
   final int count;
   final Token? constKeyword;
 
-  RecordLiteralEnd(
+  new(
     ParserAstType type, {
     required this.token,
     required this.count,
@@ -10048,11 +9809,8 @@ class RecordPatternHandle extends ParserAstNode {
   final Token token;
   final int count;
 
-  RecordPatternHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.count,
-  }) : super("RecordPattern", type);
+  new(ParserAstType type, {required this.token, required this.count})
+    : super("RecordPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10067,8 +9825,7 @@ class RecordPatternHandle extends ParserAstNode {
 class PatternEnd extends ParserAstNode {
   final Token token;
 
-  PatternEnd(ParserAstType type, {required this.token})
-    : super("Pattern", type);
+  new(ParserAstType type, {required this.token}) : super("Pattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10080,8 +9837,7 @@ class PatternEnd extends ParserAstNode {
 class PatternGuardEnd extends ParserAstNode {
   final Token token;
 
-  PatternGuardEnd(ParserAstType type, {required this.token})
-    : super("PatternGuard", type);
+  new(ParserAstType type, {required this.token}) : super("PatternGuard", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10093,7 +9849,7 @@ class PatternGuardEnd extends ParserAstNode {
 class ParenthesizedExpressionEnd extends ParserAstNode {
   final Token token;
 
-  ParenthesizedExpressionEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ParenthesizedExpression", type);
 
   @override
@@ -10106,7 +9862,7 @@ class ParenthesizedExpressionEnd extends ParserAstNode {
 class SwitchCaseWhenClauseEnd extends ParserAstNode {
   final Token token;
 
-  SwitchCaseWhenClauseEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("SwitchCaseWhenClause", type);
 
   @override
@@ -10119,7 +9875,7 @@ class SwitchCaseWhenClauseEnd extends ParserAstNode {
 class ParenthesizedPatternHandle extends ParserAstNode {
   final Token token;
 
-  ParenthesizedPatternHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ParenthesizedPattern", type);
 
   @override
@@ -10132,8 +9888,7 @@ class ParenthesizedPatternHandle extends ParserAstNode {
 class ConstantPatternBegin extends ParserAstNode {
   final Token? constKeyword;
 
-  ConstantPatternBegin(ParserAstType type, {this.constKeyword})
-    : super("ConstantPattern", type);
+  new(ParserAstType type, {this.constKeyword}) : super("ConstantPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10147,8 +9902,7 @@ class ConstantPatternBegin extends ParserAstNode {
 class ConstantPatternEnd extends ParserAstNode {
   final Token? constKeyword;
 
-  ConstantPatternEnd(ParserAstType type, {this.constKeyword})
-    : super("ConstantPattern", type);
+  new(ParserAstType type, {this.constKeyword}) : super("ConstantPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10164,7 +9918,7 @@ class ObjectPatternHandle extends ParserAstNode {
   final Token? dot;
   final Token? secondIdentifier;
 
-  ObjectPatternHandle(
+  new(
     ParserAstType type, {
     required this.firstIdentifier,
     this.dot,
@@ -10185,8 +9939,7 @@ class ObjectPatternHandle extends ParserAstNode {
 class QualifiedHandle extends ParserAstNode {
   final Token period;
 
-  QualifiedHandle(ParserAstType type, {required this.period})
-    : super("Qualified", type);
+  new(ParserAstType type, {required this.period}) : super("Qualified", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"period": period};
@@ -10198,8 +9951,7 @@ class QualifiedHandle extends ParserAstNode {
 class StringPartHandle extends ParserAstNode {
   final Token token;
 
-  StringPartHandle(ParserAstType type, {required this.token})
-    : super("StringPart", type);
+  new(ParserAstType type, {required this.token}) : super("StringPart", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10212,11 +9964,8 @@ class SuperExpressionHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  SuperExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.context,
-  }) : super("SuperExpression", type);
+  new(ParserAstType type, {required this.token, required this.context})
+    : super("SuperExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10233,7 +9982,7 @@ class SwitchCaseBegin extends ParserAstNode {
   final int expressionCount;
   final Token beginToken;
 
-  SwitchCaseBegin(
+  new(
     ParserAstType type, {
     required this.labelCount,
     required this.expressionCount,
@@ -10263,7 +10012,7 @@ class SwitchCaseEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  SwitchCaseEnd(
+  new(
     ParserAstType type, {
     required this.labelCount,
     required this.expressionCount,
@@ -10290,8 +10039,7 @@ class SwitchCaseEnd extends ParserAstNode
 }
 
 class SwitchExpressionCaseBegin extends ParserAstNode {
-  SwitchExpressionCaseBegin(ParserAstType type)
-    : super("SwitchExpressionCase", type);
+  new(ParserAstType type) : super("SwitchExpressionCase", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -10309,7 +10057,7 @@ class SwitchExpressionCaseEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  SwitchExpressionCaseEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.when,
@@ -10333,11 +10081,8 @@ class ThisExpressionHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  ThisExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.context,
-  }) : super("ThisExpression", type);
+  new(ParserAstType type, {required this.token, required this.context})
+    : super("ThisExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10352,10 +10097,8 @@ class ThisExpressionHandle extends ParserAstNode {
 class UnaryPostfixAssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
-  UnaryPostfixAssignmentExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-  }) : super("UnaryPostfixAssignmentExpression", type);
+  new(ParserAstType type, {required this.token})
+    : super("UnaryPostfixAssignmentExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10368,7 +10111,7 @@ class UnaryPostfixAssignmentExpressionHandle extends ParserAstNode {
 class UnaryPrefixExpressionHandle extends ParserAstNode {
   final Token token;
 
-  UnaryPrefixExpressionHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("UnaryPrefixExpression", type);
 
   @override
@@ -10382,7 +10125,7 @@ class UnaryPrefixExpressionHandle extends ParserAstNode {
 class RelationalPatternHandle extends ParserAstNode {
   final Token token;
 
-  RelationalPatternHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("RelationalPattern", type);
 
   @override
@@ -10395,10 +10138,8 @@ class RelationalPatternHandle extends ParserAstNode {
 class UnaryPrefixAssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
-  UnaryPrefixAssignmentExpressionHandle(
-    ParserAstType type, {
-    required this.token,
-  }) : super("UnaryPrefixAssignmentExpression", type);
+  new(ParserAstType type, {required this.token})
+    : super("UnaryPrefixAssignmentExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10409,7 +10150,7 @@ class UnaryPrefixAssignmentExpressionHandle extends ParserAstNode {
 }
 
 class FormalParameterDefaultValueExpressionBegin extends ParserAstNode {
-  FormalParameterDefaultValueExpressionBegin(ParserAstType type)
+  new(ParserAstType type)
     : super("FormalParameterDefaultValueExpression", type);
 
   @override
@@ -10421,7 +10162,7 @@ class FormalParameterDefaultValueExpressionBegin extends ParserAstNode {
 }
 
 class FormalParameterDefaultValueExpressionEnd extends ParserAstNode {
-  FormalParameterDefaultValueExpressionEnd(ParserAstType type)
+  new(ParserAstType type)
     : super("FormalParameterDefaultValueExpression", type);
 
   @override
@@ -10437,7 +10178,7 @@ class ValuedFormalParameterHandle extends ParserAstNode {
   final Token token;
   final FormalParameterKind kind;
 
-  ValuedFormalParameterHandle(
+  new(
     ParserAstType type, {
     required this.equals,
     required this.token,
@@ -10459,7 +10200,7 @@ class ValuedFormalParameterHandle extends ParserAstNode {
 class FormalParameterWithoutValueHandle extends ParserAstNode {
   final Token token;
 
-  FormalParameterWithoutValueHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("FormalParameterWithoutValue", type);
 
   @override
@@ -10473,8 +10214,7 @@ class FormalParameterWithoutValueHandle extends ParserAstNode {
 class VoidKeywordHandle extends ParserAstNode {
   final Token token;
 
-  VoidKeywordHandle(ParserAstType type, {required this.token})
-    : super("VoidKeyword", type);
+  new(ParserAstType type, {required this.token}) : super("VoidKeyword", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10486,7 +10226,7 @@ class VoidKeywordHandle extends ParserAstNode {
 class VoidKeywordWithTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  VoidKeywordWithTypeArgumentsHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("VoidKeywordWithTypeArguments", type);
 
   @override
@@ -10500,7 +10240,7 @@ class VoidKeywordWithTypeArgumentsHandle extends ParserAstNode {
 class YieldStatementBegin extends ParserAstNode {
   final Token token;
 
-  YieldStatementBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("YieldStatement", type);
 
   @override
@@ -10515,7 +10255,7 @@ class YieldStatementEnd extends ParserAstNode {
   final Token? starToken;
   final Token endToken;
 
-  YieldStatementEnd(
+  new(
     ParserAstType type, {
     required this.yieldToken,
     this.starToken,
@@ -10542,7 +10282,7 @@ class InvalidYieldStatementEnd extends ParserAstNode
   final Token endToken;
   final MessageCode errorCode;
 
-  InvalidYieldStatementEnd(
+  new(
     ParserAstType type, {
     required this.beginToken,
     this.starToken,
@@ -10567,7 +10307,7 @@ class RecoverableErrorHandle extends ParserAstNode {
   final Token startToken;
   final Token endToken;
 
-  RecoverableErrorHandle(
+  new(
     ParserAstType type, {
     required this.message,
     required this.startToken,
@@ -10593,7 +10333,7 @@ class ExperimentNotEnabledHandle extends ParserAstNode
   @override
   final Token endToken;
 
-  ExperimentNotEnabledHandle(
+  new(
     ParserAstType type, {
     required this.experimentalFlag,
     required this.beginToken,
@@ -10614,8 +10354,7 @@ class ExperimentNotEnabledHandle extends ParserAstNode
 class ErrorTokenHandle extends ParserAstNode {
   final ErrorToken token;
 
-  ErrorTokenHandle(ParserAstType type, {required this.token})
-    : super("ErrorToken", type);
+  new(ParserAstType type, {required this.token}) : super("ErrorToken", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10630,7 +10369,7 @@ class UnescapeErrorHandle extends ParserAstNode {
   final int stringOffset;
   final int length;
 
-  UnescapeErrorHandle(
+  new(
     ParserAstType type, {
     required this.message,
     required this.location,
@@ -10654,11 +10393,8 @@ class InvalidStatementHandle extends ParserAstNode {
   final Token token;
   final Message message;
 
-  InvalidStatementHandle(
-    ParserAstType type, {
-    required this.token,
-    required this.message,
-  }) : super("InvalidStatement", type);
+  new(ParserAstType type, {required this.token, required this.message})
+    : super("InvalidStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10673,8 +10409,7 @@ class InvalidStatementHandle extends ParserAstNode {
 class ScriptHandle extends ParserAstNode {
   final Token token;
 
-  ScriptHandle(ParserAstType type, {required this.token})
-    : super("Script", type);
+  new(ParserAstType type, {required this.token}) : super("Script", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {"token": token};
@@ -10686,10 +10421,8 @@ class ScriptHandle extends ParserAstNode {
 class TypeArgumentApplicationHandle extends ParserAstNode {
   final Token openAngleBracket;
 
-  TypeArgumentApplicationHandle(
-    ParserAstType type, {
-    required this.openAngleBracket,
-  }) : super("TypeArgumentApplication", type);
+  new(ParserAstType type, {required this.openAngleBracket})
+    : super("TypeArgumentApplication", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -10704,7 +10437,7 @@ class TypeArgumentApplicationHandle extends ParserAstNode {
 class NewAsIdentifierHandle extends ParserAstNode {
   final Token token;
 
-  NewAsIdentifierHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("NewAsIdentifier", type);
 
   @override
@@ -10719,7 +10452,7 @@ class PatternVariableDeclarationStatementHandle extends ParserAstNode {
   final Token equals;
   final Token semicolon;
 
-  PatternVariableDeclarationStatementHandle(
+  new(
     ParserAstType type, {
     required this.keyword,
     required this.equals,
@@ -10741,7 +10474,7 @@ class PatternVariableDeclarationStatementHandle extends ParserAstNode {
 class PatternAssignmentHandle extends ParserAstNode {
   final Token equals;
 
-  PatternAssignmentHandle(ParserAstType type, {required this.equals})
+  new(ParserAstType type, {required this.equals})
     : super("PatternAssignment", type);
 
   @override
@@ -10754,7 +10487,7 @@ class PatternAssignmentHandle extends ParserAstNode {
 class DotShorthandContextHandle extends ParserAstNode {
   final Token token;
 
-  DotShorthandContextHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("DotShorthandContext", type);
 
   @override
@@ -10767,7 +10500,7 @@ class DotShorthandContextHandle extends ParserAstNode {
 class DotShorthandHeadHandle extends ParserAstNode {
   final Token token;
 
-  DotShorthandHeadHandle(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("DotShorthandHead", type);
 
   @override
@@ -10780,7 +10513,7 @@ class DotShorthandHeadHandle extends ParserAstNode {
 class ConstDotShorthandBegin extends ParserAstNode {
   final Token token;
 
-  ConstDotShorthandBegin(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ConstDotShorthand", type);
 
   @override
@@ -10793,7 +10526,7 @@ class ConstDotShorthandBegin extends ParserAstNode {
 class ConstDotShorthandEnd extends ParserAstNode {
   final Token token;
 
-  ConstDotShorthandEnd(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token})
     : super("ConstDotShorthand", type);
 
   @override

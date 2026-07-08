@@ -7,7 +7,7 @@ library;
 //   const C0() {}
 //   ^^^^^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:45:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:46:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const E0(this.v) {}
 //   ^^^^^
@@ -17,10 +17,10 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:15:15: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:15:16: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   this: x = x {}
-//               ^
+//   this : x = x {}
+//                ^
 //
 // pkg/front_end/testcases/primary_constructors/const_class.dart:19:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
@@ -47,20 +47,20 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:50:8: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:52:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:56:8: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:59:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:62:15: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:66:16: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   this: v = v {}
-//               ^
+//   this : v = v {}
+//                ^
 //
 import self as self;
 import "dart:core" as core;
@@ -77,7 +77,7 @@ class C1 extends core::Object /*hasConstConstructor*/  {
 }
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C2
+  const constructor •(core::int x) → self::C2
     : self::C2::x = x, super core::Object::•()
     ;
 }
@@ -89,7 +89,7 @@ class C3 extends core::Object /*hasConstConstructor*/  {
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final initializing-formal core::int x) → self::C4
+  const constructor •(initializing-formal core::int x) → self::C4
     : self::C4::x = x, super core::Object::•()
     ;
 }
@@ -100,7 +100,7 @@ class A extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C5 extends self::A /*hasConstConstructor*/  {
-  const constructor •(final super-initializing-formal core::int x) → self::C5
+  const constructor •(super-initializing-formal core::int x) → self::C5
     : super self::A::•(x)
     ;
 }
@@ -128,7 +128,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = const self::E2::someName(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E2> values = const <self::E2>[self::E2::e0];
-  const constructor someName(core::int #index, core::String #name, final initializing-formal core::int v) → self::E2
+  const constructor someName(core::int #index, core::String #name, initializing-formal core::int v) → self::E2
     : self::E2::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -138,7 +138,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E3 e0 = const self::E3::•(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E3> values = const <self::E3>[self::E3::e0];
-  const constructor •(core::int #index, core::String #name, final core::int v) → self::E3
+  const constructor •(core::int #index, core::String #name, core::int v) → self::E3
     : self::E3::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -171,10 +171,10 @@ static extension-type-member synthetic method ET2|constructor#_#someName#tearOff
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:42:3 -> InstanceConstant(const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:41:6 -> ListConstant(const <E0>[const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:49:3 -> InstanceConstant(const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:48:6 -> ListConstant(const <E1>[const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:54:6 -> InstanceConstant(const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:53:12 -> ListConstant(const <E2>[const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:50:3 -> InstanceConstant(const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:49:6 -> ListConstant(const <E1>[const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:56:6 -> InstanceConstant(const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:55:12 -> ListConstant(const <E2>[const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:63:3 -> InstanceConstant(const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:62:12 -> ListConstant(const <E3>[const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Extra constant evaluation: evaluated: 45, effectively constant: 8

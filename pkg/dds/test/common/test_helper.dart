@@ -56,7 +56,8 @@ Future<io.Process> spawnDartProcess(
     if (pauseOnStart) '--pause-isolates-on-start',
     if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',
-    ...io.Platform.executableArguments.where((arg) => arg != '--mark_main_isolate_as_system_isolate'),
+    ...io.Platform.executableArguments
+        .where((arg) => arg != '--mark_main_isolate_as_system_isolate'),
     resolveTestRelativePath(script).toFilePath(),
   ];
   final process = await io.Process.start(executable, arguments);

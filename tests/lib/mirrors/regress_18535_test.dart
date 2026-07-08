@@ -5,6 +5,7 @@
 // Regression test for issue 18535.
 
 import 'dart:mirrors';
+
 import 'package:collection/collection.dart';
 
 void main() {

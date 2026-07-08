@@ -988,6 +988,16 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<InteractiveExecuteCommandParams> resolveCommand(
+    ExecuteCommandParams command,
+  ) {
+    var request = makeRequest(CustomMethods.resolveCommand, command);
+    return expectSuccessfulResponseTo(
+      request,
+      InteractiveExecuteCommandParams.fromJson,
+    );
+  }
+
   Future<CompletionItem> resolveCompletion(CompletionItem item) {
     var request = makeRequest(Method.completionItem_resolve, item);
     return expectSuccessfulResponseTo(request, CompletionItem.fromJson);

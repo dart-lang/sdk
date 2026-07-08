@@ -1703,7 +1703,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: f
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::B_Ext::@method::f
       substitution: {T: C}
     staticType: void Function(C)

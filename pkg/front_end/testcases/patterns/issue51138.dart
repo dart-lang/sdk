@@ -4,7 +4,7 @@
 
 String test(List list) {
   return switch (list) {
-    <num>[3, >0] => "relational",
+    <num>[3, > 0] => "relational",
     [4, var c as num] => "cast",
     _ => "default",
   };

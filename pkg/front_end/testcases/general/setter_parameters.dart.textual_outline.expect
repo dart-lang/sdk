@@ -1,0 +1,38 @@
+set noParameter() {}
+
+set optionalPositionalParameter([a]) {}
+
+set optionalNamedParameter({a}) {}
+
+set multipleParameters(a, b) {}
+
+set multiplePositionalParameters(a, [b]) {}
+
+set multipleNamedParameters(a, {b}) {}
+
+class C {
+  set noParameter() {}
+  set optionalPositionalParameter([a]) {}
+  set optionalNamedParameter({a}) {}
+  set multipleParameters(a, b) {}
+  set multiplePositionalParameters(a, [b]) {}
+  set multipleNamedParameters(a, {b}) {}
+}
+
+extension E on int {
+  set noParameter() {}
+  set optionalPositionalParameter([a]) {}
+  set optionalNamedParameter({a}) {}
+  set multipleParameters(a, b) {}
+  set multiplePositionalParameters(a, [b]) {}
+  set multipleNamedParameters(a, {b}) {}
+}
+
+extension type ET(int it) {
+  set noParameter() {}
+  set optionalPositionalParameter([a]) {}
+  set optionalNamedParameter({a}) {}
+  set multipleParameters(a, b) {}
+  set multiplePositionalParameters(a, [b]) {}
+  set multipleNamedParameters(a, {b}) {}
+}

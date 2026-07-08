@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:dwds/src/config/tool_configuration.dart';
 import 'package:dwds/src/events.dart';
-import 'package:dwds/src/loaders/ddc_library_bundle.dart';
 import 'package:dwds/src/services/chrome/chrome_debug_exception.dart';
 import 'package:dwds/src/services/chrome/chrome_debug_service.dart';
 import 'package:dwds/src/services/chrome/chrome_proxy_service.dart';
@@ -441,72 +440,14 @@ final class ChromeDwdsVmClient
       (event) => event.kind == EventKind.kIsolateStart,
     );
     try {
-      // If we should pause isolates on start, then only run main once we get a
-      // resume event.
-      final pauseIsolatesOnStart = chromeProxyService.pauseIsolatesOnStart;
-      if (pauseIsolatesOnStart) {
-        _waitForResumeEventToRunMain(chromeProxyService);
-      }
-      // Generate run id to hot restart all apps loaded into the tab.
-      final runId = const Uuid().v4();
-
-      // When using the DDC library bundle format, we determine the sources
-      // that were reloaded during a hot restart to then wait until all the
-      // sources are parsed before finishing hot restart. This is necessary
-      // before we can recompute any source location metadata in the
-      // `ChromeProxyService`.
-      // TODO(srujzs): We don't do this for the AMD module format, should we? It
-      // would require adding an extra parameter in the AMD strategy. As we're
-      // planning to deprecate it, for now, do nothing.
-      final isDdcLibraryBundle =
-          globalToolConfiguration.loadStrategy is DdcLibraryBundleStrategy;
-      final computedReloadedSrcs = Completer<void>();
-      final reloadedSrcs = <String>{};
-      late StreamSubscription<String> parsedScriptsSubscription;
-      if (isDdcLibraryBundle) {
-        // Injected client should send a request to recreate the isolate after
-        // the hot restart. The creation of the isolate should in turn wait
-        // until all scripts are parsed.
-        chromeProxyService.allowedToCreateIsolate = Completer<void>();
-        final debugger = await chromeProxyService.debuggerFuture;
-        parsedScriptsSubscription = debugger.parsedScriptsController.stream
-            .listen((url) {
-              computedReloadedSrcs.future.then((_) async {
-                reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
-                if (reloadedSrcs.isEmpty &&
-                    !chromeProxyService.allowedToCreateIsolate.isCompleted) {
-                  chromeProxyService.allowedToCreateIsolate.complete();
-                }
-              });
-            });
-      }
-      logger.info('Issuing \$dartHotRestartDwds request');
-      final remoteObject = await chromeProxyService.inspector.jsEvaluate(
-        '\$dartHotRestartDwds(\'$runId\', $pauseIsolatesOnStart);',
-        awaitPromise: true,
-        returnByValue: true,
-      );
-      if (isDdcLibraryBundle) {
-        final reloadedSrcModuleLibraries = (remoteObject.value as List)
-            .cast<Map>();
-        for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
-          final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
-          reloadedSrcs.add(
-            Uri.parse(
-              srcModuleLibraryCast['src'] as String,
-            ).normalizePath().path,
-          );
-        }
-        if (reloadedSrcs.isEmpty) {
-          chromeProxyService.allowedToCreateIsolate.complete();
-        }
-        computedReloadedSrcs.complete();
-        await chromeProxyService.allowedToCreateIsolate.future;
-        await parsedScriptsSubscription.cancel();
+      if (globalToolConfiguration.loadStrategy.id == 'ddc-library-bundle') {
+        await _libraryBundleHotRestart(
+          chromeProxyService,
+          waitForIsolateStarted,
+        );
       } else {
-        assert(remoteObject.value == null);
+        await _legacyHotRestart(chromeProxyService, waitForIsolateStarted);
       }
-      logger.info('\$dartHotRestartDwds request complete.');
     } on WipError catch (exception) {
       final code = exception.error?['code'];
       final message = exception.error?['message'];
@@ -526,12 +467,102 @@ final class ChromeDwdsVmClient
         },
       };
     }
+    logger.info('Successful hot restart');
+    return {'result': Success().toJson()};
+  }
+
+  Future<void> _libraryBundleHotRestart(
+    ChromeProxyService chromeProxyService,
+    Future<Event> waitForIsolateStarted,
+  ) async {
+    final pauseIsolatesOnStart = chromeProxyService.pauseIsolatesOnStart;
+    if (pauseIsolatesOnStart) {
+      // When pausing isolates on start, a resume event will signal when it is
+      // safe to finish the hot restart.
+      _waitForResumeEventToEndHotRestart(chromeProxyService);
+    }
+    // Generate run id to hot restart all apps loaded into the tab.
+    final runId = const Uuid().v4();
+
+    // When using the DDC library bundle format, we determine the sources
+    // that were reloaded during a hot restart to then wait until all the
+    // sources are parsed before finishing hot restart. This is necessary
+    // before we can recompute any source location metadata in the
+    // `ChromeProxyService`.
+    // TODO(srujzs): We don't do this for the AMD module format, should we? It
+    // would require adding an extra parameter in the AMD strategy. As we're
+    // planning to deprecate it, for now, do nothing.
+    final computedReloadedSrcs = Completer<void>();
+    final reloadedSrcs = <String>{};
+    // Injected client should send a request to recreate the isolate after
+    // the hot restart. The creation of the isolate should in turn wait
+    // until all scripts are parsed.
+    chromeProxyService.allowedToCreateIsolate = Completer<void>();
+    final debugger = await chromeProxyService.debuggerFuture;
+    final parsedScriptsSubscription = debugger.parsedScriptsController.stream
+        .listen((url) {
+          computedReloadedSrcs.future.then((_) async {
+            reloadedSrcs.remove(Uri.parse(url).normalizePath().path);
+            if (reloadedSrcs.isEmpty &&
+                !chromeProxyService.allowedToCreateIsolate.isCompleted) {
+              chromeProxyService.allowedToCreateIsolate.complete();
+            }
+          });
+        });
+    logger.info('Issuing \$dartHotRestartBeginDwds request.');
+    final remoteObject = await chromeProxyService.inspector.jsEvaluate(
+      '\$dartHotRestartBeginDwds(\'$runId\', $pauseIsolatesOnStart);',
+      awaitPromise: true,
+      returnByValue: true,
+    );
+    logger.info('\$dartHotRestartBeginDwds request complete.');
+    final reloadedSrcModuleLibraries = (remoteObject.value as List).cast<Map>();
+    for (final srcModuleLibrary in reloadedSrcModuleLibraries) {
+      final srcModuleLibraryCast = srcModuleLibrary.cast<String, Object>();
+      reloadedSrcs.add(
+        Uri.parse(srcModuleLibraryCast['src'] as String).normalizePath().path,
+      );
+    }
+    if (reloadedSrcs.isEmpty) {
+      chromeProxyService.allowedToCreateIsolate.complete();
+    }
+    computedReloadedSrcs.complete();
+    await chromeProxyService.allowedToCreateIsolate.future;
+    await parsedScriptsSubscription.cancel();
     logger.info('Waiting for Isolate Start event.');
     await waitForIsolateStarted;
     chromeProxyService.terminatingIsolates = false;
+    if (!pauseIsolatesOnStart) {
+      // When there will be no resume event coming, just finish the hot restart
+      // immediately.
+      await _requestHotRestartEnd(chromeProxyService);
+    }
+  }
 
-    logger.info('Successful hot restart');
-    return {'result': Success().toJson()};
+  Future<void> _legacyHotRestart(
+    ChromeProxyService chromeProxyService,
+    Future<Event> waitForIsolateStarted,
+  ) async {
+    // If we should pause isolates on start, then only run main once we get a
+    // resume event.
+    final pauseIsolatesOnStart = chromeProxyService.pauseIsolatesOnStart;
+    if (pauseIsolatesOnStart) {
+      _waitForResumeEventToRunMain(chromeProxyService);
+    }
+    // Generate run id to hot restart all apps loaded into the tab.
+    final runId = const Uuid().v4();
+
+    logger.info('Issuing \$dartHotRestartDwds request.');
+    final remoteObject = await chromeProxyService.inspector.jsEvaluate(
+      '\$dartHotRestartDwds(\'$runId\', $pauseIsolatesOnStart);',
+      awaitPromise: true,
+      returnByValue: true,
+    );
+    assert(remoteObject.value == null);
+    logger.info('\$dartHotRestartDwds request complete.');
+    logger.info('Waiting for Isolate Start event.');
+    await waitForIsolateStarted;
+    chromeProxyService.terminatingIsolates = false;
   }
 
   void _waitForResumeEventToRunMain(ChromeProxyService chromeProxyService) {
@@ -543,6 +574,28 @@ final class ChromeDwdsVmClient
             '\$dartReadyToRunMain();',
           );
         });
+  }
+
+  /// Waits for the isolate to start after a hot restart and then issues the
+  /// request to finish the hot restart operation.
+  void _waitForResumeEventToEndHotRestart(
+    ChromeProxyService chromeProxyService,
+  ) {
+    StreamSubscription<String>? resumeEventsSubscription;
+    resumeEventsSubscription = chromeProxyService.resumeAfterRestartEventsStream
+        .listen((_) async {
+          logger.info('Received resume event.');
+          await resumeEventsSubscription!.cancel();
+          await _requestHotRestartEnd(chromeProxyService);
+        });
+  }
+
+  Future<void> _requestHotRestartEnd(
+    ChromeProxyService chromeProxyService,
+  ) async {
+    logger.info('Issuing \$dartHotRestartEndDwds request.');
+    await chromeProxyService.inspector.jsEvaluate('\$dartHotRestartEndDwds();');
+    logger.info('\$dartHotRestartEndDwds request complete.');
   }
 
   Future<Map<String, dynamic>> _fullReload(

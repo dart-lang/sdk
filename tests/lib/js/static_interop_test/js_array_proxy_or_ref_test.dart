@@ -5,6 +5,7 @@
 // Test the JS array proxy or reference that's created for lists for interop.
 
 import 'dart:js_interop';
+
 import 'package:expect/expect.dart';
 
 @JS()

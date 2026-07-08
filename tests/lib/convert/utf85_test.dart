@@ -5,6 +5,7 @@
 library utf8_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 
 main() {

@@ -7,6 +7,7 @@
 // used to cause a crash.
 
 import "package:expect/expect.dart";
+
 import "super_dependency_lib.dart" deferred as lib;
 
 main() async {

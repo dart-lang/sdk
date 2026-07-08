@@ -28,7 +28,7 @@ class C {
   }
 
   test_class_new_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named();
   [!C.new!]();
@@ -37,7 +37,7 @@ class C {
   }
 
   test_class_newHead_named_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   new named();
   [!C.new!]();
@@ -46,7 +46,7 @@ class C {
   }
 
   test_class_newHead_unnamed_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named();
   [!new!]();
@@ -82,7 +82,7 @@ class C {
   }
 
   test_class_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named();
   [!C!]();
@@ -112,7 +112,7 @@ enum A {
   }
 
   test_enum_unsorted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a,b,c.aa();
   const A.aa();
@@ -122,7 +122,7 @@ enum A {
   }
 
   test_extensionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E.a(Object o) {
   void m() { }
   E.b(this.o);

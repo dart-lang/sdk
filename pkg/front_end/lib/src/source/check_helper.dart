@@ -159,7 +159,7 @@ extension CheckHelper on ProblemReporting {
     Set<String> argumentNames = {};
     if (arguments.namedCount > 0) {
       Set<String?> parameterNames = new Set.of(
-        function.namedParameters.map((a) => a.name),
+        function.namedParameters.map((a) => a.parameterName),
       );
       for (Argument argument in arguments.argumentList) {
         switch (argument) {
@@ -183,10 +183,11 @@ extension CheckHelper on ProblemReporting {
     }
     if (function.namedParameters.isNotEmpty) {
       for (int i = 0; i < function.namedParameters.length; i++) {
-        Variable parameter = function.namedParameters[i];
-        if (parameter.isRequired && !argumentNames.contains(parameter.name!)) {
+        NamedParameter parameter = function.namedParameters[i];
+        if (parameter.isRequired &&
+            !argumentNames.contains(parameter.parameterName)) {
           return diag.valueForRequiredParameterNotProvidedError
-              .withArguments(parameterName: parameter.name!)
+              .withArguments(parameterName: parameter.parameterName)
               .withLocation(fileUri, arguments.fileOffset, noLength);
         }
       }
@@ -743,7 +744,7 @@ extension CheckHelper on ProblemReporting {
         bool isOptional = isOptionalPositional || isOptionalNamed;
         if (isOptional &&
             formal.variable.type.isPotentiallyNonNullable &&
-            !formal.hasDeclaredInitializer) {
+            !formal.hasDeclaredDefaultValue) {
           addProblem(
             diag.optionalNonNullableWithoutInitializerError.withArguments(
               parameterName: formal.name,
@@ -753,7 +754,7 @@ extension CheckHelper on ProblemReporting {
             formal.name.length,
             formal.fileUri,
           );
-          formal.variable.isErroneouslyInitialized = true;
+          formal.variable.hasErroneousDefaultValue = true;
         }
       }
     }
@@ -865,7 +866,7 @@ extension CheckHelper on ProblemReporting {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  Expression wrapInLocatedProblem({
+  InvalidExpression wrapInLocatedProblem({
     required CompilerContext compilerContext,
     required Expression expression,
     required LocatedMessage message,

@@ -36,7 +36,6 @@ enum TypeParametersStyle {
 ///  - tear-offs;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
-///  - record access and literals;
 ///  - deferred libraries.
 ///
 class AstToIr extends ast.RecursiveVisitor {
@@ -920,11 +919,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void defaultVariable(ast.Variable node) {
-    final variable = node.variable;
     if (node.isConst) return;
     if (node.isLate) {
       builder.addSentinelConstant();
-      _writeVariable(variable);
+      _writeVariable(node);
     } else {
       final initializer = node.initializer;
       if (initializer != null) {
@@ -933,11 +931,11 @@ class AstToIr extends ast.RecursiveVisitor {
           builder.pop();
           return;
         }
-        _writeVariable(variable);
+        _writeVariable(node);
       } else if (node.type.nullability == ast.Nullability.nullable &&
-          !_isCaptured(variable)) {
+          !_isCaptured(node)) {
         builder.addNullConstant();
-        _writeVariable(variable);
+        _writeVariable(node);
       }
     }
   }
@@ -1320,7 +1318,13 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitTryCatch(ast.TryCatch node) {
     final tryBody = builder.newTargetBlock();
-    final catchBlock = builder.newCatchBlock();
+    final guardTypes = [
+      for (final catchClause in node.catches) catchClause.guard,
+    ];
+    final catchBlock = builder.newCatchBlock(
+      guardTypes,
+      isSynthetic: node.isSynthetic,
+    );
     builder.addTryEntry(tryBody, catchBlock);
 
     builder.enterTryBlock(catchBlock);
@@ -1410,7 +1414,9 @@ class AstToIr extends ast.RecursiveVisitor {
     finallyBlocks[node] = <FinallyBlock>[];
 
     final tryBody = builder.newTargetBlock();
-    final catchBlock = builder.newCatchBlock();
+    final catchBlock = builder.newCatchBlock(const [
+      ast.DynamicType(),
+    ], isSynthetic: true);
     builder.addTryEntry(tryBody, catchBlock);
 
     builder.enterTryBlock(catchBlock);
@@ -1820,13 +1826,11 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   void _translateClosure(ast.LocalFunction node, CType type) {
-    final closureFunction =
-        functionRegistry.getFunction(
-              function.member,
-              enclosingFunction: function,
-              localFunction: node,
-            )
-            as ClosureFunction;
+    final closureFunction = functionRegistry.getFunction(
+      function.member,
+      enclosingFunction: function,
+      localFunction: node,
+    ) as ClosureFunction;
     onLocalFunction(closureFunction);
 
     final closureLayout = _computeClosureLayout(closureFunction);
@@ -1916,6 +1920,17 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _translateClosure(node, _typeTranslator.translate(node.variable.type));
     _writeVariable(node.variable);
+  }
+
+  @override
+  void visitInstantiation(ast.Instantiation node) {
+    builder.addTypeArguments(
+      node.typeArguments,
+      typeParameters: _typeParametersForTypes(node.typeArguments),
+    );
+    _translateNode(node.expression);
+    if (_handleUnreachableExpression(2)) return;
+    builder.addInstantiateClosure(_staticType(node));
   }
 
   @override
@@ -2225,7 +2240,7 @@ class LocalVariableIndexer {
 
   LocalVariable variableForDeclaration(ast.Variable declaration) =>
       _declaredVariables[declaration] ??= builder.declareLocalVariable(
-        declaration.name ?? '#temp',
+        declaration.cosmeticName ?? '#temp',
         declaration,
         declaration.isLate
             ? const LateValueType()
@@ -2235,7 +2250,7 @@ class LocalVariableIndexer {
   LocalVariable exceptionVariable(ast.TreeNode tryBlock) {
     assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
     return _exceptionVariables[tryBlock] ??= builder.declareLocalVariable(
-      '#exception',
+      LocalVariable.exceptionVariableName,
       null,
       const ObjectType(),
     );
@@ -2244,7 +2259,7 @@ class LocalVariableIndexer {
   LocalVariable stackTraceVariable(ast.TreeNode tryBlock) {
     assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
     return _stackTraceVariables[tryBlock] ??= builder.declareLocalVariable(
-      '#stackTrace',
+      LocalVariable.stackTraceVariableName,
       null,
       StaticType(coreTypes.stackTraceNonNullableRawType),
     );

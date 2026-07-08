@@ -16,18 +16,18 @@ class ConstructorInfo {
 
   /// All parameters of the constructor in canonical order (positional first,
   /// then named sorted by name).
-  final List<Variable> allParameters;
+  final List<FunctionParameter> allParameters;
 
   /// Parameters that must be passed to the initializer function.
   late final List<TypeParameter> initializerTypeParameters;
-  late final List<Variable> initializerParameters;
+  late final List<FunctionParameter> initializerParameters;
 
   /// Parameters that must be passed to the body function from the allocator.
   ///
   /// NOTE: Type parameters of a constructor always end up in fields and can be
   /// loaded from there. The constructor body therefore never needs to get them
   /// passed explicitly.
-  late final List<Variable> bodyParameters;
+  late final List<FunctionParameter> bodyParameters;
 
   /// Parameters that constructor bodies can load via `this`.
   final Map<Variable, Field> parameterToField = {};
@@ -36,7 +36,7 @@ class ConstructorInfo {
     : allParameters = [
         ...constructor.function.positionalParameters,
         ...(constructor.function.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!))),
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName))),
       ] {
     // The initializer gets all arguments and produces
     //   - arguments to be passed to the body function
@@ -171,7 +171,7 @@ class _UsageCollector extends RecursiveVisitor {
       final arg = namedArg.value;
       if (arg is VariableGet) {
         for (final targetNamedParameter in target.function.namedParameters) {
-          if (targetNamedParameter.name == namedArg.name) {
+          if (targetNamedParameter.parameterName == namedArg.name) {
             final field = targetInfo.parameterToField[targetNamedParameter];
             if (field != null) {
               variablesStoredInFields[arg.variable] = field;

@@ -9,7 +9,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
-import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -41,6 +40,7 @@ import '../fragment/method/encoding.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -256,8 +256,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameOffset: null,
             fileOffset: fileOffset,
             fileUri: fileUri,
-            hasImmediatelyDeclaredInitializer: false,
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+            hasImmediatelyDeclaredDefaultValue: false,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
@@ -269,8 +268,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameOffset: null,
             fileOffset: fileOffset,
             fileUri: fileUri,
-            hasImmediatelyDeclaredInitializer: false,
-            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+            hasImmediatelyDeclaredDefaultValue: false,
           );
 
       ConstructorDeclaration constructorDeclaration =
@@ -509,7 +507,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
     if (toStringSuperTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      _procedure.transformerFlags |= TransformerFlag.superCalls;
+      _procedure.containsSuperCalls = true;
       _procedure.function.registerFunctionBody(
         new ReturnStatement(
           new SuperMethodInvocation(
@@ -576,7 +574,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           )
           ..fileOffset = _fileOffset
           ..fileEndOffset = _fileOffset
-          ..transformerFlags |= TransformerFlag.superCalls;
+          ..containsSuperCalls = true;
     f(kind: BuiltMemberKind.Method, member: _procedure);
   }
 
@@ -677,7 +675,7 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
     Expression value, {
     required bool isSynthetic,

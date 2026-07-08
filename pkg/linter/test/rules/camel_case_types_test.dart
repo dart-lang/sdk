@@ -31,7 +31,6 @@ augment class a {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -50,7 +49,11 @@ augment enum e {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
+  // TODO(scheglov): implement augmentation
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -87,13 +90,13 @@ class $FooBar
   }
 
   test_class_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!fooBar!] {}
 ''');
   }
 
   test_class_primaryConstructor_test_class_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!fooBar!](var int x);
 ''');
   }
@@ -135,19 +138,19 @@ class AA {}
   }
 
   test_class_upperSnake() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!Foo_Bar!] {}
 ''');
   }
 
   test_enum_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum [!foooBar!] { a }
 ''');
   }
 
   test_enum_primaryConstructor_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum [!fooBar!](final String name) { a('') }
 ''');
   }
@@ -167,7 +170,7 @@ enum FoooBar { a }
   test_extensionType_lowerCase() async {
     // No need to test all the variations. Name checking is shared with other
     // declaration types.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type [!fooBar!](int i) {}
 ''');
   }
@@ -179,26 +182,26 @@ extension type FooBar(int i) {}
   }
 
   test_mixin_lowerCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin [!m!] {}
 ''');
   }
 
   test_mixinApplication_lower() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {}
 class [!c!] = Object with M;
 ''');
   }
 
   test_typedef_newFormat_lower() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef [!f!] = void Function();
 ''');
   }
 
   test_typedef_newFormat_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class Foo {}
 typedef [!foo!] = Foo;
 ''');
@@ -212,7 +215,7 @@ typedef F = Foo;
   }
 
   test_typedef_oldFormat_lowerCamel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef bool [!predicate!]();
 ''');
   }

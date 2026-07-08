@@ -12,7 +12,9 @@ class D {
 }
 
 void test(C x) {
-  x..f()!.g()..h();
+  x
+    ..f()!.g()
+    ..h();
 }
 
 main() {

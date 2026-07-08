@@ -40,3 +40,5 @@ enum E {
 
   new(this.value);
 }
+
+final class const AsciiCodec({final bool allowInvalid = false}) {}

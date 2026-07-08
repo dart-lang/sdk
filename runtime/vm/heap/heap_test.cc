@@ -23,6 +23,7 @@
 #include "vm/port.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
+#include "vm/virtual_memory_compressed.h"
 
 namespace dart {
 
@@ -1367,7 +1368,7 @@ struct MarkerArguments {
 static void MutatorMarkerRace(MutatorFunction mutator, MarkerFunction marker) {
   VirtualMemory* existing_vm = VirtualMemory::Allocate(
       Utils::RoundUp(sizeof(ExistingObject), VirtualMemory::PageSize()), false,
-      false, "dart-heap");
+      "dart-heap");
   ExistingObject* existing_object =
       reinterpret_cast<ExistingObject*>(existing_vm->address());
 
@@ -1399,7 +1400,7 @@ static void MutatorMarkerRace(MutatorFunction mutator, MarkerFunction marker) {
         reinterpret_cast<uword>(&arguments));
 
     VirtualMemory* new_vm = VirtualMemory::AllocateAligned(
-        kNewPageAlignment, kNewPageAlignment, false, false, "dart-heap");
+        kNewPageAlignment, kNewPageAlignment, false, "dart-heap");
     NewPage* new_page = reinterpret_cast<NewPage*>(new_vm->address());
     new_page->end = new_vm->end();
     new_page->top.store(reinterpret_cast<uword>(new_page->objects),
@@ -1661,20 +1662,24 @@ VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectInTLAB) {
       });
 }
 
-#if defined(DART_COMPRESSED_HEAP)
-TEST_CASE(CompressedHeapGuardLow, "Crash") {
-  void* base = VirtualMemoryCompressedHeap::GetRegion();
+#if defined(DART_COMPRESSED_POINTERS)
+TEST_CASE_WITH_EXPECTATION(CompressedHeapGuardLow, "Crash") {
+  SetFlagScope<bool> sfs(&FLAG_pointer_cage, true);
+  Cage cage;
+  void* base = cage.GetRegion();
   uword start = reinterpret_cast<uword>(base);
   uword lowest_reach = start + kMinInt32 * sizeof(simd128_value_t);
-  *reinterpret_cast<volatile uint8*>(lowest_reach) = 0;
+  *reinterpret_cast<volatile uint8_t*>(lowest_reach) = 0;
 }
 
-TEST_CASE(CompressedHeapGuardHigh, "Crash") {
-  void* base = VirtualMemoryCompressedHeap::GetRegion();
+TEST_CASE_WITH_EXPECTATION(CompressedHeapGuardHigh, "Crash") {
+  SetFlagScope<bool> sfs(&FLAG_pointer_cage, true);
+  Cage cage;
+  void* base = cage.GetRegion();
   uword end = reinterpret_cast<uword>(base) + 4 * GB;
   uword highest_reach = end + kMaxInt32 * sizeof(simd128_value_t);
-  *reinterpret_cast<volatile uint8*>(highest_reach) = 0;
+  *reinterpret_cast<volatile uint8_t*>(highest_reach) = 0;
 }
-#endif  // defined(DART_COMPRESSED_HEAP)
+#endif  // defined(DART_COMPRESSED_POINTERS)
 
 }  // namespace dart

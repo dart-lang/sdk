@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class _PackageMapUriResolverTest {
-  static const Map<String, List<Folder>> emptyMap = {};
+  static const Map<String, Folder> emptyMap = {};
   MemoryResourceProvider provider = MemoryResourceProvider();
 
   String convertPath(String filePath) =>
@@ -47,13 +47,11 @@ class _PackageMapUriResolverTest {
     String pkgFileB = convertPath('/pkgB/lib/src/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver = PackageMapUriResolver(
-      provider,
-      <String, List<Folder>>{
-        'pkgA': <Folder>[provider.getFolder(convertPath('/pkgA/lib'))],
-        'pkgB': <Folder>[provider.getFolder(convertPath('/pkgB/lib'))],
-      },
-    );
+    PackageMapUriResolver resolver =
+        PackageMapUriResolver(provider, <String, Folder>{
+          'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
+          'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
+        });
     {
       var path = convertPath('/pkgA/lib/libA.dart');
       var uri = resolver.pathToUri(path);
@@ -78,26 +76,14 @@ class _PackageMapUriResolverTest {
 
     provider.newFile(nestedPkgFile, '');
 
-    PackageMapUriResolver resolver = PackageMapUriResolver(
-      provider,
-      <String, List<Folder>>{
-        'root': <Folder>[provider.getFolder(rootPkgLib)],
-        'nested': <Folder>[provider.getFolder(nestedPkgLib)],
-      },
-    );
+    PackageMapUriResolver resolver =
+        PackageMapUriResolver(provider, <String, Folder>{
+          'root': provider.getFolder(rootPkgLib),
+          'nested': provider.getFolder(nestedPkgLib),
+        });
 
     var uri = resolver.pathToUri(nestedPkgFile);
     expect(uri, Uri.parse('package:nested/nested.dart'));
-  }
-
-  void test_resolve_multiple_folders() {
-    var a = provider.newFile(convertPath('/aaa/a.dart'), '');
-    var b = provider.newFile(convertPath('/bbb/b.dart'), '');
-    expect(() {
-      PackageMapUriResolver(provider, <String, List<Folder>>{
-        'pkg': <Folder>[a.parent, b.parent],
-      });
-    }, throwsArgumentError);
   }
 
   void test_resolve_nonPackage() {
@@ -112,13 +98,11 @@ class _PackageMapUriResolverTest {
     String pkgFileB = convertPath('/pkgB/lib/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver = PackageMapUriResolver(
-      provider,
-      <String, List<Folder>>{
-        'pkgA': <Folder>[provider.getFolder(convertPath('/pkgA/lib'))],
-        'pkgB': <Folder>[provider.getFolder(convertPath('/pkgB/lib'))],
-      },
-    );
+    PackageMapUriResolver resolver =
+        PackageMapUriResolver(provider, <String, Folder>{
+          'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
+          'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
+        });
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;
@@ -137,7 +121,7 @@ class _PackageMapUriResolverTest {
 
   void test_resolve_OK_withNonAscii() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[provider.getFolder(convertPath('/packages/aaa/lib'))],
+      'aaa': provider.getFolder(convertPath('/packages/aaa/lib')),
     });
 
     var uri = Uri.parse('package:aaa/проба/a.dart');
@@ -147,7 +131,7 @@ class _PackageMapUriResolverTest {
 
   void test_resolve_OK_withSpace() {
     var resolver = PackageMapUriResolver(provider, {
-      'aaa': <Folder>[provider.getFolder(convertPath('/packages/aaa/lib'))],
+      'aaa': provider.getFolder(convertPath('/packages/aaa/lib')),
     });
 
     var uri = Uri.parse('package:aaa/with space/a.dart');

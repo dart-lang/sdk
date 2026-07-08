@@ -214,15 +214,14 @@ class TestRecorderForTesting extends RecorderForTesting {
   }
 }
 
-typedef KernelTargetCreator =
-    KernelTargetTest Function(
-      CompilerContext compilerContext,
-      api.FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator,
-      BodyBuilderCreator bodyBuilderCreator,
-    );
+typedef KernelTargetCreator = KernelTargetTest Function(
+  CompilerContext compilerContext,
+  api.FileSystem fileSystem,
+  bool includeComments,
+  DillTarget dillTarget,
+  UriTranslator uriTranslator,
+  BodyBuilderCreator bodyBuilderCreator,
+);
 
 class KernelTargetTest extends IncrementalKernelTarget {
   final BodyBuilderCreator bodyBuilderCreator;

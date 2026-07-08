@@ -22,7 +22,7 @@ final class ComputedScopes implements Scopes {
         .nonNullable,
       );
       thisVariable =
-          member.function?.thisVariable ?? ast.Variable('this', type: type);
+          member.function?.thisVariable ?? ast.ThisVariable(type: type);
     }
     final builder = _ScopeBuilder(this);
     member.accept(builder);
@@ -82,7 +82,7 @@ final class ContextDesc implements Context {
 
   @override
   String toString() =>
-      'Context[captured: $captured, variables: ${variables.map((v) => v.name).join(', ')}]';
+      'Context[captured: $captured, variables: ${variables.map((v) => v.cosmeticName).join(', ')}]';
 }
 
 class ScopeDesc implements Scope {
@@ -235,9 +235,8 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
     }
 
     for (final f in scopes._functions.values) {
-      f.capturedContexts = {
-        for (final v in f.accessedCapturedVars) v.context!,
-      }.toList();
+      f.capturedContexts = {for (final v in f.accessedCapturedVars) v.context!}
+          .toList();
     }
   }
 
@@ -310,7 +309,7 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
 
   @override
   void defaultVariable(ast.Variable node) {
-    _declareVariable(node.variable);
+    _declareVariable(node);
     node.visitChildren(this);
   }
 

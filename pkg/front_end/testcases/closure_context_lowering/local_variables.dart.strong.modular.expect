@@ -96,7 +96,7 @@ static method testForInElementCounterNotCaptured(positional-parameter list) → 
   ]),
 ] */ {
   list2 := block {
-    final core::List<core::int> #t1 = <core::int>[];
+    #t1 := <core::int>[];
     for /* scope=[
       #ctx15: not-captured VariableContext([
         local-variable i;
@@ -116,7 +116,7 @@ static method testForInElementCounterCaptured(positional-parameter list) → dyn
   ]),
 ] */ {
   closures := block {
-    final core::List<core::Function> #t2 = <core::Function>[];
+    #t2 := <core::Function>[];
     for /* scope=[
       #ctx18: direct-captured VariableContext([
         local-variable i;
@@ -136,7 +136,7 @@ static method testForInMapEntryCounterNotCaptured(positional-parameter list) →
   ]),
 ] */ {
   list2 := block {
-    final core::Map<core::int, core::String> #t3 = <core::int, core::String>{};
+    #t3 := <core::int, core::String>{};
     for /* scope=[
       #ctx21: not-captured VariableContext([
         local-variable i;
@@ -156,7 +156,7 @@ static method testForInMapEntryCounterCaptured(positional-parameter list) → dy
   ]),
 ] */ {
   closures := block {
-    final core::Map<core::int, core::Function> #t4 = <core::int, core::Function>{};
+    #t4 := <core::int, core::Function>{};
     for /* scope=[
       #ctx24: direct-captured VariableContext([
         local-variable i;

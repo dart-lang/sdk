@@ -11,6 +11,7 @@ import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
@@ -19,24 +20,21 @@ import 'package:ffi/ffi.dart';
 
 import 'threading_utils.dart';
 
-@pragma('vm:shared')
-int counter = 0;
-
 int foo = 42;
 
 @pragma('vm:shared')
-late Mutex mutexCondvar;
+final mutexCondvar = Mutex();
 @pragma('vm:shared')
-late ConditionVariable condVar;
+final condVar = ConditionVariable();
 @pragma('vm:shared')
-int greetingsReceived = 0;
+final greetingsReceived = Uint64List(1);
 
 int threadMain(Pointer<Void> data) {
   final pthreadSelf = DynamicLibrary.process()
       .lookupFunction<PthreadSelfNFT, PthreadSelfFT>('pthread_self');
   final self = pthreadSelf();
-  final i = data.cast<Uint8>()[0];
-  print('threadMain started with $data i:$i pthreadid $self');
+  final i = data.cast<Uint64>()[0];
+  // print('threadMain started with $data i:$i pthreadid $self');
   final new_isolate = Isolate.create(debugName: "helper");
   Expect.isNotNull(new_isolate);
   final SendPort sp = new_isolate.runSync(() {
@@ -51,7 +49,7 @@ int threadMain(Pointer<Void> data) {
 
       Expect.equals("greetings!", e);
       mutexCondvar.runLocked(() {
-        greetingsReceived |= (1 << i);
+        greetingsReceived[0] |= (1 << i);
         condVar.notify();
       });
       rp.close();
@@ -63,25 +61,30 @@ int threadMain(Pointer<Void> data) {
   sp.send('greetings!');
 
   // No response is expected until we start running event loop.
-  mutexCondvar.runLocked(() => condVar.wait(mutexCondvar, /*timeout_ms=*/ 100));
-  Expect.isFalse(((1 << i) & greetingsReceived) != 0);
+  int bit = 0;
+  mutexCondvar.runLocked(() {
+    condVar.wait(mutexCondvar, /*timeout_ms=*/ 100);
+    bit = ((1 << i) & greetingsReceived[0]);
+  });
+  Expect.isFalse(bit != 0);
 
-  print('=== running event loop for $new_isolate');
+  // print('=== running event loop for $new_isolate');
   new_isolate.runEventLoopSync();
   mutexCondvar.runLocked(() {
-    while (((1 << i) & greetingsReceived) == 0) {
+    while (((1 << i) & greetingsReceived[0]) == 0) {
       condVar.wait(mutexCondvar);
     }
+    bit = ((1 << i) & greetingsReceived[0]);
   });
-  Expect.isTrue(((1 << i) & greetingsReceived) != 0);
+  Expect.isTrue(bit != 0);
 
-  print('=== running runSync again');
+  // print('=== running runSync again');
   new_isolate.runSync(() {
     print('=== hi, kuka ${++foo}!');
     Expect.equals(43, foo);
   });
 
-  print('=== shutting down');
+  // print('=== shutting down');
   new_isolate.shutdownSync();
   return 0;
 }
@@ -93,7 +96,7 @@ ThreadInfo testRunOnNewIsolateOnNewThread(
   final threadInfo = ThreadInfo();
 
   Expect.equals(0, pthreadAttrInit(threadInfo.ptr_attr));
-  threadInfo.ptr_data.cast<Uint8>()[0] = i;
+  threadInfo.ptr_data.cast<Uint64>()[0] = i;
   print(
     '=== ptr_data: ${threadInfo.ptr_data.address.toRadixString(16)}, i: $i',
   );
@@ -117,8 +120,6 @@ Future<void> testRunEventLoopManyThreads({int numThreads = 63}) async {
     // pthread library loading doesn't work on Windows.
     return;
   }
-  mutexCondvar = Mutex();
-  condVar = ConditionVariable();
   final threadInfos = <ThreadInfo>[];
   final repliedMask = (1 << numThreads) - 1;
   print('repliedMask: ${repliedMask.toRadixString(16)}');
@@ -126,15 +127,15 @@ Future<void> testRunEventLoopManyThreads({int numThreads = 63}) async {
     threadInfos.add(testRunOnNewIsolateOnNewThread(i, threadMain));
   }
   mutexCondvar.runLocked(() {
-    while (greetingsReceived < repliedMask) {
+    while (greetingsReceived[0] < repliedMask) {
       condVar.wait(mutexCondvar);
-      print('main received ${greetingsReceived.toRadixString(16)}');
+      print('main received ${greetingsReceived[0].toRadixString(16)}');
     }
   });
-  print('main is happy received ${greetingsReceived.toRadixString(16)}');
+  print('main is happy received ${greetingsReceived[0].toRadixString(16)}');
 
   for (ThreadInfo threadInfo in threadInfos) {
-    threadInfo.join();
+    threadInfo.joinAndDestroy();
   }
 }
 

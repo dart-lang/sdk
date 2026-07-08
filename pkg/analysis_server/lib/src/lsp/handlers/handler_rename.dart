@@ -80,7 +80,7 @@ class PrepareRenameHandler
       }
 
       return success(
-        TextDocumentPrepareRenameResult.t1(
+        TextDocumentPrepareRenameResult.t2(
           PrepareRenamePlaceholder(
             range: toRange(
               result.lineInfo,

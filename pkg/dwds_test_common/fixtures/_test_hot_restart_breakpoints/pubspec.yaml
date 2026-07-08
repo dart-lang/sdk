@@ -8,4 +8,5 @@ environment:
 
 dev_dependencies:
   build_runner: ^2.5.0
-  build_web_compilers: ^4.4.12
+  build_web_compilers: ^4.8.1
+

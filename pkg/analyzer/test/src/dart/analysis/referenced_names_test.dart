@@ -17,6 +17,24 @@ main() {
 
 @reflectiveTest
 class ComputeReferencedNamesTest extends ParserDiagnosticsTest {
+  test_analyzerDiagnosticExpectation_ignoredByDefault() {
+    var names = _computeReferencedNames(r'''
+void f() {
+  '// [diag.foo]';
+}
+''');
+    expect(names, unorderedEquals(['void']));
+  }
+
+  test_analyzerDiagnosticExpectation_included() {
+    var names = _computeReferencedNames(r'''
+void f() {
+  '// [diag.foo]';
+}
+''', includeAnalyzerDiagnosticExpectations: true);
+    expect(names, unorderedEquals(['foo', 'void']));
+  }
+
   test_class_constructor() {
     var names = _computeReferencedNames('''
 class U {
@@ -465,10 +483,17 @@ main() {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
-  Set<String> _computeReferencedNames(String code) {
+  Set<String> _computeReferencedNames(
+    String code, {
+    bool includeAnalyzerDiagnosticExpectations = false,
+  }) {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var unit = parseResult.unit;
-    return computeReferencedNames(unit);
+    return computeReferencedNames(
+      unit,
+      includeAnalyzerDiagnosticExpectations:
+          includeAnalyzerDiagnosticExpectations,
+    );
   }
 }
 

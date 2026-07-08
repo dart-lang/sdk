@@ -21,6 +21,9 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   late String sourcePath;
 
   @override
+  bool get addFlutterTestPackageDep => true;
+
+  @override
   void setUp() {
     super.setUp();
     sourcePath = convertPath('$testPackageLibPath/test.dart');
@@ -134,6 +137,43 @@ void myMethod() {
 ''';
 
     await _compareLabels(content, ['Wrapper', 'Point.foo']);
+  }
+
+  Future<void> test_groupsAndTests() async {
+    var content = '''
+import 'package:meta/meta.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  /*[0*/group('my group', () {
+    /*[1*/group('my nested group', () {
+      test('my one-line test', () {});
+
+      /*[2*/test('my multiline-line test', () {
+        //
+        //
+      })/*2]*/;
+
+      /*[3*/test("my wrapped test with double quotes", () {
+        //
+        //
+      })/*3]*/;
+    })/*1]*/;
+  })/*0]*/;
+}
+
+@isTest
+void wrappedTest(Object description, void Function() body) {
+  test(description, body);
+}
+''';
+
+    await _compareLabels(content, [
+      "group('my group')",
+      "group('my nested group')",
+      "test('my multiline-line test')",
+      'test("my wrapped test with double quotes")',
+    ]);
   }
 
   Future<void> test_knownBadCode1() async {
@@ -426,8 +466,7 @@ void myMethod() {
     expect(
       ranges,
       hasLength(texts.length),
-      reason:
-          'Marked code should have the same number of ranges as the expected label texts',
+      reason: 'Marked code should have the same number of ranges as the expected label texts',
     );
 
     // Check we got the expected number of labels.

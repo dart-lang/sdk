@@ -1,7 +1,7 @@
-foo1(int a) {}
+foo1(int outer1) {}
 
-foo2(int b) {}
+foo2(int outer2) {}
 
-foo3({required int a}) {}
+foo3({required int outer3}) {}
 
-foo4(int b) {}
+foo4(int outer4) {}

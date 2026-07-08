@@ -5,7 +5,9 @@
 library lib;
 
 import 'package:expect/expect.dart';
+
 import 'stringify.dart';
+
 import 'dart:mirrors';
 
 class Foo<T> {}

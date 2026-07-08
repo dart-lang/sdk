@@ -301,19 +301,19 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/compiler/lib/src/dart2js.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dart2js()
-            elif arg == 'obj/utils/compiler/dart2js.dart.dill':
+            elif arg == 'obj/utils/compiler/dart2js.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dart2js()
             elif arg == '../../pkg/dev_compiler/bin/dartdevc.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'obj/utils/ddc/dartdevc.dart.dill':
+            elif arg == 'obj/utils/ddc/dartdevc.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'obj/utils/dartanalyzer/dartanalyzer.dart.dill':
+            elif arg == 'obj/utils/dartanalyzer/dartanalyzer.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartanalyzer()
-            elif arg == 'obj/utils/analysis_server/analysis_server.dart.dill':
+            elif arg == 'obj/utils/analysis_server/analysis_server.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_analysis_server()
             elif arg == '../../pkg/front_end/tool/compile_platform.dart':
@@ -331,28 +331,31 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/vm/bin/gen_kernel.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_gen_kernel()
-            elif arg == 'obj/utils/kernel-service/frontend_server.dart.dill':
+            elif arg == 'obj/utils/kernel-service/frontend_server.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_frontend_server()
-            elif arg == 'obj/utils/dtd/generate_dtd_snapshot.dart.dill':
+            elif arg == 'obj/utils/dtd/generate_dtd_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dtd_snapshot()
-            elif arg == 'obj/utils/dds/generate_dds_snapshot.dart.dill':
+            elif arg == 'obj/utils/dds/generate_dds_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dds_snapshot()
-            elif arg == 'obj/utils/bazel/kernel_worker.dart.dill':
+            elif arg == 'obj/utils/bazel/kernel_worker.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_kernel_worker()
-            elif arg == 'obj/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.dart.dill':
+            elif arg == 'obj/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dart_runtime_service_vm_snapshot()
-            elif arg == 'obj/utils/dartdev/generate_dartdev_snapshot.dart.dill':
+            elif arg == 'obj/utils/dartdev/generate_dartdev_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dartdev_snapshot()
-            elif arg == 'gen/utils/gen_kernel/bootstrap_gen_kernel.dill':
+            elif arg.endswith('obj/utils/bootstrap_gen_kernel.dill'):
                 self.extra_paths.add(self.rebase(arg))
-                return self.parse_bootstrap_gen_kernel()
-            elif arg == 'obj/utils/kernel-service/kernel-service_snapshot.dart.dill':
+                return self.parse_gen_kernel()
+            elif arg.endswith('obj/utils/bootstrap_compile_platform.dill'):
+                self.extra_paths.add(self.rebase(arg))
+                return self.parse_compile_platform()
+            elif arg == 'obj/utils/kernel-service/kernel-service_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 self.extra_paths.add(
                     self.rebase(
@@ -644,28 +647,12 @@ trace to find the place to insert the appropriate support.
                 self.outputs.append(self.rebase(self.optarg))
             elif self.get_option(['--platform']):
                 self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--dynamic-interface']):
+                self.extra_paths.add(self.rebase(self.optarg))
             elif self.get_option([
                     '--packages', '-D', '--filesystem-root',
                     '--filesystem-scheme'
             ]):
-                pass
-            elif arg in ['--no-aot', '--no-embed-sources']:
-                pass
-            elif not arg.startswith('-'):
-                self.entry_points.add(self.rebase(arg))
-            else:
-                self.unsupported('gen_kernel', arg)
-
-    def parse_bootstrap_gen_kernel(self):
-        while self.has_next_arg:
-            arg = self.next_arg()
-            if self.get_option(['-o', '--output']):
-                self.outputs.append(self.rebase(self.optarg))
-            elif self.get_option(['--platform']):
-                self.extra_paths.add(self.rebase(self.optarg))
-            elif self.get_option(['--dynamic-interface']):
-                self.extra_paths.add(self.rebase(self.optarg))
-            elif self.get_option(['--packages', '-D']):
                 pass
             elif arg in [
                     '--aot',
@@ -681,7 +668,7 @@ trace to find the place to insert the appropriate support.
             elif not arg.startswith('-'):
                 self.entry_points.add(self.rebase(arg))
             else:
-                self.unsupported('bootstrap_gen_kernel', arg)
+                self.unsupported('gen_kernel', arg)
 
     def parse_kernel_service_snapshot(self):
         while self.has_next_arg:
@@ -848,6 +835,7 @@ def main(argv):
 
     # Until the depfiles are fixed so they don't contain absoiute paths, we need
     # to rewrite the absoute paths appropriately.
+    # TODO(63495, 63546): Remove this and treat depfiles like ordinary outputs.
     for depfile in rewrapper.depfiles:
         lines = []
         try:

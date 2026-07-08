@@ -1458,7 +1458,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: s
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::test::@formalParameter::t
           substitution: {T: S}
         element: <testLibrary>::@function::f::@formalParameter::s
@@ -1766,7 +1766,7 @@ class C<T extends MyFunction> {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::C::@getter::foo
       substitution: {T: T}
     staticType: T
@@ -2679,7 +2679,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      element: GetterMember
+      element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: void}
       staticType: void
@@ -3408,7 +3408,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::_
           substitution: {T: int}
         staticType: int
@@ -3450,13 +3450,13 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@function::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@function::foo::@formalParameter::b
           substitution: {T: int}
         staticType: int
@@ -3501,13 +3501,13 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: a@null
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: b@null
           substitution: {T: int}
         staticType: int
@@ -3772,7 +3772,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
@@ -3849,7 +3849,7 @@ class C<T extends A> {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::C::@getter::a
       substitution: {T: T}
     staticType: T
@@ -4333,7 +4333,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::A::@method::foo
       substitution: {T: int}
     staticType: int Function()
@@ -4580,7 +4580,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
+    element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extension::E::@method::foo
       substitution: {T: int}
     staticType: int Function()
@@ -5652,7 +5652,7 @@ MethodInvocation
     arguments
       ThisExpression
         thisKeyword: this
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@method::foo::@formalParameter::p
           substitution: {E: T}
         staticType: A<T>
@@ -5714,7 +5714,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::a
           substitution: {T: int}
         staticType: int
@@ -5727,8 +5727,10 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    var result = await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.methodInvocation('?.foo()');
@@ -5752,8 +5754,12 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    var result = await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef void F({a = b?.foo()});
+//                ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.methodInvocation('?.foo()');
@@ -5896,7 +5902,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: a@25
           substitution: {T: int, U: String}
         staticType: int
@@ -5931,7 +5937,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: a@24
           substitution: {T: int}
         staticType: int
@@ -5967,7 +5973,7 @@ MethodInvocation
         argumentExpression: IntegerLiteral
           literal: 0
           staticType: int
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: a@32
           substitution: {T: int}
     rightParenthesis: )
@@ -7217,7 +7223,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: first
-      element: GetterMember
+      element: SubstitutedGetterElementImpl
         baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
       staticType: T
@@ -7245,7 +7251,7 @@ extension E<T extends Function> on List<T> {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: first
-    element: GetterMember
+    element: SubstitutedGetterElementImpl
       baseElement: dart:core::@class::Iterable::@getter::first
       substitution: {E: T}
     staticType: T
@@ -7515,7 +7521,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::a
           substitution: {T: int, U: bool}
         staticType: int
@@ -7549,7 +7555,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
         element: <testLibrary>::@function::f::@formalParameter::o
@@ -7583,7 +7589,7 @@ MethodInvocation
     arguments
       SimpleIdentifier
         token: o
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
         element: <testLibrary>::@function::f::@formalParameter::o

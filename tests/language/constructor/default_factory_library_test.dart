@@ -7,6 +7,7 @@
 library test;
 
 import "package:expect/expect.dart";
+
 import "default_factory_library.dart" as lib;
 
 class B implements lib.A, C {

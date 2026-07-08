@@ -1,4 +1,4 @@
-(module $module1
+(module $M1
   (type $#Top <...>)
   (type $Array<Object?> <...>)
   (type $ConcurrentModificationError <...>)
@@ -6,11 +6,12 @@
   (type $Object <...>)
   (type $WasmListBase <...>)
   (type $_Type <...>)
-  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 12 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 670 funcref)
-  (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"runTest <noInline>")))
-  (func $"runTest <noInline>"
+  (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 12 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 672 funcref)
+  (elem $M.cross-module-funcs-0
+    (set 0 (ref.func $runTest)))
+  (@binaryen.inline 0)
+  (func $runTest
     (local $var0 (ref $WasmListBase))
     (local $var1 (ref null $#Top))
     (local $var2 (ref $Object))
@@ -19,10 +20,10 @@
     (local $var5 i64)
     (local $var6 i64)
     i32.const 1
-    call_indirect $module0.cross-module-funcs-0 (result i64)
+    call_indirect $M.cross-module-funcs-0 (result i64)
     local.set $var5
     i32.const 2
-    call_indirect $module0.cross-module-funcs-0 (result (ref $WasmListBase))
+    call_indirect $M.cross-module-funcs-0 (result (ref $WasmListBase))
     local.tee $var0
     struct.get $WasmListBase $field2
     local.set $var3
@@ -38,9 +39,9 @@
         if
           local.get $var0
           i32.const 3
-          call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref $ConcurrentModificationError))
+          call_indirect $M.cross-module-funcs-0 (param (ref null $#Top)) (result (ref $ConcurrentModificationError))
           i32.const 4
-          call_indirect $module0.cross-module-funcs-0 (param (ref $#Top))
+          call_indirect $M.cross-module-funcs-0 (param (ref $#Top))
           unreachable
         end
         local.get $var4
@@ -76,41 +77,41 @@
           local.get $var1
           local.get $var3
           i32.const 5
-          call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref $_Type))
+          call_indirect $M.cross-module-funcs-0 (param (ref null $#Top) (ref $_Type))
           unreachable
         end
         local.get $var1
         ref.cast $Object
         local.tee $var2
         struct.get $Object $field0
-        i32.const 109
+        i32.const 111
         i32.eq
         if
           local.get $var2
           local.get $var5
-          i32.const 487
-          call_indirect $module0.dispatch0 (param (ref $Object) i64)
+          i32.const 575
+          call_indirect $M.dispatch0 (param (ref $Object) i64)
         else
           local.get $var2
           local.get $var5
           local.get $var2
           struct.get $Object $field0
-          i32.const 378
+          i32.const 464
           i32.add
-          call_indirect $module0.dispatch0 (param (ref $Object) i64)
+          call_indirect $M.dispatch0 (param (ref $Object) i64)
         end
         br $label0
       end
     end $label0
-    i64.const 0
+    i64.const 1
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
+    call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop
     i32.const 2
-    call_indirect $module0.cross-module-funcs-0 (result (ref $WasmListBase))
+    call_indirect $M.cross-module-funcs-0 (result (ref $WasmListBase))
     i32.const 7
-    call_indirect $module0.cross-module-funcs-0 (param (ref $Object)) (result (ref $JSExternWrapper))
+    call_indirect $M.cross-module-funcs-0 (param (ref $Object)) (result (ref $JSExternWrapper))
     i32.const 8
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
   )
 )

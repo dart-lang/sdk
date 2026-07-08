@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -746,22 +745,6 @@ main() {
 // [diag.argumentTypeNotAssignable] The argument type '(int, int, int)' can't be assigned to the parameter type 'A'. Expected 2 positional arguments, but got 3 instead.
 }
 ''');
-  }
-
-  @failingTest
-  test_tearOff_required() async {
-    await assertErrorsInCode(
-      '''
-class C {
-  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
-}
-g(C c) {
-  var h = c.f/*<int>*/;
-  print(h('s'));
-}
-''',
-      [error(diag.argumentTypeNotAssignable, 99, 1)],
-    );
   }
 }
 

@@ -5,6 +5,7 @@
 library IsolatesTest;
 
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:convert';

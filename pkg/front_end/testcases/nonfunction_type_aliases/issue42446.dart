@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A<X extends A<X>> {}
+
 typedef B<X extends A<X>> = A<X>;
 
 class A2<X extends A2<X>> {
   factory A2() => throw 42;
 }
+
 typedef B2<X extends A2<X>> = A2<X>;
 
 foo() {

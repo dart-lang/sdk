@@ -247,8 +247,7 @@ class ScopeContext {
     if (functionTypedSuffix == null) {
       node.type?.accept(visitor);
     } else {
-      var element = node.declaredFragment!.element;
-      withTypeParameterScope(element.typeParameters, () {
+      withTypeParameterList(functionTypedSuffix.typeParameters, () {
         node.type?.accept(visitor);
         functionTypedSuffix.typeParameters?.accept(visitor);
         functionTypedSuffix.formalParameters.accept(visitor);

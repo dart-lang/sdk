@@ -20,10 +20,10 @@ extension ResourceChecks on Subject<Resource> {
 
 extension FolderChecks on Subject<Folder> {
   Subject<File> file(String path) =>
-      has((f) => f.getChildAssumingFile(path), 'file ($path)');
+      has((f) => f.getFile(path), 'file ($path)');
 
   Subject<Folder> folder(String path) =>
-      has((f) => f.getChildAssumingFolder(path), 'folder ($path)');
+      has((f) => f.getFolder(path), 'folder ($path)');
 }
 
 extension FileChecks on Subject<File> {

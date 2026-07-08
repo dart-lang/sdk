@@ -5,7 +5,7 @@
 import '../meta_model.dart';
 import '../utils.dart';
 
-/// Classes that support for the new (Go-specified) interactive-refactors.
+/// Classes that support for Interactive Forms.
 final interactiveFormClasses = <LspEntity>[
   // TODO(dantup): Generate this from a JSON metadata file if one is made in the
   //  same format as the LSP metaModel file.

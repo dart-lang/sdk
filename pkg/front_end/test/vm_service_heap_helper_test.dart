@@ -234,9 +234,14 @@ class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
   }
 
   @override
-  void leakDetected(String duplicate, int count, List<String> prettyPrints) {
+  Future<void> leakDetected(
+    String duplicate,
+    int count,
+    List<String> prettyPrints,
+  ) {
     prettyPrints.sort();
     leakData.add("$iterationNumber: $count: $prettyPrints");
+    return Future.value();
   }
 
   @override

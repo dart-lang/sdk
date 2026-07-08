@@ -48,7 +48,7 @@ abstract class _Specializer {
 
   /// The parameters that determine arity of the interop procedure that is
   /// created from this config.
-  List<Variable> get parameters;
+  List<FunctionParameter> get parameters;
 
   /// Returns the string that will be the body of the JS trampoline.
   ///
@@ -94,9 +94,9 @@ abstract class _Specializer {
   Procedure _getRawInteropProcedure() {
     // Initialize variable declarations.
     List<String> jsParameterStrings = [];
-    List<Variable> dartPositionalParameters = [];
+    List<PositionalParameter> dartPositionalParameters = [];
     for (int i = 0; i < parameters.length; i++) {
-      final Variable parameter = parameters[i];
+      final FunctionParameter parameter = parameters[i];
       final DartType parameterType = parameter.type;
       final interopFunctionParameterType =
           parameterType == _util.coreTypes.doubleNonNullableRawType
@@ -104,8 +104,8 @@ abstract class _Specializer {
           : _util.nullableWasmExternRefType;
       String parameterString = 'x$i';
       dartPositionalParameters.add(
-        Variable(
-          parameterString,
+        PositionalParameter(
+          cosmeticName: parameterString,
           type: interopFunctionParameterType,
           isSynthesized: true,
         ),
@@ -197,7 +197,7 @@ abstract class _ProcedureSpecializer extends _Specializer {
   _ProcedureSpecializer(super.context, super.interopMethod, super.jsString);
 
   @override
-  List<Variable> get parameters => function.positionalParameters;
+  List<PositionalParameter> get parameters => function.positionalParameters;
 
   /// Returns an invocation of a specialized JS method meant to be used in a
   /// procedure-level lowering.
@@ -352,10 +352,8 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
   );
 
   @override
-  List<Variable> get parameters => function.positionalParameters.sublist(
-    0,
-    invocation.arguments.positional.length,
-  );
+  List<PositionalParameter> get parameters => function.positionalParameters
+      .sublist(0, invocation.arguments.positional.length);
 
   /// Returns an invocation of a specialized JS method meant to be used in an
   /// invocation-level lowering.
@@ -369,11 +367,9 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = Variable(
-        null,
+      final temp = SyntheticVariable(
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
-        isSynthesized: true,
       );
       jsifiedArguments.add(
         Let(
@@ -465,7 +461,7 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
   bool get isSetter => false;
 
   @override
-  List<Variable> get parameters {
+  List<NamedParameter> get parameters {
     // Compute the named parameters that were used in the given `invocation`.
     // Note that we preserve the procedure's ordering and not the invocation's.
     // This is also used below for the names of object literal arguments in
@@ -474,21 +470,21 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
         .map((expr) => expr.name)
         .toSet();
     return function.namedParameters
-        .where((decl) => usedArgs.contains(decl.name))
+        .where((decl) => usedArgs.contains(decl.parameterName))
         .toList();
   }
 
-  /// The name to use in JavaScript for the Dart parameter [variable].
+  /// The name to use in JavaScript for the Dart parameter [parameter].
   ///
-  /// This defaults to the name of the [variable], but can be changed with a
+  /// This defaults to the name of the [parameter], but can be changed with a
   /// `@JS()` annotation.
-  String _jsKey(Variable variable) {
+  String _jsKey(NamedParameter parameter) {
     // Only support `@JS` renaming on extension type object literal
     // constructors.
     final changedName = interopMethod.isExtensionTypeMember
-        ? getDartJSInteropJSName(variable)
+        ? getDartJSInteropJSName(parameter)
         : '';
-    return changedName.isEmpty ? variable.name! : changedName;
+    return changedName.isEmpty ? parameter.parameterName : changedName;
   }
 
   @override
@@ -525,15 +521,13 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     final interopProcedureType = interopProcedure
         .computeSignatureOrFunctionType();
     final arguments = parameters
-        .map<Expression>((decl) => namedArgs[decl.name!]!)
+        .map<Expression>((decl) => namedArgs[decl.parameterName]!)
         .toList();
     final List<Expression> jsifiedArguments = [];
     for (int i = 0; i < arguments.length; i += 1) {
-      final temp = Variable(
-        null,
+      final temp = SyntheticVariable(
         initializer: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
-        isSynthesized: true,
       );
       jsifiedArguments.add(
         Let(

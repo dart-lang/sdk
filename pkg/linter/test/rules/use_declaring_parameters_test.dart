@@ -18,7 +18,7 @@ class UseDeclaringParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_declaring_parameters;
 
   test_assignedInBody_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!i!]) {
   int i = 0;
 
@@ -49,6 +49,17 @@ class C(int? i) {
 ''');
   }
 
+  test_field_withComment() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C(int [!i!]) {
+  /// A comment.
+  final int i;
+
+  this : i = i;
+}
+''');
+  }
+
   test_fieldFormalParameter_differentType() async {
     await assertNoDiagnostics(r'''
 class C(int this.i) {
@@ -58,7 +69,7 @@ class C(int this.i) {
   }
 
   test_fieldFormalParameter_noType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(this.[!i!]) {
   int i;
 }
@@ -66,15 +77,24 @@ class C(this.[!i!]) {
   }
 
   test_fieldFormalParameter_sameType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int this.[!i!]) {
   int i;
 }
 ''');
   }
 
+  test_fieldFormalParameter_withComment() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C(int this.[!i!]) {
+  /// A comment.
+  int i;
+}
+''');
+  }
+
   test_finalPrivateField_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!i!]) {
   final int _i;
 
@@ -84,7 +104,7 @@ class C(int [!i!]) {
   }
 
   test_finalPublicField_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!i!]) {
   final int i;
 
@@ -94,7 +114,7 @@ class C(int [!i!]) {
   }
 
   test_nonFinalPrivateField_optionalNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({int [!i!] = 0}) {
   int _i;
 
@@ -104,7 +124,7 @@ class C({int [!i!] = 0}) {
   }
 
   test_nonFinalPrivateField_optionalPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([int [!i!] = 0]) {
   int _i;
 
@@ -114,7 +134,7 @@ class C([int [!i!] = 0]) {
   }
 
   test_nonFinalPrivateField_requiredNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({required int [!i!]}) {
   int _i;
 
@@ -124,7 +144,7 @@ class C({required int [!i!]}) {
   }
 
   test_nonFinalPrivateField_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!i!]) {
   int _i;
 
@@ -134,7 +154,7 @@ class C(int [!i!]) {
   }
 
   test_nonFinalPublicField_optionalNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({int [!i!] = 0}) {
   final int i;
 
@@ -144,7 +164,7 @@ class C({int [!i!] = 0}) {
   }
 
   test_nonFinalPublicField_optionalPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([int [!i!] = 0]) {
   final int i;
 
@@ -154,7 +174,7 @@ class C([int [!i!] = 0]) {
   }
 
   test_nonFinalPublicField_requiredNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({required int [!i!]}) {
   final int i;
 
@@ -164,7 +184,7 @@ class C({required int [!i!]}) {
   }
 
   test_nonFinalPublicField_requiredPositional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!i!]) {
   final int i;
 

@@ -8,6 +8,7 @@
 library int_array_load_elimination;
 
 import "package:expect/expect.dart";
+
 import 'dart:typed_data';
 
 void testUint16() {

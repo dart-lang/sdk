@@ -2,23 +2,23 @@ library;
 import self as self;
 import "dart:core" as core;
 
-[478]class X1 extends core::Object {
-[493]  field core::String? s;
-[503]  field core::int? i;
-[516]  field core::double? d;
-[478]  synthetic constructor [-1] [-1] •() → self::X1
+[412]class X1 extends core::Object {
+[427]  field core::String? s;
+[437]  field core::int? i;
+[450]  field core::double? d;
+[412]  synthetic constructor [-1] [-1] •() → self::X1
 [-1]    ;
-[478]  static synthetic method [478] [478] _#new#tearOff() → self::X1
-[478]    return [478] [478] new self::X1::• [478]();
+[412]  static synthetic method [412] [412] _#new#tearOff() → self::X1
+[412]    return [412] [412] new self::X1::• [412]();
 }
-[528]class X2 extends core::Object {
-[543]  field core::String? s2;
-[554]  field core::int? i;
-[567]  field core::double? d;
-[528]  synthetic constructor [-1] [-1] •() → self::X2
+[462]class X2 extends core::Object {
+[477]  field core::String? s2;
+[488]  field core::int? i;
+[501]  field core::double? d;
+[462]  synthetic constructor [-1] [-1] •() → self::X2
 [-1]    ;
-[528]  static synthetic method [528] [528] _#new#tearOff() → self::X2
-[528]    return [528] [528] new self::X2::• [528]();
+[462]  static synthetic method [462] [462] _#new#tearOff() → self::X2
+[462]    return [462] [462] new self::X2::• [462]();
 }
-[222]static method [228] [469] method([229] dynamic o) → void
+[222]static method [228] [403] method([229, -1] dynamic o) → void
 [-1]  ;

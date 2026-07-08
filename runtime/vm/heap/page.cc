@@ -18,84 +18,70 @@
 #include "vm/object_set.h"
 #include "vm/os_thread.h"
 #include "vm/virtual_memory.h"
+#include "vm/virtual_memory_compressed.h"
 
 namespace dart {
 
-// This cache needs to be at least as big as FLAG_new_gen_semi_max_size or
-// munmap will noticeably impact performance.
-static constexpr intptr_t kPageCacheCapacity = 128 * kWordSize;
-static Mutex* page_cache_mutex = nullptr;
-static VirtualMemory* page_cache[2][kPageCacheCapacity] = {{nullptr},
-                                                           {nullptr}};
-static intptr_t page_cache_size[2] = {0, 0};
+#if !defined(DART_COMPRESSED_POINTERS)
+// Without compressed pointers, there is a process-wide cache. With compressed
+// pointers, there is a cache per isolate group.
+static PageCache* cache = nullptr;
+#endif
 
 void Page::Init() {
-  ASSERT(page_cache_mutex == nullptr);
-  page_cache_mutex = new Mutex();
+#if !defined(DART_COMPRESSED_POINTERS)
+  ASSERT(cache == nullptr);
+  cache = new PageCache();
+#endif
 }
 
 void Page::ClearCache() {
-  MutexLocker ml(page_cache_mutex);
-  for (intptr_t i = 0; i < 2; i++) {
-    ASSERT(page_cache_size[i] >= 0);
-    ASSERT(page_cache_size[i] <= kPageCacheCapacity);
-    while (page_cache_size[i] > 0) {
-      delete page_cache[i][--page_cache_size[i]];
-    }
-  }
+#if !defined(DART_COMPRESSED_POINTERS)
+  cache->Clear();
+#endif
 }
 
 void Page::Cleanup() {
-  ClearCache();
-  delete page_cache_mutex;
-  page_cache_mutex = nullptr;
+#if !defined(DART_COMPRESSED_POINTERS)
+  delete cache;
+  cache = nullptr;
+#endif
 }
 
 intptr_t Page::CachedSize() {
-  MutexLocker ml(page_cache_mutex);
-  intptr_t pages = 0;
-  for (intptr_t i = 0; i < 2; i++) {
-    pages += page_cache_size[i];
-  }
-  return pages * kPageSize;
-}
-
-static bool CanUseCache(uword flags) {
-  return (flags & (Page::kImage | Page::kLarge | Page::kFrozen)) == 0;
-}
-
-static intptr_t CacheIndex(uword flags) {
-  return (flags & Page::kExecutable) != 0 ? 1 : 0;
-}
-
-Page* Page::Allocate(intptr_t size, uword flags) {
-#if defined(DART_INCLUDE_SIMULATOR)
-  const bool using_simulator = FLAG_use_simulator;
+#if !defined(DART_COMPRESSED_POINTERS)
+  return cache->Size();
 #else
-  const bool using_simulator = false;
+  return 0;
 #endif
-  const bool executable = (flags & Page::kExecutable) != 0 && !using_simulator;
+}
+
+Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
+  const bool executable = (flags & Page::kExecutable) != 0;
+#if defined(DART_COMPRESSED_POINTERS)
   const bool compressed = !executable;
+#else
+  const bool compressed = false;
+#endif
   const char* name = executable ? "dart-code" : "dart-heap";
 
-  VirtualMemory* memory = nullptr;
-  if (CanUseCache(flags)) {
-    // We don't automatically use the cache based on size and type because a
-    // large page that happens to be the same size as a regular page can't
-    // use the cache. Large pages are expected to be zeroed on allocation but
-    // cached pages are dirty.
-    ASSERT(size == kPageSize);
-    MutexLocker ml(page_cache_mutex);
-    intptr_t index = CacheIndex(flags);
-    ASSERT(page_cache_size[index] >= 0);
-    ASSERT(page_cache_size[index] <= kPageCacheCapacity);
-    if (page_cache_size[index] > 0) {
-      memory = page_cache[index][--page_cache_size[index]];
-    }
-  }
+  VirtualMemory* memory;
+#if defined(DART_COMPRESSED_POINTERS)
+  memory = cage->cache()->Pop(flags, size);
+#else
+  memory = cache->Pop(flags, size);
+#endif
   if (memory == nullptr) {
-    memory = VirtualMemory::AllocateAligned(size, kPageSize, executable,
-                                            compressed, name);
+    if (compressed) {
+#if defined(DART_COMPRESSED_POINTERS)
+      memory = cage->Allocate(size, kPageSize);
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      memory =
+          VirtualMemory::AllocateAligned(size, kPageSize, executable, name);
+    }
   }
   if (memory == nullptr) {
     return nullptr;  // Out of memory.
@@ -145,7 +131,7 @@ Page* Page::Allocate(intptr_t size, uword flags) {
   return result;
 }
 
-void Page::Deallocate() {
+void Page::Deallocate(Cage* cage) {
   if (is_image()) {
     delete memory_;
     // For a heap page from a snapshot, the Page object lives in the malloc
@@ -163,48 +149,15 @@ void Page::Deallocate() {
   LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
 
   const uword flags = flags_;
-  if (CanUseCache(flags)) {
-    ASSERT(memory->size() == kPageSize);
-
-    // Allow caching up to one new-space worth of pages to avoid the cost unmap
-    // when freeing from-space. Using ThresholdInWords both accounts for
-    // new-space scaling with the number of mutators, and prevents the cache
-    // from staying big after new-space shrinks.
-    intptr_t limit = 0;
-    IsolateGroup* group = IsolateGroup::Current();
-    if ((group != nullptr) && ((flags_ & kNew) != 0)) {
-      limit = group->heap()->new_space()->ThresholdInWords() / kPageSizeInWords;
-    }
-    limit = Utils::Maximum(limit, FLAG_new_gen_semi_max_size * MB / kPageSize);
-    limit = Utils::Minimum(limit, kPageCacheCapacity);
-
-    MutexLocker ml(page_cache_mutex);
-    intptr_t index = CacheIndex(flags);
-    ASSERT(page_cache_size[index] >= 0);
-    ASSERT(page_cache_size[index] <= kPageCacheCapacity);
-    if (page_cache_size[index] < limit) {
-      intptr_t size = memory->size();
-      if ((flags & kExecutable) != 0 && FLAG_write_protect_code) {
-        // Reset to initial protection.
-        memory->Protect(VirtualMemory::kReadWrite);
-      }
-#if defined(DEBUG)
-      if ((flags & kExecutable) != 0) {
-        uword* cursor = reinterpret_cast<uword*>(memory->address());
-        uword* end = reinterpret_cast<uword*>(memory->end());
-        while (cursor < end) {
-          *cursor++ = kBreakInstructionFiller;
-        }
-      } else {
-        memset(memory->address(), Heap::kZapByte, size);
-      }
-#endif
-      MSAN_POISON(memory->address(), size);
-      page_cache[index][page_cache_size[index]++] = memory;
-      memory = nullptr;
-    }
+#if defined(DART_COMPRESSED_POINTERS)
+  if (!cage->cache()->Push(flags, memory)) {
+    delete memory;
   }
-  delete memory;
+#else
+  if (!cache->Push(flags, memory)) {
+    delete memory;
+  }
+#endif
 }
 
 void Page::VisitObjects(ObjectVisitor* visitor) const {
@@ -316,17 +269,122 @@ void Page::ResetProgressBar() {
 
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
-#if defined(DART_INCLUDE_SIMULATOR)
-  const bool using_simulator = FLAG_use_simulator;
-#else
-  const bool using_simulator = false;
-#endif
-  if (is_executable() && read_only && !using_simulator) {
+  if (is_executable() && read_only) {
     // Handle making code executable in a special way.
     memory_->WriteProtectCode();
   } else {
     memory_->Protect(read_only ? VirtualMemory::kReadOnly
                                : VirtualMemory::kReadWrite);
+  }
+}
+
+// We do not cached large pages because object initialization assumes that any
+// object allocated on a large page is already zero-initialized.
+// We do not cache image pages because their memory belongs to the embedder, not
+// the VM. Often this memory belongs to dlopen.
+// We do not cache frozen pages because they are not writable.
+static bool CanUseCache(uword flags) {
+  return (flags & (Page::kImage | Page::kLarge | Page::kFrozen)) == 0;
+}
+
+// We cache executable and non-executable pages separately. Especially relevant
+// when dual mapping, where executable pages have two associated regions but
+// data pages have only one.
+static intptr_t CacheIndex(uword flags) {
+  return (flags & Page::kExecutable) != 0 ? 1 : 0;
+}
+
+PageCache::PageCache() {}
+
+PageCache::~PageCache() {
+  Clear();
+}
+
+VirtualMemory* PageCache::Pop(uword flags, intptr_t size) {
+  if (CanUseCache(flags)) {
+    ASSERT(size == Page::kPageSize);
+    MutexLocker ml(&mutex_);
+    intptr_t index = CacheIndex(flags);
+    ASSERT(size_[index] >= 0);
+    ASSERT(size_[index] <= kCapacity);
+    if (size_[index] > 0) {
+      return cache_[index][--size_[index]];
+    }
+  }
+  return nullptr;
+}
+
+bool PageCache::Push(uword flags, VirtualMemory* memory) {
+  if (CanUseCache(flags)) {
+    ASSERT(memory->size() == Page::kPageSize);
+
+    // Allow caching up to one new-space worth of pages to avoid the cost of
+    // unmap when freeing from-space. Using ThresholdInWords both accounts for
+    // new-space scaling with the number of mutators, and prevents the cache
+    // from staying big after new-space shrinks.
+    intptr_t limit = 0;
+    IsolateGroup* group = IsolateGroup::Current();
+    if ((group != nullptr) && ((flags & Page::kNew) != 0)) {
+      limit = group->heap()->new_space()->ThresholdInWords() /
+              Page::kPageSizeInWords;
+    }
+    limit = Utils::Maximum(limit,
+                           FLAG_new_gen_semi_max_size * MB / Page::kPageSize);
+    limit = Utils::Minimum(limit, kCapacity);
+
+    MutexLocker ml(&mutex_);
+    intptr_t index = CacheIndex(flags);
+    ASSERT(size_[index] >= 0);
+    ASSERT(size_[index] <= kCapacity);
+    if (size_[index] < limit) {
+      intptr_t size = memory->size();
+      if ((flags & Page::kExecutable) != 0 && FLAG_write_protect_code) {
+        // Reset to initial protection.
+        memory->Protect(VirtualMemory::kReadWrite);
+      }
+#if defined(DEBUG)
+      if ((flags & Page::kExecutable) != 0) {
+        uword* cursor = reinterpret_cast<uword*>(memory->address());
+        uword* end = reinterpret_cast<uword*>(memory->end());
+        while (cursor < end) {
+          *cursor++ = kBreakInstructionFiller;
+        }
+      } else {
+        memset(memory->address(), Heap::kZapByte, size);
+      }
+#endif
+      MSAN_POISON(memory->address(), size);
+      cache_[index][size_[index]++] = memory;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+intptr_t PageCache::Size() {
+  MutexLocker ml(&mutex_);
+  intptr_t pages = 0;
+  for (intptr_t i = 0; i < 2; i++) {
+    pages += size_[i];
+  }
+  return pages * Page::kPageSize;
+}
+
+void PageCache::Abandon() {
+  for (intptr_t i = 0; i < 2; i++) {
+    size_[i] = 0;
+  }
+}
+
+void PageCache::Clear() {
+  MutexLocker ml(&mutex_);
+  for (intptr_t i = 0; i < 2; i++) {
+    ASSERT(size_[i] >= 0);
+    ASSERT(size_[i] <= kCapacity);
+    while (size_[i] > 0) {
+      delete cache_[i][--size_[i]];
+    }
   }
 }
 

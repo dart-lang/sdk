@@ -299,9 +299,9 @@ class DartUnitHighlightsComputer {
       DartType? staticType;
       if (parent is PropertyAccess && nameToken == parent.propertyName.token) {
         staticType = parent.realTarget.staticType;
-      } else if (parent.enclosingInstanceElement case ExtensionElement(
-        :var extendedType,
-      ) when parent is! PrefixedIdentifier) {
+      } else if (parent.enclosingInstanceElement
+          case ExtensionElement(:var extendedType)
+          when parent is! PrefixedIdentifier) {
         staticType = extendedType;
       }
       // Handle tokens that are references to record fields.
@@ -570,7 +570,7 @@ class DartUnitHighlightsComputer {
     var range = this.range;
     if (range != null) {
       var end = offset + length;
-      // Skip token if it ends before the range of starts after the range.
+      // Skip token if it ends before or starts after the requested range.
       if (end < range.offset || offset > range.end) {
         return;
       }
@@ -897,6 +897,27 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.finalKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.KEYWORD);
     super.visitClassTypeAlias(node);
+  }
+
+  @override
+  void visitComment(Comment node) {
+    super.visitComment(node);
+
+    // Handle code blocks inside documentation comments.
+    if (computer._computeSemanticTokens) {
+      for (var code in node.codeBlocks) {
+        for (var line in code.lines) {
+          computer._addRegion(
+            line.offset,
+            line.length,
+            HighlightRegionType.COMMENT_DOCUMENTATION,
+            additionalSemanticTokenModifiers: {
+              CustomSemanticTokenModifiers.source,
+            },
+          );
+        }
+      }
+    }
   }
 
   @override

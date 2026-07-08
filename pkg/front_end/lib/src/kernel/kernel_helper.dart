@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
+import 'external_ast_helper.dart' as extern;
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -102,7 +103,7 @@ class DelayedDefaultValueCloner {
                  if (synthesized
                          .function!
                          .namedParameters[namedParameterIndex]
-                         .name ==
+                         .parameterName ==
                      namedSuperParameters[superParameterIndex]) {
                    ++superParameterIndex;
                  }
@@ -136,15 +137,16 @@ class DelayedDefaultValueCloner {
       List<int?>? positionalSuperParameters = _positionalSuperParameters;
       for (int i = 0; i < _original.positionalParameters.length; i++) {
         if (positionalSuperParameters == null) {
-          _cloneInitializer(
+          _cloneDefaultValue(
             _original.positionalParameters[i],
             _synthesized.positionalParameters[i],
           );
         } else if (i < positionalSuperParameters.length) {
           int? superParameterIndex = positionalSuperParameters[i];
           if (superParameterIndex != null) {
-            Variable originalParameter = _original.positionalParameters[i];
-            Variable synthesizedParameter =
+            PositionalParameter originalParameter =
+                _original.positionalParameters[i];
+            PositionalParameter synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
@@ -166,25 +168,29 @@ class DelayedDefaultValueCloner {
       int superParameterNameIndex = 0;
       Map<String, int> originalNamedParameterIndices = {};
       for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalNamedParameterIndices[_original.namedParameters[i].name!] = i;
+        originalNamedParameterIndices[_original
+                .namedParameters[i]
+                .parameterName] =
+            i;
       }
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
-          _cloneInitializer(
+          _cloneDefaultValue(
             _original.namedParameters[i],
             _synthesized.namedParameters[i],
           );
         } else if (superParameterNameIndex < namedSuperParameters.length &&
             namedSuperParameters[superParameterNameIndex] ==
-                _synthesized.namedParameters[i].name) {
+                _synthesized.namedParameters[i].parameterName) {
           String superParameterName =
               namedSuperParameters[superParameterNameIndex];
           int? originalNamedParameterIndex =
               originalNamedParameterIndices[superParameterName];
           if (originalNamedParameterIndex != null) {
-            Variable originalParameter =
+            NamedParameter originalParameter =
                 _original.namedParameters[originalNamedParameterIndex];
-            Variable synthesizedParameter = _synthesized.namedParameters[i];
+            NamedParameter synthesizedParameter =
+                _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
               originalParameter,
               synthesizedParameter,
@@ -199,20 +205,22 @@ class DelayedDefaultValueCloner {
       }
     } else {
       for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        Variable synthesizedParameter = _synthesized.positionalParameters[i];
+        PositionalParameter synthesizedParameter =
+            _synthesized.positionalParameters[i];
         if (i < _original.positionalParameters.length) {
           if (i >= _synthesized.requiredParameterCount) {
             if (i < _original.requiredParameterCount) {
               // Coverage-ignore-block(suite): Not run.
               // Error case: use `null` as initializer.
-              synthesizedParameter.initializer = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
-                synthesizedParameter.isErroneouslyInitialized = true;
+                synthesizedParameter.hasErroneousDefaultValue = true;
               }
             } else {
-              _cloneInitializer(
+              _cloneDefaultValue(
                 _original.positionalParameters[i],
                 synthesizedParameter,
               );
@@ -221,38 +229,40 @@ class DelayedDefaultValueCloner {
         } else {
           if (i >= _synthesized.requiredParameterCount) {
             // Error case: use `null` as initializer.
-            synthesizedParameter.initializer = new NullLiteral()
-              ..parent = synthesizedParameter;
+            synthesizedParameter.defaultValue = extern.createNullLiteral(
+              fileOffset: TreeNode.noOffset,
+            )..parent = synthesizedParameter;
             if (synthesizedParameter.type.nullability != Nullability.nullable) {
               // Coverage-ignore-block(suite): Not run.
-              synthesizedParameter.isErroneouslyInitialized = true;
+              synthesizedParameter.hasErroneousDefaultValue = true;
             }
           }
         }
       }
       if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, Variable> originalParameters = {};
+        Map<String, NamedParameter> originalParameters = {};
         for (int i = 0; i < _original.namedParameters.length; i++) {
-          originalParameters[_original.namedParameters[i].name!] =
+          originalParameters[_original.namedParameters[i].parameterName] =
               _original.namedParameters[i];
         }
         for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          Variable synthesizedParameter = _synthesized.namedParameters[i];
-          Variable? originalParameter =
-              originalParameters[synthesizedParameter.name!];
+          NamedParameter synthesizedParameter = _synthesized.namedParameters[i];
+          NamedParameter? originalParameter =
+              originalParameters[synthesizedParameter.parameterName];
           if (originalParameter != null) {
             if (!originalParameter.isRequired &&
                 !synthesizedParameter.isRequired) {
-              _cloneInitializer(originalParameter, synthesizedParameter);
+              _cloneDefaultValue(originalParameter, synthesizedParameter);
             }
           } else {
             if (!synthesizedParameter.isRequired) {
               // Error case: use `null` as initializer.
-              synthesizedParameter.initializer = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
-                synthesizedParameter.isErroneouslyInitialized = true;
+                synthesizedParameter.hasErroneousDefaultValue = true;
               }
             }
           }
@@ -262,48 +272,53 @@ class DelayedDefaultValueCloner {
     _hasCloned = true;
   }
 
-  void _cloneInitializer(Variable originalParameter, Variable clonedParameter) {
-    if (originalParameter.initializer != null) {
+  void _cloneDefaultValue(
+    FunctionParameter originalParameter,
+    FunctionParameter clonedParameter,
+  ) {
+    if (originalParameter.defaultValue != null) {
       CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
-      clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
-        ..parent = clonedParameter;
+      clonedParameter.defaultValue = cloner.clone(
+        originalParameter.defaultValue!,
+      )..parent = clonedParameter;
     }
-    clonedParameter.isErroneouslyInitialized |=
-        originalParameter.isErroneouslyInitialized;
+    clonedParameter.hasErroneousDefaultValue |=
+        originalParameter.hasErroneousDefaultValue;
   }
 
   void _cloneDefaultValueForSuperParameters(
-    Variable originalParameter,
-    Variable synthesizedParameter,
+    FunctionParameter originalParameter,
+    FunctionParameter synthesizedParameter,
     TypeEnvironment typeEnvironment, {
     required bool isOptional,
   }) {
-    Expression? originalParameterInitializer = originalParameter.initializer;
-    DartType? originalParameterInitializerType = originalParameterInitializer
+    Expression? originalParameterDefaultValue = originalParameter.defaultValue;
+    DartType? originalParameterDefaultValueType = originalParameterDefaultValue
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
-    if (originalParameterInitializerType != null &&
+    if (originalParameterDefaultValueType != null &&
         typeEnvironment.isSubtypeOf(
-          originalParameterInitializerType,
+          originalParameterDefaultValueType,
           synthesizedParameterType,
         )) {
-      _cloneInitializer(originalParameter, synthesizedParameter);
-    } else if (originalParameterInitializer == null && isOptional) {
-      synthesizedParameter.initializer = new NullLiteral()
-        ..parent = synthesizedParameter;
+      _cloneDefaultValue(originalParameter, synthesizedParameter);
+    } else if (originalParameterDefaultValue == null && isOptional) {
+      synthesizedParameter.defaultValue = extern.createNullLiteral(
+        fileOffset: TreeNode.noOffset,
+      )..parent = synthesizedParameter;
     } else {
-      synthesizedParameter.hasDeclaredInitializer = false;
+      synthesizedParameter.hasDeclaredDefaultValue = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
             superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.name!,
+            superParameterName: synthesizedParameter.cosmeticName!,
           ),
           synthesizedParameter.fileOffset,
-          synthesizedParameter.name?.length ?? 1,
+          synthesizedParameter.cosmeticName?.length ?? 1,
           synthesized.fileUri,
         );
-        synthesizedParameter.isErroneouslyInitialized = true;
+        synthesizedParameter.hasErroneousDefaultValue = true;
       }
     }
   }
@@ -332,26 +347,28 @@ class TypeDependency {
   void copyInferred() {
     if (_hasBeenInferred) return;
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
-      Variable synthesizedParameter =
+      PositionalParameter synthesizedParameter =
           synthesized.function!.positionalParameters[i];
-      Variable originalParameter = original.function!.positionalParameters[i];
+      PositionalParameter originalParameter =
+          original.function!.positionalParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
-      if (!synthesizedParameter.hasDeclaredInitializer) {
-        synthesizedParameter.hasDeclaredInitializer =
-            originalParameter.hasDeclaredInitializer;
+      if (!synthesizedParameter.hasDeclaredDefaultValue) {
+        synthesizedParameter.hasDeclaredDefaultValue =
+            originalParameter.hasDeclaredDefaultValue;
       }
     }
     for (int i = 0; i < original.function!.namedParameters.length; i++) {
-      Variable synthesizedParameter = synthesized.function!.namedParameters[i];
-      Variable originalParameter = original.function!.namedParameters[i];
+      NamedParameter synthesizedParameter =
+          synthesized.function!.namedParameters[i];
+      NamedParameter originalParameter = original.function!.namedParameters[i];
       synthesizedParameter.type = substitution.substituteType(
         originalParameter.type,
       );
-      if (!synthesizedParameter.hasDeclaredInitializer) {
-        synthesizedParameter.hasDeclaredInitializer =
-            originalParameter.hasDeclaredInitializer;
+      if (!synthesizedParameter.hasDeclaredDefaultValue) {
+        synthesizedParameter.hasDeclaredDefaultValue =
+            originalParameter.hasDeclaredDefaultValue;
       }
     }
     if (copyReturnType) {

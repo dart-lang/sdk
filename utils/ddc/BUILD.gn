@@ -63,7 +63,7 @@ template("dart2js_compile") {
 
   prebuilt_dart_action(target_name) {
     mnemonic = "DART2JS"
-    deps = invoker.deps + [ "../compiler:compile_dart2js_platform" ]
+    deps = invoker.deps + [ "../compiler:dart2js_platform" ]
 
     inputs = [
       "$root_out_dir/dart2js_platform.dill",
@@ -99,7 +99,7 @@ group("ddc_stable_test") {
   deps = [
     ":dartdevc",
     ":ddc_stable_test_local",
-    "../..:create_sdk",
+    "../../sdk:create_most_sdk",
   ]
 }
 
@@ -108,7 +108,7 @@ group("ddc_canary_test") {
   deps = [
     ":dartdevc",
     ":ddc_canary_test_local",
-    "../..:create_sdk",
+    "../../sdk:create_most_sdk",
   ]
 }
 
@@ -205,9 +205,8 @@ template("ddc_compile") {
     mnemonic = "DDC"
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     package_name = invoker.package
-    out_dir = rebase_path("$js_gen_dir")
-    sdk_path = rebase_path(sdk_outline_dill)
-    pkg_root = rebase_path("$root_build_dir/../../pkg")
+    sdk_path = rebase_path(sdk_outline_dill, root_build_dir)
+    pkg_root = rebase_path("../../pkg", root_build_dir)
 
     deps = [
       ":ddc_files_stamp",
@@ -229,7 +228,8 @@ template("ddc_compile") {
 
       args += [
         "--modules=$module",
-        "-o$out_dir/$module/$package_name.js",
+        "-o" +
+            rebase_path("$js_gen_dir/$module/$package_name.js", root_build_dir),
       ]
     }
 
@@ -251,7 +251,7 @@ template("ddc_compile") {
     if (defined(invoker.package_dependencies)) {
       foreach(dep, invoker.package_dependencies) {
         deps += [ ":${dep}_js" ]
-        args += [ "-s$out_dir/$dep.dill" ]
+        args += [ "-s" + rebase_path("$out_dir/$dep.dill", root_build_dir) ]
       }
     }
 
@@ -272,10 +272,10 @@ template("package_kernel_outline") {
 
   module = invoker.package
   output = "$target_gen_dir/${module}_outline.dill"
-  sdk_outline = rebase_path(sdk_outline_dill)
+  sdk_outline = rebase_path(sdk_outline_dill, root_build_dir)
 
   package_config =
-      rebase_path("$root_out_dir/../../.dart_tool/package_config.json")
+      rebase_path("../../.dart_tool/package_config.json", root_build_dir)
 
   prebuilt_dart_action(target_name) {
     deps = [
@@ -286,16 +286,16 @@ template("package_kernel_outline") {
     outputs = [ output ]
     args = [
       "--packages-file",
-      "file:///$package_config",
+      package_config,
       "--summary-only",
       "--target",
       "ddc",
       "--dart-sdk-summary",
-      "file:///$sdk_outline",
+      sdk_outline,
       "--source",
       "package:$module/$module.dart",
       "--output",
-      rebase_path(output),
+      rebase_path(output, root_build_dir),
     ]
     if (defined(invoker.extra_libraries)) {
       foreach(lib, invoker.extra_libraries) {
@@ -462,7 +462,7 @@ template("ddc_compile_sdk") {
         "--modules",
         "$module",
         "-o",
-        rebase_path("$js_gen_dir/$module/dart_sdk.js"),
+        rebase_path("$js_gen_dir/$module/dart_sdk.js", root_build_dir),
       ]
     }
 
@@ -481,8 +481,8 @@ template("ddc_compile_sdk") {
       # orignal source files while running SDK test suites.
       # These JavaScript files and source maps are no longer packaged into the
       # released SDK.
-      rebase_path("$target_gen_dir/../../../dart-sdk"),
-      rebase_path("$sdk_full_dill"),
+      rebase_path("$target_gen_dir/../../../dart-sdk", root_build_dir),
+      rebase_path("$sdk_full_dill", root_build_dir),
     ]
 
     if (invoker.canary) {

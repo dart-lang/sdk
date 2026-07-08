@@ -5,6 +5,7 @@
 // Allow typedef mixin classes to be mixed in by classes in the same library.
 
 import 'package:expect/expect.dart';
+
 import 'mixin_class_typedef_lib.dart';
 
 class ATypeDef with MixinClassTypeDef {}

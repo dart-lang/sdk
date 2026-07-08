@@ -4,7 +4,7 @@
 
 String test1(int value) {
   switch (value) {
-    case <2:
+    case < 2:
       return "case <2";
     case 2:
       return "case 2";
@@ -14,7 +14,7 @@ String test1(int value) {
 
 String test2(int value) {
   switch (value) {
-    case <2:
+    case < 2:
       return "case <2";
     case 2:
     default:
@@ -27,7 +27,7 @@ String test3(int value) {
   switch (value) {
     case 2:
       return "case 2";
-    case <2:
+    case < 2:
     default:
       return "case <2";
   }
@@ -38,7 +38,7 @@ String test4(int value) {
   switch (value) {
     case 2:
       return "case 2";
-    case <2:
+    case < 2:
       return "case <2";
     default:
       return "default";
@@ -49,8 +49,8 @@ String test5(int value) {
   switch (value) {
     case 2:
       return "case 2";
-    case <2:
-    case >3:
+    case < 2:
+    case > 3:
       return "case <2 >3";
     default:
       return "default";

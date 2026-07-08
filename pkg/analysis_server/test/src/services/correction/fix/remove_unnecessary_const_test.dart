@@ -82,20 +82,7 @@ class RemoveUnnecessaryConstInEnumConstructorTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_const_in_enum_constructor;
 
-  Future<void> test_enumConstructor_primary() async {
-    await resolveTestCode('''
-enum const E(final int i) {
-  a(1), b(2);
-}
-''');
-    await assertHasFix('''
-enum E(final int i) {
-  a(1), b(2);
-}
-''');
-  }
-
-  Future<void> test_enumConstructor_secondary() async {
+  Future<void> test_enumConstructor_inBody() async {
     await resolveTestCode('''
 enum E {
   a(1), b(2);
@@ -112,6 +99,19 @@ enum E {
   E(this.i);
 
   final int i;
+}
+''');
+  }
+
+  Future<void> test_enumConstructor_primary() async {
+    await resolveTestCode('''
+enum const E(final int i) {
+  a(1), b(2);
+}
+''');
+    await assertHasFix('''
+enum E(final int i) {
+  a(1), b(2);
 }
 ''');
   }

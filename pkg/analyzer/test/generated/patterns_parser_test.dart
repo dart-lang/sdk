@@ -7556,6 +7556,153 @@ void main() {
     // the parser doesn't crash.
   }
 
+  test_patternAssignment_inAssignmentExpression_rhs() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  v2 = (v1) = 2;
+}
+''');
+    var node = parseResult.findNode.assignment('v2 =');
+    assertParsedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: v2
+  operator: =
+  rightHandSide: PatternAssignment
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: AssignedVariablePattern
+        name: v1
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 2
+''');
+  }
+
+  test_patternAssignment_inCascadeAssignment_rhs_beforeNextCascadeSection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  a..b = (v1) = c..m();
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target: SimpleIdentifier
+    token: a
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: b
+      operator: =
+      rightHandSide: PatternAssignment
+        pattern: ParenthesizedPattern
+          leftParenthesis: (
+          pattern: AssignedVariablePattern
+            name: v1
+          rightParenthesis: )
+        equals: =
+        expression: SimpleIdentifier
+          token: c
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: m
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_patternAssignment_inConditionalExpression_then() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  v2 ? (v1) = 2 : 3;
+}
+''');
+    var node = parseResult.findNode.singleConditionalExpression;
+    assertParsedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: v2
+  question: ?
+  thenExpression: PatternAssignment
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: AssignedVariablePattern
+        name: v1
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 2
+  colon: :
+  elseExpression: IntegerLiteral
+    literal: 3
+''');
+  }
+
+  test_patternAssignment_withCascadeExpression_rhs() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  (v1) = a..m();
+}
+''');
+    var node = parseResult.findNode.singlePatternAssignment;
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: v1
+    rightParenthesis: )
+  equals: =
+  expression: CascadeExpression
+    target: SimpleIdentifier
+      token: a
+    cascadeSections
+      MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+''');
+  }
+
+  test_patternAssignment_withPatternAssignment_rhs_parenthesized() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  (v2) = ((v1)) = 3;
+}
+''');
+    var node = parseResult.findNode.patternAssignment('(v2) =');
+    assertParsedNodeText(node, r'''
+PatternAssignment
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: AssignedVariablePattern
+      name: v2
+    rightParenthesis: )
+  equals: =
+  expression: PatternAssignment
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: AssignedVariablePattern
+          name: v1
+        rightParenthesis: )
+      rightParenthesis: )
+    equals: =
+    expression: IntegerLiteral
+      literal: 3
+''');
+  }
+
   test_patternVariableDeclaration_inClass() {
     // If a pattern variable declaration appears outside a function or method,
     // the parser recovers by replacing the pattern with a synthetic identifier,

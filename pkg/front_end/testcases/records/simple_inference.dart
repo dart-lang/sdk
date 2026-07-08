@@ -46,5 +46,4 @@ bar10() {
   A10<Record, String> r = foo10();
 }
 
-
 main() {}

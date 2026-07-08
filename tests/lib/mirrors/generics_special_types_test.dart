@@ -5,6 +5,7 @@
 library test.generics_special_types;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 main() {

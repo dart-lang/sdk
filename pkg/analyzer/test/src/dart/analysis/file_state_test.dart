@@ -9,8 +9,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -6893,9 +6893,9 @@ class FileSystemStateTest with ResourceProviderMixin {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
-    var packageMap = <String, List<Folder>>{
-      'aaa': [getFolder('/aaa/lib')],
-      'bbb': [getFolder('/bbb/lib')],
+    var packageMap = <String, Folder>{
+      'aaa': getFolder('/aaa/lib'),
+      'bbb': getFolder('/bbb/lib'),
     };
 
     var packages = Packages({
@@ -6926,9 +6926,11 @@ class FileSystemStateTest with ResourceProviderMixin {
       ResourceUriResolver(resourceProvider),
     ]);
 
-    var analysisOptions = AnalysisOptionsImpl()
-      ..contextFeatures = FeatureSet.latestLanguageVersion()
-      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
+    var analysisOptions =
+        (AnalysisOptionsBuilder()
+              ..contextFeatures = FeatureSet.latestLanguageVersion()
+              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+            .build();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,

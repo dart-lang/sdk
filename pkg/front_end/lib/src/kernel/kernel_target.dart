@@ -69,6 +69,7 @@ import 'constant_evaluator.dart'
         ConstantEvaluationData;
 import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
+import 'external_ast_helper.dart' as extern;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'utils.dart';
@@ -240,36 +241,30 @@ class KernelTarget {
     );
   }
 
-  String get currentSdkVersionString {
-    return context.options.currentSdkVersion;
-  }
-
   Version get leastSupportedVersion => const Version(2, 12);
 
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {
     if (_currentSdkVersion == null) {
-      _parseCurrentSdkVersion();
+      _currentSdkVersion = calculateCurrentSdkVersion(context.options);
     }
     return _currentSdkVersion!;
   }
 
-  void _parseCurrentSdkVersion() {
-    bool good = false;
+  static Version calculateCurrentSdkVersion(ProcessedOptions options) {
+    String currentSdkVersionString = options.currentSdkVersion;
     List<String> dotSeparatedParts = currentSdkVersionString.split(".");
     if (dotSeparatedParts.length >= 2) {
-      _currentSdkVersion = new Version(
+      return new Version(
         int.tryParse(dotSeparatedParts[0])!,
         int.tryParse(dotSeparatedParts[1])!,
       );
-      good = true;
     }
-    if (!good) {
-      throw new StateError(
-        "Unparsable sdk version given: $currentSdkVersionString",
-      );
-    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new StateError(
+      "Unparsable sdk version given: $currentSdkVersionString",
+    );
   }
 
   SourceLoader createLoader() =>
@@ -1078,40 +1073,38 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    bool isClosureContextLoweringEnabled =
-        libraryBuilder.loader.isClosureContextLoweringEnabled;
-
-    Variable copyFormal(Variable formal, {required bool isPositional}) {
-      Variable copy;
-      if (isClosureContextLoweringEnabled) {
-        // Coverage-ignore-block(suite): Not run.
-        if (isPositional) {
-          copy = new PositionalParameter(
-            cosmeticName: formal.name,
-            type: const UnknownType(),
-            isFinal: formal.isFinal,
-            isRequired: formal.isRequired,
-            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
-          );
-        } else {
-          copy = new NamedParameter(
-            parameterName: formal.name!,
-            type: const UnknownType(),
-            isFinal: formal.isFinal,
-            isRequired: formal.isRequired,
-            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
-          );
-        }
+    PositionalParameter copyPositionalParameter(
+      PositionalParameter formal, {
+      required bool isPositional,
+    }) {
+      PositionalParameter copy = extern.createPositionalParameter(
+        cosmeticName: formal.cosmeticName,
+        type: const UnknownType(),
+        isFinal: formal.isFinal,
+        isRequired: formal.isRequired,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
+        fileOffset: TreeNode.noOffset,
+      );
+      if (!hasTypeDependency && formal.type is! UnknownType) {
+        copy.type = substitution.substituteType(formal.type);
       } else {
-        copy = new Variable(
-          formal.name,
-          isFinal: formal.isFinal,
-          isConst: formal.isConst,
-          isRequired: formal.isRequired,
-          hasDeclaredInitializer: formal.hasDeclaredInitializer,
-          type: const UnknownType(),
-        );
+        hasTypeDependency = true;
       }
+      return copy;
+    }
+
+    NamedParameter copyNamedParameter(
+      NamedParameter formal, {
+      required bool isPositional,
+    }) {
+      NamedParameter copy = extern.createNamedParameter(
+        parameterName: formal.parameterName,
+        type: const UnknownType(),
+        isFinal: formal.isFinal,
+        isRequired: formal.isRequired,
+        hasDeclaredDefaultValue: formal.hasDeclaredDefaultValue,
+        fileOffset: TreeNode.noOffset,
+      );
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);
       } else {
@@ -1130,21 +1123,24 @@ class KernelTarget {
         }
       }
     }
-    List<Variable> positionalParameters = <Variable>[];
-    List<Variable> namedParameters = <Variable>[];
+    List<PositionalParameter> positionalParameters = [];
+    List<NamedParameter> namedParameters = [];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
 
-    for (Variable formal in superConstructor.function.positionalParameters) {
-      positionalParameters.add(copyFormal(formal, isPositional: true));
+    for (PositionalParameter formal
+        in superConstructor.function.positionalParameters) {
+      positionalParameters.add(
+        copyPositionalParameter(formal, isPositional: true),
+      );
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (Variable formal in superConstructor.function.namedParameters) {
-      Variable clone = copyFormal(formal, isPositional: false);
+    for (NamedParameter formal in superConstructor.function.namedParameters) {
+      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(
-          formal.name!,
+          formal.parameterName,
           new VariableGet(namedParameters.last),
         ),
       );
@@ -1965,10 +1961,16 @@ class KernelTarget {
         // An error has already been reported.
       },
     );
-    verifyGetStaticType(
+    errors = verifyGetStaticType(
       new TypeEnvironment(loader.coreTypes, hierarchy),
       component!,
       skipPlatform: context.options.skipPlatformVerification,
+    );
+    assert(
+      allowVerificationErrorForTesting ||
+          // Coverage-ignore(suite): Not run.
+          errors.isEmpty,
+      "Verification errors found: $errors",
     );
     ticker.logMs("Verified component");
   }

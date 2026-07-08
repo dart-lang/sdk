@@ -29,6 +29,7 @@ class NativeBindings {
   static final jsonUtf8Decoder = json.fuse(utf8);
 
   final _logger = Logger('$NativeBindings');
+  final _outstandingVmRequests = <RawReceivePort, Completer<RpcResponse>>{};
 
   /// Sends a general RPC to the VM for processing.
   ///
@@ -39,8 +40,10 @@ class NativeBindings {
   }) {
     final receivePort = RawReceivePort(null, 'VM Message');
     final completer = Completer<RpcResponse>();
+    _outstandingVmRequests[receivePort] = completer;
     receivePort.handler = (Object value) {
       receivePort.close();
+      _outstandingVmRequests.remove(receivePort);
       try {
         completer.complete(_toResponse(value: value));
       } on json_rpc.RpcException catch (e) {
@@ -51,6 +54,15 @@ class NativeBindings {
       _toRequest(responsePort: receivePort, method: method, params: params),
     );
     return completer.future;
+  }
+
+  void shutdown() {
+    _logger.info('Shutting down NativeBindings...');
+    for (final entry in _outstandingVmRequests.entries) {
+      entry.key.close();
+      entry.value.completeError(StateError('Service is shutting down'));
+    }
+    _outstandingVmRequests.clear();
   }
 
   /// Sends an RPC to a specific isolate for processing.
@@ -115,6 +127,11 @@ class NativeBindings {
 
   /// Notifies the VM that the VM service server has finished initializing.
   void onStart() => vm_service_natives.onStart();
+
+  /// Notifies the VM that the VM service has finished all asynchronous
+  /// initialization.
+  void notifyFinishedInitializing() =>
+      vm_service_natives.notifyFinishedInitializing();
 
   /// Notifies the VM that the VM service server has finished exiting.
   void onExit() => vm_service_natives.onExit();

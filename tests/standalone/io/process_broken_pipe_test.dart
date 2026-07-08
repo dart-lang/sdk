@@ -5,6 +5,7 @@
 // Process test program to test closed stdin from child process.
 
 import "package:expect/expect.dart";
+
 import "dart:io";
 import "dart:isolate";
 

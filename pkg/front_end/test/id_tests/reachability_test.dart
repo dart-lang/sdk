@@ -47,9 +47,10 @@ class ReachabilityDataComputer
     Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
     member.accept(
       new ReachabilityDataExtractor(
         testResultData.compilerResult,

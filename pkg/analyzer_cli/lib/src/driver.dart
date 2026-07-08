@@ -12,9 +12,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -267,27 +267,28 @@ class Driver implements CommandLineStarter {
           var fileResult = analysisDriver.currentSession.getFile(path);
           if (fileResult is! FileResult) continue;
           var file = fileResult.file;
-          var content = file.readAsStringSync();
-          var lineInfo = LineInfo.fromContent(content);
           var contextRoot =
               analysisDriver.currentSession.analysisContext.contextRoot;
           var package = contextRoot.workspace.findPackageFor(file.path);
           var sdkVersionConstraint = (package is PubPackage)
               ? package.sdkVersionConstraint
               : null;
-          var errors = AnalysisOptionsAnalyzer(
-            initialSource: FileSource(file),
+          var parseResult = AnalysisOptionsParseSession().parse(
             sourceFactory: analysisDriver.sourceFactory,
-            contextRoot: contextRoot.root.path,
+            contextRoot: contextRoot.root,
+            file: file,
             sdkVersionConstraint: sdkVersionConstraint,
-            resourceProvider: resourceProvider,
-          ).walkIncludes(content: content);
-          var analysisOptions = fileResult.analysisOptions;
+          );
+          var fileContent = parseResult.content;
+          if (fileContent == null) continue;
+          var lineInfo = fileContent.lineInfo;
+          var errors = parseResult.diagnostics;
+          var analysisOptions = parseResult.analysisOptions;
           await formatter.formatErrors([
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
               file: file,
-              content: content,
+              content: fileContent.text,
               uri: pathContext.toUri(path),
               lineInfo: lineInfo,
               isLibrary: true,
@@ -609,7 +610,7 @@ class _AnalysisContextProvider {
       packageConfigFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions4: _updateAnalysisOptions,
+      configureAnalysisOptionsBuilder: _configureAnalysisOptionsBuilder,
       fileContentCache: _fileContentCache,
       withFineDependencies: true,
     );
@@ -641,11 +642,15 @@ class _AnalysisContextProvider {
     _pathList = pathList;
   }
 
-  void _setContextForPath(String path) {
-    _analysisContext = _collection!.contextFor(path);
+  void _configureAnalysisOptionsBuilder({
+    required AnalysisOptionsBuilder analysisOptionsBuilder,
+  }) {
+    _commandLineOptions!.configureAnalysisOptionsBuilder(
+      analysisOptionsBuilder,
+    );
   }
 
-  void _updateAnalysisOptions({required AnalysisOptionsImpl analysisOptions}) {
-    _commandLineOptions!.updateAnalysisOptions(analysisOptions);
+  void _setContextForPath(String path) {
+    _analysisContext = _collection!.contextFor(path);
   }
 }

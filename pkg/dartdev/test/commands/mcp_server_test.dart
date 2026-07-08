@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/src/commands/dart_mcp_server.dart';
+import 'package:dartdev/src/sdk.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -18,16 +20,48 @@ void main() {
       runner.addCommand(command);
     });
 
-    test('delegates to `run dart_mcp_server@`', () async {
-      await runner.run(['mcp-server']);
-      expect(runner.capturedArgs, equals(['run', 'dart_mcp_server@']));
+    test('mcpServerSnapshot path is non-empty', () {
+      expect(sdk.mcpServerSnapshot, isNotEmpty);
+      expect(sdk.mcpServerSnapshot, contains('mcp_server.dart.snapshot'));
+    });
+
+    test(
+      'delegates to `run dart_mcp_server@` when snapshot does not exist',
+      () async {
+        await runner.run(['mcp-server']);
+        expect(runner.capturedArgs, equals(['run', 'dart_mcp_server@']));
+      },
+    );
+
+    test('launches snapshot directly when snapshot exists', () async {
+      final snapshotFile = File(sdk.mcpServerSnapshot);
+      final shouldCreateDir = !snapshotFile.parent.existsSync();
+      if (shouldCreateDir) {
+        snapshotFile.parent.createSync(recursive: true);
+      }
+      final shouldCreateFile = !snapshotFile.existsSync();
+      if (shouldCreateFile) {
+        snapshotFile.writeAsStringSync('');
+      }
+
+      try {
+        final result = await runner.run(['mcp-server']);
+        expect(result, equals(0));
+        // Should intercept and run via VmInteropHandler instead of falling back
+        // to `run dart_mcp_server@`.
+        expect(runner.capturedArgs, isNull);
+      } finally {
+        if (shouldCreateFile) {
+          snapshotFile.deleteSync();
+        }
+      }
     });
 
     test('forwards command arguments', () async {
-      await runner.run(['mcp-server', 'foo', 'bar']);
+      await runner.run(['mcp-server', '--help', '--log-file', 'foo.log']);
       expect(
         runner.capturedArgs,
-        equals(['run', 'dart_mcp_server@', 'foo', 'bar']),
+        equals(['run', 'dart_mcp_server@', '--help', '--log-file', 'foo.log']),
       );
     });
 

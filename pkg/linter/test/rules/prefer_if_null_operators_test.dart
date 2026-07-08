@@ -18,7 +18,7 @@ class PreferIfNullOperatorsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_if_null_operators;
 
   test_null_eqEq_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? p) {
   [!null == p ? 1 : p!];
 }
@@ -26,7 +26,7 @@ void f(int? p) {
   }
 
   test_null_notEq_nullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? p) {
   [!null != p ? p : 2!];
 }
@@ -34,7 +34,7 @@ void f(int? p) {
   }
 
   test_nullable_eqEq_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? p) {
   [!p == null ? 1 : p!];
 }
@@ -42,7 +42,7 @@ void f(int? p) {
   }
 
   test_nullable_notEq_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int? p) {
   [!p != null ? p : 2!];
 }
@@ -50,7 +50,7 @@ void f(int? p) {
   }
 
   test_nullablePrefixedIdentifier_notEq_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   [!c.d != null ? c.d : 7!];
 }

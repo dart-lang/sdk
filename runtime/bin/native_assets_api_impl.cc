@@ -223,5 +223,9 @@ void* NativeAssets::Dlsym(void* handle, const char* symbol, char** error) {
   return result;
 }
 
+void NativeAssets::Dlclose(void* handle, char** error) {
+  Utils::UnloadDynamicLibrary(handle, error);
+}
+
 }  // namespace bin
 }  // namespace dart

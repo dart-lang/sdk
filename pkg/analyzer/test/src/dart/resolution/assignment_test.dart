@@ -74,7 +74,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: ParameterMember
+      correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::List::@method::[]=::@formalParameter::index
         substitution: {E: int}
       staticType: int
@@ -95,11 +95,11 @@ AssignmentExpression
     staticType: int
     typeArgumentTypes
       int
-  readElement: MethodMember
+  readElement: SubstitutedMethodElementImpl
     baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   readType: int
-  writeElement: MethodMember
+  writeElement: SubstitutedMethodElementImpl
     baseElement: dart:core::@class::List::@method::[]=
     substitution: {E: int}
   writeType: int
@@ -4870,7 +4870,7 @@ f(Object? o, C2<double> c2) {
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
-  correspondingParameter: ParameterMember
+  correspondingParameter: SubstitutedFormalParameterElementImpl
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   readElement: <testLibrary>::@function::f::@formalParameter::o

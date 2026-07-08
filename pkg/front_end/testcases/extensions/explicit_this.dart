@@ -17,5 +17,4 @@ extension A2 on A1 {
   }
 }
 
-main() {
-}
+main() {}

@@ -10,6 +10,9 @@ import 'package:cfg/ir/types.dart';
 /// Local variables are used in the flow graph before
 /// it is converted to SSA form.
 class LocalVariable {
+  static const String exceptionVariableName = '#exception';
+  static const String stackTraceVariableName = '#stackTrace';
+
   /// Name of the variable.
   final String name;
 
@@ -23,6 +26,11 @@ class LocalVariable {
   final CType type;
 
   LocalVariable(this.name, this.declaration, this.index, this.type);
+
+  bool get isExceptionVariable =>
+      declaration == null && name == exceptionVariableName;
+  bool get isStackTraceVariable =>
+      declaration == null && name == stackTraceVariableName;
 
   @override
   String toString() => name;

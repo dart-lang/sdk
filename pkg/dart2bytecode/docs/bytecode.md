@@ -1105,6 +1105,10 @@ The following operand encodings are used:
 
 Unreachable instruction.
 
+#### Dup
+
+Duplicates the top of the stack.
+
 #### Entry D
 
 Function prologue for the function.

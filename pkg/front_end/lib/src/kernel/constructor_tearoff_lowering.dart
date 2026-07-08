@@ -363,52 +363,44 @@ DelayedDefaultValueCloner _createParameters(
   Substitution substitution,
   SourceLibraryBuilder libraryBuilder,
 ) {
-  bool isClosureContextLoweringEnabled =
-      libraryBuilder.loader.isClosureContextLoweringEnabled;
-
-  Variable createTearOffParameter(
-    Variable constructorParameter, {
-    required bool isPositional,
-  }) {
+  PositionalParameter createTearOffPositionalParameter(
+    PositionalParameter constructorParameter,
+  ) {
     DartType tearOffParameterType = substitution.substituteType(
       constructorParameter.type,
     );
-    if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
-      if (isPositional) {
-        return new PositionalParameter(
-          cosmeticName: constructorParameter.name,
-          type: tearOffParameterType,
-        )..fileOffset = constructorParameter.fileOffset;
-      } else {
-        return new NamedParameter(
-          parameterName: constructorParameter.name!,
-          type: tearOffParameterType,
-          isRequired: constructorParameter.isRequired,
-        )..fileOffset = constructorParameter.fileOffset;
-      }
-    } else {
-      return extern.createParameterVariable(
-        constructorParameter.name,
-        type: substitution.substituteType(constructorParameter.type),
-        isRequired: !isPositional && constructorParameter.isRequired,
-        fileOffset: constructorParameter.fileOffset,
-      );
-    }
+    return extern.createPositionalParameter(
+      cosmeticName: constructorParameter.cosmeticName,
+      type: tearOffParameterType,
+      fileOffset: constructorParameter.fileOffset,
+    );
   }
 
-  for (Variable constructorParameter in function.positionalParameters) {
-    Variable tearOffParameter = createTearOffParameter(
+  NamedParameter createTearOffNamedParameter(
+    NamedParameter constructorParameter,
+  ) {
+    DartType tearOffParameterType = substitution.substituteType(
+      constructorParameter.type,
+    );
+    return extern.createNamedParameter(
+      parameterName: constructorParameter.parameterName,
+      type: tearOffParameterType,
+      isRequired: constructorParameter.isRequired,
+      fileOffset: constructorParameter.fileOffset,
+    );
+  }
+
+  for (PositionalParameter constructorParameter
+      in function.positionalParameters) {
+    PositionalParameter tearOffParameter = createTearOffPositionalParameter(
       constructorParameter,
-      isPositional: true,
     );
     tearOff.function.positionalParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
-  for (Variable constructorParameter in function.namedParameters) {
-    Variable tearOffParameter = createTearOffParameter(
+  for (NamedParameter constructorParameter in function.namedParameters) {
+    NamedParameter tearOffParameter = createTearOffNamedParameter(
       constructorParameter,
-      isPositional: false,
     );
     tearOff.function.namedParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
@@ -442,16 +434,17 @@ Arguments _createArguments(
   int fileOffset,
 ) {
   List<Expression> positionalArguments = [];
-  for (Variable tearOffParameter in tearOff.function.positionalParameters) {
+  for (PositionalParameter tearOffParameter
+      in tearOff.function.positionalParameters) {
     positionalArguments.add(
       extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
     );
   }
   List<NamedExpression> namedArguments = [];
-  for (Variable tearOffParameter in tearOff.function.namedParameters) {
+  for (NamedParameter tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
       extern.createNamedExpression(
-        tearOffParameter.name!,
+        tearOffParameter.cosmeticName!,
         extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
       ),
     );
@@ -493,13 +486,11 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
 }
 
 /// Reverse engineered typedef tear off information.
-class LoweredTypedefTearOff {
-  Procedure typedefTearOff;
-  Expression targetTearOff;
-  List<DartType> typeArguments;
-
-  new(this.typedefTearOff, this.targetTearOff, this.typeArguments);
-
+class LoweredTypedefTearOff(
+  final Procedure typedefTearOff,
+  final Expression targetTearOff,
+  final List<DartType> typeArguments,
+) {
   /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
   /// [expression] is the encoding of a lowered typedef tear off.
   static LoweredTypedefTearOff? fromExpression(Expression expression) {

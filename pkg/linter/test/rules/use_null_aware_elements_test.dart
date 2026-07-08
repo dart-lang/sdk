@@ -39,7 +39,7 @@ List<int> f() {
   }
 
   test_nullCheck_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int> f(int? x) {
   return [
     /*[0*/if/*0]*/ (x != null) x,
@@ -50,7 +50,7 @@ List<int> f(int? x) {
   }
 
   test_nullCheck_mapKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<int, String> f(int? x, int? y) {
   return {
     /*[0*/if/*0]*/ (x != null) x: "",
@@ -61,7 +61,7 @@ Map<int, String> f(int? x, int? y) {
   }
 
   test_nullCheck_mapKeyAndValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<int, int> f(int? x) {
   return {
     [!if!] (x != null) x: x,
@@ -71,7 +71,7 @@ Map<int, int> f(int? x) {
   }
 
   test_nullCheck_mapValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int> f(int? x, int? y) {
   return {
     /*[0*/if/*0]*/ (x != null) "key1": x,
@@ -82,7 +82,7 @@ Map<String, int> f(int? x, int? y) {
   }
 
   test_nullCheck_set() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<int> f(int? x, int? y) {
   return {
     /*[0*/if/*0]*/ (x != null) x,
@@ -93,7 +93,7 @@ Set<int> f(int? x, int? y) {
   }
 
   test_nullCheckPattern_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int> f(int? x) {
   return [
     [!if!] (x case var y?) y,
@@ -103,7 +103,7 @@ List<int> f(int? x) {
   }
 
   test_nullCheckPattern_mapKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<int, String> f(int? x) {
   return {
     [!if!] (x case var y?) y: "value",
@@ -113,7 +113,7 @@ Map<int, String> f(int? x) {
   }
 
   test_nullCheckPattern_mapValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, int> f(int? x) {
   return {
     [!if!] (x case var y?) "key": y,
@@ -123,7 +123,7 @@ Map<String, int> f(int? x) {
   }
 
   test_nullCheckPattern_set() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<int> f(int? x) {
   return {
     [!if!] (x case var y?) y,
@@ -143,7 +143,7 @@ List<int> f(int? x) {
   }
 
   test_spread_getter_list() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 List<int>? get x => null;
 List<int> f() => [
   /*[0*/if/*0]*/ (x != null) ...x!,
@@ -153,7 +153,7 @@ List<int> f() => [
   }
 
   test_spread_getter_map() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Map<int, int>? get x => null;
 Map<int, int> f() => {
   /*[0*/if/*0]*/ (x != null) ...x!,
@@ -163,7 +163,7 @@ Map<int, int> f() => {
   }
 
   test_spread_list() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 List<int> f(List<int>? x) => [
   /*[0*/if/*0]*/ (x != null) ...x,
   /*[1*/if/*1]*/ (x case var y?) ...y,
@@ -172,7 +172,7 @@ List<int> f(List<int>? x) => [
   }
 
   test_spread_map() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Map<int, int> f(Map<int, int>? x) => {
   /*[0*/if/*0]*/ (x != null) ...x,
   /*[1*/if/*1]*/ (x case var y?) ...y,
@@ -181,7 +181,7 @@ Map<int, int> f(Map<int, int>? x) => {
   }
 
   test_spread_set() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Set<int> f(List<int>? x) => {
   /*[0*/if/*0]*/ (x != null) ...x,
   /*[1*/if/*1]*/ (x case var y?) ...y,

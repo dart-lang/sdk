@@ -31,12 +31,12 @@ class Sdk {
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
   String get dart => _executablePathFor(
-        path.basename(Platform.executable),
-      );
+    path.basename(Platform.executable),
+  );
 
   String get dartvm => _executablePathFor(
-        'dartvm',
-      );
+    'dartvm',
+  );
 
   String dartAotRuntimeFor({
     String? sanitizer,
@@ -53,22 +53,22 @@ class Sdk {
   String get dartAotRuntime => dartAotRuntimeFor();
 
   String get genSnapshot => _executablePathFor(
-        'gen_snapshot',
-        forceProductInBuildRoot: true,
-        sdkRelativePath: 'utils',
-      );
+    'gen_snapshot',
+    forceProductInBuildRoot: true,
+    sdkRelativePath: 'utils',
+  );
 
   String get genKernelSnapshot => _snapshotPathFor(
-        'gen_kernel_aot.dart.snapshot',
-      );
+    'gen_kernel_aot.dart.snapshot',
+  );
 
   String get analysisServerAotSnapshot => _snapshotPathFor(
-        'analysis_server_aot.dart.snapshot',
-      );
+    'analysis_server_aot.dart.snapshot',
+  );
 
   String get analysisServerSnapshot => _snapshotPathFor(
-        'analysis_server.dart.snapshot',
-      );
+    'analysis_server.dart.snapshot',
+  );
 
   String get ddcAotSnapshot => runFromBuildRoot
       ? _snapshotPathFor(
@@ -87,12 +87,12 @@ class Sdk {
         );
 
   String get dart2wasmSnapshot => _snapshotPathFor(
-        'dart2wasm_product.snapshot',
-      );
+    'dart2wasm_product.snapshot',
+  );
 
   String get ddsAotSnapshot => _snapshotPathFor(
-        'dds_aot.dart.snapshot',
-      );
+    'dds_aot.dart.snapshot',
+  );
 
   String get frontendServerAotSnapshot => runFromBuildRoot
       ? _snapshotPathFor(
@@ -103,63 +103,71 @@ class Sdk {
         );
 
   String get dtdAotSnapshot => _snapshotPathFor(
-        'dart_tooling_daemon_aot.dart.snapshot',
-      );
+    'dart_tooling_daemon_aot.dart.snapshot',
+  );
+
+  String get mcpServerSnapshot => _snapshotPathFor(
+    'mcp_server.dart.snapshot',
+  );
 
   String get devToolsBinaries => path.absolute(
-        runFromBuildRoot
-            ? sdkPath
-            : path.absolute(
-                sdkPath,
-                'bin',
-                'resources',
-              ),
-        'devtools',
-      );
+    runFromBuildRoot
+        ? sdkPath
+        : path.absolute(
+            sdkPath,
+            'bin',
+            'resources',
+          ),
+    'devtools',
+  );
 
   String get wasmOpt => path.absolute(
-        runFromBuildRoot
-            ? sdkPath
-            : path.absolute(
-                sdkPath,
-                'bin',
-                'utils',
-              ),
-        Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt',
-      );
+    runFromBuildRoot
+        ? sdkPath
+        : path.absolute(
+            sdkPath,
+            'bin',
+            'utils',
+          ),
+    Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt',
+  );
 
   // This file is only generated when building the SDK and isn't generated for
   // non-SDK build targets.
   String get librariesJson => path.absolute(sdkPath, 'lib', 'libraries.json');
 
   String get vmPlatformDill => _dillPathFor(
-        'vm_platform.dill',
-      );
+    'vm_platform.dill',
+  );
 
   String get vmPlatformProductDill => _dillPathFor(
-        'vm_platform_product.dill',
-      );
+    'vm_platform_product.dill',
+  );
 
   String get wasmPlatformDill => _dillPathFor(
-        'dart2wasm_platform.dill',
-      );
+    'dart2wasm_platform.dill',
+  );
 
   String get wasmStandalonePlatformDill => _dillPathFor(
-        'dart2wasm_standalone_platform.dill',
-      );
+    'dart2wasm_standalone_platform.dill',
+  );
 
   String _dillPathFor(String dillName) => path.absolute(
-      runFromBuildRoot
-          ? sdkPath
-          : path.join(
-              sdkPath,
-              'lib',
-              '_internal',
-            ),
-      dillName);
+    runFromBuildRoot
+        ? sdkPath
+        : path.join(
+            sdkPath,
+            'lib',
+            '_internal',
+          ),
+    dillName,
+  );
 
-  String _executablePathFor(String executableName,
-      {bool forceProductInBuildRoot = false, String? sdkRelativePath}) {
+  String _executablePathFor(
+    String executableName, {
+    bool forceProductInBuildRoot = false,
+    String? sdkRelativePath,
+  }) {
     if (Platform.isWindows && executableName.endsWith('.exe')) {
       // Don't modify the executable name on Windows if it already includes
       // the extension.
@@ -173,26 +181,27 @@ class Sdk {
       }
     }
     return path.absolute(
-        runFromBuildRoot
-            ? sdkPath
-            : path.absolute(
-                sdkPath,
-                'bin',
-                sdkRelativePath,
-              ),
-        executableName);
+      runFromBuildRoot
+          ? sdkPath
+          : path.absolute(
+              sdkPath,
+              'bin',
+              sdkRelativePath,
+            ),
+      executableName,
+    );
   }
 
   String _snapshotPathFor(String snapshotName) => path.absolute(
-        runFromBuildRoot
-            ? sdkPath
-            : path.absolute(
-                sdkPath,
-                'bin',
-                'snapshots',
-              ),
-        snapshotName,
-      );
+    runFromBuildRoot
+        ? sdkPath
+        : path.absolute(
+            sdkPath,
+            'bin',
+            'snapshots',
+          ),
+    snapshotName,
+  );
 
   static Sdk _createSingleton() {
     // Find SDK path.
@@ -228,7 +237,7 @@ class Sdk {
 
     final (sdkPath, runFromBuildRoot) =
         trySDKPath(Platform.resolvedExecutable) ??
-            trySDKPath(Platform.executable)!;
+        trySDKPath(Platform.executable)!;
 
     // Defer to [Runtime] for the version.
     final version = Runtime.runtime.version;

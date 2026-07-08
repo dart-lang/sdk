@@ -51,9 +51,9 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
     addTestFile('');
     // set priority files
     var file = sdkRoot
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('convert')
-        .getChildAssumingFile('convert.dart');
+        .getFolder('lib')
+        .getFolder('convert')
+        .getFile('convert.dart');
     var response = await _setPriorityFile(file);
     expect(response, isResponseSuccess('1'));
     // verify
@@ -117,9 +117,8 @@ analyzer:
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisSetPriorityFilesParams([
-        'test.dart',
-      ]).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams(['test.dart'])
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     assertResponseFailure(
       response,
@@ -130,9 +129,8 @@ analyzer:
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var response = await handleRequest(
-      AnalysisSetPriorityFilesParams([
-        convertPath('/foo/../bar/test.dart'),
-      ]).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([convertPath('/foo/../bar/test.dart')])
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     assertResponseFailure(
       response,
@@ -153,9 +151,8 @@ analyzer:
 
   Future<Response> _setPriorityFile(File file) async {
     return await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(<String>[
-        file.path,
-      ]).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams(<String>[file.path])
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
   }
 

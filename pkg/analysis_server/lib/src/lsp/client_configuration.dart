@@ -314,10 +314,10 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get includeDependenciesInWorkspaceSymbols =>
       _settings['includeDependenciesInWorkspaceSymbols'] as bool? ?? true;
 
-  /// The users preferred kind of documentation for requests that return many
+  /// The preferred kind of documentation for requests that return many
   /// results and could have large payloads when docs are included.
   ///
-  /// If the user has not expressed a preference, defaults to
+  /// If the user/client has not expressed a preference, defaults to
   /// [DocumentationPreference.full].
   DocumentationPreference get preferredDocumentation {
     var value = _settings['documentation'];

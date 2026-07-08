@@ -4,8 +4,7 @@
 
 enum A {
   a(B.a),
-  b(B.b),
-  ;
+  b(B.b);
 
   final B value;
 

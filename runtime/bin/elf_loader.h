@@ -31,13 +31,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
                                             const char** error,
                                             const uint8_t** snapshot_data,
                                             const uint8_t** snapshot_text);
-inline Dart_LoadedElf* Dart_LoadELF_Fd2(int fd,
-                                        uint64_t file_offset,
-                                        const char** error,
-                                        const uint8_t** snapshot_data,
-                                        const uint8_t** snapshot_text) {
-  return Dart_LoadELF_Fd(fd, file_offset, error, snapshot_data, snapshot_text);
-}
 #endif
 
 /// Please see documentation for Dart_LoadElf_Fd.
@@ -46,14 +39,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          const char** error,
                                          const uint8_t** snapshot_data,
                                          const uint8_t** snapshot_text);
-inline Dart_LoadedElf* Dart_LoadELF2(const char* filename,
-                                     uint64_t file_offset,
-                                     const char** error,
-                                     const uint8_t** snapshot_data,
-                                     const uint8_t** snapshot_text) {
-  return Dart_LoadELF(filename, file_offset, error, snapshot_data,
-                      snapshot_text);
-}
 
 /// Please see documentation for Dart_LoadElf_Fd.
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(const uint8_t* snapshot,
@@ -61,14 +46,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(const uint8_t* snapshot,
                                                 const char** error,
                                                 const uint8_t** snapshot_data,
                                                 const uint8_t** snapshot_text);
-inline Dart_LoadedElf* Dart_LoadELF_Memory2(const uint8_t* snapshot,
-                                            uint64_t snapshot_size,
-                                            const char** error,
-                                            const uint8_t** snapshot_data,
-                                            const uint8_t** snapshot_text) {
-  return Dart_LoadELF_Memory(snapshot, snapshot_size, error, snapshot_data,
-                             snapshot_text);
-}
 
 /// Unloads an ELF object loaded through Dart_LoadELF{_Fd, _Memory}.
 ///

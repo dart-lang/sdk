@@ -952,20 +952,10 @@ void testSink({
     var actual = new Events.capture(stream);
 
     // Streams of five events, throws on 3.
-    Stream s1 = new Stream.fromIterable([
-      1,
-      2,
-      3,
-      4,
-      5,
-    ]).map((x) => (x == 3 ? throw x : x));
-    Stream s2 = new Stream.fromIterable([
-      1,
-      2,
-      3,
-      4,
-      5,
-    ]).map((x) => (x == 3 ? throw x : x));
+    Stream s1 = new Stream.fromIterable([1, 2, 3, 4, 5])
+        .map((x) => (x == 3 ? throw x : x));
+    Stream s2 = new Stream.fromIterable([1, 2, 3, 4, 5])
+        .map((x) => (x == 3 ? throw x : x));
 
     Events expected = new Events();
     expected

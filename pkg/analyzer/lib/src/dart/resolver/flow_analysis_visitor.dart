@@ -96,6 +96,9 @@ class FlowAnalysisHelper {
   >?
   flow;
 
+  /// The mapping from expressions to their [ExpressionInfo]s.
+  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
+
   FlowAnalysisHelper(
     bool retainDataForTesting, {
     required TypeSystemOperations typeSystemOperations,
@@ -126,7 +129,7 @@ class FlowAnalysisHelper {
     var typeAnnotation = node.type;
 
     flow!.asExpression_end(
-      flow!.getExpressionInfo(expression),
+      getExpressionInfo(expression),
       subExpressionType: SharedTypeView(expression.typeOrThrow),
       castType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
@@ -260,7 +263,7 @@ class FlowAnalysisHelper {
       node is StatementImpl ? node : null,
       switch (condition) {
         null => flow?.booleanLiteral(true),
-        var condition => flow?.getExpressionInfo(condition),
+        var condition => getExpressionInfo(condition),
       },
     );
   }
@@ -268,6 +271,13 @@ class FlowAnalysisHelper {
   void for_conditionBegin(AstNodeImpl node) {
     flow?.for_conditionBegin(node);
   }
+
+  /// Gets the [ExpressionInfo] associated with the [expression].
+  ///
+  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
+  /// the [expression], then `null` is returned.
+  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+      _expressionInfoMap[expression];
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
@@ -305,10 +315,10 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.storeExpressionInfo(
+    storeExpressionInfo(
       node,
       flow!.isExpression_end(
-        flow!.getExpressionInfo(expression),
+        getExpressionInfo(expression),
         node.notOperator != null,
         subExpressionType: SharedTypeView(expression.typeOrThrow),
         checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
@@ -326,6 +336,15 @@ class FlowAnalysisHelper {
     if (flow == null) return;
 
     flow!.labeledStatement_end();
+  }
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  ) {
+    _expressionInfoMap[expression] = expressionInfo;
   }
 
   /// Transfers any test data that was recorded for [oldNode] so that it is now
@@ -800,6 +819,15 @@ class TypeSystemOperations
   @override
   TypeImpl listTypeInternal(TypeImpl elementType) {
     return typeSystem.typeProvider.listType(elementType);
+  }
+
+  @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): Implement lookupMemberTypeInternal.
+    throw UnimplementedError();
   }
 
   @override
@@ -1373,7 +1401,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       if (isRead) {
         ExpressionInfo expressionInfo;
         (promotedType, expressionInfo) = flow.variableRead(variable);
-        flow.storeExpressionInfo(node, expressionInfo);
+        _manager.storeExpressionInfo(node, expressionInfo);
       } else {
         promotedType = flow.promotedType(variable);
       }

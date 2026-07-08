@@ -26,7 +26,7 @@ class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   String get lintRule => LintNames.no_leading_underscores_for_local_identifiers;
 
   test_catchClause_error() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {}
   catch([!_error!]) {}
@@ -44,7 +44,7 @@ void f() {
   }
 
   test_catchClause_stackTrace() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {}
   catch(error, [!_stackTrace!]) {}
@@ -71,7 +71,7 @@ class C {
   }
 
   test_forEach() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for(var [!_x!] in [1,2,3]) {}
 }
@@ -95,7 +95,7 @@ void f() {
   }
 
   test_forLoop_firstVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var [!_i!] = 0;;) {}
 }
@@ -103,7 +103,7 @@ void f() {
   }
 
   test_forLoop_multipleVariables() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var i = 0, [!_j!] = 0;;) {}
 }
@@ -111,7 +111,7 @@ void f() {
   }
 
   test_listPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case [int [!_x!], int y]) {}
 }
@@ -119,7 +119,7 @@ f(Object o) {
   }
 
   test_listPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ([1,2]) {
     case [1 && var [!_a!], 2 && var b]:
@@ -129,7 +129,7 @@ f() {
   }
 
   test_listPattern_switch_leftOperand() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ([1,2]) {
     case [var [!_a!] && 1, 2 && var b]:
@@ -139,7 +139,7 @@ f() {
   }
 
   test_localFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m() {
     int [!_f!]() => 10;
@@ -149,7 +149,7 @@ class C {
   }
 
   test_localVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var [!_foo!] = 0;
 }
@@ -173,7 +173,7 @@ void f() {
   }
 
   test_localVariable_multipleVariables() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var x = 1, [!_y!] = 2;
 }
@@ -181,7 +181,7 @@ void f() {
   }
 
   test_mapPattern_destructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   final {'first': [!_a!], 'second': b} = {'first': 1, 'second': 2};
 }
@@ -189,7 +189,7 @@ f() {
   }
 
   test_mapPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case {'x': var [!_x!], 'y' : var y}) {}
 }
@@ -197,7 +197,7 @@ f(Object o) {
   }
 
   test_mapPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ({1: 2}) {
     case {'a': var [!_a!], 'b': var b} :
@@ -215,7 +215,7 @@ class C {
   }
 
   test_objectPattern_destructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -239,7 +239,7 @@ f() {
   }
 
   test_objectPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int c;
   int d;
@@ -253,7 +253,7 @@ f(Object o) {
   }
 
   test_objectPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -285,8 +285,25 @@ f(A a) {
   }
 
   test_parameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int [!_p!]) {}
+''');
+  }
+
+  test_parameter_inBody_factory() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  factory (int [!_x!]) => C._();
+  C._();
+}
+''');
+  }
+
+  test_parameter_inBody_new() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  new (int [!_x!]);
+}
 ''');
   }
 
@@ -331,30 +348,13 @@ class C(final int _x) {
   }
 
   test_parameter_primary_simple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int [!_x!]) {}
 ''');
   }
 
-  test_parameter_secondary_factory() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class C {
-  factory (int [!_x!]) => C._();
-  C._();
-}
-''');
-  }
-
-  test_parameter_secondary_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
-class C {
-  new (int [!_x!]);
-}
-''');
-  }
-
   test_recordPattern_destructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var ([!_a!], b) = ('a', 'b');
 }
@@ -362,7 +362,7 @@ f() {
   }
 
   test_recordPattern_destructured_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var (a: [!_a!], :b) = (a: 1, b: 1);
 }
@@ -370,7 +370,7 @@ f() {
   }
 
   test_recordPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case (int [!_x!], int y)) {}
 }
@@ -378,7 +378,7 @@ f(Object o) {
   }
 
   test_recordPattern_ifCase_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(Object o) {
   if (o case (x: int [!_x!], :int y)) {}
 }
@@ -386,7 +386,7 @@ f(Object o) {
   }
 
   test_recordPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ((1, 2)) {
     case (var [!_a!], var b):

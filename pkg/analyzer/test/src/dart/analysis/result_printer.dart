@@ -1400,6 +1400,17 @@ class LibraryManifestPrinter extends ManifestPrinter {
     });
   }
 
+  void _writeFormalParameterDefaultValues(ExecutableItem item) {
+    if (configuration.withElementManifests) {
+      var indexed = item.formalParameterDefaultValues.indexed
+          .where((entry) => entry.$2 != null)
+          .toList();
+      sink.writeElements('formalParameterDefaultValues', indexed, (entry) {
+        _writeNode('[${entry.$1}]', entry.$2);
+      });
+    }
+  }
+
   void _writeGetterItem(GetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -1411,6 +1422,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('returnType', item.functionType.returnType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1485,6 +1497,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
+      _writeFormalParameterDefaultValues(item);
     });
 
     writeDeclaredItems('declaredMethods', item.declaredMethods, (item) {
@@ -1497,6 +1510,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
+      _writeFormalParameterDefaultValues(item);
       _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
     });
 
@@ -1512,9 +1526,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
           'isOriginMixinApplication': item.flags.isOriginMixinApplication,
           'isPrimary': item.flags.isPrimary,
+          'isRedirecting': item.flags.isRedirecting,
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
         _writelnNamedElement(
           'redirectedConstructor',
           item.redirectedConstructor,
@@ -1744,6 +1760,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1758,6 +1775,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
+        _writeFormalParameterDefaultValues(item);
       });
     }
   }
@@ -1830,18 +1848,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
             sink.writeIf(field.isRequired, 'required ');
             writeParameterDeclarationForm(field);
             _writeType(field.type);
-            sink.withIndent(() {
-              _writeNode('defaultValue', field.defaultValue);
-            });
           });
           sink.writeElements('named', type.named, (field) {
             sink.writeWithIndent('${field.name}: ');
             sink.writeIf(field.isRequired, 'required ');
             writeParameterDeclarationForm(field);
             _writeType(field.type);
-            sink.withIndent(() {
-              _writeNode('defaultValue', field.defaultValue);
-            });
           });
           _writeNamedType('returnType', type.returnType);
         });

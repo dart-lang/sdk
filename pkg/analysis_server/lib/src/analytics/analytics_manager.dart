@@ -61,6 +61,9 @@ class AnalyticsManager {
   /// been invoked.
   SessionData? _sessionData;
 
+  /// Whether the data gathered at the start of a session has been sent.
+  bool _hasSentStartupData = false;
+
   final PluginData _pluginData = PluginData();
 
   /// The data about analysis, or `null` if no analysis has been performed.
@@ -289,6 +292,9 @@ class AnalyticsManager {
     );
   }
 
+  @visibleForTesting
+  Future<void> sendPeriodicData() => _sendPeriodicData();
+
   /// Record that the given [response] was sent to the client.
   void sentResponse({required Response response}) {
     var sendTime = DateTime.now();
@@ -307,13 +313,8 @@ class AnalyticsManager {
 
   /// The server is shutting down. Report any accumulated analytics data.
   Future<void> shutdown() async {
-    var sessionData = _sessionData;
-    if (sessionData == null) {
-      return;
-    }
-    await _sendSessionData(sessionData);
     await _sendPeriodicData();
-    await _sendAnalysisData();
+    await _sendPluginData();
 
     periodicTimer?.cancel();
     periodicTimer = null;
@@ -671,15 +672,47 @@ class AnalyticsManager {
     }
   }
 
-  /// Send the information that is sent periodically, which is everything other
-  /// than the session data.
+  /// Send the information that is sent periodically.
   Future<void> _sendPeriodicData() async {
+    var sessionData = _sessionData;
+    if (sessionData != null && _contextStructure != null) {
+      if (!_hasSentStartupData) {
+        _hasSentStartupData = true;
+        await _sendSessionData(sessionData);
+        await _sendAnalysisData();
+      }
+    }
     await _sendServerResponseTimes();
     await _sendPluginResponseTimes();
     await _sendNotificationHandlingTimes();
     await _sendLintUsageCounts();
     await _sendSeverityAdjustments();
     await _sendAnalysisStatistics();
+  }
+
+  /// Sends information about the plugins.
+  Future<void> _sendPluginData() async {
+    for (var MapEntry(key: pluginId, value: percentileCalculator)
+        in _pluginData.usageCounts.entries) {
+      analytics.send(
+        Event.pluginUse(
+          count: _pluginData.recordCount,
+          enabled: percentileCalculator.toAnalyticsString(),
+          pluginId: pluginId,
+        ),
+      );
+    }
+    for (var counts in _pluginData.counts.values) {
+      analytics.send(
+        Event.plugins(
+          count: counts.pluginCount,
+          lintRuleCounts: counts.lintRuleCounts.toAnalyticsString(),
+          warningRuleCounts: counts.warningRuleCounts.toAnalyticsString(),
+          fixCounts: counts.fixCounts.toAnalyticsString(),
+          assistCounts: counts.assistCounts.toAnalyticsString(),
+        ),
+      );
+    }
   }
 
   /// Send information about the response times of plugins.
@@ -744,10 +777,6 @@ class AnalyticsManager {
 
   /// Sends information about the session, after the session has ended.
   Future<void> _sendSessionData(SessionData sessionData) async {
-    var endTime = DateTime.now().millisecondsSinceEpoch;
-    var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-
-    // Record the start of the session.
     var ideName = platform.environment['DASH__IDE_NAME'] ?? '';
     var ideVersion = platform.environment['DASH__IDE_VERSION'] ?? '';
     var pluginName = platform.environment['DASH__PLUGIN_NAME'] ?? '';
@@ -759,34 +788,14 @@ class AnalyticsManager {
         parameters: sessionData.initializeParams,
         clientId: sessionData.clientId,
         clientVersion: sessionData.clientVersion,
-        duration: duration,
+        // Send 0 as duration because the session is not ended yet.
+        duration: 0,
         ideName: ideName,
         ideVersion: ideVersion,
         pluginName: pluginName,
         pluginVersion: pluginVersion,
       ),
     );
-    for (var MapEntry(key: pluginId, value: percentileCalculator)
-        in _pluginData.usageCounts.entries) {
-      analytics.send(
-        Event.pluginUse(
-          count: _pluginData.recordCount,
-          enabled: percentileCalculator.toAnalyticsString(),
-          pluginId: pluginId,
-        ),
-      );
-    }
-    for (var counts in _pluginData.counts.values) {
-      analytics.send(
-        Event.plugins(
-          count: counts.pluginCount,
-          lintRuleCounts: counts.lintRuleCounts.toAnalyticsString(),
-          warningRuleCounts: counts.warningRuleCounts.toAnalyticsString(),
-          fixCounts: counts.fixCounts.toAnalyticsString(),
-          assistCounts: counts.assistCounts.toAnalyticsString(),
-        ),
-      );
-    }
   }
 
   /// Send information about the number of times that the severity of a

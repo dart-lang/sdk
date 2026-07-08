@@ -40,6 +40,19 @@ class C {
 ''');
   }
 
+  test_class_secondary_fieldExists_augmentationAfterWildcard() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int? x;
+  C(int? _);
+}
+
+augment class C {
+  augment C(this.x);
+}
+''');
+  }
+
   test_class_secondary_fieldMissing() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

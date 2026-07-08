@@ -47,7 +47,7 @@ import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/util/platform_info.dart';
@@ -629,8 +629,7 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
     tag(
       'div',
       attributes: {
-        'style':
-            'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
+        'style': 'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
       },
       gen: () {
         button(

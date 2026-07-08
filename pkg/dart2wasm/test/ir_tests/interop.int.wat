@@ -1,4 +1,4 @@
-(module $module0
+(module $M
   (type $#Top (struct
     (field $field0 i32)))
   (type $BoxedInt (sub final $#Top (struct
@@ -10,29 +10,34 @@
   (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
   (func $intValue implicit getter (result i64) <...>)
   (func $ktrue implicit getter (result i32) <...>)
-  (func $sinkInt <noInline> (param $var0 i64) <...>)
-  (func $sinkIntNullable <noInline> (param $var0 (ref null $BoxedInt)) <...>)
-  (func $"testIntConstant <noInline>"
+  (func $jsifyInt (param $var0 i64) (result externref) <...>)
+  (func $sinkInt (param $var0 i64) <...>)
+  (func $sinkIntNullable (param $var0 (ref null $BoxedInt)) <...>)
+  (@binaryen.inline 0)
+  (func $testIntConstant
     i64.const 1
     call $jsifyInt
     call $"dart2wasm.R (import)"
     call $toDartInt
-    call $"sinkInt <noInline>"
+    call $sinkInt
   )
-  (func $"testIntConstantNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testIntConstantNullable
     ref.null noextern
     call $"dart2wasm.M (import)"
     call $toDartNullableInt
-    call $"sinkIntNullable <noInline>"
+    call $sinkIntNullable
   )
-  (func $"testIntValue <noInline>"
+  (@binaryen.inline 0)
+  (func $testIntValue
     call $"intValue implicit getter"
     call $jsifyInt
     call $"dart2wasm.R (import)"
     call $toDartInt
-    call $"sinkInt <noInline>"
+    call $sinkInt
   )
-  (func $"testIntValueNullable <noInline>"
+  (@binaryen.inline 0)
+  (func $testIntValueNullable
     (local $var0 (ref null $BoxedInt))
     global.get $"intValueNullable initialized"
     if (result (ref null $BoxedInt))
@@ -40,7 +45,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedInt))
-        i32.const 86
+        i32.const 84
         call $"intValue implicit getter"
         struct.new $BoxedInt
       else
@@ -63,9 +68,8 @@
     end
     call $"dart2wasm.M (import)"
     call $toDartNullableInt
-    call $"sinkIntNullable <noInline>"
+    call $sinkIntNullable
   )
-  (func $jsifyInt (param $var0 i64) (result externref) <...>)
   (func $toDartInt (param $var0 externref) (result i64) <...>)
   (func $toDartNullableInt (param $var0 externref) (result (ref null $BoxedInt)) <...>)
 )

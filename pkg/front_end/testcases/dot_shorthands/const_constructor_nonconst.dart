@@ -11,5 +11,5 @@ void test() {
   Color c = const .red(1);
 
   // With whitespace
-  Color c = const .   red  (1);
+  Color c = const .red(1);
 }

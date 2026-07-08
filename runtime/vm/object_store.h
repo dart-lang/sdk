@@ -213,6 +213,7 @@ class ObjectPointerVisitor;
   RW(Array, saved_unlinked_calls)                                              \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(GrowableObjectArray, ffi_callback_code)                                   \
+  ARW_AR(Class, typed_data_class)                                              \
   RW(Array, ffi_callback_functions)                                            \
   /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Array, dispatch_table_code_entries)                                       \

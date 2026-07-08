@@ -28,10 +28,7 @@ method1(Main1 main1, Main2 main2, Lib1a lib1a, Lib1b lib1b, Lib2 lib2) {
   }
 }
 
-enum Main1 {
-  a,
-  b,
-}
+enum Main1 { a, b }
 
 method2(Main1 main1, Main2 main2, Lib1a lib1a, Lib1b lib1b, Lib2 lib2) {
   switch (main1) {
@@ -56,10 +53,7 @@ method2(Main1 main1, Main2 main2, Lib1a lib1a, Lib1b lib1b, Lib2 lib2) {
   }
 }
 
-enum Main2 {
-  a,
-  b,
-}
+enum Main2 { a, b }
 
 method3(Main1 main1, Main2 main2, Lib1a lib1a, Lib1b lib1b, Lib2 lib2) {
   switch (main1) {

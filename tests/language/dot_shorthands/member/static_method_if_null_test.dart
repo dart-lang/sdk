@@ -10,7 +10,8 @@ import '../dot_shorthand_helper.dart';
 
 StaticMember memberTest(StaticMember? member) => member ?? .member();
 
-StaticMember memberTypeTest(StaticMember? member) => member ?? .memberType<String, int>("s");
+StaticMember memberTypeTest(StaticMember? member) =>
+    member ?? .memberType<String, int>("s");
 
 void noContextLHSContext(StaticMember? member) {
   member ?? .member();
@@ -19,7 +20,8 @@ void noContextLHSContext(StaticMember? member) {
 
 StaticMemberExt memberExtTest(StaticMemberExt? member) => member ?? .member();
 
-StaticMemberExt memberExtTypeTest(StaticMemberExt? member) => member ?? .memberType<String, int>("s");
+StaticMemberExt memberExtTypeTest(StaticMemberExt? member) =>
+    member ?? .memberType<String, int>("s");
 
 void noContextLHSContextExt(StaticMemberExt? member) {
   member ?? .member();
@@ -40,7 +42,8 @@ void main() {
   noContextLHSContext(memberDefault);
 
   StaticMember possiblyNullable = .memberNullable() ?? memberDefault;
-  StaticMember possiblyNullableWithType = .memberTypeNullable<String, int>("s") ?? memberDefault;
+  StaticMember possiblyNullableWithType =
+      .memberTypeNullable<String, int>("s") ?? memberDefault;
 
   // Extension type
   var memberExtDefault = StaticMemberExt.memberType(100);
@@ -55,5 +58,6 @@ void main() {
   noContextLHSContextExt(memberExtDefault);
 
   StaticMemberExt possiblyNullableExt = .memberNullable() ?? memberExtDefault;
-  StaticMemberExt possiblyNullableExtWithType = .memberTypeNullable<String, int>("s") ?? memberExtDefault;
+  StaticMemberExt possiblyNullableExtWithType =
+      .memberTypeNullable<String, int>("s") ?? memberExtDefault;
 }

@@ -110,6 +110,19 @@
     "sinceDartSdk": "3.2"
   },
   {
+    "name": "async_return_with_no_await",
+    "description": "Return with no await.",
+    "categories": [
+      "errorProne"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** use `await` when returning a `Future` from an `async` function.\n\n**BAD:**\n```dart\nFuture<String> futureString(Future<String> value) async {\n  return value;\n}\nFuture<int> futureInt(Future<int> value) async => value;\n```\n\n**GOOD:**\n```dart\nFuture<String> futureString(Future<String> value) async {\n  return await value;\n}\nFuture<int> futureInt(Future<int> value) => value;\n```",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "avoid_annotating_with_dynamic",
     "description": "Avoid annotating with `dynamic` when not required.",
     "categories": [
@@ -414,11 +427,11 @@
     "categories": [
       "style"
     ],
-    "state": "stable",
+    "state": "deprecated",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**AVOID** private typedef functions used only once. Prefer inline function\nsyntax.\n\n**BAD:**\n```dart\ntypedef void _F();\nm(_F f);\n```\n\n**GOOD:**\n```dart\nm(void Function() f);\n```",
+    "details": "**NOTE:** As a private typedef can make some code more readable,\nthis lint rule has been deprecated as of Dart 3.13 and is\nset to be removed in a future release of the Dart SDK.\nRemove all inclusions of this lint from your analysis options.\nIf you wish to keep enforcing it, consider implementing the\nrule with an [analyzer plugin](https://dart.dev/tools/analyzer-plugins).\n\n**AVOID** private typedef functions used only once. Prefer inline function\nsyntax.\n\n**BAD:**\n```dart\ntypedef void _F();\nm(_F f);\n```\n\n**GOOD:**\n```dart\nm(void Function() f);\n```",
     "sinceDartSdk": "2.0"
   },
   {
@@ -1019,6 +1032,19 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "empty_container_bodies",
+    "description": "Use `;` instead of `{}` for empty container bodies.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use `;` instead of `{}` for empty container (class, enum, etc.) bodies.",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "empty_statements",
     "description": "Avoid empty statements.",
     "categories": [
@@ -1145,6 +1171,19 @@
     "fixStatus": "hasFix",
     "details": "Using an `interface`, `base`, `final`, or `sealed` modifier on a class,\nor a `base` modifier on a mixin,\nauthors can control whether classes and mixins allow being implemented,\nextended, and/or mixed in from outside of the library where they're defined.\nIn some cases, it's possible for an author to inadvertently relax these controls\nand implicitly \"reopen\" a class. (A similar reopening cannot occur with a mixin.)\n\nThis lint guards against unintentionally reopening a class by requiring such\ncases to be made explicit with the\n[`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)\nannotation in `package:meta`.\n\n**BAD:**\n```dart\ninterface class I {}\n\nclass C extends I {} // LINT\n```\n\n**GOOD:**\n```dart\ninterface class I {}\n\nfinal class C extends I {}\n```\n\n```dart\nimport 'package:meta/meta.dart';\n\ninterface class I {}\n\n@reopen\nclass C extends I {}\n```",
     "sinceDartSdk": "3.0"
+  },
+  {
+    "name": "initialize_in_field_declaration",
+    "description": "Initialize the field in the field's initializer.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Initialize fields where they're declared when possible.",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "invalid_case_patterns",
@@ -1390,6 +1429,19 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "no_dynamic_casts",
+    "description": "Avoid implicit casts from `dynamic`.",
+    "categories": [
+      "errorProne"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** avoid implicit casts from `dynamic`.\n\nAssigning a `dynamic`-typed expression to a non-`dynamic`, non-`Object?`\ntarget is a form of implicit casting. It is better to make such a cast\nexplicit, so that it is visible to developers.\n\n**BAD:**\n```dart\nvoid f(dynamic x) {\n  int y = x;\n}\n```\n\n**GOOD:**\n```dart\nvoid f(dynamic x) {\n  int y = x as int;\n}\n```",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "no_leading_underscores_for_library_prefixes",
     "description": "Avoid leading underscores for library prefixes.",
     "categories": [
@@ -1442,6 +1494,19 @@
     "fixStatus": "noFix",
     "details": "**DON'T** put any logic in `createState()`.\n\nImplementations of  `createState()` should return a new instance\nof a State object and do nothing more.  Since state access is preferred\nvia the `widget` field,  passing data to `State` objects using custom\nconstructor parameters should also be avoided and so further, the State\nconstructor is required to be passed no arguments.\n\n**BAD:**\n```dart\nMyState global;\n\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    global = MyState();\n    return global;\n  }\n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState()..field = 42;\n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState(42);\n}\n```\n\n\n**GOOD:**\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    return MyState();\n  }\n}\n```",
     "sinceDartSdk": "2.8"
+  },
+  {
+    "name": "no_raw_types",
+    "description": "Avoid raw types.",
+    "categories": [
+      "errorProne"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DON'T** use raw types.\n\nA raw type is a type annotation for a generic type which omits type\narguments. Developers may mistakenly believe that the type arguments are\ninferred, but in fact each type parameter's bound is used, which can lead\nto lost type information.\n\n**BAD:**\n```dart\nList list = [1, 2, 3];\n```\n\n**GOOD:**\n```dart\nList<int> list = [1, 2, 3];\n```",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "no_runtimetype_tostring",
@@ -1590,11 +1655,11 @@
       "languageFeatureUsage",
       "style"
     ],
-    "state": "stable",
+    "state": "deprecated",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-one-member-abstract-class-when-a-simple-function-will-do):\n\n**AVOID** defining a one-member abstract class when a simple function will do.\n\nUnlike Java, Dart has first-class functions, closures, and a nice light syntax\nfor using them.  If all you need is something like a callback, just use a\nfunction.  If you're defining a class and it only has a single abstract member\nwith a meaningless name like `call` or `invoke`, there is a good chance\nyou just want a function.\n\n**BAD:**\n```dart\nabstract class Predicate {\n  bool test(item);\n}\n```\n\n**GOOD:**\n```dart\ntypedef Predicate = bool Function(item);\n```",
+    "details": "**NOTE:** As one member abstracts are often a stepping stone,\nthis lint rule has been deprecated as of Dart 3.13 and is\nset to be removed in a future release of the Dart SDK.\nRemove all inclusions of this lint from your analysis options.\nIf you wish to keep enforcing it, consider implementing the\nrule with an [analyzer plugin](https://dart.dev/tools/analyzer-plugins).\n\nFrom [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-one-member-abstract-class-when-a-simple-function-will-do):\n\n**AVOID** defining a one-member abstract class when a simple function will do.\n\nUnlike Java, Dart has first-class functions, closures, and a nice light syntax\nfor using them.  If all you need is something like a callback, just use a\nfunction.  If you're defining a class and it only has a single abstract member\nwith a meaningless name like `call` or `invoke`, there is a good chance\nyou just want a function.\n\n**BAD:**\n```dart\nabstract class Predicate {\n  bool test(item);\n}\n```\n\n**GOOD:**\n```dart\ntypedef Predicate = bool Function(item);\n```",
     "sinceDartSdk": "2.0"
   },
   {
@@ -2917,6 +2982,20 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "unnecessary_primary_constructor_body",
+    "description": "Unnecessary primary constructor bodies can be removed.",
+    "categories": [
+      "brevity",
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Don't include an empty primary constructor body.\n\n**BAD:**\n```dart\nclass C() {\n  this;\n}\n```\n\n**GOOD:**\n```dart\nclass C();\n```",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "unnecessary_raw_strings",
     "description": "Unnecessary raw string.",
     "categories": [
@@ -3124,6 +3203,19 @@
     "sinceDartSdk": "2.17"
   },
   {
+    "name": "use_declaring_parameters",
+    "description": "Use a declaring parameter.",
+    "categories": [
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use a declaring parameter everywhere it's valid to do so.",
+    "sinceDartSdk": "3.13"
+  },
+  {
     "name": "use_decorated_box",
     "description": "Use `DecoratedBox`.",
     "categories": [
@@ -3257,6 +3349,19 @@
     "fixStatus": "hasFix",
     "details": "Where possible, use null-aware elements in collection literals.\n\n**BAD:**\n```dart\nf(String? key) => {if (key != null) key: \"value\"};\n```\n\n**GOOD:**\n```dart\nf(String? key) => {?key: \"value\"};\n```",
     "sinceDartSdk": "3.8"
+  },
+  {
+    "name": "use_primary_constructors",
+    "description": "Use a primary constructor.",
+    "categories": [
+      "style"
+    ],
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Use a primary constructor everywhere it's valid to do so.",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "use_raw_strings",
@@ -3397,7 +3502,7 @@
     "categories": [
       "languageFeatureUsage"
     ],
-    "state": "stable",
+    "state": "experimental",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",

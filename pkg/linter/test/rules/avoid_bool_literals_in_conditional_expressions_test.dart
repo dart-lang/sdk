@@ -19,14 +19,14 @@ class AvoidBoolLiteralsInConditionalExpressionsTest extends LintRuleTest {
       LintNames.avoid_bool_literals_in_conditional_expressions;
 
   test_elseFalse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = true;
 var b = [!a ? a : false!];
 ''');
   }
 
   test_elseTrue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = true;
 var b = [!a ? a : true!];
 ''');
@@ -40,21 +40,21 @@ var b = a ? a : a;
   }
 
   test_thenFalse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = true;
 var b = [!a ? false : a!];
 ''');
   }
 
   test_thenTrue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = true;
 var b = [!a ? true : a!];
 ''');
   }
 
   test_thenTrue_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var a = true;
 var b = [!a ? (true) : a!];
 ''');

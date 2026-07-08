@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:11:3: Error: 'foo' is already declared in this scope.
-//   foo([int bar = foo.baz]) {
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:10:3: Error: 'foo' is already declared in this scope.
+//   foo([int bar = foo.baz]) {}
 //   ^^^
-// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:10:19: Context: Previous declaration of 'foo'.
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:9:19: Context: Previous declaration of 'foo'.
 // extension type foo(dynamic whatnot) {
 //                   ^
 //

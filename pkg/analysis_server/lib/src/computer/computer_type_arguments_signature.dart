@@ -17,16 +17,16 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 class DartTypeArgumentsSignatureComputer {
   final AstNode? _node;
   final Set<lsp.MarkupKind>? preferredFormats;
+  final bool clientSupportsNullActiveParameter;
   late TypeArgumentList _argumentList;
-  final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
   new(
     DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
-    int offset,
-    this.preferredFormats, {
-    this.documentationPreference = DocumentationPreference.full,
+    int offset, {
+    required this.preferredFormats,
+    required this.clientSupportsNullActiveParameter,
   }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
        _node = unit.nodeCovering(offset: offset);
 
@@ -56,10 +56,7 @@ class DartTypeArgumentsSignatureComputer {
     _argumentList = argumentList;
 
     var label = element.displayString();
-    var documentation = _documentationComputer.computePreferred(
-      element,
-      documentationPreference,
-    );
+    var documentation = _documentationComputer.compute(element)?.full;
 
     return _toSignatureHelp(
       label,
@@ -103,11 +100,18 @@ class DartTypeArgumentsSignatureComputer {
     return lsp.SignatureHelp(
       signatures: [signature],
       activeSignature: 0,
-      // This must be a unsigned integer but can be out of range. Since we don't
-      // currently support this, just provide the first out-of-bounds value and
-      // allow the client to decide what to do (the LSP spec says it can be
-      // treated as 0, but VS Code will not highlight any, which is preferred).
-      activeParameter: signature.parameters?.length ?? 0,
+      // We don't currently support active type parameter so just return
+      // a null value.
+      activeParameter:
+          // If the client doesn't support `null`, we still must provide an
+          // unsigned integer. The LSP spec allows us to send an out-of-bounds
+          // value so send the first out-of-bound value (`.length`). The spec
+          // says this may be treated as 0, however VS Code will not highlight
+          // any parameter in this case (which is preferred and hopefully other
+          // clients may copy).
+          clientSupportsNullActiveParameter
+          ? null
+          : (signature.parameters?.length ?? 0),
     );
   }
 }

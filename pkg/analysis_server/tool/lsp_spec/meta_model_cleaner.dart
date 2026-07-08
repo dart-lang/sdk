@@ -272,7 +272,7 @@ class LspMetaModelCleaner {
   TypeBase? _getImprovedType(String interfaceName, String? fieldName) {
     const improvedTypeMappings = <String, Map<String, String>>{
       'Diagnostic': {'code': 'String'},
-      'CompletionItem': {'data': 'CompletionItemResolutionInfo'},
+      'CompletionItem': {'data': 'CompletionResolutionInfo'},
       'ParameterInformation': {'label': 'String'},
       'TextDocumentEdit': {'edits': 'TextDocumentEditEdits'},
       'TypeHierarchyItem': {'data': 'TypeHierarchyItemInfo'},
@@ -440,34 +440,6 @@ class LspMetaModelCleaner {
       // `CodeActionLiteral` and use the term `CodeAction` to mean either of
       // those types.
       'CodeAction': 'CodeActionLiteral',
-      // In LSP 3.18, many types that were previously inline and got generated
-      // names have been extracted to their own definitions with hand-written
-      // names.
-      // To reduce the size of the upcoming diff when this happens, these
-      // renames change our 3.17 generated names to those that will be used
-      // for 3.18.
-      // TODO(dantup): Remove these once LSP 3.18 release and we regenerate
-      // using it.
-      'TextDocumentFilter2': 'TextDocumentFilterScheme',
-      'PrepareRenameResult1': 'PrepareRenamePlaceholder',
-      'TextDocumentContentChangeEvent1': 'TextDocumentContentChangePartial',
-      'TextDocumentContentChangeEvent2':
-          'TextDocumentContentChangeWholeDocument',
-      'CompletionListItemDefaults': 'CompletionItemDefaults',
-      'InitializeParamsClientInfo': 'ClientInfo',
-      'SemanticTokensClientCapabilitiesRequests':
-          'ClientSemanticTokensRequestOptions',
-      'TraceValues': 'TraceValue',
-      'SemanticTokensOptionsFull': 'SemanticTokensFullDelta',
-      'CompletionListItemDefaultsEditRange': 'EditRangeWithInsertReplace',
-      'ServerCapabilitiesWorkspace': 'WorkspaceOptions',
-      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
-          'ClientCodeActionKindOptions',
-      'CompletionClientCapabilitiesCompletionItemKind':
-          'ClientCompletionItemOptionsKind',
-      'CompletionOptionsCompletionItem': 'ServerCompletionItemOptions',
-      'InitializeResultServerInfo': 'ServerInfo',
-      // End of temporary renames
     };
 
     // Temporary aliases for old names used in g3

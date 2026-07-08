@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:browser_launcher/browser_launcher.dart' as bl;
 import 'package:dds/devtools_server.dart';
 import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:vm_service/vm_service.dart';
@@ -112,7 +113,10 @@ class DevToolsServerTestController {
 
   late Uri emptyDartAppRoot;
   late Uri packageWithExtensionsRoot;
-  late CliAppFixture appFixture;
+  CliAppFixture? _appFixture;
+  // ignore: unnecessary_getters_setters
+  CliAppFixture get appFixture => _appFixture!;
+  set appFixture(CliAppFixture? value) => _appFixture = value;
 
   late DevToolsServerDriver server;
 
@@ -137,11 +141,18 @@ class DevToolsServerTestController {
   /// cleaned up.
   final List<int> browserPids = [];
 
+  final List<Directory> _tempDirs = [];
+
   late StreamSubscription<String> stderrSub;
 
   late StreamSubscription<Map<String, dynamic>?> stdoutSub;
 
-  Future<void> setUp({bool runPubGet = false}) async {
+  Future<void> setUp({bool runPubGet = false, bool withApp = true}) async {
+    emptyDartAppRoot =
+        resolveTestRelativePath('devtools_server/fixtures/empty_dart_app/');
+    packageWithExtensionsRoot = resolveTestRelativePath(
+        'devtools_server/fixtures/package_with_extensions/');
+
     serverStartedEvent = Completer<Map<String, dynamic>>();
     eventController = StreamController<Map<String, dynamic>>.broadcast();
 
@@ -166,17 +177,25 @@ class DevToolsServerTestController {
     });
 
     await serverStartedEvent.future;
-    await startApp(runPubGet: runPubGet);
+    if (withApp) {
+      await startApp(runPubGet: runPubGet);
+    }
   }
 
   Future<void> tearDown() async {
     browserPids
       ..forEach((pid) => Process.killPid(pid, ProcessSignal.sigkill))
       ..clear();
+    for (final tempDir in _tempDirs) {
+      try {
+        await tempDir.delete(recursive: true);
+      } catch (_) {}
+    }
+    _tempDirs.clear();
     await stdoutSub.cancel();
     await stderrSub.cancel();
     server.kill();
-    await appFixture.teardown();
+    await _appFixture?.teardown();
   }
 
   Future<Map<String, dynamic>> sendLaunchDevToolsRequest({
@@ -214,22 +233,54 @@ class DevToolsServerTestController {
     return response['params'];
   }
 
-  Future<void> startApp({bool runPubGet = false}) async {
+  Future<Process> launchChrome(String url) async {
+    final tempDir =
+        Directory.systemTemp.createTempSync('devtools_chrome_profile');
+    _tempDirs.add(tempDir);
+
+    final chromeProcess = await bl.Chrome.start([
+      url
+    ], args: [
+      '--user-data-dir=${tempDir.path}', // Ensures process isolation
+      '--no-first-run', // Prevents welcome dialogs
+      '--no-default-browser-check', // Prevents default browser prompts
+      if (useChromeHeadless && headlessModeIsSupported) ...[
+        '--headless',
+        '--disable-gpu',
+        '--no-sandbox',
+      ],
+      if (Platform.isMacOS) '--use-mock-keychain',
+    ]);
+
+    browserPids.add(chromeProcess.pid);
+    chromeProcess.exitCode.then((_) {
+      browserPids.remove(chromeProcess.pid);
+      if (_tempDirs.remove(tempDir)) {
+        try {
+          tempDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    });
+    return chromeProcess;
+  }
+
+  Future<void> runPubGet() async {
     emptyDartAppRoot =
         resolveTestRelativePath('devtools_server/fixtures/empty_dart_app/');
-    packageWithExtensionsRoot = resolveTestRelativePath(
-        'devtools_server/fixtures/package_with_extensions/');
+    final pubResult = await Process.run(
+        Platform.resolvedExecutable, ['pub', 'get'],
+        workingDirectory: emptyDartAppRoot.toFilePath());
+    if (pubResult.exitCode != 0) {
+      throw 'Failed to run "dart pub get" in test fixture:\n'
+              '${utf8.decode(pubResult.stdout)}\n'
+              '${utf8.decode(pubResult.stderr)}'
+          .trim();
+    }
+  }
 
+  Future<void> startApp({bool runPubGet = false}) async {
     if (runPubGet) {
-      final pubResult = await Process.run(
-          Platform.resolvedExecutable, ['pub', 'get'],
-          workingDirectory: emptyDartAppRoot.toFilePath());
-      if (pubResult.exitCode != 0) {
-        throw 'Failed to run "dart pub get" in test fixture:\n'
-                '${utf8.decode(pubResult.stdout)}\n'
-                '${utf8.decode(pubResult.stderr)}'
-            .trim();
-      }
+      await this.runPubGet();
     }
 
     final appUri = emptyDartAppRoot.resolveUri(Uri.parse('bin/main.dart'));
@@ -280,6 +331,10 @@ class DevToolsServerTestController {
           : !client['hasConnection'];
     }
 
+    final timeout = useLongTimeout
+        ? const Duration(seconds: 120)
+        : const Duration(seconds: 30);
+
     await _waitFor(
       () async {
         // Await a short delay to give the client time to connect.
@@ -294,6 +349,7 @@ class DevToolsServerTestController {
                 clients.any(hasConnectionState));
       },
       delayDuration: delayDuration,
+      timeout: timeout,
     );
 
     return serverResponse;
@@ -302,10 +358,15 @@ class DevToolsServerTestController {
   Future<void> _waitFor(
     Future<bool> Function() condition, {
     Duration delayDuration = defaultDelay,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
+    final watch = Stopwatch()..start();
     while (true) {
       if (await condition()) {
         return;
+      }
+      if (watch.elapsed > timeout) {
+        throw TimeoutException('Timed out waiting for condition');
       }
       await delay(duration: delayDuration);
     }

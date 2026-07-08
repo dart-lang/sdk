@@ -1836,10 +1836,10 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
 #elif defined(DART_TARGET_OS_MACOS)
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2015);
 #else
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8159);
 #endif
 
   CallbackMetadata out;
@@ -1877,9 +1877,11 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     *--sp = get_register(LR);
     *--sp = get_register(R20);
     *--sp = get_register(R21);
+    *--sp = get_register(R22);
+    *--sp = get_register(R23);
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   set_register(nullptr, R0, ctxt->integer_arguments[0]);
@@ -1916,6 +1918,8 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     // ldp lr, thr, [sp], 16!
     // <drop arguments>
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    set_register(nullptr, R23, *sp++);
+    set_register(nullptr, R22, *sp++);
     set_register(nullptr, R21, *sp++);
     set_register(nullptr, R20, *sp++);
     set_register(nullptr, LR, *sp++);
@@ -1923,7 +1927,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     sp += kStackSlotsCopied;
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
@@ -3560,6 +3564,21 @@ void Simulator::DecodeSIMDTwoReg(Instr* instr) {
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
 
+  if ((U == 0) && (op == 5) && (sz == 0)) {
+    // Format(instr, "vcnt 'vd.{8,16}B, 'vn.{8,16}B");
+    const int lanes = (Q == 1) ? 16 : 8;
+    int64_t vn_bits[2] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1)};
+    int64_t result[2] = {0, 0};
+    uint8_t* in = reinterpret_cast<uint8_t*>(&vn_bits[0]);
+    uint8_t* out = reinterpret_cast<uint8_t*>(&result[0]);
+    for (int i = 0; i < lanes; i++) {
+      out[i] = Utils::CountOneBits32(in[i]);
+    }
+    set_vregisterd(vd, 0, result[0]);
+    set_vregisterd(vd, 1, result[1]);
+    return;
+  }
+
   if (Q != 1) {
     UnimplementedInstruction(instr);
     return;
@@ -3654,6 +3673,32 @@ void Simulator::DecodeSIMDTwoReg(Instr* instr) {
 }
 
 void Simulator::DecodeDPSimd1(Instr* instr) {
+  // UADDLV Hd, Vn.<T> — Advanced SIMD across-vector unsigned add long.
+  // Encoding: 0 Q 1 01110 sz 11000 00011 10 Vn Vd.
+  if ((instr->Bits(24, 5) == 0xE) && (instr->Bit(29) == 1) &&
+      (instr->Bits(17, 5) == 0x18) && (instr->Bits(12, 5) == 0x3) &&
+      (instr->Bits(10, 2) == 0x2)) {
+    const int32_t Q = instr->Bit(30);
+    const int32_t sz = instr->Bits(22, 2);
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    if (sz == 0) {
+      // Format(instr, "vuaddlv 'hd, 'vn.{8,16}B");
+      int64_t vn_bits[2] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1)};
+      uint8_t* in = reinterpret_cast<uint8_t*>(&vn_bits[0]);
+      const int lanes = (Q == 1) ? 16 : 8;
+      uint32_t sum = 0;
+      for (int i = 0; i < lanes; i++) {
+        sum += in[i];
+      }
+      set_vregisterd(vd, 0, static_cast<int64_t>(sum));
+      set_vregisterd(vd, 1, 0);
+      return;
+    }
+    UnimplementedInstruction(instr);
+    return;
+  }
+
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {

@@ -25,14 +25,14 @@ bool r = e == false;
   }
 
   test_equalEqual_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool? e;
 bool r = [!e == true!];
 ''');
   }
 
   test_notEqual_false() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool? e;
 bool r = [!e != false!];
 ''');

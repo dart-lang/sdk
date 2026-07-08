@@ -99,7 +99,8 @@ final class DartPad extends WorkerClient {
     worker.addEventListener(
       'error',
       (web.Event event) {
-        web.console.error('Unhandled error from worker'.toJS, event);
+        web.console.error('Unhandled error from worker:'.toJS);
+        web.console.error(event);
       }.toJS,
     );
     worker.onmessage = (web.MessageEvent event) {

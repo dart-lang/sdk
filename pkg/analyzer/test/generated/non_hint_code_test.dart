@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
 import '../src/dart/resolution/node_text_expectations.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -139,80 +137,5 @@ f(A a, B b) {
   ab.m(0);
 }
 ''');
-  }
-}
-
-class PubSuggestionCodeTest extends PubPackageResolutionTest {
-  // TODO(brianwilkerson): The tests in this class are not being run, and all but
-  //  the first would fail. We should implement these checks and enable the
-  //  tests.
-  test_import_package() async {
-    await assertErrorsInCode(
-      '''
-import 'package:somepackage/other.dart';
-''',
-      [error(diag.uriDoesNotExist, 0, 0)],
-    );
-  }
-
-  test_import_referenceIntoLibDirectory_no_pubspec() async {
-    newFile("/myproj/lib/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/web/test.dart",
-      "import '../lib/other.dart';",
-      [],
-    );
-  }
-
-  test_import_referenceOutOfLibDirectory_no_pubspec() async {
-    newFile("/myproj/web/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/test.dart",
-      "import '../web/other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_inside_lib1() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/lib/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/test.dart",
-      "import 'other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_inside_lib2() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/lib/bar/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib/foo/test.dart",
-      "import '../bar/other.dart';",
-      [],
-    );
-  }
-
-  test_import_valid_outside_lib() async {
-    newFile("/myproj/pubspec.yaml", '');
-    newFile("/myproj/web/other.dart", '');
-    await _assertErrorsInCodeInFile(
-      "/myproj/lib2/test.dart",
-      "import '../web/other.dart';",
-      [],
-    );
-  }
-
-  Future<void> _assertErrorsInCodeInFile(
-    String path,
-    String content,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var file = newFile(path, content);
-    var result = await resolveFile(file);
-
-    var diagnosticListener = GatheringDiagnosticListener();
-    diagnosticListener.addAll(result.diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 }

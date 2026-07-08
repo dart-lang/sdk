@@ -193,7 +193,7 @@ class PubPackageService {
     var cacheFolder = resourceProvider.getStateLocation(
       '.pub-package-details-cache',
     )!..create();
-    return cacheFolder.getChildAssumingFile('packages.json');
+    return cacheFolder.getFile('packages.json');
   }
 
   /// Begins preloading caches for package names and pub versions.

@@ -104,7 +104,7 @@ class BinaryExpressionResolver {
     ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo = flow?.getExpressionInfo(left);
+      leftInfo = flowAnalysis.getExpressionInfo(left);
     }
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
@@ -122,16 +122,16 @@ class BinaryExpressionResolver {
     );
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(right),
+      flowAnalysis.getExpressionInfo(right),
     );
 
-    if (!leftExtensionOverride) {
-      flow?.storeExpressionInfo(
+    if (!leftExtensionOverride && flow != null) {
+      flowAnalysis.storeExpressionInfo(
         node,
         flow.equalityOperation_end(
           leftInfo,
           SharedTypeView(left.typeOrThrow),
-          flow.getExpressionInfo(right),
+          flowAnalysis.getExpressionInfo(right),
           SharedTypeView(right.typeOrThrow),
           notEqual: notEqual,
         ),
@@ -207,7 +207,7 @@ class BinaryExpressionResolver {
       j = contextType;
     }
     flow?.ifNullExpression_rightBegin(
-      flow.getExpressionInfo(left),
+      _resolver.flowAnalysis.getExpressionInfo(left),
       SharedTypeView(t1),
     );
     _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
@@ -263,11 +263,11 @@ class BinaryExpressionResolver {
     );
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+      _resolver.flowAnalysis.getExpressionInfo(left),
     );
 
     flow?.logicalBinaryOp_rightBegin(
-      flow.getExpressionInfo(left),
+      _resolver.flowAnalysis.getExpressionInfo(left),
       node,
       isAnd: true,
     );
@@ -279,13 +279,16 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
+      _resolver.flowAnalysis.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.storeExpressionInfo(
+    _resolver.flowAnalysis.storeExpressionInfo(
       node,
-      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: true),
+      flow?.logicalBinaryOp_end(
+        _resolver.flowAnalysis.getExpressionInfo(right),
+        isAnd: true,
+      ),
     );
 
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
@@ -306,11 +309,11 @@ class BinaryExpressionResolver {
     );
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(left),
+      _resolver.flowAnalysis.getExpressionInfo(left),
     );
 
     flow?.logicalBinaryOp_rightBegin(
-      flow.getExpressionInfo(left),
+      _resolver.flowAnalysis.getExpressionInfo(left),
       node,
       isAnd: false,
     );
@@ -322,13 +325,16 @@ class BinaryExpressionResolver {
     );
     right = _resolver.popRewrite()!;
     var rightWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
+      _resolver.flowAnalysis.getExpressionInfo(right),
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.storeExpressionInfo(
+    _resolver.flowAnalysis.storeExpressionInfo(
       node,
-      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: false),
+      flow?.logicalBinaryOp_end(
+        _resolver.flowAnalysis.getExpressionInfo(right),
+        isAnd: false,
+      ),
     );
 
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
@@ -362,7 +368,7 @@ class BinaryExpressionResolver {
     );
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(right),
+      _resolver.flowAnalysis.getExpressionInfo(right),
     );
 
     _resolveUserDefinableType(node);

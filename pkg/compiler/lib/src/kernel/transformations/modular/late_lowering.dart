@@ -254,16 +254,15 @@ class LateLowering {
   Variable _uninitializedVariableCell(Variable variable) {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
-    final cell = Variable(
-      name,
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
       initializer: _callCellConstructor(
         _nameLiteral(name, fileOffset),
         fileOffset,
       ),
       type: InterfaceType(_coreTypes.cellClass, nonNullable),
       isFinal: true,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
 
     return _addToCurrentScope(variable, cell);
@@ -284,9 +283,9 @@ class LateLowering {
   Variable _initializedVariableCell(Variable variable) {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String? name = variable.name;
-    final cell = Variable(
-      name,
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
       initializer: _callInitializedCellConstructor(
         _nameLiteral(name, fileOffset),
         _initializerClosure(variable.initializer!, variable.type),
@@ -294,7 +293,6 @@ class LateLowering {
       ),
       type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
       isFinal: true,
-      isSynthesized: true,
     )..fileOffset = fileOffset;
     return _addToCurrentScope(variable, cell);
   }
@@ -410,8 +408,11 @@ class LateLowering {
         isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
-      Variable setterValue = Variable('value', type: type, isSynthesized: true)
-        ..fileOffset = fileOffset;
+      PositionalParameter setterValue = PositionalParameter(
+        cosmeticName: 'value',
+        type: type,
+        isSynthesized: true,
+      )..fileOffset = fileOffset;
       VariableGet setterValueRead() =>
           VariableGet(setterValue)..fileOffset = fileOffset;
 
@@ -576,19 +577,17 @@ class LateLowering {
         //   }
         //   return value;
         // }
-        Variable value = Variable(
-          'value',
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
-        Variable result = Variable(
-          'result',
+        SyntheticVariable result = SyntheticVariable(
+          cosmeticName: 'result',
           initializer: initializer,
           type: type,
           isFinal: true,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet resultRead() =>
             VariableGet(result)..fileOffset = fileOffset;
@@ -634,11 +633,10 @@ class LateLowering {
         //
         // This lowering avoids generating an extra narrowing node in inference,
         // but the generated code is worse due to poor register allocation.
-        Variable value = Variable(
-          'value',
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
           initializer: fieldRead(),
           type: type,
-          isSynthesized: true,
         )..fileOffset = fileOffset;
         VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
         return Block([
@@ -663,9 +661,9 @@ class LateLowering {
       fileUri: fileUri,
       reference: field.getterReference,
     )..fileOffset = fileOffset;
-    // The initializer is copied from [field] to [getter] so we copy the
-    // transformer flags to reflect whether the getter contains super calls.
-    getter.transformerFlags = field.transformerFlags;
+    // The initializer is copied from [field] to [getter] so we copy this
+    // property to reflect whether the getter contains super calls.
+    getter.containsSuperCalls = field.containsSuperCalls;
     _copyAnnotations(getter, field);
     if (initializer != null && field.isFinal) {
       getter.addAnnotation(
@@ -675,8 +673,11 @@ class LateLowering {
     }
     enclosingClass.addProcedure(getter);
 
-    Variable setterValue = Variable('value', type: type, isSynthesized: true)
-      ..fileOffset = fileOffset;
+    PositionalParameter setterValue = PositionalParameter(
+      cosmeticName: 'value',
+      type: type,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
     VariableGet setterValueRead() =>
         VariableGet(setterValue)..fileOffset = fileOffset;
 

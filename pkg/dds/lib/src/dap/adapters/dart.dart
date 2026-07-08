@@ -2574,6 +2574,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Helper to convert to InstanceRef to a complete untruncated unquoted
   /// String, handling [vm.InstanceKind.kNull] which is the type for the unused
   /// fields of a log event.
+  ///
+  /// If the request to the VM results in an error (for example because the
+  /// string was collected), returns the original truncated string
+  /// followed by `…` (if available).
   Future<String?> getFullString(ThreadInfo thread, vm.InstanceRef? ref) async {
     if (ref == null || ref.kind == vm.InstanceKind.kNull) {
       return null;
@@ -2582,9 +2586,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         .convertVmInstanceRefToDisplayString(
       thread,
       ref,
-      // Always allow calling toString() here as the user expects the full
-      // string they logged regardless of the evaluateToStringInDebugViews
-      // setting.
+      // Always allow calling toString() here as the caller expects the full
+      // string regardless of the evaluateToStringInDebugViews setting.
       allowCallingToString: true,
       allowTruncatedValue: false,
       format: VariableFormat.noQuotes(),
@@ -2592,11 +2595,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // Fetching strings from the server may throw if they have been
         // collected since (for example if a Hot Restart occurs while
         // we're running this) or if the app is terminating. Log the error and
-        // just return null so nothing is shown.
+        // fall back to the truncated string if one is available.
         .then<String?>(
       (s) => s,
       onError: (Object e) {
         logger?.call('$e');
+        if (ref.valueAsString case var valueAsString?) {
+          return '$valueAsString…';
+        }
         return null;
       },
     );

@@ -13,8 +13,8 @@ import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
-import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
+import 'internal_ast_helper.dart' as intern;
 
 /// Base class for all control-flow elements.
 sealed class ControlFlowElement extends AuxiliaryExpression {
@@ -222,7 +222,7 @@ class ForElement extends ControlFlowElement
     implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<VariableDeclaration> variables;
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -233,8 +233,11 @@ class ForElement extends ControlFlowElement
   @override
   Expression body;
 
-  new(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
+  @override
+  late List<VariableDeclaration> variables;
+
+  new(this.internalVariables, this.condition, this.updates, this.body) {
+    setParents(internalVariables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -252,7 +255,7 @@ class ForElement extends ControlFlowElement
     }
     if (bodyEntry == null) return null;
     ForMapEntry result = new ForMapEntry(
-      variables,
+      internalVariables,
       condition,
       updates,
       bodyEntry,
@@ -270,13 +273,14 @@ class ForElement extends ControlFlowElement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
-        variables[index],
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -307,7 +311,7 @@ class ForInElement extends ControlFlowElement
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  Variable? variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 
@@ -318,7 +322,6 @@ class ForInElement extends ControlFlowElement
     required this.isAsync,
     required int fileOffset,
     required this.forOffset,
-    this.variable,
     this.encoding,
   }) {
     this.fileOffset = fileOffset;
@@ -354,7 +357,6 @@ class ForInElement extends ControlFlowElement
       isAsync: isAsync,
       fileOffset: fileOffset,
       forOffset: forOffset,
-      variable: variable,
       encoding: encoding,
     );
     onConvertElement(this, result);
@@ -365,7 +367,7 @@ class ForInElement extends ControlFlowElement
 class IfCaseElement extends ControlFlowElementImpl
     with ControlFlowElementMixin {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   Expression then;
   Expression? otherwise;
   List<Statement> prelude;
@@ -375,16 +377,19 @@ class IfCaseElement extends ControlFlowElementImpl
   /// This is set during inference.
   DartType? matchedValueType;
 
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
   new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     setParents(prelude, this);
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -403,7 +408,7 @@ class IfCaseElement extends ControlFlowElementImpl
     printer.write('if (');
     printer.writeExpression(expression);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     printer.writeExpression(then);
     if (otherwise != null) {
@@ -437,7 +442,7 @@ class IfCaseElement extends ControlFlowElementImpl
         new IfCaseMapEntry(
             prelude: prelude,
             expression: expression,
-            patternGuard: patternGuard,
+            internalPatternGuard: internalPatternGuard,
             then: thenEntry,
             otherwise: otherwiseEntry,
           )
@@ -454,24 +459,27 @@ class IfCaseElement extends ControlFlowElementImpl
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<VariableDeclaration> get variables;
+  List<InternalVariableDeclaration> get internalVariables;
 
   abstract Expression? condition;
 
   List<Expression> get updates;
 
   abstract Expression body;
+
+  /// [VariableDeclaration]s computed after inference of [internalVariables].
+  abstract List<VariableDeclaration> variables;
 }
 
 class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
     implements ForElementBase {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
+  List<InternalVariableDeclaration> intermediateVariables;
 
   // May be empty, but not null.
   @override
-  final List<VariableDeclaration> variables;
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -482,10 +490,17 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   Expression body;
 
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
+  @override
+  late List<VariableDeclaration> variables;
+
   new({
-    required this.patternVariableDeclaration,
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
-    required this.variables,
+    required this.internalVariables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -502,15 +517,16 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
-        variables[index],
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -676,13 +692,16 @@ class IfMapEntry extends TreeNode
 }
 
 abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
-  List<VariableDeclaration> get variables;
+  List<InternalVariableDeclaration> get internalVariables;
 
   abstract Expression? condition;
 
   List<Expression> get updates;
 
   abstract MapLiteralEntry body;
+
+  /// [VariableDeclaration]s computed after inference of [internalVariables].
+  abstract List<VariableDeclaration> variables;
 }
 
 /// A 'for' element in a map literal.
@@ -691,7 +710,7 @@ class ForMapEntry extends TreeNode
     implements ForMapEntryBase, ControlFlowMapEntry {
   // May be empty, but not null.
   @override
-  final List<VariableDeclaration> variables;
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition; // May be null.
@@ -702,8 +721,11 @@ class ForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  new(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
+  @override
+  late List<VariableDeclaration> variables;
+
+  new(this.internalVariables, this.condition, this.updates, this.body) {
+    setParents(internalVariables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -718,13 +740,14 @@ class ForMapEntry extends TreeNode
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
-        variables[index],
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -741,11 +764,11 @@ class ForMapEntry extends TreeNode
 class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
-  PatternVariableDeclaration patternVariableDeclaration;
-  List<VariableDeclaration> intermediateVariables;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
+  List<InternalVariableDeclaration> intermediateVariables;
 
   @override
-  final List<VariableDeclaration> variables;
+  final List<InternalVariableDeclaration> internalVariables;
 
   @override
   Expression? condition;
@@ -756,10 +779,17 @@ class PatternForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
+  @override
+  late List<VariableDeclaration> variables;
+
   new({
-    required this.patternVariableDeclaration,
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
-    required this.variables,
+    required this.internalVariables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -768,15 +798,16 @@ class PatternForMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
+    for (int index = 0; index < internalVariables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
-        variables[index],
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -813,7 +844,7 @@ class ForInMapEntry extends TreeNode
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  Variable? variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 
@@ -824,7 +855,6 @@ class ForInMapEntry extends TreeNode
     required this.isAsync,
     required int fileOffset,
     required this.forOffset,
-    this.variable,
     this.encoding,
   }) {
     this.fileOffset = fileOffset;
@@ -848,7 +878,7 @@ class IfCaseMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
   List<Statement> prelude;
@@ -858,15 +888,18 @@ class IfCaseMapEntry extends TreeNode
   /// This is set during inference.
   DartType? matchedValueType;
 
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
   new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -877,7 +910,7 @@ class IfCaseMapEntry extends TreeNode
     printer.write('if (');
     expression.toTextInternal(printer);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     then.toTextInternal(printer);
     if (otherwise != null) {
@@ -978,7 +1011,7 @@ MapLiteralEntry convertToMapEntry(
             new IfCaseMapEntry(
                 prelude: [],
                 expression: element.expression,
-                patternGuard: element.patternGuard,
+                internalPatternGuard: element.internalPatternGuard,
                 then: convertToMapEntry(
                   element.then,
                   problemReporting,
@@ -1003,9 +1036,10 @@ MapLiteralEntry convertToMapEntry(
 
       case PatternForElement():
         PatternForMapEntry result = new PatternForMapEntry(
-          patternVariableDeclaration: element.patternVariableDeclaration,
+          internalPatternVariableDeclaration:
+              element.internalPatternVariableDeclaration,
           intermediateVariables: element.intermediateVariables,
-          variables: element.variables,
+          internalVariables: element.internalVariables,
           condition: element.condition,
           updates: element.updates,
           body: convertToMapEntry(
@@ -1021,7 +1055,7 @@ MapLiteralEntry convertToMapEntry(
 
       case ForElement():
         ForMapEntry result = new ForMapEntry(
-          element.variables,
+          element.internalVariables,
           element.condition,
           element.updates,
           convertToMapEntry(
@@ -1049,14 +1083,12 @@ MapLiteralEntry convertToMapEntry(
           fileOffset: element.fileOffset,
           forOffset: element.forOffset,
           isAsync: element.isAsync,
-          variable: element.variable,
           encoding: element.encoding,
         );
         onConvertElement(element, result);
         return result;
     }
   } else {
-    // Coverage-ignore-block(suite): Not run.
     return _convertToErroneousMapEntry(
       element,
       problemReporting,
@@ -1066,14 +1098,13 @@ MapLiteralEntry convertToMapEntry(
   }
 }
 
-// Coverage-ignore(suite): Not run.
 MapLiteralEntry _convertToErroneousMapEntry(
   Expression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
   Uri fileUri,
 ) {
-  return extern.createMapLiteralEntry(
+  return intern.createMapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.expectedAfterButGot.withArguments(expected: ':'),
@@ -1082,7 +1113,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
       // TODO(danrubel): what is the length of the expression?
       length: noLength,
     ),
-    extern.createNullLiteral(fileOffset: element.fileOffset),
+    intern.createNullLiteral(element.fileOffset),
     fileOffset: element.fileOffset,
   );
 }

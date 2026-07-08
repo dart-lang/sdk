@@ -336,8 +336,8 @@ class _AwaitTransformer extends Transformer {
     // variables before the updates.
     //
     // temps.first is the flag 'first'.
-    List<Variable> temps = <Variable>[
-      Variable.forValue(BoolLiteral(true), isFinal: false),
+    List<SyntheticVariable> temps = <SyntheticVariable>[
+      SyntheticVariable(initializer: BoolLiteral(true), isSynthesized: false),
     ];
     List<Statement> loopBody = <Statement>[];
     List<Statement> initializers = <Statement>[
@@ -347,7 +347,7 @@ class _AwaitTransformer extends Transformer {
     List<Statement> newBody = <Statement>[body];
     for (int i = 0; i < stmt.variables.length; ++i) {
       VariableDeclaration decl = stmt.variables[i];
-      temps.add(Variable(null, type: decl.variable.type, isSynthesized: true));
+      temps.add(SyntheticVariable(type: decl.variable.type));
       loopBody.add(VariableStatement(decl));
       if (decl.variable.initializer != null) {
         initializers.addAll(initEffects[i]);
@@ -393,7 +393,8 @@ class _AwaitTransformer extends Transformer {
     labeled.body = WhileStatement(BoolLiteral(true), Block(loopBody))
       ..parent = labeled;
     return Block(<Statement>[
-      for (Variable temp in temps) VariableStatement(VariableDeclaration(temp)),
+      for (SyntheticVariable temp in temps)
+        VariableStatement(VariableDeclaration(temp)),
       labeled,
     ]);
   }
@@ -454,13 +455,13 @@ class _AwaitTransformer extends Transformer {
       // the current exception after the `await`.
       //
       // TODO (omersa): We could mark [TreeNode]s with `await`s and only do this
-      catch_.exception ??= Variable(
-        null,
+      catch_.exception ??= CatchVariable(
+        name: '#exception',
         type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
         isSynthesized: true,
       )..parent = catch_;
-      catch_.stackTrace ??= Variable(
-        null,
+      catch_.stackTrace ??= CatchVariable(
+        name: '#stackTrace',
         type: InterfaceType(coreTypes.stackTraceClass, Nullability.nonNullable),
         isSynthesized: true,
       )..parent = catch_;
@@ -497,27 +498,21 @@ class _AwaitTransformer extends Transformer {
     // code generation.
 
     // Variable for the finalizer block continuation.
-    final continuationVar = Variable(
-      null,
+    final continuationVar = SyntheticVariable(
       initializer: IntLiteral(stateMachineCodeGen.continuationFallthrough),
       type: InterfaceType(coreTypes.intClass, Nullability.nonNullable),
-      isSynthesized: true,
     );
 
     // When the finalizer continuation is "rethrow", this stores the exception
     // to rethrow.
-    final exceptionVar = Variable(
-      null,
+    final exceptionVar = SyntheticVariable(
       type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
-      isSynthesized: true,
     );
 
     // When the finalizer continuation is "rethrow", this stores the stack
     // trace of the exception in [exceptionVar].
-    final stackTraceVar = Variable(
-      null,
+    final stackTraceVar = SyntheticVariable(
       type: InterfaceType(coreTypes.stackTraceClass, Nullability.nonNullable),
-      isSynthesized: true,
     );
 
     final body = visitDelimited(stmt.body);
@@ -686,7 +681,7 @@ class _ExpressionTransformer extends Transformer {
   int nameIndex = 0;
 
   /// Variables created for temporaries.
-  final List<Variable> variables = <Variable>[];
+  final List<SyntheticVariable> variables = <SyntheticVariable>[];
 
   final _AwaitTransformer _statementTransformer;
 
@@ -721,7 +716,13 @@ class _ExpressionTransformer extends Transformer {
       return variables[index];
     }
     for (var i = variables.length; i <= index; i++) {
-      variables.add(Variable(":async_temporary_$i", type: type));
+      variables.add(
+        SyntheticVariable(
+          cosmeticName: ":async_temporary_$i",
+          type: type,
+          isSynthesized: false,
+        ),
+      );
     }
     return variables[index];
   }
@@ -1259,7 +1260,7 @@ class _ExpressionTransformer extends Transformer {
   @override
   TreeNode visitLet(Let expr) {
     final body = transform(expr.body);
-    final Variable variable = expr.variable;
+    final SyntheticVariable variable = expr.variable;
     if (seenAwait) {
       // There is an await in the body of `let var x = initializer in body` or
       // to its right.  We will produce the sequence of statements:

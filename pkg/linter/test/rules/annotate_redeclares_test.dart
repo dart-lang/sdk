@@ -29,7 +29,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 extension type E(A a) implements A {
@@ -38,7 +38,11 @@ extension type E(A a) implements A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
+  // TODO(scheglov): implement augmentation
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -65,7 +69,7 @@ augment extension type E(A a) {
   }
 
   test_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m() {}
 }
@@ -91,7 +95,7 @@ extension type E(A a) implements A {
   }
 
   test_setter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int i = 0;
 }

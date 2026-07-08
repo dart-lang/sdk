@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'vm_service_for_leak_detection.dart' show createNewLeakFinder;
 import "vm_service_heap_helper.dart" as helper;
 
 late Completer completer;
@@ -96,19 +97,7 @@ Future<void> main(List<String> args) async {
     ], expectToAlwaysFind: true),
   );
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
-      new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-        interests: interests,
-        prettyPrints: [
-          new helper.Interest(
-            Uri.parse("package:kernel/ast.dart"),
-            "Library",
-            ["fileUri", "libraryIdForTesting"],
-            expectToAlwaysFind: true,
-          ),
-        ],
-        throwOnPossibleLeak: true,
-      );
-
+      createNewLeakFinder(interests);
   print(
     "About to run with "
     "quicker = $quicker; "

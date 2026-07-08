@@ -179,6 +179,7 @@ blindly
 blob
 blobs
 blocking
+blowing
 blowup
 bmp
 bn
@@ -237,6 +238,7 @@ carefully
 caret
 carets
 carriage
+carrier
 carrying
 cascade's
 cascades
@@ -355,6 +357,7 @@ considerable
 consideration
 considering
 constant's
+constitute
 constness
 constraining
 consult
@@ -1891,6 +1894,8 @@ surprising
 surrounded
 surrounds
 suspended
+suspending
+suspension
 svar
 svg
 sw

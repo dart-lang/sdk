@@ -13,11 +13,8 @@ class BooleanProducer extends Producer {
   const new();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
-    yield identifier('true');
-    yield identifier('false');
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [identifier('true'), identifier('false')];
   }
 }
 
@@ -28,10 +25,11 @@ class EmptyProducer extends Producer {
   const new();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     // Returns nothing.
+    // See https://github.com/dart-lang/sdk/issues/51806#issuecomment-4736379661
+    // for why this is faster than `Iterable`.
+    return const [];
   }
 }
 
@@ -45,12 +43,8 @@ class EnumProducer extends Producer {
   const new(this.values);
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
-    for (var value in values) {
-      yield identifier(value);
-    }
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [for (var value in values) identifier(value)];
   }
 }
 
@@ -60,9 +54,7 @@ class FilePathProducer extends Producer {
   const new();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
     //
     // This currently assumes that all of the paths in the assets section will
     // be posix paths.
@@ -105,15 +97,18 @@ class FilePathProducer extends Producer {
     var dir = provider.getResource(parentDirectory);
     if (dir is Folder) {
       try {
+        var list = <CompletionSuggestion>[];
         for (var child in dir.getChildren()) {
           var name = child.shortName;
           var relevance = name.startsWith('.') ? 500 : 1000;
-          yield identifier(name, relevance: relevance);
+          list.add(identifier(name, relevance: relevance));
         }
+        return list;
       } on FileSystemException {
         // Guard against I/O exceptions.
       }
     }
+    return const [];
   }
 }
 
@@ -127,6 +122,35 @@ abstract class KeyValueProducer extends Producer {
   Producer? producerForKey(String key);
 }
 
+/// An object that represents the location of a value that can be expressed
+/// either as an element of a list or as a key in a map.
+///
+/// For example, the lint rules in an analysis options file can be written
+/// either as a list of rule names or as a map from rule names to Booleans.
+class ListOrMapProducer extends ListProducer implements KeyValueProducer {
+  /// The producer used to produce suggestions for the value of a key when the
+  /// map form is used.
+  final Producer mapValue;
+
+  /// Initialize a location whose valid values are either the elements of a
+  /// list, as determined by the [element] producer, or the keys of a map whose
+  /// values are determined by the [mapValue] producer.
+  const new(super.element, {required this.mapValue});
+
+  /// A producer that suggests the suggestions of [element] as map keys.
+  Producer get keyProducer => _MapKeyProducer(element);
+
+  @override
+  Producer? producerForKey(String key) => mapValue;
+
+  @override
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    // Neither form has been started yet — suggest both list (`- rule`) and
+    // map (`rule: `) forms so the user can choose which style to begin with.
+    return [...super.suggestions(request), ...keyProducer.suggestions(request)];
+  }
+}
+
 /// An object that represents the location of an element in a list.
 class ListProducer extends Producer {
   /// The producer used to produce suggestions for an element of the list.
@@ -137,17 +161,19 @@ class ListProducer extends Producer {
   const new(this.element);
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
-    for (var suggestion in element.suggestions(request)) {
-      // TODO(brianwilkerson): Consider prepending the suggestion with a hyphen
-      //  when the current node isn't already preceded by a hyphen. The
-      //  cleanest way to do this is probably to access the [element] producer
-      //  in the place where we're choosing a producer in that situation.
-      // suggestion.completion = '- ${suggestion.completion}';
-      yield suggestion;
-    }
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    // This method is only called when the cursor is NOT already inside a list
+    // item (the path didn't traverse a YamlList). When the cursor IS inside
+    // an item (after `- `), `element.suggestions()` is called directly by
+    // `_producerForPath`. Therefore we always need the `- ` prefix here.
+    return [
+      for (var suggestion in element.suggestions(request))
+        identifier(
+          '- ${suggestion.completion}',
+          relevance: suggestion.relevance,
+          docComplete: suggestion.docComplete,
+        ),
+    ];
   }
 }
 
@@ -165,16 +191,14 @@ class MapProducer extends KeyValueProducer {
   Producer? producerForKey(String key) => _children[key];
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-    YamlCompletionRequest request,
-  ) sync* {
-    for (var entry in _children.entries) {
-      if (entry.value is ListProducer) {
-        yield identifier('${entry.key}:');
-      } else {
-        yield identifier('${entry.key}: ');
-      }
-    }
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var entry in _children.entries)
+        if (entry.value is ListProducer)
+          identifier('${entry.key}:')
+        else
+          identifier('${entry.key}: '),
+    ];
   }
 }
 
@@ -240,4 +264,26 @@ class YamlCompletionRequest {
     required this.resourceProvider,
     required this.pubPackageService,
   });
+}
+
+/// An object that suggests the suggestions of another producer as map keys.
+class _MapKeyProducer extends Producer {
+  /// The producer whose suggestions are to be suggested as map keys.
+  final Producer element;
+
+  /// Initialize a location whose valid values are the suggestions of the
+  /// [element] producer, written as map keys.
+  const new(this.element);
+
+  @override
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var suggestion in element.suggestions(request))
+        identifier(
+          '${suggestion.completion}: ',
+          relevance: suggestion.relevance,
+          docComplete: suggestion.docComplete,
+        ),
+    ];
+  }
 }

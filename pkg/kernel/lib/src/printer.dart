@@ -99,7 +99,6 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<Variable, String> _variableDeclarationNames = {};
   late final Map<VariableBase, String> _variableNames = {};
 
   new(this._strategy);
@@ -251,6 +250,8 @@ class AstPrinter {
       case TypeVariable(cosmeticName: var name?):
       case LocalVariable(cosmeticName: var name?):
       case LateVariable(cosmeticName: var name?):
+      case ConstVariable(cosmeticName: var name?):
+      case LocalFunctionVariable(cosmeticName: var name?):
         return name;
       case ThisVariable():
         return 'this';
@@ -258,16 +259,12 @@ class AstPrinter {
       case TypeVariable(cosmeticName: null):
       case LocalVariable(cosmeticName: null):
       case LateVariable(cosmeticName: null):
+      case ConstVariable(cosmeticName: null):
+      case LocalFunctionVariable(cosmeticName: null):
       case SyntheticVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):
         return name;
-      case LegacyVariable(:var name):
-        if (name != null) {
-          return name;
-        }
-        return _variableDeclarationNames[node as Variable] ??=
-            '#${_variableDeclarationNames.length}';
     }
   }
 
@@ -573,7 +570,7 @@ class AstPrinter {
         _sb.write(' ');
       }
     }
-    _sb.write(getVariableName(node.variable));
+    _sb.write(getVariableName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);

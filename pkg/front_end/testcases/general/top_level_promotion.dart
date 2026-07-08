@@ -24,12 +24,14 @@ class Class4<K, V> {
 
 class Class5 {
   late final field2 = Class4<String?, bool>();
-  late final field3 =
-      getter1.method1((o) => o != null ? field2[o.field1] : null);
+  late final field3 = getter1.method1(
+    (o) => o != null ? field2[o.field1] : null,
+  );
 
   method2() {
-    late final local1 =
-        getter1.method1((o) => o != null ? field2[o.field1] : null);
+    late final local1 = getter1.method1(
+      (o) => o != null ? field2[o.field1] : null,
+    );
   }
 
   Class2<Class1?> get getter1 => throw '';

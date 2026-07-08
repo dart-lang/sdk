@@ -74,9 +74,7 @@ void main() {
     test('unexpected message', () async {
       // No 'id', so not a response.
       // No 'event', so not a notification.
-      process.stdout = Stream.value(
-        utf8.encode(json.encode({'foo': 'bar'})),
-      );
+      process.stdout = Stream.value(utf8.encode(json.encode({'foo': 'bar'})));
       process.stderr = _noMessage();
 
       server.listenToOutput();
@@ -99,9 +97,7 @@ void main() {
 
     test('unexpected response', () async {
       // We have no asked anything, but got a response.
-      process.stdout = Stream.value(
-        utf8.encode(json.encode({'id': '0'})),
-      );
+      process.stdout = Stream.value(utf8.encode(json.encode({'id': '0'})));
       process.stderr = _noMessage();
 
       server.listenToOutput();
@@ -169,15 +165,12 @@ void main() {
 final _badErrorMessage = {
   'code': 'UNKNOWN_REQUEST',
   'message': 'something went wrong',
-  'stackTrace': 'some long stack trace'
+  'stackTrace': 'some long stack trace',
 };
 
 Stream<List<int>> _badMessage() async* {
   yield utf8.encode('The Dart VM service is listening on foo bar\n');
-  final sampleJson = {
-    'id': '0',
-    'error': _badErrorMessage,
-  };
+  final sampleJson = {'id': '0', 'error': _badErrorMessage};
   yield utf8.encode(json.encode(sampleJson));
 }
 
@@ -185,7 +178,7 @@ Stream<List<int>> _eventMessage() async* {
   yield utf8.encode('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'event': 'fooEvent',
-    'params': {'foo': 'bar', 'baz': 'bang'}
+    'params': {'foo': 'bar', 'baz': 'bang'},
   };
   yield utf8.encode(json.encode(sampleJson));
 }
@@ -194,7 +187,7 @@ Stream<List<int>> _goodMessage() async* {
   yield utf8.encode('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'id': '0',
-    'result': {'foo': 'bar'}
+    'result': {'foo': 'bar'},
   };
   yield utf8.encode(json.encode(sampleJson));
 }

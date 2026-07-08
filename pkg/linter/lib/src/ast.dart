@@ -211,7 +211,7 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
 
   // Look for a pubspec.yaml file.
   for (var folder in file.parent.withAncestors) {
-    var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    var pubspecFile = folder.getFile('pubspec.yaml');
     if (pubspecFile.exists) {
       return pubspecFile;
     }

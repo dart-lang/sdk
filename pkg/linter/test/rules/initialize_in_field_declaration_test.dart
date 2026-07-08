@@ -38,7 +38,7 @@ class C(int x) {
   }
 
   test_class_multipleInitializers() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int x, int z) {
   this : [!y!] = x, w = 0;
 
@@ -49,7 +49,7 @@ class C(int x, int z) {
   }
 
   test_class_onDifferentLines() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C(int x) {
   this : [!y!] = x;
 

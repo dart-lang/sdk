@@ -12,14 +12,14 @@ import "dart:core" as core;
   constructor _ = self::Foo|constructor#_;
   constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
 }
-[263]static extension-type-member method [264] [275] Foo|constructor#_([274] wildcard initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
+[263]static extension-type-member method [264] [275] Foo|constructor#_([274, -1] wildcard initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
 [-1]  ;
-[263]static extension-type-member synthetic method [263] [263] Foo|constructor#_#_#tearOff([274] js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
+[263]static extension-type-member synthetic method [263] [263] Foo|constructor#_#_#tearOff([274, -1] js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
 [263]  return [263] [263] self::Foo|constructor#_ [263]([263] _#wc0#formal);
 [329]@js_::JS::•([305] "foo")
-external static extension-type-member method [329] [332] Foo|get#bar([329] lowered js_::JSObject /* erasure=dart._interceptors::JSObject */ #this) → core::bool?;
+external static extension-type-member method [329] [332] Foo|get#bar([329, -1] lowered js_::JSObject /* erasure=dart._interceptors::JSObject */ #this) → core::bool?;
 [329]@js_::JS::•([305] "foo")
-external static extension-type-member method [329] [332] Foo|set#bar([329] lowered js_::JSObject /* erasure=dart._interceptors::JSObject */ #this, [329] synthesized core::bool? #externalFieldValue) → void;
+external static extension-type-member method [329] [332] Foo|set#bar([329, -1] lowered js_::JSObject /* erasure=dart._interceptors::JSObject */ #this, [329, -1] synthesized core::bool? #externalFieldValue) → void;
 
 
 Extra constant evaluation status:

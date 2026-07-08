@@ -18,7 +18,7 @@ class UseRethrowWhenPossibleTest extends LintRuleTest {
   String get lintRule => LintNames.use_rethrow_when_possible;
 
   test_catchError_throwSameError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} catch (e) {
     [!throw e!];
@@ -28,7 +28,7 @@ void f() {
   }
 
   test_catchErrorAndStackTrace_throwSameError() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   try {} catch (e, stackTrace) {
     print(stackTrace);

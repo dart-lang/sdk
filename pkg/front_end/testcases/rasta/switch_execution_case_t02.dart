@@ -35,12 +35,18 @@
 test(value) {
   var result;
 
-  switch(value) {
-    case 1:  result = 1;
-             break;
-    case 2:  result = 2; /// static warning - case fall-through, see "Switch"
-    case 3:  result = 3; /// static warning - case fall-through, see "Switch"
-    default: result = 4;
+  switch (value) {
+    case 1:
+      result = 1;
+      break;
+    case 2:
+      result = 2; // static warning - case fall-through, see "Switch"
+
+    case 3:
+      result = 3; // static warning - case fall-through, see "Switch"
+
+    default:
+      result = 4;
   }
   return result;
 }
@@ -48,12 +54,15 @@ test(value) {
 testEmptyCases(value) {
   var result;
 
-  switch(value) {
+  switch (value) {
     case 1:
-    case 2: result = 1; /// static warning - case fall-through, see "Switch"
+    case 2:
+      result = 1; // static warning - case fall-through, see "Switch"
+
     case 3:
-    case 4: result = 2;
-            break;
+    case 4:
+      result = 2;
+      break;
     case 5:
     case 6:
     default:
@@ -62,5 +71,4 @@ testEmptyCases(value) {
   return result;
 }
 
-main() {
-}
+main() {}

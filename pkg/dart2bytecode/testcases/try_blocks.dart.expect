@@ -12,7 +12,7 @@ Function 'testTryCatch1', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                4
+  Entry                3
   CheckStack           0
 Try #0 start:
   PushConstant         CP#0
@@ -21,7 +21,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             4
+  SetFrame             3
   MoveSpecial          exception, r0
   MoveSpecial          stackTrace, r1
   Push                 r0
@@ -29,12 +29,11 @@ Try #0 handler:
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushInt              0
   PushConstant         CP#4
   StoreIndexedTOS
-  Push                 r3
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
@@ -65,7 +64,7 @@ Function 'testTryCatch2', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                5
+  Entry                4
   CheckStack           0
 Try #0 start:
   PushConstant         CP#0
@@ -74,7 +73,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             5
+  SetFrame             4
   MoveSpecial          exception, r0
   MoveSpecial          stackTrace, r1
   Push                 r0
@@ -95,12 +94,11 @@ L2:
   PushNull
   PushInt              2
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  Dup
   PushInt              0
   PushConstant         CP#8
   StoreIndexedTOS
-  Push                 r3
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
@@ -120,20 +118,19 @@ L3:
   PushNull
   PushInt              4
   CreateArrayTOS
-  StoreLocal           r4
-  Push                 r4
+  Dup
   PushInt              0
   PushConstant         CP#12
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              2
   PushConstant         CP#13
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              3
   Push                 r3
   StoreIndexedTOS
@@ -149,20 +146,19 @@ L4:
   PushNull
   PushInt              4
   CreateArrayTOS
-  StoreLocal           r4
-  Push                 r4
+  Dup
   PushInt              0
   PushConstant         CP#15
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              1
   Push                 r2
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              2
   PushConstant         CP#13
   StoreIndexedTOS
-  Push                 r4
+  Dup
   PushInt              3
   Push                 r3
   StoreIndexedTOS
@@ -202,7 +198,7 @@ Function 'testTryCatch3', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                7
+  Entry                6
   CheckStack           0
   AllocateContext      0, 3
   PopLocal             r0
@@ -216,8 +212,7 @@ Try #0 start:
   PushInt              2
   StoreContextVar      0, 1
   AllocateClosure      CP#6
-  StoreLocal           r5
-  Push                 r5
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r4
@@ -232,7 +227,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             7
+  SetFrame             6
   Push                 r2
   PopLocal             r0
   MoveSpecial          exception, r2
@@ -245,20 +240,19 @@ Try #0 handler:
   PushNull
   PushInt              4
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#9
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r4
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              2
   PushConstant         CP#10
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              3
   Push                 r0
   LoadContextVar       0, 2
@@ -267,12 +261,11 @@ Try #0 handler:
   DirectCall           CP#2, 1
   Drop1
   AllocateClosure      CP#21
-  StoreLocal           r5
-  Push                 r5
+  Dup
   Push                 r0
   StoreClosureElement  0
-  PopLocal             r6
-  Push                 r6
+  PopLocal             r5
+  Push                 r5
   ReturnTOS
 L1:
   Push                 r0
@@ -282,7 +275,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 20, end 60, handler 60, needs-stack-trace, types [CP#4]
+  try-index 0, outer -1, start 20, end 57, handler 57, needs-stack-trace, types [CP#4]
 }
 ConstantPool {
   [0] = ClosureFunction 0
@@ -347,7 +340,7 @@ L1:
 
 Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryCatch3::'bar' () -> void
 ClosureCode {
-  Entry                6
+  Entry                5
   Push                 FP[-5]
   LoadClosureElement   0
   PopLocal             r0
@@ -361,7 +354,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             6
+  SetFrame             5
   Push                 r2
   PopLocal             r0
   MoveSpecial          exception, r2
@@ -375,20 +368,19 @@ Try #0 handler:
   PushNull
   PushInt              4
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  Dup
   PushInt              0
   PushConstant         CP#18
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              1
   Push                 r4
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              2
   PushConstant         CP#19
   StoreIndexedTOS
-  Push                 r5
+  Dup
   PushInt              3
   Push                 r0
   LoadContextVar       0, 2
@@ -593,8 +585,7 @@ Try #1 start:
   DirectCall           CP#3, 1
   Drop1
   AllocateClosure      CP#8
-  StoreLocal           r8
-  Push                 r8
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r7
@@ -653,8 +644,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 53, end 138, handler 138, needs-stack-trace, synthetic, types [CP#11]
-  try-index 1, outer 0, start 70, end 100, handler 100, needs-stack-trace, synthetic, types [CP#11]
+  try-index 0, outer -1, start 53, end 135, handler 135, needs-stack-trace, synthetic, types [CP#11]
+  try-index 1, outer 0, start 70, end 97, handler 97, needs-stack-trace, synthetic, types [CP#11]
 }
 ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
@@ -699,7 +690,7 @@ Function 'testTryFinally3', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -712,15 +703,14 @@ Bytecode {
   PopLocal             r3
 Try #0 start:
   AllocateClosure      CP#7
-  StoreLocal           r5
-  Push                 r5
+  Dup
   Push                 r0
   StoreClosureElement  0
   PopLocal             r2
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             6
+  SetFrame             5
   Push                 r3
   PopLocal             r0
   MoveSpecial          exception, r3
@@ -752,7 +742,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 23, end 39, handler 39, needs-stack-trace, synthetic, types [CP#4]
+  try-index 0, outer -1, start 23, end 36, handler 36, needs-stack-trace, synthetic, types [CP#4]
 }
 ConstantPool {
   [0] = ClosureFunction 0

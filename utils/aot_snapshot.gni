@@ -7,6 +7,7 @@ import("../build/toolchain/signing.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 template("aot_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
@@ -44,30 +45,37 @@ template("aot_snapshot") {
     output = invoker.output
   }
 
-  dill = "$target_out_dir/$name.dart.dill"
+  dill = "$target_out_dir/$name.aot.dill"
   unsigned_snapshot = "$target_out_dir/$name.dart.snapshot.unsigned"
   signed_snapshot = output
 
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   kernel_label = target_name + "_dill"
-  prebuilt_dart_action(kernel_label) {
+  action(kernel_label) {
     mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
+    } else if (_is_dart) {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+    } else {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
+
+    gen_kernel_tool =
+        "$_dart_root/utils:bootstrap_gen_kernel.exe($host_toolchain)"
+    gen_kernel_exe = get_label_info(gen_kernel_tool, "root_out_dir") +
+                     "/bootstrap_gen_kernel.exe"
+
     deps = extra_deps + [
              "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
              "$_dart_root/runtime/vm:vm_platform",
-             "$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
+             gen_kernel_tool,
            ]
-    gen_kernel_kernel =
-        get_label_info("$_dart_root/utils/gen_kernel:bootstrap_gen_kernel",
-                       "target_gen_dir") + "/bootstrap_gen_kernel.dill"
     platform_dill = "$root_out_dir/vm_platform.dill"
 
     inputs = extra_inputs + [
-               gen_kernel_kernel,
+               gen_kernel_exe,
                platform_dill,
                main_dart,
                package_config,
@@ -77,15 +85,10 @@ template("aot_snapshot") {
 
     depfile = "$output.d"
 
-    vm_args = [
-      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
-      # kernel.
-      "-Dsdk_hash=$sdk_hash",
-    ]
-
-    script = gen_kernel_kernel
+    script = "$_dart_root/build/gn_run_binary.py"
 
     args = [
+      rebase_path(gen_kernel_exe, root_build_dir),
       "--packages=" + rebase_path(package_config, root_build_dir),
       "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--aot",

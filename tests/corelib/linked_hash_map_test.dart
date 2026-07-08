@@ -6,6 +6,7 @@
 library linkedHashMap.test;
 
 import "package:expect/expect.dart";
+
 import 'dart:collection' show LinkedHashMap;
 
 class LinkedHashMapTest {

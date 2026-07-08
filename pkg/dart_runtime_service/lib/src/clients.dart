@@ -241,6 +241,12 @@ abstract interface class ClientConnectionController {
   /// Reject connection requests from new [Client]s, redirecting them to
   /// connect to [redirectUri] instead.
   void rejectConnections({required Uri redirectUri});
+
+  /// The [Uri] pointing to the service that [Client]s should attempt to connect
+  /// to.
+  ///
+  /// Returns `null` if new connections are being accepted.
+  Uri? get redirectUri;
 }
 
 /// Used for keeping track and managing clients that are connected to a given
@@ -267,6 +273,7 @@ base class ClientManager<BE extends DartRuntimeServiceBackend>
   /// to.
   ///
   /// Returns `null` if [acceptNewConnections] is `true`.
+  @override
   Uri? get redirectUri => _redirectUri;
   Uri? _redirectUri;
 

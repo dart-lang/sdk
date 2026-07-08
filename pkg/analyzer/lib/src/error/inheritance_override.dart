@@ -398,7 +398,7 @@ class _ClassVerifier {
           member.declaredFragment!.element,
           methodParameterNodes: member.parameters?.parameters,
         );
-        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+        if (!(member.isStatic || !member.isComplete || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
         if (!member.isStatic && element is! EnumElementImpl) {
@@ -436,6 +436,9 @@ class _ClassVerifier {
             continue;
           }
           if (_reportConcreteClassWithAbstractMember(name.name)) {
+            continue;
+          }
+          if (interfaceElement.enclosingElement == classElement) {
             continue;
           }
           if (_isNotImplementedInConcreteSuperClass(name)) {
@@ -484,7 +487,9 @@ class _ClassVerifier {
         );
       }
 
-      _reportInheritedAbstractMembers(inheritedAbstract);
+      if (identical(classFragment, element.firstFragment)) {
+        _reportInheritedAbstractMembers(inheritedAbstract);
+      }
     }
 
     return false;
@@ -852,9 +857,12 @@ class _ClassVerifier {
       return false;
     }
 
-    if (interfaceElement.fields.every(
-      (e) => e.isStatic || e.isOriginGetterSetter,
-    )) {
+    if (interfaceElement.fields.every((e) {
+      return e.isStatic ||
+          e.isOriginGetterSetter ||
+          e.isAbstract ||
+          e.isExternal;
+    })) {
       return false;
     }
 

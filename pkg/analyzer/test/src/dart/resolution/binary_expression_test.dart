@@ -236,7 +236,7 @@ BinaryExpression
       arguments
         NullLiteral
           literal: null
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::t
             substitution: {T: int?}
           staticType: Null
@@ -1601,7 +1601,7 @@ BinaryExpression
     literal: 1
     correspondingParameter: i@null
     staticType: int
-  element: MethodMember
+  element: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extension::FooExtension::@method::+
     substitution: {F: F}
   staticInvokeType: F Function(int)
@@ -2044,7 +2044,7 @@ f(C1<int>? c1, C2<double> c2) {
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
-  correspondingParameter: ParameterMember
+  correspondingParameter: SubstitutedFormalParameterElementImpl
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   element: <null>

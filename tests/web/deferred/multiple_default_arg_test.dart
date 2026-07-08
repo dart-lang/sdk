@@ -12,6 +12,7 @@
 import 'multiple_default_arg_lib1.dart' deferred as lib1;
 import 'multiple_default_arg_lib2.dart' deferred as lib2;
 import 'multiple_default_arg_lib3.dart' deferred as lib3;
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 

@@ -46,7 +46,8 @@ abstract class YamlCompletionGenerator {
       // If the contents can't be parsed, then there are no suggestions.
       return const YamlCompletionResults.empty();
     }
-    var nodePath = _pathToOffset(root, offset);
+    var cursorColumn = _columnAt(content, offset);
+    var nodePath = _pathToOffset(root, offset, cursorColumn: cursorColumn);
     var completionNode = nodePath.last;
     var precedingText = '';
     if (completionNode is YamlScalar) {
@@ -85,6 +86,9 @@ abstract class YamlCompletionGenerator {
     var producer = _producerForPath(nodePath);
     if (producer == null) {
       return const YamlCompletionResults.empty();
+    }
+    if (producer is ListOrMapProducer) {
+      producer = _resolveListOrMapProducer(producer, nodePath);
     }
     var invalidSuggestions = _siblingsOnPath(nodePath);
     var suggestions = <CompletionSuggestion>[];
@@ -130,12 +134,16 @@ abstract class YamlCompletionGenerator {
   /// Return a list containing the node containing the [offset] and all of the
   /// nodes between that and the [root] node. The root node is first in the list
   /// and the node containing the offset is the last element in the list.
-  List<YamlNode> _pathToOffset(YamlNode root, int offset) {
+  List<YamlNode> _pathToOffset(
+    YamlNode root,
+    int offset, {
+    required int cursorColumn,
+  }) {
     var path = <YamlNode>[];
     YamlNode? node = root;
     while (node != null) {
       path.add(node);
-      node = node.childContainingOffset(offset);
+      node = node.childContainingOffset(offset, cursorColumn: cursorColumn);
     }
     return path;
   }
@@ -168,6 +176,34 @@ abstract class YamlCompletionGenerator {
     return producer;
   }
 
+  /// Return the producer to use in place of the [producer], for a location
+  /// where either a list or a map is valid, based on the form already being
+  /// used at the location of the last node in the node [path].
+  Producer _resolveListOrMapProducer(
+    ListOrMapProducer producer,
+    List<YamlNode> path,
+  ) {
+    var node = path.last;
+    if (node is YamlMap) {
+      // The cursor is inside an already started map.
+      return producer.keyProducer;
+    }
+    if (node is YamlList) {
+      // The cursor is inside an already started list.
+      return ListProducer(producer.element);
+    }
+    if (path.length >= 2) {
+      var parent = path[path.length - 2];
+      if (parent is YamlMap && parent.nodes.containsKey(node)) {
+        // The cursor is inside a key of an already started map.
+        return producer.keyProducer;
+      }
+    }
+    // Default to the list form, both when the list form is already being used
+    // and when neither form has been started.
+    return producer;
+  }
+
   /// Return a list of the suggestions that should not be suggested because they
   /// are already in the structure.
   List<String> _siblingsOnPath(List<YamlNode> path) {
@@ -178,6 +214,7 @@ abstract class YamlCompletionGenerator {
           var value = element.value;
           if (value is String) {
             siblings.add(value);
+            siblings.add('- $value');
           }
         }
       }
@@ -186,9 +223,13 @@ abstract class YamlCompletionGenerator {
 
     List<String> siblingsInMap(YamlMap map, YamlNode? currentKey) {
       var siblings = <String>[];
-      for (var key in map.nodes.keys) {
+      for (var entry in map.nodes.entries) {
+        var key = entry.key;
         if (key != currentKey && key is YamlScalar && key.value is String) {
-          siblings.add('${key.value}: ');
+          // Match the format used by MapProducer.suggestions(): no trailing
+          // space for list values (value goes on the next line after the colon).
+          var suffix = entry.value is YamlList ? ':' : ': ';
+          siblings.add('${key.value}$suffix');
         }
       }
       return siblings;
@@ -196,6 +237,11 @@ abstract class YamlCompletionGenerator {
 
     var length = path.length;
     if (length < 2) {
+      // Path is just the root node. If it's a map, its own keys are the
+      // siblings that should be excluded from top-level key suggestions.
+      if (length == 1 && path[0] is YamlMap) {
+        return siblingsInMap(path[0] as YamlMap, null);
+      }
       return const <String>[];
     }
     var node = path[length - 1];
@@ -211,6 +257,13 @@ abstract class YamlCompletionGenerator {
       return siblingsInMap(parent, node);
     }
     return const <String>[];
+  }
+
+  /// Returns the 0-based column of [offset] within [content].
+  static int _columnAt(String content, int offset) {
+    if (offset == 0) return 0;
+    var lastNewline = content.lastIndexOf('\n', offset - 1);
+    return offset - lastNewline - 1;
   }
 }
 
