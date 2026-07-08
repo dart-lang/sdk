@@ -2481,5 +2481,5 @@ class VariableDeclaration extends TreeNode implements ContextConsumer {
   }
 
   @override
-  String toString() => 'VariableDeclaration(${toStringInternal()}';
+  String toString() => 'VariableDeclaration(${toStringInternal()})';
 }
