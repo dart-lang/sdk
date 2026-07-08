@@ -1071,7 +1071,7 @@ class Resolver {
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
-    Expression? result = problemReporting.checkStaticArguments(
+    ErrorText? errorText = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
       target: target,
       explicitTypeArguments: typeArguments,
@@ -1079,18 +1079,20 @@ class Resolver {
       fileOffset: fileOffset,
       fileUri: fileUri,
     );
-    if (result != null) {
-      return result;
+    if (errorText != null) {
+      return intern.createInvalidExpressionFromErrorText(errorText);
     }
 
     if (target is Constructor) {
       if (!target.isConst) {
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonConstConstructor,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
         );
       }
       Expression node = new InternalConstructorInvocation(
@@ -1115,12 +1117,14 @@ class Resolver {
       // Coverage-ignore-block(suite): Not run.
       Procedure procedure = target as Procedure;
       if (!procedure.isConst) {
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonConstConstructor,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
         );
       }
       FactoryConstructorInvocation node = new FactoryConstructorInvocation(
@@ -1159,13 +1163,15 @@ class Resolver {
     LocatedMessage message = diag.constructorNotFound
         .withArguments(name: name)
         .withLocation(fileUri, fileOffset, length);
-    return problemReporting.buildProblem(
-      compilerContext: compilerContext,
-      message: message.messageObject,
-      fileUri: fileUri,
-      fileOffset: message.charOffset,
-      length: message.length,
-      errorHasBeenReported: false,
+    return extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: message.messageObject,
+        fileUri: fileUri,
+        fileOffset: message.charOffset,
+        length: message.length,
+        errorHasBeenReported: false,
+      ),
     );
   }
 
@@ -1560,12 +1566,14 @@ class Resolver {
       if (bodyBuilderContext.isExternalFunction || isNoSuchMethodForwarder) {
         inferredBody = new Block(<Statement>[
           new ExpressionStatement(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.externalMethodWithBody,
-              fileUri: fileUri,
-              fileOffset: inferredBody.fileOffset,
-              length: noLength,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.externalMethodWithBody,
+                fileUri: fileUri,
+                fileOffset: inferredBody.fileOffset,
+                length: noLength,
+              ),
             ),
           )..fileOffset = inferredBody.fileOffset,
           inferredBody,

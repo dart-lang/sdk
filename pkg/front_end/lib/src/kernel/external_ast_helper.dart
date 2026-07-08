@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 
+import '../source/check_helper.dart';
 import 'internal_ast.dart';
 
 /// Returns a block like this:
@@ -296,6 +297,26 @@ ConstructorTearOff createConstructorTearOff(
   required int fileOffset,
 }) {
   return new ConstructorTearOff(target)..fileOffset = fileOffset;
+}
+
+ConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new ConstVariable(
+      name: name,
+      type: type,
+      isFinal: isFinal,
+      isWildcard: isWildcard,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
 }
 
 ContinueSwitchStatement createContinueSwitchStatement({
@@ -734,6 +755,14 @@ InvalidExpression createInvalidExpression(
   return new InvalidExpression(message, expression)..fileOffset = fileOffset;
 }
 
+InvalidExpression createInvalidExpressionFromErrorText(
+  ErrorText errorText, {
+  Expression? expression,
+}) {
+  return new InvalidExpression(errorText.message, expression)
+    ..fileOffset = errorText.fileOffset;
+}
+
 InvalidInitializer createInvalidInitializer(
   InvalidExpression expression, {
   bool isSuperInitializer = false,
@@ -741,6 +770,17 @@ InvalidInitializer createInvalidInitializer(
 }) {
   return new InvalidInitializer(expression.message)
     ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+InvalidInitializer createInvalidInitializer2(
+  ErrorText errorText, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InvalidInitializer(errorText.message)
+    ..fileOffset = errorText.fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
@@ -785,26 +825,6 @@ LabeledStatement createLabeledStatement(
   required int fileOffset,
 }) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
-}
-
-ConstVariable createConstVariable({
-  required String name,
-  required DartType? type,
-  bool isFinal = false,
-  bool isWildcard = false,
-  required int fileOffset,
-  bool hasDeclaredInitializer = false,
-  int fileEqualsOffset = TreeNode.noOffset,
-}) {
-  return new ConstVariable(
-      name: name,
-      type: type,
-      isFinal: isFinal,
-      isWildcard: isWildcard,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-    )
-    ..fileOffset = fileOffset
-    ..fileEqualsOffset = fileEqualsOffset;
 }
 
 LateVariable createLateVariable({

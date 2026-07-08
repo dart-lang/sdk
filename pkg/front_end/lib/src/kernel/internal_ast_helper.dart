@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
 
+import '../source/check_helper.dart';
 import 'body_builder.dart';
 import 'collections.dart'
     show
@@ -681,7 +682,6 @@ InternalExpression createIntLiteralLarge(
   return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
 }
 
-// Coverage-ignore(suite): Not run.
 InternalInvalidExpression createInvalidExpression(
   String message, {
   Expression? expression,
@@ -694,8 +694,19 @@ InternalInvalidExpression createInvalidExpression(
   );
 }
 
+InternalInvalidExpression createInvalidExpressionFromErrorText(
+  ErrorText errorText, {
+  Expression? expression,
+}) {
+  return new InternalInvalidExpression(
+    errorText.message,
+    expression: expression,
+    fileOffset: errorText.fileOffset,
+  );
+}
+
 InternalInvalidInitializer createInvalidInitializer(
-  InvalidExpression expression, {
+  InternalInvalidExpression expression, {
   bool isSuperInitializer = false,
   bool isRedirectingInitializer = false,
 }) {
@@ -707,14 +718,39 @@ InternalInvalidInitializer createInvalidInitializer(
   );
 }
 
+InternalInvalidInitializer createInvalidInitializer2(
+  ErrorText errorText, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InternalInvalidInitializer(
+    errorText.message,
+    fileOffset: errorText.fileOffset,
+    isSuperInitializer: isSuperInitializer,
+    isRedirectingInitializer: isRedirectingInitializer,
+  );
+}
+
 InternalPattern createInvalidPattern(
-  Expression expression, {
+  InternalInvalidExpression expression, {
   required List<InternalDeclaredVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: expression,
     declaredVariables: declaredVariables,
     fileOffset: expression.fileOffset,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+InternalPattern createInvalidPattern2(
+  ErrorText errorText, {
+  required List<InternalDeclaredVariable> declaredVariables,
+}) {
+  return new InternalInvalidPattern(
+    invalidExpression: createInvalidExpressionFromErrorText(errorText),
+    declaredVariables: declaredVariables,
+    fileOffset: errorText.fileOffset,
   );
 }
 
@@ -826,6 +862,27 @@ InternalLoadLibrary createLoadLibrary({
   return new InternalLoadLibrary(import, arguments, fileOffset: fileOffset);
 }
 
+InternalLocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool forSyntheticToken = false,
+  bool isImplicitlyTyped = false,
+  bool isStaticLate = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalLocalFunctionVariable(
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    forSyntheticToken: forSyntheticToken,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
+  );
+}
+
 InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
@@ -848,27 +905,6 @@ InternalLocalVariable createLocalVariable({
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     isStaticLate: isStaticLate,
-    fileEqualsOffset: fileEqualsOffset,
-  );
-}
-
-InternalLocalFunctionVariable createLocalFunctionVariable({
-  required String name,
-  required DartType? type,
-  bool isWildcard = false,
-  required int fileOffset,
-  bool forSyntheticToken = false,
-  bool isImplicitlyTyped = false,
-  bool isStaticLate = false,
-  int fileEqualsOffset = TreeNode.noOffset,
-}) {
-  return new InternalLocalFunctionVariable(
-    name: name,
-    type: type,
-    isWildcard: isWildcard,
-    forSyntheticToken: forSyntheticToken,
-    isImplicitlyTyped: isImplicitlyTyped,
-    fileOffset: fileOffset,
     fileEqualsOffset: fileEqualsOffset,
   );
 }
@@ -1747,23 +1783,6 @@ InternalStatement createYieldStatement(
     isYieldStar: isYieldStar,
     fileOffset: fileOffset,
   );
-}
-
-// Coverage-ignore(suite): Not run.
-bool isErroneousNode(Object? node) {
-  if (node is ExpressionStatement) {
-    ExpressionStatement statement = node;
-    node = statement.expression;
-  }
-  if (node is Variable) {
-    Variable variable = node;
-    node = variable.initializer;
-  }
-  if (node is Let) {
-    Let let = node;
-    node = let.variable.initializer;
-  }
-  return node is InvalidExpression;
 }
 
 bool isThisExpression(Object node) =>

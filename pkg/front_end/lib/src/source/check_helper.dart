@@ -33,7 +33,7 @@ import 'source_library_builder.dart';
 import 'stack_listener_impl.dart';
 
 extension CheckHelper on ProblemReporting {
-  InvalidExpression buildProblem({
+  ErrorText buildProblem({
     required CompilerContext compilerContext,
     required Message message,
     required Uri fileUri,
@@ -41,7 +41,7 @@ extension CheckHelper on ProblemReporting {
     required int length,
     List<LocatedMessage>? context,
     bool errorHasBeenReported = false,
-    Expression? expression,
+    bool wasHandled = true,
   }) {
     if (!errorHasBeenReported) {
       addProblem(
@@ -49,20 +49,22 @@ extension CheckHelper on ProblemReporting {
         fileOffset,
         length,
         fileUri,
-        wasHandled: true,
+        wasHandled: wasHandled,
         context: context,
       );
     }
-    String text = compilerContext
-        .format(
-          message.withLocation(fileUri, fileOffset, length),
-          CfeSeverity.error,
-        )
-        .plain;
-    return new InvalidExpression(text, expression)..fileOffset = fileOffset;
+    return new ErrorText(
+      message: compilerContext
+          .format(
+            message.withLocation(fileUri, fileOffset, length),
+            CfeSeverity.error,
+          )
+          .plain,
+      fileOffset: fileOffset,
+    );
   }
 
-  Expression buildProblemWithContextFromMember({
+  ErrorText buildProblemWithContextFromMember({
     required CompilerContext compilerContext,
     required String name,
     required Member member,
@@ -107,16 +109,20 @@ extension CheckHelper on ProblemReporting {
     );
   }
 
-  InvalidExpression buildProblemFromLocatedMessage({
+  ErrorText buildProblemFromLocatedMessage({
     required CompilerContext compilerContext,
     required LocatedMessage message,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
   }) {
     return buildProblem(
       compilerContext: compilerContext,
       message: message.messageObject,
+      context: context,
       fileUri: message.uri!,
       fileOffset: message.charOffset,
       length: message.length,
+      errorHasBeenReported: errorHasBeenReported,
     );
   }
 
@@ -760,7 +766,7 @@ extension CheckHelper on ProblemReporting {
     }
   }
 
-  Expression? checkStaticArguments({
+  ErrorText? checkStaticArguments({
     required CompilerContext compilerContext,
     required Member target,
     required TypeArguments? explicitTypeArguments,
@@ -864,64 +870,6 @@ extension CheckHelper on ProblemReporting {
       );
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
-  }
-
-  InvalidExpression wrapInLocatedProblem({
-    required CompilerContext compilerContext,
-    required Expression expression,
-    required LocatedMessage message,
-    List<LocatedMessage>? context,
-    bool errorHasBeenReported = false,
-    bool includeExpression = true,
-  }) {
-    // TODO(askesc): Produce explicit error expression wrapping the original.
-    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    int offset = expression.fileOffset;
-    if (offset == -1) {
-      // Coverage-ignore-block(suite): Not run.
-      offset = message.charOffset;
-    }
-    return buildProblem(
-      compilerContext: compilerContext,
-      message: message.messageObject,
-      fileUri: message.uri!,
-      fileOffset: message.charOffset,
-      length: message.length,
-      context: context,
-      expression: includeExpression ? expression : null,
-      errorHasBeenReported: errorHasBeenReported,
-    );
-  }
-
-  Expression wrapInProblem({
-    required CompilerContext compilerContext,
-    required Expression expression,
-    required Message message,
-    required Uri fileUri,
-    required int fileOffset,
-    required int length,
-    List<LocatedMessage>? context,
-    bool? errorHasBeenReported,
-    bool includeExpression = true,
-  }) {
-    CfeSeverity severity = message.code.severity;
-    if (severity == CfeSeverity.error) {
-      return wrapInLocatedProblem(
-        compilerContext: compilerContext,
-        expression: expression,
-        message: message.withLocation(fileUri, fileOffset, length),
-        context: context,
-        errorHasBeenReported:
-            errorHasBeenReported ?? expression is InvalidExpression,
-        includeExpression: includeExpression,
-      );
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      if (expression is! InvalidExpression) {
-        addProblem(message, fileOffset, length, fileUri, context: context);
-      }
-      return expression;
-    }
   }
 
   void _reportTypeArgumentIssueForStructuralParameter(
@@ -1131,3 +1079,5 @@ extension CheckHelper on ProblemReporting {
     return publicName;
   }
 }
+
+class ErrorText({required final String message, required final int fileOffset});

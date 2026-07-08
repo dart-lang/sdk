@@ -237,15 +237,17 @@ class _SyncContext extends BodyInferenceContext {
           returnType is NullType) {
         // Valid return;
       } else {
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.returnWithoutExpressionSync,
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.fileOffset,
+            length: noLength,
+          ),
           expression: extern.createNullLiteral(
             fileOffset: statement.fileOffset,
           ),
-          message: diag.returnWithoutExpressionSync,
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.fileOffset,
-          length: noLength,
         )..parent = statement;
       }
     } else {
@@ -262,29 +264,33 @@ class _SyncContext extends BodyInferenceContext {
               expressionType is NullType)) {
         // It is a compile-time error if s is `return e;`, T is void, and S is
         // neither void, dynamic, nor Null.
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.returnFromVoidFunction,
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.expression!.fileOffset,
+            length: noLength,
+          ),
           expression: statement.expression!,
-          message: diag.returnFromVoidFunction,
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.expression!.fileOffset,
-          length: noLength,
         )..parent = statement;
       } else if (!(returnType is VoidType || returnType is DynamicType) &&
           expressionType is VoidType) {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T is neither void
         // nor dynamic, and S is void.
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
-          expression: statement.expression!,
-          message: diag.invalidReturn.withArguments(
-            actualType: expressionType,
-            expectedType: _declaredReturnType,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.invalidReturn.withArguments(
+              actualType: expressionType,
+              expectedType: _declaredReturnType,
+            ),
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.expression!.fileOffset,
+            length: noLength,
           ),
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.expression!.fileOffset,
-          length: noLength,
+          expression: statement.expression!,
         )..parent = statement;
       } else if (expressionType is! VoidType) {
         // It is a compile-time error if s is `return e;`, S is not void, and
@@ -421,15 +427,17 @@ class _SyncContext extends BodyInferenceContext {
       Statement resultStatement = inferenceResult.statement;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
-        inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
-          expression: extern.createNullLiteral(fileOffset: fileOffset),
-          message: diag.implicitReturnNull.withArguments(
-            returnType: returnType,
+        extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.implicitReturnNull.withArguments(
+              returnType: returnType,
+            ),
+            fileUri: inferrer.fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
           ),
-          fileUri: inferrer.fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+          expression: extern.createNullLiteral(fileOffset: fileOffset),
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {
@@ -524,15 +532,17 @@ class _AsyncContext extends BodyInferenceContext {
           emittedValueType is NullType) {
         // Valid return;
       } else {
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.returnWithoutExpressionAsync,
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.fileOffset,
+            length: noLength,
+          ),
           expression: extern.createNullLiteral(
             fileOffset: statement.fileOffset,
           ),
-          message: diag.returnWithoutExpressionAsync,
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.fileOffset,
-          length: noLength,
         )..parent = statement;
       }
     } else {
@@ -557,18 +567,20 @@ class _AsyncContext extends BodyInferenceContext {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is void, and
         // flatten(S) is neither void, dynamic, Null.
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.invalidReturnAsync.withArguments(
+              actualType: expressionType,
+              expectedType: returnType,
+            ),
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.expression!.fileOffset,
+            length: noLength,
+          ),
           expression: extern.createNullLiteral(
             fileOffset: statement.fileOffset,
           ),
-          message: diag.invalidReturnAsync.withArguments(
-            actualType: expressionType,
-            expectedType: returnType,
-          ),
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.expression!.fileOffset,
-          length: noLength,
         )..parent = statement;
       } else if (!(emittedValueType is VoidType ||
               emittedValueType is DynamicType) &&
@@ -576,18 +588,20 @@ class _AsyncContext extends BodyInferenceContext {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is neither void
         // nor dynamic, and flatten(S) is void.
-        statement.expression = inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
+        statement.expression = extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.invalidReturnAsync.withArguments(
+              actualType: expressionType,
+              expectedType: returnType,
+            ),
+            fileUri: inferrer.fileUri,
+            fileOffset: statement.expression!.fileOffset,
+            length: noLength,
+          ),
           expression: extern.createNullLiteral(
             fileOffset: statement.fileOffset,
           ),
-          message: diag.invalidReturnAsync.withArguments(
-            actualType: expressionType,
-            expectedType: returnType,
-          ),
-          fileUri: inferrer.fileUri,
-          fileOffset: statement.expression!.fileOffset,
-          length: noLength,
         )..parent = statement;
       } else if (flattenedExpressionType is! VoidType &&
           !inferrer.typeSchemaEnvironment
@@ -733,15 +747,17 @@ class _AsyncContext extends BodyInferenceContext {
       Statement resultStatement = inferenceResult.statement;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
-        inferrer.problemReporting.wrapInProblem(
-          compilerContext: inferrer.compilerContext,
-          expression: extern.createNullLiteral(fileOffset: fileOffset),
-          message: diag.implicitReturnNull.withArguments(
-            returnType: returnType,
+        extern.createInvalidExpressionFromErrorText(
+          inferrer.problemReporting.buildProblem(
+            compilerContext: inferrer.compilerContext,
+            message: diag.implicitReturnNull.withArguments(
+              returnType: returnType,
+            ),
+            fileUri: inferrer.fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
           ),
-          fileUri: inferrer.fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+          expression: extern.createNullLiteral(fileOffset: fileOffset),
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {

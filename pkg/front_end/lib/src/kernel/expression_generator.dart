@@ -176,7 +176,7 @@ abstract class Generator {
   /// Returns an [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     required UnresolvedKind unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -192,7 +192,9 @@ abstract class Generator {
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return _helper.buildUnresolvedError(
       _plainNameForRead,
       fileOffset,
@@ -394,12 +396,14 @@ abstract class Generator {
   /// and an invalid pattern is returned.
   InternalPattern buildPatternAssignment(Token token) {
     return intern.createInvalidPattern(
-      problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.patternAssignmentNotLocalVariable,
-        fileOffset: token.charOffset,
-        length: token.charCount,
-        fileUri: _fileUri,
+      intern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.patternAssignmentNotLocalVariable,
+          fileOffset: token.charOffset,
+          length: token.charCount,
+          fileUri: _fileUri,
+        ),
       ),
       declaredVariables: [],
     );
@@ -644,7 +648,9 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   String get _debugName => "ForInLateFinalVariableUseGenerator";
 
   @override
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return _helper.buildProblem(
       message: diag.cannotAssignToFinalVariable.withArguments(
         variableName: variable.cosmeticName!,
@@ -659,7 +665,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    InvalidExpression error = _makeInvalidWrite()..parent = variable;
+    InternalInvalidExpression error = _makeInvalidWrite()..parent = variable;
     Expression assignment = super.buildAssignment(
       value,
       voidContext: voidContext,
@@ -2909,12 +2915,14 @@ class ExtensionInstanceAccessGenerator extends Generator {
       );
       if (argMessage != null) {
         // Coverage-ignore-block(suite): Not run.
-        return problemReporting.buildProblemWithContextFromMember(
-          compilerContext: compilerContext,
-          name: targetName.text,
-          member: method,
-          message: argMessage,
-          fileUri: _fileUri,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblemWithContextFromMember(
+            compilerContext: compilerContext,
+            name: targetName.text,
+            member: method,
+            message: argMessage,
+            fileUri: _fileUri,
+          ),
         );
       }
       return new ExtensionMethodInvocation.implicit(
@@ -3368,12 +3376,14 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         extension: extension,
       );
       if (argMessage != null) {
-        return problemReporting.buildProblemWithContextFromMember(
-          compilerContext: compilerContext,
-          name: targetName.text,
-          member: method,
-          message: argMessage,
-          fileUri: _fileUri,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblemWithContextFromMember(
+            compilerContext: compilerContext,
+            name: targetName.text,
+            member: method,
+            message: argMessage,
+            fileUri: _fileUri,
+          ),
         );
       }
       return new ExtensionMethodInvocation.explicit(
@@ -3940,7 +3950,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -3955,7 +3965,9 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return _helper.buildProblem(
       message: diag.explicitExtensionAsLvalue,
       fileUri: _helper.uri,
@@ -5205,7 +5217,9 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   Expression _createRead() => expression;
 
   @override
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
@@ -5379,7 +5393,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
 abstract class ErroneousExpressionGenerator extends Generator {
   new(ExpressionGeneratorHelper helper, Token token) : super(helper, token);
 
-  InvalidExpression buildError({
+  InternalInvalidExpression buildError({
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5486,7 +5500,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     required UnresolvedKind unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -5498,7 +5512,9 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return buildError(
       kind: UnresolvedKind.Setter,
       errorHasBeenReported: errorHasBeenReported,
@@ -5564,19 +5580,21 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
     );
   }
 
-  InvalidExpression _createInvalidExpression() {
-    return LookupResult.createDuplicateExpression(
-      _lookupResult,
-      context: _helper.libraryBuilder.loader.target.context,
-      name: name.text,
-      fileUri: _helper.uri,
-      fileOffset: fileOffset,
-      length: _nameLength,
+  InternalInvalidExpression _createInvalidExpression() {
+    return intern.createInvalidExpressionFromErrorText(
+      LookupResult.createDuplicateErrorText(
+        _lookupResult,
+        context: _helper.libraryBuilder.loader.target.context,
+        name: name.text,
+        fileUri: _helper.uri,
+        fileOffset: fileOffset,
+        length: _nameLength,
+      ),
     );
   }
 
   @override
-  InvalidExpression buildError({
+  InternalInvalidExpression buildError({
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5586,7 +5604,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -5595,7 +5613,9 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return _createInvalidExpression();
   }
 
@@ -5708,7 +5728,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  InvalidExpression buildError({
+  InternalInvalidExpression buildError({
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5772,7 +5792,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     sink.write(name.text);
   }
 
-  InvalidExpression _buildUnresolvedVariableAssignment({
+  InternalInvalidExpression _buildUnresolvedVariableAssignment({
     required bool isCompound,
   }) {
     return buildError(
@@ -5891,7 +5911,9 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) {
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) {
     return _helper.buildProblem(
       message: diag.illegalAssignmentToNonAssignable,
       fileUri: _helper.uri,
@@ -6229,16 +6251,18 @@ class PrefixUseGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return problemReporting.wrapInLocatedProblem(
-      compilerContext: compilerContext,
+    return intern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblemFromLocatedMessage(
+        compilerContext: compilerContext,
+        message: diag.cantUsePrefixAsExpression.withLocation(
+          _helper.uri,
+          fileOffset,
+          lengthForToken(token),
+        ),
+      ),
       expression: _helper.evaluateArgumentsBefore(
         arguments,
         intern.createNullLiteral(fileOffset),
-      ),
-      message: diag.cantUsePrefixAsExpression.withLocation(
-        _helper.uri,
-        fileOffset,
-        lengthForToken(token),
       ),
     );
   }
@@ -6266,21 +6290,23 @@ class PrefixUseGenerator extends Generator {
       );
     }
     if (isNullAware) {
-      result = problemReporting.wrapInLocatedProblem(
-        compilerContext: compilerContext,
-        expression: _helper.toValue(result),
-        message: diag.cantUsePrefixWithNullAware.withLocation(
-          _helper.uri,
-          fileOffset,
-          lengthForToken(token),
+      result = intern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblemFromLocatedMessage(
+          compilerContext: compilerContext,
+          message: diag.cantUsePrefixWithNullAware.withLocation(
+            _helper.uri,
+            fileOffset,
+            lengthForToken(token),
+          ),
         ),
+        expression: _helper.toValue(result),
       );
     }
     return result;
   }
 
   @override
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) {
@@ -6294,8 +6320,9 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
-      _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) => _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6523,11 +6550,11 @@ class ParserErrorGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {}
 
-  InvalidExpression buildProblem() {
+  InternalInvalidExpression buildProblem() {
     return buildProblemExpression(_helper, message, fileOffset);
   }
 
-  static InvalidExpression buildProblemExpression(
+  static InternalInvalidExpression buildProblemExpression(
     ExpressionGeneratorHelper _helper,
     Message message,
     int fileOffset,
@@ -6600,15 +6627,16 @@ class ParserErrorGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidRead({
+  InternalInvalidExpression _makeInvalidRead({
     UnresolvedKind? unresolvedKind,
     bool errorHasBeenReported = false,
   }) => buildProblem();
 
   @override
   // Coverage-ignore(suite): Not run.
-  InvalidExpression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
-      buildProblem();
+  InternalInvalidExpression _makeInvalidWrite({
+    bool errorHasBeenReported = false,
+  }) => buildProblem();
 
   @override
   List<InternalInitializer> buildFieldInitializer(
@@ -6803,7 +6831,7 @@ class ThisAccessGenerator extends Generator {
     }
   }
 
-  InvalidExpression buildFieldInitializerError(
+  InternalInvalidExpression buildFieldInitializerError(
     Map<String, int>? initializedFields,
   ) {
     String keyword = isSuper ? "super" : "this";
@@ -6821,7 +6849,9 @@ class ThisAccessGenerator extends Generator {
   List<InternalInitializer> buildFieldInitializer(
     Map<String, int>? initializedFields,
   ) {
-    InvalidExpression error = buildFieldInitializerError(initializedFields);
+    InternalInvalidExpression error = buildFieldInitializerError(
+      initializedFields,
+    );
     return [intern.createInvalidInitializer(error)];
   }
 
@@ -7012,8 +7042,8 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return intern.createInvalidInitializer(
-            LookupResult.createDuplicateExpression(
+          return intern.createInvalidInitializer2(
+            LookupResult.createDuplicateErrorText(
               result,
               context: _helper.compilerContext,
               name: name.text,
@@ -7154,7 +7184,7 @@ class ThisAccessGenerator extends Generator {
   }
 
   // Coverage-ignore(suite): Not run.
-  InvalidExpression buildAssignmentError() {
+  InternalInvalidExpression buildAssignmentError() {
     return _helper.buildProblem(
       message: isSuper ? diag.cannotAssignToSuper : diag.notAnLvalue,
       fileUri: _helper.uri,
@@ -7192,7 +7222,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   String get _debugName => "IncompleteErrorGenerator";
 
   @override
-  InvalidExpression buildError({
+  InternalInvalidExpression buildError({
     required UnresolvedKind kind,
     String? name,
     int? charOffset,

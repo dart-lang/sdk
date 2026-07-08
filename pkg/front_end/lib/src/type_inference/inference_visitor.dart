@@ -867,29 +867,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInternalInvalidExpression(
-    InternalInvalidExpression node,
-    DartType typeContext,
-  ) {
-    // TODO(johnniwinther): Use [InternalInvalidExpression] instead.
-    _unhandledExpression(node, typeContext);
-  }
-
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInvalidExpression(
     InvalidExpression node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalInvalidExpression(
+    InternalInvalidExpression node,
+    DartType typeContext,
+  ) {
+    Expression? expression;
     if (node.expression != null) {
       ExpressionInferenceResult result = inferExpression(
         node.expression!,
         typeContext,
         isVoidAllowed: true,
       );
-      node.expression = result.expression..parent = node;
+      expression = result.expression;
     }
-    return new ExpressionInferenceResult(const InvalidType(), node);
+    Expression replacement = extern.createInvalidExpression(
+      node.message,
+      expression: expression,
+      fileOffset: node.fileOffset,
+    );
+    return new ExpressionInferenceResult(const InvalidType(), replacement);
   }
 
   @override
@@ -988,13 +993,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferred: false,
         );
         if (operandType.isPotentiallyNullable) {
-          result = problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.instantiationNullableGenericFunctionType
-                .withArguments(operandType: operandType),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: noLength,
+          result = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.instantiationNullableGenericFunctionType
+                  .withArguments(operandType: operandType),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: noLength,
+            ),
           );
         } else {
           resultType = FunctionTypeInstantiator.instantiate(
@@ -1004,50 +1011,58 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       } else {
         if (operandType.typeParameters.isEmpty) {
-          result = problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.instantiationNonGenericFunctionType.withArguments(
-              operandType: operandType,
+          result = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.instantiationNonGenericFunctionType.withArguments(
+                operandType: operandType,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: noLength,
             ),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: noLength,
           );
         } else if (operandType.typeParameters.length >
             node.typeArguments.length) {
-          result = problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.instantiationTooFewArguments.withArguments(
-              expectedCount: operandType.typeParameters.length,
-              actualCount: node.typeArguments.length,
+          result = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.instantiationTooFewArguments.withArguments(
+                expectedCount: operandType.typeParameters.length,
+                actualCount: node.typeArguments.length,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: noLength,
             ),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: noLength,
           );
         } else if (operandType.typeParameters.length <
             node.typeArguments.length) {
-          result = problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.instantiationTooManyArguments.withArguments(
-              expectedCount: operandType.typeParameters.length,
-              actualCount: node.typeArguments.length,
+          result = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.instantiationTooManyArguments.withArguments(
+                expectedCount: operandType.typeParameters.length,
+                actualCount: node.typeArguments.length,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: noLength,
             ),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: noLength,
           );
         }
       }
     } else if (operandType is! InvalidType) {
-      result = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.instantiationNonGenericFunctionType.withArguments(
-          operandType: operandType,
+      result = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.instantiationNonGenericFunctionType.withArguments(
+            operandType: operandType,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: noLength,
         ),
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        length: noLength,
       );
     }
     libraryBuilder.loader.dataForTesting
@@ -1227,13 +1242,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType flattenType = analysisResult.type.unwrapTypeView();
     if (_isIncompatibleWithAwait(operandType)) {
       Expression wrapped = operandRewrite;
-      operandRewrite = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
+      operandRewrite = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.awaitOfExtensionTypeNotFuture,
+          fileUri: fileUri,
+          fileOffset: wrapped.fileOffset,
+          length: 1,
+        ),
         expression: wrapped,
-        message: diag.awaitOfExtensionTypeNotFuture,
-        fileUri: fileUri,
-        fileOffset: wrapped.fileOffset,
-        length: 1,
       );
       wrapped.parent = operandRewrite;
     }
@@ -1331,7 +1348,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.error != null) {
       // Coverage-ignore-block(suite): Not run.
       return new StatementInferenceResult.single(
-        extern.createExpressionStatement(node.error!),
+        extern.createExpressionStatement(
+          extern.createInvalidExpression(
+            node.error!.message,
+            fileOffset: node.error!.fileOffset,
+          ),
+        ),
       );
     }
     flowAnalysis.handleBreak(node.targetStatement);
@@ -1349,7 +1371,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.error != null) {
       // Coverage-ignore-block(suite): Not run.
       return new StatementInferenceResult.single(
-        extern.createExpressionStatement(node.error!),
+        extern.createExpressionStatement(
+          extern.createInvalidExpression(
+            node.error!.message,
+            fileOffset: node.error!.fileOffset,
+          ),
+        ),
       );
     }
     flowAnalysis.handleContinue(node.targetStatement);
@@ -1636,7 +1663,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     if (node.error != null) {
       return new StatementInferenceResult.single(
-        extern.createExpressionStatement(node.error!),
+        extern.createExpressionStatement(
+          extern.createInvalidExpression(
+            node.error!.message,
+            fileOffset: node.error!.fileOffset,
+          ),
+        ),
       );
     }
     flowAnalysis.handleContinue(node.target.body);
@@ -2880,7 +2912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
-    Expression? result = problemReporting.checkStaticArguments(
+    ErrorText? errorText = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
       target: effectiveTarget,
       explicitTypeArguments: null,
@@ -2888,18 +2920,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: fileOffset,
       fileUri: fileUri,
     );
-    if (result != null) {
-      return result;
+    if (errorText != null) {
+      // Coverage-ignore-block(suite): Not run.
+      return extern.createInvalidExpressionFromErrorText(errorText);
     }
     if (effectiveTarget is Constructor) {
       if (isConst && !effectiveTarget.isConst) {
         // Coverage-ignore-block(suite): Not run.
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonConstConstructor,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+        return extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
         );
       }
       problemReporting.checkBoundsInConstructorInvocation(
@@ -2937,20 +2972,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Both generative constructors and factory constructors from
           // extension type declarations are encoded as procedures so we use
           // the message for non-const constructors here.
-          return problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.nonConstConstructor,
-            fileUri: fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
+          return extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nonConstConstructor,
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+            ),
           );
         } else {
-          return problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.nonConstFactory,
-            fileUri: fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
+          return extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nonConstFactory,
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+            ),
           );
         }
       }
@@ -4099,14 +4138,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     int? intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.integerLiteralIsOutOfRange.withArguments(
-          literal: node.literal,
+      Expression replacement = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.integerLiteralIsOutOfRange.withArguments(
+            literal: node.literal,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: node.literal.length,
         ),
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        length: node.literal.length,
       );
       return new ExpressionInferenceResult(const DynamicType(), replacement);
     }
@@ -4248,14 +4289,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     if (spreadElementType == null) {
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
-        replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonNullAwareSpreadIsNull.withArguments(
-            spreadType: spreadType,
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonNullAwareSpreadIsNull.withArguments(
+              spreadType: spreadType,
+            ),
+            fileUri: fileUri,
+            fileOffset: element.expression.fileOffset,
+            length: 1,
           ),
-          fileUri: fileUri,
-          fileOffset: element.expression.fileOffset,
-          length: 1,
         );
       } else {
         if (spreadType.isPotentiallyNullable &&
@@ -4263,7 +4306,58 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             spreadType is! NullType &&
             !element.isNullAware) {
           Expression receiver = element.expression;
-          replacement = problemReporting.buildProblem(
+          replacement = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nullableSpreadError,
+              fileUri: fileUri,
+              fileOffset: receiver.fileOffset,
+              length: 1,
+              context: getWhyNotPromotedContext(
+                flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+                element,
+                // Coverage-ignore(suite): Not run.
+                (type) => !type.isPotentiallyNullable,
+              ),
+            ),
+          );
+        }
+
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadTypeMismatch.withArguments(
+              spreadType: spreadType,
+            ),
+            fileUri: fileUri,
+            fileOffset: element.expression.fileOffset,
+            length: 1,
+          ),
+        );
+        _copyNonPromotionReasonToReplacement(element, replacement);
+      }
+    } else if (spreadTypeBound is InterfaceType) {
+      if (!isAssignable(inferredTypeArgument, spreadElementType)) {
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadElementTypeMismatch.withArguments(
+              spreadElementType: spreadElementType,
+              collectionElementType: inferredTypeArgument,
+            ),
+            fileUri: fileUri,
+            fileOffset: element.expression.fileOffset,
+            length: 1,
+          ),
+        );
+      }
+      if (spreadType.isPotentiallyNullable &&
+          spreadType is! DynamicType &&
+          spreadType is! NullType &&
+          !element.isNullAware) {
+        Expression receiver = element.expression;
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.nullableSpreadError,
             fileUri: fileUri,
@@ -4275,49 +4369,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
             ),
-          );
-        }
-
-        replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadTypeMismatch.withArguments(
-            spreadType: spreadType,
-          ),
-          fileUri: fileUri,
-          fileOffset: element.expression.fileOffset,
-          length: 1,
-        );
-        _copyNonPromotionReasonToReplacement(element, replacement);
-      }
-    } else if (spreadTypeBound is InterfaceType) {
-      if (!isAssignable(inferredTypeArgument, spreadElementType)) {
-        replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadElementTypeMismatch.withArguments(
-            spreadElementType: spreadElementType,
-            collectionElementType: inferredTypeArgument,
-          ),
-          fileUri: fileUri,
-          fileOffset: element.expression.fileOffset,
-          length: 1,
-        );
-      }
-      if (spreadType.isPotentiallyNullable &&
-          spreadType is! DynamicType &&
-          spreadType is! NullType &&
-          !element.isNullAware) {
-        Expression receiver = element.expression;
-        replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nullableSpreadError,
-          fileUri: fileUri,
-          fileOffset: receiver.fileOffset,
-          length: 1,
-          context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
-            element,
-            // Coverage-ignore(suite): Not run.
-            (type) => !type.isPotentiallyNullable,
           ),
         );
         _copyNonPromotionReasonToReplacement(element, replacement);
@@ -7354,14 +7405,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (actualKeyType == noInferredType) {
       if (coreTypes.isNull(spreadTypeBound) && !entry.isNullAware) {
         replacement = new MapLiteralEntry(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.nonNullAwareSpreadIsNull.withArguments(
-              spreadType: spreadType,
+          extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nonNullAwareSpreadIsNull.withArguments(
+                spreadType: spreadType,
+              ),
+              fileUri: fileUri,
+              fileOffset: entry.expression.fileOffset,
+              length: 1,
             ),
-            fileUri: fileUri,
-            fileOffset: entry.expression.fileOffset,
-            length: 1,
           ),
           extern.createNullLiteral(fileOffset: TreeNode.noOffset),
         )..fileOffset = entry.fileOffset;
@@ -7371,17 +7424,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             spreadType is! NullType &&
             !entry.isNullAware) {
           Expression receiver = entry.expression;
-          Expression problem = problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.nullableSpreadError,
-            fileUri: fileUri,
-            fileOffset: receiver.fileOffset,
-            length: 1,
-            context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
-              entry,
-              // Coverage-ignore(suite): Not run.
-              (type) => !type.isPotentiallyNullable,
+          Expression problem = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nullableSpreadError,
+              fileUri: fileUri,
+              fileOffset: receiver.fileOffset,
+              length: 1,
+              context: getWhyNotPromotedContext(
+                flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+                entry,
+                // Coverage-ignore(suite): Not run.
+                (type) => !type.isPotentiallyNullable,
+              ),
             ),
           );
           _copyNonPromotionReasonToReplacement(entry, problem);
@@ -7394,19 +7449,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         offsets.iterableSpreadType = spreadType;
       } else {
         Expression receiver = entry.expression;
-        Expression problem = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadMapEntryTypeMismatch.withArguments(
-            spreadType: spreadType,
-          ),
-          fileUri: fileUri,
-          fileOffset: receiver.fileOffset,
-          length: 1,
-          context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
-            entry,
-            // Coverage-ignore(suite): Not run.
-            (type) => !type.isPotentiallyNullable,
+        Expression problem = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadMapEntryTypeMismatch.withArguments(
+              spreadType: spreadType,
+            ),
+            fileUri: fileUri,
+            fileOffset: receiver.fileOffset,
+            length: 1,
+            context: getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+              entry,
+              // Coverage-ignore(suite): Not run.
+              (type) => !type.isPotentiallyNullable,
+            ),
           ),
         );
         _copyNonPromotionReasonToReplacement(entry, problem);
@@ -7419,27 +7476,31 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? keyError;
       Expression? valueError;
       if (!isAssignable(inferredKeyType, actualKeyType)) {
-        keyError = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadMapEntryElementKeyTypeMismatch.withArguments(
-            spreadKeyType: actualKeyType,
-            mapKeyType: inferredKeyType,
+        keyError = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadMapEntryElementKeyTypeMismatch.withArguments(
+              spreadKeyType: actualKeyType,
+              mapKeyType: inferredKeyType,
+            ),
+            fileUri: fileUri,
+            fileOffset: entry.expression.fileOffset,
+            length: 1,
           ),
-          fileUri: fileUri,
-          fileOffset: entry.expression.fileOffset,
-          length: 1,
         );
       }
       if (!isAssignable(inferredValueType, actualValueType)) {
-        valueError = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadMapEntryElementValueTypeMismatch.withArguments(
-            spreadValueType: actualValueType,
-            mapValueType: inferredValueType,
+        valueError = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadMapEntryElementValueTypeMismatch.withArguments(
+              spreadValueType: actualValueType,
+              mapValueType: inferredValueType,
+            ),
+            fileUri: fileUri,
+            fileOffset: entry.expression.fileOffset,
+            length: 1,
           ),
-          fileUri: fileUri,
-          fileOffset: entry.expression.fileOffset,
-          length: 1,
         );
       }
       if (spreadType.isPotentiallyNullable &&
@@ -7447,17 +7508,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! NullType &&
           !entry.isNullAware) {
         Expression receiver = entry.expression;
-        keyError = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nullableSpreadError,
-          fileUri: fileUri,
-          fileOffset: receiver.fileOffset,
-          length: 1,
-          context: getWhyNotPromotedContext(
-            flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
-            entry,
-            // Coverage-ignore(suite): Not run.
-            (type) => !type.isPotentiallyNullable,
+        keyError = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableSpreadError,
+            fileUri: fileUri,
+            fileOffset: receiver.fileOffset,
+            length: 1,
+            context: getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+              entry,
+              // Coverage-ignore(suite): Not run.
+              (type) => !type.isPotentiallyNullable,
+            ),
           ),
         );
         _copyNonPromotionReasonToReplacement(entry, keyError);
@@ -8202,14 +8265,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MapLiteralEntry replacement = entry;
     if (offsets.iterableSpreadOffset != null) {
       replacement = new MapLiteralEntry(
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.spreadMapEntryTypeMismatch.withArguments(
-            spreadType: offsets.iterableSpreadType!,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.spreadMapEntryTypeMismatch.withArguments(
+              spreadType: offsets.iterableSpreadType!,
+            ),
+            fileUri: fileUri,
+            fileOffset: offsets.iterableSpreadOffset!,
+            length: 1,
           ),
-          fileUri: fileUri,
-          fileOffset: offsets.iterableSpreadOffset!,
-          length: 1,
         ),
         extern.createNullLiteral(fileOffset: TreeNode.noOffset),
       )..fileOffset = offsets.iterableSpreadOffset!;
@@ -8547,12 +8612,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(inferredType, result);
       }
       if (canBeSet && canBeMap && entries.isNotEmpty) {
-        Expression replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.cantDisambiguateNotEnoughInformation,
-          fileUri: fileUri,
-          fileOffset: node.fileOffset,
-          length: 1,
+        Expression replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.cantDisambiguateNotEnoughInformation,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: 1,
+          ),
         );
         return new ExpressionInferenceResult(
           NeverType.fromNullability(Nullability.nonNullable),
@@ -8560,12 +8627,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       }
       if (!canBeSet && !canBeMap) {
-        Expression replacement = problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.cantDisambiguateAmbiguousInformation,
-          fileUri: fileUri,
-          fileOffset: node.fileOffset,
-          length: 1,
+        Expression replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.cantDisambiguateAmbiguousInformation,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: 1,
+          ),
         );
         return new ExpressionInferenceResult(
           NeverType.fromNullability(Nullability.nonNullable),
@@ -8750,12 +8819,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     // TODO(johnniwinther): How can this be triggered? This will fail if
     // encountered in top level inference.
-    return problemReporting.buildProblem(
-      compilerContext: compilerContext,
-      message: diag.expectedButGot.withArguments(expected: ','),
-      fileUri: fileUri,
-      fileOffset: entry.fileOffset,
-      length: 1,
+    return extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: diag.expectedButGot.withArguments(expected: ','),
+        fileUri: fileUri,
+        fileOffset: entry.fileOffset,
+        length: 1,
+      ),
     );
   }
 
@@ -11014,17 +11085,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       return new ExpressionInferenceResult(
         binaryType,
-        problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: binary,
-          message: diag.nullableOperatorCallError.withArguments(
-            operator: binaryName.text,
-            receiverType: leftType,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableOperatorCallError.withArguments(
+              operator: binaryName.text,
+              receiverType: leftType,
+            ),
+            fileUri: fileUri,
+            fileOffset: binary.fileOffset,
+            length: binaryName.text.length,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: binary.fileOffset,
-          length: binaryName.text.length,
-          context: context,
+          expression: binary,
         ),
       );
     }
@@ -11180,21 +11253,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // probably be referred to as "Unary operator '-' ...".
       return new ExpressionInferenceResult(
         unaryType,
-        problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: unary,
-          message: diag.nullableOperatorCallError.withArguments(
-            operator: unaryName.text,
-            receiverType: expressionType,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableOperatorCallError.withArguments(
+              operator: unaryName.text,
+              receiverType: expressionType,
+            ),
+            fileUri: fileUri,
+            fileOffset: unary.fileOffset,
+            length: unaryName == unaryMinusName
+                ? 1
+                :
+                  // Coverage-ignore(suite): Not run.
+                  unaryName.text.length,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: unary.fileOffset,
-          length: unaryName == unaryMinusName
-              ? 1
-              :
-                // Coverage-ignore(suite): Not run.
-                unaryName.text.length,
-          context: context,
+          expression: unary,
         ),
       );
     }
@@ -11342,16 +11417,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (readTarget.isNullable) {
       return new ExpressionInferenceResult(
         readType,
-        problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: read,
-          message: diag.nullableOperatorCallError.withArguments(
-            operator: indexGetName.text,
-            receiverType: receiverType,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableOperatorCallError.withArguments(
+              operator: indexGetName.text,
+              receiverType: receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: read.fileOffset,
+            length: noLength,
           ),
-          fileUri: fileUri,
-          fileOffset: read.fileOffset,
-          length: noLength,
+          expression: read,
         ),
       );
     }
@@ -11497,16 +11574,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
     }
     if (writeTarget.isNullable) {
-      return problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: write,
-        message: diag.nullableOperatorCallError.withArguments(
-          operator: indexSetName.text,
-          receiverType: receiverType,
+      return extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.nullableOperatorCallError.withArguments(
+            operator: indexSetName.text,
+            receiverType: receiverType,
+          ),
+          fileUri: fileUri,
+          fileOffset: write.fileOffset,
+          length: noLength,
         ),
-        fileUri: fileUri,
-        fileOffset: write.fileOffset,
-        length: noLength,
+        expression: write,
       );
     }
     return write;
@@ -12283,13 +12362,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = receiverResult.inferredType;
 
     if (receiverType is VoidType) {
-      receiver = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
+      receiver = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.voidExpression,
+          fileUri: fileUri,
+          fileOffset: receiver.fileOffset,
+          length: noLength,
+        ),
         expression: receiver,
-        message: diag.voidExpression,
-        fileUri: fileUri,
-        fileOffset: receiver.fileOffset,
-        length: noLength,
       );
     }
 
@@ -12490,13 +12571,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = receiverResult.inferredType;
 
     if (receiverType is VoidType) {
-      receiver = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
+      receiver = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.voidExpression,
+          fileUri: fileUri,
+          fileOffset: receiver.fileOffset,
+          length: noLength,
+        ),
         expression: receiver,
-        message: diag.voidExpression,
-        fileUri: fileUri,
-        fileOffset: receiver.fileOffset,
-        length: noLength,
       );
     }
 
@@ -12812,7 +12895,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Initializer? result;
     if (message != null) {
-      result = createInvalidInitializer(
+      result = createInvalidInitializer2(
         problemReporting.buildProblemFromLocatedMessage(
           compilerContext: compilerContext,
           message: message,
@@ -12881,7 +12964,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Initializer? result;
     if (message != null) {
-      result = createInvalidInitializer(
+      result = createInvalidInitializer2(
         problemReporting.buildProblemFromLocatedMessage(
           compilerContext: compilerContext,
           message: message,
@@ -13423,7 +13506,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Initializer? result;
     if (message != null) {
-      result = createInvalidInitializer(
+      result = createInvalidInitializer2(
         problemReporting.buildProblemFromLocatedMessage(
           compilerContext: compilerContext,
           message: message,
@@ -13831,18 +13914,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (!jointVariablesNotInAll.contains(jointVariable) &&
                 inferredType != null &&
                 jointVariable.type != inferredType) {
-              jointVariable.initializer = problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: diag.jointPatternVariablesMismatch.withArguments(
-                  variableName: jointVariable.cosmeticName!,
-                ),
-                fileUri: fileUri,
-                fileOffset:
-                    switchCase.jointVariableFirstUseOffsets?[i] ??
-                    // Coverage-ignore(suite): Not run.
-                    jointVariable.fileOffset,
-                length: noLength,
-              )..parent = jointVariable;
+              jointVariable.initializer =
+                  extern.createInvalidExpressionFromErrorText(
+                    problemReporting.buildProblem(
+                      compilerContext: compilerContext,
+                      message: diag.jointPatternVariablesMismatch.withArguments(
+                        variableName: jointVariable.cosmeticName!,
+                      ),
+                      fileUri: fileUri,
+                      fileOffset:
+                          switchCase.jointVariableFirstUseOffsets?[i] ??
+                          // Coverage-ignore(suite): Not run.
+                          jointVariable.fileOffset,
+                      length: noLength,
+                    ),
+                  )..parent = jointVariable;
             }
           }
         }
@@ -13950,14 +14036,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )) {
       return new ExpressionInferenceResult(
         const DynamicType(),
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.throwingNotAssignableToObjectError.withArguments(
-            thrownType: expressionResult.inferredType,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.throwingNotAssignableToObjectError.withArguments(
+              thrownType: expressionResult.inferredType,
+            ),
+            fileUri: fileUri,
+            fileOffset: expression.fileOffset,
+            length: noLength,
           ),
-          fileUri: fileUri,
-          fileOffset: expression.fileOffset,
-          length: noLength,
         ),
       );
     }
@@ -14475,14 +14563,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.integerLiteralIsOutOfRange.withArguments(
-                literal: receiver.literal,
+            Expression error = extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.integerLiteralIsOutOfRange.withArguments(
+                  literal: receiver.literal,
+                ),
+                fileUri: fileUri,
+                fileOffset: receiver.fileOffset,
+                length: receiver.literal.length,
               ),
-              fileUri: fileUri,
-              fileOffset: receiver.fileOffset,
-              length: receiver.literal.length,
             );
             return new ExpressionInferenceResult(const DynamicType(), error);
           }
@@ -16283,7 +16373,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     pushRewrite(
       extern.createInvalidPattern(
-        error: node.invalidExpression,
+        error: extern.createInvalidExpression(
+          node.invalidExpression.message,
+          fileOffset: node.invalidExpression.fileOffset,
+        ),
         declaredVariables: node.declaredVariables,
       ),
     );
@@ -16785,14 +16878,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.isLateFinalWithoutInitializer) {
       if (isDefinitelyAssigned) {
         replacement = extern.createInvalidPattern(
-          error: problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.lateDefinitelyAssignedError.withArguments(
-              variableName: node.variableName,
+          error: extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.lateDefinitelyAssignedError.withArguments(
+                variableName: node.variableName,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: node.variableName.length,
             ),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: node.variableName.length,
           ),
           declaredVariables: node.declaredVariables,
         );
@@ -16800,14 +16895,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (variable.isStaticLate) {
       if (!isDefinitelyUnassigned) {
         replacement = extern.createInvalidPattern(
-          error: problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.finalPossiblyAssignedError.withArguments(
-              variableName: node.variableName,
+          error: extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.finalPossiblyAssignedError.withArguments(
+                variableName: node.variableName,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: node.variableName.length,
             ),
-            fileUri: fileUri,
-            fileOffset: node.fileOffset,
-            length: node.variableName.length,
           ),
           declaredVariables: node.declaredVariables,
         );
@@ -16817,14 +16914,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.hasDeclaredInitializer) {
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
-        error: problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.cannotAssignToFinalVariable.withArguments(
-            variableName: node.variableName,
+        error: extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.cannotAssignToFinalVariable.withArguments(
+              variableName: node.variableName,
+            ),
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: node.variableName.length,
           ),
-          fileUri: fileUri,
-          fileOffset: node.fileOffset,
-          length: node.variableName.length,
         ),
         declaredVariables: node.declaredVariables,
       );
@@ -17285,14 +17384,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         _isPrivateFromAnotherLibrary(cachedContext.typeDeclaration)) {
       return new ExpressionInferenceResult(
         const DynamicType(),
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.dotShorthandsInvalidContext.withArguments(
-            dotShorthandName: node.name.text,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.dotShorthandsInvalidContext.withArguments(
+              dotShorthandName: node.name.text,
+            ),
+            fileUri: fileUri,
+            fileOffset: node.nameOffset,
+            length: node.name.text.length,
           ),
-          fileUri: fileUri,
-          fileOffset: node.nameOffset,
-          length: node.name.text.length,
         ),
       );
     }
@@ -17348,12 +17449,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (constructor != null && node.typeArguments != null) {
         return new ExpressionInferenceResult(
           const DynamicType(),
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.dotShorthandsConstructorInvocationWithTypeArguments,
-            fileUri: fileUri,
-            fileOffset: node.nameOffset,
-            length: node.name.text.length,
+          extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.dotShorthandsConstructorInvocationWithTypeArguments,
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
+            ),
           ),
         );
       }
@@ -17362,12 +17465,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (!constructor.isConst && node.isConst) {
           return new ExpressionInferenceResult(
             const DynamicType(),
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.nonConstConstructor,
-              fileUri: fileUri,
-              fileOffset: node.nameOffset,
-              length: node.name.text.length,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.nonConstConstructor,
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
+              ),
             ),
           );
         }
@@ -17376,14 +17481,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (typeDeclaration is Class && typeDeclaration.isAbstract) {
           return new ExpressionInferenceResult(
             const DynamicType(),
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.abstractClassInstantiation.withArguments(
-                name: typeDeclaration.name,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.abstractClassInstantiation.withArguments(
+                  name: typeDeclaration.name,
+                ),
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
               ),
-              fileUri: fileUri,
-              fileOffset: node.nameOffset,
-              length: node.name.text.length,
             ),
           );
         }
@@ -17424,12 +17531,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           return new ExpressionInferenceResult(
             const DynamicType(),
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.nonConstConstructor,
-              fileUri: fileUri,
-              fileOffset: node.nameOffset,
-              length: node.name.text.length,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.nonConstConstructor,
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
+              ),
             ),
           );
         }
@@ -17507,29 +17616,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (isKnown(cachedContext)) {
       // Error when we can't find the static member or constructor named
       // [node.name] in the declaration of [cachedContext].
-      replacement = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.dotShorthandsUndefinedInvocation.withArguments(
-          memberName: node.name.text,
-          contextType: cachedContext,
+      replacement = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.dotShorthandsUndefinedInvocation.withArguments(
+            memberName: node.name.text,
+            contextType: cachedContext,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.nameOffset,
+          length: node.name.text.length,
         ),
-        fileUri: fileUri,
-        fileOffset: node.nameOffset,
-        length: node.name.text.length,
       );
     } else {
       // Error when no context type or an invalid context type is given to
       // resolve the dot shorthand.
       //
       // e.g. `var x = .one;`
-      replacement = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.dotShorthandsInvalidContext.withArguments(
-          dotShorthandName: node.name.text,
+      replacement = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.dotShorthandsInvalidContext.withArguments(
+            dotShorthandName: node.name.text,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.nameOffset,
+          length: node.name.text.length,
         ),
-        fileUri: fileUri,
-        fileOffset: node.nameOffset,
-        length: node.name.text.length,
       );
     }
     return new ExpressionInferenceResult(const DynamicType(), replacement);
@@ -17556,14 +17669,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         _isPrivateFromAnotherLibrary(cachedContext.typeDeclaration)) {
       return new ExpressionInferenceResult(
         const DynamicType(),
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.dotShorthandsInvalidContext.withArguments(
-            dotShorthandName: node.name.text,
+        extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.dotShorthandsInvalidContext.withArguments(
+              dotShorthandName: node.name.text,
+            ),
+            fileUri: fileUri,
+            fileOffset: node.nameOffset,
+            length: node.name.text.length,
           ),
-          fileUri: fileUri,
-          fileOffset: node.nameOffset,
-          length: node.name.text.length,
         ),
       );
     }
@@ -17614,13 +17729,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (constructor != null && node.hasTypeParameters) {
             return new ExpressionInferenceResult(
               const DynamicType(),
-              problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message:
-                    diag.dotShorthandsConstructorInvocationWithTypeArguments,
-                fileUri: fileUri,
-                fileOffset: node.nameOffset,
-                length: node.name.text.length,
+              extern.createInvalidExpressionFromErrorText(
+                problemReporting.buildProblem(
+                  compilerContext: compilerContext,
+                  message:
+                      diag.dotShorthandsConstructorInvocationWithTypeArguments,
+                  fileUri: fileUri,
+                  fileOffset: node.nameOffset,
+                  length: node.name.text.length,
+                ),
               ),
             );
           }
@@ -17629,12 +17746,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (typeDeclaration is Class && typeDeclaration.isAbstract) {
               return new ExpressionInferenceResult(
                 const DynamicType(),
-                problemReporting.buildProblem(
-                  compilerContext: compilerContext,
-                  message: diag.abstractClassConstructorTearOff,
-                  fileUri: fileUri,
-                  fileOffset: node.nameOffset,
-                  length: node.name.text.length,
+                extern.createInvalidExpressionFromErrorText(
+                  problemReporting.buildProblem(
+                    compilerContext: compilerContext,
+                    message: diag.abstractClassConstructorTearOff,
+                    fileUri: fileUri,
+                    fileOffset: node.nameOffset,
+                    length: node.name.text.length,
+                  ),
                 ),
               );
             }
@@ -17660,15 +17779,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // the declaration of [cachedContext].
           expressionInferenceResult = new ExpressionInferenceResult(
             const DynamicType(),
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.dotShorthandsUndefinedGetter.withArguments(
-                getterName: node.name.text,
-                contextType: cachedContext,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.dotShorthandsUndefinedGetter.withArguments(
+                  getterName: node.name.text,
+                  contextType: cachedContext,
+                ),
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
               ),
-              fileUri: fileUri,
-              fileOffset: node.nameOffset,
-              length: node.name.text.length,
             ),
           );
         } else {
@@ -17678,14 +17799,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // e.g. `var x = .one;`
           expressionInferenceResult = new ExpressionInferenceResult(
             const DynamicType(),
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.dotShorthandsInvalidContext.withArguments(
-                dotShorthandName: node.name.text,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.dotShorthandsInvalidContext.withArguments(
+                  dotShorthandName: node.name.text,
+                ),
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
               ),
-              fileUri: fileUri,
-              fileOffset: node.nameOffset,
-              length: node.name.text.length,
             ),
           );
         }

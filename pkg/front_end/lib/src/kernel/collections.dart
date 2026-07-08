@@ -1105,13 +1105,15 @@ MapLiteralEntry _convertToErroneousMapEntry(
   Uri fileUri,
 ) {
   return intern.createMapLiteralEntry(
-    problemReporting.buildProblem(
-      compilerContext: compilerContext,
-      message: diag.expectedAfterButGot.withArguments(expected: ':'),
-      fileUri: fileUri,
-      fileOffset: element.fileOffset,
-      // TODO(danrubel): what is the length of the expression?
-      length: noLength,
+    intern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: diag.expectedAfterButGot.withArguments(expected: ':'),
+        fileUri: fileUri,
+        fileOffset: element.fileOffset,
+        // TODO(danrubel): what is the length of the expression?
+        length: noLength,
+      ),
     ),
     intern.createNullLiteral(element.fileOffset),
     fileOffset: element.fileOffset,

@@ -579,13 +579,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
-        result = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
+        result = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.voidExpression,
+            fileUri: fileUri,
+            fileOffset: expression.fileOffset,
+            length: noLength,
+          ),
           expression: expression,
-          message: diag.voidExpression,
-          fileUri: fileUri,
-          fileOffset: expression.fileOffset,
-          length: noLength,
         );
         break;
       case AssignabilityKind.unassignableCantTearoff:
@@ -710,15 +712,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isTypeError = true
           ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType) {
-      errorNode = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: errorNode,
-        message: diag.nullableTearoffError.withArguments(
-          methodName: callName.text,
+      errorNode = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.nullableTearoffError.withArguments(
+            methodName: callName.text,
+          ),
+          fileUri: fileUri,
+          fileOffset: errorNode.fileOffset,
+          length: noLength,
         ),
-        fileUri: fileUri,
-        fileOffset: errorNode.fileOffset,
-        length: noLength,
+        expression: errorNode,
       );
     }
     return errorNode;
@@ -747,14 +751,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isTypeError = true
           ..fileOffset = fileOffset ?? expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
-      errorNode = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
+      errorNode = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: message,
+          fileUri: fileUri,
+          fileOffset: errorNode.fileOffset,
+          length: noLength,
+          context: context,
+        ),
         expression: errorNode,
-        message: message,
-        fileUri: fileUri,
-        fileOffset: errorNode.fileOffset,
-        length: noLength,
-        context: context,
       );
     }
     return errorNode;
@@ -1655,14 +1661,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     return new ExpressionInferenceResult(
       result.inferredType,
-      problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
+      extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: message,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: length,
+          context: context,
+        ),
         expression: result.expression,
-        message: message,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: length,
-        context: context,
       ),
     );
   }
@@ -2027,17 +2035,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (seenNames.containsKey(name)) {
             argumentInfo.isDuplicateNamed = true;
             NamedExpression prevNamedExpression = seenNames[name]!;
-            prevNamedExpression.value = problemReporting.wrapInProblem(
-              compilerContext: compilerContext,
+            prevNamedExpression
+                .value = extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.duplicatedNamedArgument.withArguments(name: name),
+                fileUri: fileUri,
+                fileOffset: namedExpression.fileOffset,
+                length: name.length,
+              ),
               expression: _createDuplicateExpression(
                 prevNamedExpression.fileOffset,
                 prevNamedExpression.value,
                 namedExpression.value,
               ),
-              message: diag.duplicatedNamedArgument.withArguments(name: name),
-              fileUri: fileUri,
-              fileOffset: namedExpression.fileOffset,
-              length: name.length,
             )..parent = prevNamedExpression;
           } else {
             seenNames[name] = namedExpression;
@@ -2760,16 +2771,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   extension on int {
           //     void call() {}
           //   }
-          replacement = problemReporting.wrapInProblem(
-            compilerContext: compilerContext,
-            expression: replacement,
-            message: diag.nullableExpressionCallError.withArguments(
-              type: receiverType,
+          replacement = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nullableExpressionCallError.withArguments(
+                type: receiverType,
+              ),
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+              context: context,
             ),
-            fileUri: fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
-            context: context,
+            expression: replacement,
           );
         } else {
           // Handles cases like:
@@ -2779,17 +2792,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   extension on int {
           //     void methodOnNonNullInt() {}
           //   }
-          replacement = problemReporting.wrapInProblem(
-            compilerContext: compilerContext,
-            expression: replacement,
-            message: diag.nullableMethodCallError.withArguments(
-              methodName: name.text,
-              receiverType: receiverType,
+          replacement = extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.nullableMethodCallError.withArguments(
+                methodName: name.text,
+                receiverType: receiverType,
+              ),
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+              length: name.text.length,
+              context: context,
             ),
-            fileUri: fileUri,
-            fileOffset: fileOffset,
-            length: name.text.length,
-            context: context,
+            expression: replacement,
           );
         }
       }
@@ -2901,32 +2916,36 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Handles cases like:
         //   void Function()? f;
         //   f();
-        replacement = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: replacement,
-          message: diag.nullableExpressionCallError.withArguments(
-            type: receiverType,
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableExpressionCallError.withArguments(
+              type: receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
-          context: context,
+          expression: replacement,
         );
       } else {
         // Handles cases like:
         //   void Function()? f;
         //   f.call();
-        replacement = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: replacement,
-          message: diag.nullableMethodCallError.withArguments(
-            methodName: callName.text,
-            receiverType: receiverType,
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableMethodCallError.withArguments(
+              methodName: callName.text,
+              receiverType: receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: callName.text.length,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: callName.text.length,
-          context: context,
+          expression: replacement,
         );
       }
     }
@@ -3186,32 +3205,36 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //   class C {
         //     void call();
         //   }
-        replacement = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: replacement,
-          message: diag.nullableExpressionCallError.withArguments(
-            type: receiverType,
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableExpressionCallError.withArguments(
+              type: receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
-          context: context,
+          expression: replacement,
         );
       } else {
         // Handles cases like:
         //   int? i;
         //   i.abs();
-        replacement = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: replacement,
-          message: diag.nullableMethodCallError.withArguments(
-            methodName: methodName.text,
-            receiverType: receiverType,
+        replacement = extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nullableMethodCallError.withArguments(
+              methodName: methodName.text,
+              receiverType: receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: methodName.text.length,
+            context: context,
           ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: methodName.text.length,
-          context: context,
+          expression: replacement,
         );
       }
     }
@@ -3335,12 +3358,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isExpressionInvocation) {
-      Expression error = problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.implicitCallOfNonMethod.withArguments(type: receiverType),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: noLength,
+      Expression error = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.implicitCallOfNonMethod.withArguments(
+            type: receiverType,
+          ),
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
+        ),
       );
       return new ExpressionInferenceResult(const InvalidType(), error);
     }
@@ -4314,15 +4341,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           String name = variable.lateName ?? variable.cosmeticName!;
           return new ExpressionInferenceResult(
             resultType,
-            problemReporting.wrapInProblem(
-              compilerContext: compilerContext,
-              expression: resultExpression,
-              message: diag.lateDefinitelyUnassignedError.withArguments(
-                variableName: name,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.lateDefinitelyUnassignedError.withArguments(
+                  variableName: name,
+                ),
+                fileUri: fileUri,
+                fileOffset: result.fileOffset,
+                length: name.length,
               ),
-              fileUri: fileUri,
-              fileOffset: result.fileOffset,
-              length: name.length,
+              expression: resultExpression,
             ),
           );
         }
@@ -4331,29 +4360,33 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (variable.isFinal) {
             return new ExpressionInferenceResult(
               resultType,
-              problemReporting.wrapInProblem(
-                compilerContext: compilerContext,
-                expression: resultExpression,
-                message: diag.finalNotAssignedError.withArguments(
-                  variableName: result.variable.cosmeticName!,
+              extern.createInvalidExpressionFromErrorText(
+                problemReporting.buildProblem(
+                  compilerContext: compilerContext,
+                  message: diag.finalNotAssignedError.withArguments(
+                    variableName: result.variable.cosmeticName!,
+                  ),
+                  fileUri: fileUri,
+                  fileOffset: result.fileOffset,
+                  length: result.variable.cosmeticName!.length,
                 ),
-                fileUri: fileUri,
-                fileOffset: result.fileOffset,
-                length: result.variable.cosmeticName!.length,
+                expression: resultExpression,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
             return new ExpressionInferenceResult(
               resultType,
-              problemReporting.wrapInProblem(
-                compilerContext: compilerContext,
-                expression: resultExpression,
-                message: diag.nonNullableNotAssignedError.withArguments(
-                  variableName: result.variable.cosmeticName!,
+              extern.createInvalidExpressionFromErrorText(
+                problemReporting.buildProblem(
+                  compilerContext: compilerContext,
+                  message: diag.nonNullableNotAssignedError.withArguments(
+                    variableName: result.variable.cosmeticName!,
+                  ),
+                  fileUri: fileUri,
+                  fileOffset: result.fileOffset,
+                  length: result.variable.cosmeticName!.length,
                 ),
-                fileUri: fileUri,
-                fileOffset: result.fileOffset,
-                length: result.variable.cosmeticName!.length,
+                expression: resultExpression,
               ),
             );
           }
@@ -4433,15 +4466,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (isDefinitelyAssigned) {
           return new ExpressionInferenceResult(
             resultType,
-            problemReporting.wrapInProblem(
-              compilerContext: compilerContext,
-              expression: resultExpression,
-              message: diag.lateDefinitelyAssignedError.withArguments(
-                variableName: result.variable.cosmeticName!,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.lateDefinitelyAssignedError.withArguments(
+                  variableName: result.variable.cosmeticName!,
+                ),
+                fileUri: fileUri,
+                fileOffset: result.fileOffset,
+                length: result.variable.cosmeticName!.length,
               ),
-              fileUri: fileUri,
-              fileOffset: result.fileOffset,
-              length: result.variable.cosmeticName!.length,
+              expression: resultExpression,
             ),
           );
         }
@@ -4449,15 +4484,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (!isDefinitelyUnassigned) {
           return new ExpressionInferenceResult(
             resultType,
-            problemReporting.wrapInProblem(
-              compilerContext: compilerContext,
-              expression: resultExpression,
-              message: diag.finalPossiblyAssignedError.withArguments(
-                variableName: result.variable.cosmeticName!,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.finalPossiblyAssignedError.withArguments(
+                  variableName: result.variable.cosmeticName!,
+                ),
+                fileUri: fileUri,
+                fileOffset: result.fileOffset,
+                length: result.variable.cosmeticName!.length,
               ),
-              fileUri: fileUri,
-              fileOffset: result.fileOffset,
-              length: result.variable.cosmeticName!.length,
+              expression: resultExpression,
             ),
           );
         }
@@ -4656,16 +4693,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     Expression result;
     if (writeTarget.isNullable) {
-      result = problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: write,
-        message: diag.nullablePropertyAccessError.withArguments(
-          propertyName: propertyName.text,
-          receiverType: receiverType,
+      result = extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.nullablePropertyAccessError.withArguments(
+            propertyName: propertyName.text,
+            receiverType: receiverType,
+          ),
+          fileUri: fileUri,
+          fileOffset: write.fileOffset,
+          length: propertyName.text.length,
         ),
-        fileUri: fileUri,
-        fileOffset: write.fileOffset,
-        length: propertyName.text.length,
+        expression: write,
       );
     } else {
       result = write;
@@ -5119,29 +5158,33 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       template = ambiguousTemplate;
     }
     if (wrappedExpression != null) {
-      return problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: wrappedExpression,
-        message: template.withArguments(
-          name: name.text,
-          type: receiverType.nonTypeParameterBound,
+      return extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: template.withArguments(
+            name: name.text,
+            type: receiverType.nonTypeParameterBound,
+          ),
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: length,
+          context: context,
         ),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: length,
-        context: context,
+        expression: wrappedExpression,
       );
     } else {
-      return problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: template.withArguments(
-          name: name.text,
-          type: receiverType.nonTypeParameterBound,
+      return extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: template.withArguments(
+            name: name.text,
+            type: receiverType.nonTypeParameterBound,
+          ),
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: length,
+          context: context,
         ),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: length,
-        context: context,
       );
     }
   }
@@ -5163,31 +5206,35 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (implicitInvocationPropertyName != null) {
       assert(extensionAccessCandidates == null);
       if (receiver != null) {
-        return problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
+        return extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.invokeNonFunction.withArguments(
+              name: implicitInvocationPropertyName.text,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: implicitInvocationPropertyName.text.length,
+          ),
           expression: _createInvalidInvocation(
             fileOffset,
             receiver,
             name,
             arguments!,
           ),
-          message: diag.invokeNonFunction.withArguments(
-            name: implicitInvocationPropertyName.text,
-          ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: implicitInvocationPropertyName.text.length,
         );
       } else {
         // Coverage-ignore-block(suite): Not run.
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.invokeNonFunction.withArguments(
-            name: implicitInvocationPropertyName.text,
+        return extern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.invokeNonFunction.withArguments(
+              name: implicitInvocationPropertyName.text,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: implicitInvocationPropertyName.text.length,
           ),
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: implicitInvocationPropertyName.text.length,
         );
       }
     } else {
@@ -5669,15 +5716,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ? '0x${asDouble.toRadixString(16)}'
         : asDouble.toString();
     int length = literal?.length ?? noLength;
-    return problemReporting.buildProblem(
-      compilerContext: compilerContext,
-      message: diag.webLiteralCannotBeRepresentedExactly.withArguments(
-        integerLiteral: text,
-        nearestJsValue: nearest,
+    return extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: diag.webLiteralCannotBeRepresentedExactly.withArguments(
+          integerLiteral: text,
+          nearestJsValue: nearest,
+        ),
+        fileUri: fileUri,
+        fileOffset: charOffset,
+        length: length,
       ),
-      fileUri: fileUri,
-      fileOffset: charOffset,
-      length: length,
     );
   }
 

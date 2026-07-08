@@ -59,7 +59,7 @@ abstract class ExpressionGeneratorHelper {
 
   ExtensionScope get extensionScope;
 
-  InvalidExpression buildProblem({
+  InternalInvalidExpression buildProblem({
     required Message message,
     required Uri fileUri,
     required int fileOffset,
@@ -132,7 +132,7 @@ abstract class ExpressionGeneratorHelper {
     required int fileOffset,
   });
 
-  InvalidExpression buildUnresolvedError(
+  InternalInvalidExpression buildUnresolvedError(
     String name,
     int fileOffset, {
     bool isSuper,
