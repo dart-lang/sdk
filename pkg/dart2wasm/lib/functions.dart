@@ -174,6 +174,7 @@ class FunctionCollector {
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
+        function.isJSCalled = true;
         module.exports.export(exportName, function);
       }
 
