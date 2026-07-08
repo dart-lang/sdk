@@ -458,15 +458,18 @@ class PendingAnnotations(
 
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
-  final Annotatable target, [
-  final List<int>? indicesOfAnnotationsToBeInferred,
-]);
+  final Annotatable target,
+  final List<Expression> annotations,
+);
 
 /// A multiple targets holding annotations to be inferred.
 ///
 /// The annotations are on the first target and needs to be cloned to the
 /// subsequent targets after inference.
-class MultiTargetAnnotations(final List<Annotatable> targets);
+class MultiTargetAnnotations(
+  final List<Annotatable> targets,
+  final List<Expression> annotations,
+);
 
 class BuildInitializersResult(
   final List<InternalInitializer> initializers,

@@ -404,10 +404,12 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    expression = problemReporting.wrapInLocatedProblem(
-      compilerContext: compilerContext,
+    expression = extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblemFromLocatedMessage(
+        compilerContext: compilerContext,
+        message: message,
+      ),
       expression: expression,
-      message: message,
     );
     List<SyntheticVariable>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {

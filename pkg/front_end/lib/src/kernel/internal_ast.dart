@@ -336,7 +336,7 @@ class InternalRegularSwitchStatement extends InternalStatement
 sealed class InternalGotoStatement implements InternalStatement {
   /// If this statement is erroneous, [error] holds the invalid expression
   /// to be used in its place.
-  abstract InvalidExpression? error;
+  abstract InternalInvalidExpression? error;
 }
 
 class InternalBreakStatement extends InternalStatement
@@ -346,7 +346,7 @@ class InternalBreakStatement extends InternalStatement
   late InternalLabeledStatement target;
 
   @override
-  InvalidExpression? error;
+  InternalInvalidExpression? error;
 
   new({required this.label, required int fileOffset}) {
     this.fileOffset = fileOffset;
@@ -381,7 +381,7 @@ class InternalContinueStatement extends InternalStatement
   late InternalLabeledStatement target;
 
   @override
-  InvalidExpression? error;
+  InternalInvalidExpression? error;
 
   new({required this.label, required int fileOffset}) {
     this.fileOffset = fileOffset;
@@ -1889,14 +1889,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   }
 
   bool get hasInitializer => _astVariable.initializer != null;
-
-  void addAnnotation(Expression annotation) {
-    _astVariable.addAnnotation(annotation);
-  }
-
-  void clearAnnotations() {
-    _astVariable.clearAnnotations();
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -5736,7 +5728,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   /// Error that must be emitted prior to the generated for-in statement.
   ///
   /// This is used for instance for constant loop variables.
-  final InvalidExpression? error;
+  final InternalInvalidExpression? error;
 
   /// If the assignment to [_variable] needs additional steps, like
   /// a type coercion, this holds a synthetic variable declaration used as an
@@ -5811,7 +5803,12 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
     required Variable loopVariable,
   }) {
     return new ForInEncoding(
-      preLoopError: error,
+      preLoopError: error != null
+          ? extern.createInvalidExpression(
+              error!.message,
+              fileOffset: error!.fileOffset,
+            )
+          : null,
       bodyPrologue: _variableForSideEffect != null
           ? extern.createVariableStatement(_variableForSideEffect!)
           : null,
@@ -5845,7 +5842,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   final List<InternalVariableDeclaration> variableDeclarations;
 
   /// The error that should be emitted prior to the for-in statement.
-  final InvalidExpression error;
+  final InternalInvalidExpression error;
 
   new({required this.variableDeclarations, required this.error});
 
@@ -5880,7 +5877,10 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
     required Variable loopVariable,
   }) {
     return new ForInEncoding(
-      preLoopError: error,
+      preLoopError: extern.createInvalidExpression(
+        error.message,
+        fileOffset: error.fileOffset,
+      ),
       bodyPrologue: extern.createBlock([
         for (InternalVariableDeclaration variableDeclaration
             in variableDeclarations)
@@ -5912,7 +5912,7 @@ class UnassignableForInElement extends _BaseForInElement {
   final Expression expression;
 
   /// The error that should be emitted prior to the for-in statement.
-  final InvalidExpression error;
+  final InternalInvalidExpression error;
 
   new({required this.expression, required this.error});
 
@@ -5932,7 +5932,10 @@ class UnassignableForInElement extends _BaseForInElement {
     required Variable loopVariable,
   }) {
     return new ForInEncoding(
-      preLoopError: error,
+      preLoopError: extern.createInvalidExpression(
+        error.message,
+        fileOffset: error.fileOffset,
+      ),
       bodyPrologue: extern.createBlock([
         extern.createExpressionStatement(
           visitor.inferExpression(expression, const UnknownType()).expression,
@@ -5997,7 +6000,7 @@ class PatternForInElement extends InternalForInElement {
 /// For-in element for an erroneous expression.
 class InvalidForInElement extends _BaseForInElement {
   /// The error for the erroneous expression.
-  final InvalidExpression error;
+  final InternalInvalidExpression error;
 
   /// The file offset of the `in` keyword.
   final int inOffset;
@@ -6021,7 +6024,12 @@ class InvalidForInElement extends _BaseForInElement {
   }) {
     return new ForInEncoding(
       bodyPrologue: extern.createBlock([
-        extern.createExpressionStatement(error),
+        extern.createExpressionStatement(
+          extern.createInvalidExpression(
+            error.message,
+            fileOffset: error.fileOffset,
+          ),
+        ),
       ], fileOffset: TreeNode.noOffset),
     );
   }
@@ -6051,7 +6059,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   /// Error that must be emitted prior to the generated for-in statement.
   ///
   /// This is used for instance for a final local variable.
-  final InvalidExpression? error;
+  final InternalInvalidExpression? error;
 
   new({
     required this.variable,
@@ -6083,7 +6091,12 @@ class ExistingVariableForInElement extends _BaseForInElement {
       variableType: variable.type,
       rhsResult: new ExpressionInferenceResult(
         loopVariable.type,
-        error ?? extern.createVariableGet(loopVariable),
+        error != null
+            ? extern.createInvalidExpression(
+                error!.message,
+                fileOffset: error!.fileOffset,
+              )
+            : extern.createVariableGet(loopVariable),
       ),
       assignOffset: inOffset,
       nameOffset: nameOffset,
@@ -6909,7 +6922,7 @@ class InternalCastPattern extends InternalPattern {
 }
 
 class InternalInvalidPattern extends InternalPattern {
-  final Expression invalidExpression;
+  final InternalInvalidExpression invalidExpression;
 
   @override
   final List<InternalDeclaredVariable> declaredVariables;
@@ -7904,7 +7917,7 @@ class InternalContinueSwitchStatement extends InternalStatement
   late InternalSwitchCase target;
 
   @override
-  InvalidExpression? error;
+  InternalInvalidExpression? error;
 
   new({required int fileOffset}) {
     this.fileOffset = fileOffset;
@@ -9021,7 +9034,6 @@ class InternalInstantiation extends InternalExpression {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class InternalInvalidExpression extends InternalExpression {
   final String message;
   final Expression? expression;
@@ -9040,6 +9052,7 @@ class InternalInvalidExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
     printer.write(message);

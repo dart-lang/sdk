@@ -84,10 +84,10 @@ abstract class TypeInferrer {
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<int>? indices,
+    required List<Expression> annotations,
   });
 
   /// Performs type inference on the given function parameter default value
@@ -447,18 +447,23 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<int>? indices,
+    required List<Expression> annotations,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
-    visitor.inferMetadata(visitor, annotatable, indices: indices);
+    List<Expression> result = visitor.inferMetadata(
+      visitor,
+      annotatable,
+      annotations,
+    );
     visitor.checkCleanState();
+    return result;
   }
 
   @override
@@ -607,18 +612,19 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  void inferMetadata({
+  List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<int>? indices,
+    required List<Expression> annotations,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
-    impl.inferMetadata(
+    List<Expression> result = impl.inferMetadata(
       fileUri: fileUri,
       annotatable: annotatable,
-      indices: indices,
+      annotations: annotations,
     );
     benchmarker.endSubdivide();
+    return result;
   }
 
   @override

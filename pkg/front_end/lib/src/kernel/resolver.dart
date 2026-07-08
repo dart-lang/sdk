@@ -112,8 +112,8 @@ class Resolver {
       formalParameterScope: null,
       internalThisVariable: null,
     );
-    List<int> indicesOfAnnotationsToBeInferred = [];
 
+    List<Expression> annotationsToBeInferred = [];
     for (Annotation annotation in annotations) {
       Expression expression = bodyBuilder.buildAnnotation(
         atToken: annotation.atToken,
@@ -125,30 +125,22 @@ class Resolver {
           fileOffset: annotation.metadataBuilder.atOffset,
         );
       }
-      // Record the index of [annotation] in `annotatable.annotations` in order
-      // to perform inference only on the new annotations, and to be able to
-      // store inferred [Expression] to the corresponding [MetadataBuilder]
-      // after inference.
-      int annotationIndex = annotation.annotationIndex =
-          annotatable.annotations.length;
-      indicesOfAnnotationsToBeInferred.add(annotationIndex);
       // It is important for the inference and backlog computations that the
       // annotation is already a child of [parent].
       // TODO(johnniwinther): Is the parent relation still needed?
-      annotatable.addAnnotation(expression);
+      annotationsToBeInferred.add(expression);
     }
-    context.inferSingleTargetAnnotation(
+    List<Expression> inferredAnnotations = context.inferSingleTargetAnnotation(
       singleTarget: new SingleTargetAnnotations(
         annotatable,
-        indicesOfAnnotationsToBeInferred,
+        annotationsToBeInferred,
       ),
     );
     // TODO(johnniwinther): We need to process annotations within annotations.
     context.performBacklog(null);
 
-    for (Annotation annotation in annotations) {
-      annotation.expression =
-          annotatable.annotations[annotation.annotationIndex];
+    for (int index = 0; index < annotations.length; index++) {
+      annotations[index].expression = inferredAnnotations[index];
     }
   }
 
@@ -607,13 +599,12 @@ class Resolver {
     // used.
     // TODO(johnniwinther): Do we still need this.
 
-    for (Expression expression in result.expressions) {
-      annotatable.addAnnotation(expression);
-    }
-    context.inferSingleTargetAnnotation(
-      singleTarget: new SingleTargetAnnotations(annotatable),
+    List<Expression> expressions = context.inferSingleTargetAnnotation(
+      singleTarget: new SingleTargetAnnotations(
+        annotatable,
+        result.expressions,
+      ),
     );
-    List<Expression> expressions = annotatable.annotations;
     context.performBacklog(result.annotations);
     return expressions;
   }
@@ -1071,7 +1062,7 @@ class Resolver {
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
-    Expression? result = problemReporting.checkStaticArguments(
+    ErrorText? errorText = problemReporting.checkStaticArguments(
       compilerContext: compilerContext,
       target: target,
       explicitTypeArguments: typeArguments,
@@ -1079,18 +1070,20 @@ class Resolver {
       fileOffset: fileOffset,
       fileUri: fileUri,
     );
-    if (result != null) {
-      return result;
+    if (errorText != null) {
+      return intern.createInvalidExpressionFromErrorText(errorText);
     }
 
     if (target is Constructor) {
       if (!target.isConst) {
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonConstConstructor,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
         );
       }
       Expression node = new InternalConstructorInvocation(
@@ -1115,12 +1108,14 @@ class Resolver {
       // Coverage-ignore-block(suite): Not run.
       Procedure procedure = target as Procedure;
       if (!procedure.isConst) {
-        return problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: diag.nonConstConstructor,
-          fileUri: fileUri,
-          fileOffset: fileOffset,
-          length: noLength,
+        return intern.createInvalidExpressionFromErrorText(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: diag.nonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          ),
         );
       }
       FactoryConstructorInvocation node = new FactoryConstructorInvocation(
@@ -1159,13 +1154,15 @@ class Resolver {
     LocatedMessage message = diag.constructorNotFound
         .withArguments(name: name)
         .withLocation(fileUri, fileOffset, length);
-    return problemReporting.buildProblem(
-      compilerContext: compilerContext,
-      message: message.messageObject,
-      fileUri: fileUri,
-      fileOffset: message.charOffset,
-      length: message.length,
-      errorHasBeenReported: false,
+    return extern.createInvalidExpressionFromErrorText(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: message.messageObject,
+        fileUri: fileUri,
+        fileOffset: message.charOffset,
+        length: message.length,
+        errorHasBeenReported: false,
+      ),
     );
   }
 
@@ -1560,12 +1557,14 @@ class Resolver {
       if (bodyBuilderContext.isExternalFunction || isNoSuchMethodForwarder) {
         inferredBody = new Block(<Statement>[
           new ExpressionStatement(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: diag.externalMethodWithBody,
-              fileUri: fileUri,
-              fileOffset: inferredBody.fileOffset,
-              length: noLength,
+            extern.createInvalidExpressionFromErrorText(
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: diag.externalMethodWithBody,
+                fileUri: fileUri,
+                fileOffset: inferredBody.fileOffset,
+                length: noLength,
+              ),
             ),
           )..fileOffset = inferredBody.fileOffset,
           inferredBody,

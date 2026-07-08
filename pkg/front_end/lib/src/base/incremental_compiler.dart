@@ -36,6 +36,7 @@ import 'package:kernel/kernel.dart'
         Field,
         FunctionNode,
         InterfaceType,
+        InvalidExpression,
         Library,
         LibraryDependency,
         LibraryPart,
@@ -2693,16 +2694,16 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   ) {
     return new ExpressionInferenceResult(
       variable.type,
-      problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: node,
-        message: diag.expressionEvaluationKnownVariableUnavailable
-            .withArguments(variableName: variable.cosmeticName!),
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        length: variable.cosmeticName!.length,
-        errorHasBeenReported: false,
-        includeExpression: false,
+      extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.expressionEvaluationKnownVariableUnavailable
+              .withArguments(variableName: variable.cosmeticName!),
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: variable.cosmeticName!.length,
+          errorHasBeenReported: node is InvalidExpression,
+        ),
       ),
     );
   }

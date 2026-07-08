@@ -624,7 +624,10 @@ for (a in null) {}''',
   testStatement(
     new InternalForInStatement(
       new InvalidForInElement(
-        error: new InvalidExpression('error'),
+        error: new InternalInvalidExpression(
+          'error',
+          fileOffset: TreeNode.noOffset,
+        ),
         inOffset: -1,
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
@@ -688,7 +691,10 @@ for (a in null) {}''',
     new InternalForInStatement(
       new UnassignableForInElement(
         expression: new InternalNullLiteral(fileOffset: TreeNode.noOffset),
-        error: new InvalidExpression('error'),
+        error: new InternalInvalidExpression(
+          'error',
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
@@ -725,7 +731,10 @@ for (null in null) {}''',
             ),
           ),
         ],
-        error: new InvalidExpression('error'),
+        error: new InternalInvalidExpression(
+          'error',
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
@@ -762,7 +771,10 @@ for (var a, b in null) {}''',
             ),
           ),
         ],
-        error: new InvalidExpression('error'),
+        error: new InternalInvalidExpression(
+          'error',
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(

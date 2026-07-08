@@ -6,7 +6,7 @@ package:analysis_server_plugin/edit/assist/assist.dart:
     kind (getter: AssistKind)
     toString (method: String Function())
   AssistKind (class extends Object):
-    new (constructor: AssistKind Function(String, int, String))
+    new (const constructor: AssistKind Function(String, int, String))
     id (getter: String)
     message (getter: String)
     priority (getter: int)
@@ -114,11 +114,11 @@ package:analysis_server_plugin/edit/change_builder/change_builder.dart:
     write (method: void Function(String))
     writeln (method: void Function([String]))
   LinkedEditSuggestionKind (enum):
-    METHOD (static getter: LinkedEditSuggestionKind)
-    PARAMETER (static getter: LinkedEditSuggestionKind)
-    TYPE (static getter: LinkedEditSuggestionKind)
-    VARIABLE (static getter: LinkedEditSuggestionKind)
-    values (static getter: List<LinkedEditSuggestionKind>)
+    METHOD (enum constant: LinkedEditSuggestionKind)
+    PARAMETER (enum constant: LinkedEditSuggestionKind)
+    TYPE (enum constant: LinkedEditSuggestionKind)
+    VARIABLE (enum constant: LinkedEditSuggestionKind)
+    values (static const getter: List<LinkedEditSuggestionKind>)
     fromJson (constructor: LinkedEditSuggestionKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
@@ -195,12 +195,12 @@ package:analysis_server_plugin/edit/correction_utils.dart:
     new (constructor: TokenUtils Function())
 package:analysis_server_plugin/edit/dart/correction_producer.dart:
   CorrectionApplicability (enum):
-    acrossFiles (static getter: CorrectionApplicability)
-    acrossSingleFile (static getter: CorrectionApplicability)
-    automatically (static getter: CorrectionApplicability)
-    automaticallyButOncePerFile (static getter: CorrectionApplicability)
-    singleLocation (static getter: CorrectionApplicability)
-    values (static getter: List<CorrectionApplicability>)
+    acrossFiles (enum constant: CorrectionApplicability)
+    acrossSingleFile (enum constant: CorrectionApplicability)
+    automatically (enum constant: CorrectionApplicability)
+    automaticallyButOncePerFile (enum constant: CorrectionApplicability)
+    singleLocation (enum constant: CorrectionApplicability)
+    values (static const getter: List<CorrectionApplicability>)
   CorrectionProducer (class<T extends ParsedUnitResult> extends _AbstractCorrectionProducer<T>, sealed (immediate subtypes: ParsedCorrectionProducer, ResolvedCorrectionProducer)):
     applicability (getter: CorrectionApplicability)
     assistArguments (getter: List<String>?)
@@ -261,9 +261,9 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
   _AbstractCorrectionProducer (non-public)
 package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart:
   DartFixKindPriority (class extends Object, abstract, final):
-    ignore (static getter: int)
-    inFile (static getter: int)
-    standard (static getter: int)
+    ignore (static const getter: int)
+    inFile (static const getter: int)
+    standard (static const getter: int)
 package:analysis_server_plugin/edit/fix/dart_fix_context.dart:
   DartFixContext (class extends Object implements FixContext):
     new (constructor: DartFixContext Function({bool autoTriggered, CorrectionUtils? correctionUtils, required Diagnostic error, required InstrumentationService instrumentationService, required ResolvedLibraryResult libraryResult, required ResolvedUnitResult unitResult, required ChangeWorkspace workspace}))
@@ -285,7 +285,7 @@ package:analysis_server_plugin/edit/fix/fix.dart:
     kind (getter: FixKind)
     toString (method: String Function())
   FixKind (class extends Object):
-    new (constructor: FixKind Function(String, int, String))
+    new (const constructor: FixKind Function(String, int, String))
     hashCode (getter: int)
     id (getter: String)
     message (getter: String)
